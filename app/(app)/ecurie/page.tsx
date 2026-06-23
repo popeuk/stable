@@ -10,6 +10,7 @@ import { CopiloteNote } from "@/components/ed/copilote";
 import { Sparkline } from "@/components/ui/sparkline";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useHorses } from "@/lib/hooks/use-horses";
+import { useSettingsStore } from "@/stores/settings-store";
 import { formatEur } from "@/lib/utils/format-currency";
 import { cn } from "@/lib/utils/cn";
 
@@ -25,6 +26,7 @@ export default function EcuriePage() {
 
 function Ecurie() {
   const horses = useHorses();
+  const capacity = useSettingsStore((s) => s.capacity);
   const [sort, setSort] = useState<Sort>("marge");
   const [galaxy, setGalaxy] = useState(false);
 
@@ -39,7 +41,19 @@ function Ecurie() {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">Mon écurie</h1>
+        <div>
+          <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">Mon écurie</h1>
+          <Explain k="taux_occupation" variant="plain" className="mt-0.5 block text-left">
+            <span className="text-[13px] font-semibold text-tertiary">
+              {horses.length} / {capacity} places
+              {horses.length < capacity && (
+                <span className="ml-1.5 text-[var(--accent-primary)]">
+                  · {capacity - horses.length} libre{capacity - horses.length > 1 ? "s" : ""}
+                </span>
+              )}
+            </span>
+          </Explain>
+        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setGalaxy((g) => !g)}

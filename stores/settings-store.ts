@@ -11,10 +11,13 @@ export interface NotificationPrefs {
 
 interface SettingsState {
   notifications: NotificationPrefs;
+  /** Number of stalls the stable can host — drives occupancy advice. */
+  capacity: number;
   toggle: (key: keyof NotificationPrefs) => void;
+  setCapacity: (n: number) => void;
 }
 
-/** Granular, opt-in notification preferences (spec 1.3 / 9.4). */
+/** Granular, opt-in notification preferences (spec 1.3 / 9.4) + stable config. */
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
@@ -23,11 +26,13 @@ export const useSettingsStore = create<SettingsState>()(
         monthlyAudit: true,
         horseAlerts: true,
       },
+      capacity: 12,
       toggle: (key) =>
         set((s) => ({
           notifications: { ...s.notifications, [key]: !s.notifications[key] },
         })),
+      setCapacity: (n) => set({ capacity: Math.max(1, Math.min(60, Math.round(n))) }),
     }),
-    { name: "be-stable-settings", version: 1 },
+    { name: "be-stable-settings", version: 2 },
   ),
 );

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Moon, Sun, RotateCcw, Bell, Tags, ChevronRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { useDataStore } from "@/stores/data-store";
+import { useSettingsStore } from "@/stores/settings-store";
 
 export default function ParametresPage() {
   return (
@@ -19,6 +20,8 @@ function Parametres() {
   const activeHorses = useDataStore(
     (s) => s.horses.filter((h) => !h.isArchived).length,
   );
+  const capacity = useSettingsStore((s) => s.capacity);
+  const setCapacity = useSettingsStore((s) => s.setCapacity);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
@@ -51,6 +54,28 @@ function Parametres() {
         <Row label="Nom de l'écurie" value="Écurie démo" />
         <Row label="Type" value="Pension simple" />
         <Row label="Chevaux actifs" value={`${activeHorses}`} />
+        <div className="flex items-center justify-between py-3">
+          <span className="text-sm text-secondary">Capacité d&apos;accueil</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setCapacity(capacity - 1)}
+              aria-label="moins"
+              className="flex size-7 items-center justify-center border border-[var(--border-strong)] text-primary"
+            >
+              −
+            </button>
+            <span className="w-8 text-center text-sm font-bold tabular-nums text-primary">
+              {capacity}
+            </span>
+            <button
+              onClick={() => setCapacity(capacity + 1)}
+              aria-label="plus"
+              className="flex size-7 items-center justify-center border border-[var(--border-strong)] text-primary"
+            >
+              +
+            </button>
+          </div>
+        </div>
       </Section>
 
       <Section title="Apparence">

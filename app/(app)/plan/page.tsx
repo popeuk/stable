@@ -10,6 +10,7 @@ import { CopiloteNote } from "@/components/ed/copilote";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useCoachStore } from "@/stores/coach-store";
+import { useSettingsStore } from "@/stores/settings-store";
 import { generateRecommendations } from "@/lib/domain/recommendations";
 import { periodKey } from "@/lib/utils/period";
 import { LESSON_KEYS } from "@/content/lessons";
@@ -36,8 +37,12 @@ function Plan() {
   const data = useDataStore();
   const active = usePeriodStore((s) => s.active);
   const { actions, seenLessons, commit, complete, drop, reopen } = useCoachStore();
+  const capacity = useSettingsStore((s) => s.capacity);
 
-  const recos = useMemo(() => generateRecommendations(data, active), [data, active]);
+  const recos = useMemo(
+    () => generateRecommendations(data, active, capacity),
+    [data, active, capacity],
+  );
   const engagedIds = new Set(actions.filter((a) => a.status === "engaged").map((a) => a.recoId));
   const toDecide = recos.filter((r) => !engagedIds.has(r.id));
   const engaged = actions.filter((a) => a.status === "engaged");
@@ -94,7 +99,8 @@ function Plan() {
                   <p className="text-[15px] font-bold leading-snug text-primary">{r.title}</p>
                   {r.expectedImpact > 0 && (
                     <span className="shrink-0 whitespace-nowrap bg-[var(--c-success-soft)] px-2 py-1 text-[12px] font-extrabold text-[var(--c-success)]">
-                      +{formatEur(r.expectedImpact)}/mois
+                      {r.impactKind === "potentiel" ? "≈ " : "+"}
+                      {formatEur(r.expectedImpact)}/mois
                     </span>
                   )}
                 </div>

@@ -7,6 +7,7 @@ import { Check, FlaskConical, ArrowRight, Sparkles } from "lucide-react";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useCoachStore } from "@/stores/coach-store";
+import { useSettingsStore } from "@/stores/settings-store";
 import { generateRecommendations } from "@/lib/domain/recommendations";
 import { periodKey } from "@/lib/utils/period";
 import { formatEur } from "@/lib/utils/format-currency";
@@ -20,8 +21,12 @@ export function CoachSection() {
   const commit = useCoachStore((s) => s.commit);
   const complete = useCoachStore((s) => s.complete);
   const drop = useCoachStore((s) => s.drop);
+  const capacity = useSettingsStore((s) => s.capacity);
 
-  const recos = useMemo(() => generateRecommendations(data, active), [data, active]);
+  const recos = useMemo(
+    () => generateRecommendations(data, active, capacity),
+    [data, active, capacity],
+  );
   const engagedIds = new Set(actions.filter((a) => a.status === "engaged").map((a) => a.recoId));
   const proposed = recos.filter((r) => !engagedIds.has(r.id)).slice(0, 2);
   const engaged = actions.filter((a) => a.status === "engaged").slice(0, 3);
@@ -94,7 +99,8 @@ export function CoachSection() {
               <p className="text-[15px] font-bold leading-snug text-primary">{r.title}</p>
               {r.expectedImpact > 0 && (
                 <span className="shrink-0 whitespace-nowrap bg-[var(--c-success-soft)] px-2 py-1 text-[12px] font-extrabold text-[var(--c-success)]">
-                  +{formatEur(r.expectedImpact)}/mois
+                  {r.impactKind === "potentiel" ? "≈ " : "+"}
+                  {formatEur(r.expectedImpact)}/mois
                 </span>
               )}
             </div>

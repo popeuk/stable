@@ -61,6 +61,26 @@ export const LESSONS: Record<string, Lesson> = {
       return `Ce mois, tu gardes ${formatEur(p.netResult)} sur ${formatEur(p.revenue)} encaissés, soit ${formatPct(pct)} de rentabilité.`;
     },
   },
+  taux_occupation: {
+    key: "taux_occupation",
+    title: "Le taux d'occupation",
+    definition: "La part de tes places réellement occupées — ton premier levier de rentabilité.",
+    whatToDo: [
+      "Une place vide coûte presque autant qu'une pleine : tes charges fixes tournent quand même.",
+      "Remplir une place ajoute du revenu ET dilue tes coûts fixes : c'est un double effet sur ta marge.",
+    ],
+    related: ["charges_mutualisees", "rentabilite"],
+  },
+  negocier_charges: {
+    key: "negocier_charges",
+    title: "Quelles charges se négocient",
+    definition: "Certaines charges sont des leviers, d'autres sont fixes par contrat.",
+    whatToDo: [
+      "Négociables : foin, granulés, litière, énergie, assurance, fournitures.",
+      "Fixes : salaires et loyer. On les allège en remplissant l'écurie, pas en les coupant.",
+    ],
+    related: ["depenses", "taux_occupation"],
+  },
   marge_brute: {
     key: "marge_brute",
     title: "La marge brute",
