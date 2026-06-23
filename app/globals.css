@@ -143,3 +143,31 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ============================================================
+   Prototype skin "play" — direction visuelle inspirée Macadam
+   (scopée à /proto, n'affecte pas l'app existante).
+   ============================================================ */
+.proto-skin {
+  --p-purple: #7c79f2;
+  --p-purple-deep: #5a57e0;
+  --p-lime: #e6f25a;
+  --p-mint: #a8efc6;
+  --p-peach: #fbe2ce;
+  --p-pink: #f7d2e4;
+  --p-ink: #141414;
+  --p-card: #ffffff;
+  --p-coin: #f5c542;
+  --p-muted: #8a8a8a;
+  --p-page: #f3f1ec;
+  color: var(--p-ink);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+}
+
+.proto-disp {
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -0.015em;
+  line-height: 0.92;
+}
+
