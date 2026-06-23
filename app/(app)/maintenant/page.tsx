@@ -1,20 +1,28 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
-import { ChevronRight, AlertTriangle, ArrowUpRight } from "lucide-react";
+import { ChevronRight, AlertTriangle } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Sparkline } from "@/components/ui/sparkline";
 import { Explain } from "@/components/ed/explain";
 import { CopiloteNote } from "@/components/ed/copilote";
 import { SectionHead } from "@/components/ed/atoms";
+import { RangeSelector } from "@/components/ed/range-selector";
+import { InsightsCarousel } from "@/components/ed/insights-carousel";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useHorses } from "@/lib/hooks/use-horses";
-import { stableMarginSeries, stablePnl } from "@/lib/domain/calculations";
+import {
+  aggregateStablePnl,
+  aggregateHorseNet,
+  expenseBreakdown,
+  stableMarginSeries,
+} from "@/lib/domain/calculations";
 import { pickNotion } from "@/lib/domain/notion";
 import { LESSONS } from "@/content/lessons";
+import { RANGE_PRESETS, rangePeriods } from "@/lib/utils/period";
 import { formatLongDate } from "@/lib/utils/format-date";
-import { formatEur } from "@/lib/utils/format-currency";
 
 function eur(n: number) {
   const v = new Intl.NumberFormat("fr-FR").format(Math.round(Math.abs(n)));
@@ -31,77 +39,115 @@ export default function MaintenantPage() {
 
 function Maintenant() {
   const data = useDataStore();
-  const period = usePeriodStore((s) => s.active);
-  const horses = useHorses();
+  const active = usePeriodStore((s) => s.active);
+  const preset = usePeriodStore((s) => s.preset);
+  const periods = useMemo(() => rangePeriods(active, preset), [active, preset]);
+  const allHorses = useHorses();
 
-  const pnl = stablePnl(data, period);
-  const series = stableMarginSeries(data, period, 12);
-  const charges = pnl.directCosts + pnl.sharedCosts;
-  const positive = pnl.netResult >= 0;
-  const marginPct = pnl.revenue > 0 ? Math.round((pnl.netResult / pnl.revenue) * 100) : 0;
+  const agg = aggregateStablePnl(data, periods);
+  const positive = agg.netResult >= 0;
+  const series = stableMarginSeries(data, active, 12);
+  const breakdown = expenseBreakdown(data, periods).slice(0, 5);
+  const biggest = breakdown[0];
 
-  const underThreshold = horses.filter((h) => h.pnl.netResult < 0);
-  const declining = horses.filter((h) => h.trend === "baisse");
-  const best = horses[0];
-  const worst = horses[horses.length - 1];
+  const ranked = data.horses
+    .filter((h) => !h.isArchived)
+    .map((h) => ({ horse: h, net: aggregateHorseNet(data, h.id, periods) }))
+    .sort((a, b) => b.net - a.net);
+  const best = ranked[0];
+  const worst = ranked[ranked.length - 1];
+  const underThreshold = ranked.filter((r) => r.net < 0);
+  const declining = allHorses.filter((h) => h.trend === "baisse");
 
-  const notionKey = pickNotion(data, period);
+  const periodLabel =
+    preset === "month" ? "ce mois" : RANGE_PRESETS.find((r) => r.value === preset)!.label.toLowerCase();
+
+  const notionKey = pickNotion(data, active);
   const notion = LESSONS[notionKey];
+  const maxSlice = Math.max(1, ...breakdown.map((b) => b.amount));
 
   return (
     <div className="space-y-5">
       <header>
-        <p className="text-[13px] font-semibold capitalize text-tertiary">
-          {formatLongDate(new Date())}
-        </p>
+        <p className="text-[13px] font-semibold capitalize text-tertiary">{formatLongDate(new Date())}</p>
         <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">Bonjour.</h1>
       </header>
 
-      {/* Hero — ce que tu gardes, tappable pour comprendre */}
+      <RangeSelector />
+
+      {/* Hero — rentabilité */}
       <section className="border border-[var(--border-strong)] bg-elevated">
         <div className="px-5 pb-4 pt-4">
           <Explain k="marge_nette" className="text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
-            Ce mois, tu gardes
+            Ce que tu gardes ({periodLabel})
           </Explain>
           <p
             className="mt-1 font-[family-name:var(--font-fraunces)] text-5xl tabular-nums"
             style={{ color: positive ? "var(--c-success)" : "var(--c-danger)" }}
           >
-            {eur(pnl.netResult)}
+            {eur(agg.netResult)}
           </p>
           <div className="mt-3">
-            <Sparkline data={series} area width={400} height={44} className="w-full" />
+            <Sparkline data={series} area width={400} height={42} className="w-full" />
           </div>
         </div>
         <div className="grid grid-cols-3 border-t border-[var(--border-default)] text-center">
-          <Stat label="Revenus" value={eur(pnl.revenue)} />
-          <Stat label="Charges" value={eur(charges)} divider explain="cout_direct" />
-          <Stat label="Marge" value={`${marginPct} %`} divider explain="marge_nette" />
+          <Kpi label="Chiffre d'affaires" value={eur(agg.revenue)} explain="marge_brute" />
+          <Kpi label="Dépenses" value={eur(agg.charges)} explain="cout_direct" divider />
+          <Kpi label="Rentabilité" value={`${agg.netMarginPct} %`} explain="marge_nette" divider />
         </div>
       </section>
 
-      {/* Le copilote enseigne, en contexte */}
-      {best && worst && (
-        <CopiloteNote>
-          {worst.pnl.netResult < 0 ? (
-            <>
-              {worst.horse.name} passe sous son{" "}
-              <Explain k="seuil_rentabilite" className="text-[var(--accent-primary)]">
-                seuil
-              </Explain>{" "}
-              ce mois : ses revenus ne couvrent plus son coût de place. {best.horse.name}, lui, te
-              porte avec {eur(best.pnl.netResult)}.
-            </>
-          ) : (
-            <>
-              Beau mois : {best.horse.name} mène la danse avec {eur(best.pnl.netResult)}. Regarde
-              quand même {worst.horse.name}, ton plus juste.
-            </>
-          )}
-        </CopiloteNote>
+      {/* Découvertes en carrousel */}
+      <InsightsCarousel />
+
+      {/* Où part ton argent */}
+      {breakdown.length > 0 && biggest && (
+        <section>
+          <SectionHead title="Où part ton argent" />
+          <div className="space-y-2.5 border border-[var(--border-strong)] bg-elevated p-4">
+            {breakdown.map((slice, i) => (
+              <div key={slice.label}>
+                <div className="mb-1 flex items-baseline justify-between text-[13px]">
+                  <span className="font-semibold text-primary">
+                    {slice.label}
+                    {i === 0 && (
+                      <span className="ml-2 bg-[var(--c-warning-soft)] px-1.5 py-0.5 text-[10px] font-bold uppercase text-[var(--c-warning)]">
+                        à optimiser
+                      </span>
+                    )}
+                  </span>
+                  <span className="tabular-nums text-secondary">
+                    {eur(slice.amount)} · {Math.round(slice.share * 100)} %
+                  </span>
+                </div>
+                <div className="h-2 bg-[var(--bg-pressed)]">
+                  <div
+                    className="h-full"
+                    style={{
+                      width: `${(slice.amount / maxSlice) * 100}%`,
+                      background: i === 0 ? "var(--c-warning)" : "var(--accent-primary)",
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2">
+            <CopiloteNote label="Piste d'optimisation">
+              Ton plus gros poste, c&apos;est <b>{biggest.label}</b> ({eur(biggest.amount)},{" "}
+              {Math.round(biggest.share * 100)} % de tes charges). C&apos;est là qu&apos;un effort
+              pèse le plus sur ta{" "}
+              <Explain k="marge_nette" className="text-[var(--accent-primary)]">
+                rentabilité
+              </Explain>
+              .
+            </CopiloteNote>
+          </div>
+        </section>
       )}
 
-      {/* La notion du moment — apprendre, en filigrane */}
+      {/* La notion du moment */}
       {notion && (
         <Explain k={notionKey} variant="plain" className="block w-full text-left">
           <div className="flex items-center justify-between border border-[var(--border-strong)] bg-[var(--accent-primary-soft)] p-4">
@@ -112,12 +158,12 @@ function Maintenant() {
               <p className="mt-1 text-[15px] font-bold text-primary">{notion.title}</p>
               <p className="mt-0.5 text-[13px] text-secondary">{notion.definition}</p>
             </div>
-            <ArrowUpRight size={20} className="shrink-0 text-[var(--accent-primary)]" />
+            <ChevronRight size={20} className="shrink-0 text-[var(--accent-primary)]" />
           </div>
         </Explain>
       )}
 
-      {/* Alertes, formulées pour faire comprendre */}
+      {/* Alertes */}
       {(underThreshold.length > 0 || declining.length > 0) && (
         <section className="space-y-2">
           {underThreshold.length > 0 && (
@@ -143,11 +189,30 @@ function Maintenant() {
       )}
 
       {/* Tes chevaux */}
+      {best && worst && (
+        <CopiloteNote>
+          {worst.net < 0 ? (
+            <>
+              {worst.horse.name} passe sous son{" "}
+              <Explain k="seuil_rentabilite" className="text-[var(--accent-primary)]">
+                seuil
+              </Explain>{" "}
+              sur la période. {best.horse.name}, lui, te porte avec {eur(best.net)}.
+            </>
+          ) : (
+            <>
+              {best.horse.name} mène la danse avec {eur(best.net)}. Regarde quand même{" "}
+              {worst.horse.name}, ton plus juste.
+            </>
+          )}
+        </CopiloteNote>
+      )}
+
       <section>
         <SectionHead title="Tes chevaux" action={<Link href="/ecurie">Tout voir ›</Link>} />
         <ul className="border-t border-[var(--border-default)]">
-          {horses.slice(0, 4).map((h, i) => {
-            const ok = h.pnl.netResult >= 0;
+          {ranked.slice(0, 4).map((h, i) => {
+            const ok = h.net >= 0;
             return (
               <li key={h.horse.id}>
                 <Link
@@ -159,13 +224,13 @@ function Maintenant() {
                   </span>
                   <div className="flex-1">
                     <p className="text-[16px] font-bold leading-tight text-primary">{h.horse.name}</p>
-                    <p className="text-[12px] text-tertiary">{ok ? "rapporte ce mois" : "te coûte ce mois"}</p>
+                    <p className="text-[12px] text-tertiary">{ok ? "rapporte" : "te coûte"} {periodLabel}</p>
                   </div>
                   <span
                     className="text-[16px] font-extrabold tabular-nums"
                     style={{ color: ok ? "var(--c-success)" : "var(--c-danger)" }}
                   >
-                    {formatEur(h.pnl.netResult)}
+                    {eur(h.net)}
                   </span>
                   <ChevronRight size={16} className="text-tertiary" />
                 </Link>
@@ -178,27 +243,23 @@ function Maintenant() {
   );
 }
 
-function Stat({
+function Kpi({
   label,
   value,
-  divider,
   explain,
+  divider,
 }: {
   label: string;
   value: string;
+  explain: string;
   divider?: boolean;
-  explain?: string;
 }) {
   return (
-    <div className={`py-3 ${divider ? "border-l border-[var(--border-default)]" : ""}`}>
-      {explain ? (
-        <Explain k={explain} className="text-[10px] font-bold uppercase tracking-wide text-tertiary">
-          {label}
-        </Explain>
-      ) : (
-        <span className="text-[10px] font-bold uppercase tracking-wide text-tertiary">{label}</span>
-      )}
-      <p className="mt-0.5 text-[15px] font-extrabold tabular-nums text-primary">{value}</p>
+    <div className={`px-2 py-3 ${divider ? "border-l border-[var(--border-default)]" : ""}`}>
+      <Explain k={explain} className="text-[10px] font-bold uppercase leading-tight tracking-wide text-tertiary">
+        {label}
+      </Explain>
+      <p className="mt-1 text-[15px] font-extrabold tabular-nums text-primary">{value}</p>
     </div>
   );
 }

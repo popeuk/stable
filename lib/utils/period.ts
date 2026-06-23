@@ -53,3 +53,40 @@ export function periodEnd(p: Period): ISODate {
 export function dateInPeriod(date: ISODate, p: Period): boolean {
   return date >= periodStart(p) && date <= periodEnd(p);
 }
+
+/** Selectable period ranges (section: dashboard period selector). */
+export type RangePreset = "month" | "3m" | "ytd" | "last_year" | "12m";
+
+export const RANGE_PRESETS: { value: RangePreset; label: string }[] = [
+  { value: "month", label: "Ce mois" },
+  { value: "3m", label: "3 mois" },
+  { value: "ytd", label: "Cette année" },
+  { value: "last_year", label: "An dernier" },
+  { value: "12m", label: "12 mois" },
+];
+
+/** The list of months covered by a preset (oldest first). */
+export function rangePeriods(
+  active: Period,
+  preset: RangePreset,
+  now = currentPeriod(),
+): Period[] {
+  switch (preset) {
+    case "month":
+      return [active];
+    case "3m":
+      return lastNPeriods(now, 3);
+    case "12m":
+      return lastNPeriods(now, 12);
+    case "ytd": {
+      const out: Period[] = [];
+      for (let m = 1; m <= now.month; m++) out.push({ year: now.year, month: m });
+      return out;
+    }
+    case "last_year": {
+      const out: Period[] = [];
+      for (let m = 1; m <= 12; m++) out.push({ year: now.year - 1, month: m });
+      return out;
+    }
+  }
+}

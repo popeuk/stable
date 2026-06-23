@@ -4,6 +4,8 @@ import {
   horseTrend,
   horseVolatility,
   stablePnl,
+  aggregateStablePnl,
+  expenseBreakdown,
 } from "@/lib/domain/calculations";
 import type { StableData } from "@/lib/domain/types";
 
@@ -108,5 +110,32 @@ describe("trend & volatility", () => {
     );
     expect(horseTrend(data, "h1", period)).toBe("hausse");
     expect(horseVolatility(data, "h1", period, 4)).toBeGreaterThan(0);
+  });
+});
+
+describe("aggregateStablePnl & expenseBreakdown", () => {
+  const feb = { year: 2024, month: 2 };
+  const jan = { year: 2024, month: 1 };
+
+  it("sums the stable P&L across a range", () => {
+    const data = baseData();
+    // Add a January revenue so the range spans two months.
+    data.revenues.push({ id: "rjan", stableId: "s", horseId: "h1", amount: 500, date: "2024-01-10", source: "manual" });
+    const agg = aggregateStablePnl(data, [jan, feb]);
+    // Feb revenue 1000 + Jan 500 = 1500
+    expect(agg.revenue).toBe(1500);
+    // Feb charges: direct 100 + shared 200 = 300 (Jan has none)
+    expect(agg.charges).toBe(300);
+    expect(agg.netResult).toBe(1200);
+  });
+
+  it("groups expenses by poste, largest first, with shares", () => {
+    const slices = expenseBreakdown(baseData(), [feb]);
+    const total = slices.reduce((s, x) => s + x.amount, 0);
+    expect(total).toBe(300); // 100 direct + 200 shared (Foin)
+    expect(slices[0].amount).toBeGreaterThanOrEqual(slices[1]?.amount ?? 0);
+    const foin = slices.find((s) => s.label === "Foin");
+    expect(foin?.kind).toBe("shared");
+    expect(Math.round((foin?.share ?? 0) * 100)).toBe(67); // 200/300
   });
 });

@@ -26,6 +26,9 @@ interface DataState extends StableData {
   addHorse: (h: Omit<Horse, "id" | "stableId" | "isArchived">) => void;
   archiveHorse: (id: string) => void;
   deleteHorse: (id: string) => void;
+  deleteRevenue: (id: string) => void;
+  deleteDirectExpense: (id: string) => void;
+  deleteSharedExpense: (id: string) => void;
   addRevenueCategory: (name: string) => void;
   addExpenseCategory: (name: string, isDirect: boolean) => void;
   deleteRevenueCategory: (id: string) => void;
@@ -98,6 +101,21 @@ export const useDataStore = create<DataState>()(
             allocations: se.allocations.filter((a) => a.horseId !== horseId),
           })),
         }));
+      },
+
+      deleteRevenue: (rid) => {
+        enqueueMutation("delete", "revenues", { id: rid });
+        set((s) => ({ revenues: s.revenues.filter((r) => r.id !== rid) }));
+      },
+
+      deleteDirectExpense: (eid) => {
+        enqueueMutation("delete", "direct_expenses", { id: eid });
+        set((s) => ({ directExpenses: s.directExpenses.filter((e) => e.id !== eid) }));
+      },
+
+      deleteSharedExpense: (sid) => {
+        enqueueMutation("delete", "shared_expenses", { id: sid });
+        set((s) => ({ sharedExpenses: s.sharedExpenses.filter((e) => e.id !== sid) }));
       },
 
       addRevenueCategory: (name) =>

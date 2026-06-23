@@ -56,6 +56,11 @@ function SaisieMutualisee() {
     });
   }
 
+  const allSelected = selectedHorses.length === horses.length && horses.length > 0;
+  function toggleAll() {
+    setSelected(allSelected ? new Set() : new Set(horses.map((h) => h.id)));
+  }
+
   function save() {
     if (!canSave) return;
     addSharedExpense({
@@ -123,6 +128,12 @@ function SaisieMutualisee() {
       </Field>
 
       <Field label="Répartir sur">
+        <button
+          onClick={toggleAll}
+          className="mb-2 border border-[var(--border-strong)] px-3 py-1.5 text-xs font-bold text-primary"
+        >
+          {allSelected ? "Tout décocher" : "Tout sélectionner"} · {selectedHorses.length}/{horses.length}
+        </button>
         <div className="grid grid-cols-2 gap-2">
           {horses.map((h) => (
             <button

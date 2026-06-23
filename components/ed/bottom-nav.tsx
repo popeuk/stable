@@ -4,13 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { House, Sparkles, Settings, Plus, Coins, Receipt, Layers, X } from "lucide-react";
+import { House, ReceiptText, Settings, Plus, Coins, Receipt, Layers, X } from "lucide-react";
 import { HorseLine } from "@/components/ed/atoms";
 
 const TABS = [
   { href: "/maintenant", label: "Aujourd’hui", icon: <House size={20} strokeWidth={1.7} /> },
   { href: "/ecurie", label: "Écurie", icon: <HorseLine size={22} stroke={1.7} /> },
-  { href: "/decouvertes", label: "Découvertes", icon: <Sparkles size={19} strokeWidth={1.7} /> },
+  { href: "/depenses", label: "Dépenses", icon: <ReceiptText size={19} strokeWidth={1.7} /> },
   { href: "/parametres", label: "Réglages", icon: <Settings size={19} strokeWidth={1.7} /> },
 ];
 

@@ -172,6 +172,80 @@ export function crossedBelowThreshold(
   return prev >= 0 && cur.netResult < 0;
 }
 
+/** Aggregate the stable P&L across several periods (a range). */
+export function aggregateStablePnl(data: StableData, periods: Period[]) {
+  const parts = periods.map((p) => stablePnl(data, p));
+  const revenue = round2(sum(parts.map((p) => p.revenue)));
+  const directCosts = round2(sum(parts.map((p) => p.directCosts)));
+  const sharedCosts = round2(sum(parts.map((p) => p.sharedCosts)));
+  return {
+    revenue,
+    directCosts,
+    sharedCosts,
+    charges: round2(directCosts + sharedCosts),
+    netResult: round2(revenue - directCosts - sharedCosts),
+    netMarginPct: revenue === 0 ? 0 : round2(((revenue - directCosts - sharedCosts) / revenue) * 100),
+    horseCount: data.horses.filter((h) => !h.isArchived).length,
+    perMonth: periods.map((p, i) => ({ period: p, netResult: parts[i].netResult })),
+  };
+}
+
+/** Aggregate one horse's net result across a range. */
+export function aggregateHorseNet(
+  data: StableData,
+  horseId: string,
+  periods: Period[],
+): number {
+  return round2(sum(periods.map((p) => horsePnl(data, horseId, p).netResult)));
+}
+
+export interface ExpenseSlice {
+  label: string;
+  amount: number;
+  share: number; // 0..1 of total expenses
+  kind: "direct" | "shared";
+}
+
+/**
+ * Where the money goes: expenses grouped by category ("poste") across a range,
+ * largest first. Combines direct and mutualised charges — the optimisation
+ * targets are not only horses but cost posts.
+ */
+export function expenseBreakdown(data: StableData, periods: Period[]): ExpenseSlice[] {
+  const inRange = (y: number, m: number) =>
+    periods.some((p) => p.year === y && p.month === m);
+  const catName = (id?: string) =>
+    data.expenseCategories.find((c) => c.id === id)?.name;
+
+  const map = new Map<string, { amount: number; kind: "direct" | "shared" }>();
+  const add = (label: string, amount: number, kind: "direct" | "shared") => {
+    const prev = map.get(label);
+    map.set(label, { amount: (prev?.amount ?? 0) + amount, kind: prev?.kind ?? kind });
+  };
+
+  for (const e of data.directExpenses) {
+    const d = e.date;
+    const y = Number(d.slice(0, 4));
+    const m = Number(d.slice(5, 7));
+    if (!inRange(y, m)) continue;
+    add(catName(e.categoryId) ?? e.label, e.amount, "direct");
+  }
+  for (const s of data.sharedExpenses) {
+    if (!inRange(s.periodYear, s.periodMonth)) continue;
+    add(catName(s.categoryId) ?? s.label, s.totalAmount, "shared");
+  }
+
+  const slices = [...map.entries()].map(([label, v]) => ({
+    label,
+    amount: round2(v.amount),
+    kind: v.kind,
+  }));
+  const total = sum(slices.map((s) => s.amount)) || 1;
+  return slices
+    .map((s) => ({ ...s, share: s.amount / total }))
+    .sort((a, b) => b.amount - a.amount);
+}
+
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }

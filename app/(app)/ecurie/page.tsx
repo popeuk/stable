@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, LayoutList, Orbit } from "lucide-react";
+import { ChevronRight, LayoutList, Orbit, Plus } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { HorseGalaxy } from "@/components/horse/horse-galaxy";
 import { Explain } from "@/components/ed/explain";
@@ -40,14 +40,22 @@ function Ecurie() {
     <div className="space-y-4">
       <header className="flex items-center justify-between">
         <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">Mon écurie</h1>
-        <button
-          onClick={() => setGalaxy((g) => !g)}
-          className="flex items-center gap-1.5 border border-[var(--border-strong)] px-2.5 py-1.5 text-[12px] font-bold"
-          aria-label={galaxy ? "Vue liste" : "Vue galaxie"}
-        >
-          {galaxy ? <LayoutList size={15} /> : <Orbit size={15} />}
-          {galaxy ? "Liste" : "Galaxie"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setGalaxy((g) => !g)}
+            className="flex items-center gap-1.5 border border-[var(--border-strong)] px-2.5 py-1.5 text-[12px] font-bold"
+            aria-label={galaxy ? "Vue liste" : "Vue galaxie"}
+          >
+            {galaxy ? <LayoutList size={15} /> : <Orbit size={15} />}
+            {galaxy ? "Liste" : "Galaxie"}
+          </button>
+          <Link
+            href="/saisie/cheval"
+            className="flex items-center gap-1 border border-[var(--text-primary)] bg-[var(--accent-primary)] px-2.5 py-1.5 text-[12px] font-bold text-[#17150d]"
+          >
+            <Plus size={14} /> Cheval
+          </Link>
+        </div>
       </header>
 
       {horses.length === 0 ? (
