@@ -1,0 +1,16 @@
+# Netlify configuration for Be Stable (Next.js 16 App Router).
+# The official Next.js runtime is auto-installed by Netlify on detection;
+# it is pinned here so SSR / dynamic routes and the App Router work out of
+# the box. No environment variables are required — the app runs local-first
+# on demo data. To enable Supabase sync, add NEXT_PUBLIC_SUPABASE_URL and
+# NEXT_PUBLIC_SUPABASE_ANON_KEY in the Netlify site settings.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NODE_VERSION = "22"
