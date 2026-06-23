@@ -93,7 +93,8 @@ export default function ProtoToday() {
         {horses.slice(0, 5).map((h, i) => {
           const ok = h.p.netResult >= 0;
           return (
-            <div
+            <Link
+              href="/proto/cheval"
               key={h.horse.id}
               className="flex w-[88px] shrink-0 flex-col items-center rounded-[18px] border-[2.5px] border-[var(--p-ink)] px-2 py-3"
               style={{
@@ -110,7 +111,7 @@ export default function ProtoToday() {
               <span className="mt-1 text-[10px] font-bold uppercase text-[var(--p-muted)]">
                 {ok ? "rapporte" : "coûte"}
               </span>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -132,18 +133,21 @@ export default function ProtoToday() {
       <p className="mt-7 proto-disp text-[17px]">{"Tes missions de la semaine"}</p>
       <div className="mt-3 space-y-2.5">
         <Mission
+          href="/proto/lecon"
           title="Comprends ta marge nette"
           sub="Une mini-leçon sur tes vrais chiffres"
           pill="2 min"
           pillBg="var(--p-mint)"
         />
         <Mission
+          href="/proto/cheval"
           title={`Regarde ${worst.horse.name} de près`}
           sub={worst.p.netResult >= 0 ? "Ton cheval le plus juste" : "Il te coûte de l’argent"}
           pill={eur(worst.p.netResult)}
           pillBg="var(--p-pink)"
         />
         <Mission
+          href="/proto/saisie"
           title="Saisis le foin du mois"
           sub="Réparti tout seul sur tes chevaux"
           pill="à faire"
@@ -168,18 +172,21 @@ export default function ProtoToday() {
 }
 
 function Mission({
+  href,
   title,
   sub,
   pill,
   pillBg,
 }: {
+  href: string;
   title: string;
   sub: string;
   pill: string;
   pillBg: string;
 }) {
   return (
-    <div
+    <Link
+      href={href}
       className="flex items-center justify-between rounded-[18px] border-[2.5px] border-[var(--p-ink)] bg-white p-4"
       style={{ boxShadow: "0 3px 0 var(--p-ink)" }}
     >
@@ -188,6 +195,6 @@ function Mission({
         <p className="mt-0.5 text-[13px] font-semibold text-[var(--p-muted)]">{sub}</p>
       </div>
       <Pill bg={pillBg}>{pill}</Pill>
-    </div>
+    </Link>
   );
 }
