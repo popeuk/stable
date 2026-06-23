@@ -71,7 +71,8 @@ function Ecurie() {
         <>
           {under > 0 && (
             <CopiloteNote>
-              {under} cheval{under > 1 ? "x sont" : " est"} sous leur{" "}
+              {under} cheval{under > 1 ? "x" : ""} {under > 1 ? "sont" : "est"} sous{" "}
+              {under > 1 ? "leur" : "son"}{" "}
               <Explain k="seuil_rentabilite" className="text-[var(--accent-primary)]">
                 seuil
               </Explain>

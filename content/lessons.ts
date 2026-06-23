@@ -120,7 +120,7 @@ export const LESSONS: Record<string, Lesson> = {
   roi_cheval: {
     key: "roi_cheval",
     title: "Le ROI d'un cheval",
-    definition: "Ce que le cheval rapporte rapporté à ce qu'il te coûte.",
+    definition: "Ce que le cheval rapporte, comparé à ce qu'il te coûte.",
     whatToDo: [
       "Un cheval peut générer du chiffre mais peu de marge : regarde le net.",
       "Trie ta galerie par rentabilité pour voir qui tire l'écurie.",

@@ -124,7 +124,11 @@ function Maintenant() {
             <AlertRow
               href="/ecurie"
               text={`${underThreshold.length} cheval${underThreshold.length > 1 ? "x" : ""} sous le seuil`}
-              hint="leur place coûte plus qu'elle ne rapporte"
+              hint={
+                underThreshold.length > 1
+                  ? "leur place coûte plus qu'elle ne rapporte"
+                  : "sa place coûte plus qu'elle ne rapporte"
+              }
             />
           )}
           {declining.slice(0, 1).map((h) => (
