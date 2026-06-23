@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, X } from "lucide-react";
-import { Pill } from "../_ui";
+import { TopBar } from "../_ui";
+import { BottomNav } from "../_nav";
 
 const HORSES = ["Sirius", "Diva", "Belle", "Tonnerre", "Princesse", "Vaillant", "Pacha", "Mistral"];
 const REVENUE_CATS = ["Pension", "Cours", "Sport", "Demi-pension"];
 const EXPENSE_CATS = ["Maréchal", "Véto", "Compléments", "Foin"];
 
-/* Saisie éclair — pensée pour 10 secondes, à une main. */
 export default function ProtoSaisie() {
   const [kind, setKind] = useState<"revenu" | "charge">("revenu");
   const [horse, setHorse] = useState<string | null>("Belle");
@@ -17,25 +16,20 @@ export default function ProtoSaisie() {
   const [cat, setCat] = useState(REVENUE_CATS[0]);
 
   const cats = kind === "revenu" ? REVENUE_CATS : EXPENSE_CATS;
-  const accent = kind === "revenu" ? "var(--p-mint)" : "var(--p-peach)";
 
   return (
-    <main
-      className="mx-auto min-h-dvh max-w-[440px] px-5 pb-10 pt-5"
-      style={{ background: "var(--p-page)" }}
-    >
-      <div className="flex items-center justify-between">
-        <h1 className="proto-disp text-[26px]">{"Saisie éclair"}</h1>
-        <Link
-          href="/proto/aujourdhui"
-          className="flex size-9 items-center justify-center rounded-full border-[2.5px] border-[var(--p-ink)] bg-white"
-        >
-          <X size={18} />
-        </Link>
+    <main className="mx-auto min-h-dvh max-w-[440px] pb-24">
+      <TopBar />
+
+      <div className="px-5 pt-5">
+        <h1 className="text-[28px] font-extrabold">{"Saisie éclair"}</h1>
+        <p className="mt-1 text-[13px] font-semibold uppercase tracking-wide text-[var(--o-muted)]">
+          {"10 secondes, à une main"}
+        </p>
       </div>
 
       {/* Revenu / Charge */}
-      <div className="mt-5 flex gap-2 rounded-full border-[2.5px] border-[var(--p-ink)] bg-white p-1">
+      <div className="mx-5 mt-5 grid grid-cols-2 border border-[var(--o-line-strong)]">
         {(["revenu", "charge"] as const).map((k) => (
           <button
             key={k}
@@ -43,10 +37,10 @@ export default function ProtoSaisie() {
               setKind(k);
               setCat((k === "revenu" ? REVENUE_CATS : EXPENSE_CATS)[0]);
             }}
-            className="flex-1 rounded-full py-2.5 text-[15px] font-extrabold capitalize"
+            className="py-3 text-[14px] font-bold capitalize"
             style={{
-              background: kind === k ? "var(--p-ink)" : "transparent",
-              color: kind === k ? "white" : "var(--p-ink)",
+              background: kind === k ? "var(--o-ink)" : "transparent",
+              color: kind === k ? "var(--o-bg)" : "var(--o-ink)",
             }}
           >
             {k === "revenu" ? "Un revenu" : "Une charge"}
@@ -55,66 +49,72 @@ export default function ProtoSaisie() {
       </div>
 
       {/* Montant */}
-      <div
-        className="mt-4 flex items-center gap-2 rounded-[22px] border-[2.5px] border-[var(--p-ink)] px-5 py-5"
-        style={{ background: accent, boxShadow: "0 4px 0 var(--p-ink)" }}
-      >
+      <div className="mx-5 mt-3 flex items-end gap-2 border-b-2 border-[var(--o-ink)] px-1 pb-2 pt-4">
         <input
           type="number"
           inputMode="decimal"
           placeholder="0"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="proto-disp w-full bg-transparent text-[44px] outline-none placeholder:text-[var(--p-ink)]/30"
+          className="w-full bg-transparent text-[44px] font-extrabold tabular-nums outline-none placeholder:text-[var(--o-line-strong)]"
         />
-        <span className="proto-disp text-[36px]">{"€"}</span>
+        <span className="pb-2 text-[28px] font-extrabold text-[var(--o-muted)]">{"€"}</span>
       </div>
 
       {/* Cheval */}
-      <p className="mt-5 text-[13px] font-extrabold uppercase text-[var(--p-muted)]">
-        {"Pour quel cheval ?"}
-      </p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {HORSES.map((h) => (
-          <button
-            key={h}
-            onClick={() => setHorse(h)}
-            className="rounded-full border-[2.5px] border-[var(--p-ink)] px-3.5 py-1.5 text-[14px] font-extrabold"
-            style={{ background: horse === h ? "var(--p-purple)" : "white", color: horse === h ? "white" : "var(--p-ink)" }}
-          >
-            {h}
-          </button>
-        ))}
+      <div className="px-5 pt-5">
+        <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--o-muted)]">
+          {"Pour quel cheval"}
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {HORSES.map((h) => (
+            <button
+              key={h}
+              onClick={() => setHorse(h)}
+              className="border px-3 py-1.5 text-[13px] font-bold"
+              style={{
+                borderColor: horse === h ? "var(--o-ink)" : "var(--o-line-strong)",
+                background: horse === h ? "var(--o-ink)" : "transparent",
+                color: horse === h ? "var(--o-bg)" : "var(--o-ink)",
+              }}
+            >
+              {h}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Catégorie */}
-      <p className="mt-5 text-[13px] font-extrabold uppercase text-[var(--p-muted)]">{"Type"}</p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {cats.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCat(c)}
-            className="rounded-full border-[2.5px] border-[var(--p-ink)] px-3.5 py-1.5 text-[14px] font-extrabold"
-            style={{ background: cat === c ? "var(--p-lime)" : "white" }}
-          >
-            {c}
-          </button>
-        ))}
+      {/* Type */}
+      <div className="px-5 pt-5">
+        <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--o-muted)]">{"Type"}</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {cats.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCat(c)}
+              className="border px-3 py-1.5 text-[13px] font-bold"
+              style={{
+                borderColor: cat === c ? "var(--o-ink)" : "var(--o-line-strong)",
+                background: cat === c ? "var(--o-yellow)" : "transparent",
+              }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-6 flex items-center gap-2 text-[13px] font-semibold text-[var(--p-muted)]">
-        <Pill bg="white">{"10 sec ⏱"}</Pill>
-        {horse ? `${cat} pour ${horse}` : "Choisis un cheval"}
+      <div className="px-5 pt-7">
+        <Link
+          href="/proto/aujourdhui"
+          className="flex items-center justify-center border border-[var(--o-ink)] bg-[var(--o-ink)] py-3.5 text-[16px] font-bold text-[var(--o-bg)]"
+          style={{ opacity: amount && horse ? 1 : 0.45 }}
+        >
+          {"Enregistrer"}
+        </Link>
       </div>
 
-      <Link
-        href="/proto/aujourdhui"
-        className="mt-4 flex items-center justify-center gap-3 rounded-full border-[2.5px] border-[var(--p-ink)] bg-[var(--p-ink)] py-3.5 text-white"
-        style={{ boxShadow: "0 4px 0 rgba(0,0,0,0.35)", opacity: amount && horse ? 1 : 0.5 }}
-      >
-        <Check size={20} />
-        <span className="proto-disp text-[18px]">{"Enregistrer"}</span>
-      </Link>
+      <BottomNav />
     </main>
   );
 }

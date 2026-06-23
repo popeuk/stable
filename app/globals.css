@@ -145,29 +145,47 @@ body {
 }
 
 /* ============================================================
-   Prototype skin "play" — direction visuelle inspirée Macadam
-   (scopée à /proto, n'affecte pas l'app existante).
+   Prototype skin — direction éditoriale (inspirée OCITE) :
+   bords carrés, lignes fines, beaucoup d'air. Scopée à /proto.
    ============================================================ */
 .proto-skin {
-  --p-purple: #7c79f2;
-  --p-purple-deep: #5a57e0;
-  --p-lime: #e6f25a;
-  --p-mint: #a8efc6;
-  --p-peach: #fbe2ce;
-  --p-pink: #f7d2e4;
-  --p-ink: #141414;
-  --p-card: #ffffff;
-  --p-coin: #f5c542;
-  --p-muted: #8a8a8a;
-  --p-page: #f3f1ec;
-  color: var(--p-ink);
-  font-family: var(--font-jakarta), system-ui, sans-serif;
+  --o-bg: #fbf6e9;
+  --o-paper: #ffffff;
+  --o-yellow: #f3c63f;
+  --o-yellow-2: #f8db78;
+  --o-ink: #17150d;
+  --o-line: rgba(23, 21, 13, 0.14);
+  --o-line-strong: rgba(23, 21, 13, 0.28);
+  --o-muted: #6f6a5b;
+  --o-accent: #e8743b;
+  --o-green: #2f7d50;
+  --o-red: #c0432e;
+  --o-blue: #dde8f3;
+  --o-rose: #f6e2da;
+  --o-mint: #dcefe1;
+  --o-lilac: #e7e3f3;
+  color: var(--o-ink);
+  background: var(--o-bg);
+  font-family: var(--font-hanken), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-.proto-disp {
-  font-family: var(--font-archivo), system-ui, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: -0.015em;
-  line-height: 0.92;
+.proto-skin h1,
+.proto-skin h2,
+.proto-skin h3 {
+  letter-spacing: -0.025em;
+}
+
+/* Mot en contour, à la "Cycle" d'OCITE */
+.proto-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--o-ink);
+}
+
+/* Grain léger pour l'effet éditorial sur les aplats */
+.proto-grain {
+  background-image: radial-gradient(rgba(23, 21, 13, 0.05) 1px, transparent 1px);
+  background-size: 4px 4px;
 }
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { Coin, Pill } from "../_ui";
+import { TopBar, HorseLine, Tag } from "../_ui";
+import { BottomNav } from "../_nav";
 import { buildDemoData } from "@/lib/data/demo-data";
 import { horsePnl } from "@/lib/domain/calculations";
 import { currentPeriod } from "@/lib/utils/period";
@@ -10,94 +11,90 @@ function eur(n: number) {
   return `${n < 0 ? "−" : ""}${v} €`;
 }
 
-/* Fiche cheval — la rentabilité d'un cheval, expliquée simplement. */
 export default function ProtoCheval() {
   const data = buildDemoData();
   const period = currentPeriod();
-
-  // On montre le cheval le plus parlant : le moins rentable.
   const ranked = data.horses
     .filter((h) => !h.isArchived)
     .map((h) => ({ horse: h, p: horsePnl(data, h.id, period) }))
     .sort((a, b) => a.p.netResult - b.p.netResult);
   const { horse, p } = ranked[0];
-
   const ok = p.netResult >= 0;
-  const coverRatio = p.threshold > 0 ? Math.min(1, p.revenue / p.threshold) : 1;
+  const cover = p.threshold > 0 ? Math.min(1, p.revenue / p.threshold) : 1;
 
   return (
-    <main
-      className="mx-auto min-h-dvh max-w-[440px] px-5 pb-10 pt-5"
-      style={{ background: "var(--p-page)" }}
-    >
-      <div className="flex items-center justify-between">
-        <Link
-          href="/proto/aujourdhui"
-          className="flex size-9 items-center justify-center rounded-full border-[2.5px] border-[var(--p-ink)] bg-white"
-        >
-          <ChevronLeft size={18} />
-        </Link>
-        <Pill bg={ok ? "var(--p-mint)" : "var(--p-pink)"}>
-          {ok ? "Il rapporte" : "Il coûte"}
-        </Pill>
-      </div>
+    <main className="mx-auto min-h-dvh max-w-[440px] pb-24">
+      <TopBar />
 
-      <h1 className="proto-disp mt-5 text-[42px]">{horse.name}</h1>
-      <p className="text-[14px] font-bold text-[var(--p-muted)]">
-        {`${horse.breed ?? ""}${horse.birthYear ? ` · ${new Date().getFullYear() - horse.birthYear} ans` : ""}`}
-      </p>
-
-      {/* Hero */}
-      <p className="mt-6 text-[14px] font-bold uppercase tracking-wide text-[var(--p-muted)]">
-        {"Ce qu’il te laisse ce mois"}
-      </p>
-      <p className="proto-disp text-[56px]" style={{ color: ok ? "#2f8f5b" : "#c0392b" }}>
-        {eur(p.netResult)}
-      </p>
-
-      {/* Deux cartes : entre / sort */}
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      {/* En-tête image */}
+      <div className="relative mx-5 mt-4 overflow-hidden border border-[var(--o-line-strong)]">
         <div
-          className="rounded-[20px] border-[2.5px] border-[var(--p-ink)] p-4"
-          style={{ background: "var(--p-mint)", boxShadow: "0 3px 0 var(--p-ink)" }}
+          className="proto-grain relative flex aspect-[16/10] items-center justify-center"
+          style={{
+            background:
+              "linear-gradient(160deg, var(--o-yellow-2) 0%, var(--o-yellow) 100%)",
+          }}
         >
-          <p className="text-[12px] font-bold uppercase text-[var(--p-ink)]/60">{"Il fait rentrer"}</p>
-          <p className="proto-disp mt-1 text-[26px]">{eur(p.revenue)}</p>
-        </div>
-        <div
-          className="rounded-[20px] border-[2.5px] border-[var(--p-ink)] p-4"
-          style={{ background: "var(--p-peach)", boxShadow: "0 3px 0 var(--p-ink)" }}
-        >
-          <p className="text-[12px] font-bold uppercase text-[var(--p-ink)]/60">{"Il te coûte"}</p>
-          <p className="proto-disp mt-1 text-[26px]">{eur(p.threshold)}</p>
+          <HorseLine size={170} stroke={0.8} color="rgba(23,21,13,0.9)" />
+          <div className="absolute left-3 top-3">
+            <Link
+              href="/proto/aujourdhui"
+              className="flex size-8 items-center justify-center border border-[var(--o-ink)] bg-[var(--o-bg)]"
+            >
+              <ChevronLeft size={16} />
+            </Link>
+          </div>
+          <div className="absolute bottom-3 right-3">
+            <Tag tone={ok ? "green" : "red"}>{ok ? "Il rapporte" : "Il coûte"}</Tag>
+          </div>
         </div>
       </div>
 
-      {/* Seuil, expliqué */}
-      <div
-        className="mt-4 rounded-[22px] border-[2.5px] border-[var(--p-ink)] bg-white p-5"
-        style={{ boxShadow: "0 3px 0 var(--p-ink)" }}
-      >
-        <p className="text-[15px] font-extrabold">{"Son seuil de rentabilité"}</p>
-        <p className="mt-1 text-[13px] font-semibold text-[var(--p-muted)]">
-          {`Pour être à l’équilibre, il doit te rapporter au moins ${eur(p.threshold)}. Là, il en rapporte ${eur(p.revenue)}.`}
+      <div className="px-5 pt-4">
+        <h1 className="text-[34px] font-extrabold leading-none">{horse.name}</h1>
+        <p className="mt-1 text-[13px] font-semibold uppercase tracking-wide text-[var(--o-muted)]">
+          {`${horse.breed ?? ""}${horse.birthYear ? ` · ${new Date().getFullYear() - horse.birthYear} ans` : ""}`}
         </p>
-        <div className="mt-3 h-3.5 overflow-hidden rounded-full border-[2.5px] border-[var(--p-ink)] bg-[var(--p-page)]">
+
+        <p className="mt-5 text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--o-muted)]">
+          {"Ce qu’il te laisse ce mois"}
+        </p>
+        <p
+          className="text-[50px] font-extrabold leading-none tabular-nums"
+          style={{ color: ok ? "var(--o-green)" : "var(--o-red)" }}
+        >
+          {eur(p.netResult)}
+        </p>
+      </div>
+
+      {/* Lignes fines, bien rangées */}
+      <div className="mt-5 px-5">
+        <Row label="Il fait rentrer" value={eur(p.revenue)} />
+        <Row label="Il te coûte" value={eur(p.threshold)} />
+        <Row label="Son seuil de rentabilité" value={eur(p.threshold)} last />
+      </div>
+
+      {/* Seuil */}
+      <div className="mt-5 px-5">
+        <div className="mb-1.5 flex justify-between text-[12px] font-semibold text-[var(--o-muted)]">
+          <span>{"Sous le seuil"}</span>
+          <span>{"À l’équilibre"}</span>
+        </div>
+        <div className="h-2 w-full border border-[var(--o-line-strong)] bg-[var(--o-paper)]">
           <div
             className="h-full"
-            style={{ width: `${coverRatio * 100}%`, background: ok ? "#2f8f5b" : "#c0392b" }}
+            style={{ width: `${cover * 100}%`, background: ok ? "var(--o-green)" : "var(--o-red)" }}
           />
         </div>
       </div>
 
-      {/* Le copilote */}
-      <div
-        className="mt-4 rounded-[22px] border-[2.5px] border-[var(--p-ink)] p-4"
-        style={{ background: "var(--p-purple)", boxShadow: "0 4px 0 var(--p-ink)" }}
-      >
-        <div className="flex items-start gap-3">
-          <Coin size={36} />
-          <p className="text-[15px] font-semibold text-white">
+      {/* Copilote */}
+      <div className="mt-5 px-5">
+        <div className="proto-grain border border-[var(--o-ink)] bg-[var(--o-ink)] p-5 text-[var(--o-bg)]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--o-yellow)]">
+            {"Ton copilote"}
+          </p>
+          <p className="mt-2 text-[15px] leading-relaxed">
             {ok
               ? `${horse.name} dégage ${eur(p.netResult)} ce mois. Solide — garde le cap.`
               : `${horse.name} te coûte ${eur(Math.abs(p.netResult))} de plus qu’il ne rapporte. Une légère hausse de pension le remettrait à flot.`}
@@ -105,20 +102,33 @@ export default function ProtoCheval() {
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3">
+      <div className="mt-5 grid grid-cols-2 gap-3 px-5">
         <Link
           href="/proto/lecon"
-          className="flex items-center justify-center rounded-full border-[2.5px] border-[var(--p-ink)] bg-white py-3 text-[14px] font-extrabold"
+          className="flex items-center justify-center border border-[var(--o-line-strong)] py-3 text-[14px] font-bold"
         >
           {"Comprendre la marge"}
         </Link>
         <Link
-          href="/proto/aujourdhui"
-          className="flex items-center justify-center rounded-full border-[2.5px] border-[var(--p-ink)] bg-[var(--p-lime)] py-3 text-[14px] font-extrabold"
+          href="/proto/saisie"
+          className="flex items-center justify-center border border-[var(--o-ink)] bg-[var(--o-yellow)] py-3 text-[14px] font-bold"
         >
           {"Tester une hausse"}
         </Link>
       </div>
+
+      <BottomNav />
     </main>
+  );
+}
+
+function Row({ label, value, last }: { label: string; value: string; last?: boolean }) {
+  return (
+    <div
+      className={`flex items-center justify-between border-t border-[var(--o-line)] py-3.5 ${last ? "border-b" : ""}`}
+    >
+      <span className="text-[14px] text-[var(--o-muted)]">{label}</span>
+      <span className="text-[16px] font-extrabold tabular-nums">{value}</span>
+    </div>
   );
 }

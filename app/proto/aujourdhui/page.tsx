@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ChevronLeft, Info } from "lucide-react";
-import { Coin, Pill } from "../_ui";
+import { ChevronRight, GraduationCap, PencilLine } from "lucide-react";
+import { HorseLine, Horseshoe, Tag, SectionHead, ArrowDisc } from "../_ui";
+import { BottomNav } from "../_nav";
 import { buildDemoData } from "@/lib/data/demo-data";
 import { stablePnl, horsePnl } from "@/lib/domain/calculations";
 import { currentPeriod } from "@/lib/utils/period";
@@ -11,190 +12,152 @@ function eur(n: number) {
   return `${n < 0 ? "−" : ""}${v} €`;
 }
 
-/* Tableau de bord du copilote — structure inspirée de Macadam,
-   mais branchée sur la vraie rentabilité (données de démo). */
 export default function ProtoToday() {
   const data = buildDemoData();
   const period = currentPeriod();
   const pnl = stablePnl(data, period);
+  const positive = pnl.netResult >= 0;
 
   const horses = data.horses
     .filter((h) => !h.isArchived)
     .map((h) => ({ horse: h, p: horsePnl(data, h.id, period) }))
     .sort((a, b) => b.p.netResult - a.p.netResult);
-
-  const charges = pnl.directCosts + pnl.sharedCosts;
-  const kept = pnl.netResult;
-  const positive = kept >= 0;
-  const coverRatio = pnl.revenue > 0 ? Math.min(1, charges / pnl.revenue) : 1;
-
   const best = horses[0];
   const worst = horses[horses.length - 1];
 
   return (
-    <main
-      className="mx-auto min-h-dvh max-w-[440px] px-5 pb-10 pt-5"
-      style={{ background: "var(--p-page)" }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link
-            href="/proto/onboarding"
-            className="flex size-9 items-center justify-center rounded-full border-[2.5px] border-[var(--p-ink)] bg-white"
-          >
-            <ChevronLeft size={18} />
-          </Link>
-          <span className="proto-disp text-[22px] capitalize">
-            {formatMonthName(period)}
-          </span>
+    <main className="mx-auto min-h-dvh max-w-[440px] pb-24">
+      {/* Header : salutation + période */}
+      <header className="flex items-center justify-between px-5 pt-5">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center border border-[var(--o-ink)]">
+            <Horseshoe size={18} stroke={2} />
+          </div>
+          <div>
+            <p className="text-[12px] text-[var(--o-muted)]">{"Bonjour"}</p>
+            <p className="text-[15px] font-extrabold leading-none">{"Ton écurie"}</p>
+          </div>
         </div>
-        <Pill bg="var(--p-lime)">{"Mois en cours"}</Pill>
-      </div>
+        <Tag>{formatMonthName(period)}</Tag>
+      </header>
 
-      {/* Hero : ce que tu gardes */}
-      <p className="mt-6 text-[14px] font-bold uppercase tracking-wide text-[var(--p-muted)]">
-        {"Ce mois, tu gardes"}
-      </p>
-      <p
-        className="proto-disp text-[58px]"
-        style={{ color: positive ? "#2f8f5b" : "#c0392b" }}
-      >
-        {eur(kept)}
-      </p>
-
-      {/* Barre revenus / charges */}
-      <div className="mt-2 flex justify-between text-[13px] font-bold">
-        <span className="text-[var(--p-muted)]">{`Charges ${eur(charges)}`}</span>
-        <span>{`Revenus ${eur(pnl.revenue)}`}</span>
-      </div>
-      <div className="mt-1 h-3.5 overflow-hidden rounded-full border-[2.5px] border-[var(--p-ink)] bg-white">
-        <div
-          className="h-full"
-          style={{ width: `${coverRatio * 100}%`, background: "var(--p-purple)" }}
-        />
-      </div>
-      <p className="mt-1.5 text-[13px] font-semibold text-[var(--p-muted)]">
-        {positive
-          ? `Tes revenus couvrent tes charges. Le reste, ${eur(kept)}, c’est pour toi.`
-          : `Tes charges dépassent tes revenus de ${eur(Math.abs(kept))}.`}
-      </p>
-
-      {/* Tes chevaux (façon "All Levels") */}
-      <div className="mt-7 flex items-center justify-between">
-        <span className="proto-disp text-[17px] flex items-center gap-1.5">
-          {"Tes chevaux"} <Info size={15} className="opacity-40" />
-        </span>
-        <Link href="/proto/aujourdhui" className="text-[13px] font-bold text-[var(--p-purple)]">
-          {"Tout voir ›"}
-        </Link>
-      </div>
-      <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1">
-        {horses.slice(0, 5).map((h, i) => {
-          const ok = h.p.netResult >= 0;
-          return (
+      {/* Le point du jour — la voix du copilote, accompagnement */}
+      <section className="px-5 pt-4">
+        <div className="flex border border-[var(--o-line-strong)] bg-[var(--o-paper)]">
+          <div className="flex-1 p-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--o-muted)]">
+              {"Le point du jour"}
+            </p>
+            <p className="mt-2 text-[17px] font-bold leading-snug">
+              {`${worst.horse.name} mérite ton attention. ${best.horse.name}, lui, te porte ce mois.`}
+            </p>
+            <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-[var(--o-muted)]">
+              {"Ce mois, tu gardes"}
+            </p>
+            <p
+              className="text-[34px] font-extrabold leading-none tabular-nums"
+              style={{ color: positive ? "var(--o-green)" : "var(--o-red)" }}
+            >
+              {eur(pnl.netResult)}
+            </p>
             <Link
               href="/proto/cheval"
-              key={h.horse.id}
-              className="flex w-[88px] shrink-0 flex-col items-center rounded-[18px] border-[2.5px] border-[var(--p-ink)] px-2 py-3"
-              style={{
-                background: i === 0 ? "var(--p-mint)" : "white",
-                boxShadow: "0 3px 0 var(--p-ink)",
-              }}
+              className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold"
             >
-              <span className="proto-disp text-[14px] truncate w-full text-center">
-                {h.horse.name}
-              </span>
-              <span className="mt-1 text-[12px] font-extrabold" style={{ color: ok ? "#2f8f5b" : "#c0392b" }}>
-                {eur(h.p.netResult)}
-              </span>
-              <span className="mt-1 text-[10px] font-bold uppercase text-[var(--p-muted)]">
-                {ok ? "rapporte" : "coûte"}
-              </span>
+              {"Voir le détail"} <ChevronRight size={14} />
             </Link>
-          );
-        })}
-      </div>
-
-      {/* Le copilote te parle */}
-      <div
-        className="mt-7 rounded-[22px] border-[2.5px] border-[var(--p-ink)] p-4"
-        style={{ background: "var(--p-purple)", boxShadow: "0 4px 0 var(--p-ink)" }}
-      >
-        <div className="flex items-start gap-3">
-          <Coin size={36} />
-          <p className="text-[15px] font-semibold text-white">
-            {`Cette semaine, garde un œil sur ${worst.horse.name}. Et ${best.horse.name} est ta belle surprise du mois.`}
-          </p>
+          </div>
+          <div
+            className="flex w-[104px] shrink-0 items-center justify-center border-l border-[var(--o-line-strong)]"
+            style={{ background: "var(--o-yellow)" }}
+          >
+            <HorseLine size={78} stroke={1} color="var(--o-ink)" />
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Tes missions (façon "Daily Challenges") */}
-      <p className="mt-7 proto-disp text-[17px]">{"Tes missions de la semaine"}</p>
-      <div className="mt-3 space-y-2.5">
-        <Mission
-          href="/proto/lecon"
-          title="Comprends ta marge nette"
-          sub="Une mini-leçon sur tes vrais chiffres"
-          pill="2 min"
-          pillBg="var(--p-mint)"
-        />
-        <Mission
+      {/* Cartes — accès rapides illustrés */}
+      <section className="grid grid-cols-3 gap-3 px-5 pt-4">
+        <QuickCard href="/proto/cheval" label="Mes chevaux" tint="var(--o-blue)" icon={<HorseLine size={30} stroke={1.4} />} />
+        <QuickCard href="/proto/lecon" label="Apprendre" tint="var(--o-rose)" icon={<GraduationCap size={28} strokeWidth={1.5} />} />
+        <QuickCard href="/proto/saisie" label="Saisir" tint="var(--o-mint)" icon={<PencilLine size={26} strokeWidth={1.5} />} />
+      </section>
+
+      {/* Feature — simulateur */}
+      <section className="px-5 pt-3">
+        <Link
           href="/proto/cheval"
-          title={`Regarde ${worst.horse.name} de près`}
-          sub={worst.p.netResult >= 0 ? "Ton cheval le plus juste" : "Il te coûte de l’argent"}
-          pill={eur(worst.p.netResult)}
-          pillBg="var(--p-pink)"
-        />
-        <Mission
-          href="/proto/saisie"
-          title="Saisis le foin du mois"
-          sub="Réparti tout seul sur tes chevaux"
-          pill="à faire"
-          pillBg="var(--p-lime)"
-        />
-      </div>
+          className="proto-grain flex items-center justify-between border border-[var(--o-ink)] bg-[var(--o-ink)] p-4 text-[var(--o-bg)]"
+        >
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--o-yellow)]">
+              {"Simulateur"}
+            </p>
+            <p className="mt-1 text-[16px] font-bold">{"Teste une hausse de pension"}</p>
+          </div>
+          <ArrowDisc size={42} />
+        </Link>
+      </section>
 
-      {/* CTA */}
-      <Link
-        href="/proto"
-        className="mt-7 flex items-center justify-between rounded-full border-[2.5px] border-[var(--p-ink)] bg-[var(--p-ink)] px-3 py-3 pl-4 text-white"
-        style={{ boxShadow: "0 4px 0 rgba(0,0,0,0.35)" }}
-      >
-        <span className="flex items-center gap-3">
-          <Coin size={38} />
-          <span className="proto-disp text-[18px]">{"Faire le point de la semaine"}</span>
-        </span>
-        <span className="proto-disp mr-2 text-[18px]">{"››"}</span>
-      </Link>
+      {/* Tes chevaux — liste fine */}
+      <section className="px-5 pt-6">
+        <SectionHead title="Tes chevaux" action="Tout voir" />
+        <ul className="border-t border-[var(--o-line)]">
+          {horses.slice(0, 5).map((h, i) => {
+            const ok = h.p.netResult >= 0;
+            return (
+              <li key={h.horse.id}>
+                <Link
+                  href="/proto/cheval"
+                  className="flex items-center gap-4 border-b border-[var(--o-line)] py-3.5"
+                >
+                  <span className="w-7 text-[13px] font-bold tabular-nums text-[var(--o-muted)]">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[16px] font-bold leading-tight">{h.horse.name}</p>
+                    <p className="text-[12px] text-[var(--o-muted)]">
+                      {ok ? "rapporte ce mois" : "te coûte ce mois"}
+                    </p>
+                  </div>
+                  <span
+                    className="text-[16px] font-extrabold tabular-nums"
+                    style={{ color: ok ? "var(--o-green)" : "var(--o-red)" }}
+                  >
+                    {eur(h.p.netResult)}
+                  </span>
+                  <ChevronRight size={16} className="text-[var(--o-muted)]" />
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <BottomNav />
     </main>
   );
 }
 
-function Mission({
+function QuickCard({
   href,
-  title,
-  sub,
-  pill,
-  pillBg,
+  label,
+  tint,
+  icon,
 }: {
   href: string;
-  title: string;
-  sub: string;
-  pill: string;
-  pillBg: string;
+  label: string;
+  tint: string;
+  icon: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className="flex items-center justify-between rounded-[18px] border-[2.5px] border-[var(--p-ink)] bg-white p-4"
-      style={{ boxShadow: "0 3px 0 var(--p-ink)" }}
+      className="flex aspect-square flex-col justify-between border border-[var(--o-line-strong)] p-3"
+      style={{ background: tint }}
     >
-      <div className="pr-3">
-        <p className="text-[15px] font-extrabold leading-tight">{title}</p>
-        <p className="mt-0.5 text-[13px] font-semibold text-[var(--p-muted)]">{sub}</p>
-      </div>
-      <Pill bg={pillBg}>{pill}</Pill>
+      <span className="text-[var(--o-ink)]">{icon}</span>
+      <span className="text-[13px] font-bold leading-tight">{label}</span>
     </Link>
   );
 }

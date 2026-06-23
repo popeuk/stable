@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Minus, Plus } from "lucide-react";
-import { Coin, Wordmark, Pill } from "../_ui";
+import { Minus, Plus } from "lucide-react";
+import { TopBar, Tag, ArrowDisc } from "../_ui";
 
-const FIXED = 2500; // charges fixes mensuelles, à la louche
-const VARIABLE = 180; // coût variable par cheval, à la louche
+const FIXED = 2500;
+const VARIABLE = 180;
 
 function eur(n: number) {
   return `${new Intl.NumberFormat("fr-FR").format(Math.round(n))} €`;
@@ -21,37 +21,45 @@ export default function ProtoOnboarding() {
   const positive = result >= 0;
 
   return (
-    <main
-      className="mx-auto flex min-h-dvh max-w-[440px] flex-col px-6 pb-8 pt-6"
-      style={{ background: "var(--p-page)" }}
-    >
-      <Wordmark />
+    <main className="mx-auto flex min-h-dvh max-w-[440px] flex-col">
+      <TopBar />
 
-      <p className="mt-8 proto-disp text-[15px] text-[var(--p-muted)]">
-        {"À la louche — on affine après"}
-      </p>
-      <h1 className="proto-disp mt-1 text-[30px]">{"Ton écurie en 2 réponses"}</h1>
+      <div className="px-5 pt-5">
+        <Tag>À la louche</Tag>
+        <h1 className="mt-3 text-[28px] font-extrabold leading-tight">
+          {"Ton écurie en deux réponses"}
+        </h1>
+      </div>
 
-      {/* Question 1 : nombre de chevaux */}
-      <div
-        className="mt-6 rounded-[22px] border-[2.5px] border-[var(--p-ink)] bg-white p-5"
-        style={{ boxShadow: "0 4px 0 var(--p-ink)" }}
-      >
-        <p className="text-[15px] font-bold">{"Combien de chevaux en pension ?"}</p>
-        <div className="mt-3 flex items-center justify-between">
-          <Stepper value={horses} min={1} max={40} onChange={setHorses} />
-          <span className="proto-disp text-[40px]">{horses}</span>
+      {/* Q1 */}
+      <div className="mx-5 mt-5 border border-[var(--o-line-strong)] bg-[var(--o-paper)]">
+        <div className="flex items-center justify-between p-5">
+          <p className="text-[15px] font-semibold">{"Chevaux en pension"}</p>
+          <div className="flex items-center gap-4">
+            <button
+              aria-label="moins"
+              onClick={() => setHorses(Math.max(1, horses - 1))}
+              className="flex size-9 items-center justify-center border border-[var(--o-line-strong)]"
+            >
+              <Minus size={16} />
+            </button>
+            <span className="w-9 text-center text-[28px] font-extrabold tabular-nums">{horses}</span>
+            <button
+              aria-label="plus"
+              onClick={() => setHorses(Math.min(40, horses + 1))}
+              className="flex size-9 items-center justify-center border border-[var(--o-line-strong)] bg-[var(--o-yellow)]"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Question 2 : pension moyenne */}
-      <div
-        className="mt-4 rounded-[22px] border-[2.5px] border-[var(--p-ink)] bg-white p-5"
-        style={{ boxShadow: "0 4px 0 var(--p-ink)" }}
-      >
+      {/* Q2 */}
+      <div className="mx-5 mt-3 border border-[var(--o-line-strong)] bg-[var(--o-paper)] p-5">
         <div className="flex items-center justify-between">
-          <p className="text-[15px] font-bold">{"Pension moyenne / mois"}</p>
-          <span className="proto-disp text-[24px]">{eur(pension)}</span>
+          <p className="text-[15px] font-semibold">{"Pension moyenne / mois"}</p>
+          <span className="text-[22px] font-extrabold tabular-nums">{eur(pension)}</span>
         </div>
         <input
           type="range"
@@ -61,79 +69,42 @@ export default function ProtoOnboarding() {
           value={pension}
           onChange={(e) => setPension(Number(e.target.value))}
           className="mt-4 w-full"
-          style={{ accentColor: "var(--p-purple)", height: 28 }}
+          style={{ accentColor: "var(--o-ink)", height: 26 }}
         />
       </div>
 
-      {/* Le déclic */}
-      <div
-        className="mt-5 flex-1 rounded-[26px] border-[2.5px] border-[var(--p-ink)] p-6"
-        style={{
-          background: positive ? "var(--p-mint)" : "var(--p-pink)",
-          boxShadow: "0 5px 0 var(--p-ink)",
-        }}
-      >
-        <div className="flex items-center justify-between">
-          <Pill bg="white">{positive ? "Dans le vert" : "Dans le rouge"}</Pill>
-          <Coin size={34} />
+      {/* Déclic */}
+      <div className="mx-5 mt-5 border border-[var(--o-ink)]">
+        <div className="flex items-center justify-between border-b border-[var(--o-line)] bg-[var(--o-ink)] px-5 py-2.5">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--o-bg)]">
+            {"Ton résultat estimé / mois"}
+          </span>
+          <Tag tone={positive ? "green" : "red"}>{positive ? "Dans le vert" : "Dans le rouge"}</Tag>
         </div>
-        <p className="mt-4 text-[14px] font-bold uppercase tracking-wide text-[var(--p-ink)]/60">
-          {"Ton résultat estimé / mois"}
-        </p>
-        <p className="proto-disp text-[56px]">
-          {result >= 0 ? eur(result) : `−${eur(Math.abs(result))}`}
-        </p>
-        <p className="mt-2 text-[15px] font-semibold">
-          {positive
-            ? "Bonne nouvelle. On va voir quels chevaux tirent l’écurie vers le haut."
-            : "Tu perds de l’argent chaque mois. On va trouver exactement où, ensemble."}
-        </p>
+        <div className="bg-[var(--o-paper)] px-5 py-6">
+          <p
+            className="text-[52px] font-extrabold leading-none tabular-nums"
+            style={{ color: positive ? "var(--o-green)" : "var(--o-red)" }}
+          >
+            {result >= 0 ? eur(result) : `−${eur(Math.abs(result))}`}
+          </p>
+          <p className="mt-3 text-[15px] leading-relaxed text-[var(--o-muted)]">
+            {positive
+              ? "Bonne nouvelle. On va voir quels chevaux tirent l’écurie vers le haut."
+              : "Tu perds de l’argent chaque mois. On va trouver exactement où, ensemble."}
+          </p>
+        </div>
       </div>
 
-      <Link
-        href="/proto/aujourdhui"
-        className="mt-5 flex items-center justify-between rounded-full border-[2.5px] border-[var(--p-ink)] bg-[var(--p-ink)] px-3 py-3 pl-4 text-white"
-        style={{ boxShadow: "0 4px 0 rgba(0,0,0,0.35)" }}
-      >
-        <span className="flex items-center gap-3">
-          <Coin size={38} />
-          <span className="proto-disp text-[18px]">{"Voir mon tableau de bord"}</span>
-        </span>
-        <ArrowRight className="mr-2" />
-      </Link>
+      <div className="mt-auto px-5 pb-7 pt-6">
+        <Link
+          href="/proto/aujourdhui"
+          className="flex items-center justify-between border border-[var(--o-ink)] bg-[var(--o-ink)] py-2 pl-5 pr-2 text-[var(--o-bg)]"
+        >
+          <span className="text-[17px] font-bold">{"Voir mon tableau de bord"}</span>
+          <ArrowDisc size={44} />
+        </Link>
+      </div>
     </main>
-  );
-}
-
-function Stepper({
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  value: number;
-  min: number;
-  max: number;
-  onChange: (v: number) => void;
-}) {
-  const btn =
-    "flex size-11 items-center justify-center rounded-full border-[2.5px] border-[var(--p-ink)] bg-[var(--p-lime)]";
-  return (
-    <div className="flex items-center gap-3">
-      <button
-        aria-label="moins"
-        className={btn}
-        onClick={() => onChange(Math.max(min, value - 1))}
-      >
-        <Minus size={20} />
-      </button>
-      <button
-        aria-label="plus"
-        className={btn}
-        onClick={() => onChange(Math.min(max, value + 1))}
-      >
-        <Plus size={20} />
-      </button>
-    </div>
   );
 }
