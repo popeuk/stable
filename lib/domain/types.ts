@@ -109,6 +109,28 @@ export interface HorsePnl {
 
 export type Trend = "hausse" | "baisse" | "stable";
 
+export type Frequency = "monthly" | "quarterly" | "yearly";
+
+/**
+ * A recurring charge template (a loan, a subscription, the insurance…). It
+ * generates a charge each due period between startDate and endDate. Can be
+ * direct (one horse) or shared across the stable.
+ */
+export interface RecurringExpense {
+  id: string;
+  stableId: string;
+  label: string;
+  amount: number; // per occurrence
+  categoryId?: string;
+  isShared: boolean;
+  horseId?: string; // when direct
+  distributionMode?: DistributionMode; // when shared
+  frequency: Frequency;
+  startDate: ISODate;
+  endDate?: ISODate | null;
+  source: EntrySource;
+}
+
 /** The full bundle of data the domain functions operate on. */
 export interface StableData {
   horses: Horse[];
@@ -117,4 +139,6 @@ export interface StableData {
   sharedExpenses: SharedExpense[];
   revenueCategories: Category[];
   expenseCategories: Category[];
+  /** Recurring charge templates (optional — folded into period figures). */
+  recurringExpenses?: RecurringExpense[];
 }

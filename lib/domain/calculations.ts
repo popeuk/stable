@@ -5,6 +5,11 @@ import type {
   Trend,
 } from "@/lib/domain/types";
 import { dateInPeriod, lastNPeriods, samePeriod } from "@/lib/utils/period";
+import {
+  recurringDirectForHorse,
+  recurringSharedForHorse,
+  recurringSlices,
+} from "@/lib/domain/recurring";
 
 /**
  * Pure P&L calculations (section 10 of the spec). No I/O, no framework.
@@ -34,10 +39,12 @@ export function horseDirectCosts(
   horseId: string,
   period: Period,
 ): number {
-  return sum(
-    data.directExpenses
-      .filter((e) => e.horseId === horseId && dateInPeriod(e.date, period))
-      .map((e) => e.amount),
+  return (
+    sum(
+      data.directExpenses
+        .filter((e) => e.horseId === horseId && dateInPeriod(e.date, period))
+        .map((e) => e.amount),
+    ) + recurringDirectForHorse(data, horseId, period)
   );
 }
 
@@ -54,6 +61,7 @@ export function horseSharedCosts(
       if (alloc.horseId === horseId) total += alloc.allocatedAmount;
     }
   }
+  total += recurringSharedForHorse(data, horseId, period);
   return Math.round(total * 100) / 100;
 }
 
@@ -233,6 +241,12 @@ export function expenseBreakdown(data: StableData, periods: Period[]): ExpenseSl
   for (const s of data.sharedExpenses) {
     if (!inRange(s.periodYear, s.periodMonth)) continue;
     add(catName(s.categoryId) ?? s.label, s.totalAmount, "shared");
+  }
+  // Recurring templates due in any of the periods.
+  for (const p of periods) {
+    for (const r of recurringSlices(data, p)) {
+      add(catName(r.categoryId) ?? r.label, r.amount, r.kind);
+    }
   }
 
   const slices = [...map.entries()].map(([label, v]) => ({

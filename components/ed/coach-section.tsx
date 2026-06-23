@@ -145,16 +145,14 @@ export function CoachSection() {
         ))}
       </div>
 
-      {proposed.length > 0 && (
-        <div className="pointer-events-none relative">
-          <HorseLine
-            size={64}
-            stroke={1}
-            color="var(--border-default)"
-            className="absolute -top-1 right-0 opacity-60"
-          />
-        </div>
-      )}
+      <Link
+        href="/conseiller"
+        className="mt-2 flex items-center gap-3 border border-[var(--text-primary)] bg-[var(--text-primary)] p-3.5 text-[var(--bg-base)]"
+      >
+        <HorseLine size={26} stroke={1.4} color="var(--accent-primary)" />
+        <span className="flex-1 text-[14px] font-bold">Demander au conseiller</span>
+        <span className="text-[12px] text-[var(--bg-base)]/70">Pose ta question ›</span>
+      </Link>
     </section>
   );
 }

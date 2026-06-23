@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { House, ReceiptText, Settings, Plus, Coins, Receipt, Layers, X } from "lucide-react";
+import { House, ReceiptText, Settings, Plus, Coins, Receipt, Layers, Repeat, X } from "lucide-react";
 import { HorseLine } from "@/components/ed/atoms";
 
 const TABS = [
@@ -18,6 +18,7 @@ const ENTRIES = [
   { href: "/saisie/revenu", label: "Un revenu", icon: <Coins size={18} /> },
   { href: "/saisie/charge", label: "Une charge", icon: <Receipt size={18} /> },
   { href: "/saisie/mutualisee", label: "Mutualisée", icon: <Layers size={18} /> },
+  { href: "/saisie/recurrente", label: "Récurrente (crédit, abo…)", icon: <Repeat size={18} /> },
 ];
 
 export function BottomNav() {

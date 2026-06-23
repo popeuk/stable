@@ -171,6 +171,25 @@ export function buildDemoData(now = new Date()): StableData {
     }
   }
 
+  // A real-world recurring charge: a loan with a start and an end date.
+  const creditStart = periodStart(addMonths(end, -10));
+  const creditEnd = periodStart(addMonths(end, 38)); // ~4-year loan
+  const recurringExpenses = [
+    {
+      id: "rec-credit",
+      stableId: STABLE_ID,
+      label: "Crédit matériel",
+      amount: 340,
+      categoryId: undefined,
+      isShared: true,
+      distributionMode: "equal" as const,
+      frequency: "monthly" as const,
+      startDate: creditStart,
+      endDate: creditEnd,
+      source: "recurring" as const,
+    },
+  ];
+
   return {
     horses,
     revenues,
@@ -178,6 +197,7 @@ export function buildDemoData(now = new Date()): StableData {
     sharedExpenses,
     revenueCategories: DEFAULT_REVENUE_CATEGORIES,
     expenseCategories: DEFAULT_EXPENSE_CATEGORIES,
+    recurringExpenses,
   };
 }
 

@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 import type {
   DirectExpense,
   Horse,
+  RecurringExpense,
   Revenue,
   SharedExpense,
   StableData,
@@ -29,6 +30,8 @@ interface DataState extends StableData {
   deleteRevenue: (id: string) => void;
   deleteDirectExpense: (id: string) => void;
   deleteSharedExpense: (id: string) => void;
+  addRecurringExpense: (e: Omit<RecurringExpense, "id" | "stableId">) => void;
+  deleteRecurringExpense: (id: string) => void;
   addRevenueCategory: (name: string) => void;
   addExpenseCategory: (name: string, isDirect: boolean) => void;
   deleteRevenueCategory: (id: string) => void;
@@ -117,6 +120,19 @@ export const useDataStore = create<DataState>()(
         enqueueMutation("delete", "shared_expenses", { id: sid });
         set((s) => ({ sharedExpenses: s.sharedExpenses.filter((e) => e.id !== sid) }));
       },
+
+      addRecurringExpense: (e) =>
+        set((s) => ({
+          recurringExpenses: [
+            ...(s.recurringExpenses ?? []),
+            { ...e, id: id("rec"), stableId: STABLE_ID },
+          ],
+        })),
+
+      deleteRecurringExpense: (rid) =>
+        set((s) => ({
+          recurringExpenses: (s.recurringExpenses ?? []).filter((e) => e.id !== rid),
+        })),
 
       addRevenueCategory: (name) =>
         set((s) =>

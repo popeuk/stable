@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Trash2, Plus, Layers } from "lucide-react";
+import { Trash2, Plus, Layers, Repeat } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { RangeSelector } from "@/components/ed/range-selector";
 import { Explain } from "@/components/ed/explain";
@@ -26,6 +26,10 @@ function shortDate(iso: string) {
   return format(new Date(iso + "T00:00:00"), "d MMM", { locale: fr });
 }
 
+function freqLabel(f: string) {
+  return f === "monthly" ? "Mensuelle" : f === "quarterly" ? "Trimestrielle" : "Annuelle";
+}
+
 export default function DepensesPage() {
   return (
     <ClientGate>
@@ -41,6 +45,8 @@ function Depenses() {
   const periods = useMemo(() => rangePeriods(active, preset), [active, preset]);
   const deleteDirect = useDataStore((s) => s.deleteDirectExpense);
   const deleteShared = useDataStore((s) => s.deleteSharedExpense);
+  const deleteRecurring = useDataStore((s) => s.deleteRecurringExpense);
+  const recurrings = data.recurringExpenses ?? [];
 
   const inRange = (y: number, m: number) => periods.some((p) => p.year === y && p.month === m);
   const horseName = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "—";
@@ -100,20 +106,61 @@ function Depenses() {
         <p className="mt-0.5 text-[12px] text-tertiary">{rows.length} mouvement{rows.length > 1 ? "s" : ""}</p>
       </div>
 
-      <div className="flex gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <Link
           href="/saisie/charge"
-          className="flex flex-1 items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[13px] font-bold"
+          className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold"
         >
-          <Plus size={15} /> Charge directe
+          <Plus size={14} /> Directe
         </Link>
         <Link
           href="/saisie/mutualisee"
-          className="flex flex-1 items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[13px] font-bold"
+          className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold"
         >
-          <Layers size={15} /> Mutualisée
+          <Layers size={14} /> Mutualisée
+        </Link>
+        <Link
+          href="/saisie/recurrente"
+          className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold"
+        >
+          <Repeat size={14} /> Récurrente
         </Link>
       </div>
+
+      {/* Charges récurrentes actives */}
+      {recurrings.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-[13px] font-bold uppercase tracking-[0.08em] text-tertiary">
+            Charges récurrentes
+          </h2>
+          <ul className="border-t border-[var(--border-default)]">
+            {recurrings.map((r) => (
+              <li key={r.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-3">
+                <Repeat size={15} className="shrink-0 text-[var(--accent-primary)]" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[15px] font-bold text-primary">{r.label}</p>
+                  <p className="truncate text-[12px] text-tertiary">
+                    {freqLabel(r.frequency)} · {r.isShared ? "toute l'écurie" : "1 cheval"}
+                    {r.endDate ? ` · jusqu'au ${shortDate(r.endDate)}` : " · sans fin"}
+                  </p>
+                </div>
+                <span className="text-[14px] font-extrabold tabular-nums text-primary">
+                  {formatEur(r.amount)}
+                </span>
+                <button
+                  onClick={() => {
+                    if (confirm(`Arrêter « ${r.label} » ?`)) deleteRecurring(r.id);
+                  }}
+                  aria-label={`Supprimer ${r.label}`}
+                  className="shrink-0 p-1 text-tertiary transition-colors hover:text-[var(--c-danger)]"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {rows.length === 0 ? (
         <p className="py-10 text-center text-sm text-tertiary">Aucune dépense sur cette période.</p>
