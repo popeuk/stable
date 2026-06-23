@@ -1,19 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { AlertTriangle, Coins, Receipt, Camera, ChevronRight } from "lucide-react";
+import { ChevronRight, AlertTriangle, ArrowUpRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { KeyNumber } from "@/components/ui/key-number";
 import { Sparkline } from "@/components/ui/sparkline";
-import { LessonTerm } from "@/components/pedagogy/lesson-term";
+import { Explain } from "@/components/ed/explain";
+import { CopiloteNote } from "@/components/ed/copilote";
+import { SectionHead } from "@/components/ed/atoms";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useHorses } from "@/lib/hooks/use-horses";
 import { stableMarginSeries, stablePnl } from "@/lib/domain/calculations";
-import { bestInsight } from "@/lib/domain/insights-engine";
+import { pickNotion } from "@/lib/domain/notion";
+import { LESSONS } from "@/content/lessons";
 import { formatLongDate } from "@/lib/utils/format-date";
 import { formatEur } from "@/lib/utils/format-currency";
+
+function eur(n: number) {
+  const v = new Intl.NumberFormat("fr-FR").format(Math.round(Math.abs(n)));
+  return `${n < 0 ? "−" : ""}${v} €`;
+}
 
 export default function MaintenantPage() {
   return (
@@ -30,130 +36,181 @@ function Maintenant() {
 
   const pnl = stablePnl(data, period);
   const series = stableMarginSeries(data, period, 12);
+  const charges = pnl.directCosts + pnl.sharedCosts;
+  const positive = pnl.netResult >= 0;
+  const marginPct = pnl.revenue > 0 ? Math.round((pnl.netResult / pnl.revenue) * 100) : 0;
+
   const underThreshold = horses.filter((h) => h.pnl.netResult < 0);
   const declining = horses.filter((h) => h.trend === "baisse");
-  const insight = bestInsight(data, period);
+  const best = horses[0];
+  const worst = horses[horses.length - 1];
 
-  const quickActions = [
-    { label: "Encaisser une pension", href: "/saisie/revenu", icon: <Coins size={18} /> },
-    { label: "Saisir un foin pour tout le monde", href: "/saisie/mutualisee", icon: <Receipt size={18} /> },
-    { label: "Photo d'une facture", href: "/saisie/charge?mode=photo", icon: <Camera size={18} /> },
-  ];
+  const notionKey = pickNotion(data, period);
+  const notion = LESSONS[notionKey];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <header>
-        <p className="text-sm capitalize text-secondary">
+        <p className="text-[13px] font-semibold capitalize text-tertiary">
           {formatLongDate(new Date())}
         </p>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
-          Bonjour.
-        </h1>
+        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">Bonjour.</h1>
       </header>
 
-      {/* Hero metric */}
-      <section className="rounded-[var(--radius-lg)] border bg-elevated p-5">
-        <LessonTerm lessonKey="marge_nette" className="text-2xs uppercase tracking-wide text-tertiary">
-          Marge nette du mois
-        </LessonTerm>
-        <div className="mt-1">
-          <KeyNumber value={pnl.netResult} colorBySign className="text-5xl" />
+      {/* Hero — ce que tu gardes, tappable pour comprendre */}
+      <section className="border border-[var(--border-strong)] bg-elevated">
+        <div className="px-5 pb-4 pt-4">
+          <Explain k="marge_nette" className="text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
+            Ce mois, tu gardes
+          </Explain>
+          <p
+            className="mt-1 font-[family-name:var(--font-fraunces)] text-5xl tabular-nums"
+            style={{ color: positive ? "var(--c-success)" : "var(--c-danger)" }}
+          >
+            {eur(pnl.netResult)}
+          </p>
+          <div className="mt-3">
+            <Sparkline data={series} area width={400} height={44} className="w-full" />
+          </div>
         </div>
-        <div className="mt-3">
-          <Sparkline data={series} area width={420} height={48} className="w-full" />
-        </div>
-        <div className="mt-3 flex justify-between text-2xs text-tertiary">
-          <span>{formatEur(pnl.revenue)} de revenus</span>
-          <span>{pnl.horseCount} chevaux</span>
+        <div className="grid grid-cols-3 border-t border-[var(--border-default)] text-center">
+          <Stat label="Revenus" value={eur(pnl.revenue)} />
+          <Stat label="Charges" value={eur(charges)} divider explain="cout_direct" />
+          <Stat label="Marge" value={`${marginPct} %`} divider explain="marge_nette" />
         </div>
       </section>
 
-      {/* Alerts */}
+      {/* Le copilote enseigne, en contexte */}
+      {best && worst && (
+        <CopiloteNote>
+          {worst.pnl.netResult < 0 ? (
+            <>
+              {worst.horse.name} passe sous son{" "}
+              <Explain k="seuil_rentabilite" className="text-[var(--accent-primary)]">
+                seuil
+              </Explain>{" "}
+              ce mois : ses revenus ne couvrent plus son coût de place. {best.horse.name}, lui, te
+              porte avec {eur(best.pnl.netResult)}.
+            </>
+          ) : (
+            <>
+              Beau mois : {best.horse.name} mène la danse avec {eur(best.pnl.netResult)}. Regarde
+              quand même {worst.horse.name}, ton plus juste.
+            </>
+          )}
+        </CopiloteNote>
+      )}
+
+      {/* La notion du moment — apprendre, en filigrane */}
+      {notion && (
+        <Explain k={notionKey} variant="plain" className="block w-full text-left">
+          <div className="flex items-center justify-between border border-[var(--border-strong)] bg-[var(--accent-primary-soft)] p-4">
+            <div className="pr-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--accent-primary)]">
+                La notion du moment
+              </p>
+              <p className="mt-1 text-[15px] font-bold text-primary">{notion.title}</p>
+              <p className="mt-0.5 text-[13px] text-secondary">{notion.definition}</p>
+            </div>
+            <ArrowUpRight size={20} className="shrink-0 text-[var(--accent-primary)]" />
+          </div>
+        </Explain>
+      )}
+
+      {/* Alertes, formulées pour faire comprendre */}
       {(underThreshold.length > 0 || declining.length > 0) && (
         <section className="space-y-2">
           {underThreshold.length > 0 && (
-            <AlertCard
+            <AlertRow
               href="/ecurie"
-              tone="danger"
-              text={`${underThreshold.length} cheval${underThreshold.length > 1 ? "x" : ""} sous le seuil ce mois`}
+              text={`${underThreshold.length} cheval${underThreshold.length > 1 ? "x" : ""} sous le seuil`}
+              hint="leur place coûte plus qu'elle ne rapporte"
             />
           )}
           {declining.slice(0, 1).map((h) => (
-            <AlertCard
+            <AlertRow
               key={h.horse.id}
               href={`/cheval/${h.horse.id}`}
-              tone="warning"
-              text={`${h.horse.name} perd en marge ces derniers mois`}
+              text={`${h.horse.name} perd en marge`}
+              hint="sa tendance baisse depuis 3 mois"
             />
           ))}
         </section>
       )}
 
-      {/* Weekly discovery */}
-      {insight && (
-        <Link href="/decouvertes">
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-[var(--radius-lg)] border bg-gradient-to-br from-[var(--accent-primary-soft)] to-transparent p-5"
-          >
-            <p className="text-2xs uppercase tracking-wide text-[var(--accent-primary)]">
-              La découverte de la semaine
-            </p>
-            <p className="mt-1.5 font-[family-name:var(--font-fraunces)] text-lg text-primary">
-              {insight.title}
-            </p>
-            <p className="mt-1 text-sm text-secondary line-clamp-2">{insight.body}</p>
-            <span className="mt-3 inline-flex items-center gap-1 text-2xs text-[var(--accent-primary)]">
-              Voir le détail <ChevronRight size={13} />
-            </span>
-          </motion.section>
-        </Link>
-      )}
-
-      {/* Quick actions */}
+      {/* Tes chevaux */}
       <section>
-        <h2 className="mb-2 text-2xs uppercase tracking-wide text-tertiary">
-          Actions rapides
-        </h2>
-        <div className="space-y-2">
-          {quickActions.map((a) => (
-            <Link
-              key={a.href}
-              href={a.href}
-              className="flex items-center gap-3 rounded-[var(--radius-md)] border bg-elevated p-3.5 active:bg-[var(--bg-pressed)]"
-            >
-              <span className="text-[var(--accent-primary)]">{a.icon}</span>
-              <span className="flex-1 text-sm text-primary">{a.label}</span>
-              <ChevronRight size={16} className="text-tertiary" />
-            </Link>
-          ))}
-        </div>
+        <SectionHead title="Tes chevaux" action={<Link href="/ecurie">Tout voir ›</Link>} />
+        <ul className="border-t border-[var(--border-default)]">
+          {horses.slice(0, 4).map((h, i) => {
+            const ok = h.pnl.netResult >= 0;
+            return (
+              <li key={h.horse.id}>
+                <Link
+                  href={`/cheval/${h.horse.id}`}
+                  className="flex items-center gap-4 border-b border-[var(--border-default)] py-3.5"
+                >
+                  <span className="w-7 text-[13px] font-bold tabular-nums text-tertiary">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-[16px] font-bold leading-tight text-primary">{h.horse.name}</p>
+                    <p className="text-[12px] text-tertiary">{ok ? "rapporte ce mois" : "te coûte ce mois"}</p>
+                  </div>
+                  <span
+                    className="text-[16px] font-extrabold tabular-nums"
+                    style={{ color: ok ? "var(--c-success)" : "var(--c-danger)" }}
+                  >
+                    {formatEur(h.pnl.netResult)}
+                  </span>
+                  <ChevronRight size={16} className="text-tertiary" />
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </section>
     </div>
   );
 }
 
-function AlertCard({
-  href,
-  tone,
-  text,
+function Stat({
+  label,
+  value,
+  divider,
+  explain,
 }: {
-  href: string;
-  tone: "danger" | "warning";
-  text: string;
+  label: string;
+  value: string;
+  divider?: boolean;
+  explain?: string;
 }) {
-  const color = tone === "danger" ? "var(--c-danger)" : "var(--c-warning)";
-  const bg = tone === "danger" ? "var(--c-danger-soft)" : "var(--c-warning-soft)";
+  return (
+    <div className={`py-3 ${divider ? "border-l border-[var(--border-default)]" : ""}`}>
+      {explain ? (
+        <Explain k={explain} className="text-[10px] font-bold uppercase tracking-wide text-tertiary">
+          {label}
+        </Explain>
+      ) : (
+        <span className="text-[10px] font-bold uppercase tracking-wide text-tertiary">{label}</span>
+      )}
+      <p className="mt-0.5 text-[15px] font-extrabold tabular-nums text-primary">{value}</p>
+    </div>
+  );
+}
+
+function AlertRow({ href, text, hint }: { href: string; text: string; hint: string }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-[var(--radius-md)] p-3.5"
-      style={{ background: bg }}
+      className="flex items-center gap-3 border border-[var(--c-danger)] bg-[var(--c-danger-soft)] p-3.5"
     >
-      <AlertTriangle size={18} style={{ color }} />
-      <span className="flex-1 text-sm text-primary">{text}</span>
-      <ChevronRight size={16} style={{ color }} />
+      <AlertTriangle size={18} style={{ color: "var(--c-danger)" }} />
+      <div className="flex-1">
+        <p className="text-[14px] font-bold text-primary">{text}</p>
+        <p className="text-[12px] text-secondary">{hint}</p>
+      </div>
+      <ChevronRight size={16} style={{ color: "var(--c-danger)" }} />
     </Link>
   );
 }

@@ -1,13 +1,13 @@
-import { TimeRibbon } from "@/components/nav/time-ribbon";
-import { Compass } from "@/components/nav/compass";
+import { PeriodStrip } from "@/components/ed/period-strip";
+import { BottomNav } from "@/components/ed/bottom-nav";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh bg-base">
-      <TimeRibbon />
-      <main className="mx-auto max-w-[480px] px-5 pb-32 pt-4">{children}</main>
-      <Compass />
+    <div className="min-h-dvh bg-base text-primary">
+      <PeriodStrip />
+      <main className="mx-auto max-w-[440px] px-5 pb-28 pt-4">{children}</main>
+      <BottomNav />
       <PwaInstallPrompt />
     </div>
   );

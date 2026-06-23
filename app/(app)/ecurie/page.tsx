@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { LayoutGrid, Orbit, Plus } from "lucide-react";
 import Link from "next/link";
+import { ChevronRight, LayoutList, Orbit } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { HorseCard } from "@/components/horse/horse-card";
 import { HorseGalaxy } from "@/components/horse/horse-galaxy";
+import { Explain } from "@/components/ed/explain";
+import { CopiloteNote } from "@/components/ed/copilote";
+import { Sparkline } from "@/components/ui/sparkline";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useHorses } from "@/lib/hooks/use-horses";
+import { formatEur } from "@/lib/utils/format-currency";
 import { cn } from "@/lib/utils/cn";
 
-type View = "gallery" | "galaxy";
 type Sort = "marge" | "volatilite" | "nom";
 
 export default function EcuriePage() {
@@ -22,9 +24,9 @@ export default function EcuriePage() {
 }
 
 function Ecurie() {
-  const [view, setView] = useState<View>("gallery");
-  const [sort, setSort] = useState<Sort>("marge");
   const horses = useHorses();
+  const [sort, setSort] = useState<Sort>("marge");
+  const [galaxy, setGalaxy] = useState(false);
 
   const sorted = [...horses].sort((a, b) => {
     if (sort === "nom") return a.horse.name.localeCompare(b.horse.name);
@@ -32,85 +34,106 @@ function Ecurie() {
     return b.pnl.netResult - a.pnl.netResult;
   });
 
+  const under = horses.filter((h) => h.pnl.netResult < 0).length;
+
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
-          Mon écurie
-        </h1>
-        <div className="flex gap-1 rounded-full border bg-elevated p-1">
-          <ViewBtn active={view === "gallery"} onClick={() => setView("gallery")}>
-            <LayoutGrid size={16} />
-          </ViewBtn>
-          <ViewBtn active={view === "galaxy"} onClick={() => setView("galaxy")}>
-            <Orbit size={16} />
-          </ViewBtn>
-        </div>
+        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">Mon écurie</h1>
+        <button
+          onClick={() => setGalaxy((g) => !g)}
+          className="flex items-center gap-1.5 border border-[var(--border-strong)] px-2.5 py-1.5 text-[12px] font-bold"
+          aria-label={galaxy ? "Vue liste" : "Vue galaxie"}
+        >
+          {galaxy ? <LayoutList size={15} /> : <Orbit size={15} />}
+          {galaxy ? "Liste" : "Galaxie"}
+        </button>
       </header>
 
       {horses.length === 0 ? (
         <EmptyState
           title="Aucun cheval pour l'instant."
           body="Ajoute le premier pour voir tes chiffres prendre vie."
-          icon={<Plus size={22} />}
           action={
             <Link
               href="/saisie/cheval"
-              className="rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-medium text-[#0e0f0c]"
+              className="bg-[var(--text-primary)] px-5 py-2.5 text-sm font-bold text-[var(--bg-base)]"
             >
               Ajouter un cheval
             </Link>
           }
         />
-      ) : view === "galaxy" ? (
-        <HorseGalaxy items={horses} />
+      ) : galaxy ? (
+        <div className="border border-[var(--border-strong)] bg-elevated p-3">
+          <HorseGalaxy items={horses} />
+        </div>
       ) : (
         <>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {(["marge", "volatilite", "nom"] as Sort[]).map((s) => (
+          {under > 0 && (
+            <CopiloteNote>
+              {under} cheval{under > 1 ? "x sont" : " est"} sous leur{" "}
+              <Explain k="seuil_rentabilite" className="text-[var(--accent-primary)]">
+                seuil
+              </Explain>
+              . Trie par rentabilité pour voir qui porte l&apos;écurie et qui pèse dessus.
+            </CopiloteNote>
+          )}
+
+          <div className="flex gap-2">
+            {([
+              { v: "marge", l: "Rentabilité" },
+              { v: "volatilite", l: "Volatilité" },
+              { v: "nom", l: "Nom" },
+            ] as { v: Sort; l: string }[]).map((s) => (
               <button
-                key={s}
-                onClick={() => setSort(s)}
+                key={s.v}
+                onClick={() => setSort(s.v)}
                 className={cn(
-                  "shrink-0 rounded-full border px-3 py-1 text-xs capitalize",
-                  sort === s
-                    ? "border-[var(--accent-primary)] text-[var(--accent-primary)]"
-                    : "text-tertiary",
+                  "border px-3 py-1.5 text-[12px] font-bold",
+                  sort === s.v
+                    ? "border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-base)]"
+                    : "border-[var(--border-strong)] text-tertiary",
                 )}
               >
-                {s === "marge" ? "Rentabilité" : s === "volatilite" ? "Volatilité" : "Nom"}
+                {s.l}
               </button>
             ))}
           </div>
-          <div className="space-y-3">
-            {sorted.map((item, i) => (
-              <HorseCard key={item.horse.id} item={item} index={i} />
-            ))}
-          </div>
+
+          <ul className="border-t border-[var(--border-default)]">
+            {sorted.map((h, i) => {
+              const ok = h.pnl.netResult >= 0;
+              return (
+                <li key={h.horse.id}>
+                  <Link
+                    href={`/cheval/${h.horse.id}`}
+                    className="flex items-center gap-3 border-b border-[var(--border-default)] py-3.5"
+                  >
+                    <span className="w-7 text-[13px] font-bold tabular-nums text-tertiary">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[16px] font-bold leading-tight text-primary">{h.horse.name}</p>
+                      <p className="truncate text-[12px] text-tertiary">
+                        {h.horse.breed}
+                        {h.horse.birthYear ? ` · ${new Date().getFullYear() - h.horse.birthYear} ans` : ""}
+                      </p>
+                    </div>
+                    <Sparkline data={h.series} width={56} height={24} />
+                    <span
+                      className="w-[68px] text-right text-[15px] font-extrabold tabular-nums"
+                      style={{ color: ok ? "var(--c-success)" : "var(--c-danger)" }}
+                    >
+                      {formatEur(h.pnl.netResult)}
+                    </span>
+                    <ChevronRight size={16} className="text-tertiary" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </>
       )}
     </div>
-  );
-}
-
-function ViewBtn({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex size-8 items-center justify-center rounded-full transition-colors",
-        active ? "bg-[var(--accent-primary)] text-[#0e0f0c]" : "text-tertiary",
-      )}
-    >
-      {children}
-    </button>
   );
 }

@@ -5,16 +5,20 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ChevronLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { HorseAvatar } from "@/components/horse/horse-avatar";
-import { KeyNumber } from "@/components/ui/key-number";
 import { Sparkline } from "@/components/ui/sparkline";
-import { LessonTerm } from "@/components/pedagogy/lesson-term";
-import { BreakdownBars } from "@/components/horse/breakdown-bars";
+import { Explain } from "@/components/ed/explain";
+import { CopiloteNote } from "@/components/ed/copilote";
+import { HorseLine, Tag } from "@/components/ed/atoms";
 import { useHorses } from "@/lib/hooks/use-horses";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { formatEur } from "@/lib/utils/format-currency";
 import { dateInPeriod } from "@/lib/utils/period";
+
+function eur(n: number) {
+  const v = new Intl.NumberFormat("fr-FR").format(Math.round(Math.abs(n)));
+  return `${n < 0 ? "−" : ""}${v} €`;
+}
 
 export function ChevalView({ id }: { id: string }) {
   return (
@@ -31,38 +35,29 @@ function Cheval({ id }: { id: string }) {
   const period = usePeriodStore((s) => s.active);
 
   const idx = horses.findIndex((h) => h.horse.id === id);
-  if (idx === -1) {
-    return <p className="text-secondary">Cheval introuvable.</p>;
-  }
+  if (idx === -1) return <p className="text-secondary">Cheval introuvable.</p>;
+
   const item = horses[idx];
   const { horse, pnl, trend, series } = item;
-
+  const ok = pnl.netResult >= 0;
   const next = horses[(idx + 1) % horses.length];
   const prev = horses[(idx - 1 + horses.length) % horses.length];
+  const cover = pnl.threshold > 0 ? Math.min(1, pnl.revenue / pnl.threshold) : 1;
 
-  // Revenue breakdown by category.
+  // Breakdowns.
   const revByCat = new Map<string, number>();
   for (const r of data.revenues) {
     if (r.horseId !== horse.id || !dateInPeriod(r.date, period)) continue;
     const name = data.revenueCategories.find((c) => c.id === r.categoryId)?.name ?? "Autre";
     revByCat.set(name, (revByCat.get(name) ?? 0) + r.amount);
   }
-  const directByCat = new Map<string, number>();
-  for (const e of data.directExpenses) {
-    if (e.horseId !== horse.id || !dateInPeriod(e.date, period)) continue;
-    directByCat.set(e.label, (directByCat.get(e.label) ?? 0) + e.amount);
-  }
-  // Shared cost contributions.
   const sharedContrib = data.sharedExpenses
     .filter((s) => s.periodYear === period.year && s.periodMonth === period.month)
-    .map((s) => ({
-      label: s.label,
-      amount: s.allocations.find((a) => a.horseId === horse.id)?.allocatedAmount ?? 0,
-    }))
+    .map((s) => ({ label: s.label, amount: s.allocations.find((a) => a.horseId === horse.id)?.allocatedAmount ?? 0 }))
     .filter((x) => x.amount > 0);
 
   const trendIcon =
-    trend === "hausse" ? <TrendingUp size={16} /> : trend === "baisse" ? <TrendingDown size={16} /> : <Minus size={16} />;
+    trend === "hausse" ? <TrendingUp size={15} /> : trend === "baisse" ? <TrendingDown size={15} /> : <Minus size={15} />;
 
   return (
     <motion.div
@@ -74,139 +69,132 @@ function Cheval({ id }: { id: string }) {
         if (info.offset.x < -80) router.push(`/cheval/${next.horse.id}`);
         else if (info.offset.x > 80) router.push(`/cheval/${prev.horse.id}`);
       }}
-      initial={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0 }}
-      className="space-y-6"
+      className="space-y-5"
     >
       <Link href="/ecurie" className="inline-flex items-center gap-1 text-sm text-tertiary">
         <ChevronLeft size={16} /> Mon écurie
       </Link>
 
-      <header className="flex items-center gap-4">
-        <HorseAvatar name={horse.name} size={64} />
-        <div>
-          <h1 className="font-[family-name:var(--font-fraunces)] text-3xl text-primary">
-            {horse.name}
-          </h1>
-          <p className="text-sm text-tertiary">
-            {horse.breed}
-            {horse.birthYear ? ` · ${new Date().getFullYear() - horse.birthYear} ans` : ""}
-            {horse.ownerName ? ` · ${horse.ownerName}` : ""}
-          </p>
+      {/* Image header */}
+      <div className="relative overflow-hidden border border-[var(--border-strong)]">
+        <div
+          className="relative flex aspect-[16/9] items-center justify-center"
+          style={{ background: "var(--accent-primary-soft)" }}
+        >
+          <HorseLine size={140} stroke={0.9} color="var(--text-primary)" />
+          <div className="absolute bottom-3 right-3">
+            <Tag tone={ok ? "green" : "red"}>{ok ? "Il rapporte" : "Il coûte"}</Tag>
+          </div>
         </div>
+      </div>
+
+      <header>
+        <h1 className="font-[family-name:var(--font-fraunces)] text-3xl text-primary">{horse.name}</h1>
+        <p className="text-[13px] font-semibold uppercase tracking-wide text-tertiary">
+          {horse.breed}
+          {horse.birthYear ? ` · ${new Date().getFullYear() - horse.birthYear} ans` : ""}
+          {horse.ownerName ? ` · ${horse.ownerName}` : ""}
+        </p>
       </header>
 
-      {/* KPIs */}
-      <section className="grid grid-cols-3 gap-2">
-        <Kpi label="Résultat net" lesson="marge_nette">
-          <KeyNumber value={pnl.netResult} colorBySign className="text-xl" animateOnMount={false} />
-        </Kpi>
-        <Kpi label="Marge nette" lesson="marge_nette">
-          <KeyNumber value={pnl.netMarginPct} format="pct" colorBySign className="text-xl" animateOnMount={false} />
-        </Kpi>
-        <Kpi label="Tendance">
-          <span
-            className="flex items-center gap-1 text-base capitalize"
-            style={{
-              color:
-                trend === "hausse" ? "var(--c-success)" : trend === "baisse" ? "var(--c-danger)" : "var(--text-secondary)",
-            }}
-          >
-            {trendIcon} {trend}
-          </span>
-        </Kpi>
-      </section>
-
-      {/* Threshold bar */}
-      <section className="rounded-[var(--radius-lg)] border bg-elevated p-4">
-        <LessonTerm lessonKey="seuil_rentabilite" className="text-2xs uppercase tracking-wide text-tertiary">
-          Seuil de rentabilité
-        </LessonTerm>
-        <ThresholdBar revenue={pnl.revenue} threshold={pnl.threshold} />
-        <div className="mt-2 flex justify-between text-2xs text-tertiary">
-          <span>Revenus {formatEur(pnl.revenue)}</span>
-          <span>Seuil {formatEur(pnl.threshold)}</span>
-        </div>
-      </section>
-
-      {/* 12-month chart */}
-      <section className="rounded-[var(--radius-lg)] border bg-elevated p-4">
-        <p className="mb-2 text-2xs uppercase tracking-wide text-tertiary">12 derniers mois</p>
-        <Sparkline data={series} area width={420} height={90} className="w-full" />
-      </section>
-
-      {/* Breakdowns */}
-      <section className="rounded-[var(--radius-lg)] border bg-elevated p-4">
-        <p className="mb-3 text-2xs uppercase tracking-wide text-tertiary">Revenus</p>
-        <BreakdownBars items={[...revByCat].map(([label, amount]) => ({ label, amount }))} color="var(--c-success)" />
-      </section>
-
-      <section className="rounded-[var(--radius-lg)] border bg-elevated p-4">
-        <LessonTerm lessonKey="cout_direct" className="mb-3 block text-2xs uppercase tracking-wide text-tertiary">
-          Charges directes
-        </LessonTerm>
-        <BreakdownBars items={[...directByCat].map(([label, amount]) => ({ label, amount }))} color="var(--accent-primary)" />
-      </section>
-
-      <section className="rounded-[var(--radius-lg)] border bg-elevated p-4">
-        <LessonTerm lessonKey="charges_mutualisees" className="mb-1 block text-2xs uppercase tracking-wide text-tertiary">
-          Part des charges mutualisées
-        </LessonTerm>
-        <p className="mb-3 text-sm text-secondary">
-          {formatEur(pnl.sharedCosts)} attribués ce mois
+      {/* Hero */}
+      <div>
+        <Explain k="marge_nette" className="text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
+          Ce qu&apos;il te laisse ce mois
+        </Explain>
+        <p
+          className="font-[family-name:var(--font-fraunces)] text-5xl tabular-nums"
+          style={{ color: ok ? "var(--c-success)" : "var(--c-danger)" }}
+        >
+          {eur(pnl.netResult)}
         </p>
-        <BreakdownBars items={sharedContrib} color="var(--c-warning)" />
-      </section>
+        <span
+          className="mt-1 inline-flex items-center gap-1 text-[13px] font-semibold capitalize"
+          style={{ color: trend === "hausse" ? "var(--c-success)" : trend === "baisse" ? "var(--c-danger)" : "var(--text-tertiary)" }}
+        >
+          {trendIcon}{" "}
+          <Explain k="tendance" className="capitalize">
+            {trend}
+          </Explain>
+        </span>
+      </div>
 
-      <p className="text-center text-2xs text-tertiary">
-        Glisse pour passer à {next.horse.name} →
-      </p>
-    </motion.div>
-  );
-}
+      {/* Entre / sort */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="border border-[var(--border-strong)] p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-tertiary">Il fait rentrer</p>
+          <p className="mt-1 text-[22px] font-extrabold tabular-nums text-primary">{eur(pnl.revenue)}</p>
+        </div>
+        <div className="border border-[var(--border-strong)] p-4">
+          <Explain k="cout_direct" className="text-[11px] font-bold uppercase tracking-wide text-tertiary">
+            Il te coûte
+          </Explain>
+          <p className="mt-1 text-[22px] font-extrabold tabular-nums text-primary">{eur(pnl.threshold)}</p>
+        </div>
+      </div>
 
-function Kpi({
-  label,
-  lesson,
-  children,
-}: {
-  label: string;
-  lesson?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-[var(--radius-md)] border bg-elevated p-3">
-      {lesson ? (
-        <LessonTerm lessonKey={lesson} className="text-[10px] uppercase tracking-wide text-tertiary">
-          {label}
-        </LessonTerm>
-      ) : (
-        <span className="text-[10px] uppercase tracking-wide text-tertiary">{label}</span>
+      {/* Seuil */}
+      <div className="border border-[var(--border-strong)] p-4">
+        <Explain k="seuil_rentabilite" className="text-[13px] font-bold text-primary">
+          Son seuil de rentabilité
+        </Explain>
+        <p className="mt-1 text-[13px] text-secondary">
+          Pour être à l&apos;équilibre, il doit rapporter au moins {eur(pnl.threshold)}. Là :{" "}
+          {eur(pnl.revenue)}.
+        </p>
+        <div className="mt-3 h-2 w-full border border-[var(--border-strong)] bg-base">
+          <div className="h-full" style={{ width: `${cover * 100}%`, background: ok ? "var(--c-success)" : "var(--c-danger)" }} />
+        </div>
+      </div>
+
+      {/* 12 mois */}
+      <div className="border border-[var(--border-strong)] p-4">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-tertiary">12 derniers mois</p>
+        <Sparkline data={series} area width={380} height={72} className="w-full" />
+      </div>
+
+      {/* Copilote */}
+      <CopiloteNote>
+        {ok
+          ? `${horse.name} dégage ${eur(pnl.netResult)} ce mois. Solide — garde le cap.`
+          : `${horse.name} te coûte ${eur(Math.abs(pnl.netResult))} de plus qu'il ne rapporte. Une légère hausse de pension le remettrait à flot.`}
+      </CopiloteNote>
+
+      {/* Part mutualisée */}
+      {sharedContrib.length > 0 && (
+        <div>
+          <Explain k="charges_mutualisees" className="text-[13px] font-bold uppercase tracking-wide text-tertiary">
+            Sa part des charges partagées
+          </Explain>
+          <ul className="mt-2 border-t border-[var(--border-default)]">
+            {sharedContrib.map((c) => (
+              <li key={c.label} className="flex justify-between border-b border-[var(--border-default)] py-2.5 text-[14px]">
+                <span className="text-secondary">{c.label}</span>
+                <span className="font-bold tabular-nums text-primary">{formatEur(c.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
-      <div className="mt-1">{children}</div>
-    </div>
-  );
-}
 
-function ThresholdBar({ revenue, threshold }: { revenue: number; threshold: number }) {
-  const max = Math.max(revenue, threshold, 1);
-  const revPct = (revenue / max) * 100;
-  const thrPct = (threshold / max) * 100;
-  const covers = revenue >= threshold;
-  return (
-    <div className="relative mt-3 h-3 rounded-full bg-[var(--bg-pressed)]">
-      <div
-        className="absolute inset-y-0 left-0 rounded-full"
-        style={{
-          width: `${revPct}%`,
-          background: covers ? "var(--c-success)" : "var(--c-danger)",
-        }}
-      />
-      <div
-        className="absolute inset-y-[-3px] w-0.5 bg-[var(--text-primary)]"
-        style={{ left: `${thrPct}%` }}
-        title="Seuil"
-      />
-    </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Link
+          href="/saisie/revenu"
+          className="flex items-center justify-center border border-[var(--border-strong)] py-3 text-[14px] font-bold text-primary"
+        >
+          Ajouter un revenu
+        </Link>
+        <Link
+          href="/saisie/charge"
+          className="flex items-center justify-center border border-[var(--text-primary)] bg-[var(--accent-primary)] py-3 text-[14px] font-bold text-[#17150d]"
+        >
+          Ajouter une charge
+        </Link>
+      </div>
+
+      <p className="text-center text-[12px] text-tertiary">Glisse pour passer à {next.horse.name} →</p>
+    </motion.div>
   );
 }
