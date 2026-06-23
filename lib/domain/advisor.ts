@@ -33,6 +33,9 @@ function avgPension(data: StableData, period: Period, count: number): number {
  * user's numbers and to the commercially-realistic logic. The free-text
  * understanding (a real LLM) plugs in behind matchIntent() once a backend is
  * available — this is the offline brain in the meantime.
+ *
+ * Planned LLM provider: OpenRouter (server-side edge function, OPENROUTER_API_KEY),
+ * not the Anthropic API directly. To be wired later.
  */
 export function advisorAnswer(
   key: string,
