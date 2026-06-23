@@ -1,0 +1,17 @@
+-- ============================================================================
+-- Be Stable — local seed (spec 4.3 / 20.2)
+-- ============================================================================
+-- Default revenue & expense categories are seeded automatically by the
+-- `trg_seed_categories` trigger whenever a stable is created (see
+-- 0002_rls_and_seeding.sql), so no manual category seeding is needed here.
+--
+-- For a demo stable with sample horses, the client ships a deterministic
+-- generator in lib/data/demo-data.ts. To seed equivalent data server-side,
+-- create a stable for a test user and insert horses from section 20.2:
+--
+--   Sirius (SF, 2015), Diva (PSA, 2017), Belle (Connemara, 2013),
+--   Tonnerre (PRE, 2014), Princesse (TF, 2008), Vaillant (AA, 2010),
+--   Pacha (Welsh, 2018), Mistral (SF, 2009)
+--
+-- Left intentionally empty so `supabase db reset` does not create orphan rows
+-- without an authenticated owner.

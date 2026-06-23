@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Moon, Sun, RotateCcw, Bell } from "lucide-react";
+import Link from "next/link";
+import { Moon, Sun, RotateCcw, Bell, Tags, ChevronRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { useDataStore } from "@/stores/data-store";
 
@@ -15,12 +16,10 @@ export default function ParametresPage() {
 
 function Parametres() {
   const resetToDemo = useDataStore((s) => s.resetToDemo);
+  const activeHorses = useDataStore(
+    (s) => s.horses.filter((h) => !h.isArchived).length,
+  );
   const [theme, setTheme] = useState<"dark" | "light">("dark");
-  const [notifs, setNotifs] = useState({
-    weekly: true,
-    monthly: true,
-    horses: true,
-  });
 
   useEffect(() => {
     const stored = (localStorage.getItem("be-stable-theme") as "dark" | "light") || "dark";
@@ -51,7 +50,7 @@ function Parametres() {
       <Section title="Écurie">
         <Row label="Nom de l'écurie" value="Écurie démo" />
         <Row label="Type" value="Pension simple" />
-        <Row label="Chevaux actifs" value={`${useDataStore.getState().horses.filter((h) => !h.isArchived).length}`} />
+        <Row label="Chevaux actifs" value={`${activeHorses}`} />
       </Section>
 
       <Section title="Apparence">
@@ -64,25 +63,9 @@ function Parametres() {
         </button>
       </Section>
 
-      <Section title="Notifications">
-        <Toggle
-          icon={<Bell size={16} />}
-          label="Découverte hebdomadaire"
-          on={notifs.weekly}
-          onClick={() => setNotifs((n) => ({ ...n, weekly: !n.weekly }))}
-        />
-        <Toggle
-          icon={<Bell size={16} />}
-          label="Audit mensuel"
-          on={notifs.monthly}
-          onClick={() => setNotifs((n) => ({ ...n, monthly: !n.monthly }))}
-        />
-        <Toggle
-          icon={<Bell size={16} />}
-          label="Alertes chevaux"
-          on={notifs.horses}
-          onClick={() => setNotifs((n) => ({ ...n, horses: !n.horses }))}
-        />
+      <Section title="Gérer">
+        <NavRow href="/parametres/categories" icon={<Tags size={16} />} label="Catégories" />
+        <NavRow href="/parametres/notifications" icon={<Bell size={16} />} label="Notifications" />
       </Section>
 
       <Section title="Données">
@@ -119,32 +102,22 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Toggle({
+function NavRow({
+  href,
   icon,
   label,
-  on,
-  onClick,
 }: {
+  href: string;
   icon: React.ReactNode;
   label: string;
-  on: boolean;
-  onClick: () => void;
 }) {
   return (
-    <button onClick={onClick} className="flex w-full items-center justify-between py-3">
+    <Link href={href} className="flex w-full items-center justify-between py-3.5">
       <span className="flex items-center gap-2 text-sm text-primary">
         <span className="text-tertiary">{icon}</span>
         {label}
       </span>
-      <span
-        className="relative h-6 w-10 rounded-full transition-colors"
-        style={{ background: on ? "var(--accent-primary)" : "var(--bg-pressed)" }}
-      >
-        <span
-          className="absolute top-0.5 size-5 rounded-full bg-white transition-all"
-          style={{ left: on ? 18 : 2 }}
-        />
-      </span>
-    </button>
+      <ChevronRight size={16} className="text-tertiary" />
+    </Link>
   );
 }

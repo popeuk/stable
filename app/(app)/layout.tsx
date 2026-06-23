@@ -1,5 +1,6 @@
 import { TimeRibbon } from "@/components/nav/time-ribbon";
 import { Compass } from "@/components/nav/compass";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -7,6 +8,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <TimeRibbon />
       <main className="mx-auto max-w-[480px] px-5 pb-32 pt-4">{children}</main>
       <Compass />
+      <PwaInstallPrompt />
     </div>
   );
 }

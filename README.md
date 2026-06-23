@@ -50,9 +50,18 @@ npm run icons        # régénère les icônes PWA
 - **Pédagogie en filigrane** (section 11.2) : 12 mini-leçons, termes métier
   tappables ouvrant une carte calculée sur les données réelles.
 - **PWA** (section 14) : manifest, icônes 192/512/maskable + apple-touch,
-  service worker (cache-first assets, network-first navigations).
+  service worker (cache-first assets, network-first navigations), toast
+  d'installation après quelques visites.
 - **Persistance locale** : Zustand + `localStorage`, seedé avec l'écurie de
   démo (8 chevaux × 12 mois).
+- **Couche base de données** (section 4) : migrations SQL complètes dans
+  `supabase/migrations/` (schéma, index, RLS owner-scoped, seeding auto des
+  catégories par défaut, création de profil au signup), types TS
+  (`lib/data/database.types.ts`) et client navigateur
+  (`lib/data/supabase.ts`) qui bascule proprement en mode local si les
+  variables d'environnement sont absentes.
+- **Paramètres** : gestion des catégories (revenus / directes / mutualisées)
+  et préférences de notifications granulaires, persistées.
 
 ## Architecture
 
@@ -75,9 +84,11 @@ Supabase sans la réécrire.
 Ces parties de la spec demandent des secrets/cloud non disponibles ici. L'UI
 et les contrats sont en place ; seul l'appel distant est simulé :
 
-- **Supabase** (Postgres, Auth, Storage, Realtime) — la spec SQL section 4 fait
-  référence ; ici les données vivent en local. Le store est conçu pour être
-  fronté par une couche de sync.
+- **Supabase** (Postgres, Auth, Storage, Realtime) — le schéma SQL section 4
+  est écrit et prêt à appliquer (`supabase db push` ou MCP `apply_migration`),
+  mais l'app tourne encore sur le store local : l'auth magic-link et la couche
+  de sync restent à brancher. Copie `.env.example` → `.env.local` pour activer
+  le client distant.
 - **Saisie vocale & OCR** (Claude / Whisper / Mindee) — le flux UI complet est
   là, l'étape de parsing renvoie un résultat simulé.
 - **Insights hebdo via Claude API + cron** — le moteur de règles tourne en

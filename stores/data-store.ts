@@ -25,6 +25,10 @@ interface DataState extends StableData {
   addHorse: (h: Omit<Horse, "id" | "stableId" | "isArchived">) => void;
   archiveHorse: (id: string) => void;
   deleteHorse: (id: string) => void;
+  addRevenueCategory: (name: string) => void;
+  addExpenseCategory: (name: string, isDirect: boolean) => void;
+  deleteRevenueCategory: (id: string) => void;
+  deleteExpenseCategory: (id: string) => void;
   resetToDemo: () => void;
 }
 
@@ -86,6 +90,31 @@ export const useDataStore = create<DataState>()(
             allocations: se.allocations.filter((a) => a.horseId !== horseId),
           })),
         })),
+
+      addRevenueCategory: (name) =>
+        set((s) =>
+          s.revenueCategories.some((c) => c.name.toLowerCase() === name.trim().toLowerCase())
+            ? s
+            : { revenueCategories: [...s.revenueCategories, { id: id("rev"), name: name.trim() }] },
+        ),
+
+      addExpenseCategory: (name, isDirect) =>
+        set((s) =>
+          s.expenseCategories.some((c) => c.name.toLowerCase() === name.trim().toLowerCase())
+            ? s
+            : {
+                expenseCategories: [
+                  ...s.expenseCategories,
+                  { id: id("exp"), name: name.trim(), isDirect },
+                ],
+              },
+        ),
+
+      deleteRevenueCategory: (catId) =>
+        set((s) => ({ revenueCategories: s.revenueCategories.filter((c) => c.id !== catId) })),
+
+      deleteExpenseCategory: (catId) =>
+        set((s) => ({ expenseCategories: s.expenseCategories.filter((c) => c.id !== catId) })),
 
       resetToDemo: () => set({ ...buildDemoData() }),
     }),
