@@ -62,6 +62,13 @@ npm run icons        # régénère les icônes PWA
   variables d'environnement sont absentes.
 - **Paramètres** : gestion des catégories (revenus / directes / mutualisées)
   et préférences de notifications granulaires, persistées.
+- **Couche de synchronisation offline-first** (section 13), pure et **testée** :
+  file de mutations (machine à états avec retry/dead-letter), moteur de replay
+  avec backoff exponentiel et isolation des échecs, mappers domaine ↔ rows,
+  résolution de conflits (last-write-wins + **merge des charges mutualisées** :
+  union des chevaux puis recalcul du split). Repository distant Supabase qui
+  implémente l'interface ; le store enqueue les mutations (no-op tant que le
+  remote n'est pas configuré). 42 tests au total.
 
 ## Architecture
 
@@ -70,7 +77,9 @@ app/                 Routes (App Router). (app)/ = shell ruban + boussole.
 components/           UI : nav, horse, insights, entry, pedagogy, ui.
 lib/domain/           Logique métier pure (testée). Aucune dépendance framework.
 lib/utils/            Formatage FR, périodes, cn().
-lib/data/             demo-data : générateur de l'écurie de démo.
+lib/data/             demo-data, client Supabase, types DB.
+lib/data/sync/        File de mutations, moteur de replay, conflits, mappers.
+lib/data/repositories/ Repository distant Supabase.
 stores/               Zustand : période active + données.
 content/lessons.ts    Catalogue des 12 mini-leçons.
 tests/unit/domain/    Vitest.

@@ -10,6 +10,7 @@ import type {
   StableData,
 } from "@/lib/domain/types";
 import { buildDemoData } from "@/lib/data/demo-data";
+import { enqueueMutation } from "@/lib/data/sync";
 
 /**
  * Client-side data store. In the full product this is the IndexedDB-backed
@@ -44,43 +45,50 @@ export const useDataStore = create<DataState>()(
       ...buildDemoData(),
       hydrated: false,
 
-      addRevenue: (r) =>
-        set((s) => ({
-          revenues: [...s.revenues, { ...r, id: id("rev"), stableId: STABLE_ID }],
-        })),
+      addRevenue: (r) => {
+        const entity = { ...r, id: id("rev"), stableId: STABLE_ID };
+        enqueueMutation("insert", "revenues", entity);
+        set((s) => ({ revenues: [...s.revenues, entity] }));
+      },
 
-      addDirectExpense: (e) =>
-        set((s) => ({
-          directExpenses: [
-            ...s.directExpenses,
-            { ...e, id: id("dexp"), stableId: STABLE_ID },
-          ],
-        })),
+      addDirectExpense: (e) => {
+        const entity = { ...e, id: id("dexp"), stableId: STABLE_ID };
+        enqueueMutation("insert", "direct_expenses", entity);
+        set((s) => ({ directExpenses: [...s.directExpenses, entity] }));
+      },
 
-      addSharedExpense: (e) =>
-        set((s) => ({
-          sharedExpenses: [
-            ...s.sharedExpenses,
-            { ...e, id: id("shared"), stableId: STABLE_ID },
-          ],
-        })),
+      addSharedExpense: (e) => {
+        const entity = { ...e, id: id("shared"), stableId: STABLE_ID };
+        enqueueMutation("insert", "shared_expenses", entity);
+        set((s) => ({ sharedExpenses: [...s.sharedExpenses, entity] }));
+      },
 
-      addHorse: (h) =>
-        set((s) => ({
-          horses: [
-            ...s.horses,
-            { ...h, id: id("horse"), stableId: STABLE_ID, isArchived: false },
-          ],
-        })),
+      addHorse: (h) => {
+        const entity = {
+          ...h,
+          id: id("horse"),
+          stableId: STABLE_ID,
+          isArchived: false,
+        };
+        enqueueMutation("insert", "horses", entity);
+        set((s) => ({ horses: [...s.horses, entity] }));
+      },
 
       archiveHorse: (horseId) =>
-        set((s) => ({
-          horses: s.horses.map((h) =>
-            h.id === horseId ? { ...h, isArchived: true } : h,
-          ),
-        })),
+        set((s) => {
+          const horse = s.horses.find((h) => h.id === horseId);
+          if (horse) {
+            enqueueMutation("update", "horses", { ...horse, isArchived: true });
+          }
+          return {
+            horses: s.horses.map((h) =>
+              h.id === horseId ? { ...h, isArchived: true } : h,
+            ),
+          };
+        }),
 
-      deleteHorse: (horseId) =>
+      deleteHorse: (horseId) => {
+        enqueueMutation("delete", "horses", { id: horseId });
         set((s) => ({
           horses: s.horses.filter((h) => h.id !== horseId),
           revenues: s.revenues.filter((r) => r.horseId !== horseId),
@@ -89,7 +97,8 @@ export const useDataStore = create<DataState>()(
             ...se,
             allocations: se.allocations.filter((a) => a.horseId !== horseId),
           })),
-        })),
+        }));
+      },
 
       addRevenueCategory: (name) =>
         set((s) =>
