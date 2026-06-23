@@ -1,0 +1,184 @@
+import type {
+  Category,
+  DirectExpense,
+  Horse,
+  Revenue,
+  SharedExpense,
+  StableData,
+} from "@/lib/domain/types";
+import { distribute } from "@/lib/domain/distribution";
+import { addMonths, currentPeriod, periodStart } from "@/lib/utils/period";
+
+const STABLE_ID = "demo-stable";
+
+/** Seed horses from section 20.2 of the spec. */
+const DEMO_HORSES: {
+  name: string;
+  breed: string;
+  birthYear: number;
+  pension: number;
+  variableCost: number;
+}[] = [
+  { name: "Sirius", breed: "SF", birthYear: 2015, pension: 600, variableCost: 240 },
+  { name: "Diva", breed: "PSA", birthYear: 2017, pension: 500, variableCost: 195 },
+  { name: "Belle", breed: "Connemara", birthYear: 2013, pension: 450, variableCost: 180 },
+  { name: "Tonnerre", breed: "PRE", birthYear: 2014, pension: 380, variableCost: 165 },
+  { name: "Princesse", breed: "TF", birthYear: 2008, pension: 420, variableCost: 230 },
+  { name: "Vaillant", breed: "AA", birthYear: 2010, pension: 450, variableCost: 310 },
+  { name: "Pacha", breed: "Welsh", birthYear: 2018, pension: 250, variableCost: 110 },
+  { name: "Mistral", breed: "SF", birthYear: 2009, pension: 300, variableCost: 175 },
+];
+
+export const DEFAULT_REVENUE_CATEGORIES: Category[] = [
+  "Pension",
+  "Cours",
+  "Sport",
+  "Transport",
+  "Débourrage",
+  "Demi-pension",
+  "Vente",
+].map((name, i) => ({ id: `rev-${i}`, name }));
+
+export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
+  ...["Maréchal-ferrant", "Vétérinaire", "Médicaments", "Équipement", "Concours", "Transport", "Compléments"].map(
+    (name, i) => ({ id: `exp-d-${i}`, name, isDirect: true }),
+  ),
+  ...["Foin", "Granulés", "Litière", "Personnel", "Loyer / foncier", "Eau", "Électricité", "Assurance", "Entretien", "Fournitures"].map(
+    (name, i) => ({ id: `exp-s-${i}`, name, isDirect: false }),
+  ),
+];
+
+/** A small deterministic pseudo-random generator so the demo is stable. */
+function makeRng(seed: number) {
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0xffffffff;
+  };
+}
+
+/**
+ * Build 12 months of realistic data for the demo stable, ending at the
+ * current month. Each horse gets a monthly pension plus occasional extra
+ * revenue, monthly direct costs, and a share of the mutualised charges.
+ */
+export function buildDemoData(now = new Date()): StableData {
+  const end = currentPeriod(now);
+  const periods = Array.from({ length: 12 }, (_, i) => addMonths(end, -(11 - i)));
+  const rng = makeRng(42);
+
+  const horses: Horse[] = DEMO_HORSES.map((h, idx) => ({
+    id: `horse-${idx}`,
+    stableId: STABLE_ID,
+    name: h.name,
+    breed: h.breed,
+    birthYear: h.birthYear,
+    // Entered between 8 and 36 months ago to vary "ancienneté".
+    entryDate: periodStart(addMonths(end, -(8 + idx * 3))),
+    exitDate: null,
+    isArchived: false,
+    pensionType: "Pension complète",
+  }));
+
+  const revenues: Revenue[] = [];
+  const directExpenses: DirectExpense[] = [];
+  const sharedExpenses: SharedExpense[] = [];
+
+  const pensionCat = DEFAULT_REVENUE_CATEGORIES[0].id;
+  const coursCat = DEFAULT_REVENUE_CATEGORIES[1].id;
+
+  for (const period of periods) {
+    const monthDate = periodStart(period);
+
+    horses.forEach((horse, idx) => {
+      const base = DEMO_HORSES[idx];
+      // Pension every month (slight drift to create trends/volatility).
+      const drift = 1 + (rng() - 0.5) * 0.08;
+      revenues.push({
+        id: `rev-${horse.id}-${monthDate}`,
+        stableId: STABLE_ID,
+        horseId: horse.id,
+        categoryId: pensionCat,
+        amount: Math.round(base.pension * drift),
+        date: monthDate,
+        source: "recurring",
+      });
+
+      // ~40% of months: extra revenue (cours, transport).
+      if (rng() > 0.6) {
+        revenues.push({
+          id: `rev2-${horse.id}-${monthDate}`,
+          stableId: STABLE_ID,
+          horseId: horse.id,
+          categoryId: coursCat,
+          amount: 40 + Math.round(rng() * 160),
+          date: monthDate,
+          source: "manual",
+        });
+      }
+
+      // Direct variable costs (farrier / vet) most months.
+      directExpenses.push({
+        id: `dexp-${horse.id}-${monthDate}`,
+        stableId: STABLE_ID,
+        horseId: horse.id,
+        categoryId: DEFAULT_EXPENSE_CATEGORIES[0].id,
+        label: rng() > 0.5 ? "Maréchal-ferrant" : "Compléments",
+        amount: Math.round(base.variableCost * (0.7 + rng() * 0.5)),
+        date: monthDate,
+        source: "manual",
+      });
+
+      // ~20% of months: a vet bill.
+      if (rng() > 0.8) {
+        directExpenses.push({
+          id: `vet-${horse.id}-${monthDate}`,
+          stableId: STABLE_ID,
+          horseId: horse.id,
+          categoryId: DEFAULT_EXPENSE_CATEGORIES[1].id,
+          label: "Vétérinaire",
+          amount: 60 + Math.round(rng() * 240),
+          date: monthDate,
+          source: "photo",
+        });
+      }
+    });
+
+    // Mutualised charges, split across all horses.
+    const sharedDefs: { label: string; cat: number; total: number; mode: "equal" | "weighted_by_days" }[] = [
+      { label: "Foin", cat: 7, total: 900 + Math.round(rng() * 200), mode: "weighted_by_days" },
+      { label: "Granulés", cat: 8, total: 600 + Math.round(rng() * 150), mode: "weighted_by_days" },
+      { label: "Litière", cat: 9, total: 400, mode: "equal" },
+      { label: "Personnel", cat: 10, total: 2200, mode: "equal" },
+      { label: "Loyer / foncier", cat: 11, total: 1500, mode: "equal" },
+    ];
+
+    for (const def of sharedDefs) {
+      const cat = DEFAULT_EXPENSE_CATEGORIES[def.cat];
+      const allocations = distribute(def.total, horses, def.mode, period);
+      sharedExpenses.push({
+        id: `shared-${def.label}-${monthDate}`,
+        stableId: STABLE_ID,
+        categoryId: cat?.id,
+        label: def.label,
+        totalAmount: def.total,
+        periodMonth: period.month,
+        periodYear: period.year,
+        distributionMode: def.mode,
+        source: "recurring",
+        allocations,
+      });
+    }
+  }
+
+  return {
+    horses,
+    revenues,
+    directExpenses,
+    sharedExpenses,
+    revenueCategories: DEFAULT_REVENUE_CATEGORIES,
+    expenseCategories: DEFAULT_EXPENSE_CATEGORIES,
+  };
+}
+
+export const DEMO_STABLE_ID = STABLE_ID;
