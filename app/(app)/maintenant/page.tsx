@@ -12,6 +12,7 @@ import { CopiloteNote } from "@/components/ed/copilote";
 import { SectionHead, HorseLine } from "@/components/ed/atoms";
 import { RangeSelector } from "@/components/ed/range-selector";
 import { InsightsCarousel } from "@/components/ed/insights-carousel";
+import { CoachSection } from "@/components/ed/coach-section";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useHorses } from "@/lib/hooks/use-horses";
@@ -141,6 +142,11 @@ function Maintenant() {
           <Kpi label="Rentabilité" value={`${agg.netMarginPct} %`} explain="rentabilite" divider />
         </div>
       </motion.section>
+
+      {/* L'accompagnement : le copilote propose, tu décides, il suit */}
+      <motion.div variants={item}>
+        <CoachSection />
+      </motion.div>
 
       <motion.div variants={item}>
         <InsightsCarousel />

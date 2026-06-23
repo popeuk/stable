@@ -6,6 +6,7 @@ import { X, HelpCircle } from "lucide-react";
 import { LESSONS } from "@/content/lessons";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
+import { useCoachStore } from "@/stores/coach-store";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -29,6 +30,11 @@ export function Explain({
   const lesson = LESSONS[k];
   const data = useDataStore();
   const period = usePeriodStore((s) => s.active);
+  const markSeen = useCoachStore((s) => s.markLessonSeen);
+  const reveal = () => {
+    markSeen(String(k));
+    setOpen(true);
+  };
   if (!lesson) return <>{children}</>;
 
   const trigger =
@@ -36,7 +42,7 @@ export function Explain({
       <span className={cn("inline-flex items-center gap-1", className)}>
         {children}
         <button
-          onClick={() => setOpen(true)}
+          onClick={reveal}
           aria-label={`Comprendre : ${lesson.title}`}
           className="inline-flex size-[18px] items-center justify-center border border-[var(--border-strong)] text-tertiary"
         >
@@ -44,12 +50,12 @@ export function Explain({
         </button>
       </span>
     ) : variant === "plain" ? (
-      <button onClick={() => setOpen(true)} className={className}>
+      <button onClick={reveal} className={className}>
         {children}
       </button>
     ) : (
       <button
-        onClick={() => setOpen(true)}
+        onClick={reveal}
         className={cn(
           "underline decoration-dotted decoration-[var(--accent-primary)] underline-offset-[3px] transition-colors hover:text-[var(--accent-primary)]",
           className,
