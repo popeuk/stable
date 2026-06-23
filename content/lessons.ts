@@ -18,6 +18,49 @@ export interface Lesson {
 }
 
 export const LESSONS: Record<string, Lesson> = {
+  chiffre_affaires: {
+    key: "chiffre_affaires",
+    title: "Le chiffre d'affaires",
+    definition: "Tout l'argent qui entre, avant la moindre dépense.",
+    whatToDo: [
+      "C'est le haut du compte : pensions, cours, ventes, transport…",
+      "Un gros chiffre d'affaires ne veut pas dire rentable : ce qui compte, c'est ce qui reste après les charges.",
+    ],
+    related: ["depenses", "rentabilite"],
+    yourData: (data, period) => {
+      const p = stablePnl(data, period);
+      return `Ce mois, ${formatEur(p.revenue)} sont entrés dans ton écurie. C'est ton chiffre d'affaires — avant tes ${formatEur(p.directCosts + p.sharedCosts)} de dépenses.`;
+    },
+  },
+  depenses: {
+    key: "depenses",
+    title: "Tes dépenses",
+    definition: "Tout ce que tu paies pour faire tourner l'écurie : charges directes et partagées.",
+    whatToDo: [
+      "Directes : liées à un cheval précis (maréchal, véto).",
+      "Partagées : foin, personnel, loyer… réparties sur tout le monde.",
+    ],
+    related: ["cout_direct", "charges_mutualisees"],
+    yourData: (data, period) => {
+      const p = stablePnl(data, period);
+      return `Ce mois, ${formatEur(p.directCosts + p.sharedCosts)} de dépenses : ${formatEur(p.directCosts)} directes et ${formatEur(p.sharedCosts)} partagées.`;
+    },
+  },
+  rentabilite: {
+    key: "rentabilite",
+    title: "La rentabilité",
+    definition: "La part de ton chiffre d'affaires qui te reste vraiment, en pourcentage.",
+    whatToDo: [
+      "Garder 20 € sur 100 € encaissés, c'est 20 % de rentabilité.",
+      "Pour la monter : plus de revenus, ou moins de charges sur tes plus gros postes.",
+    ],
+    related: ["marge_nette", "chiffre_affaires"],
+    yourData: (data, period) => {
+      const p = stablePnl(data, period);
+      const pct = p.revenue ? (p.netResult / p.revenue) * 100 : 0;
+      return `Ce mois, tu gardes ${formatEur(p.netResult)} sur ${formatEur(p.revenue)} encaissés, soit ${formatPct(pct)} de rentabilité.`;
+    },
+  },
   marge_brute: {
     key: "marge_brute",
     title: "La marge brute",

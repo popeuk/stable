@@ -91,7 +91,7 @@ function Depenses() {
       <RangeSelector />
 
       <div className="border border-[var(--border-strong)] bg-elevated p-4">
-        <Explain k="cout_direct" className="text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
+        <Explain k="depenses" className="text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
           Total des charges
         </Explain>
         <p className="mt-1 font-[family-name:var(--font-fraunces)] text-3xl tabular-nums text-primary">
