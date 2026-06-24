@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Moon, Sun, RotateCcw, Bell, Tags, ChevronRight } from "lucide-react";
+import { Moon, Sun, RotateCcw, Bell, Tags, ChevronRight, Eraser, Landmark } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -17,6 +17,7 @@ export default function ParametresPage() {
 
 function Parametres() {
   const resetToDemo = useDataStore((s) => s.resetToDemo);
+  const startEmpty = useDataStore((s) => s.startEmpty);
   const activeHorses = useDataStore(
     (s) => s.horses.filter((h) => !h.isArchived).length,
   );
@@ -102,6 +103,27 @@ function Parametres() {
         >
           <RotateCcw size={16} /> Réinitialiser la démo
         </button>
+        <button
+          onClick={() => {
+            if (confirm("Repartir de zéro ? Tout est vidé (chevaux, revenus, charges).")) startEmpty();
+          }}
+          className="flex w-full items-center gap-2 py-3 text-sm text-primary"
+        >
+          <Eraser size={16} /> Repartir de zéro (écurie vide)
+        </button>
+      </Section>
+
+      <Section title="À venir">
+        <div className="flex items-center justify-between py-3">
+          <span className="flex items-center gap-2 text-sm text-secondary">
+            <Landmark size={16} /> Connexion bancaire
+          </span>
+          <span className="text-2xs font-bold uppercase text-tertiary">Bientôt</span>
+        </div>
+        <p className="pb-3 text-2xs text-tertiary">
+          Importer automatiquement tes entrées et dépenses depuis ta banque (via un agrégateur), pour
+          un suivi en temps réel.
+        </p>
       </Section>
 
       <p className="pt-4 text-center text-2xs text-tertiary">Be Stable · v2.0 démo</p>

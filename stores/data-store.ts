@@ -37,6 +37,7 @@ interface DataState extends StableData {
   deleteRevenueCategory: (id: string) => void;
   deleteExpenseCategory: (id: string) => void;
   resetToDemo: () => void;
+  startEmpty: () => void;
 }
 
 const STABLE_ID = "demo-stable";
@@ -160,6 +161,20 @@ export const useDataStore = create<DataState>()(
         set((s) => ({ expenseCategories: s.expenseCategories.filter((c) => c.id !== catId) })),
 
       resetToDemo: () => set({ ...buildDemoData() }),
+
+      // Empty stable, keeping the default categories — the from-zero experience.
+      startEmpty: () => {
+        const demo = buildDemoData();
+        set({
+          horses: [],
+          revenues: [],
+          directExpenses: [],
+          sharedExpenses: [],
+          recurringExpenses: [],
+          revenueCategories: demo.revenueCategories,
+          expenseCategories: demo.expenseCategories,
+        });
+      },
     }),
     {
       name: "be-stable-data",

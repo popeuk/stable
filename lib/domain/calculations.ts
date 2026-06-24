@@ -4,7 +4,7 @@ import type {
   StableData,
   Trend,
 } from "@/lib/domain/types";
-import { dateInPeriod, lastNPeriods, samePeriod } from "@/lib/utils/period";
+import { dateInPeriod, lastNPeriods, previousPeriod, samePeriod } from "@/lib/utils/period";
 import {
   recurringDirectForHorse,
   recurringSharedForHorse,
@@ -262,6 +262,33 @@ export function expenseBreakdown(data: StableData, periods: Period[]): ExpenseSl
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+export interface ExpenseMover {
+  label: string;
+  current: number;
+  delta: number; // vs previous month (+ = costs more)
+}
+
+/**
+ * What moved your margin this month: cost posts compared to the previous
+ * month, biggest change first. The dynamic story behind the margin.
+ */
+export function expenseMovers(data: StableData, period: Period): ExpenseMover[] {
+  const cur = expenseBreakdown(data, [period]);
+  const old = expenseBreakdown(data, [previousPeriod(period)]);
+  const oldMap = new Map(old.map((s) => [s.label, s.amount]));
+  const seen = new Set<string>();
+  const movers: ExpenseMover[] = [];
+  for (const s of cur) {
+    seen.add(s.label);
+    movers.push({ label: s.label, current: s.amount, delta: round2(s.amount - (oldMap.get(s.label) ?? 0)) });
+  }
+  // Posts that vanished this month (a real saving).
+  for (const s of old) {
+    if (!seen.has(s.label)) movers.push({ label: s.label, current: 0, delta: round2(-s.amount) });
+  }
+  return movers.filter((m) => Math.abs(m.delta) >= 1).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 }
 
 export const _internal = { sum, round2, samePeriod };

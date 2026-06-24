@@ -5,6 +5,7 @@ import {
   horseVolatility,
   stablePnl,
   aggregateStablePnl,
+  expenseMovers,
   expenseBreakdown,
 } from "@/lib/domain/calculations";
 import type { StableData } from "@/lib/domain/types";
@@ -137,5 +138,29 @@ describe("aggregateStablePnl & expenseBreakdown", () => {
     const foin = slices.find((s) => s.label === "Foin");
     expect(foin?.kind).toBe("shared");
     expect(Math.round((foin?.share ?? 0) * 100)).toBe(67); // 200/300
+  });
+});
+
+describe("expenseMovers", () => {
+  it("reports cost posts that changed vs the previous month", () => {
+    const data = baseData();
+    // Foin 200 in Feb (baseData). Add a January Foin of 120 → +80 in Feb.
+    data.sharedExpenses.push({
+      id: "se-jan",
+      stableId: "s",
+      label: "Foin",
+      totalAmount: 120,
+      periodMonth: 1,
+      periodYear: 2024,
+      distributionMode: "equal",
+      source: "manual",
+      allocations: [
+        { horseId: "h1", allocatedAmount: 60 },
+        { horseId: "h2", allocatedAmount: 60 },
+      ],
+    });
+    const movers = expenseMovers(data, { year: 2024, month: 2 });
+    const foin = movers.find((m) => m.label === "Foin");
+    expect(foin?.delta).toBe(80); // 200 - 120
   });
 });

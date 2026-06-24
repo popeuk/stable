@@ -3,16 +3,16 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, AlertTriangle, ArrowUpRight } from "lucide-react";
+import { ChevronRight, AlertTriangle, ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { KeyNumber } from "@/components/ui/key-number";
 import { Sparkline } from "@/components/ui/sparkline";
 import { Explain } from "@/components/ed/explain";
-import { CopiloteNote } from "@/components/ed/copilote";
-import { SectionHead, HorseLine } from "@/components/ed/atoms";
+import { SectionHead } from "@/components/ed/atoms";
 import { RangeSelector } from "@/components/ed/range-selector";
 import { InsightsCarousel } from "@/components/ed/insights-carousel";
 import { CoachSection } from "@/components/ed/coach-section";
+import { FirstRun } from "@/components/ed/first-run";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useHorses } from "@/lib/hooks/use-horses";
@@ -20,6 +20,7 @@ import {
   aggregateStablePnl,
   aggregateHorseNet,
   expenseBreakdown,
+  expenseMovers,
   stableMarginSeries,
 } from "@/lib/domain/calculations";
 import { pickNotion } from "@/lib/domain/notion";
@@ -64,11 +65,21 @@ function Maintenant() {
   const periods = useMemo(() => rangePeriods(active, preset), [active, preset]);
   const allHorses = useHorses();
 
+  // From-zero: welcome the user instead of an empty dashboard.
+  const hasHorses = data.horses.some((h) => !h.isArchived);
+  const hasMoney =
+    data.revenues.length > 0 ||
+    data.directExpenses.length > 0 ||
+    data.sharedExpenses.length > 0 ||
+    (data.recurringExpenses?.length ?? 0) > 0;
+  if (!hasHorses || !hasMoney) return <FirstRun />;
+
   const agg = aggregateStablePnl(data, periods);
   const positive = agg.netResult >= 0;
   const series = stableMarginSeries(data, active, 12);
-  const breakdown = expenseBreakdown(data, periods).slice(0, 5);
-  const biggest = breakdown[0];
+  const breakdown = expenseBreakdown(data, periods).slice(0, 4);
+  const movers = expenseMovers(data, active).slice(0, 4);
+  const maxSlice = Math.max(1, ...breakdown.map((b) => b.amount));
 
   const ranked = data.horses
     .filter((h) => !h.isArchived)
@@ -84,94 +95,70 @@ function Maintenant() {
 
   const notionKey = pickNotion(data, active);
   const notion = LESSONS[notionKey];
-  const maxSlice = Math.max(1, ...breakdown.map((b) => b.amount));
 
-  // Plain-language synthesis — context & sense, not just blocks of numbers.
   const verdict =
-    agg.revenue === 0
-      ? "Rien d'encaissé sur cette période. Saisis tes pensions pour voir ta rentabilité prendre forme."
-      : positive
-        ? `Tu gardes ${agg.netMarginPct} % de ce que tu encaisses.${best ? ` ${best.horse.name} tire l'écurie vers le haut` : ""}${
-            worst && worst.net < 0 ? `, mais ${worst.horse.name} passe sous son seuil.` : "."
-          }`
-        : `Tu perds de l'argent sur cette période.${biggest ? ` Le poste « ${biggest.label} »` : ""}${
-            worst ? ` et ${worst.horse.name}` : ""
-          } pèsent le plus — c'est là qu'il faut agir.`;
+    positive
+      ? `Tu gardes ${agg.netMarginPct} % de ce que tu encaisses.${best ? ` ${best.horse.name} porte l'écurie` : ""}${
+          worst && worst.net < 0 ? `, mais ${worst.horse.name} passe sous son seuil.` : "."
+        }`
+      : `Tu perds de l'argent ${periodLabel}. Tes plus gros postes et tes places vides sont les premiers leviers.`;
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-5">
       <motion.header variants={item}>
         <p className="text-[13px] font-semibold capitalize text-tertiary">{formatLongDate(new Date())}</p>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
-          {greeting()}.
-        </h1>
-        <p className="mt-0.5 text-[14px] text-secondary">Voici ton écurie, au clair.</p>
+        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">{greeting()}.</h1>
       </motion.header>
 
       <motion.div variants={item}>
         <RangeSelector />
       </motion.div>
 
-      {/* Hero — verdict animé + synthèse */}
-      <motion.section variants={item} className="relative overflow-hidden border border-[var(--border-strong)] bg-elevated">
-        <HorseLine
-          size={150}
-          stroke={0.8}
-          color="var(--border-default)"
-          className="pointer-events-none absolute -right-4 -top-3"
+      {/* Schéma : CA − Dépenses = Marge */}
+      <motion.section variants={item} className="border border-[var(--border-strong)] bg-elevated">
+        <EqRow
+          sign=""
+          label="Chiffre d'affaires"
+          lesson="chiffre_affaires"
+          value={eur(agg.revenue)}
         />
-        <div className="relative px-5 pb-4 pt-4">
-          <Explain k="rentabilite" className="text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
-            Ce que tu gardes ({periodLabel})
-          </Explain>
-          <div className="mt-1">
+        <EqRow sign="−" label="Dépenses" lesson="depenses" value={eur(agg.charges)} muted />
+        <div className="flex items-center justify-between border-t-2 border-[var(--text-primary)] px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="w-4 text-[18px] font-bold text-tertiary">=</span>
+            <Explain k="rentabilite" className="text-[12px] font-bold uppercase tracking-wide text-tertiary">
+              Marge ({periodLabel})
+            </Explain>
+          </div>
+          <div className="flex items-baseline gap-2">
             <KeyNumber
               value={agg.netResult}
               colorBySign
-              className="text-5xl"
+              className="font-[family-name:var(--font-fraunces)] text-3xl"
             />
-          </div>
-          <p className="mt-2 max-w-[22rem] text-[14px] leading-snug text-secondary">{verdict}</p>
-          <div className="mt-3">
-            <Sparkline data={series} area width={400} height={40} className="w-full" />
+            <span
+              className="text-[13px] font-bold tabular-nums"
+              style={{ color: positive ? "var(--c-success)" : "var(--c-danger)" }}
+            >
+              {agg.netMarginPct} %
+            </span>
           </div>
         </div>
-        <div className="grid grid-cols-3 border-t border-[var(--border-default)] text-center">
-          <Kpi label="Chiffre d'affaires" value={eur(agg.revenue)} explain="chiffre_affaires" />
-          <Kpi label="Dépenses" value={eur(agg.charges)} explain="depenses" divider />
-          <Kpi label="Rentabilité" value={`${agg.netMarginPct} %`} explain="rentabilite" divider />
+        <div className="px-4 pb-3">
+          <Sparkline data={series} area width={380} height={34} className="w-full" />
+          <p className="mt-1.5 text-[13px] leading-snug text-secondary">{verdict}</p>
         </div>
       </motion.section>
 
-      {/* L'accompagnement : le copilote propose, tu décides, il suit */}
-      <motion.div variants={item}>
-        <CoachSection />
-      </motion.div>
-
-      <motion.div variants={item}>
-        <InsightsCarousel />
-      </motion.div>
-
-      {/* Où part ton argent */}
-      {breakdown.length > 0 && biggest && (
+      {/* Ce qui impacte ta marge */}
+      {breakdown.length > 0 && (
         <motion.section variants={item}>
-          <SectionHead title="Où part ton argent" />
+          <SectionHead title="Ce qui pèse sur ta marge" />
           <div className="space-y-2.5 border border-[var(--border-strong)] bg-elevated p-4">
             {breakdown.map((slice, i) => (
               <div key={slice.label}>
                 <div className="mb-1 flex items-baseline justify-between text-[13px]">
-                  <span className="font-semibold text-primary">
-                    {slice.label}
-                    {i === 0 && (
-                      <motion.span
-                        animate={{ opacity: [1, 0.55, 1] }}
-                        transition={{ repeat: Infinity, duration: 2.4 }}
-                        className="ml-2 bg-[var(--c-warning-soft)] px-1.5 py-0.5 text-[10px] font-bold uppercase text-[var(--c-warning)]"
-                      >
-                        à optimiser
-                      </motion.span>
-                    )}
-                  </span>
+                  <span className="font-semibold text-primary">{slice.label}</span>
                   <span className="tabular-nums text-secondary">
                     {eur(slice.amount)} · {Math.round(slice.share * 100)} %
                   </span>
@@ -181,26 +168,58 @@ function Maintenant() {
                     className="h-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${(slice.amount / maxSlice) * 100}%` }}
-                    transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 + i * 0.06 }}
+                    transition={{ duration: 0.6, delay: 0.1 + i * 0.05 }}
                     style={{ background: i === 0 ? "var(--c-warning)" : "var(--accent-primary)" }}
                   />
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-2">
-            <CopiloteNote label="Piste d'optimisation">
-              Ton plus gros poste, c&apos;est <b>{biggest.label}</b> ({eur(biggest.amount)},{" "}
-              {Math.round(biggest.share * 100)} % de tes charges). C&apos;est là qu&apos;un effort pèse le
-              plus sur ta{" "}
-              <Explain k="rentabilite" className="text-[var(--accent-primary)]">
-                rentabilité
-              </Explain>
-              .
-            </CopiloteNote>
-          </div>
         </motion.section>
       )}
+
+      {/* Ce qui a bougé ce mois (vs mois précédent) */}
+      {movers.length > 0 && (
+        <motion.section variants={item}>
+          <SectionHead title="Ce qui a bougé ce mois" />
+          <ul className="border-t border-[var(--border-default)]">
+            {movers.map((m) => {
+              const worse = m.delta > 0;
+              return (
+                <li
+                  key={m.label}
+                  className="flex items-center gap-3 border-b border-[var(--border-default)] py-2.5"
+                >
+                  {worse ? (
+                    <TrendingUp size={16} style={{ color: "var(--c-danger)" }} />
+                  ) : (
+                    <TrendingDown size={16} style={{ color: "var(--c-success)" }} />
+                  )}
+                  <span className="flex-1 text-[14px] font-semibold text-primary">{m.label}</span>
+                  <span className="text-[12px] tabular-nums text-tertiary">{eur(m.current)}</span>
+                  <span
+                    className="w-[68px] text-right text-[14px] font-extrabold tabular-nums"
+                    style={{ color: worse ? "var(--c-danger)" : "var(--c-success)" }}
+                  >
+                    {m.delta > 0 ? "+" : ""}
+                    {eur(m.delta)}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-1.5 text-[12px] text-tertiary">vs le mois dernier · ce qui creuse ou allège ta marge</p>
+        </motion.section>
+      )}
+
+      {/* L'accompagnement */}
+      <motion.div variants={item}>
+        <CoachSection />
+      </motion.div>
+
+      <motion.div variants={item}>
+        <InsightsCarousel />
+      </motion.div>
 
       {/* Notion du moment */}
       {notion && (
@@ -281,23 +300,32 @@ function Maintenant() {
   );
 }
 
-function Kpi({
+function EqRow({
+  sign,
   label,
+  lesson,
   value,
-  explain,
-  divider,
+  muted,
 }: {
+  sign: string;
   label: string;
+  lesson: string;
   value: string;
-  explain: string;
-  divider?: boolean;
+  muted?: boolean;
 }) {
   return (
-    <div className={`px-2 py-3 ${divider ? "border-l border-[var(--border-default)]" : ""}`}>
-      <Explain k={explain} className="text-[10px] font-bold uppercase leading-tight tracking-wide text-tertiary">
-        {label}
-      </Explain>
-      <p className="mt-1 text-[15px] font-extrabold tabular-nums text-primary">{value}</p>
+    <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center gap-2">
+        <span className="w-4 text-[18px] font-bold text-tertiary">{sign}</span>
+        <Explain k={lesson} className="text-[12px] font-bold uppercase tracking-wide text-tertiary">
+          {label}
+        </Explain>
+      </div>
+      <span
+        className={`font-[family-name:var(--font-fraunces)] text-2xl tabular-nums ${muted ? "text-secondary" : "text-primary"}`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
