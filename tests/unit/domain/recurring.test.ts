@@ -60,3 +60,33 @@ describe("recurring folds into shared costs", () => {
     expect(horseSharedCosts(data, "h1", { year: 2024, month: 2 })).toBe(150);
   });
 });
+
+import { horseRevenue } from "@/lib/domain/calculations";
+
+describe("recurring revenue folds into horse revenue", () => {
+  it("a monthly pension is counted every month", () => {
+    const data: StableData = {
+      horses: [{ id: "h1", stableId: "s", name: "A", entryDate: "2020-01-01", exitDate: null, isArchived: false }],
+      revenues: [],
+      directExpenses: [],
+      sharedExpenses: [],
+      revenueCategories: [],
+      expenseCategories: [],
+      recurringRevenues: [
+        {
+          id: "rr1",
+          stableId: "s",
+          horseId: "h1",
+          amount: 450,
+          frequency: "monthly",
+          startDate: "2024-01-01",
+          endDate: null,
+          source: "recurring",
+        },
+      ],
+    };
+    expect(horseRevenue(data, "h1", { year: 2024, month: 6 })).toBe(450);
+    // before it starts → 0
+    expect(horseRevenue({ ...data, recurringRevenues: [{ ...data.recurringRevenues![0], startDate: "2024-07-01" }] }, "h1", { year: 2024, month: 6 })).toBe(0);
+  });
+});

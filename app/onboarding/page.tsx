@@ -3,255 +3,172 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { KeyNumber } from "@/components/ui/key-number";
-import { formatEur } from "@/lib/utils/format-currency";
+import { ArrowRight } from "lucide-react";
+import { HorseLine, Horseshoe } from "@/components/ed/atoms";
+import { useSettingsStore } from "@/stores/settings-store";
 
-type Estimate = {
-  horses: number;
-  pension: number;
-  fixedCosts: number;
-  variableCost: number;
-};
+interface Step {
+  kicker: string;
+  title: string;
+  body: string;
+  bg: string;
+  visual: React.ReactNode;
+}
+
+const STEPS: Step[] = [
+  {
+    kicker: "1 · Comprendre",
+    title: "Sache ce que chaque cheval te rapporte vraiment.",
+    body: "Pensions, charges, marge — cheval par cheval, en clair. Fini le doute sur qui porte ton écurie et qui pèse dessus.",
+    bg: "var(--accent-primary-soft)",
+    visual: (
+      <div className="relative flex h-full items-center justify-center">
+        <HorseLine size={160} stroke={0.9} color="var(--text-primary)" />
+        <div className="absolute bottom-6 right-6 border border-[var(--text-primary)] bg-[var(--bg-base)] px-3 py-2">
+          <p className="text-[10px] font-bold uppercase text-tertiary">Marge</p>
+          <p className="font-[family-name:var(--font-fraunces)] text-xl" style={{ color: "var(--c-success)" }}>
+            +320 €
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    kicker: "2 · Être accompagné",
+    title: "Ton copilote te conseille, en euros.",
+    body: "Pas juste des constats : des actions concrètes et chiffrées (remplir une place, renégocier un poste), et il suit ce que tu décides.",
+    bg: "rgba(124, 144, 112, 0.16)",
+    visual: (
+      <div className="flex h-full items-center justify-center p-6">
+        <div className="w-full border border-[var(--text-primary)] bg-[var(--text-primary)] p-4 text-[var(--bg-base)]">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--accent-primary)]">
+            Ton copilote
+          </p>
+          <p className="mt-1.5 text-[14px] font-semibold leading-snug">
+            Remplis tes 2 places libres
+          </p>
+          <span className="mt-2 inline-block bg-[var(--accent-primary)] px-2 py-1 text-[12px] font-extrabold text-[#17150d]">
+            ≈ +900 €/mois
+          </span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    kicker: "3 · Apprendre en faisant",
+    title: "Chaque chiffre s'explique, sur tes données.",
+    body: "Touche un terme, une notion s'ouvre — appliquée à ton écurie. Tu montes en compétence sans cours, juste en utilisant l'app.",
+    bg: "rgba(232, 181, 71, 0.16)",
+    visual: (
+      <div className="flex h-full items-center justify-center p-6">
+        <div className="w-full border border-[var(--border-strong)] bg-[var(--bg-base)] p-4">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--accent-primary)]">
+            Notion · 2 min
+          </p>
+          <p className="mt-1 font-[family-name:var(--font-fraunces)] text-lg text-primary">
+            La marge nette
+          </p>
+          <p className="mt-1 text-[12px] text-secondary">
+            Ce qu&apos;il te reste vraiment, une fois toutes tes charges payées.
+          </p>
+        </div>
+      </div>
+    ),
+  },
+];
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState(0);
-  const [est, setEst] = useState<Estimate>({
-    horses: 12,
-    pension: 450,
-    fixedCosts: 2500,
-    variableCost: 180,
-  });
+  const complete = useSettingsStore((s) => s.completeOnboarding);
+  const [i, setI] = useState(0);
+  const step = STEPS[i];
+  const last = i === STEPS.length - 1;
 
-  const result =
-    est.horses * est.pension - est.fixedCosts - est.horses * est.variableCost;
-
-  const next = () => setStep((s) => s + 1);
+  function finish() {
+    complete();
+    router.replace("/maintenant");
+  }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col px-6 py-10">
-      <AnimatePresence mode="wait">
-        {step === 0 && (
-          <Step key="welcome">
-            <div className="flex flex-1 flex-col justify-center">
-              <h1 className="font-[family-name:var(--font-fraunces)] text-4xl leading-tight text-primary">
-                Bienvenue. Avant tout, on va répondre à une question simple.
-              </h1>
-              <p className="mt-4 text-lg text-secondary">
-                Combien rapporte vraiment ton écurie ?
-              </p>
-            </div>
-            <PrimaryButton onClick={next}>Commencer</PrimaryButton>
-          </Step>
+    <div className="mx-auto flex min-h-dvh max-w-[440px] flex-col bg-base px-6 pb-8 pt-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Horseshoe size={18} stroke={2} />
+          <span className="text-[16px] font-extrabold text-primary">Be Stable</span>
+        </div>
+        {!last && (
+          <button onClick={finish} className="text-[13px] font-semibold text-tertiary">
+            Passer
+          </button>
         )}
+      </div>
 
-        {step === 1 && (
-          <Step key="horses">
-            <Question title="Combien de chevaux en pension chez toi ?">
-              <Stepper
-                value={est.horses}
-                min={1}
-                max={50}
-                onChange={(v) => setEst((e) => ({ ...e, horses: v }))}
-              />
-            </Question>
-            <PrimaryButton onClick={next}>Suivant</PrimaryButton>
-          </Step>
-        )}
+      {/* Visual */}
+      <div className="mt-6 overflow-hidden border border-[var(--border-strong)]">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.3 }}
+            className="aspect-[4/3]"
+            style={{ background: step.bg }}
+          >
+            {step.visual}
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-        {step === 2 && (
-          <Step key="pension">
-            <Question title="Quelle pension moyenne par mois ?">
-              <BigSlider
-                value={est.pension}
-                min={100}
-                max={1500}
-                step={10}
-                suffix="€"
-                onChange={(v) => setEst((e) => ({ ...e, pension: v }))}
-              />
-            </Question>
-            <PrimaryButton onClick={next}>Suivant</PrimaryButton>
-          </Step>
-        )}
+      {/* Texte */}
+      <div className="mt-7 flex-1">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.3 }}
+          >
+            <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
+              {step.kicker}
+            </p>
+            <h1 className="mt-2 font-[family-name:var(--font-fraunces)] text-[28px] leading-tight text-primary">
+              {step.title}
+            </h1>
+            <p className="mt-3 text-[15px] leading-relaxed text-secondary">{step.body}</p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-        {step === 3 && (
-          <Step key="fixed">
-            <Question title="Tes charges fixes par mois, à la louche ?">
-              <BigSlider
-                value={est.fixedCosts}
-                min={500}
-                max={5000}
-                step={50}
-                suffix="€"
-                onChange={(v) => setEst((e) => ({ ...e, fixedCosts: v }))}
-              />
-              <p className="mt-3 text-sm text-tertiary">
-                Loyer, salaires, abos, assurance. Pas grave si c&apos;est approximatif.
-              </p>
-            </Question>
-            <PrimaryButton onClick={next}>Suivant</PrimaryButton>
-          </Step>
-        )}
+      {/* Dots */}
+      <div className="mb-5 flex items-center gap-2">
+        {STEPS.map((_, n) => (
+          <button
+            key={n}
+            onClick={() => setI(n)}
+            aria-label={`Étape ${n + 1}`}
+            className="h-1.5 transition-all"
+            style={{
+              width: n === i ? 24 : 8,
+              background: n === i ? "var(--text-primary)" : "var(--border-strong)",
+            }}
+          />
+        ))}
+      </div>
 
-        {step === 4 && (
-          <Step key="variable">
-            <Question title="Combien chaque cheval te coûte en variable ?">
-              <BigSlider
-                value={est.variableCost}
-                min={50}
-                max={400}
-                step={5}
-                suffix="€"
-                onChange={(v) => setEst((e) => ({ ...e, variableCost: v }))}
-              />
-            </Question>
-            <PrimaryButton onClick={next}>Voir le résultat</PrimaryButton>
-          </Step>
-        )}
-
-        {step === 5 && (
-          <Step key="aha">
-            <div className="flex flex-1 flex-col justify-center text-center">
-              <p className="text-sm text-tertiary">Ton résultat mensuel estimé</p>
-              <div className="my-4">
-                <KeyNumber value={result} colorBySign className="text-5xl" />
-              </div>
-              <div className="mx-auto mt-4 w-full max-w-xs space-y-1 text-left text-sm text-secondary">
-                <Line label="Revenus estimés" value={est.horses * est.pension} />
-                <Line label="Charges fixes" value={-est.fixedCosts} />
-                <Line label="Charges variables" value={-est.horses * est.variableCost} />
-              </div>
-              <p className="mt-6 text-base" style={{ color: result >= 0 ? "var(--c-success)" : "var(--c-danger)" }}>
-                {result >= 0
-                  ? "À première vue, ton écurie est rentable. Plongeons dans le détail."
-                  : "À première vue, ton écurie perd de l'argent chaque mois. Voyons exactement où."}
-              </p>
-            </div>
-            <PrimaryButton onClick={() => router.push("/maintenant")}>
-              Voir le détail cheval par cheval
-            </PrimaryButton>
-          </Step>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function Step({ children }: { children: React.ReactNode }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: 40 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -40 }}
-      transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className="flex flex-1 flex-col"
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function Question({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-1 flex-col justify-center">
-      <h2 className="mb-10 font-[family-name:var(--font-fraunces)] text-2xl text-primary">
-        {title}
-      </h2>
-      {children}
-    </div>
-  );
-}
-
-function Stepper({
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  value: number;
-  min: number;
-  max: number;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <div className="flex items-center justify-center gap-6">
       <button
-        onClick={() => onChange(Math.max(min, value - 1))}
-        className="flex size-14 items-center justify-center rounded-full border text-2xl text-primary"
+        onClick={() => (last ? finish() : setI(i + 1))}
+        className="flex items-center justify-between border border-[var(--text-primary)] bg-[var(--text-primary)] py-3 pl-5 pr-3 text-[var(--bg-base)]"
       >
-        −
-      </button>
-      <span className="w-20 text-center font-[family-name:var(--font-fraunces)] text-5xl tabnums text-primary">
-        {value}
-      </span>
-      <button
-        onClick={() => onChange(Math.min(max, value + 1))}
-        className="flex size-14 items-center justify-center rounded-full border text-2xl text-primary"
-      >
-        +
+        <span className="text-[16px] font-bold">{last ? "Commencer" : "Suivant"}</span>
+        <span
+          className="flex size-9 items-center justify-center"
+          style={{ background: "var(--accent-primary)", color: "#17150d" }}
+        >
+          <ArrowRight size={18} />
+        </span>
       </button>
     </div>
-  );
-}
-
-function BigSlider({
-  value,
-  min,
-  max,
-  step,
-  suffix,
-  onChange,
-}: {
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  suffix: string;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <div>
-      <p className="mb-6 text-center font-[family-name:var(--font-fraunces)] text-5xl tabnums text-primary">
-        {new Intl.NumberFormat("fr-FR").format(value)} {suffix}
-      </p>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-[var(--accent-primary)]"
-        style={{ height: 32 }}
-      />
-    </div>
-  );
-}
-
-function Line({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex justify-between">
-      <span>{label}</span>
-      <span className="tabnums text-primary">{formatEur(value)}</span>
-    </div>
-  );
-}
-
-function PrimaryButton({
-  onClick,
-  children,
-}: {
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="mt-6 w-full rounded-[var(--radius-md)] py-4 text-base font-medium text-[#0e0f0c]"
-      style={{ background: "var(--accent-primary)" }}
-    >
-      {children}
-    </button>
   );
 }

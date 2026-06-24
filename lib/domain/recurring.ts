@@ -1,9 +1,9 @@
-import type { Period, RecurringExpense, StableData } from "@/lib/domain/types";
+import type { Period, RecurringSchedule, StableData } from "@/lib/domain/types";
 import { distribute } from "@/lib/domain/distribution";
 import { periodEnd, periodStart } from "@/lib/utils/period";
 
 /** Is a recurring template due (and active) in a given month? */
-export function recurringDue(rec: RecurringExpense, period: Period): boolean {
+export function recurringDue(rec: RecurringSchedule, period: Period): boolean {
   const ps = periodStart(period);
   const pe = periodEnd(period);
   if (rec.startDate > pe) return false; // not started yet
@@ -24,8 +24,19 @@ export function recurringDue(rec: RecurringExpense, period: Period): boolean {
   }
 }
 
-export function recurringList(data: StableData): RecurringExpense[] {
+export function recurringList(data: StableData) {
   return data.recurringExpenses ?? [];
+}
+
+/** Recurring revenues (e.g. pensions) due for one horse in a period. */
+export function recurringRevenueForHorse(
+  data: StableData,
+  horseId: string,
+  period: Period,
+): number {
+  return (data.recurringRevenues ?? [])
+    .filter((r) => r.horseId === horseId && recurringDue(r, period))
+    .reduce((s, r) => s + r.amount, 0);
 }
 
 /** Recurring direct charges due for one horse in a period. */

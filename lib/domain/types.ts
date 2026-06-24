@@ -131,6 +131,30 @@ export interface RecurringExpense {
   source: EntrySource;
 }
 
+/**
+ * A recurring revenue template — typically a pension (recurring by nature).
+ * Always tied to one horse.
+ */
+export interface RecurringRevenue {
+  id: string;
+  stableId: string;
+  horseId: string;
+  categoryId?: string;
+  label?: string;
+  amount: number;
+  frequency: Frequency;
+  startDate: ISODate;
+  endDate?: ISODate | null;
+  source: EntrySource;
+}
+
+/** The schedule fields common to recurring entries. */
+export interface RecurringSchedule {
+  startDate: ISODate;
+  endDate?: ISODate | null;
+  frequency: Frequency;
+}
+
 /** The full bundle of data the domain functions operate on. */
 export interface StableData {
   horses: Horse[];
@@ -141,4 +165,6 @@ export interface StableData {
   expenseCategories: Category[];
   /** Recurring charge templates (optional — folded into period figures). */
   recurringExpenses?: RecurringExpense[];
+  /** Recurring revenue templates, e.g. pensions (folded into period figures). */
+  recurringRevenues?: RecurringRevenue[];
 }

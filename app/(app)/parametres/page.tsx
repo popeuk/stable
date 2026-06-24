@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Moon, Sun, RotateCcw, Bell, Tags, ChevronRight, Eraser, Landmark } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Moon, Sun, RotateCcw, Bell, Tags, ChevronRight, Eraser, Landmark, PlayCircle } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -16,8 +17,10 @@ export default function ParametresPage() {
 }
 
 function Parametres() {
+  const router = useRouter();
   const resetToDemo = useDataStore((s) => s.resetToDemo);
   const startEmpty = useDataStore((s) => s.startEmpty);
+  const resetOnboarding = useSettingsStore((s) => s.resetOnboarding);
   const activeHorses = useDataStore(
     (s) => s.horses.filter((h) => !h.isArchived).length,
   );
@@ -110,6 +113,15 @@ function Parametres() {
           className="flex w-full items-center gap-2 py-3 text-sm text-primary"
         >
           <Eraser size={16} /> Repartir de zéro (écurie vide)
+        </button>
+        <button
+          onClick={() => {
+            resetOnboarding();
+            router.push("/onboarding");
+          }}
+          className="flex w-full items-center gap-2 py-3 text-sm text-primary"
+        >
+          <PlayCircle size={16} /> Revoir l&apos;intro
         </button>
       </Section>
 

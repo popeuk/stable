@@ -8,6 +8,7 @@ import { dateInPeriod, lastNPeriods, previousPeriod, samePeriod } from "@/lib/ut
 import {
   recurringDirectForHorse,
   recurringSharedForHorse,
+  recurringRevenueForHorse,
   recurringSlices,
 } from "@/lib/domain/recurring";
 
@@ -26,10 +27,12 @@ export function horseRevenue(
   horseId: string,
   period: Period,
 ): number {
-  return sum(
-    data.revenues
-      .filter((r) => r.horseId === horseId && dateInPeriod(r.date, period))
-      .map((r) => r.amount),
+  return (
+    sum(
+      data.revenues
+        .filter((r) => r.horseId === horseId && dateInPeriod(r.date, period))
+        .map((r) => r.amount),
+    ) + recurringRevenueForHorse(data, horseId, period)
   );
 }
 

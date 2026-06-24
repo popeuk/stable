@@ -6,6 +6,7 @@ import type {
   DirectExpense,
   Horse,
   RecurringExpense,
+  RecurringRevenue,
   Revenue,
   SharedExpense,
   StableData,
@@ -32,6 +33,8 @@ interface DataState extends StableData {
   deleteSharedExpense: (id: string) => void;
   addRecurringExpense: (e: Omit<RecurringExpense, "id" | "stableId">) => void;
   deleteRecurringExpense: (id: string) => void;
+  addRecurringRevenue: (r: Omit<RecurringRevenue, "id" | "stableId">) => void;
+  deleteRecurringRevenue: (id: string) => void;
   addRevenueCategory: (name: string) => void;
   addExpenseCategory: (name: string, isDirect: boolean) => void;
   deleteRevenueCategory: (id: string) => void;
@@ -135,6 +138,19 @@ export const useDataStore = create<DataState>()(
           recurringExpenses: (s.recurringExpenses ?? []).filter((e) => e.id !== rid),
         })),
 
+      addRecurringRevenue: (r) =>
+        set((s) => ({
+          recurringRevenues: [
+            ...(s.recurringRevenues ?? []),
+            { ...r, id: id("recrev"), stableId: STABLE_ID },
+          ],
+        })),
+
+      deleteRecurringRevenue: (rid) =>
+        set((s) => ({
+          recurringRevenues: (s.recurringRevenues ?? []).filter((e) => e.id !== rid),
+        })),
+
       addRevenueCategory: (name) =>
         set((s) =>
           s.revenueCategories.some((c) => c.name.toLowerCase() === name.trim().toLowerCase())
@@ -171,6 +187,7 @@ export const useDataStore = create<DataState>()(
           directExpenses: [],
           sharedExpenses: [],
           recurringExpenses: [],
+          recurringRevenues: [],
           revenueCategories: demo.revenueCategories,
           expenseCategories: demo.expenseCategories,
         });

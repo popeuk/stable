@@ -6,8 +6,15 @@ import { Check, ChevronLeft, Camera } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { HorseAvatar } from "@/components/horse/horse-avatar";
 import { useDataStore } from "@/stores/data-store";
+import type { Frequency } from "@/lib/domain/types";
 import { cn } from "@/lib/utils/cn";
 import { formatEur } from "@/lib/utils/format-currency";
+
+const FREQS: { v: Frequency; l: string }[] = [
+  { v: "monthly", l: "Mensuel" },
+  { v: "quarterly", l: "Trimestriel" },
+  { v: "yearly", l: "Annuel" },
+];
 
 export default function SaisieChargePage() {
   return (
@@ -25,6 +32,7 @@ function SaisieCharge() {
   const photoMode = search.get("mode") === "photo";
   const data = useDataStore();
   const addDirectExpense = useDataStore((s) => s.addDirectExpense);
+  const addRecurringExpense = useDataStore((s) => s.addRecurringExpense);
 
   const horses = data.horses.filter((h) => !h.isArchived);
   const directCats = data.expenseCategories.filter((c) => c.isDirect);
@@ -33,19 +41,38 @@ function SaisieCharge() {
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState(directCats[0]?.id);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [recurring, setRecurring] = useState(false);
+  const [frequency, setFrequency] = useState<Frequency>("monthly");
+  const [hasEnd, setHasEnd] = useState(false);
+  const [end, setEnd] = useState("");
 
-  const canSave = horseId && Number(amount) > 0 && label.trim();
+  const canSave =
+    horseId && Number(amount) > 0 && label.trim() && (!recurring || (date && (!hasEnd || end)));
 
   function save() {
     if (!canSave) return;
-    addDirectExpense({
-      horseId: horseId!,
-      categoryId,
-      label: label.trim(),
-      amount: Number(amount),
-      date,
-      source: photoMode ? "photo" : "manual",
-    });
+    if (recurring) {
+      addRecurringExpense({
+        label: label.trim(),
+        amount: Number(amount),
+        categoryId,
+        isShared: false,
+        horseId: horseId!,
+        frequency,
+        startDate: date,
+        endDate: hasEnd ? end : null,
+        source: "manual",
+      });
+    } else {
+      addDirectExpense({
+        horseId: horseId!,
+        categoryId,
+        label: label.trim(),
+        amount: Number(amount),
+        date,
+        source: photoMode ? "photo" : "manual",
+      });
+    }
     router.push("/maintenant");
   }
 
@@ -57,6 +84,25 @@ function SaisieCharge() {
       <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
         Saisir une charge
       </h1>
+
+      <div className="grid grid-cols-2 border border-[var(--border-strong)]">
+        {[
+          { v: false, l: "Ponctuelle" },
+          { v: true, l: "Récurrente" },
+        ].map((o) => (
+          <button
+            key={String(o.v)}
+            onClick={() => setRecurring(o.v)}
+            className="py-2.5 text-[14px] font-bold"
+            style={{
+              background: recurring === o.v ? "var(--text-primary)" : "transparent",
+              color: recurring === o.v ? "var(--bg-base)" : "var(--text-primary)",
+            }}
+          >
+            {o.l}
+          </button>
+        ))}
+      </div>
 
       {photoMode && (
         <button
@@ -129,14 +175,63 @@ function SaisieCharge() {
         </div>
       </Field>
 
-      <Field label="Date">
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="w-full rounded-[var(--radius-md)] border bg-elevated px-4 py-3 text-sm text-primary outline-none"
-        />
-      </Field>
+      {recurring && (
+        <Field label="Fréquence">
+          <div className="flex gap-2">
+            {FREQS.map((f) => (
+              <button
+                key={f.v}
+                onClick={() => setFrequency(f.v)}
+                className={cn(
+                  "flex-1 rounded-[var(--radius-md)] border px-2 py-2 text-xs font-bold",
+                  frequency === f.v ? "border-[var(--accent-primary)] text-[var(--accent-primary)]" : "text-tertiary",
+                )}
+              >
+                {f.l}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+
+      {recurring ? (
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Date de début">
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full rounded-[var(--radius-md)] border bg-elevated px-3 py-3 text-sm text-primary outline-none"
+            />
+          </Field>
+          <Field label="Date de fin">
+            {hasEnd ? (
+              <input
+                type="date"
+                value={end}
+                onChange={(e) => setEnd(e.target.value)}
+                className="w-full rounded-[var(--radius-md)] border bg-elevated px-3 py-3 text-sm text-primary outline-none"
+              />
+            ) : (
+              <button
+                onClick={() => setHasEnd(true)}
+                className="w-full rounded-[var(--radius-md)] border border-dashed px-3 py-3 text-sm text-tertiary"
+              >
+                Sans fin · définir
+              </button>
+            )}
+          </Field>
+        </div>
+      ) : (
+        <Field label="Date">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full rounded-[var(--radius-md)] border bg-elevated px-4 py-3 text-sm text-primary outline-none"
+          />
+        </Field>
+      )}
 
       <button
         disabled={!canSave}
@@ -144,7 +239,8 @@ function SaisieCharge() {
         className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] py-3.5 text-sm font-medium text-[#0e0f0c] disabled:opacity-40"
         style={{ background: "var(--accent-primary)" }}
       >
-        <Check size={18} /> Enregistrer {Number(amount) > 0 ? formatEur(Number(amount)) : ""}
+        <Check size={18} /> Enregistrer{" "}
+        {Number(amount) > 0 ? `${formatEur(Number(amount))}${recurring ? "/échéance" : ""}` : ""}
       </button>
     </div>
   );

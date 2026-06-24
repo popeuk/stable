@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ChevronLeft, TrendingUp, TrendingDown, Minus, Trash2 } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Sparkline } from "@/components/ui/sparkline";
 import { Explain } from "@/components/ed/explain";
@@ -20,6 +20,10 @@ function eur(n: number) {
   return `${n < 0 ? "−" : ""}${v} €`;
 }
 
+function freqLabel(f: string) {
+  return f === "monthly" ? "mensuel" : f === "quarterly" ? "trimestriel" : "annuel";
+}
+
 export function ChevalView({ id }: { id: string }) {
   return (
     <ClientGate>
@@ -33,9 +37,14 @@ function Cheval({ id }: { id: string }) {
   const horses = useHorses(true);
   const data = useDataStore();
   const period = usePeriodStore((s) => s.active);
+  const delRecRevenue = useDataStore((s) => s.deleteRecurringRevenue);
+  const delRecExpense = useDataStore((s) => s.deleteRecurringExpense);
 
   const idx = horses.findIndex((h) => h.horse.id === id);
   if (idx === -1) return <p className="text-secondary">Cheval introuvable.</p>;
+
+  const recRevenues = (data.recurringRevenues ?? []).filter((r) => r.horseId === id);
+  const recExpenses = (data.recurringExpenses ?? []).filter((r) => !r.isShared && r.horseId === id);
 
   const item = horses[idx];
   const { horse, pnl, trend, series } = item;
@@ -161,6 +170,53 @@ function Cheval({ id }: { id: string }) {
           ? `${horse.name} dégage ${eur(pnl.netResult)} ce mois. Solide — garde le cap.`
           : `${horse.name} te coûte ${eur(Math.abs(pnl.netResult))} de plus qu'il ne rapporte. Une légère hausse de pension le remettrait à flot.`}
       </CopiloteNote>
+
+      {/* Récurrents de ce cheval (pension, charges) */}
+      {(recRevenues.length > 0 || recExpenses.length > 0) && (
+        <div>
+          <p className="text-[13px] font-bold uppercase tracking-wide text-tertiary">Récurrents</p>
+          <ul className="mt-2 border-t border-[var(--border-default)]">
+            {recRevenues.map((r) => (
+              <li key={r.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-2.5">
+                <span className="flex-1 text-[14px] text-primary">
+                  {r.label ?? "Pension"}{" "}
+                  <span className="text-[12px] text-tertiary">
+                    · {freqLabel(r.frequency)} · revenu
+                  </span>
+                </span>
+                <span className="text-[14px] font-bold tabular-nums" style={{ color: "var(--c-success)" }}>
+                  +{formatEur(r.amount)}
+                </span>
+                <button
+                  onClick={() => confirm("Arrêter ce revenu récurrent ?") && delRecRevenue(r.id)}
+                  aria-label="Arrêter"
+                  className="text-tertiary hover:text-[var(--c-danger)]"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </li>
+            ))}
+            {recExpenses.map((r) => (
+              <li key={r.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-2.5">
+                <span className="flex-1 text-[14px] text-primary">
+                  {r.label}{" "}
+                  <span className="text-[12px] text-tertiary">· {freqLabel(r.frequency)} · charge</span>
+                </span>
+                <span className="text-[14px] font-bold tabular-nums text-primary">
+                  −{formatEur(r.amount)}
+                </span>
+                <button
+                  onClick={() => confirm("Arrêter cette charge récurrente ?") && delRecExpense(r.id)}
+                  aria-label="Arrêter"
+                  className="text-tertiary hover:text-[var(--c-danger)]"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Part mutualisée */}
       {sharedContrib.length > 0 && (
