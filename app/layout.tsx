@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0e0f0c",
+  themeColor: "#fbf6e9",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -49,6 +49,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${hanken.variable} antialiased`}
     >
       <body>
+        {/* Apply the saved theme before first paint so there's no light/dark flash. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(localStorage.getItem('be-stable-theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}",
+          }}
+        />
         {children}
         <PwaRegister />
       </body>

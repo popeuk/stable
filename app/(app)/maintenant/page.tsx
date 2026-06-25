@@ -71,7 +71,8 @@ function Maintenant() {
     data.revenues.length > 0 ||
     data.directExpenses.length > 0 ||
     data.sharedExpenses.length > 0 ||
-    (data.recurringExpenses?.length ?? 0) > 0;
+    (data.recurringExpenses?.length ?? 0) > 0 ||
+    (data.recurringRevenues?.length ?? 0) > 0;
   if (!hasHorses || !hasMoney) return <FirstRun />;
 
   const agg = aggregateStablePnl(data, periods);
@@ -105,9 +106,11 @@ function Maintenant() {
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-5">
-      <motion.header variants={item}>
-        <p className="text-[13px] font-semibold capitalize text-tertiary">{formatLongDate(new Date())}</p>
+      <motion.header variants={item} className="flex items-baseline justify-between gap-3">
         <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">{greeting()}.</h1>
+        <p className="shrink-0 text-[12px] font-semibold capitalize text-tertiary">
+          {formatLongDate(new Date())}
+        </p>
       </motion.header>
 
       <motion.div variants={item}>

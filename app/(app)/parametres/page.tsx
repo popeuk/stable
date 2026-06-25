@@ -26,10 +26,11 @@ function Parametres() {
   );
   const capacity = useSettingsStore((s) => s.capacity);
   const setCapacity = useSettingsStore((s) => s.setCapacity);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   useEffect(() => {
-    const stored = (localStorage.getItem("be-stable-theme") as "dark" | "light") || "dark";
+    // Warm light is the default theme; dark is opt-in (data-theme="dark").
+    const stored = (localStorage.getItem("be-stable-theme") as "dark" | "light") || "light";
     // Intentional: sync UI state from the persisted theme on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(stored);
@@ -37,7 +38,7 @@ function Parametres() {
   }, []);
 
   function applyTheme(t: "dark" | "light") {
-    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+    if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
     else document.documentElement.removeAttribute("data-theme");
   }
 

@@ -15,10 +15,30 @@ const TABS = [
 ];
 
 const ENTRIES = [
-  { href: "/saisie/revenu", label: "Un revenu", icon: <Coins size={18} /> },
-  { href: "/saisie/charge", label: "Une charge", icon: <Receipt size={18} /> },
-  { href: "/saisie/mutualisee", label: "Mutualisée", icon: <Layers size={18} /> },
-  { href: "/saisie/recurrente", label: "Récurrente (crédit, abo…)", icon: <Repeat size={18} /> },
+  {
+    href: "/saisie/revenu",
+    label: "Une rentrée d'argent",
+    desc: "Pension, cours, vente…",
+    icon: <Coins size={18} />,
+  },
+  {
+    href: "/saisie/charge",
+    label: "Une dépense",
+    desc: "Pour un seul cheval (véto, maréchal…)",
+    icon: <Receipt size={18} />,
+  },
+  {
+    href: "/saisie/mutualisee",
+    label: "Une dépense partagée",
+    desc: "Répartie sur toute l'écurie (foin, paille…)",
+    icon: <Layers size={18} />,
+  },
+  {
+    href: "/saisie/recurrente",
+    label: "Une dépense qui revient",
+    desc: "Crédit, assurance, abonnement…",
+    icon: <Repeat size={18} />,
+  },
 ];
 
 export function BottomNav() {
@@ -53,10 +73,17 @@ export function BottomNav() {
                     key={e.href}
                     href={e.href}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 border-b border-[var(--border-default)] px-4 py-4 last:border-b-0"
+                    className="flex items-center gap-3 border-b border-[var(--border-default)] px-4 py-3.5 last:border-b-0"
                   >
-                    <span className="text-[var(--accent-primary)]">{e.icon}</span>
-                    <span className="text-[15px] font-bold text-primary">{e.label}</span>
+                    <span className="flex size-9 shrink-0 items-center justify-center border border-[var(--border-strong)] text-[var(--accent-primary)]">
+                      {e.icon}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[15px] font-bold leading-tight text-primary">
+                        {e.label}
+                      </span>
+                      <span className="block text-[12px] leading-tight text-tertiary">{e.desc}</span>
+                    </span>
                   </Link>
                 ))}
               </div>

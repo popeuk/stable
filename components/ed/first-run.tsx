@@ -18,7 +18,7 @@ export function FirstRun() {
   const setCapacity = useSettingsStore((s) => s.setCapacity);
 
   const hasHorses = data.horses.some((h) => !h.isArchived);
-  const hasRevenue = data.revenues.length > 0;
+  const hasRevenue = data.revenues.length > 0 || (data.recurringRevenues?.length ?? 0) > 0;
   const hasExpense =
     data.directExpenses.length > 0 ||
     data.sharedExpenses.length > 0 ||

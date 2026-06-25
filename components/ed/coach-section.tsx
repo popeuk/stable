@@ -147,11 +147,13 @@ export function CoachSection() {
 
       <Link
         href="/conseiller"
-        className="mt-2 flex items-center gap-3 border border-[var(--text-primary)] bg-[var(--text-primary)] p-3.5 text-[var(--bg-base)]"
+        className="mt-2 flex items-center gap-2.5 border border-[var(--border-strong)] bg-elevated px-3.5 py-3 text-primary"
       >
-        <HorseLine size={26} stroke={1.4} color="var(--accent-primary)" />
-        <span className="flex-1 text-[14px] font-bold">Demander au conseiller</span>
-        <span className="text-[12px] text-[var(--bg-base)]/70">Pose ta question ›</span>
+        <HorseLine size={20} stroke={1.4} color="var(--accent-primary)" />
+        <span className="flex-1 text-[13px] font-semibold text-secondary">
+          Une question sur ces conseils ?
+        </span>
+        <span className="text-[12px] font-bold text-[var(--accent-primary)]">En parler ›</span>
       </Link>
     </section>
   );
