@@ -168,7 +168,7 @@ function Cheval({ id }: { id: string }) {
       <CopiloteNote>
         {ok
           ? `${horse.name} dégage ${eur(pnl.netResult)} ce mois. Solide — garde le cap.`
-          : `${horse.name} te coûte ${eur(Math.abs(pnl.netResult))} de plus qu'il ne rapporte. Une légère hausse de pension le remettrait à flot.`}
+          : `${horse.name} te coûte ${eur(Math.abs(pnl.netResult))} de plus qu'il ne rapporte. Le bon réflexe : alléger ses postes les plus lourds, puis réaligner sa pension à la prochaine échéance — sans geste brusque.`}
       </CopiloteNote>
 
       {/* Récurrents de ce cheval (pension, charges) */}
@@ -237,13 +237,13 @@ function Cheval({ id }: { id: string }) {
 
       <div className="grid grid-cols-2 gap-3">
         <Link
-          href="/saisie/revenu"
+          href={`/saisie/revenu?horse=${horse.id}`}
           className="flex items-center justify-center border border-[var(--border-strong)] py-3 text-[14px] font-bold text-primary"
         >
           Ajouter un revenu
         </Link>
         <Link
-          href="/saisie/charge"
+          href={`/saisie/charge?horse=${horse.id}`}
           className="flex items-center justify-center border border-[var(--text-primary)] bg-[var(--accent-primary)] py-3 text-[14px] font-bold text-[#17150d]"
         >
           Ajouter une charge

@@ -37,7 +37,10 @@ function SaisieCharge() {
 
   const horses = data.horses.filter((h) => !h.isArchived);
   const directCats = data.expenseCategories.filter((c) => c.isDirect);
-  const [horseId, setHorseId] = useState<string | null>(null);
+  const presetHorse = search.get("horse");
+  const [horseId, setHorseId] = useState<string | null>(
+    presetHorse && horses.some((h) => h.id === presetHorse) ? presetHorse : null,
+  );
   const [label, setLabel] = useState("");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState(directCats[0]?.id);

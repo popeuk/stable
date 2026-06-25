@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check, ChevronLeft, ArrowRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { HorseAvatar } from "@/components/horse/horse-avatar";
@@ -20,19 +20,25 @@ const FREQS: { v: Frequency; l: string }[] = [
 export default function SaisieRevenuPage() {
   return (
     <ClientGate>
-      <SaisieRevenu />
+      <Suspense fallback={null}>
+        <SaisieRevenu />
+      </Suspense>
     </ClientGate>
   );
 }
 
 function SaisieRevenu() {
   const router = useRouter();
+  const search = useSearchParams();
   const data = useDataStore();
   const addRevenue = useDataStore((s) => s.addRevenue);
   const addRecurringRevenue = useDataStore((s) => s.addRecurringRevenue);
 
   const horses = data.horses.filter((h) => !h.isArchived);
-  const [horseId, setHorseId] = useState<string | null>(null);
+  const presetHorse = search.get("horse");
+  const [horseId, setHorseId] = useState<string | null>(
+    presetHorse && horses.some((h) => h.id === presetHorse) ? presetHorse : null,
+  );
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState(data.revenueCategories[0]?.id);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));

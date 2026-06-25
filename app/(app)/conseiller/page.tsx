@@ -85,16 +85,21 @@ function Conseiller() {
       </div>
 
       {/* Suggestions */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        {ADVISOR_TOPICS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => ask(t.key, t.question)}
-            className="border border-[var(--border-strong)] px-3 py-1.5 text-[12px] font-semibold text-secondary"
-          >
-            {t.question}
-          </button>
-        ))}
+      <div className="mt-4">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
+          Pour démarrer, demande-lui
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {ADVISOR_TOPICS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => ask(t.key, t.question)}
+              className="border border-[var(--border-strong)] px-3 py-1.5 text-[12px] font-semibold text-secondary"
+            >
+              {t.question}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Input */}
