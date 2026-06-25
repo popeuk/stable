@@ -16,6 +16,7 @@ export default function SaisieChevalPage() {
 
 function SaisieCheval() {
   const router = useRouter();
+  const horses = useDataStore((s) => s.horses);
   const addHorse = useDataStore((s) => s.addHorse);
   const [name, setName] = useState("");
   const [breed, setBreed] = useState("");
@@ -24,6 +25,8 @@ function SaisieCheval() {
 
   function save() {
     if (!name.trim()) return;
+    // First horse → back to the home so the guided first-run steps continue.
+    const isFirst = !horses.some((h) => !h.isArchived);
     addHorse({
       name: name.trim(),
       breed: breed.trim() || undefined,
@@ -31,7 +34,7 @@ function SaisieCheval() {
       entryDate,
       exitDate: null,
     });
-    router.push("/ecurie");
+    router.push(isFirst ? "/maintenant" : "/ecurie");
   }
 
   return (
@@ -78,10 +81,9 @@ function SaisieCheval() {
       <button
         disabled={!name.trim()}
         onClick={save}
-        className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] py-3.5 text-sm font-medium text-[#0e0f0c] disabled:opacity-40"
-        style={{ background: "var(--accent-primary)" }}
+        className="flex w-full items-center justify-center gap-2 border border-[var(--text-primary)] bg-[var(--accent-primary)] py-3.5 text-[15px] font-bold text-[#17150d] disabled:opacity-40"
       >
-        <Check size={18} /> Ajouter
+        <Check size={18} /> Ajouter ce cheval
       </button>
     </div>
   );

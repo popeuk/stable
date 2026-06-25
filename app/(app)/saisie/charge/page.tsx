@@ -1,8 +1,9 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Check, ChevronLeft, Camera } from "lucide-react";
+import { Check, ChevronLeft, Camera, ArrowRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { HorseAvatar } from "@/components/horse/horse-avatar";
 import { useDataStore } from "@/stores/data-store";
@@ -118,21 +119,37 @@ function SaisieCharge() {
       )}
 
       <Field label="Quel cheval ?">
-        <div className="grid grid-cols-4 gap-2">
-          {horses.map((h) => (
-            <button
-              key={h.id}
-              onClick={() => setHorseId(h.id)}
-              className={cn(
-                "flex flex-col items-center gap-1 rounded-[var(--radius-md)] border p-2",
-                horseId === h.id ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)]" : "",
-              )}
-            >
-              <HorseAvatar name={h.name} size={36} />
-              <span className="truncate text-[10px] text-secondary">{h.name}</span>
-            </button>
-          ))}
-        </div>
+        {horses.length === 0 ? (
+          <Link
+            href="/saisie/cheval"
+            className="flex items-center justify-between border border-dashed border-[var(--border-strong)] px-4 py-3.5"
+          >
+            <span className="pr-3 text-[13px] text-secondary">
+              Ajoute d&apos;abord un cheval pour lui attribuer cette charge.
+            </span>
+            <span className="flex shrink-0 items-center gap-1 text-[13px] font-bold text-[var(--accent-primary)]">
+              Ajouter <ArrowRight size={14} />
+            </span>
+          </Link>
+        ) : (
+          <div className="grid grid-cols-4 gap-2">
+            {horses.map((h) => (
+              <button
+                key={h.id}
+                onClick={() => setHorseId(h.id)}
+                className={cn(
+                  "flex flex-col items-center gap-1 border p-2",
+                  horseId === h.id
+                    ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)]"
+                    : "border-[var(--border-default)]",
+                )}
+              >
+                <HorseAvatar name={h.name} size={36} />
+                <span className="truncate text-[10px] text-secondary">{h.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </Field>
 
       <Field label="Libellé">
@@ -165,8 +182,10 @@ function SaisieCharge() {
               key={c.id}
               onClick={() => setCategoryId(c.id)}
               className={cn(
-                "rounded-full border px-3 py-1.5 text-xs",
-                categoryId === c.id ? "border-[var(--accent-primary)] text-[var(--accent-primary)]" : "text-tertiary",
+                "border px-3 py-1.5 text-xs font-semibold",
+                categoryId === c.id
+                  ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)] text-[var(--accent-primary)]"
+                  : "border-[var(--border-strong)] text-tertiary",
               )}
             >
               {c.name}
@@ -236,8 +255,7 @@ function SaisieCharge() {
       <button
         disabled={!canSave}
         onClick={save}
-        className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] py-3.5 text-sm font-medium text-[#0e0f0c] disabled:opacity-40"
-        style={{ background: "var(--accent-primary)" }}
+        className="flex w-full items-center justify-center gap-2 border border-[var(--text-primary)] bg-[var(--accent-primary)] py-3.5 text-[15px] font-bold text-[#17150d] disabled:opacity-40"
       >
         <Check size={18} /> Enregistrer{" "}
         {Number(amount) > 0 ? `${formatEur(Number(amount))}${recurring ? "/échéance" : ""}` : ""}
