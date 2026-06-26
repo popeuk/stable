@@ -11,6 +11,7 @@ import { Explain } from "@/components/ed/explain";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { periodStart, rangePeriods } from "@/lib/utils/period";
+import { recurringDue } from "@/lib/domain/recurring";
 import { formatEur } from "@/lib/utils/format-currency";
 
 interface Row {
@@ -46,7 +47,7 @@ function Depenses() {
   const deleteDirect = useDataStore((s) => s.deleteDirectExpense);
   const deleteShared = useDataStore((s) => s.deleteSharedExpense);
   const deleteRecurring = useDataStore((s) => s.deleteRecurringExpense);
-  const recurrings = data.recurringExpenses ?? [];
+  const recurrings = useMemo(() => data.recurringExpenses ?? [], [data.recurringExpenses]);
 
   const inRange = (y: number, m: number) => periods.some((p) => p.year === y && p.month === m);
   const horseName = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "—";
@@ -74,7 +75,24 @@ function Depenses() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.directExpenses, data.sharedExpenses, periods]);
 
-  const total = rows.reduce((s, r) => s + r.amount, 0);
+  // Recurring charges that actually fall inside the selected period. Counting
+  // them keeps this total identical to the "Dépenses" figure on the home — the
+  // two screens must never disagree.
+  const recurring = useMemo(() => {
+    let sum = 0;
+    let count = 0;
+    for (const p of periods) {
+      for (const r of recurrings) {
+        if (recurringDue(r, p)) {
+          sum += r.amount;
+          count += 1;
+        }
+      }
+    }
+    return { sum, count };
+  }, [recurrings, periods]);
+
+  const total = rows.reduce((s, r) => s + r.amount, 0) + recurring.sum;
 
   function remove(r: Row) {
     if (!confirm(`Supprimer « ${r.label} » (${formatEur(r.amount)}) ?`)) return;
@@ -103,7 +121,16 @@ function Depenses() {
         <p className="mt-1 font-[family-name:var(--font-fraunces)] text-3xl tabular-nums text-primary">
           {formatEur(total)}
         </p>
-        <p className="mt-0.5 text-[12px] text-tertiary">{rows.length} mouvement{rows.length > 1 ? "s" : ""}</p>
+        <p className="mt-0.5 text-[12px] text-tertiary">
+          {rows.length} ponctuelle{rows.length > 1 ? "s" : ""}
+          {recurring.count > 0 && (
+            <>
+              {" · "}
+              {recurring.count} échéance{recurring.count > 1 ? "s" : ""} récurrente
+              {recurring.count > 1 ? "s" : ""}
+            </>
+          )}
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
@@ -117,7 +144,7 @@ function Depenses() {
           href="/saisie/mutualisee"
           className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold"
         >
-          <Layers size={14} /> Mutualisée
+          <Layers size={14} /> Partagée
         </Link>
         <Link
           href="/saisie/recurrente"
@@ -163,7 +190,11 @@ function Depenses() {
       )}
 
       {rows.length === 0 ? (
-        <p className="py-10 text-center text-sm text-tertiary">Aucune dépense sur cette période.</p>
+        <p className="py-10 text-center text-sm text-tertiary">
+          {recurring.count > 0
+            ? "Aucune dépense ponctuelle sur cette période — seules tes charges récurrentes courent."
+            : "Aucune dépense sur cette période."}
+        </p>
       ) : (
         <ul className="border-t border-[var(--border-default)]">
           {rows.map((r) => (
