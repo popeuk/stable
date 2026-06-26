@@ -77,7 +77,7 @@ export function HorseGalaxy({ items }: { items: HorseWithPnl[] }) {
                 delay: i * 0.05,
               }}
               style={{ cursor: "pointer", transformOrigin: `${x}px ${y}px` }}
-              onClick={() => router.push(`/cheval/${it.horse.id}`)}
+              onClick={() => router.push(`/cheval?id=${it.horse.id}`)}
             >
               <circle cx={x} cy={y} r={r + 6} fill={color} opacity={0.12} />
               <circle cx={x} cy={y} r={r} fill={color} opacity={0.85} />

@@ -25,7 +25,7 @@ export function HorseCard({ item, index }: { item: HorseWithPnl; index: number }
       transition={{ duration: 0.4, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}
     >
       <Link
-        href={`/cheval/${horse.id}`}
+        href={`/cheval?id=${horse.id}`}
         className="block rounded-[var(--radius-lg)] border bg-elevated p-4 transition-colors active:bg-[var(--bg-pressed)]"
       >
         <div className="flex items-start justify-between">

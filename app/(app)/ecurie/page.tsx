@@ -129,7 +129,7 @@ function Ecurie() {
               return (
                 <li key={h.horse.id}>
                   <Link
-                    href={`/cheval/${h.horse.id}`}
+                    href={`/cheval?id=${h.horse.id}`}
                     className="flex items-center gap-3 border-b border-[var(--border-default)] py-3.5"
                   >
                     <span className="w-7 text-[13px] font-bold tabular-nums text-tertiary">

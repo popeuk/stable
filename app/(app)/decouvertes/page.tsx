@@ -41,7 +41,7 @@ function Decouvertes() {
       ) : (
         <div className="space-y-3">
           {insights.map((insight, i) => (
-            <Link key={insight.id} href={`/decouvertes/${encodeURIComponent(insight.id)}`}>
+            <Link key={insight.id} href={`/decouvertes/detail?id=${encodeURIComponent(insight.id)}`}>
               <motion.article
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}

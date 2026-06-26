@@ -96,7 +96,7 @@ function ruleHorseCrossingThreshold(
         keyMetricLabel: "de marge nette",
         relatedHorseId: horse.id,
         score: cur.netResult * 1.2,
-        cta: { label: "Voir le cheval", action: `/cheval/${horse.id}` },
+        cta: { label: "Voir le cheval", action: `/cheval?id=${horse.id}` },
       });
     }
   }
@@ -124,7 +124,7 @@ function ruleHorseLowestMargin(
       keyMetricLabel: "résultat net",
       relatedHorseId: horse.id,
       score: gap * 1.0,
-      cta: { label: "Voir le cheval", action: `/cheval/${horse.id}` },
+      cta: { label: "Voir le cheval", action: `/cheval?id=${horse.id}` },
     },
   ];
 }
@@ -151,7 +151,7 @@ function ruleHorseHighestVolatility(
       keyMetricLabel: "d'écart-type mensuel",
       relatedHorseId: top.horse.id,
       score: top.vol * 0.6,
-      cta: { label: "Voir le cheval", action: `/cheval/${top.horse.id}` },
+      cta: { label: "Voir le cheval", action: `/cheval?id=${top.horse.id}` },
     },
   ];
 }

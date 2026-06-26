@@ -12,7 +12,7 @@ import { generateInsights } from "@/lib/domain/insights-engine";
 export function InsightView({ id }: { id: string }) {
   return (
     <ClientGate>
-      <InsightDetail id={decodeURIComponent(id)} />
+      <InsightDetail id={id} />
     </ClientGate>
   );
 }

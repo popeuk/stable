@@ -75,8 +75,8 @@ function Cheval({ id }: { id: string }) {
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.15}
       onDragEnd={(_, info) => {
-        if (info.offset.x < -80) router.push(`/cheval/${next.horse.id}`);
-        else if (info.offset.x > 80) router.push(`/cheval/${prev.horse.id}`);
+        if (info.offset.x < -80) router.push(`/cheval?id=${next.horse.id}`);
+        else if (info.offset.x > 80) router.push(`/cheval?id=${prev.horse.id}`);
       }}
       initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0 }}

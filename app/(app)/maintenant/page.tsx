@@ -259,7 +259,7 @@ function Maintenant() {
           {declining.slice(0, 1).map((h) => (
             <AlertRow
               key={h.horse.id}
-              href={`/cheval/${h.horse.id}`}
+              href={`/cheval?id=${h.horse.id}`}
               text={`${h.horse.name} perd en marge`}
               hint="sa tendance baisse depuis 3 mois"
             />
@@ -276,7 +276,7 @@ function Maintenant() {
             return (
               <li key={h.horse.id}>
                 <Link
-                  href={`/cheval/${h.horse.id}`}
+                  href={`/cheval?id=${h.horse.id}`}
                   className="flex items-center gap-4 border-b border-[var(--border-default)] py-3.5"
                 >
                   <span className="w-7 text-[13px] font-bold tabular-nums text-tertiary">
