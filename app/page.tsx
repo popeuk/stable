@@ -15,16 +15,16 @@ export default function RootPage() {
       <p className="text-secondary">Le copilote chiffré de ton écurie.</p>
       <div className="flex gap-3">
         <Link
-          href="/proto"
-          className="rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-medium text-[#0e0f0c]"
+          href="/maintenant"
+          className="border border-[var(--text-primary)] bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-bold text-[#17150d]"
         >
-          Voir le prototype
+          Ouvrir l&apos;app
         </Link>
         <Link
-          href="/maintenant"
-          className="rounded-[var(--radius-md)] border px-5 py-2.5 text-sm text-secondary"
+          href="/proto"
+          className="border border-[var(--border-strong)] px-5 py-2.5 text-sm text-secondary"
         >
-          L&apos;app
+          Le prototype
         </Link>
       </div>
     </main>

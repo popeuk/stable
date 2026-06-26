@@ -11,7 +11,7 @@ export default function ScenariosPage() {
         </h1>
         <Link
           href="/scenarios/nouveau"
-          className="flex items-center gap-1 rounded-full bg-[var(--accent-primary)] px-3 py-1.5 text-xs font-medium text-[#0e0f0c]"
+          className="flex items-center gap-1 border border-[var(--text-primary)] bg-[var(--accent-primary)] px-3 py-1.5 text-[12px] font-bold text-[#17150d]"
         >
           <Plus size={14} /> Nouveau
         </Link>
@@ -23,7 +23,7 @@ export default function ScenariosPage() {
         action={
           <Link
             href="/scenarios/nouveau"
-            className="rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-medium text-[#0e0f0c]"
+            className="border border-[var(--text-primary)] bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-bold text-[#17150d]"
           >
             Créer un scénario
           </Link>

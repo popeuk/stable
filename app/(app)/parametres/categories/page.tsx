@@ -55,7 +55,7 @@ function Categories() {
         Catégories
       </h1>
 
-      <div className="flex gap-1 rounded-full border bg-elevated p-1 text-xs">
+      <div className="flex gap-1 border border-[var(--border-strong)] bg-elevated p-1 text-xs font-bold">
         {(
           [
             { v: "revenus", l: "Revenus" },
@@ -66,10 +66,10 @@ function Categories() {
           <button
             key={t.v}
             onClick={() => setTab(t.v)}
-            className="flex-1 rounded-full py-1.5 transition-colors"
+            className="flex-1 py-1.5 transition-colors"
             style={{
               background: tab === t.v ? "var(--accent-primary)" : "transparent",
-              color: tab === t.v ? "#0e0f0c" : "var(--text-tertiary)",
+              color: tab === t.v ? "#17150d" : "var(--text-tertiary)",
             }}
           >
             {t.l}
@@ -87,8 +87,7 @@ function Categories() {
         />
         <button
           onClick={add}
-          className="flex size-11 items-center justify-center rounded-[var(--radius-md)] text-[#0e0f0c]"
-          style={{ background: "var(--accent-primary)" }}
+          className="flex size-11 items-center justify-center border border-[var(--text-primary)] bg-[var(--accent-primary)] text-[#17150d]"
           aria-label="Ajouter"
         >
           <Plus size={18} />

@@ -171,8 +171,10 @@ function SaisieRecurrente() {
               key={c.id}
               onClick={() => setCategoryId(c.id)}
               className={cn(
-                "border px-3 py-1.5 text-xs font-bold",
-                categoryId === c.id ? "border-[var(--accent-primary)] text-[var(--accent-primary)]" : "border-[var(--border-strong)] text-tertiary",
+                "border px-3 py-1.5 text-xs font-semibold",
+                categoryId === c.id
+                  ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)] text-[var(--accent-primary)]"
+                  : "border-[var(--border-strong)] text-tertiary",
               )}
             >
               {c.name}

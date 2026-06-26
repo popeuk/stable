@@ -69,7 +69,7 @@ function InsightDetail({ id }: { id: string }) {
         <motion.div {...stagger(4)} className="mt-8">
           <Link
             href={insight.cta.action}
-            className="inline-block rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-6 py-3 text-sm font-medium text-[#0e0f0c]"
+            className="inline-block border border-[var(--text-primary)] bg-[var(--accent-primary)] px-6 py-3 text-sm font-bold text-[#17150d]"
           >
             {insight.cta.label}
           </Link>
@@ -77,7 +77,7 @@ function InsightDetail({ id }: { id: string }) {
       )}
 
       <motion.p {...stagger(5)} className="mt-10 text-[10px] text-tertiary">
-        Découverte générée par Be Stable IA, basée sur tes données.
+        Découverte repérée automatiquement dans tes chiffres.
       </motion.p>
     </div>
   );

@@ -112,12 +112,12 @@ function Audit() {
           <p className="text-sm text-secondary">À tester ce mois</p>
           <h2 className="mt-2 max-w-xs font-[family-name:var(--font-fraunces)] text-2xl leading-snug text-primary">
             {worry.pnl.netResult < 0
-              ? `Et si tu augmentais la pension de ${worry.horse.name} ?`
+              ? `Et si tu réalignais la pension de ${worry.horse.name} à son prochain renouvellement ?`
               : "Et si tu indexais tes pensions sur tes coûts ?"}
           </h2>
           <a
             href={`/scenarios/nouveau?horse=${worry.horse.id}`}
-            className="mt-6 inline-block rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-medium text-[#0e0f0c]"
+            className="mt-6 inline-block border border-[var(--text-primary)] bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-bold text-[#17150d]"
           >
             Ouvrir le scénario
           </a>
