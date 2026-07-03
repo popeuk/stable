@@ -115,12 +115,23 @@ export const LESSONS: Record<string, Lesson> = {
   seuil_rentabilite: {
     key: "seuil_rentabilite",
     title: "Le seuil de rentabilité",
-    definition: "Le montant de revenus minimum pour qu'un cheval soit à l'équilibre.",
+    definition:
+      "Le montant de revenus minimum pour être à l'équilibre — pour un cheval comme pour toute l'écurie.",
     whatToDo: [
-      "En dessous, le cheval te coûte de l'argent chaque mois.",
-      "C'est la somme de ses coûts directs et de sa part de charges mutualisées.",
+      "En dessous, tu perds de l'argent chaque mois ; au-dessus, chaque euro encaissé devient de la marge.",
+      "Pour un cheval : ses coûts directs + sa part de charges partagées. Pour l'écurie : la somme de toutes tes charges.",
+      "Le connaître te dit combien de pensions il te faut pour tourner — c'est ta boussole.",
     ],
     related: ["charges_mutualisees", "cout_direct"],
+    yourData: (data, period) => {
+      const p = stablePnl(data, period);
+      const charges = p.directCosts + p.sharedCosts;
+      if (charges <= 0) return "Saisis tes premières charges pour connaître ton seuil.";
+      const covered = p.revenue >= charges;
+      return covered
+        ? `Ton écurie doit encaisser ${formatEur(charges)}/mois pour tourner. Tu es au-dessus (${formatEur(p.revenue)}) : le seuil est franchi.`
+        : `Ton écurie doit encaisser ${formatEur(charges)}/mois pour tourner. Tu en es à ${formatEur(p.revenue)} : il manque ${formatEur(charges - p.revenue)}.`;
+    },
   },
   cout_direct: {
     key: "cout_direct",

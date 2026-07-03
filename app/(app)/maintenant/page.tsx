@@ -10,6 +10,7 @@ import { Sparkline } from "@/components/ui/sparkline";
 import { Explain } from "@/components/ed/explain";
 import { SectionHead } from "@/components/ed/atoms";
 import { RangeSelector } from "@/components/ed/range-selector";
+import { EquilibriumBlock } from "@/components/ed/equilibrium-block";
 import { InsightsCarousel } from "@/components/ed/insights-carousel";
 import { CoachSection } from "@/components/ed/coach-section";
 import { FirstRun } from "@/components/ed/first-run";
@@ -152,6 +153,11 @@ function Maintenant() {
           <p className="mt-1.5 text-[13px] leading-snug text-secondary">{verdict}</p>
         </div>
       </motion.section>
+
+      {/* Point d'équilibre : les charges traduites en pensions */}
+      <motion.div variants={item}>
+        <EquilibriumBlock />
+      </motion.div>
 
       {/* Ce qui impacte ta marge */}
       {breakdown.length > 0 && (
