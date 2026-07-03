@@ -1,5 +1,6 @@
 import type { Period, StableData } from "@/lib/domain/types";
 import { stablePnl, expenseBreakdown } from "@/lib/domain/calculations";
+import { equilibrium } from "@/lib/domain/equilibrium";
 import { generateRecommendations } from "@/lib/domain/recommendations";
 import { recurringList } from "@/lib/domain/recurring";
 import { dateInPeriod } from "@/lib/utils/period";
@@ -13,6 +14,7 @@ export interface AdvisorTopic {
 /** The questions the advisor can answer right now, from real data. */
 export const ADVISOR_TOPICS: AdvisorTopic[] = [
   { key: "profitability", question: "Où en est ma rentabilité ?" },
+  { key: "break_even", question: "Est-ce que je couvre mes charges ?" },
   { key: "improve_margin", question: "Comment améliorer ma marge ?" },
   { key: "new_horse_price", question: "Quel tarif pour un nouveau cheval ?" },
   { key: "biggest_costs", question: "Où sont mes plus gros coûts ?" },
@@ -68,6 +70,20 @@ export function advisorAnswer(
       const avg = avgPension(data, period, count);
       return `Ton coût de revient par place est d'environ ${formatEur(floor)}/mois (tes charges ÷ tes places). C'est ton prix plancher : en dessous, le cheval te coûte. Ton tarif moyen actuel tourne autour de ${formatEur(avg)}. Selon ta région et tes prestations, tu peux te placer au-dessus — et surtout, n'ajuste pas un client existant : c'est le tarif du prochain entrant que tu fixes.`;
     }
+    case "break_even": {
+      const eq = equilibrium(data, [period]);
+      if (eq.monthlyCharges <= 0)
+        return "Aucune charge enregistrée ce mois — saisis-les et je te dirai où se trouve ton point d'équilibre.";
+      if (eq.coverage >= 1) {
+        return `Oui. Il te faut ${formatEur(eq.monthlyCharges)}/mois pour couvrir tes charges, et tu encaisses ${formatEur(eq.monthlyRevenue)}. Le seuil est franchi : chaque euro au-delà est de la marge.`;
+      }
+      const pct = Math.round(Math.min(1, eq.coverage) * 100);
+      const pensions =
+        eq.missingPensionEquiv > 0
+          ? ` — l'équivalent de ${eq.missingPensionEquiv.toLocaleString("fr-FR")} pension${eq.missingPensionEquiv >= 2 ? "s" : ""}`
+          : "";
+      return `Pas encore : tes charges font ${formatEur(eq.monthlyCharges)}/mois et tu en couvres ${pct} %. Il manque ${formatEur(eq.monthlyGap)}/mois${pensions}. Le levier le plus direct : remplir une place, puis alléger ton plus gros poste négociable.`;
+    }
     case "biggest_costs": {
       const top = expenseBreakdown(data, [period]).slice(0, 3);
       if (top.length === 0) return "Aucune charge enregistrée ce mois.";
@@ -100,6 +116,7 @@ export function advisorAnswer(
 export function matchIntent(text: string): string {
   const t = text.toLowerCase();
   if (/(rempl|place|occup|capacit|vide)/.test(t)) return "fill_potential";
+  if (/(couvr|[ée]quilibre|seuil|point mort)/.test(t)) return "break_even";
   if (/(tarif|prix|pension|nouveau|entrant|combien.*facturer)/.test(t)) return "new_horse_price";
   if (/(co[uû]t|cher|d[ée]pense|poste|charge)/.test(t)) return "biggest_costs";
   if (/(cr[ée]dit|r[ée]current|abonnement|assurance|mensualit)/.test(t)) return "recurring";
