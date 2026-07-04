@@ -104,12 +104,19 @@ function Cheval({ id }: { id: string }) {
         <ChevronLeft size={16} /> Mon écurie
       </Link>
 
-      {/* Image header */}
-      <div className="relative overflow-hidden border border-[var(--border-strong)]">
+      {/* Le pouls du cheval : la teinte de l'en-tête EST sa santé. */}
+      <div className="grain relative overflow-hidden">
         <div
-          className="relative flex aspect-[16/9] items-center justify-center"
-          style={{ background: "var(--accent-primary-soft)" }}
-        >
+          aria-hidden
+          className="pulse-field absolute inset-0"
+          style={
+            {
+              "--pulse-a": ok ? "rgba(227, 165, 43, 0.28)" : "rgba(192, 67, 46, 0.20)",
+              "--pulse-b": ok ? "rgba(124, 144, 112, 0.24)" : "rgba(201, 138, 22, 0.16)",
+            } as React.CSSProperties
+          }
+        />
+        <div className="relative flex aspect-[16/9] items-center justify-center">
           <HorseLine size={140} stroke={0.9} color="var(--text-primary)" />
           <div className="absolute bottom-3 right-3">
             <Tag tone={ok ? "green" : "red"}>{ok ? "Il rapporte" : "Il coûte"}</Tag>
