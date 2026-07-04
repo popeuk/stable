@@ -56,7 +56,17 @@ export function PeriodStrip() {
       caption: cap,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.revenues, data.directExpenses, data.sharedExpenses, active, preset, windowEnd.year, windowEnd.month]);
+  }, [
+    data.revenues,
+    data.directExpenses,
+    data.sharedExpenses,
+    data.recurringExpenses,
+    data.recurringRevenues,
+    active,
+    preset,
+    windowEnd.year,
+    windowEnd.month,
+  ]);
 
   return (
     <div className="sticky top-0 z-30 border-b border-[var(--border-default)] bg-base/95 backdrop-blur-md">
