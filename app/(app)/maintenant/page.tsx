@@ -10,7 +10,6 @@ import { Sparkline } from "@/components/ui/sparkline";
 import { Explain } from "@/components/ed/explain";
 import { SectionHead } from "@/components/ed/atoms";
 import { RangeSelector } from "@/components/ed/range-selector";
-import { EquilibriumBlock } from "@/components/ed/equilibrium-block";
 import { InsightsCarousel } from "@/components/ed/insights-carousel";
 import { CoachSection } from "@/components/ed/coach-section";
 import { FirstRun } from "@/components/ed/first-run";
@@ -24,10 +23,12 @@ import {
   expenseMovers,
   stableMarginSeries,
 } from "@/lib/domain/calculations";
+import { equilibrium } from "@/lib/domain/equilibrium";
 import { pickNotion } from "@/lib/domain/notion";
 import { LESSONS } from "@/content/lessons";
 import { RANGE_PRESETS, rangePeriods } from "@/lib/utils/period";
 import { formatLongDate } from "@/lib/utils/format-date";
+import { formatEur } from "@/lib/utils/format-currency";
 
 function eur(n: number) {
   const v = new Intl.NumberFormat("fr-FR").format(Math.round(Math.abs(n)));
@@ -44,11 +45,11 @@ function greeting() {
 
 const container = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } },
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
 };
 const item = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const } },
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] as const } },
 };
 
 export default function MaintenantPage() {
@@ -77,6 +78,7 @@ function Maintenant() {
   if (!hasHorses || !hasMoney) return <FirstRun />;
 
   const agg = aggregateStablePnl(data, periods);
+  const eq = equilibrium(data, periods);
   const positive = agg.netResult >= 0;
   const series = stableMarginSeries(data, active, 12);
   const breakdown = expenseBreakdown(data, periods).slice(0, 4);
@@ -98,72 +100,137 @@ function Maintenant() {
   const notionKey = pickNotion(data, active);
   const notion = LESSONS[notionKey];
 
-  const verdict =
-    positive
-      ? `Tu gardes ${agg.netMarginPct} % de ce que tu encaisses.${best ? ` ${best.horse.name} porte l'écurie` : ""}${
-          worst && worst.net < 0 ? `, mais ${worst.horse.name} passe sous son seuil.` : "."
-        }`
-      : `Tu perds de l'argent ${periodLabel}. Tes plus gros postes et tes places vides sont les premiers leviers.`;
+  const verdict = positive
+    ? `Tu gardes ${agg.netMarginPct} % de ce que tu encaisses.${best ? ` ${best.horse.name} porte l'écurie` : ""}${
+        worst && worst.net < 0 ? `, mais ${worst.horse.name} passe sous son seuil.` : "."
+      }`
+    : `Tu perds de l'argent ${periodLabel}. Tes plus gros postes et tes places vides sont les premiers leviers.`;
+
+  // The pulse — colour is the state. Gold-sage when covered, amber when
+  // close, ember when the stable loses money.
+  const health: "good" | "tight" | "bad" =
+    positive && eq.coverage >= 1 ? "good" : eq.coverage >= 0.85 ? "tight" : "bad";
+  const pulse = {
+    good: { a: "rgba(227, 165, 43, 0.26)", b: "rgba(124, 144, 112, 0.24)" },
+    tight: { a: "rgba(201, 138, 22, 0.26)", b: "rgba(227, 165, 43, 0.16)" },
+    bad: { a: "rgba(192, 67, 46, 0.20)", b: "rgba(201, 138, 22, 0.15)" },
+  }[health];
+  const coverPct = Math.round(Math.min(1, eq.coverage) * 100);
+  const coverColor =
+    health === "good" ? "var(--c-success)" : health === "tight" ? "var(--c-warning)" : "var(--c-danger)";
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-5">
-      <motion.header variants={item} className="flex items-baseline justify-between gap-3">
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">{greeting()}.</h1>
-        <p className="shrink-0 text-[12px] font-semibold capitalize text-tertiary">
-          {formatLongDate(new Date())}
-        </p>
-      </motion.header>
-
-      <motion.div variants={item}>
-        <RangeSelector />
-      </motion.div>
-
-      {/* Schéma : CA − Dépenses = Marge */}
-      <motion.section variants={item} className="border border-[var(--border-strong)] bg-elevated">
-        <EqRow
-          sign=""
-          label="Chiffre d'affaires"
-          lesson="chiffre_affaires"
-          value={eur(agg.revenue)}
+    <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
+      {/* ——— Le Pouls ——— */}
+      <motion.section variants={item} className="grain -mx-5 -mt-4 overflow-hidden">
+        <div
+          aria-hidden
+          className="pulse-field absolute inset-0"
+          style={{ "--pulse-a": pulse.a, "--pulse-b": pulse.b } as React.CSSProperties}
         />
-        <EqRow sign="−" label="Dépenses" lesson="depenses" value={eur(agg.charges)} muted />
-        <div className="flex items-center justify-between border-t-2 border-[var(--text-primary)] px-4 py-3">
-          <div className="flex items-center gap-2">
-            <span className="w-4 text-[18px] font-bold text-tertiary">=</span>
-            <Explain k="rentabilite" className="text-[12px] font-bold uppercase tracking-wide text-tertiary">
-              Marge ({periodLabel})
-            </Explain>
-          </div>
-          <div className="flex items-baseline gap-2">
+        <div className="relative px-5 pb-6 pt-9">
+          <p className="text-[13px] font-semibold text-secondary">
+            {greeting()} · <span className="capitalize">{formatLongDate(new Date())}</span>
+          </p>
+
+          <div className="mt-5 flex items-baseline gap-3">
             <KeyNumber
               value={agg.netResult}
               colorBySign
-              className="font-[family-name:var(--font-fraunces)] text-3xl"
+              className="text-[56px] leading-none tracking-[-0.03em]"
             />
             <span
-              className="text-[13px] font-bold tabular-nums"
+              className="text-[15px] font-bold tabular-nums"
               style={{ color: positive ? "var(--c-success)" : "var(--c-danger)" }}
             >
               {agg.netMarginPct} %
             </span>
           </div>
-        </div>
-        <div className="px-4 pb-3">
-          <Sparkline data={series} area width={380} height={34} className="w-full" />
-          <p className="mt-1.5 text-[13px] leading-snug text-secondary">{verdict}</p>
+          <Explain k="marge_nette" className="mt-1 block text-left text-[12px] font-bold uppercase tracking-[0.12em] text-tertiary">
+            Ta marge {periodLabel}
+          </Explain>
+
+          <p className="mt-4 max-w-[30ch] text-[15px] leading-snug text-primary">{verdict}</p>
+
+          {/* Le seuil : une ligne, pas une carte. */}
+          {eq.monthlyCharges > 0 && (
+            <Explain k="seuil_rentabilite" variant="plain" className="mt-6 block w-full text-left">
+              <span className="block h-[3px] w-full" style={{ background: "var(--border-default)" }}>
+                <motion.span
+                  className="block h-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${coverPct}%` }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ background: coverColor }}
+                />
+              </span>
+              <span className="mt-1.5 flex justify-between text-[12px] text-secondary">
+                <span>
+                  {eq.coverage >= 1 ? (
+                    "Charges couvertes — au-delà, tout est marge."
+                  ) : eq.missingPensionEquiv > 0 ? (
+                    <>
+                      Encore {formatEur(eq.monthlyGap)}/mois —{" "}
+                      <strong className="text-primary">
+                        ≈ {eq.missingPensionEquiv.toLocaleString("fr-FR")} pension
+                        {eq.missingPensionEquiv >= 2 ? "s" : ""}
+                      </strong>
+                    </>
+                  ) : (
+                    <>Encore {formatEur(eq.monthlyGap)}/mois pour couvrir tes charges</>
+                  )}
+                </span>
+                <span className="tabular-nums font-bold" style={{ color: coverColor }}>
+                  {coverPct} %
+                </span>
+              </span>
+            </Explain>
+          )}
+
+          <div className="mt-5">
+            <RangeSelector />
+          </div>
         </div>
       </motion.section>
 
-      {/* Point d'équilibre : les charges traduites en pensions */}
-      <motion.div variants={item}>
-        <EquilibriumBlock />
-      </motion.div>
+      {/* ——— D'où ça vient ——— */}
+      <motion.section variants={item} className="-mt-2">
+        <div className="hairline flex items-baseline justify-between py-3">
+          <Explain k="chiffre_affaires" className="text-[13px] font-bold uppercase tracking-wide text-tertiary">
+            Chiffre d&apos;affaires
+          </Explain>
+          <span className="font-[family-name:var(--font-fraunces)] text-xl tabular-nums text-primary">
+            {eur(agg.revenue)}
+          </span>
+        </div>
+        <div className="hairline flex items-baseline justify-between py-3">
+          <Explain k="depenses" className="text-[13px] font-bold uppercase tracking-wide text-tertiary">
+            Dépenses
+          </Explain>
+          <span className="font-[family-name:var(--font-fraunces)] text-xl tabular-nums text-secondary">
+            −{eur(agg.charges)}
+          </span>
+        </div>
+        <div className="pt-2">
+          <Sparkline data={series} area width={380} height={34} className="w-full" />
+          {eq.horseCount > 0 && eq.avgPension > 0 && (
+            <p className="mt-2 text-[12px] text-tertiary">
+              Une place occupée te laisse en moyenne{" "}
+              <strong style={{ color: eq.marginPerHorse >= 0 ? "var(--c-success)" : "var(--c-danger)" }}>
+                {eq.marginPerHorse >= 0 ? "+" : ""}
+                {formatEur(eq.marginPerHorse)}/mois
+              </strong>
+              .
+            </p>
+          )}
+        </div>
+      </motion.section>
 
-      {/* Ce qui impacte ta marge */}
+      {/* ——— Ce qui pèse ——— */}
       {breakdown.length > 0 && (
         <motion.section variants={item}>
           <SectionHead title="Ce qui pèse sur ta marge" />
-          <div className="space-y-2.5 border border-[var(--border-strong)] bg-elevated p-4">
+          <div className="space-y-3">
             {breakdown.map((slice, i) => (
               <div key={slice.label}>
                 <div className="mb-1 flex items-baseline justify-between text-[13px]">
@@ -172,7 +239,7 @@ function Maintenant() {
                     {eur(slice.amount)} · {Math.round(slice.share * 100)} %
                   </span>
                 </div>
-                <div className="h-2 bg-[var(--bg-pressed)]">
+                <div className="h-1.5 bg-[var(--bg-pressed)]">
                   <motion.div
                     className="h-full"
                     initial={{ width: 0 }}
@@ -187,11 +254,11 @@ function Maintenant() {
         </motion.section>
       )}
 
-      {/* Ce qui a bougé ce mois (vs mois précédent) */}
+      {/* ——— Ce qui a bougé ——— */}
       {movers.length > 0 && (
         <motion.section variants={item}>
           <SectionHead title="Ce qui a bougé ce mois" />
-          <ul className="border-t border-[var(--border-default)]">
+          <ul className="hairline">
             {movers.map((m) => {
               const worse = m.delta > 0;
               return (
@@ -221,7 +288,7 @@ function Maintenant() {
         </motion.section>
       )}
 
-      {/* L'accompagnement */}
+      {/* ——— L'accompagnement ——— */}
       <motion.div variants={item}>
         <CoachSection />
       </motion.div>
@@ -230,25 +297,27 @@ function Maintenant() {
         <InsightsCarousel />
       </motion.div>
 
-      {/* Notion du moment */}
+      {/* ——— La notion du moment ——— */}
       {notion && (
         <motion.div variants={item}>
           <Explain k={notionKey} variant="plain" className="block w-full text-left">
-            <div className="flex items-center justify-between border border-[var(--border-strong)] bg-[var(--accent-primary-soft)] p-4">
-              <div className="pr-3">
-                <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--accent-primary)]">
-                  La notion du moment
-                </p>
-                <p className="mt-1 text-[15px] font-bold text-primary">{notion.title}</p>
-                <p className="mt-0.5 text-[13px] text-secondary">{notion.definition}</p>
+            <div className="grain relative overflow-hidden bg-[var(--accent-primary-soft)] p-4">
+              <div className="relative flex items-center justify-between">
+                <div className="pr-3">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--accent-primary)]">
+                    La notion du moment
+                  </p>
+                  <p className="mt-1 text-[15px] font-bold text-primary">{notion.title}</p>
+                  <p className="mt-0.5 text-[13px] text-secondary">{notion.definition}</p>
+                </div>
+                <ArrowUpRight size={20} className="shrink-0 text-[var(--accent-primary)]" />
               </div>
-              <ArrowUpRight size={20} className="shrink-0 text-[var(--accent-primary)]" />
             </div>
           </Explain>
         </motion.div>
       )}
 
-      {/* Alertes */}
+      {/* ——— Alertes ——— */}
       {(underThreshold.length > 0 || declining.length > 0) && (
         <motion.section variants={item} className="space-y-2">
           {underThreshold.length > 0 && (
@@ -273,10 +342,10 @@ function Maintenant() {
         </motion.section>
       )}
 
-      {/* Chevaux */}
+      {/* ——— Tes chevaux ——— */}
       <motion.section variants={item}>
         <SectionHead title="Tes chevaux" action={<Link href="/ecurie">Tout voir ›</Link>} />
-        <ul className="border-t border-[var(--border-default)]">
+        <ul className="hairline">
           {ranked.slice(0, 4).map((h, i) => {
             const ok = h.net >= 0;
             return (
@@ -306,36 +375,6 @@ function Maintenant() {
         </ul>
       </motion.section>
     </motion.div>
-  );
-}
-
-function EqRow({
-  sign,
-  label,
-  lesson,
-  value,
-  muted,
-}: {
-  sign: string;
-  label: string;
-  lesson: string;
-  value: string;
-  muted?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between px-4 py-3">
-      <div className="flex items-center gap-2">
-        <span className="w-4 text-[18px] font-bold text-tertiary">{sign}</span>
-        <Explain k={lesson} className="text-[12px] font-bold uppercase tracking-wide text-tertiary">
-          {label}
-        </Explain>
-      </div>
-      <span
-        className={`font-[family-name:var(--font-fraunces)] text-2xl tabular-nums ${muted ? "text-secondary" : "text-primary"}`}
-      >
-        {value}
-      </span>
-    </div>
   );
 }
 

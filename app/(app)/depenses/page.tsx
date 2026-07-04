@@ -156,10 +156,10 @@ function Journal() {
 
       {/* Saisie rapide */}
       <div className="grid grid-cols-4 gap-2">
-        <Link href="/saisie/revenu" className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
+        <Link href="/saisie?kind=revenu" className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
           <Coins size={14} /> Revenu
         </Link>
-        <Link href="/saisie/charge" className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
+        <Link href="/saisie?kind=charge" className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
           <Receipt size={14} /> Dépense
         </Link>
         <Link href="/saisie/mutualisee" className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">

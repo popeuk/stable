@@ -300,13 +300,13 @@ function Cheval({ id }: { id: string }) {
 
       <div className="grid grid-cols-2 gap-3">
         <Link
-          href={`/saisie/revenu?horse=${horse.id}`}
+          href={`/saisie?kind=revenu&horse=${horse.id}`}
           className="flex items-center justify-center border border-[var(--border-strong)] py-3 text-[14px] font-bold text-primary"
         >
           Ajouter un revenu
         </Link>
         <Link
-          href={`/saisie/charge?horse=${horse.id}`}
+          href={`/saisie?kind=charge&horse=${horse.id}`}
           className="flex items-center justify-center border border-[var(--text-primary)] bg-[var(--accent-primary)] py-3 text-[14px] font-bold text-[#17150d]"
         >
           Ajouter une charge

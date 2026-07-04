@@ -135,6 +135,73 @@ body {
   font-feature-settings: "tnum";
 }
 
+/* ============================================================
+   v3 — la couche sensorielle. Le "pouls" : un champ de couleur
+   vivant dont la teinte EST l'état de santé de l'écurie.
+   ============================================================ */
+:root {
+  --ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Teintes du pouls (surchargées inline selon la santé). */
+  --pulse-a: rgba(227, 165, 43, 0.22);
+  --pulse-b: rgba(124, 144, 112, 0.18);
+}
+
+@keyframes pulse-drift {
+  0% {
+    background-position:
+      12% 18%,
+      88% 82%;
+    background-size:
+      120% 120%,
+      130% 130%;
+  }
+  50% {
+    background-position:
+      28% 40%,
+      70% 55%;
+    background-size:
+      145% 145%,
+      115% 115%;
+  }
+  100% {
+    background-position:
+      8% 65%,
+      92% 30%;
+    background-size:
+      125% 125%,
+      140% 140%;
+  }
+}
+
+.pulse-field {
+  background-image:
+    radial-gradient(ellipse 90% 70% at 20% 20%, var(--pulse-a), transparent 62%),
+    radial-gradient(ellipse 85% 75% at 80% 80%, var(--pulse-b), transparent 60%);
+  background-repeat: no-repeat;
+  animation: pulse-drift 16s var(--ease-signature) infinite alternate;
+}
+
+/* Grain fin sur les aplats — l'anti-générique. */
+.grain {
+  position: relative;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(23, 21, 13, 0.05) 1px, transparent 1px);
+  background-size: 4px 4px;
+  pointer-events: none;
+}
+:root[data-theme="dark"] .grain::after {
+  background-image: radial-gradient(rgba(245, 242, 234, 0.04) 1px, transparent 1px);
+}
+
+/* Filet — la seule ligne autorisée quand l'espace ne suffit pas. */
+.hairline {
+  border-top: 1px solid var(--border-default);
+}
+
 ::-webkit-scrollbar {
   width: 0;
   height: 0;
