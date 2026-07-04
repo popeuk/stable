@@ -7,6 +7,7 @@ import { Check, ChevronLeft, ArrowRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { HorseAvatar } from "@/components/horse/horse-avatar";
 import { useDataStore } from "@/stores/data-store";
+import { useFlashStore } from "@/stores/flash-store";
 import type { Frequency } from "@/lib/domain/types";
 import { cn } from "@/lib/utils/cn";
 import { formatEur } from "@/lib/utils/format-currency";
@@ -51,6 +52,13 @@ function SaisieRevenu() {
 
   function save() {
     if (!canSave) return;
+    const horseName = horses.find((h) => h.id === horseId)?.name ?? "";
+    const catName = data.revenueCategories.find((c) => c.id === categoryId)?.name ?? "Revenu";
+    useFlashStore.getState().setFlash({
+      kind: "revenue",
+      amount: Number(amount),
+      label: `${catName}${horseName ? ` — ${horseName}` : ""}`,
+    });
     if (recurring) {
       addRecurringRevenue({
         horseId: horseId!,

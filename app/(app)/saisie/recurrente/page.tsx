@@ -6,6 +6,7 @@ import { Check, ChevronLeft } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Explain } from "@/components/ed/explain";
 import { useDataStore } from "@/stores/data-store";
+import { useFlashStore } from "@/stores/flash-store";
 import type { DistributionMode, Frequency } from "@/lib/domain/types";
 import { cn } from "@/lib/utils/cn";
 import { formatEur } from "@/lib/utils/format-currency";
@@ -47,6 +48,11 @@ function SaisieRecurrente() {
 
   function save() {
     if (!canSave) return;
+    useFlashStore.getState().setFlash({
+      kind: "expense",
+      amount: Number(amount),
+      label: `${label.trim()} — récurrente`,
+    });
     addRecurring({
       label: label.trim(),
       amount: Number(amount),

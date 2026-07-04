@@ -26,6 +26,7 @@ interface DataState extends StableData {
   addDirectExpense: (e: Omit<DirectExpense, "id" | "stableId">) => void;
   addSharedExpense: (e: Omit<SharedExpense, "id" | "stableId">) => void;
   addHorse: (h: Omit<Horse, "id" | "stableId" | "isArchived">) => void;
+  updateHorse: (id: string, patch: Partial<Omit<Horse, "id" | "stableId">>) => void;
   archiveHorse: (id: string) => void;
   deleteHorse: (id: string) => void;
   deleteRevenue: (id: string) => void;
@@ -83,6 +84,17 @@ export const useDataStore = create<DataState>()(
         enqueueMutation("insert", "horses", entity);
         set((s) => ({ horses: [...s.horses, entity] }));
       },
+
+      updateHorse: (horseId, patch) =>
+        set((s) => {
+          const horse = s.horses.find((h) => h.id === horseId);
+          if (horse) {
+            enqueueMutation("update", "horses", { ...horse, ...patch, id: horseId });
+          }
+          return {
+            horses: s.horses.map((h) => (h.id === horseId ? { ...h, ...patch } : h)),
+          };
+        }),
 
       archiveHorse: (horseId) =>
         set((s) => {

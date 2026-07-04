@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronLeft, TrendingUp, TrendingDown, Minus, Trash2 } from "lucide-react";
+import { ChevronLeft, TrendingUp, TrendingDown, Minus, Trash2, Pencil, Archive } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Sparkline } from "@/components/ui/sparkline";
 import { Explain } from "@/components/ed/explain";
@@ -39,6 +39,9 @@ function Cheval({ id }: { id: string }) {
   const period = usePeriodStore((s) => s.active);
   const delRecRevenue = useDataStore((s) => s.deleteRecurringRevenue);
   const delRecExpense = useDataStore((s) => s.deleteRecurringExpense);
+  const delRevenue = useDataStore((s) => s.deleteRevenue);
+  const delDirect = useDataStore((s) => s.deleteDirectExpense);
+  const archiveHorse = useDataStore((s) => s.archiveHorse);
 
   const idx = horses.findIndex((h) => h.horse.id === id);
   if (idx === -1) return <p className="text-secondary">Cheval introuvable.</p>;
@@ -60,6 +63,21 @@ function Cheval({ id }: { id: string }) {
     const name = data.revenueCategories.find((c) => c.id === r.categoryId)?.name ?? "Autre";
     revByCat.set(name, (revByCat.get(name) ?? 0) + r.amount);
   }
+  const movements = [
+    ...data.revenues
+      .filter((r) => r.horseId === horse.id && dateInPeriod(r.date, period))
+      .map((r) => ({
+        id: r.id,
+        date: r.date,
+        label: data.revenueCategories.find((c) => c.id === r.categoryId)?.name ?? "Revenu",
+        amount: r.amount,
+        isIn: true,
+      })),
+    ...data.directExpenses
+      .filter((e) => e.horseId === horse.id && dateInPeriod(e.date, period))
+      .map((e) => ({ id: e.id, date: e.date, label: e.label, amount: e.amount, isIn: false })),
+  ].sort((a, b) => (a.date < b.date ? 1 : -1));
+
   const sharedContrib = data.sharedExpenses
     .filter((s) => s.periodYear === period.year && s.periodMonth === period.month)
     .map((s) => ({ label: s.label, amount: s.allocations.find((a) => a.horseId === horse.id)?.allocatedAmount ?? 0 }))
@@ -99,13 +117,22 @@ function Cheval({ id }: { id: string }) {
         </div>
       </div>
 
-      <header>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-3xl text-primary">{horse.name}</h1>
-        <p className="text-[13px] font-semibold uppercase tracking-wide text-tertiary">
-          {horse.breed}
-          {horse.birthYear ? ` · ${new Date().getFullYear() - horse.birthYear} ans` : ""}
-          {horse.ownerName ? ` · ${horse.ownerName}` : ""}
-        </p>
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-[family-name:var(--font-fraunces)] text-3xl text-primary">{horse.name}</h1>
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-tertiary">
+            {horse.breed}
+            {horse.birthYear ? ` · ${new Date().getFullYear() - horse.birthYear} ans` : ""}
+            {horse.ownerName ? ` · ${horse.ownerName}` : ""}
+          </p>
+        </div>
+        <Link
+          href={`/saisie/cheval?edit=${horse.id}`}
+          aria-label="Modifier"
+          className="flex shrink-0 items-center gap-1.5 border border-[var(--border-strong)] px-2.5 py-1.5 text-[12px] font-bold text-primary"
+        >
+          <Pencil size={13} /> Modifier
+        </Link>
       </header>
 
       {/* Hero */}
@@ -218,6 +245,42 @@ function Cheval({ id }: { id: string }) {
         </div>
       )}
 
+      {/* Mouvements ponctuels du mois — corrigeables sur place */}
+      {movements.length > 0 && (
+        <div>
+          <p className="text-[13px] font-bold uppercase tracking-wide text-tertiary">
+            Ses mouvements ce mois
+          </p>
+          <ul className="mt-2 border-t border-[var(--border-default)]">
+            {movements.map((m) => (
+              <li key={m.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-2.5">
+                <span className="w-11 shrink-0 text-[11px] font-semibold text-tertiary">
+                  {m.date.slice(8, 10)}/{m.date.slice(5, 7)}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[14px] text-primary">{m.label}</span>
+                <span
+                  className="text-[14px] font-bold tabular-nums"
+                  style={{ color: m.isIn ? "var(--c-success)" : "var(--text-primary)" }}
+                >
+                  {m.isIn ? "+" : "−"}
+                  {formatEur(m.amount)}
+                </span>
+                <button
+                  onClick={() =>
+                    confirm(`Supprimer « ${m.label} » (${formatEur(m.amount)}) ?`) &&
+                    (m.isIn ? delRevenue(m.id) : delDirect(m.id))
+                  }
+                  aria-label="Supprimer"
+                  className="text-tertiary hover:text-[var(--c-danger)]"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Part mutualisée */}
       {sharedContrib.length > 0 && (
         <div>
@@ -249,6 +312,24 @@ function Cheval({ id }: { id: string }) {
           Ajouter une charge
         </Link>
       </div>
+
+      {!horse.isArchived && (
+        <button
+          onClick={() => {
+            if (
+              confirm(
+                `${horse.name} quitte l'écurie ? Il sera archivé — ses chiffres restent dans ton historique.`,
+              )
+            ) {
+              archiveHorse(horse.id);
+              router.push("/ecurie");
+            }
+          }}
+          className="flex w-full items-center justify-center gap-2 border border-[var(--border-strong)] py-3 text-[13px] font-semibold text-tertiary"
+        >
+          <Archive size={15} /> {horse.name} quitte l&apos;écurie — archiver
+        </button>
+      )}
 
       <p className="text-center text-[12px] text-tertiary">Glisse pour passer à {next.horse.name} →</p>
     </motion.div>

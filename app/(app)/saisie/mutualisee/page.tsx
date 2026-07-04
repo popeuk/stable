@@ -6,6 +6,7 @@ import { Check, ChevronLeft } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { LessonTerm } from "@/components/pedagogy/lesson-term";
 import { useDataStore } from "@/stores/data-store";
+import { useFlashStore } from "@/stores/flash-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { distribute } from "@/lib/domain/distribution";
 import type { DistributionMode } from "@/lib/domain/types";
@@ -63,6 +64,11 @@ function SaisieMutualisee() {
 
   function save() {
     if (!canSave) return;
+    useFlashStore.getState().setFlash({
+      kind: "expense",
+      amount: totalNum,
+      label: `${label.trim()} — partagée sur ${selectedHorses.length} chevaux`,
+    });
     addSharedExpense({
       categoryId,
       label: label.trim(),

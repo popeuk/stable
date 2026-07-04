@@ -7,6 +7,7 @@ import { Check, ChevronLeft, Camera, ArrowRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { HorseAvatar } from "@/components/horse/horse-avatar";
 import { useDataStore } from "@/stores/data-store";
+import { useFlashStore } from "@/stores/flash-store";
 import type { Frequency } from "@/lib/domain/types";
 import { cn } from "@/lib/utils/cn";
 import { formatEur } from "@/lib/utils/format-currency";
@@ -55,6 +56,12 @@ function SaisieCharge() {
 
   function save() {
     if (!canSave) return;
+    const horseName = horses.find((h) => h.id === horseId)?.name ?? "";
+    useFlashStore.getState().setFlash({
+      kind: "expense",
+      amount: Number(amount),
+      label: `${label.trim()}${horseName ? ` — ${horseName}` : ""}`,
+    });
     if (recurring) {
       addRecurringExpense({
         label: label.trim(),
