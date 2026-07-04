@@ -60,21 +60,31 @@ export function FirstRun() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden border border-[var(--border-strong)] bg-elevated p-5"
+        className="grain relative overflow-hidden p-5"
       >
+        <div
+          aria-hidden
+          className="pulse-field absolute inset-0"
+          style={
+            {
+              "--pulse-a": "rgba(227, 165, 43, 0.28)",
+              "--pulse-b": "rgba(124, 144, 112, 0.20)",
+            } as React.CSSProperties
+          }
+        />
         <HorseLine
           size={130}
           stroke={0.8}
           color="var(--border-default)"
           className="pointer-events-none absolute -right-3 -top-3"
         />
-        <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
+        <p className="relative text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
           Bienvenue
         </p>
-        <h1 className="mt-1 max-w-[18rem] font-[family-name:var(--font-fraunces)] text-2xl leading-tight text-primary">
+        <h1 className="relative mt-1 max-w-[18rem] font-[family-name:var(--font-fraunces)] text-2xl leading-tight text-primary">
           Construisons ton écurie, étape par étape.
         </h1>
-        <p className="mt-2 max-w-[20rem] text-[14px] text-secondary">
+        <p className="relative mt-2 max-w-[20rem] text-[14px] text-secondary">
           En 3 minutes, tu verras quel cheval te rapporte vraiment et où part ton argent. On commence.
         </p>
       </motion.div>

@@ -11,7 +11,8 @@ interface Step {
   kicker: string;
   title: string;
   body: string;
-  bg: string;
+  /** Les deux teintes du champ de pouls derrière le visuel. */
+  pulse: [string, string];
   visual: React.ReactNode;
 }
 
@@ -20,7 +21,7 @@ const STEPS: Step[] = [
     kicker: "1 · Comprendre",
     title: "Sache ce que chaque cheval te rapporte vraiment.",
     body: "Pensions, charges, marge — cheval par cheval, en clair. Fini le doute sur qui porte ton écurie et qui pèse dessus.",
-    bg: "var(--accent-primary-soft)",
+    pulse: ["rgba(227, 165, 43, 0.30)", "rgba(124, 144, 112, 0.22)"],
     visual: (
       <div className="relative flex h-full items-center justify-center">
         <HorseLine size={160} stroke={0.9} color="var(--text-primary)" />
@@ -37,7 +38,7 @@ const STEPS: Step[] = [
     kicker: "2 · Être accompagné",
     title: "Ton copilote te conseille, en euros.",
     body: "Pas juste des constats : des actions concrètes et chiffrées (remplir une place, renégocier un poste), et il suit ce que tu décides.",
-    bg: "rgba(124, 144, 112, 0.16)",
+    pulse: ["rgba(124, 144, 112, 0.28)", "rgba(227, 165, 43, 0.18)"],
     visual: (
       <div className="flex h-full items-center justify-center p-6">
         <div className="w-full border border-[var(--text-primary)] bg-[var(--text-primary)] p-4 text-[var(--bg-base)]">
@@ -58,7 +59,7 @@ const STEPS: Step[] = [
     kicker: "3 · Apprendre en faisant",
     title: "Chaque chiffre s'explique, sur tes données.",
     body: "Touche un terme, une notion s'ouvre — appliquée à ton écurie. Tu montes en compétence sans cours, juste en utilisant l'app.",
-    bg: "rgba(232, 181, 71, 0.16)",
+    pulse: ["rgba(232, 181, 71, 0.28)", "rgba(124, 144, 112, 0.16)"],
     visual: (
       <div className="flex h-full items-center justify-center p-6">
         <div className="w-full border border-[var(--border-strong)] bg-[var(--bg-base)] p-4">
@@ -112,10 +113,16 @@ export default function OnboardingPage() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.3 }}
-            className="aspect-[4/3]"
-            style={{ background: step.bg }}
+            className="grain aspect-[4/3]"
           >
-            {step.visual}
+            <div
+              aria-hidden
+              className="pulse-field absolute inset-0"
+              style={
+                { "--pulse-a": step.pulse[0], "--pulse-b": step.pulse[1] } as React.CSSProperties
+              }
+            />
+            <div className="relative h-full">{step.visual}</div>
           </motion.div>
         </AnimatePresence>
       </div>
