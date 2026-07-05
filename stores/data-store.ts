@@ -11,6 +11,8 @@ import type {
   SharedExpense,
   StableData,
 } from "@/lib/domain/types";
+import type { CareEvent } from "@/lib/domain/care";
+import { CARE_META } from "@/lib/domain/care";
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
 
@@ -32,6 +34,10 @@ interface DataState extends StableData {
   deleteRevenue: (id: string) => void;
   deleteDirectExpense: (id: string) => void;
   deleteSharedExpense: (id: string) => void;
+  /** Note un acte du carnet ; un coût saisi crée la dépense directe liée. */
+  logCare: (e: Omit<CareEvent, "id" | "stableId" | "expenseId">) => void;
+  /** Supprime un acte ET sa dépense liée le cas échéant (le graphe suit). */
+  deleteCareEvent: (id: string) => void;
   addRecurringExpense: (e: Omit<RecurringExpense, "id" | "stableId">) => void;
   deleteRecurringExpense: (id: string) => void;
   addRecurringRevenue: (r: Omit<RecurringRevenue, "id" | "stableId">) => void;
@@ -137,6 +143,47 @@ export const useDataStore = create<DataState>()(
         set((s) => ({ sharedExpenses: s.sharedExpenses.filter((e) => e.id !== sid) }));
       },
 
+      logCare: (e) =>
+        set((s) => {
+          const careId = id("care");
+          let expenseId: string | undefined;
+          let directExpenses = s.directExpenses;
+          // Le graphe : un soin payé EST une dépense — jamais deux saisies.
+          if (e.cost && e.cost > 0) {
+            expenseId = id("dexp");
+            const label = `${CARE_META[e.kind].label}${e.provider ? ` (${e.provider})` : ""}`;
+            const expense = {
+              id: expenseId,
+              stableId: STABLE_ID,
+              horseId: e.horseId,
+              label,
+              amount: e.cost,
+              date: e.date,
+              source: "manual" as const,
+            };
+            enqueueMutation("insert", "direct_expenses", expense);
+            directExpenses = [...s.directExpenses, expense];
+          }
+          return {
+            directExpenses,
+            careEvents: [
+              ...(s.careEvents ?? []),
+              { ...e, id: careId, stableId: STABLE_ID, expenseId },
+            ],
+          };
+        }),
+
+      deleteCareEvent: (cid) =>
+        set((s) => {
+          const target = (s.careEvents ?? []).find((e) => e.id === cid);
+          return {
+            careEvents: (s.careEvents ?? []).filter((e) => e.id !== cid),
+            directExpenses: target?.expenseId
+              ? s.directExpenses.filter((d) => d.id !== target.expenseId)
+              : s.directExpenses,
+          };
+        }),
+
       addRecurringExpense: (e) =>
         set((s) => ({
           recurringExpenses: [
@@ -200,6 +247,7 @@ export const useDataStore = create<DataState>()(
           sharedExpenses: [],
           recurringExpenses: [],
           recurringRevenues: [],
+          careEvents: [],
           revenueCategories: demo.revenueCategories,
           expenseCategories: demo.expenseCategories,
         });

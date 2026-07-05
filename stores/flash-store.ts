@@ -8,7 +8,7 @@ import { create } from "zustand";
  * bougent) loop is visible. In-memory only — a flash never survives a reload.
  */
 export interface Flash {
-  kind: "revenue" | "expense";
+  kind: "revenue" | "expense" | "care";
   amount: number;
   label: string;
 }

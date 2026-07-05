@@ -6,6 +6,8 @@ import type {
   SharedExpense,
   StableData,
 } from "@/lib/domain/types";
+import type { CareEvent } from "@/lib/domain/care";
+import { addDays } from "@/lib/domain/care";
 import { distribute } from "@/lib/domain/distribution";
 import { addMonths, currentPeriod, periodStart } from "@/lib/utils/period";
 
@@ -190,6 +192,43 @@ export function buildDemoData(now = new Date()): StableData {
     },
   ];
 
+  // Le carnet de vie : un historique de soins réaliste qui alimente le
+  // moteur d'anticipation (ferrures proches, un vaccin en retard…).
+  const today = now.toISOString().slice(0, 10);
+  const careEvents: CareEvent[] = [];
+  const care = (
+    horseIdx: number,
+    kind: CareEvent["kind"],
+    daysAgo: number,
+    extra: Partial<CareEvent> = {},
+  ) =>
+    careEvents.push({
+      id: `care-${kind}-${horseIdx}-${daysAgo}`,
+      stableId: STABLE_ID,
+      horseId: horses[horseIdx].id,
+      kind,
+      date: addDays(today, -daysAgo),
+      ...extra,
+    });
+
+  horses.forEach((_, i) => {
+    // Ferrures étalées : certaines arrivent à échéance, d'autres non.
+    care(i, "ferrure", 20 + i * 5, { provider: "M. Roche", label: "Ferrure 4 pieds" });
+    // Vermifuges il y a ~2 à 3 mois.
+    care(i, "vermifuge", 60 + i * 4);
+    // Vaccins : Princesse (4) et Mistral (7) sont en retard.
+    care(i, "vaccin", i === 4 || i === 7 ? 380 + i : 120 + i * 20, {
+      provider: "Dr Lavigne",
+      label: "Grippe + tétanos",
+    });
+  });
+  // De la vie dans les carnets des trois premiers chevaux.
+  care(0, "dentiste", 200, { provider: "Dr Faure" });
+  care(0, "concours", 35, { label: "CSO Club 2, 3e place" });
+  care(1, "osteo", 90, { provider: "C. Bonnet" });
+  care(1, "veto", 12, { label: "Boiterie légère, repos 1 semaine" });
+  care(2, "entrainement", 3, { label: "Séance de plat, bon travail" });
+
   return {
     horses,
     revenues,
@@ -198,6 +237,7 @@ export function buildDemoData(now = new Date()): StableData {
     revenueCategories: DEFAULT_REVENUE_CATEGORIES,
     expenseCategories: DEFAULT_EXPENSE_CATEGORIES,
     recurringExpenses,
+    careEvents,
   };
 }
 

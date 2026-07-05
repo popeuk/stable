@@ -32,10 +32,14 @@ export function ImpactFlash() {
           className="mb-4 flex w-full items-center gap-3 ink-panel p-3.5 text-left text-[var(--on-ink)]"
         >
           <span
-            className="flex size-8 shrink-0 items-center justify-center"
+            className="flex size-8 shrink-0 items-center justify-center rounded-full"
             style={{
               background:
-                flash.kind === "revenue" ? "var(--c-success)" : "var(--accent-primary)",
+                flash.kind === "revenue"
+                  ? "var(--c-success)"
+                  : flash.kind === "care"
+                    ? "var(--accent-secondary)"
+                    : "var(--accent-primary)",
               color: "#fff",
             }}
           >
@@ -43,11 +47,14 @@ export function ImpactFlash() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="block text-[14px] font-bold leading-tight">
-              {flash.kind === "revenue" ? "+" : "−"}
-              {formatEur(flash.amount)} enregistrés · {flash.label}
+              {flash.kind === "care"
+                ? `${flash.label} · noté au carnet`
+                : `${flash.kind === "revenue" ? "+" : "−"}${formatEur(flash.amount)} enregistrés · ${flash.label}`}
             </span>
             <span className="block text-[12px] text-[var(--on-ink)]/70">
-              Tes chiffres viennent de bouger : regarde en dessous.
+              {flash.kind === "care"
+                ? "La prochaine échéance est déjà replanifiée."
+                : "Tes chiffres viennent de bouger : regarde en dessous."}
             </span>
           </span>
         </motion.button>

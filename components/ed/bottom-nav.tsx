@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, ReceiptText, Settings, Plus } from "lucide-react";
+import { House, ReceiptText, CalendarRange, Plus } from "lucide-react";
 import { HorseLine } from "@/components/ed/atoms";
 
 /**
@@ -12,8 +12,8 @@ import { HorseLine } from "@/components/ed/atoms";
 const TABS = [
   { href: "/maintenant", label: "Aujourd’hui", icon: <House size={20} strokeWidth={1.7} /> },
   { href: "/ecurie", label: "Écurie", icon: <HorseLine size={22} stroke={1.7} /> },
+  { href: "/planning", label: "Planning", icon: <CalendarRange size={19} strokeWidth={1.7} /> },
   { href: "/depenses", label: "Journal", icon: <ReceiptText size={19} strokeWidth={1.7} /> },
-  { href: "/parametres", label: "Réglages", icon: <Settings size={19} strokeWidth={1.7} /> },
 ];
 
 export function BottomNav() {

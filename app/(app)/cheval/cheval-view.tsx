@@ -2,13 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ChevronLeft, TrendingUp, TrendingDown, Minus, Trash2, Pencil, Archive } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, TrendingUp, TrendingDown, Minus, Trash2, Pencil, Archive, Plus } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Sparkline } from "@/components/ui/sparkline";
 import { Explain } from "@/components/ed/explain";
 import { CopiloteNote } from "@/components/ed/copilote";
 import { HorseLine, Tag } from "@/components/ed/atoms";
+import { CareIcon, DeadlineRow } from "@/components/ed/care-bits";
+import { upcomingDeadlines, horseCareLog, CARE_META } from "@/lib/domain/care";
 import { useHorses } from "@/lib/hooks/use-horses";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
@@ -82,6 +84,10 @@ function Cheval({ id }: { id: string }) {
     .filter((s) => s.periodYear === period.year && s.periodMonth === period.month)
     .map((s) => ({ label: s.label, amount: s.allocations.find((a) => a.horseId === horse.id)?.allocatedAmount ?? 0 }))
     .filter((x) => x.amount > 0);
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const horseDeadlines = upcomingDeadlines(data, todayIso).filter((d) => d.horseId === horse.id);
+  const careLog = horseCareLog(data, horse.id).slice(0, 6);
 
   const trendIcon =
     trend === "hausse" ? <TrendingUp size={15} /> : trend === "baisse" ? <TrendingDown size={15} /> : <Minus size={15} />;
@@ -204,6 +210,78 @@ function Cheval({ id }: { id: string }) {
           ? `${horse.name} dégage ${eur(pnl.netResult)} ce mois. Solide, garde le cap.`
           : `${horse.name} te coûte ${eur(Math.abs(pnl.netResult))} de plus qu'il ne rapporte. Le bon réflexe : alléger ses postes les plus lourds, puis réaligner sa pension à la prochaine échéance, sans geste brusque.`}
       </CopiloteNote>
+
+      {/* Sa santé, anticipée : les échéances de CE cheval */}
+      {horseDeadlines.length > 0 && (
+        <div>
+          <div className="mb-1 flex items-baseline justify-between">
+            <h2 className="title-serif text-[19px] text-primary">À prévoir pour {horse.name}</h2>
+            <Link href={`/saisie/soin?horse=${horse.id}`} className="text-[12px] font-semibold text-tertiary">
+              + Noter un soin
+            </Link>
+          </div>
+          <ul>
+            <AnimatePresence initial={false}>
+              {horseDeadlines.map((d) => (
+                <DeadlineRow key={d.kind} d={d} horseName={horse.name} showHorse={false} />
+              ))}
+            </AnimatePresence>
+          </ul>
+        </div>
+      )}
+
+      {/* Le carnet : sa vie, en fil chronologique */}
+      <div>
+        <div className="mb-2 flex items-baseline justify-between">
+          <h2 className="title-serif text-[19px] text-primary">Son carnet</h2>
+          {careLog.length > 0 && (
+            <Link href="/planning" className="text-[12px] font-semibold text-tertiary">
+              Tout le carnet ›
+            </Link>
+          )}
+        </div>
+        {careLog.length === 0 ? (
+          <Link
+            href={`/saisie/soin?horse=${horse.id}`}
+            className="flex items-center justify-between rounded-[var(--radius-md)] border border-dashed border-[var(--border-strong)] px-4 py-3.5"
+          >
+            <span className="pr-3 text-[13px] text-secondary">
+              Note son premier soin (vaccin, ferrure…) : les rappels se calculeront tout seuls.
+            </span>
+            <Plus size={16} className="shrink-0 text-[var(--accent-primary)]" />
+          </Link>
+        ) : (
+          <ul className="relative ml-2 border-l border-[var(--border-strong)] pl-4">
+            {careLog.map((e, i) => (
+              <motion.li
+                key={e.id}
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="relative pb-4 last:pb-0"
+              >
+                <span
+                  className="absolute -left-[23px] top-1 flex size-3.5 items-center justify-center rounded-full border-2 border-[var(--bg-base)]"
+                  style={{ background: "var(--accent-secondary)" }}
+                />
+                <p className="flex items-center gap-1.5 text-[13px] font-bold text-primary">
+                  <CareIcon kind={e.kind} size={13} /> {CARE_META[e.kind].label}
+                  <span className="font-semibold text-tertiary">
+                    · {e.date.slice(8, 10)}/{e.date.slice(5, 7)}/{e.date.slice(2, 4)}
+                  </span>
+                </p>
+                {(e.label || e.provider || e.cost) && (
+                  <p className="text-[12px] text-secondary">
+                    {e.label}
+                    {e.provider ? `${e.label ? " · " : ""}${e.provider}` : ""}
+                    {e.cost ? `${e.label || e.provider ? " · " : ""}${Math.round(e.cost)} €` : ""}
+                  </p>
+                )}
+              </motion.li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {/* Récurrents de ce cheval (pension, charges) */}
       {(recRevenues.length > 0 || recExpenses.length > 0) && (

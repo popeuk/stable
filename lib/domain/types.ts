@@ -155,6 +155,8 @@ export interface RecurringSchedule {
   frequency: Frequency;
 }
 
+import type { CareEvent } from "@/lib/domain/care";
+
 /** The full bundle of data the domain functions operate on. */
 export interface StableData {
   horses: Horse[];
@@ -167,4 +169,6 @@ export interface StableData {
   recurringExpenses?: RecurringExpense[];
   /** Recurring revenue templates, e.g. pensions (folded into period figures). */
   recurringRevenues?: RecurringRevenue[];
+  /** Le carnet de vie : soins, santé, sport, documents (voir domain/care). */
+  careEvents?: CareEvent[];
 }
