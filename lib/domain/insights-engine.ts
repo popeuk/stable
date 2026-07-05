@@ -76,13 +76,13 @@ function ruleHorseCrossingThreshold(
         id: `crossing_below-${horse.id}-${periodKey(period)}`,
         type: "crossing_below",
         title: `${horse.name} est passé sous son seuil`,
-        body: `Sa marge ne couvre plus son coût de place ce mois. C'est son premier mois en perte récent, avec ${formatEur(gap)} à combler.`,
+        body: `Sa marge ne couvre plus son coût de place ce mois. Il manque ${formatEur(gap)} pour le remettre à l'équilibre.`,
         keyMetricValue: gap,
         keyMetricLabel: "à combler",
         relatedHorseId: horse.id,
         score: gap * 1.5,
         cta: {
-          label: "Tester une hausse de pension",
+          label: "Tester un scénario",
           action: `/scenarios/nouveau?horse=${horse.id}`,
         },
       });

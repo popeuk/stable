@@ -60,7 +60,7 @@ function SaisieCharge() {
     useFlashStore.getState().setFlash({
       kind: "expense",
       amount: Number(amount),
-      label: `${label.trim()}${horseName ? ` — ${horseName}` : ""}`,
+      label: `${label.trim()}${horseName ? ` · ${horseName}` : ""}`,
     });
     if (recurring) {
       addRecurringExpense({

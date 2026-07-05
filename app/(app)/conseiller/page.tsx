@@ -30,7 +30,7 @@ function Conseiller() {
   const [msgs, setMsgs] = useState<Msg[]>([
     {
       from: "coach",
-      text: "Salut. Je suis ton conseiller. Pose-moi une question sur ta rentabilité, tes coûts, ton tarif ou tes places — je réponds avec tes chiffres.",
+      text: "Salut. Je suis ton conseiller. Pose-moi une question sur ta rentabilité, tes coûts, ton tarif ou tes places : je réponds avec tes chiffres.",
     },
   ]);
   const [input, setInput] = useState("");

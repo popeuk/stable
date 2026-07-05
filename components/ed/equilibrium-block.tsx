@@ -73,7 +73,7 @@ export function EquilibriumBlock() {
         ) : eq.missingPensionEquiv > 0 ? (
           <>
             Il manque <strong className="text-primary">{formatEur(eq.monthlyGap)}/mois</strong>{" "}
-            pour couvrir tes charges — l&apos;équivalent de{" "}
+            pour couvrir tes charges, soit l&apos;équivalent de{" "}
             <strong className="text-primary">
               {pensions} pension{eq.missingPensionEquiv >= 2 ? "s" : ""}
             </strong>
@@ -90,7 +90,7 @@ export function EquilibriumBlock() {
       {eq.horseCount > 0 && eq.avgPension > 0 && (
         <p className="mt-2 border-t border-[var(--border-default)] pt-2 text-[12px] text-tertiary">
           En moyenne, un cheval te rapporte {formatEur(eq.avgPension)}/mois et te coûte{" "}
-          {formatEur(eq.costPerHorse)} —{" "}
+          {formatEur(eq.costPerHorse)}, soit{" "}
           <span
             className="font-bold"
             style={{

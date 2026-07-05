@@ -93,7 +93,7 @@ export function LessonTerm({ lessonKey, children, className }: LessonTermProps) 
               <ul className="mt-2 space-y-2">
                 {lesson.whatToDo.map((t, i) => (
                   <li key={i} className="flex gap-2 text-sm text-secondary">
-                    <span className="text-[var(--accent-primary)]">—</span>
+                    <span className="text-[var(--accent-primary)]">·</span>
                     {t}
                   </li>
                 ))}

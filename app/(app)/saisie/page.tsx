@@ -98,7 +98,7 @@ function Composer() {
     useFlashStore.getState().setFlash({
       kind: kind === "revenu" ? "revenue" : "expense",
       amount,
-      label: `${cat.name} — ${horse.name}`,
+      label: `${cat.name} · ${horse.name}`,
     });
     if (kind === "revenu") {
       if (rythme === "once") {
@@ -144,7 +144,7 @@ function Composer() {
   // La phrase vivante.
   const rythmePhrase = RYTHMES.find((r) => r.v === rythme)!.phrase;
   const amountStr =
-    amount > 0 ? `${raw.replace(".", ",")} €` : "— €";
+    amount > 0 ? `${raw.replace(".", ",")} €` : "… €";
   const horseStr = horse?.name ?? "…";
   const catStr = cat?.name ?? "…";
 

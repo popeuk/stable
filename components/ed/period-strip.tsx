@@ -47,8 +47,8 @@ export function PeriodStrip() {
       range.length === 1
         ? `${formatMonthName(first)} ${first.year}`
         : first.year === last.year
-          ? `${formatShortMonth(first)} – ${formatShortMonth(last)} ${last.year}`
-          : `${formatShortMonth(first)} ${first.year} – ${formatShortMonth(last)} ${last.year}`;
+          ? `${formatShortMonth(first)} à ${formatShortMonth(last)} ${last.year}`
+          : `${formatShortMonth(first)} ${first.year} à ${formatShortMonth(last)} ${last.year}`;
 
     return {
       bars: periods.map((p, i) => ({ period: p, value: values[i], ratio: Math.abs(values[i]) / maxAbs })),

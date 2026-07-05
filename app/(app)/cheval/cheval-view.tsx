@@ -201,8 +201,8 @@ function Cheval({ id }: { id: string }) {
       {/* Copilote */}
       <CopiloteNote>
         {ok
-          ? `${horse.name} dégage ${eur(pnl.netResult)} ce mois. Solide — garde le cap.`
-          : `${horse.name} te coûte ${eur(Math.abs(pnl.netResult))} de plus qu'il ne rapporte. Le bon réflexe : alléger ses postes les plus lourds, puis réaligner sa pension à la prochaine échéance — sans geste brusque.`}
+          ? `${horse.name} dégage ${eur(pnl.netResult)} ce mois. Solide, garde le cap.`
+          : `${horse.name} te coûte ${eur(Math.abs(pnl.netResult))} de plus qu'il ne rapporte. Le bon réflexe : alléger ses postes les plus lourds, puis réaligner sa pension à la prochaine échéance, sans geste brusque.`}
       </CopiloteNote>
 
       {/* Récurrents de ce cheval (pension, charges) */}
@@ -252,7 +252,7 @@ function Cheval({ id }: { id: string }) {
         </div>
       )}
 
-      {/* Mouvements ponctuels du mois — corrigeables sur place */}
+      {/* Mouvements ponctuels du mois, corrigeables sur place */}
       {movements.length > 0 && (
         <div>
           <p className="text-[13px] font-bold uppercase tracking-wide text-tertiary">
@@ -325,7 +325,7 @@ function Cheval({ id }: { id: string }) {
           onClick={() => {
             if (
               confirm(
-                `${horse.name} quitte l'écurie ? Il sera archivé — ses chiffres restent dans ton historique.`,
+                `${horse.name} quitte l'écurie ? Il sera archivé : ses chiffres restent dans ton historique.`,
               )
             ) {
               archiveHorse(horse.id);
@@ -334,7 +334,7 @@ function Cheval({ id }: { id: string }) {
           }}
           className="flex w-full items-center justify-center gap-2 border border-[var(--border-strong)] py-3 text-[13px] font-semibold text-tertiary"
         >
-          <Archive size={15} /> {horse.name} quitte l&apos;écurie — archiver
+          <Archive size={15} /> Archiver {horse.name} (il quitte l&apos;écurie)
         </button>
       )}
 

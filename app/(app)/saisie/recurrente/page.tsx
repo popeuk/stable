@@ -51,7 +51,7 @@ function SaisieRecurrente() {
     useFlashStore.getState().setFlash({
       kind: "expense",
       amount: Number(amount),
-      label: `${label.trim()} — récurrente`,
+      label: `${label.trim()} · récurrente`,
     });
     addRecurring({
       label: label.trim(),

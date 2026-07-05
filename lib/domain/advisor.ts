@@ -52,7 +52,7 @@ export function advisorAnswer(
 
   switch (key) {
     case "profitability": {
-      if (s.revenue === 0) return "Tu n'as encore rien encaissé sur ce mois. Saisis tes pensions et je te dirai où tu en es.";
+      if (s.revenue === 0) return "Tu n'as encore rien encaissé ce mois-ci. Saisis tes pensions et je te dirai où tu en es.";
       const verdict =
         s.netResult >= 0
           ? `tu gardes ${formatEur(s.netResult)}, soit ${margin} % de marge`
@@ -68,19 +68,19 @@ export function advisorAnswer(
     case "new_horse_price": {
       const floor = capacity ? Math.round(charges / capacity) : count ? Math.round(charges / count) : 0;
       const avg = avgPension(data, period, count);
-      return `Ton coût de revient par place est d'environ ${formatEur(floor)}/mois (tes charges ÷ tes places). C'est ton prix plancher : en dessous, le cheval te coûte. Ton tarif moyen actuel tourne autour de ${formatEur(avg)}. Selon ta région et tes prestations, tu peux te placer au-dessus — et surtout, n'ajuste pas un client existant : c'est le tarif du prochain entrant que tu fixes.`;
+      return `Ton coût de revient par place est d'environ ${formatEur(floor)}/mois (tes charges ÷ tes places). C'est ton prix plancher : en dessous, le cheval te coûte. Ton tarif moyen actuel tourne autour de ${formatEur(avg)}. Selon ta région et tes prestations, tu peux te placer au-dessus. Et surtout, n'ajuste pas un client existant : c'est le tarif du prochain entrant que tu fixes.`;
     }
     case "break_even": {
       const eq = equilibrium(data, [period]);
       if (eq.monthlyCharges <= 0)
-        return "Aucune charge enregistrée ce mois — saisis-les et je te dirai où se trouve ton point d'équilibre.";
+        return "Aucune charge enregistrée ce mois : saisis-les et je te dirai où se trouve ton point d'équilibre.";
       if (eq.coverage >= 1) {
         return `Oui. Il te faut ${formatEur(eq.monthlyCharges)}/mois pour couvrir tes charges, et tu encaisses ${formatEur(eq.monthlyRevenue)}. Le seuil est franchi : chaque euro au-delà est de la marge.`;
       }
       const pct = Math.round(Math.min(1, eq.coverage) * 100);
       const pensions =
         eq.missingPensionEquiv > 0
-          ? ` — l'équivalent de ${eq.missingPensionEquiv.toLocaleString("fr-FR")} pension${eq.missingPensionEquiv >= 2 ? "s" : ""}`
+          ? `, soit l'équivalent de ${eq.missingPensionEquiv.toLocaleString("fr-FR")} pension${eq.missingPensionEquiv >= 2 ? "s" : ""}`
           : "";
       return `Pas encore : tes charges font ${formatEur(eq.monthlyCharges)}/mois et tu en couvres ${pct} %. Il manque ${formatEur(eq.monthlyGap)}/mois${pensions}. Le levier le plus direct : remplir une place, puis alléger ton plus gros poste négociable.`;
     }
@@ -97,7 +97,7 @@ export function advisorAnswer(
       const empty = capacity - count;
       const avg = avgPension(data, period, count);
       const potential = empty * avg;
-      return `Tu as ${empty} place${empty > 1 ? "s" : ""} libre${empty > 1 ? "s" : ""}. Les remplir, c'est ~${formatEur(potential)}/mois de pensions en plus — et comme tes charges fixes sont déjà payées, chaque cheval ajouté améliore ta marge plus que proportionnellement. C'est ton premier levier.`;
+      return `Tu as ${empty} place${empty > 1 ? "s" : ""} libre${empty > 1 ? "s" : ""}. Les remplir, c'est ~${formatEur(potential)}/mois de pensions en plus. Et comme tes charges fixes sont déjà payées, chaque cheval ajouté améliore ta marge plus que proportionnellement. C'est ton premier levier.`;
     }
     case "recurring": {
       const recs = recurringList(data);

@@ -20,7 +20,7 @@ const STEPS: Step[] = [
   {
     kicker: "1 · Comprendre",
     title: "Sache ce que chaque cheval te rapporte vraiment.",
-    body: "Pensions, charges, marge — cheval par cheval, en clair. Fini le doute sur qui porte ton écurie et qui pèse dessus.",
+    body: "Pensions, charges, marge : cheval par cheval, en clair. Fini le doute sur qui porte ton écurie et qui pèse dessus.",
     pulse: ["rgba(189, 96, 23, 0.30)", "rgba(124, 144, 112, 0.22)"],
     visual: (
       <div className="relative flex h-full items-center justify-center">
@@ -58,7 +58,7 @@ const STEPS: Step[] = [
   {
     kicker: "3 · Apprendre en faisant",
     title: "Chaque chiffre s'explique, sur tes données.",
-    body: "Touche un terme, une notion s'ouvre — appliquée à ton écurie. Tu montes en compétence sans cours, juste en utilisant l'app.",
+    body: "Touche un terme, une notion s'ouvre, appliquée à ton écurie. Tu montes en compétence sans cours, juste en utilisant l'app.",
     pulse: ["rgba(196, 116, 40, 0.28)", "rgba(124, 144, 112, 0.16)"],
     visual: (
       <div className="flex h-full items-center justify-center p-6">

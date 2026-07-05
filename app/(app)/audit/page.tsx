@@ -98,7 +98,7 @@ function Audit() {
         <CardBody accent="var(--c-warning)">
           <p className="text-sm text-secondary">Charge mutualisée la plus lourde</p>
           <h2 className="mt-2 font-[family-name:var(--font-fraunces)] text-3xl text-primary">
-            {heaviest?.label ?? "—"}
+            {heaviest?.label ?? "Aucune"}
           </h2>
           <KeyNumber value={heaviest?.totalAmount ?? 0} className="mt-3 text-4xl" />
           <p className="mt-2 text-sm text-tertiary">répartis sur toute l&apos;écurie</p>

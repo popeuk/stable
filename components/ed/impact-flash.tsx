@@ -47,7 +47,7 @@ export function ImpactFlash() {
               {formatEur(flash.amount)} enregistrés · {flash.label}
             </span>
             <span className="block text-[12px] text-[var(--on-ink)]/70">
-              Tes chiffres viennent de bouger — regarde en dessous.
+              Tes chiffres viennent de bouger : regarde en dessous.
             </span>
           </span>
         </motion.button>

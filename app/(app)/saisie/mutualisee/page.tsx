@@ -67,7 +67,7 @@ function SaisieMutualisee() {
     useFlashStore.getState().setFlash({
       kind: "expense",
       amount: totalNum,
-      label: `${label.trim()} — partagée sur ${selectedHorses.length} chevaux`,
+      label: `${label.trim()} · partagée sur ${selectedHorses.length} chevaux`,
     });
     addSharedExpense({
       categoryId,

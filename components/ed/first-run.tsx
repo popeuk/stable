@@ -28,7 +28,7 @@ export function FirstRun() {
     {
       n: 1,
       title: "Ajoute ton premier cheval",
-      sub: "Nom, race, propriétaire — l'essentiel.",
+      sub: "Nom, race, propriétaire : l'essentiel.",
       done: hasHorses,
       href: "/saisie/cheval",
       cta: "Ajouter",
@@ -93,7 +93,7 @@ export function FirstRun() {
       <div className="flex items-center justify-between card p-4">
         <div>
           <p className="text-[14px] font-bold text-primary">Combien de places as-tu ?</p>
-          <p className="text-[12px] text-tertiary">Ta capacité d&apos;accueil — le levier n°1.</p>
+          <p className="text-[12px] text-tertiary">Ta capacité d&apos;accueil, ton levier n°1.</p>
         </div>
         <div className="flex items-center gap-3">
           <button

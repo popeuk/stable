@@ -193,7 +193,7 @@ function Plan() {
           </h2>
           <CopiloteNote label="Bien joué">
             Tu as pris {done.length} décision{done.length > 1 ? "s" : ""} pour{" "}
-            {formatEur(gainSecured)}/mois visés. Surveille l&apos;effet sur ta marge les prochains mois —
+            {formatEur(gainSecured)}/mois visés. Surveille l&apos;effet sur ta marge les prochains mois :
             c&apos;est comme ça qu&apos;on pilote.
           </CopiloteNote>
           <ul className="mt-2 border-t border-[var(--border-default)]">

@@ -57,7 +57,7 @@ function SaisieRevenu() {
     useFlashStore.getState().setFlash({
       kind: "revenue",
       amount: Number(amount),
-      label: `${catName}${horseName ? ` — ${horseName}` : ""}`,
+      label: `${catName}${horseName ? ` · ${horseName}` : ""}`,
     });
     if (recurring) {
       addRecurringRevenue({

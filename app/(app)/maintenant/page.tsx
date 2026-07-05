@@ -123,7 +123,7 @@ function Maintenant() {
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
-      {/* ——— Le Pouls ——— */}
+      {/* Le Pouls */}
       <motion.section variants={item} className="tray">
         <div className="grain card relative overflow-hidden !rounded-[24px]">
         <div
@@ -170,12 +170,12 @@ function Maintenant() {
               <span className="mt-1.5 flex justify-between text-[12px] text-secondary">
                 <span>
                   {eq.coverage >= 1 ? (
-                    "Charges couvertes — au-delà, tout est marge."
+                    "Charges couvertes : au-delà, tout est marge."
                   ) : eq.missingPensionEquiv > 0 ? (
                     <>
-                      Encore {formatEur(eq.monthlyGap)}/mois —{" "}
+                      Encore {formatEur(eq.monthlyGap)}/mois, soit{" "}
                       <strong className="text-primary">
-                        ≈ {eq.missingPensionEquiv.toLocaleString("fr-FR")} pension
+                        environ {eq.missingPensionEquiv.toLocaleString("fr-FR")} pension
                         {eq.missingPensionEquiv >= 2 ? "s" : ""}
                       </strong>
                     </>
@@ -197,7 +197,7 @@ function Maintenant() {
         </div>
       </motion.section>
 
-      {/* ——— D'où ça vient ——— */}
+      {/* D'où ça vient */}
       <motion.section variants={item} className="-mt-2">
         <div className="hairline flex items-baseline justify-between py-3">
           <Explain k="chiffre_affaires" className="text-[13px] font-bold uppercase tracking-wide text-tertiary">
@@ -230,12 +230,12 @@ function Maintenant() {
         </div>
       </motion.section>
 
-      {/* ——— L'accompagnement d'abord : l'action, pas l'analyse ——— */}
+      {/* L'accompagnement d'abord : l'action, pas l'analyse */}
       <motion.div variants={item}>
         <CoachSection />
       </motion.div>
 
-      {/* ——— Le détail, seulement si on le demande ——— */}
+      {/* Le détail, seulement si on le demande */}
       <motion.div variants={item} className="flex justify-center">
         <button
           onClick={() => setDetail((d) => !d)}
@@ -254,7 +254,7 @@ function Maintenant() {
 
       {detail && (
         <>
-      {/* ——— Ce qui pèse ——— */}
+      {/* Ce qui pèse */}
       {breakdown.length > 0 && (
         <motion.section variants={item}>
           <SectionHead title="Ce qui pèse sur ta marge" />
@@ -282,7 +282,7 @@ function Maintenant() {
         </motion.section>
       )}
 
-      {/* ——— Ce qui a bougé ——— */}
+      {/* Ce qui a bougé */}
       {movers.length > 0 && (
         <motion.section variants={item}>
           <SectionHead title="Ce qui a bougé ce mois" />
@@ -322,7 +322,7 @@ function Maintenant() {
         </>
       )}
 
-      {/* ——— La notion du moment ——— */}
+      {/* La notion du moment */}
       {notion && (
         <motion.div variants={item}>
           <Explain k={notionKey} variant="plain" className="block w-full text-left">
@@ -342,7 +342,7 @@ function Maintenant() {
         </motion.div>
       )}
 
-      {/* ——— Alertes ——— */}
+      {/* Alertes */}
       {(underThreshold.length > 0 || declining.length > 0) && (
         <motion.section variants={item} className="space-y-2">
           {underThreshold.length > 0 && (
@@ -367,7 +367,7 @@ function Maintenant() {
         </motion.section>
       )}
 
-      {/* ——— Tes chevaux ——— */}
+      {/* Tes chevaux */}
       <motion.section variants={item}>
         <SectionHead title="Tes chevaux" action={<Link href="/ecurie">Tout voir ›</Link>} />
         <ul className="hairline">

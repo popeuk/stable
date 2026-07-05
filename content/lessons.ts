@@ -29,7 +29,7 @@ export const LESSONS: Record<string, Lesson> = {
     related: ["depenses", "rentabilite"],
     yourData: (data, period) => {
       const p = stablePnl(data, period);
-      return `Ce mois, ${formatEur(p.revenue)} sont entrés dans ton écurie. C'est ton chiffre d'affaires — avant tes ${formatEur(p.directCosts + p.sharedCosts)} de dépenses.`;
+      return `Ce mois, ${formatEur(p.revenue)} sont entrés dans ton écurie. C'est ton chiffre d'affaires, avant tes ${formatEur(p.directCosts + p.sharedCosts)} de dépenses.`;
     },
   },
   depenses: {
@@ -64,7 +64,7 @@ export const LESSONS: Record<string, Lesson> = {
   taux_occupation: {
     key: "taux_occupation",
     title: "Le taux d'occupation",
-    definition: "La part de tes places réellement occupées — ton premier levier de rentabilité.",
+    definition: "La part de tes places réellement occupées : ton premier levier de rentabilité.",
     whatToDo: [
       "Une place vide coûte presque autant qu'une pleine : tes charges fixes tournent quand même.",
       "Remplir une place ajoute du revenu ET dilue tes coûts fixes : c'est un double effet sur ta marge.",
@@ -116,11 +116,11 @@ export const LESSONS: Record<string, Lesson> = {
     key: "seuil_rentabilite",
     title: "Le seuil de rentabilité",
     definition:
-      "Le montant de revenus minimum pour être à l'équilibre — pour un cheval comme pour toute l'écurie.",
+      "Le montant de revenus minimum pour être à l'équilibre, pour un cheval comme pour toute l'écurie.",
     whatToDo: [
       "En dessous, tu perds de l'argent chaque mois ; au-dessus, chaque euro encaissé devient de la marge.",
       "Pour un cheval : ses coûts directs + sa part de charges partagées. Pour l'écurie : la somme de toutes tes charges.",
-      "Le connaître te dit combien de pensions il te faut pour tourner — c'est ta boussole.",
+      "Le connaître te dit combien de pensions il te faut pour tourner : c'est ta boussole.",
     ],
     related: ["charges_mutualisees", "cout_direct"],
     yourData: (data, period) => {
@@ -168,7 +168,7 @@ export const LESSONS: Record<string, Lesson> = {
     title: "Comprendre la tendance",
     definition: "On compare la marge du mois à la moyenne des 3 mois précédents.",
     whatToDo: [
-      "Au-dessus de 5 % : en hausse. En dessous de 5 % : en baisse.",
+      "Plus de 5 % au-dessus de cette moyenne : en hausse. Plus de 5 % en dessous : en baisse.",
       "Une baisse sur 3 mois mérite qu'on regarde de près.",
     ],
   },
@@ -206,7 +206,7 @@ export const LESSONS: Record<string, Lesson> = {
     definition: "Trois leviers : le prix, les coûts, ou la décision de le garder.",
     whatToDo: [
       "Vérifie d'abord si la perte est ponctuelle (un véto) ou structurelle.",
-      "Teste une hausse de pension avant d'envisager un départ.",
+      "Teste un réalignement de sa pension au prochain renouvellement avant d'envisager un départ.",
     ],
   },
   justifier_hausse: {

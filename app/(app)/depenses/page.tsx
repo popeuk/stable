@@ -62,7 +62,7 @@ function Journal() {
   const recurrings = useMemo(() => data.recurringExpenses ?? [], [data.recurringExpenses]);
   const recurringRevs = useMemo(() => data.recurringRevenues ?? [], [data.recurringRevenues]);
 
-  const horseName = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "—";
+  const horseName = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "cheval retiré";
   const catName = (id?: string) => data.revenueCategories.find((c) => c.id === id)?.name;
 
   const rows = useMemo<Row[]>(() => {
@@ -124,7 +124,7 @@ function Journal() {
 
       <RangeSelector />
 
-      {/* Totaux — identiques à l'équation de l'accueil */}
+      {/* Totaux identiques à l'équation de l'accueil */}
       <div className="grid grid-cols-3 divide-x divide-[var(--border-default)] card">
         <div className="p-3">
           <Explain k="chiffre_affaires" className="text-[10px] font-bold uppercase tracking-wide text-tertiary">
@@ -247,7 +247,7 @@ function Journal() {
           {rows.length > 0
             ? "Rien de ce côté sur cette période."
             : recurrings.length + recurringRevs.length > 0
-              ? "Aucun mouvement ponctuel — seuls tes récurrents courent sur cette période."
+              ? "Aucun mouvement ponctuel : seuls tes récurrents courent sur cette période."
               : "Aucun mouvement sur cette période."}
         </p>
       ) : (
