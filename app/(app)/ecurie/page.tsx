@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronRight, LayoutList, Orbit, Plus } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
@@ -127,7 +128,12 @@ function Ecurie() {
             {sorted.map((h, i) => {
               const ok = h.pnl.netResult >= 0;
               return (
-                <li key={h.horse.id}>
+                <motion.li
+                  key={h.horse.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                >
                   <Link
                     href={`/cheval?id=${h.horse.id}`}
                     className="flex items-center gap-3 border-b border-[var(--border-default)] py-3.5"
@@ -151,7 +157,7 @@ function Ecurie() {
                     </span>
                     <ChevronRight size={16} className="text-tertiary" />
                   </Link>
-                </li>
+                </motion.li>
               );
             })}
           </ul>

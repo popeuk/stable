@@ -122,7 +122,8 @@ function Maintenant() {
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
       {/* ——— Le Pouls ——— */}
-      <motion.section variants={item} className="grain card relative overflow-hidden">
+      <motion.section variants={item} className="tray">
+        <div className="grain card relative overflow-hidden !rounded-[24px]">
         <div
           aria-hidden
           className="pulse-field absolute inset-0"
@@ -190,6 +191,7 @@ function Maintenant() {
           <div className="mt-5">
             <RangeSelector />
           </div>
+        </div>
         </div>
       </motion.section>
 

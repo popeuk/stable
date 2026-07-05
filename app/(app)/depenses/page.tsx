@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -262,10 +263,16 @@ function Journal() {
         </p>
       ) : (
         <ul className="border-t border-[var(--border-default)]">
-          {visible.map((r) => {
+          {visible.map((r, i) => {
             const isIn = r.kind === "revenue";
             return (
-              <li key={r.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-3">
+              <motion.li
+                key={r.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(i, 12) * 0.03, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="flex items-center gap-3 border-b border-[var(--border-default)] py-3"
+              >
                 <span className="w-12 shrink-0 text-[11px] font-semibold uppercase text-tertiary">
                   {shortDate(r.date)}
                 </span>
@@ -290,7 +297,7 @@ function Journal() {
                 >
                   <Trash2 size={16} />
                 </button>
-              </li>
+              </motion.li>
             );
           })}
         </ul>

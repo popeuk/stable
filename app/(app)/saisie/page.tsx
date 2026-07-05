@@ -21,6 +21,15 @@ import { cn } from "@/lib/utils/cn";
 type Kind = "revenu" | "charge";
 type Rythme = "once" | Frequency;
 
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.05, delayChildren: 0.03 } },
+};
+const item = {
+  hidden: { opacity: 0, y: 14 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const } },
+};
+
 const RYTHMES: { v: Rythme; l: string; phrase: string }[] = [
   { v: "once", l: "Une fois", phrase: "" },
   { v: "monthly", l: "Chaque mois", phrase: "chaque mois" },
@@ -140,13 +149,18 @@ function Composer() {
   const catStr = cat?.name ?? "…";
 
   return (
-    <div className="flex min-h-[calc(100dvh-8.5rem)] flex-col">
+    <motion.div
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="flex min-h-[calc(100dvh-8.5rem)] flex-col"
+    >
       <button onClick={() => router.back()} className="inline-flex items-center gap-1 self-start text-sm text-tertiary">
         <ChevronLeft size={16} /> Annuler
       </button>
 
       {/* Direction */}
-      <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
+      <motion.div variants={item} className="mt-4 grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
         {(
           [
             { v: "revenu", l: "Ça rentre" },
@@ -169,10 +183,11 @@ function Composer() {
             {o.l}
           </button>
         ))}
-      </div>
+      </motion.div>
 
       {/* La phrase */}
       <motion.p
+        variants={item}
         layout
         className="mt-6 min-h-[4.5rem] font-[family-name:var(--font-fraunces)] text-[26px] leading-snug text-primary"
       >
@@ -199,7 +214,7 @@ function Composer() {
       </motion.p>
 
       {/* Pour qui */}
-      <div className="mt-5">
+      <motion.div variants={item} className="mt-5">
         <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
           {kind === "revenu" ? "Qui te le rapporte ?" : "Pour qui ?"}
         </p>
@@ -240,10 +255,10 @@ function Composer() {
             )}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Quoi */}
-      <div className="mt-4">
+      <motion.div variants={item} className="mt-4">
         <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
           C&apos;est quoi ?
         </p>
@@ -263,10 +278,10 @@ function Composer() {
             </button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Rythme + date */}
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <motion.div variants={item} className="mt-4 flex flex-wrap items-center gap-2">
         {RYTHMES.map((r) => (
           <button
             key={r.v}
@@ -288,10 +303,10 @@ function Composer() {
           aria-label={rythme === "once" ? "Date" : "À partir du"}
           className="ml-auto border border-[var(--border-default)] bg-transparent px-2 py-1.5 text-[12px] text-secondary outline-none"
         />
-      </div>
+      </motion.div>
 
       {/* Pavé */}
-      <div className="mt-6 grid flex-1 grid-cols-3 content-end gap-px overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-strong)] bg-[var(--border-default)]">
+      <motion.div variants={item} className="mt-6 grid flex-1 grid-cols-3 content-end gap-px overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-strong)] bg-[var(--border-default)]">
         {["1", "2", "3", "4", "5", "6", "7", "8", "9", ",", "0", "back"].map((k) => (
           <button
             key={k}
@@ -302,16 +317,17 @@ function Composer() {
             {k === "back" ? <Delete size={20} /> : k}
           </button>
         ))}
-      </div>
+      </motion.div>
 
-      <button
+      <motion.button
+        variants={item}
         disabled={!canSave}
         onClick={save}
         className="mt-3 flex w-full items-center justify-center gap-2 btn-primary py-4 text-[16px] font-bold text-[var(--on-accent)] transition-opacity disabled:opacity-35"
       >
         <Check size={18} /> C&apos;est noté
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 }
 
