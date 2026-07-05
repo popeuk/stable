@@ -52,7 +52,7 @@ function Conseiller() {
   return (
     <div className="flex min-h-[calc(100dvh-9rem)] flex-col">
       <header className="mb-4 flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center border border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-base)]">
+        <div className="flex size-10 items-center justify-center ink-panel text-[var(--on-ink)]">
           <HorseLine size={26} stroke={1.4} color="var(--accent-primary)" />
         </div>
         <div>
@@ -73,8 +73,8 @@ function Conseiller() {
             <div
               className={
                 m.from === "user"
-                  ? "max-w-[80%] whitespace-pre-line bg-[var(--accent-primary)] px-3.5 py-2.5 text-[14px] font-medium text-[#17150d]"
-                  : "max-w-[88%] whitespace-pre-line border border-[var(--border-strong)] bg-elevated px-3.5 py-2.5 text-[14px] leading-relaxed text-primary"
+                  ? "max-w-[80%] whitespace-pre-line bg-[var(--accent-primary)] px-3.5 py-2.5 text-[14px] font-medium text-[var(--on-accent)]"
+                  : "max-w-[88%] whitespace-pre-line card px-3.5 py-2.5 text-[14px] leading-relaxed text-primary"
               }
             >
               {m.text}
@@ -114,7 +114,7 @@ function Conseiller() {
         <button
           onClick={send}
           aria-label="Envoyer"
-          className="flex size-9 items-center justify-center bg-[var(--text-primary)] text-[var(--bg-base)]"
+          className="flex size-9 items-center justify-center bg-[var(--ink)] text-[var(--on-ink)]"
         >
           <Send size={16} />
         </button>

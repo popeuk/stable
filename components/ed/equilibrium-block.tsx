@@ -33,7 +33,7 @@ export function EquilibriumBlock() {
   const pensions = eq.missingPensionEquiv.toLocaleString("fr-FR");
 
   return (
-    <section className="border border-[var(--border-strong)] bg-elevated p-4">
+    <section className="card p-4">
       <div className="flex items-baseline justify-between">
         <Explain
           k="seuil_rentabilite"

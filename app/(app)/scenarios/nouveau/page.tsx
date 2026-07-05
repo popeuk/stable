@@ -117,7 +117,7 @@ function Simulator() {
 
       <button
         onClick={() => alert("Scénario sauvegardé (démo locale).")}
-        className="w-full border border-[var(--text-primary)] bg-[var(--accent-primary)] py-3.5 text-[15px] font-bold text-[#17150d]"
+        className="w-full btn-primary py-3.5 text-[15px] font-bold text-[var(--on-accent)]"
       >
         Sauvegarder ce scénario
       </button>

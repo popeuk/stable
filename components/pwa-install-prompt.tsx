@@ -66,7 +66,7 @@ export function PwaInstallPrompt() {
             </div>
             <button
               onClick={install}
-              className="rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-medium text-[#0e0f0c]"
+              className="rounded-[var(--radius-sm)] px-3 py-1.5 text-xs font-medium text-[var(--on-accent)]"
               style={{ background: "var(--accent-primary)" }}
             >
               Installer

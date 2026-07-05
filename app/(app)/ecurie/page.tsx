@@ -57,7 +57,7 @@ function Ecurie() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setGalaxy((g) => !g)}
-            className="flex items-center gap-1.5 border border-[var(--border-strong)] px-2.5 py-1.5 text-[12px] font-bold"
+            className="flex items-center gap-1.5 rounded-full border border-[var(--border-strong)] px-2.5 py-1.5 text-[12px] font-bold"
             aria-label={galaxy ? "Vue liste" : "Vue galaxie"}
           >
             {galaxy ? <LayoutList size={15} /> : <Orbit size={15} />}
@@ -65,7 +65,7 @@ function Ecurie() {
           </button>
           <Link
             href="/saisie/cheval"
-            className="flex items-center gap-1 border border-[var(--text-primary)] bg-[var(--accent-primary)] px-2.5 py-1.5 text-[12px] font-bold text-[#17150d]"
+            className="flex items-center gap-1 btn-primary px-2.5 py-1.5 text-[12px] font-bold text-[var(--on-accent)]"
           >
             <Plus size={14} /> Cheval
           </Link>
@@ -79,14 +79,14 @@ function Ecurie() {
           action={
             <Link
               href="/saisie/cheval"
-              className="bg-[var(--text-primary)] px-5 py-2.5 text-sm font-bold text-[var(--bg-base)]"
+              className="bg-[var(--ink)] px-5 py-2.5 text-sm font-bold text-[var(--on-ink)]"
             >
               Ajouter un cheval
             </Link>
           }
         />
       ) : galaxy ? (
-        <div className="border border-[var(--border-strong)] bg-elevated p-3">
+        <div className="card p-3">
           <HorseGalaxy items={horses} />
         </div>
       ) : (
@@ -112,9 +112,9 @@ function Ecurie() {
                 key={s.v}
                 onClick={() => setSort(s.v)}
                 className={cn(
-                  "border px-3 py-1.5 text-[12px] font-bold",
+                  "rounded-full border px-3 py-1.5 text-[12px] font-bold",
                   sort === s.v
-                    ? "border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-base)]"
+                    ? "border-[var(--text-primary)] bg-[var(--ink)] text-[var(--on-ink)]"
                     : "border-[var(--border-strong)] text-tertiary",
                 )}
               >

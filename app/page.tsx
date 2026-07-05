@@ -16,7 +16,7 @@ export default function RootPage() {
       <div className="flex gap-3">
         <Link
           href="/maintenant"
-          className="border border-[var(--text-primary)] bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-bold text-[#17150d]"
+          className="btn-primary px-5 py-2.5 text-sm font-bold text-[var(--on-accent)]"
         >
           Ouvrir l&apos;app
         </Link>

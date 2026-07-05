@@ -117,7 +117,7 @@ function Audit() {
           </h2>
           <a
             href={`/scenarios/nouveau?horse=${worry.horse.id}`}
-            className="mt-6 inline-block border border-[var(--text-primary)] bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-bold text-[#17150d]"
+            className="mt-6 inline-block btn-primary px-5 py-2.5 text-sm font-bold text-[var(--on-accent)]"
           >
             Ouvrir le scénario
           </a>

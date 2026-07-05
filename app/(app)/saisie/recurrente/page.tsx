@@ -87,7 +87,7 @@ function SaisieRecurrente() {
       </div>
 
       <Field label="Pour qui ?">
-        <div className="grid grid-cols-2 border border-[var(--border-strong)]">
+        <div className="grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
           {[
             { v: true, l: "Toute l'écurie" },
             { v: false, l: "Un cheval" },
@@ -98,7 +98,7 @@ function SaisieRecurrente() {
               className="py-2.5 text-[14px] font-bold"
               style={{
                 background: shared === o.v ? "var(--text-primary)" : "transparent",
-                color: shared === o.v ? "var(--bg-base)" : "var(--text-primary)",
+                color: shared === o.v ? "var(--on-ink)" : "var(--text-primary)",
               }}
             >
               {o.l}
@@ -115,9 +115,9 @@ function SaisieRecurrente() {
                 key={h.id}
                 onClick={() => setHorseId(h.id)}
                 className={cn(
-                  "border px-3 py-1.5 text-[13px] font-bold",
+                  "rounded-full border px-3 py-1.5 text-[13px] font-bold",
                   horseId === h.id
-                    ? "border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-base)]"
+                    ? "border-[var(--text-primary)] bg-[var(--ink)] text-[var(--on-ink)]"
                     : "border-[var(--border-strong)] text-tertiary",
                 )}
               >
@@ -133,12 +133,12 @@ function SaisieRecurrente() {
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           placeholder="Crédit matériel, abonnement…"
-          className="w-full border border-[var(--border-strong)] bg-elevated px-4 py-3 text-sm text-primary outline-none"
+          className="w-full card px-4 py-3 text-sm text-primary outline-none"
         />
       </Field>
 
       <Field label="Montant par échéance">
-        <div className="flex items-center gap-2 border border-[var(--border-strong)] bg-elevated px-4 py-3">
+        <div className="flex items-center gap-2 card px-4 py-3">
           <input
             type="number"
             inputMode="decimal"
@@ -158,9 +158,9 @@ function SaisieRecurrente() {
               key={f.v}
               onClick={() => setFrequency(f.v)}
               className={cn(
-                "flex-1 border px-2 py-2 text-[13px] font-bold",
+                "flex-1 rounded-full border px-2 py-2 text-[13px] font-bold",
                 frequency === f.v
-                  ? "border-[var(--text-primary)] bg-[var(--accent-primary)] text-[#17150d]"
+                  ? "border-[var(--text-primary)] bg-[var(--accent-primary)] text-[var(--on-accent)]"
                   : "border-[var(--border-strong)] text-tertiary",
               )}
             >
@@ -177,7 +177,7 @@ function SaisieRecurrente() {
               key={c.id}
               onClick={() => setCategoryId(c.id)}
               className={cn(
-                "border px-3 py-1.5 text-xs font-semibold",
+                "rounded-full border px-3 py-1.5 text-xs font-semibold",
                 categoryId === c.id
                   ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)] text-[var(--accent-primary)]"
                   : "border-[var(--border-strong)] text-tertiary",
@@ -200,7 +200,7 @@ function SaisieRecurrente() {
                 key={o.v}
                 onClick={() => setMode(o.v)}
                 className={cn(
-                  "flex-1 border px-3 py-2 text-xs font-bold",
+                  "flex-1 rounded-full border px-3 py-2 text-xs font-bold",
                   mode === o.v ? "border-[var(--accent-primary)] text-[var(--accent-primary)]" : "border-[var(--border-strong)] text-tertiary",
                 )}
               >
@@ -217,7 +217,7 @@ function SaisieRecurrente() {
             type="date"
             value={start}
             onChange={(e) => setStart(e.target.value)}
-            className="w-full border border-[var(--border-strong)] bg-elevated px-3 py-3 text-sm text-primary outline-none"
+            className="w-full card px-3 py-3 text-sm text-primary outline-none"
           />
         </Field>
         <Field label="Date de fin">
@@ -226,7 +226,7 @@ function SaisieRecurrente() {
               type="date"
               value={end}
               onChange={(e) => setEnd(e.target.value)}
-              className="w-full border border-[var(--border-strong)] bg-elevated px-3 py-3 text-sm text-primary outline-none"
+              className="w-full card px-3 py-3 text-sm text-primary outline-none"
             />
           ) : (
             <button
@@ -242,7 +242,7 @@ function SaisieRecurrente() {
       <button
         disabled={!canSave}
         onClick={save}
-        className="flex w-full items-center justify-center gap-2 border border-[var(--text-primary)] bg-[var(--accent-primary)] py-3.5 text-sm font-bold text-[#17150d] disabled:opacity-40"
+        className="flex w-full items-center justify-center gap-2 btn-primary py-3.5 text-sm font-bold text-[var(--on-accent)] disabled:opacity-40"
       >
         <Check size={18} /> Enregistrer {Number(amount) > 0 ? `${formatEur(Number(amount))}/échéance` : ""}
       </button>

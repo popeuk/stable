@@ -146,7 +146,7 @@ function Composer() {
       </button>
 
       {/* Direction */}
-      <div className="mt-4 grid grid-cols-2 border border-[var(--border-strong)]">
+      <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
         {(
           [
             { v: "revenu", l: "Ça rentre" },
@@ -163,7 +163,7 @@ function Composer() {
             className="py-2.5 text-[14px] font-bold transition-colors"
             style={{
               background: kind === o.v ? "var(--text-primary)" : "transparent",
-              color: kind === o.v ? "var(--bg-base)" : "var(--text-primary)",
+              color: kind === o.v ? "var(--on-ink)" : "var(--text-primary)",
             }}
           >
             {o.l}
@@ -220,9 +220,9 @@ function Composer() {
                 key={h.id}
                 onClick={() => setHorseId(h.id)}
                 className={cn(
-                  "flex items-center gap-2 border py-1.5 pl-1.5 pr-3 text-[13px] font-bold",
+                  "flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-[13px] font-bold",
                   horseId === h.id
-                    ? "border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-base)]"
+                    ? "border-[var(--text-primary)] bg-[var(--ink)] text-[var(--on-ink)]"
                     : "border-[var(--border-strong)] text-primary",
                 )}
               >
@@ -253,7 +253,7 @@ function Composer() {
               key={c.id}
               onClick={() => setCategoryId(c.id)}
               className={cn(
-                "border px-3 py-1.5 text-[12px] font-semibold",
+                "rounded-full border px-3 py-1.5 text-[12px] font-semibold",
                 cat?.id === c.id
                   ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)] text-[var(--accent-primary)]"
                   : "border-[var(--border-strong)] text-tertiary",
@@ -272,9 +272,9 @@ function Composer() {
             key={r.v}
             onClick={() => setRythme(r.v)}
             className={cn(
-              "border px-3 py-1.5 text-[12px] font-semibold",
+              "rounded-full border px-3 py-1.5 text-[12px] font-semibold",
               rythme === r.v
-                ? "border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-base)]"
+                ? "border-[var(--text-primary)] bg-[var(--ink)] text-[var(--on-ink)]"
                 : "border-[var(--border-strong)] text-tertiary",
             )}
           >
@@ -291,7 +291,7 @@ function Composer() {
       </div>
 
       {/* Pavé */}
-      <div className="mt-6 grid flex-1 grid-cols-3 content-end gap-px border border-[var(--border-strong)] bg-[var(--border-default)]">
+      <div className="mt-6 grid flex-1 grid-cols-3 content-end gap-px overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-strong)] bg-[var(--border-default)]">
         {["1", "2", "3", "4", "5", "6", "7", "8", "9", ",", "0", "back"].map((k) => (
           <button
             key={k}
@@ -307,7 +307,7 @@ function Composer() {
       <button
         disabled={!canSave}
         onClick={save}
-        className="mt-3 flex w-full items-center justify-center gap-2 border border-[var(--text-primary)] bg-[var(--accent-primary)] py-4 text-[16px] font-bold text-[#17150d] transition-opacity disabled:opacity-35"
+        className="mt-3 flex w-full items-center justify-center gap-2 btn-primary py-4 text-[16px] font-bold text-[var(--on-accent)] transition-opacity disabled:opacity-35"
       >
         <Check size={18} /> C&apos;est noté
       </button>

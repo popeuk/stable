@@ -139,7 +139,7 @@ function Parametres() {
         </p>
       </Section>
 
-      <p className="pt-4 text-center text-2xs text-tertiary">Be Stable · v2.0 démo</p>
+      <p className="pt-4 text-center text-2xs text-tertiary">Be Stable · v4 « Grand Ouvert »</p>
     </div>
   );
 }

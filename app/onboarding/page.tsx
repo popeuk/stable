@@ -21,7 +21,7 @@ const STEPS: Step[] = [
     kicker: "1 · Comprendre",
     title: "Sache ce que chaque cheval te rapporte vraiment.",
     body: "Pensions, charges, marge — cheval par cheval, en clair. Fini le doute sur qui porte ton écurie et qui pèse dessus.",
-    pulse: ["rgba(227, 165, 43, 0.30)", "rgba(124, 144, 112, 0.22)"],
+    pulse: ["rgba(189, 96, 23, 0.30)", "rgba(124, 144, 112, 0.22)"],
     visual: (
       <div className="relative flex h-full items-center justify-center">
         <HorseLine size={160} stroke={0.9} color="var(--text-primary)" />
@@ -38,17 +38,17 @@ const STEPS: Step[] = [
     kicker: "2 · Être accompagné",
     title: "Ton copilote te conseille, en euros.",
     body: "Pas juste des constats : des actions concrètes et chiffrées (remplir une place, renégocier un poste), et il suit ce que tu décides.",
-    pulse: ["rgba(124, 144, 112, 0.28)", "rgba(227, 165, 43, 0.18)"],
+    pulse: ["rgba(124, 144, 112, 0.28)", "rgba(189, 96, 23, 0.18)"],
     visual: (
       <div className="flex h-full items-center justify-center p-6">
-        <div className="w-full border border-[var(--text-primary)] bg-[var(--text-primary)] p-4 text-[var(--bg-base)]">
+        <div className="w-full ink-panel p-4 text-[var(--on-ink)]">
           <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--accent-primary)]">
             Ton copilote
           </p>
           <p className="mt-1.5 text-[14px] font-semibold leading-snug">
             Remplis tes 2 places libres
           </p>
-          <span className="mt-2 inline-block bg-[var(--accent-primary)] px-2 py-1 text-[12px] font-extrabold text-[#17150d]">
+          <span className="mt-2 inline-block bg-[var(--accent-primary)] px-2 py-1 text-[12px] font-extrabold text-[var(--on-accent)]">
             ≈ +900 €/mois
           </span>
         </div>
@@ -59,7 +59,7 @@ const STEPS: Step[] = [
     kicker: "3 · Apprendre en faisant",
     title: "Chaque chiffre s'explique, sur tes données.",
     body: "Touche un terme, une notion s'ouvre — appliquée à ton écurie. Tu montes en compétence sans cours, juste en utilisant l'app.",
-    pulse: ["rgba(232, 181, 71, 0.28)", "rgba(124, 144, 112, 0.16)"],
+    pulse: ["rgba(196, 116, 40, 0.28)", "rgba(124, 144, 112, 0.16)"],
     visual: (
       <div className="flex h-full items-center justify-center p-6">
         <div className="w-full border border-[var(--border-strong)] bg-[var(--bg-base)] p-4">
@@ -166,12 +166,12 @@ export default function OnboardingPage() {
 
       <button
         onClick={() => (last ? finish() : setI(i + 1))}
-        className="flex items-center justify-between border border-[var(--text-primary)] bg-[var(--text-primary)] py-3 pl-5 pr-3 text-[var(--bg-base)]"
+        className="flex items-center justify-between ink-panel !rounded-full py-2.5 pl-6 pr-2.5"
       >
         <span className="text-[16px] font-bold">{last ? "Commencer" : "Suivant"}</span>
         <span
-          className="flex size-9 items-center justify-center"
-          style={{ background: "var(--accent-primary)", color: "#17150d" }}
+          className="flex size-10 items-center justify-center rounded-full"
+          style={{ background: "var(--accent-primary)", color: "var(--on-accent)" }}
         >
           <ArrowRight size={18} />
         </span>

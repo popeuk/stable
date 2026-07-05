@@ -9,7 +9,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh bg-base text-primary">
       <OnboardingGate />
       <PeriodStrip />
-      <main className="mx-auto max-w-[440px] px-5 pb-28 pt-4">
+      <main className="mx-auto max-w-[440px] px-5 pb-36 pt-4">
         <ImpactFlash />
         {children}
       </main>

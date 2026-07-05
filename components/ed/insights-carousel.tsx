@@ -32,7 +32,7 @@ export function InsightsCarousel() {
                 ? `/cheval?id=${insight.relatedHorseId}`
                 : `/decouvertes/detail?id=${encodeURIComponent(insight.id)}`
             }
-            className="flex w-[260px] shrink-0 snap-start flex-col justify-between border border-[var(--border-strong)] bg-elevated p-4"
+            className="flex w-[260px] shrink-0 snap-start flex-col justify-between card p-4"
           >
             <div>
               <div className="flex items-start justify-between gap-2">

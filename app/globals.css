@@ -6,70 +6,80 @@
    ============================================================ */
 
 :root {
-  /* Editorial light theme — warm, fine, square (the default now). */
-  --bg-base: #fbf6e9;
-  --bg-elevated: #ffffff;
-  --bg-pressed: #f1ece0;
-  --bg-overlay: rgba(23, 21, 13, 0.5);
+  /* v4 « Grand Ouvert » — luxe équestre : vert chasse, cognac, ivoire.
+     Canvas pierre-ivoire, cartes papier flottantes, grands arrondis. */
+  --bg-base: #efe9da;
+  --bg-elevated: #fbf8f0;
+  --bg-pressed: #e3dcc8;
+  --bg-overlay: rgba(27, 36, 30, 0.45);
 
-  --text-primary: #17150d;
-  --text-secondary: #4a4638;
-  --text-tertiary: #6f6a5b;
-  --text-disabled: #b3ad9c;
+  --text-primary: #1b241e;
+  --text-secondary: #4c5548;
+  --text-tertiary: #78806f;
+  --text-disabled: #b3b5a8;
 
-  /* Accents — amber that reads as a fill with dark text, sage as secondary. */
-  --accent-primary: #e3a52b;
-  --accent-primary-soft: rgba(227, 165, 43, 0.16);
+  /* Le panneau d'encre : vert chasse profond, texte ivoire. */
+  --ink: #1e3a2e;
+  --on-ink: #f5efdf;
+
+  /* Cognac en action principale, sauge en secondaire. */
+  --accent-primary: #bd6017;
+  --on-accent: #fff6e8;
+  --accent-primary-soft: rgba(189, 96, 23, 0.13);
   --accent-secondary: #7c9070;
 
-  --c-success: #2f7d50;
-  --c-success-soft: rgba(47, 125, 80, 0.12);
-  --c-danger: #c0432e;
-  --c-danger-soft: rgba(192, 67, 46, 0.12);
-  --c-warning: #c98a16;
-  --c-warning-soft: rgba(201, 138, 22, 0.14);
+  --c-success: #2e7d4f;
+  --c-success-soft: rgba(46, 125, 79, 0.12);
+  --c-danger: #bd3f2c;
+  --c-danger-soft: rgba(189, 63, 44, 0.12);
+  --c-warning: #a8770f;
+  --c-warning-soft: rgba(168, 119, 15, 0.14);
 
-  /* Fine, dark-on-light borders. */
-  --border-subtle: rgba(23, 21, 13, 0.07);
-  --border-default: rgba(23, 21, 13, 0.14);
-  --border-strong: rgba(23, 21, 13, 0.26);
+  --border-subtle: rgba(27, 36, 30, 0.07);
+  --border-default: rgba(27, 36, 30, 0.13);
+  --border-strong: rgba(27, 36, 30, 0.24);
 
-  /* Square radii. */
-  --radius-sm: 2px;
-  --radius-md: 3px;
-  --radius-lg: 4px;
-  --radius-xl: 6px;
+  /* Grands arrondis — la géométrie douce. */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
 
-  --shadow-card: 0 1px 0 var(--border-subtle);
-  --shadow-elevated: 0 6px 20px rgba(23, 21, 13, 0.08);
-  --shadow-floating: 0 10px 34px rgba(23, 21, 13, 0.12);
+  --shadow-card: 0 1px 2px rgba(27, 36, 30, 0.05), 0 10px 28px rgba(27, 36, 30, 0.07);
+  --shadow-elevated: 0 2px 6px rgba(27, 36, 30, 0.07), 0 16px 40px rgba(27, 36, 30, 0.1);
+  --shadow-floating: 0 18px 50px rgba(27, 36, 30, 0.24);
 }
 
 :root[data-theme="dark"] {
-  --bg-base: #0e0f0c;
-  --bg-elevated: #1a1b17;
-  --bg-pressed: #252620;
-  --bg-overlay: rgba(14, 15, 12, 0.85);
+  --bg-base: #101610;
+  --bg-elevated: #1a221a;
+  --bg-pressed: #242e24;
+  --bg-overlay: rgba(8, 12, 9, 0.7);
 
-  --text-primary: #f5f2ea;
-  --text-secondary: #b8b5ac;
-  --text-tertiary: #8c8b83;
-  --text-disabled: #4a4942;
+  --text-primary: #f2efe4;
+  --text-secondary: #bcc0b2;
+  --text-tertiary: #8d927f;
+  --text-disabled: #4c5245;
 
-  --accent-primary: #d4793d;
-  --accent-primary-soft: rgba(212, 121, 61, 0.15);
+  --ink: #234437;
+  --on-ink: #f2ecdc;
 
-  --c-success: #7a9f5e;
-  --c-success-soft: rgba(122, 159, 94, 0.15);
-  --c-danger: #c24b3d;
-  --c-danger-soft: rgba(194, 75, 61, 0.15);
+  --accent-primary: #d97e2f;
+  --on-accent: #fff3e2;
+  --accent-primary-soft: rgba(217, 126, 47, 0.16);
 
-  --border-subtle: rgba(245, 242, 234, 0.06);
-  --border-default: rgba(245, 242, 234, 0.12);
-  --border-strong: rgba(245, 242, 234, 0.24);
+  --c-success: #6fae83;
+  --c-success-soft: rgba(111, 174, 131, 0.15);
+  --c-danger: #cf5b47;
+  --c-danger-soft: rgba(207, 91, 71, 0.15);
 
+  --border-subtle: rgba(242, 239, 228, 0.06);
+  --border-default: rgba(242, 239, 228, 0.12);
+  --border-strong: rgba(242, 239, 228, 0.24);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.35);
   --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-floating: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-floating: 0 8px 32px rgba(0, 0, 0, 0.55);
 }
 
 /* Map tokens into the Tailwind v4 theme so utilities like
@@ -142,8 +152,52 @@ body {
 :root {
   --ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
   /* Teintes du pouls (surchargées inline selon la santé). */
-  --pulse-a: rgba(227, 165, 43, 0.22);
+  --pulse-a: rgba(189, 96, 23, 0.2);
   --pulse-b: rgba(124, 144, 112, 0.18);
+}
+
+/* La carte : papier flottant, grand arrondi, ombre douce. */
+.card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+/* Le panneau d'encre : vert chasse, texte ivoire. */
+.ink-panel {
+  background: var(--ink);
+  color: var(--on-ink);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Titre de section : serif italique, fini les petites capitales. */
+.title-serif {
+  font-family: var(--font-fraunces);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Bouton principal : pilule cognac. */
+.btn-primary {
+  border-radius: 999px;
+  background: var(--accent-primary);
+  color: var(--on-accent);
+  font-weight: 700;
+  box-shadow: var(--shadow-elevated);
+}
+.btn-primary:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+}
+
+/* Pilule fantôme. */
+.btn-ghost {
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 @keyframes pulse-drift {

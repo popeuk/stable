@@ -69,7 +69,7 @@ function InsightDetail({ id }: { id: string }) {
         <motion.div {...stagger(4)} className="mt-8">
           <Link
             href={insight.cta.action}
-            className="inline-block border border-[var(--text-primary)] bg-[var(--accent-primary)] px-6 py-3 text-sm font-bold text-[#17150d]"
+            className="inline-block btn-primary px-6 py-3 text-sm font-bold text-[var(--on-accent)]"
           >
             {insight.cta.label}
           </Link>

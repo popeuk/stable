@@ -60,14 +60,14 @@ export function FirstRun() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="grain relative overflow-hidden p-5"
+        className="grain card relative overflow-hidden p-5"
       >
         <div
           aria-hidden
           className="pulse-field absolute inset-0"
           style={
             {
-              "--pulse-a": "rgba(227, 165, 43, 0.28)",
+              "--pulse-a": "rgba(189, 96, 23, 0.28)",
               "--pulse-b": "rgba(124, 144, 112, 0.20)",
             } as React.CSSProperties
           }
@@ -90,7 +90,7 @@ export function FirstRun() {
       </motion.div>
 
       {/* Capacité */}
-      <div className="flex items-center justify-between border border-[var(--border-strong)] bg-elevated p-4">
+      <div className="flex items-center justify-between card p-4">
         <div>
           <p className="text-[14px] font-bold text-primary">Combien de places as-tu ?</p>
           <p className="text-[12px] text-tertiary">Ta capacité d&apos;accueil — le levier n°1.</p>
@@ -109,7 +109,7 @@ export function FirstRun() {
           <button
             onClick={() => setCapacity(capacity + 1)}
             aria-label="plus"
-            className="flex size-8 items-center justify-center border border-[var(--border-strong)] bg-[var(--accent-primary)] text-[#17150d]"
+            className="flex size-8 items-center justify-center border border-[var(--border-strong)] bg-[var(--accent-primary)] text-[var(--on-accent)]"
           >
             <Plus size={15} />
           </button>
@@ -122,7 +122,7 @@ export function FirstRun() {
           <span>Tes premières étapes</span>
           <span className="tabular-nums">{doneCount}/3</span>
         </div>
-        <div className="h-1.5 bg-[var(--bg-pressed)]">
+        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--bg-pressed)]">
           <motion.div
             className="h-full bg-[var(--accent-primary)]"
             initial={{ width: 0 }}
@@ -137,7 +137,7 @@ export function FirstRun() {
         {steps.map((s) => (
           <div
             key={s.n}
-            className="flex items-center gap-3 border border-[var(--border-strong)] bg-elevated p-4"
+            className="flex items-center gap-3 card p-4"
             style={{ opacity: s.enabled || s.done ? 1 : 0.5 }}
           >
             <span
@@ -157,7 +157,7 @@ export function FirstRun() {
             {!s.done && s.enabled && (
               <Link
                 href={s.href}
-                className="flex shrink-0 items-center gap-1.5 border border-[var(--text-primary)] bg-[var(--accent-primary)] px-3 py-1.5 text-[13px] font-bold text-[#17150d]"
+                className="flex shrink-0 items-center gap-1.5 btn-primary px-3 py-1.5 text-[13px] font-bold text-[var(--on-accent)]"
               >
                 {s.cta} <ArrowRight size={14} />
               </Link>

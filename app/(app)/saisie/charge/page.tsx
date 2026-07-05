@@ -96,7 +96,7 @@ function SaisieCharge() {
         Saisir une charge
       </h1>
 
-      <div className="grid grid-cols-2 border border-[var(--border-strong)]">
+      <div className="grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
         {[
           { v: false, l: "Ponctuelle" },
           { v: true, l: "Récurrente" },
@@ -107,7 +107,7 @@ function SaisieCharge() {
             className="py-2.5 text-[14px] font-bold"
             style={{
               background: recurring === o.v ? "var(--text-primary)" : "transparent",
-              color: recurring === o.v ? "var(--bg-base)" : "var(--text-primary)",
+              color: recurring === o.v ? "var(--on-ink)" : "var(--text-primary)",
             }}
           >
             {o.l}
@@ -192,7 +192,7 @@ function SaisieCharge() {
               key={c.id}
               onClick={() => setCategoryId(c.id)}
               className={cn(
-                "border px-3 py-1.5 text-xs font-semibold",
+                "rounded-full border px-3 py-1.5 text-xs font-semibold",
                 categoryId === c.id
                   ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)] text-[var(--accent-primary)]"
                   : "border-[var(--border-strong)] text-tertiary",
@@ -265,7 +265,7 @@ function SaisieCharge() {
       <button
         disabled={!canSave}
         onClick={save}
-        className="flex w-full items-center justify-center gap-2 border border-[var(--text-primary)] bg-[var(--accent-primary)] py-3.5 text-[15px] font-bold text-[#17150d] disabled:opacity-40"
+        className="flex w-full items-center justify-center gap-2 btn-primary py-3.5 text-[15px] font-bold text-[var(--on-accent)] disabled:opacity-40"
       >
         <Check size={18} /> Enregistrer{" "}
         {Number(amount) > 0 ? `${formatEur(Number(amount))}${recurring ? "/échéance" : ""}` : ""}

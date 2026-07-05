@@ -102,7 +102,7 @@ function SaisieCheval() {
       <button
         disabled={!name.trim()}
         onClick={save}
-        className="flex w-full items-center justify-center gap-2 border border-[var(--text-primary)] bg-[var(--accent-primary)] py-3.5 text-[15px] font-bold text-[#17150d] disabled:opacity-40"
+        className="flex w-full items-center justify-center gap-2 btn-primary py-3.5 text-[15px] font-bold text-[var(--on-accent)] disabled:opacity-40"
       >
         <Check size={18} /> {editing ? "Enregistrer les modifications" : "Ajouter ce cheval"}
       </button>

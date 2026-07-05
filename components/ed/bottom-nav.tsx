@@ -6,8 +6,8 @@ import { House, ReceiptText, Settings, Plus } from "lucide-react";
 import { HorseLine } from "@/components/ed/atoms";
 
 /**
- * One bar, four places, one gesture. The centre button goes straight to the
- * composer — no intermediate menu, no sheet: saisir is ONE tap away, always.
+ * Le dock : une pilule vert chasse qui flotte au-dessus du canvas. Quatre
+ * lieux, et le + cognac au centre qui mène droit au composeur.
  */
 const TABS = [
   { href: "/maintenant", label: "Aujourd’hui", icon: <House size={20} strokeWidth={1.7} /> },
@@ -22,25 +22,23 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--border-strong)] bg-base/95 backdrop-blur-md"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="pointer-events-none fixed inset-x-0 z-50"
+      style={{ bottom: "calc(env(safe-area-inset-bottom) + 14px)" }}
     >
-      <div className="mx-auto grid max-w-[440px] grid-cols-5">
+      <div
+        className="pointer-events-auto mx-auto grid w-[min(420px,calc(100%-32px))] grid-cols-5 items-center rounded-full px-2 py-1.5"
+        style={{ background: "var(--ink)", boxShadow: "var(--shadow-floating)" }}
+      >
         <Tab tab={TABS[0]} active={isActive(TABS[0].href)} />
         <Tab tab={TABS[1]} active={isActive(TABS[1].href)} />
 
-        <Link
-          href="/saisie"
-          aria-label="Saisir"
-          className="flex flex-col items-center justify-center py-1.5"
-        >
+        <Link href="/saisie" aria-label="Saisir" className="flex items-center justify-center">
           <span
-            className="flex size-9 items-center justify-center border border-[var(--text-primary)] transition-transform active:scale-95"
-            style={{ background: "var(--accent-primary)", color: "#17150d" }}
+            className="flex size-12 items-center justify-center rounded-full transition-transform active:scale-90"
+            style={{ background: "var(--accent-primary)", color: "var(--on-accent)" }}
           >
-            <Plus size={20} />
+            <Plus size={24} strokeWidth={2.2} />
           </span>
-          <span className="mt-0.5 text-[10px] font-semibold text-tertiary">Saisir</span>
         </Link>
 
         <Tab tab={TABS[2]} active={isActive(TABS[2].href)} />
@@ -60,14 +58,11 @@ function Tab({
   return (
     <Link
       href={tab.href}
-      className="relative flex flex-col items-center gap-1 py-2.5"
-      style={{ color: active ? "var(--text-primary)" : "var(--text-tertiary)" }}
+      className="flex flex-col items-center gap-0.5 py-1.5 transition-opacity"
+      style={{ color: "var(--on-ink)", opacity: active ? 1 : 0.55 }}
     >
-      {active && (
-        <span className="absolute top-0 h-[2px] w-8" style={{ background: "var(--text-primary)" }} />
-      )}
       {tab.icon}
-      <span className="text-[10px] font-semibold">{tab.label}</span>
+      <span className="text-[9px] font-semibold">{tab.label}</span>
     </Link>
   );
 }

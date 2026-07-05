@@ -63,7 +63,7 @@ function Plan() {
       </header>
 
       {/* Parcours de pilotage */}
-      <section className="border border-[var(--border-strong)] bg-elevated p-4">
+      <section className="card p-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
@@ -94,11 +94,11 @@ function Plan() {
         ) : (
           <div className="space-y-2">
             {toDecide.map((r) => (
-              <div key={r.id} className="border border-[var(--border-strong)] bg-elevated p-4">
+              <div key={r.id} className="card p-4">
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-[15px] font-bold leading-snug text-primary">{r.title}</p>
                   {r.expectedImpact > 0 && (
-                    <span className="shrink-0 whitespace-nowrap bg-[var(--c-success-soft)] px-2 py-1 text-[12px] font-extrabold text-[var(--c-success)]">
+                    <span className="shrink-0 whitespace-nowrap rounded-full bg-[var(--c-success-soft)] px-2 py-1 text-[12px] font-extrabold text-[var(--c-success)]">
                       {r.impactKind === "potentiel" ? "≈ " : "+"}
                       {formatEur(r.expectedImpact)}/mois
                     </span>
@@ -136,7 +136,7 @@ function Plan() {
                         periodKey: periodKey(active),
                       })
                     }
-                    className="flex items-center gap-1.5 border border-[var(--text-primary)] bg-[var(--accent-primary)] px-3 py-1.5 text-[13px] font-bold text-[#17150d]"
+                    className="flex items-center gap-1.5 btn-primary px-3 py-1.5 text-[13px] font-bold text-[var(--on-accent)]"
                   >
                     Je m&apos;y mets <ArrowRight size={14} />
                   </button>
@@ -157,24 +157,24 @@ function Plan() {
             {engaged.map((a) => (
               <div
                 key={a.id}
-                className="border border-[var(--text-primary)] bg-[var(--text-primary)] p-4 text-[var(--bg-base)]"
+                className="ink-panel p-4 text-[var(--on-ink)]"
               >
                 <p className="text-[15px] font-bold">{a.title}</p>
                 {a.expectedImpact > 0 && (
-                  <p className="mt-0.5 text-[12px] text-[var(--bg-base)]/70">
+                  <p className="mt-0.5 text-[12px] text-[var(--on-ink)]/70">
                     Effet visé : +{formatEur(a.expectedImpact)} / mois
                   </p>
                 )}
                 <div className="mt-3 flex gap-2">
                   <button
                     onClick={() => complete(a.id)}
-                    className="flex items-center gap-1.5 bg-[var(--accent-primary)] px-3 py-1.5 text-[13px] font-bold text-[#17150d]"
+                    className="flex items-center gap-1.5 bg-[var(--accent-primary)] px-3 py-1.5 text-[13px] font-bold text-[var(--on-accent)]"
                   >
                     <Check size={14} /> C&apos;est fait
                   </button>
                   <button
                     onClick={() => drop(a.id)}
-                    className="px-3 py-1.5 text-[13px] font-semibold text-[var(--bg-base)]/70"
+                    className="px-3 py-1.5 text-[13px] font-semibold text-[var(--on-ink)]/70"
                   >
                     Laisser tomber
                   </button>

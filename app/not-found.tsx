@@ -25,7 +25,7 @@ export default function NotFound() {
       <p className="text-secondary">Cette page n&apos;existe pas, ou plus.</p>
       <Link
         href="/maintenant"
-        className="border border-[var(--text-primary)] bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-bold text-[#17150d]"
+        className="btn-primary px-5 py-2.5 text-sm font-bold text-[var(--on-accent)]"
       >
         Retour à l&apos;accueil
       </Link>

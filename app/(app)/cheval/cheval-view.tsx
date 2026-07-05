@@ -111,8 +111,8 @@ function Cheval({ id }: { id: string }) {
           className="pulse-field absolute inset-0"
           style={
             {
-              "--pulse-a": ok ? "rgba(227, 165, 43, 0.28)" : "rgba(192, 67, 46, 0.20)",
-              "--pulse-b": ok ? "rgba(124, 144, 112, 0.24)" : "rgba(201, 138, 22, 0.16)",
+              "--pulse-a": ok ? "rgba(189, 96, 23, 0.28)" : "rgba(189, 63, 44, 0.20)",
+              "--pulse-b": ok ? "rgba(124, 144, 112, 0.24)" : "rgba(168, 119, 15, 0.16)",
             } as React.CSSProperties
           }
         />
@@ -136,7 +136,7 @@ function Cheval({ id }: { id: string }) {
         <Link
           href={`/saisie/cheval?edit=${horse.id}`}
           aria-label="Modifier"
-          className="flex shrink-0 items-center gap-1.5 border border-[var(--border-strong)] px-2.5 py-1.5 text-[12px] font-bold text-primary"
+          className="flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--border-strong)] px-2.5 py-1.5 text-[12px] font-bold text-primary"
         >
           <Pencil size={13} /> Modifier
         </Link>
@@ -314,7 +314,7 @@ function Cheval({ id }: { id: string }) {
         </Link>
         <Link
           href={`/saisie?kind=charge&horse=${horse.id}`}
-          className="flex items-center justify-center border border-[var(--text-primary)] bg-[var(--accent-primary)] py-3 text-[14px] font-bold text-[#17150d]"
+          className="flex items-center justify-center btn-primary py-3 text-[14px] font-bold text-[var(--on-accent)]"
         >
           Ajouter une charge
         </Link>

@@ -111,9 +111,9 @@ function Maintenant() {
   const health: "good" | "tight" | "bad" =
     positive && eq.coverage >= 1 ? "good" : eq.coverage >= 0.85 ? "tight" : "bad";
   const pulse = {
-    good: { a: "rgba(227, 165, 43, 0.26)", b: "rgba(124, 144, 112, 0.24)" },
-    tight: { a: "rgba(201, 138, 22, 0.26)", b: "rgba(227, 165, 43, 0.16)" },
-    bad: { a: "rgba(192, 67, 46, 0.20)", b: "rgba(201, 138, 22, 0.15)" },
+    good: { a: "rgba(189, 96, 23, 0.26)", b: "rgba(124, 144, 112, 0.24)" },
+    tight: { a: "rgba(168, 119, 15, 0.26)", b: "rgba(189, 96, 23, 0.16)" },
+    bad: { a: "rgba(189, 63, 44, 0.20)", b: "rgba(168, 119, 15, 0.15)" },
   }[health];
   const coverPct = Math.round(Math.min(1, eq.coverage) * 100);
   const coverColor =
@@ -122,13 +122,13 @@ function Maintenant() {
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
       {/* ——— Le Pouls ——— */}
-      <motion.section variants={item} className="grain -mx-5 -mt-4 overflow-hidden">
+      <motion.section variants={item} className="grain card relative overflow-hidden">
         <div
           aria-hidden
           className="pulse-field absolute inset-0"
           style={{ "--pulse-a": pulse.a, "--pulse-b": pulse.b } as React.CSSProperties}
         />
-        <div className="relative px-5 pb-6 pt-9">
+        <div className="relative px-5 pb-6 pt-7">
           <p className="text-[13px] font-semibold text-secondary">
             {greeting()} · <span className="capitalize">{formatLongDate(new Date())}</span>
           </p>
@@ -239,7 +239,7 @@ function Maintenant() {
                     {eur(slice.amount)} · {Math.round(slice.share * 100)} %
                   </span>
                 </div>
-                <div className="h-1.5 bg-[var(--bg-pressed)]">
+                <div className="h-1.5 overflow-hidden rounded-full bg-[var(--bg-pressed)]">
                   <motion.div
                     className="h-full"
                     initial={{ width: 0 }}
@@ -301,7 +301,7 @@ function Maintenant() {
       {notion && (
         <motion.div variants={item}>
           <Explain k={notionKey} variant="plain" className="block w-full text-left">
-            <div className="grain relative overflow-hidden bg-[var(--accent-primary-soft)] p-4">
+            <div className="grain relative overflow-hidden rounded-[var(--radius-xl)] bg-[var(--accent-primary-soft)] p-4">
               <div className="relative flex items-center justify-between">
                 <div className="pr-3">
                   <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--accent-primary)]">
@@ -382,7 +382,7 @@ function AlertRow({ href, text, hint }: { href: string; text: string; hint: stri
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 border border-[var(--c-danger)] bg-[var(--c-danger-soft)] p-3.5"
+      className="flex items-center gap-3 rounded-[var(--radius-lg)] bg-[var(--c-danger-soft)] p-3.5"
     >
       <AlertTriangle size={18} style={{ color: "var(--c-danger)" }} />
       <div className="flex-1">

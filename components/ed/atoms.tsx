@@ -76,8 +76,8 @@ export function Tag({
 }) {
   const styles: Record<string, string> = {
     line: "border border-[var(--border-strong)] text-primary",
-    ink: "bg-[var(--text-primary)] text-[var(--bg-base)]",
-    amber: "bg-[var(--accent-primary)] text-[#17150d]",
+    ink: "bg-[var(--ink)] text-[var(--on-ink)]",
+    amber: "bg-[var(--accent-primary)] text-[var(--on-accent)]",
     green: "bg-[var(--c-success)] text-white",
     red: "bg-[var(--c-danger)] text-white",
   };
@@ -96,7 +96,7 @@ export function ArrowDisc({ size = 44 }: { size?: number }) {
       className="flex shrink-0 items-center justify-center rounded-full"
       style={{ width: size, height: size, background: "var(--accent-primary)" }}
     >
-      <ArrowUpRight size={size * 0.5} strokeWidth={2} color="#17150d" />
+      <ArrowUpRight size={size * 0.5} strokeWidth={2} color="var(--on-accent)" />
     </span>
   );
 }
@@ -110,9 +110,7 @@ export function SectionHead({
 }) {
   return (
     <div className="mb-3 flex items-baseline justify-between">
-      <h2 className="text-[13px] font-bold uppercase tracking-[0.08em] text-tertiary">
-        {title}
-      </h2>
+      <h2 className="title-serif text-[20px] text-primary">{title}</h2>
       {action && <span className="text-[12px] font-semibold text-tertiary">{action}</span>}
     </div>
   );

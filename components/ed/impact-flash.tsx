@@ -29,7 +29,7 @@ export function ImpactFlash() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-4 flex w-full items-center gap-3 border border-[var(--text-primary)] bg-[var(--text-primary)] p-3.5 text-left text-[var(--bg-base)]"
+          className="mb-4 flex w-full items-center gap-3 ink-panel p-3.5 text-left text-[var(--on-ink)]"
         >
           <span
             className="flex size-8 shrink-0 items-center justify-center"
@@ -46,7 +46,7 @@ export function ImpactFlash() {
               {flash.kind === "revenue" ? "+" : "−"}
               {formatEur(flash.amount)} enregistrés · {flash.label}
             </span>
-            <span className="block text-[12px] text-[var(--bg-base)]/70">
+            <span className="block text-[12px] text-[var(--on-ink)]/70">
               Tes chiffres viennent de bouger — regarde en dessous.
             </span>
           </span>

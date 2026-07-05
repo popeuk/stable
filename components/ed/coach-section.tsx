@@ -56,27 +56,27 @@ export function CoachSection() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-2 overflow-hidden border border-[var(--text-primary)] bg-[var(--text-primary)] p-4 text-[var(--bg-base)]"
+            className="mb-2 overflow-hidden ink-panel p-4 text-[var(--on-ink)]"
           >
             <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
               Tu t&apos;étais engagé
             </p>
             <p className="mt-1 text-[15px] font-bold">{a.title}</p>
             {a.expectedImpact > 0 && (
-              <p className="mt-0.5 text-[12px] text-[var(--bg-base)]/70">
+              <p className="mt-0.5 text-[12px] text-[var(--on-ink)]/70">
                 Effet visé : +{formatEur(a.expectedImpact)} / mois
               </p>
             )}
             <div className="mt-3 flex gap-2">
               <button
                 onClick={() => complete(a.id)}
-                className="flex items-center gap-1.5 bg-[var(--accent-primary)] px-3 py-1.5 text-[13px] font-bold text-[#17150d]"
+                className="flex items-center gap-1.5 bg-[var(--accent-primary)] px-3 py-1.5 text-[13px] font-bold text-[var(--on-accent)]"
               >
                 <Check size={14} /> C&apos;est fait
               </button>
               <button
                 onClick={() => drop(a.id)}
-                className="px-3 py-1.5 text-[13px] font-semibold text-[var(--bg-base)]/70"
+                className="px-3 py-1.5 text-[13px] font-semibold text-[var(--on-ink)]/70"
               >
                 Laisser tomber
               </button>
@@ -93,12 +93,12 @@ export function CoachSection() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="border border-[var(--border-strong)] bg-elevated p-4"
+            className="card p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <p className="text-[15px] font-bold leading-snug text-primary">{r.title}</p>
               {r.expectedImpact > 0 && (
-                <span className="shrink-0 whitespace-nowrap bg-[var(--c-success-soft)] px-2 py-1 text-[12px] font-extrabold text-[var(--c-success)]">
+                <span className="shrink-0 whitespace-nowrap rounded-full bg-[var(--c-success-soft)] px-2 py-1 text-[12px] font-extrabold text-[var(--c-success)]">
                   {r.impactKind === "potentiel" ? "≈ " : "+"}
                   {formatEur(r.expectedImpact)}/mois
                 </span>
@@ -136,7 +136,7 @@ export function CoachSection() {
                     periodKey: periodKey(active),
                   })
                 }
-                className="flex items-center gap-1.5 border border-[var(--text-primary)] bg-[var(--accent-primary)] px-3 py-1.5 text-[13px] font-bold text-[#17150d]"
+                className="flex items-center gap-1.5 btn-primary px-3 py-1.5 text-[13px] font-bold text-[var(--on-accent)]"
               >
                 Je m&apos;y mets <ArrowRight size={14} />
               </button>
@@ -147,7 +147,7 @@ export function CoachSection() {
 
       <Link
         href="/conseiller"
-        className="mt-2 flex items-center gap-2.5 border border-[var(--border-strong)] bg-elevated px-3.5 py-3 text-primary"
+        className="mt-2 flex items-center gap-2.5 card px-3.5 py-3 text-primary"
       >
         <HorseLine size={20} stroke={1.4} color="var(--accent-primary)" />
         <span className="flex-1 text-[13px] font-semibold text-secondary">

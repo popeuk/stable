@@ -153,8 +153,8 @@ export function Compass() {
               )}
               style={{ background: "var(--accent-primary)" }}
             >
-              <motion.span animate={{ rotate: open ? 45 : 0 }} className="text-[#0e0f0c]">
-                {voice ? <Mic size={26} color="#0e0f0c" /> : <Plus size={28} />}
+              <motion.span animate={{ rotate: open ? 45 : 0 }} className="text-[var(--on-accent)]">
+                {voice ? <Mic size={26} color="var(--on-accent)" /> : <Plus size={28} />}
               </motion.span>
             </button>
           </div>

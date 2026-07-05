@@ -101,7 +101,7 @@ export function LessonTerm({ lessonKey, children, className }: LessonTermProps) 
 
               <button
                 onClick={() => setOpen(false)}
-                className="mt-6 w-full rounded-[var(--radius-md)] bg-[var(--accent-primary)] py-3 text-sm font-medium text-[#0e0f0c]"
+                className="mt-6 w-full rounded-[var(--radius-md)] bg-[var(--accent-primary)] py-3 text-sm font-medium text-[var(--on-accent)]"
               >
                 Compris
               </button>

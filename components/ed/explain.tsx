@@ -85,12 +85,13 @@ export function Explain({
             <motion.div
               role="dialog"
               aria-label={lesson.title}
-              className="relative z-10 w-full max-w-[440px] border-t-2 border-[var(--text-primary)] bg-elevated px-6 pb-10 pt-5"
+              className="relative z-10 w-full max-w-[440px] rounded-t-[28px] bg-elevated px-6 pb-10 pt-3 shadow-[var(--shadow-floating)]"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 380, damping: 34 }}
             >
+              <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--border-strong)]" />
               <div className="flex items-start justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
                   Notion · 2 min
@@ -134,7 +135,7 @@ export function Explain({
 
               <button
                 onClick={() => setOpen(false)}
-                className="mt-6 w-full bg-[var(--text-primary)] py-3 text-[15px] font-bold text-[var(--bg-base)]"
+                className="mt-6 w-full rounded-full bg-[var(--ink)] py-3.5 text-[15px] font-bold text-[var(--on-ink)]"
               >
                 J&apos;ai compris
               </button>

@@ -16,9 +16,9 @@ export function RangeSelector() {
           key={r.value}
           onClick={() => setPreset(r.value)}
           className={cn(
-            "shrink-0 border px-3 py-1.5 text-[12px] font-bold",
+            "shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-bold",
             preset === r.value
-              ? "border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-base)]"
+              ? "border-[var(--text-primary)] bg-[var(--ink)] text-[var(--on-ink)]"
               : "border-[var(--border-strong)] text-tertiary",
           )}
         >

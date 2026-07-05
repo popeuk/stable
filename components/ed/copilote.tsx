@@ -12,7 +12,7 @@ export function CopiloteNote({
   label?: string;
 }) {
   return (
-    <div className="relative overflow-hidden border border-[var(--text-primary)] bg-[var(--text-primary)] p-5 text-[var(--bg-base)]">
+    <div className="relative overflow-hidden ink-panel p-5 text-[var(--on-ink)]">
       <HorseLine
         size={120}
         stroke={0.9}

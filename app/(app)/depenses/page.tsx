@@ -124,7 +124,7 @@ function Journal() {
       <RangeSelector />
 
       {/* Totaux — identiques à l'équation de l'accueil */}
-      <div className="grid grid-cols-3 divide-x divide-[var(--border-default)] border border-[var(--border-strong)] bg-elevated">
+      <div className="grid grid-cols-3 divide-x divide-[var(--border-default)] card">
         <div className="p-3">
           <Explain k="chiffre_affaires" className="text-[10px] font-bold uppercase tracking-wide text-tertiary">
             Encaissé
@@ -156,16 +156,16 @@ function Journal() {
 
       {/* Saisie rapide */}
       <div className="grid grid-cols-4 gap-2">
-        <Link href="/saisie?kind=revenu" className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
+        <Link href="/saisie?kind=revenu" className="flex items-center justify-center gap-1.5 rounded-full border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
           <Coins size={14} /> Revenu
         </Link>
-        <Link href="/saisie?kind=charge" className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
+        <Link href="/saisie?kind=charge" className="flex items-center justify-center gap-1.5 rounded-full border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
           <Receipt size={14} /> Dépense
         </Link>
-        <Link href="/saisie/mutualisee" className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
+        <Link href="/saisie/mutualisee" className="flex items-center justify-center gap-1.5 rounded-full border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
           <Layers size={14} /> Partagée
         </Link>
-        <Link href="/saisie/recurrente" className="flex items-center justify-center gap-1.5 border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
+        <Link href="/saisie/recurrente" className="flex items-center justify-center gap-1.5 rounded-full border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
           <Repeat size={14} /> Récurr.
         </Link>
       </div>
@@ -183,9 +183,9 @@ function Journal() {
             key={f.v}
             onClick={() => setFilter(f.v)}
             className={cn(
-              "border px-3 py-1.5 text-[12px] font-bold",
+              "rounded-full border px-3 py-1.5 text-[12px] font-bold",
               filter === f.v
-                ? "border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-base)]"
+                ? "border-[var(--text-primary)] bg-[var(--ink)] text-[var(--on-ink)]"
                 : "border-[var(--border-strong)] text-tertiary",
             )}
           >
