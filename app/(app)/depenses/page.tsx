@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Trash2, Layers, Repeat, Coins, Receipt } from "lucide-react";
+import { Trash2, Repeat } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { RangeSelector } from "@/components/ed/range-selector";
 import { Explain } from "@/components/ed/explain";
@@ -155,22 +155,6 @@ function Journal() {
         </div>
       </div>
 
-      {/* Saisie rapide */}
-      <div className="grid grid-cols-4 gap-2">
-        <Link href="/saisie?kind=revenu" className="flex items-center justify-center gap-1.5 rounded-full border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
-          <Coins size={14} /> Revenu
-        </Link>
-        <Link href="/saisie?kind=charge" className="flex items-center justify-center gap-1.5 rounded-full border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
-          <Receipt size={14} /> Dépense
-        </Link>
-        <Link href="/saisie/mutualisee" className="flex items-center justify-center gap-1.5 rounded-full border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
-          <Layers size={14} /> Partagée
-        </Link>
-        <Link href="/saisie/recurrente" className="flex items-center justify-center gap-1.5 rounded-full border border-[var(--border-strong)] py-2.5 text-[12px] font-bold">
-          <Repeat size={14} /> Récurr.
-        </Link>
-      </div>
-
       {/* Filtre */}
       <div className="flex gap-2">
         {(
@@ -198,9 +182,14 @@ function Journal() {
       {/* Récurrents actifs (pensions et charges) */}
       {(recurrings.length > 0 || recurringRevs.length > 0) && filter === "tout" && (
         <div>
-          <h2 className="mb-2 text-[13px] font-bold uppercase tracking-[0.08em] text-tertiary">
-            Récurrents actifs
-          </h2>
+          <div className="mb-2 flex items-baseline justify-between">
+            <h2 className="text-[13px] font-bold uppercase tracking-[0.08em] text-tertiary">
+              Récurrents actifs
+            </h2>
+            <Link href="/saisie/recurrente" className="text-[12px] font-semibold text-tertiary">
+              + avancée
+            </Link>
+          </div>
           <ul className="border-t border-[var(--border-default)]">
             {recurringRevs.map((r) => (
               <li key={r.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-3">

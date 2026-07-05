@@ -106,7 +106,6 @@ function Ecurie() {
           <div className="flex gap-2">
             {([
               { v: "marge", l: "Rentabilité" },
-              { v: "volatilite", l: "Volatilité" },
               { v: "nom", l: "Nom" },
             ] as { v: Sort; l: string }[]).map((s) => (
               <button

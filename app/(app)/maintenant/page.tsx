@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, AlertTriangle, ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react";
+import { ChevronRight, ChevronDown, AlertTriangle, ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { KeyNumber } from "@/components/ui/key-number";
 import { Sparkline } from "@/components/ui/sparkline";
@@ -66,6 +66,8 @@ function Maintenant() {
   const preset = usePeriodStore((s) => s.preset);
   const periods = useMemo(() => rangePeriods(active, preset), [active, preset]);
   const allHorses = useHorses();
+  // Progressive disclosure: analysis sections stay folded until asked for.
+  const [detail, setDetail] = useState(false);
 
   // From-zero: welcome the user instead of an empty dashboard.
   const hasHorses = data.horses.some((h) => !h.isArchived);
@@ -228,6 +230,30 @@ function Maintenant() {
         </div>
       </motion.section>
 
+      {/* ——— L'accompagnement d'abord : l'action, pas l'analyse ——— */}
+      <motion.div variants={item}>
+        <CoachSection />
+      </motion.div>
+
+      {/* ——— Le détail, seulement si on le demande ——— */}
+      <motion.div variants={item} className="flex justify-center">
+        <button
+          onClick={() => setDetail((d) => !d)}
+          className="btn-ghost flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-secondary"
+        >
+          {detail ? "Masquer le détail" : "Voir le détail du mois"}
+          <ChevronDown
+            size={15}
+            style={{
+              transform: detail ? "rotate(180deg)" : "none",
+              transition: "transform 0.3s var(--ease-signature)",
+            }}
+          />
+        </button>
+      </motion.div>
+
+      {detail && (
+        <>
       {/* ——— Ce qui pèse ——— */}
       {breakdown.length > 0 && (
         <motion.section variants={item}>
@@ -290,14 +316,11 @@ function Maintenant() {
         </motion.section>
       )}
 
-      {/* ——— L'accompagnement ——— */}
-      <motion.div variants={item}>
-        <CoachSection />
-      </motion.div>
-
       <motion.div variants={item}>
         <InsightsCarousel />
       </motion.div>
+        </>
+      )}
 
       {/* ——— La notion du moment ——— */}
       {notion && (

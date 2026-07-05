@@ -11,7 +11,7 @@ export function RangeSelector() {
 
   return (
     <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-      {RANGE_PRESETS.map((r) => (
+      {RANGE_PRESETS.filter((r) => ["month", "3m", "ytd"].includes(r.value)).map((r) => (
         <button
           key={r.value}
           onClick={() => setPreset(r.value)}
