@@ -75,7 +75,10 @@ function Composer() {
         : data.expenseCategories.filter((c) => c.isDirect),
     [kind, data.revenueCategories, data.expenseCategories],
   );
-  const cat = cats.find((c) => c.id === categoryId) ?? cats[0];
+  // Un revenu part sur Pension (l'écrasante majorité) ; une dépense n'a PAS
+  // de catégorie imposée : le gérant choisit, sinon on n'enregistre pas.
+  const cat =
+    cats.find((c) => c.id === categoryId) ?? (kind === "revenu" ? cats[0] : undefined);
   const amount = Number(raw.replace(",", ".")) || 0;
   const horse = horses.find((h) => h.id === horseId);
   const canSave = amount > 0 && !!horse && !!cat;
@@ -189,7 +192,7 @@ function Composer() {
       <motion.p
         variants={item}
         layout
-        className="mt-6 min-h-[4.5rem] font-[family-name:var(--font-fraunces)] text-[26px] leading-snug text-primary"
+        className="sticky top-0 z-20 -mx-5 mt-4 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-fraunces)] text-[24px] leading-snug text-primary backdrop-blur-md"
       >
         {kind === "revenu" ? (
           <>

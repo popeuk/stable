@@ -16,6 +16,8 @@ export type CareKind =
   | "veto"
   | "soin"
   | "entrainement"
+  | "cours_collectif"
+  | "cours_individuel"
   | "concours"
   | "document";
 
@@ -54,6 +56,8 @@ export const CARE_META: Record<
   veto: { label: "Vétérinaire", cadenceDays: null },
   soin: { label: "Soin", cadenceDays: null },
   entrainement: { label: "Entraînement", cadenceDays: null },
+  cours_collectif: { label: "Cours collectif", cadenceDays: null },
+  cours_individuel: { label: "Cours individuel", cadenceDays: null },
   concours: { label: "Concours", cadenceDays: null },
   document: { label: "Document", cadenceDays: null },
 };
@@ -133,6 +137,26 @@ export function upcomingDeadlines(
     }
   }
   return out.sort((a, b) => a.daysLeft - b.daysLeft);
+}
+
+/**
+ * L'agenda : tout événement daté aujourd'hui ou plus tard est un
+ * rendez-vous à venir (concours, cours, visite véto programmée…).
+ * Trié du plus proche au plus lointain.
+ */
+export interface PlannedEvent {
+  event: CareEvent;
+  daysUntil: number;
+}
+
+export function plannedEvents(
+  data: { careEvents?: CareEvent[] },
+  today: ISODate,
+): PlannedEvent[] {
+  return (data.careEvents ?? [])
+    .filter((e) => e.date >= today)
+    .map((e) => ({ event: e, daysUntil: diffDays(today, e.date) }))
+    .sort((a, b) => a.daysUntil - b.daysUntil);
 }
 
 /** Le carnet d'un cheval, du plus récent au plus ancien. */

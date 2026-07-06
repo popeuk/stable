@@ -13,9 +13,12 @@ import {
   Trophy,
   FileText,
   Check,
+  UsersRound,
+  GraduationCap,
+  CalendarClock,
 } from "lucide-react";
 import { Horseshoe } from "@/components/ed/atoms";
-import { CARE_META, type CareKind, type Deadline } from "@/lib/domain/care";
+import { CARE_META, type CareKind, type Deadline, type PlannedEvent } from "@/lib/domain/care";
 import { useDataStore } from "@/stores/data-store";
 
 export function CareIcon({ kind, size = 15 }: { kind: CareKind; size?: number }) {
@@ -37,6 +40,10 @@ export function CareIcon({ kind, size = 15 }: { kind: CareKind; size?: number })
       return <HeartPulse {...common} />;
     case "entrainement":
       return <Activity {...common} />;
+    case "cours_collectif":
+      return <UsersRound {...common} />;
+    case "cours_individuel":
+      return <GraduationCap {...common} />;
     case "concours":
       return <Trophy {...common} />;
     case "document":
@@ -100,6 +107,54 @@ export function DeadlineRow({
       >
         <Check size={13} /> Fait
       </button>
+    </motion.li>
+  );
+}
+
+export function agendaPhrase(daysUntil: number): string {
+  if (daysUntil === 0) return "aujourd'hui";
+  if (daysUntil === 1) return "demain";
+  return `dans ${daysUntil} j`;
+}
+
+/** Un rendez-vous de l'agenda : cours, concours, visite programmée. */
+export function AgendaRow({
+  p,
+  horseName,
+  showHorse = true,
+}: {
+  p: PlannedEvent;
+  horseName: string;
+  showHorse?: boolean;
+}) {
+  const e = p.event;
+  return (
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+      className="flex items-center gap-3 border-b border-[var(--border-default)] py-3"
+    >
+      <span
+        className="flex size-8 shrink-0 items-center justify-center rounded-full"
+        style={{ color: "var(--on-ink)", background: "var(--ink)" }}
+      >
+        <CareIcon kind={e.kind} />
+      </span>
+      <Link href={`/cheval?id=${e.horseId}`} className="min-w-0 flex-1">
+        <p className="truncate text-[14px] font-bold leading-tight text-primary">
+          {CARE_META[e.kind].label}
+          {showHorse ? ` · ${horseName}` : ""}
+        </p>
+        <p className="truncate text-[12px] font-semibold text-secondary">
+          {agendaPhrase(p.daysUntil)}
+          {e.label ? ` · ${e.label}` : ""}
+        </p>
+      </Link>
+      <span className="shrink-0 text-tertiary">
+        <CalendarClock size={16} strokeWidth={1.7} />
+      </span>
     </motion.li>
   );
 }

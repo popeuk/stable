@@ -13,7 +13,7 @@ import { SectionHead } from "@/components/ed/atoms";
 import { RangeSelector } from "@/components/ed/range-selector";
 import { InsightsCarousel } from "@/components/ed/insights-carousel";
 import { CoachSection } from "@/components/ed/coach-section";
-import { DeadlineRow } from "@/components/ed/care-bits";
+import { DeadlineRow, AgendaRow } from "@/components/ed/care-bits";
 import { FirstRun } from "@/components/ed/first-run";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
@@ -26,7 +26,7 @@ import {
   stableMarginSeries,
 } from "@/lib/domain/calculations";
 import { equilibrium } from "@/lib/domain/equilibrium";
-import { upcomingDeadlines } from "@/lib/domain/care";
+import { upcomingDeadlines, plannedEvents } from "@/lib/domain/care";
 import { pickNotion } from "@/lib/domain/notion";
 import { LESSONS } from "@/content/lessons";
 import { RANGE_PRESETS, rangePeriods } from "@/lib/utils/period";
@@ -100,6 +100,7 @@ function Maintenant() {
   const declining = allHorses.filter((h) => h.trend === "baisse");
   const todayIso = new Date().toISOString().slice(0, 10);
   const urgent = upcomingDeadlines(data, todayIso).filter((d) => d.status !== "ok").slice(0, 3);
+  const agendaSoon = plannedEvents(data, todayIso).filter((a) => a.daysUntil <= 7).slice(0, 3);
   const horseNameOf = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "";
 
   const periodLabel =
@@ -214,7 +215,7 @@ function Maintenant() {
       </motion.section>
 
       {/* À prévoir : les échéances anticipées, façon Flighty */}
-      {urgent.length > 0 && (
+      {(urgent.length > 0 || agendaSoon.length > 0) && (
         <motion.section variants={item} className="-mt-2">
           <div className="mb-1 flex items-baseline justify-between">
             <h2 className="title-serif text-[20px] text-primary">À prévoir</h2>
@@ -224,6 +225,9 @@ function Maintenant() {
           </div>
           <ul>
             <AnimatePresence initial={false}>
+              {agendaSoon.map((a) => (
+                <AgendaRow key={a.event.id} p={a} horseName={horseNameOf(a.event.horseId)} />
+              ))}
               {urgent.map((d) => (
                 <DeadlineRow key={`${d.horseId}-${d.kind}`} d={d} horseName={horseNameOf(d.horseId)} />
               ))}

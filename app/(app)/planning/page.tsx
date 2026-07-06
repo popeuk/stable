@@ -5,9 +5,9 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { CareIcon, DeadlineRow } from "@/components/ed/care-bits";
+import { CareIcon, DeadlineRow, AgendaRow } from "@/components/ed/care-bits";
 import { useDataStore } from "@/stores/data-store";
-import { upcomingDeadlines, CARE_META, type Deadline } from "@/lib/domain/care";
+import { upcomingDeadlines, plannedEvents, CARE_META, type Deadline } from "@/lib/domain/care";
 import { formatEur } from "@/lib/utils/format-currency";
 import { cn } from "@/lib/utils/cn";
 
@@ -43,6 +43,11 @@ function Planning() {
     () => upcomingDeadlines(data, today),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data.careEvents, data.horses, today],
+  );
+  const agenda = useMemo(
+    () => plannedEvents(data, today),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data.careEvents, today],
   );
   const groups: { title: string; items: Deadline[] }[] = [
     { title: "En retard", items: deadlines.filter((d) => d.status === "overdue") },
@@ -94,7 +99,20 @@ function Planning() {
       </div>
 
       {view === "avenir" ? (
-        groups.length === 0 ? (
+        <>
+          {agenda.length > 0 && (
+            <section>
+              <h2 className="title-serif mb-1 text-[19px] text-primary">L&apos;agenda</h2>
+              <ul>
+                <AnimatePresence initial={false}>
+                  {agenda.slice(0, 8).map((a) => (
+                    <AgendaRow key={a.event.id} p={a} horseName={horseName(a.event.horseId)} />
+                  ))}
+                </AnimatePresence>
+              </ul>
+            </section>
+          )}
+          {groups.length === 0 && agenda.length === 0 ? (
           <div className="card p-5 text-center">
             <p className="text-[15px] font-bold text-primary">Rien à anticiper pour l&apos;instant.</p>
             <p className="mt-1 text-[13px] text-secondary">
@@ -125,7 +143,8 @@ function Planning() {
               </ul>
             </section>
           ))
-        )
+          )}
+        </>
       ) : view === "calendrier" ? (
         <MonthCalendar
           deadlines={deadlines}
@@ -218,9 +237,11 @@ function MonthCalendar({
     dueByDay.set(d.dueDate, [...(dueByDay.get(d.dueDate) ?? []), d]);
   }
   const doneByDay = new Map<string, typeof events>();
+  const plannedByDay = new Map<string, typeof events>();
   for (const e of events) {
     if (!e.date.startsWith(monthKey)) continue;
-    doneByDay.set(e.date, [...(doneByDay.get(e.date) ?? []), e]);
+    const bucket = e.date > today ? plannedByDay : doneByDay;
+    bucket.set(e.date, [...(bucket.get(e.date) ?? []), e]);
   }
 
   const sel = selected?.startsWith(monthKey) ? selected : null;
@@ -270,6 +291,9 @@ function MonthCalendar({
                   {Number(day.slice(8, 10))}
                 </span>
                 <span className="flex h-1.5 items-center gap-0.5">
+                  {(plannedByDay.get(day) ?? []).length > 0 && (
+                    <span className="size-1.5 rounded-full" style={{ background: "var(--ink)" }} />
+                  )}
                   {due.length > 0 && (
                     <span
                       className="size-1.5 rounded-full"
@@ -297,6 +321,15 @@ function MonthCalendar({
               <span className="text-tertiary">à prévoir</span>
             </p>
           ))}
+          {(plannedByDay.get(sel) ?? []).map((e) => (
+            <p key={e.id} className="flex items-center gap-2 border-b border-[var(--border-default)] py-2 text-[13px]">
+              <span className="size-1.5 shrink-0 rounded-full" style={{ background: "var(--ink)" }} />
+              <span className="font-bold text-primary">
+                {CARE_META[e.kind].label} · {horseName(e.horseId)}
+              </span>
+              <span className="text-tertiary">prévu</span>
+            </p>
+          ))}
           {(doneByDay.get(sel) ?? []).map((e) => (
             <p key={e.id} className="flex items-center gap-2 border-b border-[var(--border-default)] py-2 text-[13px]">
               <span className="size-1.5 shrink-0 rounded-full" style={{ background: "var(--accent-secondary)" }} />
@@ -306,7 +339,10 @@ function MonthCalendar({
               <span className="text-tertiary">fait</span>
             </p>
           ))}
-          {(dueByDay.get(sel) ?? []).length + (doneByDay.get(sel) ?? []).length === 0 && (
+          {(dueByDay.get(sel) ?? []).length +
+            (doneByDay.get(sel) ?? []).length +
+            (plannedByDay.get(sel) ?? []).length ===
+            0 && (
             <p className="py-2 text-[13px] text-tertiary">Rien ce jour-là.</p>
           )}
         </div>

@@ -57,6 +57,8 @@ function SoinComposer() {
   const [nextDue, setNextDue] = useState("");
 
   const horse = horses.find((h) => h.id === horseId);
+  const today = new Date().toISOString().slice(0, 10);
+  const isPlanned = date > today;
   const costNum = Number(cost.replace(",", ".")) || 0;
   const canSave = !!horse;
 
@@ -74,7 +76,7 @@ function SoinComposer() {
     useFlashStore.getState().setFlash({
       kind: "care",
       amount: costNum,
-      label: `${CARE_META[kind].label} · ${horse.name}`,
+      label: `${CARE_META[kind].label} · ${horse.name}${isPlanned ? " (prévu)" : ""}`,
     });
     router.push(presetHorse ? `/cheval?id=${horse.id}` : "/planning");
   }
@@ -87,7 +89,7 @@ function SoinComposer() {
 
       <motion.p
         variants={item}
-        className="font-[family-name:var(--font-fraunces)] text-[26px] leading-snug text-primary"
+        className="sticky top-0 z-20 -mx-5 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-fraunces)] text-[24px] leading-snug text-primary backdrop-blur-md"
       >
         <span style={{ color: "var(--text-primary)" }}>{CARE_META[kind].label}</span> pour{" "}
         <span style={{ color: horse ? "var(--text-primary)" : "var(--text-disabled)" }}>
@@ -95,6 +97,11 @@ function SoinComposer() {
         </span>
         {costNum > 0 && (
           <span style={{ color: "var(--accent-primary)" }}> · {cost.replace(".", ",")} €</span>
+        )}
+        {isPlanned && (
+          <span className="text-secondary">
+            , prévu le {date.slice(8, 10)}/{date.slice(5, 7)}
+          </span>
         )}
         .
       </motion.p>

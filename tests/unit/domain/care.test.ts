@@ -4,6 +4,7 @@ import {
   diffDays,
   upcomingDeadlines,
   horseCareLog,
+  plannedEvents,
   type CareEvent,
 } from "@/lib/domain/care";
 
@@ -137,5 +138,28 @@ describe("explicit nextDue (documents, rendez-vous fixés)", () => {
     );
     // Ferrure cadence would say 20/07; the farrier said September.
     expect(dl[0].dueDate).toBe("2026-09-01");
+  });
+});
+
+describe("plannedEvents (l'agenda : cours, concours, rendez-vous)", () => {
+  it("returns today's and future events, nearest first", () => {
+    const agenda = plannedEvents(
+      {
+        careEvents: [
+          ev({ id: "past", date: "2026-07-01" }),
+          ev({ id: "concours", kind: "concours", date: "2026-07-15" }),
+          ev({ id: "cours", kind: "cours_collectif", date: "2026-07-06" }),
+          ev({ id: "today", kind: "veto", date: "2026-07-05" }),
+        ],
+      },
+      "2026-07-05",
+    );
+    expect(agenda.map((a) => a.event.id)).toEqual([
+      "today",
+      "cours",
+      "concours",
+    ]);
+    expect(agenda[0].daysUntil).toBe(0);
+    expect(agenda[2].daysUntil).toBe(10);
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { usePathname } from "next/navigation";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { stablePnl } from "@/lib/domain/calculations";
@@ -20,6 +21,7 @@ import { Horseshoe } from "@/components/ed/atoms";
  * dimmed, with a caption naming the range. Tapping a bar focuses that month.
  */
 export function PeriodStrip() {
+  const pathname = usePathname();
   const data = useDataStore();
   const active = usePeriodStore((s) => s.active);
   const preset = usePeriodStore((s) => s.preset);
@@ -67,6 +69,9 @@ export function PeriodStrip() {
     windowEnd.year,
     windowEnd.month,
   ]);
+
+  // Pendant une saisie ou une recherche, la frise n'aide pas : on l'efface.
+  if (pathname.startsWith("/saisie") || pathname.startsWith("/recherche")) return null;
 
   return (
     <div className="sticky top-0 z-30 border-b border-[var(--border-default)] bg-base/95 backdrop-blur-md">
