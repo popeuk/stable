@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
-import { ChevronRight, ChevronDown, AlertTriangle, ArrowUpRight, TrendingUp, TrendingDown, Settings } from "lucide-react";
+import { ChevronRight, ChevronDown, AlertTriangle, ArrowUpRight, TrendingUp, TrendingDown, Settings, Search } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { KeyNumber } from "@/components/ui/key-number";
 import { Sparkline } from "@/components/ui/sparkline";
@@ -142,9 +142,14 @@ function Maintenant() {
             <p className="text-[13px] font-semibold text-secondary">
               {greeting()} · <span className="capitalize">{formatLongDate(new Date())}</span>
             </p>
-            <Link href="/parametres" aria-label="Réglages" className="p-1 text-tertiary">
-              <Settings size={17} strokeWidth={1.7} />
-            </Link>
+            <span className="flex items-center gap-1">
+              <Link href="/recherche" aria-label="Rechercher" className="p-1 text-tertiary">
+                <Search size={17} strokeWidth={1.7} />
+              </Link>
+              <Link href="/parametres" aria-label="Réglages" className="p-1 text-tertiary">
+                <Settings size={17} strokeWidth={1.7} />
+              </Link>
+            </span>
           </div>
 
           <div className="mt-5 flex items-baseline gap-3">
@@ -349,6 +354,21 @@ function Maintenant() {
       <motion.div variants={item}>
         <InsightsCarousel />
       </motion.div>
+
+      {/* Les analyses : les mêmes données sous d'autres angles */}
+      <motion.section variants={item}>
+        <SectionHead title="Analyses" />
+        <div className="grid grid-cols-2 gap-2">
+          <Link href="/audit" className="card p-3.5">
+            <p className="text-[14px] font-bold text-primary">Audit du mois</p>
+            <p className="text-[12px] text-tertiary">Le bilan en 5 cartes</p>
+          </Link>
+          <Link href="/scenarios/nouveau" className="card p-3.5">
+            <p className="text-[14px] font-bold text-primary">Scénarios</p>
+            <p className="text-[12px] text-tertiary">Et si… en direct</p>
+          </Link>
+        </div>
+      </motion.section>
         </>
       )}
 

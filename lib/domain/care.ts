@@ -33,6 +33,11 @@ export interface CareEvent {
   cost?: number;
   /** L'identifiant de la dépense liée : le graphe, pas des silos. */
   expenseId?: string;
+  /**
+   * Échéance explicite fixée à la saisie (renouvellement d'un document,
+   * prochain rendez-vous donné par le véto…). Prioritaire sur la cadence.
+   */
+  nextDue?: ISODate | null;
   note?: string;
 }
 
@@ -106,19 +111,21 @@ export function upcomingDeadlines(
     if (horse.isArchived) continue;
     for (const kind of CARE_KINDS) {
       const cadence = CARE_META[kind].cadenceDays;
-      if (!cadence) continue;
-      let last: ISODate | null = null;
+      // Le dernier acte de ce type pour ce cheval.
+      let last: CareEvent | null = null;
       for (const e of events) {
         if (e.horseId !== horse.id || e.kind !== kind) continue;
-        if (last === null || e.date > last) last = e.date;
+        if (last === null || e.date > last.date) last = e;
       }
       if (!last) continue;
-      const dueDate = addDays(last, cadence);
+      // L'échéance explicite du dernier acte prime ; sinon la cadence.
+      const dueDate = last.nextDue ?? (cadence ? addDays(last.date, cadence) : null);
+      if (!dueDate) continue;
       const daysLeft = diffDays(today, dueDate);
       out.push({
         horseId: horse.id,
         kind,
-        lastDate: last,
+        lastDate: last.date,
         dueDate,
         daysLeft,
         status: daysLeft < 0 ? "overdue" : daysLeft <= SOON_DAYS ? "soon" : "ok",

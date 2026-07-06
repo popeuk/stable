@@ -54,6 +54,7 @@ function SoinComposer() {
   const [provider, setProvider] = useState("");
   const [cost, setCost] = useState("");
   const [label, setLabel] = useState("");
+  const [nextDue, setNextDue] = useState("");
 
   const horse = horses.find((h) => h.id === horseId);
   const costNum = Number(cost.replace(",", ".")) || 0;
@@ -68,6 +69,7 @@ function SoinComposer() {
       provider: provider.trim() || undefined,
       label: label.trim() || undefined,
       cost: costNum > 0 ? costNum : undefined,
+      nextDue: nextDue || undefined,
     });
     useFlashStore.getState().setFlash({
       kind: "care",
@@ -209,6 +211,22 @@ function SoinComposer() {
             className="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3 text-sm text-primary outline-none"
           />
         </div>
+      </motion.div>
+
+      <motion.div variants={item}>
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
+          Échéance suivante (optionnel)
+        </p>
+        <input
+          type="date"
+          value={nextDue}
+          onChange={(e) => setNextDue(e.target.value)}
+          className="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3 text-sm text-primary outline-none"
+        />
+        <p className="mt-1.5 text-[12px] text-tertiary">
+          Renouvellement d&apos;un document, prochain rendez-vous fixé… Elle prime sur la cadence
+          automatique.
+        </p>
       </motion.div>
 
       {costNum > 0 && (

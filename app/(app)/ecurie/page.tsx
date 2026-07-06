@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ChevronRight, LayoutList, Orbit, Plus } from "lucide-react";
+import { ChevronRight, LayoutList, Orbit, Plus, UsersRound } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { HorseGalaxy } from "@/components/horse/horse-galaxy";
 import { Explain } from "@/components/ed/explain";
@@ -56,6 +56,13 @@ function Ecurie() {
           </Explain>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href="/contacts"
+            aria-label="Contacts"
+            className="flex items-center rounded-full border border-[var(--border-strong)] p-1.5 text-primary"
+          >
+            <UsersRound size={15} />
+          </Link>
           <button
             onClick={() => setGalaxy((g) => !g)}
             className="flex items-center gap-1.5 rounded-full border border-[var(--border-strong)] px-2.5 py-1.5 text-[12px] font-bold"

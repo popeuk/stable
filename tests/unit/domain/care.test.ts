@@ -110,3 +110,32 @@ describe("horseCareLog", () => {
     expect(log.map((e) => e.id)).toEqual(["b", "a"]);
   });
 });
+
+describe("explicit nextDue (documents, rendez-vous fixés)", () => {
+  it("a document renewal creates a deadline from its explicit date", () => {
+    const dl = upcomingDeadlines(
+      {
+        horses: HORSES,
+        careEvents: [
+          ev({ kind: "document", label: "Assurance", date: "2026-01-10", nextDue: "2026-07-10" }),
+        ],
+      },
+      "2026-07-05",
+    );
+    expect(dl).toHaveLength(1);
+    expect(dl[0].dueDate).toBe("2026-07-10");
+    expect(dl[0].status).toBe("soon");
+  });
+
+  it("an explicit date on the latest act overrides the cadence", () => {
+    const dl = upcomingDeadlines(
+      {
+        horses: HORSES,
+        careEvents: [ev({ date: "2026-06-01", nextDue: "2026-09-01" })],
+      },
+      "2026-07-05",
+    );
+    // Ferrure cadence would say 20/07; the farrier said September.
+    expect(dl[0].dueDate).toBe("2026-09-01");
+  });
+});

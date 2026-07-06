@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { CareIcon, DeadlineRow } from "@/components/ed/care-bits";
 import { useDataStore } from "@/stores/data-store";
@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils/cn";
  * ferrures, vermifuges…) se calculent toutes seules à partir du carnet ;
  * « Fait ✓ » replanifie la suivante. L'onglet Carnet garde toute l'histoire.
  */
-type View = "avenir" | "carnet";
+type View = "avenir" | "calendrier" | "carnet";
 
 function shortDate(iso: string) {
   return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
@@ -71,10 +71,11 @@ function Planning() {
       </header>
 
       {/* Vue */}
-      <div className="grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
+      <div className="grid grid-cols-3 overflow-hidden rounded-full border border-[var(--border-strong)]">
         {(
           [
             { v: "avenir", l: "À prévoir" },
+            { v: "calendrier", l: "Calendrier" },
             { v: "carnet", l: "Le carnet" },
           ] as { v: View; l: string }[]
         ).map((o) => (
@@ -125,6 +126,13 @@ function Planning() {
             </section>
           ))
         )
+      ) : view === "calendrier" ? (
+        <MonthCalendar
+          deadlines={deadlines}
+          events={data.careEvents ?? []}
+          horseName={horseName}
+          today={today}
+        />
       ) : log.length === 0 ? (
         <p className="py-10 text-center text-sm text-tertiary">
           Le carnet est vide. Chaque soin noté s&apos;inscrit ici, pour toute l&apos;écurie.
@@ -172,6 +180,136 @@ function Planning() {
             </motion.li>
           ))}
         </ul>
+      )}
+    </div>
+  );
+}
+
+/** La grille du mois : échéances (points cognac/rouge) et actes passés (sauge). */
+function MonthCalendar({
+  deadlines,
+  events,
+  horseName,
+  today,
+}: {
+  deadlines: Deadline[];
+  events: { id: string; date: string; kind: import("@/lib/domain/care").CareKind; horseId: string }[];
+  horseName: (id: string) => string;
+  today: string;
+}) {
+  const [offset, setOffset] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const base = new Date(today + "T00:00:00Z");
+  const first = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + offset, 1));
+  const monthKey = first.toISOString().slice(0, 7);
+  const title = first.toLocaleDateString("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" });
+  // Lundi = 0.
+  const lead = (first.getUTCDay() + 6) % 7;
+  const daysInMonth = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+  const cells: (string | null)[] = [
+    ...Array.from({ length: lead }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => `${monthKey}-${String(i + 1).padStart(2, "0")}`),
+  ];
+
+  const dueByDay = new Map<string, Deadline[]>();
+  for (const d of deadlines) {
+    if (!d.dueDate.startsWith(monthKey)) continue;
+    dueByDay.set(d.dueDate, [...(dueByDay.get(d.dueDate) ?? []), d]);
+  }
+  const doneByDay = new Map<string, typeof events>();
+  for (const e of events) {
+    if (!e.date.startsWith(monthKey)) continue;
+    doneByDay.set(e.date, [...(doneByDay.get(e.date) ?? []), e]);
+  }
+
+  const sel = selected?.startsWith(monthKey) ? selected : null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <button onClick={() => setOffset((o) => o - 1)} aria-label="Mois précédent" className="p-2 text-tertiary">
+          <ChevronLeft size={18} />
+        </button>
+        <p className="title-serif text-[19px] capitalize text-primary">{title}</p>
+        <button onClick={() => setOffset((o) => o + 1)} aria-label="Mois suivant" className="p-2 text-tertiary">
+          <ChevronRight size={18} />
+        </button>
+      </div>
+
+      <div className="card p-3">
+        <div className="mb-1 grid grid-cols-7 text-center text-[10px] font-bold uppercase text-tertiary">
+          {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
+            <span key={i}>{d}</span>
+          ))}
+        </div>
+        <div className="grid grid-cols-7">
+          {cells.map((day, i) => {
+            if (!day) return <span key={`pad-${i}`} />;
+            const due = dueByDay.get(day) ?? [];
+            const done = doneByDay.get(day) ?? [];
+            const isToday = day === today;
+            const overdue = due.some((d) => d.status === "overdue");
+            return (
+              <button
+                key={day}
+                onClick={() => setSelected(day === sel ? null : day)}
+                className="flex flex-col items-center gap-0.5 rounded-[10px] py-1.5"
+                style={{
+                  background: sel === day ? "var(--bg-pressed)" : "transparent",
+                }}
+              >
+                <span
+                  className="flex size-6 items-center justify-center rounded-full text-[12px] tabular-nums"
+                  style={{
+                    background: isToday ? "var(--ink)" : "transparent",
+                    color: isToday ? "var(--on-ink)" : "var(--text-primary)",
+                    fontWeight: isToday ? 700 : 500,
+                  }}
+                >
+                  {Number(day.slice(8, 10))}
+                </span>
+                <span className="flex h-1.5 items-center gap-0.5">
+                  {due.length > 0 && (
+                    <span
+                      className="size-1.5 rounded-full"
+                      style={{ background: overdue ? "var(--c-danger)" : "var(--accent-primary)" }}
+                    />
+                  )}
+                  {done.length > 0 && (
+                    <span className="size-1.5 rounded-full" style={{ background: "var(--accent-secondary)" }} />
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {sel && (
+        <div>
+          {(dueByDay.get(sel) ?? []).map((d) => (
+            <p key={`${d.horseId}-${d.kind}`} className="flex items-center gap-2 border-b border-[var(--border-default)] py-2 text-[13px]">
+              <span className="size-1.5 shrink-0 rounded-full" style={{ background: d.status === "overdue" ? "var(--c-danger)" : "var(--accent-primary)" }} />
+              <span className="font-bold text-primary">
+                {CARE_META[d.kind].label} · {horseName(d.horseId)}
+              </span>
+              <span className="text-tertiary">à prévoir</span>
+            </p>
+          ))}
+          {(doneByDay.get(sel) ?? []).map((e) => (
+            <p key={e.id} className="flex items-center gap-2 border-b border-[var(--border-default)] py-2 text-[13px]">
+              <span className="size-1.5 shrink-0 rounded-full" style={{ background: "var(--accent-secondary)" }} />
+              <span className="font-bold text-primary">
+                {CARE_META[e.kind].label} · {horseName(e.horseId)}
+              </span>
+              <span className="text-tertiary">fait</span>
+            </p>
+          ))}
+          {(dueByDay.get(sel) ?? []).length + (doneByDay.get(sel) ?? []).length === 0 && (
+            <p className="py-2 text-[13px] text-tertiary">Rien ce jour-là.</p>
+          )}
+        </div>
       )}
     </div>
   );
