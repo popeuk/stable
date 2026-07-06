@@ -12,6 +12,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import { CARE_KINDS, CARE_META, type CareKind } from "@/lib/domain/care";
 import { cn } from "@/lib/utils/cn";
+import { localToday } from "@/lib/utils/local-date";
 
 /**
  * Noter un acte du carnet : « Ferrure pour Belle, 90 €, par M. Roche. »
@@ -50,14 +51,14 @@ function SoinComposer() {
     presetHorse && horses.some((h) => h.id === presetHorse) ? presetHorse : null,
   );
   const [kind, setKind] = useState<CareKind>("ferrure");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(localToday());
   const [provider, setProvider] = useState("");
   const [cost, setCost] = useState("");
   const [label, setLabel] = useState("");
   const [nextDue, setNextDue] = useState("");
 
   const horse = horses.find((h) => h.id === horseId);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localToday();
   const isPlanned = date > today;
   const costNum = Number(cost.replace(",", ".")) || 0;
   const canSave = !!horse;
@@ -89,7 +90,8 @@ function SoinComposer() {
 
       <motion.p
         variants={item}
-        className="sticky top-0 z-20 -mx-5 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-fraunces)] text-[24px] leading-snug text-primary backdrop-blur-md"
+        className="sticky z-20 -mx-5 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-fraunces)] text-[24px] leading-snug text-primary backdrop-blur-md"
+        style={{ top: "env(safe-area-inset-top)" }}
       >
         <span style={{ color: "var(--text-primary)" }}>{CARE_META[kind].label}</span> pour{" "}
         <span style={{ color: horse ? "var(--text-primary)" : "var(--text-disabled)" }}>
@@ -100,7 +102,7 @@ function SoinComposer() {
         )}
         {isPlanned && (
           <span className="text-secondary">
-            , prévu le {date.slice(8, 10)}/{date.slice(5, 7)}
+            , pour le {date.slice(8, 10)}/{date.slice(5, 7)}
           </span>
         )}
         .

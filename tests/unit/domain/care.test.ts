@@ -142,24 +142,53 @@ describe("explicit nextDue (documents, rendez-vous fixés)", () => {
 });
 
 describe("plannedEvents (l'agenda : cours, concours, rendez-vous)", () => {
-  it("returns today's and future events, nearest first", () => {
+  it("returns strictly future events, nearest first (today = fait)", () => {
     const agenda = plannedEvents(
       {
+        horses: HORSES,
         careEvents: [
           ev({ id: "past", date: "2026-07-01" }),
           ev({ id: "concours", kind: "concours", date: "2026-07-15" }),
           ev({ id: "cours", kind: "cours_collectif", date: "2026-07-06" }),
           ev({ id: "today", kind: "veto", date: "2026-07-05" }),
+          ev({ id: "ghost", horseId: "arch", kind: "concours", date: "2026-07-20" }),
         ],
       },
       "2026-07-05",
     );
-    expect(agenda.map((a) => a.event.id)).toEqual([
-      "today",
-      "cours",
-      "concours",
-    ]);
-    expect(agenda[0].daysUntil).toBe(0);
-    expect(agenda[2].daysUntil).toBe(10);
+    // Ni l'acte du jour (fait), ni le cheval archivé.
+    expect(agenda.map((a) => a.event.id)).toEqual(["cours", "concours"]);
+    expect(agenda[0].daysUntil).toBe(1);
+    expect(agenda[1].daysUntil).toBe(10);
+  });
+});
+
+describe("un rendez-vous pris ne solde pas l'échéance", () => {
+  it("keeps the overdue deadline and flags the planned date", () => {
+    const dl = upcomingDeadlines(
+      {
+        horses: HORSES,
+        careEvents: [
+          // Vaccin fait il y a 13 mois : en retard.
+          ev({ id: "done", kind: "vaccin", date: "2025-06-01" }),
+          // RDV véto pris pour dans 15 jours : ne doit PAS replanifier.
+          ev({ id: "rdv", kind: "vaccin", date: "2026-07-20" }),
+        ],
+      },
+      "2026-07-05",
+    );
+    const vaccin = dl.find((d) => d.kind === "vaccin")!;
+    expect(vaccin.status).toBe("overdue");
+    expect(vaccin.lastDate).toBe("2025-06-01");
+    expect(vaccin.plannedFor).toBe("2026-07-20");
+  });
+
+  it("history views cut the future off", () => {
+    const log = horseCareLog(
+      { careEvents: [ev({ id: "past", date: "2026-07-01" }), ev({ id: "future", date: "2026-08-01" })] },
+      "h1",
+      "2026-07-05",
+    );
+    expect(log.map((e) => e.id)).toEqual(["past"]);
   });
 });

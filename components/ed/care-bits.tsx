@@ -20,6 +20,7 @@ import {
 import { Horseshoe } from "@/components/ed/atoms";
 import { CARE_META, type CareKind, type Deadline, type PlannedEvent } from "@/lib/domain/care";
 import { useDataStore } from "@/stores/data-store";
+import { localToday } from "@/lib/utils/local-date";
 
 export function CareIcon({ kind, size = 15 }: { kind: CareKind; size?: number }) {
   const common = { size, strokeWidth: 1.8 };
@@ -52,9 +53,9 @@ export function CareIcon({ kind, size = 15 }: { kind: CareKind; size?: number })
 }
 
 export function deadlinePhrase(d: Deadline): string {
-  if (d.daysLeft < 0)
-    return `en retard de ${Math.abs(d.daysLeft)} j`;
+  if (d.daysLeft < 0) return `en retard de ${Math.abs(d.daysLeft)} j`;
   if (d.daysLeft === 0) return "aujourd'hui";
+  if (d.daysLeft === 1) return "demain";
   return `dans ${d.daysLeft} j`;
 }
 
@@ -97,11 +98,16 @@ export function DeadlineRow({
         </p>
         <p className="text-[12px] font-semibold" style={{ color }}>
           {deadlinePhrase(d)}
+          {d.plannedFor && (
+            <span className="font-semibold text-secondary">
+              {" "}· RDV le {d.plannedFor.slice(8, 10)}/{d.plannedFor.slice(5, 7)}
+            </span>
+          )}
         </p>
       </Link>
       <button
         onClick={() =>
-          logCare({ horseId: d.horseId, kind: d.kind, date: new Date().toISOString().slice(0, 10) })
+          logCare({ horseId: d.horseId, kind: d.kind, date: localToday() })
         }
         className="btn-ghost flex shrink-0 items-center gap-1 px-3 py-1.5 text-[12px]"
       >
@@ -112,7 +118,6 @@ export function DeadlineRow({
 }
 
 export function agendaPhrase(daysUntil: number): string {
-  if (daysUntil === 0) return "aujourd'hui";
   if (daysUntil === 1) return "demain";
   return `dans ${daysUntil} j`;
 }

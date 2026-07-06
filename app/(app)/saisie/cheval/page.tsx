@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Check, ChevronLeft } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { useDataStore } from "@/stores/data-store";
+import { localToday } from "@/lib/utils/local-date";
 
 export default function SaisieChevalPage() {
   return (
@@ -31,7 +32,7 @@ function SaisieCheval() {
   const [breed, setBreed] = useState(editing?.breed ?? "");
   const [ownerName, setOwnerName] = useState(editing?.ownerName ?? "");
   const [entryDate, setEntryDate] = useState(
-    editing?.entryDate ?? new Date().toISOString().slice(0, 10),
+    editing?.entryDate ?? localToday(),
   );
 
   function save() {

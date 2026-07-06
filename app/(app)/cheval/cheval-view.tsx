@@ -9,13 +9,14 @@ import { Sparkline } from "@/components/ui/sparkline";
 import { Explain } from "@/components/ed/explain";
 import { CopiloteNote } from "@/components/ed/copilote";
 import { HorseLine, Tag } from "@/components/ed/atoms";
-import { CareIcon, DeadlineRow } from "@/components/ed/care-bits";
-import { upcomingDeadlines, horseCareLog, CARE_META } from "@/lib/domain/care";
+import { CareIcon, DeadlineRow, AgendaRow } from "@/components/ed/care-bits";
+import { upcomingDeadlines, plannedEvents, horseCareLog, CARE_META } from "@/lib/domain/care";
 import { useHorses } from "@/lib/hooks/use-horses";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { formatEur } from "@/lib/utils/format-currency";
 import { dateInPeriod } from "@/lib/utils/period";
+import { localToday } from "@/lib/utils/local-date";
 
 function eur(n: number) {
   const v = new Intl.NumberFormat("fr-FR").format(Math.round(Math.abs(n)));
@@ -85,9 +86,10 @@ function Cheval({ id }: { id: string }) {
     .map((s) => ({ label: s.label, amount: s.allocations.find((a) => a.horseId === horse.id)?.allocatedAmount ?? 0 }))
     .filter((x) => x.amount > 0);
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = localToday();
   const horseDeadlines = upcomingDeadlines(data, todayIso).filter((d) => d.horseId === horse.id);
-  const careLog = horseCareLog(data, horse.id).slice(0, 6);
+  const horseAgenda = plannedEvents(data, todayIso).filter((a) => a.event.horseId === horse.id);
+  const careLog = horseCareLog(data, horse.id, todayIso).slice(0, 6);
 
   const trendIcon =
     trend === "hausse" ? <TrendingUp size={15} /> : trend === "baisse" ? <TrendingDown size={15} /> : <Minus size={15} />;
@@ -212,16 +214,19 @@ function Cheval({ id }: { id: string }) {
       </CopiloteNote>
 
       {/* Sa santé, anticipée : les échéances de CE cheval */}
-      {horseDeadlines.length > 0 && (
+      {(horseDeadlines.length > 0 || horseAgenda.length > 0) && (
         <div>
           <div className="mb-1 flex items-baseline justify-between">
-            <h2 className="title-serif text-[19px] text-primary">À prévoir pour {horse.name}</h2>
+            <h2 className="title-serif text-[19px] text-primary">À venir pour {horse.name}</h2>
             <Link href={`/saisie/soin?horse=${horse.id}`} className="text-[12px] font-semibold text-tertiary">
               + Noter un soin
             </Link>
           </div>
           <ul>
             <AnimatePresence initial={false}>
+              {horseAgenda.map((a) => (
+                <AgendaRow key={a.event.id} p={a} horseName={horse.name} showHorse={false} />
+              ))}
               {horseDeadlines.map((d) => (
                 <DeadlineRow key={d.kind} d={d} horseName={horse.name} showHorse={false} />
               ))}

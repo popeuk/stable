@@ -67,13 +67,15 @@ export const CARE_KINDS = Object.keys(CARE_META) as CareKind[];
 export interface Deadline {
   horseId: string;
   kind: CareKind;
-  /** Le dernier acte connu de ce type. */
+  /** Le dernier acte FAIT de ce type (les rendez-vous futurs ne comptent pas). */
   lastDate: ISODate;
   /** L'échéance calculée : dernier acte + cadence. */
   dueDate: ISODate;
   /** Jours restants (négatif = en retard). */
   daysLeft: number;
   status: "overdue" | "soon" | "ok";
+  /** Un rendez-vous est déjà pris pour ce type : sa date. */
+  plannedFor?: ISODate;
 }
 
 export function addDays(iso: ISODate, days: number): ISODate {
@@ -115,10 +117,16 @@ export function upcomingDeadlines(
     if (horse.isArchived) continue;
     for (const kind of CARE_KINDS) {
       const cadence = CARE_META[kind].cadenceDays;
-      // Le dernier acte de ce type pour ce cheval.
+      // Le dernier acte FAIT (date passée ou aujourd'hui) : un rendez-vous
+      // planifié ne solde jamais une échéance — il est signalé à part.
       let last: CareEvent | null = null;
+      let planned: ISODate | undefined;
       for (const e of events) {
         if (e.horseId !== horse.id || e.kind !== kind) continue;
+        if (e.date > today) {
+          if (!planned || e.date < planned) planned = e.date;
+          continue;
+        }
         if (last === null || e.date > last.date) last = e;
       }
       if (!last) continue;
@@ -133,6 +141,7 @@ export function upcomingDeadlines(
         dueDate,
         daysLeft,
         status: daysLeft < 0 ? "overdue" : daysLeft <= SOON_DAYS ? "soon" : "ok",
+        plannedFor: planned,
       });
     }
   }
@@ -140,9 +149,9 @@ export function upcomingDeadlines(
 }
 
 /**
- * L'agenda : tout événement daté aujourd'hui ou plus tard est un
- * rendez-vous à venir (concours, cours, visite véto programmée…).
- * Trié du plus proche au plus lointain.
+ * L'agenda : tout événement daté STRICTEMENT après aujourd'hui est un
+ * rendez-vous à venir (concours, cours, visite programmée…). Un événement
+ * daté d'aujourd'hui est un acte fait. Chevaux archivés exclus.
  */
 export interface PlannedEvent {
   event: CareEvent;
@@ -150,21 +159,23 @@ export interface PlannedEvent {
 }
 
 export function plannedEvents(
-  data: { careEvents?: CareEvent[] },
+  data: { horses: { id: string; isArchived: boolean }[]; careEvents?: CareEvent[] },
   today: ISODate,
 ): PlannedEvent[] {
+  const active = new Set(data.horses.filter((h) => !h.isArchived).map((h) => h.id));
   return (data.careEvents ?? [])
-    .filter((e) => e.date >= today)
+    .filter((e) => e.date > today && active.has(e.horseId))
     .map((e) => ({ event: e, daysUntil: diffDays(today, e.date) }))
     .sort((a, b) => a.daysUntil - b.daysUntil);
 }
 
-/** Le carnet d'un cheval, du plus récent au plus ancien. */
+/** Le carnet d'un cheval (l'HISTORIQUE : jamais le futur), du plus récent au plus ancien. */
 export function horseCareLog(
   data: { careEvents?: CareEvent[] },
   horseId: string,
+  today?: ISODate,
 ): CareEvent[] {
   return (data.careEvents ?? [])
-    .filter((e) => e.horseId === horseId)
+    .filter((e) => e.horseId === horseId && (!today || e.date <= today))
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 }

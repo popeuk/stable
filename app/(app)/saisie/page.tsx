@@ -11,6 +11,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import type { Frequency } from "@/lib/domain/types";
 import { cn } from "@/lib/utils/cn";
+import { localToday } from "@/lib/utils/local-date";
 
 /**
  * Le composeur : la saisie n'est pas un formulaire, c'est une phrase.
@@ -66,7 +67,7 @@ function Composer() {
   );
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
   const [rythme, setRythme] = useState<Rythme>(kind === "revenu" ? "monthly" : "once");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(localToday());
 
   const cats = useMemo(
     () =>
@@ -191,8 +192,8 @@ function Composer() {
       {/* La phrase */}
       <motion.p
         variants={item}
-        layout
-        className="sticky top-0 z-20 -mx-5 mt-4 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-fraunces)] text-[24px] leading-snug text-primary backdrop-blur-md"
+        className="sticky z-20 -mx-5 mt-4 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-fraunces)] text-[24px] leading-snug text-primary backdrop-blur-md"
+        style={{ top: "env(safe-area-inset-top)" }}
       >
         {kind === "revenu" ? (
           <>
@@ -330,6 +331,11 @@ function Composer() {
       >
         <Check size={18} /> C&apos;est noté
       </motion.button>
+      {!canSave && amount > 0 && horse && !cat && (
+        <p className="mt-2 text-center text-[12px] font-semibold text-[var(--c-warning)]">
+          Choisis une catégorie pour enregistrer.
+        </p>
+      )}
     </motion.div>
   );
 }

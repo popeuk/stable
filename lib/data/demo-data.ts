@@ -228,7 +228,7 @@ export function buildDemoData(now = new Date()): StableData {
   care(1, "osteo", 90, { provider: "C. Bonnet" });
   care(1, "veto", 12, { label: "Boiterie légère, repos 1 semaine" });
   care(2, "entrainement", 3, { label: "Séance de plat, bon travail" });
-  // L'agenda : ce qui arrive (dates négatives = jours dans le futur).
+  // L'agenda : ce qui arrive (daysAgo négatif = jours dans le futur).
   care(0, "concours", -9, { label: "CSO Amateur 2, Deauville" });
   care(6, "cours_collectif", -3, { label: "Cours poneys, 17 h" });
   care(1, "veto", -2, { provider: "Dr Lavigne", label: "Contrôle boiterie" });

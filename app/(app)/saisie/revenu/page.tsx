@@ -10,6 +10,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import type { Frequency } from "@/lib/domain/types";
 import { cn } from "@/lib/utils/cn";
+import { localToday } from "@/lib/utils/local-date";
 import { formatEur } from "@/lib/utils/format-currency";
 
 const FREQS: { v: Frequency; l: string }[] = [
@@ -42,7 +43,7 @@ function SaisieRevenu() {
   );
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState(data.revenueCategories[0]?.id);
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(localToday());
   const [recurring, setRecurring] = useState(false);
   const [frequency, setFrequency] = useState<Frequency>("monthly");
   const [hasEnd, setHasEnd] = useState(false);

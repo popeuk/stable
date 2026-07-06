@@ -32,6 +32,7 @@ import { LESSONS } from "@/content/lessons";
 import { RANGE_PRESETS, rangePeriods } from "@/lib/utils/period";
 import { formatLongDate } from "@/lib/utils/format-date";
 import { formatEur } from "@/lib/utils/format-currency";
+import { localToday } from "@/lib/utils/local-date";
 
 function eur(n: number) {
   const v = new Intl.NumberFormat("fr-FR").format(Math.round(Math.abs(n)));
@@ -98,7 +99,7 @@ function Maintenant() {
   const worst = ranked[ranked.length - 1];
   const underThreshold = ranked.filter((r) => r.net < 0);
   const declining = allHorses.filter((h) => h.trend === "baisse");
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = localToday();
   const urgent = upcomingDeadlines(data, todayIso).filter((d) => d.status !== "ok").slice(0, 3);
   const agendaSoon = plannedEvents(data, todayIso).filter((a) => a.daysUntil <= 7).slice(0, 3);
   const horseNameOf = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "";
@@ -214,11 +215,11 @@ function Maintenant() {
         </div>
       </motion.section>
 
-      {/* À prévoir : les échéances anticipées, façon Flighty */}
+      {/* À venir : rendez-vous pris et échéances anticipées */}
       {(urgent.length > 0 || agendaSoon.length > 0) && (
         <motion.section variants={item} className="-mt-2">
           <div className="mb-1 flex items-baseline justify-between">
-            <h2 className="title-serif text-[20px] text-primary">À prévoir</h2>
+            <h2 className="title-serif text-[20px] text-primary">À venir</h2>
             <Link href="/planning" className="text-[12px] font-semibold text-tertiary">
               Tout le planning ›
             </Link>

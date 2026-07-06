@@ -10,6 +10,7 @@ import { useDataStore } from "@/stores/data-store";
 import { upcomingDeadlines, plannedEvents, CARE_META, type Deadline } from "@/lib/domain/care";
 import { formatEur } from "@/lib/utils/format-currency";
 import { cn } from "@/lib/utils/cn";
+import { localToday } from "@/lib/utils/local-date";
 
 /**
  * Le Planning : le temps de l'écurie, anticipé. Les échéances (vaccins,
@@ -34,7 +35,7 @@ function Planning() {
   const data = useDataStore();
   const deleteCareEvent = useDataStore((s) => s.deleteCareEvent);
   const [view, setView] = useState<View>("avenir");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localToday();
 
   const horseName = (id: string) =>
     data.horses.find((h) => h.id === id)?.name ?? "cheval retiré";
@@ -57,10 +58,11 @@ function Planning() {
 
   const log = useMemo(
     () =>
-      [...(data.careEvents ?? [])]
+      (data.careEvents ?? [])
+        .filter((e) => e.date <= today)
         .sort((a, b) => (a.date < b.date ? 1 : -1))
         .slice(0, 40),
-    [data.careEvents],
+    [data.careEvents, today],
   );
 
   return (
@@ -79,7 +81,7 @@ function Planning() {
       <div className="grid grid-cols-3 overflow-hidden rounded-full border border-[var(--border-strong)]">
         {(
           [
-            { v: "avenir", l: "À prévoir" },
+            { v: "avenir", l: "À venir" },
             { v: "calendrier", l: "Calendrier" },
             { v: "carnet", l: "Le carnet" },
           ] as { v: View; l: string }[]
@@ -318,7 +320,7 @@ function MonthCalendar({
               <span className="font-bold text-primary">
                 {CARE_META[d.kind].label} · {horseName(d.horseId)}
               </span>
-              <span className="text-tertiary">à prévoir</span>
+              <span className="text-tertiary">échéance</span>
             </p>
           ))}
           {(plannedByDay.get(sel) ?? []).map((e) => (

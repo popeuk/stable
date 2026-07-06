@@ -9,6 +9,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import type { DistributionMode, Frequency } from "@/lib/domain/types";
 import { cn } from "@/lib/utils/cn";
+import { localToday } from "@/lib/utils/local-date";
 import { formatEur } from "@/lib/utils/format-currency";
 
 export default function SaisieRecurrentePage() {
@@ -39,7 +40,7 @@ function SaisieRecurrente() {
   const [categoryId, setCategoryId] = useState(cats[0]?.id);
   const [frequency, setFrequency] = useState<Frequency>("monthly");
   const [mode, setMode] = useState<DistributionMode>("equal");
-  const [start, setStart] = useState(new Date().toISOString().slice(0, 10));
+  const [start, setStart] = useState(localToday());
   const [hasEnd, setHasEnd] = useState(false);
   const [end, setEnd] = useState("");
 
