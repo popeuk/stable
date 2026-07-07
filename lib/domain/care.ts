@@ -35,6 +35,18 @@ export interface CareEvent {
   cost?: number;
   /** L'identifiant de la dépense liée : le graphe, pas des silos. */
   expenseId?: string;
+  /** Recette par cheval (un cours, un gain) : crée le revenu lié à la confirmation. */
+  revenue?: number;
+  /** L'identifiant du revenu lié. */
+  revenueId?: string;
+  /** Les actes créés ensemble (cours collectif…) partagent un groupe. */
+  groupId?: string;
+  /**
+   * En attente de confirmation : planifié, pas encore réalisé. C'est la
+   * confirmation (présence) qui bascule l'acte au carnet et attribue
+   * l'argent. Absent/undefined = acte fait.
+   */
+  pending?: boolean;
   /**
    * Échéance explicite fixée à la saisie (renouvellement d'un document,
    * prochain rendez-vous donné par le véto…). Prioritaire sur la cadence.
@@ -123,7 +135,7 @@ export function upcomingDeadlines(
       let planned: ISODate | undefined;
       for (const e of events) {
         if (e.horseId !== horse.id || e.kind !== kind) continue;
-        if (e.date > today) {
+        if (e.pending || e.date > today) {
           if (!planned || e.date < planned) planned = e.date;
           continue;
         }
@@ -149,9 +161,9 @@ export function upcomingDeadlines(
 }
 
 /**
- * L'agenda : tout événement daté STRICTEMENT après aujourd'hui est un
- * rendez-vous à venir (concours, cours, visite programmée…). Un événement
- * daté d'aujourd'hui est un acte fait. Chevaux archivés exclus.
+ * L'agenda : tout acte EN ATTENTE de confirmation (rendez-vous, cours,
+ * concours), y compris ceux dont la date est passée sans confirmation.
+ * Chevaux archivés exclus. Trié du plus proche au plus lointain.
  */
 export interface PlannedEvent {
   event: CareEvent;
@@ -164,9 +176,47 @@ export function plannedEvents(
 ): PlannedEvent[] {
   const active = new Set(data.horses.filter((h) => !h.isArchived).map((h) => h.id));
   return (data.careEvents ?? [])
-    .filter((e) => e.date > today && active.has(e.horseId))
+    .filter((e) => (e.pending || e.date > today) && active.has(e.horseId))
     .map((e) => ({ event: e, daysUntil: diffDays(today, e.date) }))
     .sort((a, b) => a.daysUntil - b.daysUntil);
+}
+
+/**
+ * Les séances de l'agenda : les actes en attente regroupés (un cours
+ * collectif = plusieurs chevaux, une seule ligne, une seule confirmation).
+ */
+export interface Session {
+  key: string;
+  kind: CareKind;
+  date: ISODate;
+  daysUntil: number;
+  label?: string;
+  provider?: string;
+  events: CareEvent[];
+}
+
+export function agendaSessions(
+  data: { horses: { id: string; isArchived: boolean }[]; careEvents?: CareEvent[] },
+  today: ISODate,
+): Session[] {
+  const map = new Map<string, Session>();
+  for (const p of plannedEvents(data, today)) {
+    const e = p.event;
+    const key = e.groupId ?? e.id;
+    const existing = map.get(key);
+    if (existing) existing.events.push(e);
+    else
+      map.set(key, {
+        key,
+        kind: e.kind,
+        date: e.date,
+        daysUntil: p.daysUntil,
+        label: e.label,
+        provider: e.provider,
+        events: [e],
+      });
+  }
+  return [...map.values()].sort((a, b) => a.daysUntil - b.daysUntil);
 }
 
 /** Le carnet d'un cheval (l'HISTORIQUE : jamais le futur), du plus récent au plus ancien. */
@@ -176,6 +226,6 @@ export function horseCareLog(
   today?: ISODate,
 ): CareEvent[] {
   return (data.careEvents ?? [])
-    .filter((e) => e.horseId === horseId && (!today || e.date <= today))
+    .filter((e) => e.horseId === horseId && !e.pending && (!today || e.date <= today))
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 }

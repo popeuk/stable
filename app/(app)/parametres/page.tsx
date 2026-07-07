@@ -25,6 +25,8 @@ function Parametres() {
     (s) => s.horses.filter((h) => !h.isArchived).length,
   );
   const capacity = useSettingsStore((s) => s.capacity);
+  const openRouterKey = useSettingsStore((s) => s.openRouterKey);
+  const setOpenRouterKey = useSettingsStore((s) => s.setOpenRouterKey);
   const setCapacity = useSettingsStore((s) => s.setCapacity);
   const [theme, setTheme] = useState<"dark" | "light">("light");
 
@@ -91,6 +93,29 @@ function Parametres() {
           </span>
           <span className="text-2xs text-[var(--accent-primary)]">Changer</span>
         </button>
+      </Section>
+
+      <Section title="Assistant vocal">
+        <div className="py-3">
+          <p className="text-sm text-primary">Clé OpenRouter (IA)</p>
+          <p className="mt-0.5 text-2xs text-tertiary">
+            Ta clé reste sur cet appareil, jamais envoyée ailleurs qu&apos;à OpenRouter. Sans clé,
+            l&apos;assistant fonctionne en compréhension locale.
+          </p>
+          <input
+            type="password"
+            value={openRouterKey}
+            onChange={(e) => setOpenRouterKey(e.target.value)}
+            placeholder="sk-or-…"
+            autoComplete="off"
+            className="mt-2 w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-base px-3 py-2.5 text-sm text-primary outline-none"
+          />
+          {openRouterKey && (
+            <p className="mt-1.5 text-2xs font-semibold" style={{ color: "var(--c-success)" }}>
+              IA connectée · gpt-4o-mini via OpenRouter
+            </p>
+          )}
+        </div>
       </Section>
 
       <Section title="Gérer">

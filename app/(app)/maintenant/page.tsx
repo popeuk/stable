@@ -13,7 +13,7 @@ import { SectionHead } from "@/components/ed/atoms";
 import { RangeSelector } from "@/components/ed/range-selector";
 import { InsightsCarousel } from "@/components/ed/insights-carousel";
 import { CoachSection } from "@/components/ed/coach-section";
-import { DeadlineRow, AgendaRow } from "@/components/ed/care-bits";
+import { DeadlineRow, SessionRow } from "@/components/ed/care-bits";
 import { FirstRun } from "@/components/ed/first-run";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
@@ -26,7 +26,7 @@ import {
   stableMarginSeries,
 } from "@/lib/domain/calculations";
 import { equilibrium } from "@/lib/domain/equilibrium";
-import { upcomingDeadlines, plannedEvents } from "@/lib/domain/care";
+import { upcomingDeadlines, agendaSessions } from "@/lib/domain/care";
 import { pickNotion } from "@/lib/domain/notion";
 import { LESSONS } from "@/content/lessons";
 import { RANGE_PRESETS, rangePeriods } from "@/lib/utils/period";
@@ -100,8 +100,10 @@ function Maintenant() {
   const underThreshold = ranked.filter((r) => r.net < 0);
   const declining = allHorses.filter((h) => h.trend === "baisse");
   const todayIso = localToday();
-  const urgent = upcomingDeadlines(data, todayIso).filter((d) => d.status !== "ok").slice(0, 3);
-  const agendaSoon = plannedEvents(data, todayIso).filter((a) => a.daysUntil <= 7).slice(0, 3);
+  // Ma journée : les séances d'aujourd'hui/demain (et celles à confirmer),
+  // plus les retards critiques. Le récap du matin, en 10 secondes.
+  const overdue = upcomingDeadlines(data, todayIso).filter((d) => d.status === "overdue").slice(0, 3);
+  const daySessions = agendaSessions(data, todayIso).filter((sess) => sess.daysUntil <= 1).slice(0, 5);
   const horseNameOf = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "";
 
   const periodLabel =
@@ -131,6 +133,43 @@ function Maintenant() {
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
+      {/* L'en-tête fin */}
+      <motion.header variants={item} className="-mb-3 flex items-center justify-between">
+        <p className="text-[13px] font-semibold text-secondary">
+          {greeting()} · <span className="capitalize">{formatLongDate(new Date())}</span>
+        </p>
+        <span className="flex items-center gap-1">
+          <Link href="/recherche" aria-label="Rechercher" className="p-1 text-tertiary">
+            <Search size={17} strokeWidth={1.7} />
+          </Link>
+          <Link href="/parametres" aria-label="Réglages" className="p-1 text-tertiary">
+            <Settings size={17} strokeWidth={1.7} />
+          </Link>
+        </span>
+      </motion.header>
+
+      {/* Ma journée : l'opérationnel d'abord */}
+      {(daySessions.length > 0 || overdue.length > 0) && (
+        <motion.section variants={item}>
+          <div className="mb-1 flex items-baseline justify-between">
+            <h2 className="title-serif text-[20px] text-primary">Ma journée</h2>
+            <Link href="/planning" className="text-[12px] font-semibold text-tertiary">
+              Tout le planning ›
+            </Link>
+          </div>
+          <ul>
+            <AnimatePresence initial={false}>
+              {daySessions.map((sess) => (
+                <SessionRow key={sess.key} s={sess} horseName={horseNameOf} />
+              ))}
+              {overdue.map((d) => (
+                <DeadlineRow key={`${d.horseId}-${d.kind}`} d={d} horseName={horseNameOf(d.horseId)} />
+              ))}
+            </AnimatePresence>
+          </ul>
+        </motion.section>
+      )}
+
       {/* Le Pouls */}
       <motion.section variants={item} className="tray">
         <div className="grain card relative overflow-hidden !rounded-[24px]">
@@ -139,22 +178,8 @@ function Maintenant() {
           className="pulse-field absolute inset-0"
           style={{ "--pulse-a": pulse.a, "--pulse-b": pulse.b } as React.CSSProperties}
         />
-        <div className="relative px-5 pb-6 pt-7">
-          <div className="flex items-center justify-between">
-            <p className="text-[13px] font-semibold text-secondary">
-              {greeting()} · <span className="capitalize">{formatLongDate(new Date())}</span>
-            </p>
-            <span className="flex items-center gap-1">
-              <Link href="/recherche" aria-label="Rechercher" className="p-1 text-tertiary">
-                <Search size={17} strokeWidth={1.7} />
-              </Link>
-              <Link href="/parametres" aria-label="Réglages" className="p-1 text-tertiary">
-                <Settings size={17} strokeWidth={1.7} />
-              </Link>
-            </span>
-          </div>
-
-          <div className="mt-5 flex items-baseline gap-3">
+        <div className="relative px-5 pb-6 pt-6">
+          <div className="flex items-baseline gap-3">
             <KeyNumber
               value={agg.netResult}
               colorBySign
@@ -214,28 +239,6 @@ function Maintenant() {
         </div>
         </div>
       </motion.section>
-
-      {/* À venir : rendez-vous pris et échéances anticipées */}
-      {(urgent.length > 0 || agendaSoon.length > 0) && (
-        <motion.section variants={item} className="-mt-2">
-          <div className="mb-1 flex items-baseline justify-between">
-            <h2 className="title-serif text-[20px] text-primary">À venir</h2>
-            <Link href="/planning" className="text-[12px] font-semibold text-tertiary">
-              Tout le planning ›
-            </Link>
-          </div>
-          <ul>
-            <AnimatePresence initial={false}>
-              {agendaSoon.map((a) => (
-                <AgendaRow key={a.event.id} p={a} horseName={horseNameOf(a.event.horseId)} />
-              ))}
-              {urgent.map((d) => (
-                <DeadlineRow key={`${d.horseId}-${d.kind}`} d={d} horseName={horseNameOf(d.horseId)} />
-              ))}
-            </AnimatePresence>
-          </ul>
-        </motion.section>
-      )}
 
       {/* D'où ça vient */}
       <motion.section variants={item} className="-mt-2">

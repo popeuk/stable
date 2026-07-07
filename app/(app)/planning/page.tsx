@@ -5,9 +5,9 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { CareIcon, DeadlineRow, AgendaRow } from "@/components/ed/care-bits";
+import { CareIcon, DeadlineRow, SessionRow } from "@/components/ed/care-bits";
 import { useDataStore } from "@/stores/data-store";
-import { upcomingDeadlines, plannedEvents, CARE_META, type Deadline } from "@/lib/domain/care";
+import { upcomingDeadlines, agendaSessions, CARE_META, type Deadline } from "@/lib/domain/care";
 import { formatEur } from "@/lib/utils/format-currency";
 import { cn } from "@/lib/utils/cn";
 import { localToday } from "@/lib/utils/local-date";
@@ -46,9 +46,9 @@ function Planning() {
     [data.careEvents, data.horses, today],
   );
   const agenda = useMemo(
-    () => plannedEvents(data, today),
+    () => agendaSessions(data, today),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data.careEvents, today],
+    [data.careEvents, data.horses, today],
   );
   const groups: { title: string; items: Deadline[] }[] = [
     { title: "En retard", items: deadlines.filter((d) => d.status === "overdue") },
@@ -107,8 +107,8 @@ function Planning() {
               <h2 className="title-serif mb-1 text-[19px] text-primary">L&apos;agenda</h2>
               <ul>
                 <AnimatePresence initial={false}>
-                  {agenda.slice(0, 8).map((a) => (
-                    <AgendaRow key={a.event.id} p={a} horseName={horseName(a.event.horseId)} />
+                  {agenda.slice(0, 8).map((sess) => (
+                    <SessionRow key={sess.key} s={sess} horseName={horseName} />
                   ))}
                 </AnimatePresence>
               </ul>

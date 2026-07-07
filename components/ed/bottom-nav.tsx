@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, ReceiptText, CalendarRange, Plus } from "lucide-react";
+import { House, ReceiptText, CalendarRange, Mic } from "lucide-react";
+import { VoiceSheet } from "@/components/ed/voice-sheet";
 import { HorseLine } from "@/components/ed/atoms";
 
 /**
@@ -18,9 +20,12 @@ const TABS = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const [voice, setVoice] = useState(false);
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
+    <>
+    <VoiceSheet open={voice} onClose={() => setVoice(false)} />
     <nav
       className="pointer-events-none fixed inset-x-0 z-50"
       style={{ bottom: "calc(env(safe-area-inset-bottom) + 14px)" }}
@@ -32,19 +37,24 @@ export function BottomNav() {
         <Tab tab={TABS[0]} active={isActive(TABS[0].href)} />
         <Tab tab={TABS[1]} active={isActive(TABS[1].href)} />
 
-        <Link href="/saisie" aria-label="Saisir" className="flex items-center justify-center">
+        <button
+          onClick={() => setVoice(true)}
+          aria-label="Parler à l'assistant"
+          className="flex items-center justify-center"
+        >
           <span
             className="flex size-12 items-center justify-center rounded-full transition-transform active:scale-90"
             style={{ background: "var(--accent-primary)", color: "var(--on-accent)" }}
           >
-            <Plus size={24} strokeWidth={2.2} />
+            <Mic size={23} strokeWidth={2} />
           </span>
-        </Link>
+        </button>
 
         <Tab tab={TABS[2]} active={isActive(TABS[2].href)} />
         <Tab tab={TABS[3]} active={isActive(TABS[3].href)} />
       </div>
     </nav>
+    </>
   );
 }
 

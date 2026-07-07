@@ -15,8 +15,15 @@ interface SettingsState {
   capacity: number;
   /** Has the user seen the intro onboarding? */
   onboarded: boolean;
+  /**
+   * Clé OpenRouter de l'UTILISATEUR (BYOK) pour l'assistant vocal. Stockée
+   * uniquement sur l'appareil, jamais dans le code ni le dépôt. Vide =
+   * interpréteur local seul.
+   */
+  openRouterKey: string;
   toggle: (key: keyof NotificationPrefs) => void;
   setCapacity: (n: number) => void;
+  setOpenRouterKey: (k: string) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
 }
@@ -32,6 +39,8 @@ export const useSettingsStore = create<SettingsState>()(
       },
       capacity: 12,
       onboarded: false,
+      openRouterKey: "",
+      setOpenRouterKey: (k) => set({ openRouterKey: k.trim() }),
       toggle: (key) =>
         set((s) => ({
           notifications: { ...s.notifications, [key]: !s.notifications[key] },

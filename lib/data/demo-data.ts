@@ -229,10 +229,19 @@ export function buildDemoData(now = new Date()): StableData {
   care(1, "veto", 12, { label: "Boiterie légère, repos 1 semaine" });
   care(2, "entrainement", 3, { label: "Séance de plat, bon travail" });
   // L'agenda : ce qui arrive (daysAgo négatif = jours dans le futur).
-  care(0, "concours", -9, { label: "CSO Amateur 2, Deauville" });
-  care(6, "cours_collectif", -3, { label: "Cours poneys, 17 h" });
-  care(1, "veto", -2, { provider: "Dr Lavigne", label: "Contrôle boiterie" });
-  care(2, "cours_individuel", -1, { label: "Mise en selle, 10 h" });
+  // Tout rendez-vous est en attente de confirmation (pending).
+  care(0, "concours", -9, { label: "CSO Amateur 2, Deauville", pending: true });
+  care(1, "veto", -2, { provider: "Dr Lavigne", label: "Contrôle boiterie", pending: true });
+  care(2, "cours_individuel", -1, { label: "Mise en selle, 10 h", pending: true, revenue: 35 });
+  // Un cours collectif AUJOURD'HUI, à confirmer : la feuille de présence.
+  for (const idx of [2, 4, 6]) {
+    care(idx, "cours_collectif", 0, {
+      label: "Cours du soir, 18 h",
+      pending: true,
+      revenue: 25,
+      groupId: "grp-demo-cours",
+    });
+  }
 
   return {
     horses,

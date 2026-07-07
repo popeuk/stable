@@ -5,6 +5,7 @@ import {
   upcomingDeadlines,
   horseCareLog,
   plannedEvents,
+  agendaSessions,
   type CareEvent,
 } from "@/lib/domain/care";
 
@@ -190,5 +191,47 @@ describe("un rendez-vous pris ne solde pas l'échéance", () => {
       "2026-07-05",
     );
     expect(log.map((e) => e.id)).toEqual(["past"]);
+  });
+});
+
+
+describe("sessions & pending (la feuille de présence)", () => {
+  it("groups a cours collectif into one session", () => {
+    const sessions = agendaSessions(
+      {
+        horses: HORSES,
+        careEvents: [
+          ev({ id: "a", horseId: "h1", kind: "cours_collectif", date: "2026-07-08", groupId: "g1", pending: true }),
+          ev({ id: "b", horseId: "h2", kind: "cours_collectif", date: "2026-07-08", groupId: "g1", pending: true }),
+          ev({ id: "solo", horseId: "h1", kind: "veto", date: "2026-07-09", pending: true }),
+        ],
+      },
+      "2026-07-05",
+    );
+    expect(sessions).toHaveLength(2);
+    expect(sessions[0].events).toHaveLength(2);
+    expect(sessions[1].events).toHaveLength(1);
+  });
+
+  it("a pending act stays in the agenda even past its date (à confirmer)", () => {
+    const agenda = plannedEvents(
+      { horses: HORSES, careEvents: [ev({ id: "late", date: "2026-07-01", pending: true })] },
+      "2026-07-05",
+    );
+    expect(agenda).toHaveLength(1);
+    expect(agenda[0].daysUntil).toBe(-4);
+  });
+
+  it("pending acts never count as done: carnet and deadlines ignore them", () => {
+    const data = {
+      horses: HORSES,
+      careEvents: [
+        ev({ id: "done", date: "2026-06-01" }),
+        ev({ id: "plan", date: "2026-07-03", pending: true }),
+      ],
+    };
+    expect(horseCareLog(data, "h1", "2026-07-05").map((e) => e.id)).toEqual(["done"]);
+    const dl = upcomingDeadlines(data, "2026-07-05");
+    expect(dl[0].lastDate).toBe("2026-06-01");
   });
 });

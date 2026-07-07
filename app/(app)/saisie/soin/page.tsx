@@ -42,44 +42,67 @@ function SoinComposer() {
   const router = useRouter();
   const search = useSearchParams();
   const data = useDataStore();
-  const logCare = useDataStore((s) => s.logCare);
+  const logCareMany = useDataStore((s) => s.logCareMany);
 
   const horses = data.horses.filter((h) => !h.isArchived);
   const presetHorse = search.get("horse");
+  // Préremplissage complet (le vocal et les liens profonds passent par là).
+  const presetIds = (search.get("horses") ?? presetHorse ?? "")
+    .split(",")
+    .filter((hid) => horses.some((h) => h.id === hid));
+  const presetKind = search.get("kind") as CareKind | null;
 
-  const [horseId, setHorseId] = useState<string | null>(
-    presetHorse && horses.some((h) => h.id === presetHorse) ? presetHorse : null,
+  const [horseIds, setHorseIds] = useState<Set<string>>(() => new Set(presetIds));
+  const [kind, setKind] = useState<CareKind>(
+    presetKind && CARE_KINDS.includes(presetKind) ? presetKind : "ferrure",
   );
-  const [kind, setKind] = useState<CareKind>("ferrure");
-  const [date, setDate] = useState(localToday());
-  const [provider, setProvider] = useState("");
-  const [cost, setCost] = useState("");
-  const [label, setLabel] = useState("");
+  const [date, setDate] = useState(search.get("date") ?? localToday());
+  const [provider, setProvider] = useState(search.get("provider") ?? "");
+  const [cost, setCost] = useState(search.get("cost") ?? "");
+  const [revenue, setRevenue] = useState(search.get("revenue") ?? "");
+  const [label, setLabel] = useState(search.get("label") ?? "");
   const [nextDue, setNextDue] = useState("");
 
-  const horse = horses.find((h) => h.id === horseId);
+  const selected = horses.filter((h) => horseIds.has(h.id));
+  const allSelected = selected.length === horses.length && horses.length > 0;
   const today = localToday();
   const isPlanned = date > today;
+  const isCours = kind === "cours_collectif" || kind === "cours_individuel" || kind === "concours";
   const costNum = Number(cost.replace(",", ".")) || 0;
-  const canSave = !!horse;
+  const revenueNum = Number(revenue.replace(",", ".")) || 0;
+  const canSave = selected.length > 0;
+
+  function toggleHorse(hid: string) {
+    setHorseIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(hid)) next.delete(hid);
+      else next.add(hid);
+      return next;
+    });
+  }
 
   function save() {
-    if (!horse) return;
-    logCare({
-      horseId: horse.id,
-      kind,
-      date,
-      provider: provider.trim() || undefined,
-      label: label.trim() || undefined,
-      cost: costNum > 0 ? costNum : undefined,
-      nextDue: nextDue || undefined,
-    });
+    if (!canSave) return;
+    logCareMany(
+      selected.map((h) => h.id),
+      {
+        kind,
+        date,
+        provider: provider.trim() || undefined,
+        label: label.trim() || undefined,
+        cost: costNum > 0 ? costNum : undefined,
+        revenue: isCours && revenueNum > 0 ? revenueNum : undefined,
+        nextDue: nextDue || undefined,
+      },
+    );
+    const who =
+      selected.length === 1 ? selected[0].name : `${selected.length} chevaux`;
     useFlashStore.getState().setFlash({
       kind: "care",
       amount: costNum,
-      label: `${CARE_META[kind].label} · ${horse.name}${isPlanned ? " (prévu)" : ""}`,
+      label: `${CARE_META[kind].label} · ${who}${isPlanned ? " (prévu)" : ""}`,
     });
-    router.push(presetHorse ? `/cheval?id=${horse.id}` : "/planning");
+    router.push(presetHorse ? `/cheval?id=${presetHorse}` : "/planning");
   }
 
   return (
@@ -94,11 +117,20 @@ function SoinComposer() {
         style={{ top: "env(safe-area-inset-top)" }}
       >
         <span style={{ color: "var(--text-primary)" }}>{CARE_META[kind].label}</span> pour{" "}
-        <span style={{ color: horse ? "var(--text-primary)" : "var(--text-disabled)" }}>
-          {horse?.name ?? "…"}
+        <span style={{ color: selected.length ? "var(--text-primary)" : "var(--text-disabled)" }}>
+          {selected.length === 0
+            ? "…"
+            : selected.length <= 2
+              ? selected.map((h) => h.name).join(", ")
+              : `${selected[0].name} +${selected.length - 1}`}
         </span>
         {costNum > 0 && (
           <span style={{ color: "var(--accent-primary)" }}> · {cost.replace(".", ",")} €</span>
+        )}
+        {isCours && revenueNum > 0 && (
+          <span style={{ color: "var(--c-success)" }}>
+            {" "}· {revenue.replace(".", ",")} €/cheval
+          </span>
         )}
         {isPlanned && (
           <span className="text-secondary">
@@ -149,13 +181,26 @@ function SoinComposer() {
           </Link>
         ) : (
           <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() =>
+                setHorseIds(allSelected ? new Set() : new Set(horses.map((h) => h.id)))
+              }
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-[13px] font-bold",
+                allSelected
+                  ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)] text-[var(--accent-primary)]"
+                  : "border-dashed border-[var(--border-strong)] text-secondary",
+              )}
+            >
+              Tous
+            </button>
             {horses.map((h) => (
               <button
                 key={h.id}
-                onClick={() => setHorseId(h.id)}
+                onClick={() => toggleHorse(h.id)}
                 className={cn(
                   "flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-[13px] font-bold",
-                  horseId === h.id
+                  horseIds.has(h.id)
                     ? "border-[var(--text-primary)] bg-[var(--ink)] text-[var(--on-ink)]"
                     : "border-[var(--border-strong)] text-primary",
                 )}
@@ -196,6 +241,28 @@ function SoinComposer() {
           </div>
         </div>
       </motion.div>
+
+      {isCours && (
+        <motion.div variants={item}>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
+            Recette par cheval (optionnel)
+          </p>
+          <div className="flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3">
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="25"
+              value={revenue}
+              onChange={(e) => setRevenue(e.target.value.replace(/[^0-9,\.]/g, ""))}
+              className="w-full bg-transparent text-sm tabular-nums text-primary outline-none"
+            />
+            <span className="text-sm text-tertiary">€ / cheval</span>
+          </div>
+          <p className="mt-1.5 text-[12px] text-tertiary">
+            Attribuée à chaque cheval présent quand tu confirmes la séance.
+          </p>
+        </motion.div>
+      )}
 
       <motion.div variants={item} className="grid grid-cols-2 gap-3">
         <div>
@@ -240,7 +307,7 @@ function SoinComposer() {
 
       {costNum > 0 && (
         <motion.p variants={item} className="text-[12px] text-tertiary">
-          Le coût sera aussi inscrit au Journal comme dépense de {horse?.name ?? "ce cheval"} :
+          Le coût sera inscrit au Journal pour chaque cheval concerné :
           une seule saisie, tout est relié.
         </motion.p>
       )}

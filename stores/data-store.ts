@@ -35,7 +35,22 @@ interface DataState extends StableData {
   deleteDirectExpense: (id: string) => void;
   deleteSharedExpense: (id: string) => void;
   /** Note un acte du carnet ; un coût saisi crée la dépense directe liée. */
-  logCare: (e: Omit<CareEvent, "id" | "stableId" | "expenseId">) => void;
+  logCare: (e: Omit<CareEvent, "id" | "stableId" | "expenseId" | "revenueId">) => void;
+  /**
+   * Une séance pour plusieurs chevaux (cours collectif, vermifuge général…).
+   * Date future ou séance à confirmer → actes en attente (pending), argent
+   * différé. Date passée → actes faits, argent attribué immédiatement.
+   */
+  logCareMany: (
+    horseIds: string[],
+    base: Omit<CareEvent, "id" | "stableId" | "expenseId" | "revenueId" | "horseId" | "groupId" | "pending">,
+  ) => void;
+  /**
+   * La feuille de présence : confirme une séance. Les présents passent au
+   * carnet (date réelle) avec leur coût/recette attribués ; les absents
+   * sortent de la séance.
+   */
+  confirmSession: (eventIds: string[], presentIds: string[], actualDate: string) => void;
   /** Supprime un acte ET sa dépense liée le cas échéant (le graphe suit). */
   deleteCareEvent: (id: string) => void;
   addRecurringExpense: (e: Omit<RecurringExpense, "id" | "stableId">) => void;
@@ -58,7 +73,7 @@ function id(prefix: string): string {
 
 export const useDataStore = create<DataState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...buildDemoData(),
       hydrated: false,
 
@@ -143,34 +158,105 @@ export const useDataStore = create<DataState>()(
         set((s) => ({ sharedExpenses: s.sharedExpenses.filter((e) => e.id !== sid) }));
       },
 
-      logCare: (e) =>
+      logCare: (e) => get().logCareMany([e.horseId], e),
+
+      logCareMany: (horseIds, base) =>
         set((s) => {
-          const careId = id("care");
-          let expenseId: string | undefined;
+          const groupId = horseIds.length > 1 ? id("grp") : undefined;
+          const pending = base.date > new Date().toISOString().slice(0, 10) ? true : undefined;
           let directExpenses = s.directExpenses;
-          // Le graphe : un soin payé EST une dépense — jamais deux saisies.
-          if (e.cost && e.cost > 0) {
-            expenseId = id("dexp");
-            const label = `${CARE_META[e.kind].label}${e.provider ? ` (${e.provider})` : ""}`;
-            const expense = {
-              id: expenseId,
-              stableId: STABLE_ID,
-              horseId: e.horseId,
-              label,
-              amount: e.cost,
-              date: e.date,
-              source: "manual" as const,
-            };
-            enqueueMutation("insert", "direct_expenses", expense);
-            directExpenses = [...s.directExpenses, expense];
-          }
+          let revenues = s.revenues;
+          const coursCat = s.revenueCategories.find((c) => c.name === "Cours")?.id;
+          const events: CareEvent[] = horseIds.map((horseId) => {
+            const careId = id("care");
+            let expenseId: string | undefined;
+            let revenueId: string | undefined;
+            // Acte fait : l'argent est attribué tout de suite. Acte en
+            // attente : l'argent viendra à la confirmation de présence.
+            if (!pending && base.cost && base.cost > 0) {
+              expenseId = id("dexp");
+              const label = `${CARE_META[base.kind].label}${base.provider ? ` (${base.provider})` : ""}`;
+              const expense = {
+                id: expenseId,
+                stableId: STABLE_ID,
+                horseId,
+                label,
+                amount: base.cost,
+                date: base.date,
+                source: "manual" as const,
+              };
+              enqueueMutation("insert", "direct_expenses", expense);
+              directExpenses = [...directExpenses, expense];
+            }
+            if (!pending && base.revenue && base.revenue > 0) {
+              revenueId = id("rev");
+              const rev = {
+                id: revenueId,
+                stableId: STABLE_ID,
+                horseId,
+                categoryId: coursCat,
+                amount: base.revenue,
+                date: base.date,
+                source: "manual" as const,
+              };
+              enqueueMutation("insert", "revenues", rev);
+              revenues = [...revenues, rev];
+            }
+            return { ...base, id: careId, stableId: STABLE_ID, horseId, groupId, pending, expenseId, revenueId };
+          });
           return {
             directExpenses,
-            careEvents: [
-              ...(s.careEvents ?? []),
-              { ...e, id: careId, stableId: STABLE_ID, expenseId },
-            ],
+            revenues,
+            careEvents: [...(s.careEvents ?? []), ...events],
           };
+        }),
+
+      confirmSession: (eventIds, presentIds, actualDate) =>
+        set((s) => {
+          const ids = new Set(eventIds);
+          const present = new Set(presentIds);
+          let directExpenses = s.directExpenses;
+          let revenues = s.revenues;
+          const coursCat = s.revenueCategories.find((c) => c.name === "Cours")?.id;
+          const careEvents = (s.careEvents ?? []).flatMap((e) => {
+            if (!ids.has(e.id)) return [e];
+            // Absent : l'acte sort de la séance, rien n'est facturé.
+            if (!present.has(e.horseId)) return [];
+            // Présent : l'acte passe au carnet à la date réelle, argent lié.
+            let expenseId = e.expenseId;
+            let revenueId = e.revenueId;
+            if (!expenseId && e.cost && e.cost > 0) {
+              expenseId = id("dexp");
+              const label = `${CARE_META[e.kind].label}${e.provider ? ` (${e.provider})` : ""}`;
+              const expense = {
+                id: expenseId,
+                stableId: STABLE_ID,
+                horseId: e.horseId,
+                label,
+                amount: e.cost,
+                date: actualDate,
+                source: "manual" as const,
+              };
+              enqueueMutation("insert", "direct_expenses", expense);
+              directExpenses = [...directExpenses, expense];
+            }
+            if (!revenueId && e.revenue && e.revenue > 0) {
+              revenueId = id("rev");
+              const rev = {
+                id: revenueId,
+                stableId: STABLE_ID,
+                horseId: e.horseId,
+                categoryId: coursCat,
+                amount: e.revenue,
+                date: actualDate,
+                source: "manual" as const,
+              };
+              enqueueMutation("insert", "revenues", rev);
+              revenues = [...revenues, rev];
+            }
+            return [{ ...e, date: actualDate, pending: undefined, expenseId, revenueId }];
+          });
+          return { careEvents, directExpenses, revenues };
         }),
 
       deleteCareEvent: (cid) =>
@@ -181,6 +267,9 @@ export const useDataStore = create<DataState>()(
             directExpenses: target?.expenseId
               ? s.directExpenses.filter((d) => d.id !== target.expenseId)
               : s.directExpenses,
+            revenues: target?.revenueId
+              ? s.revenues.filter((r) => r.id !== target.revenueId)
+              : s.revenues,
           };
         }),
 
