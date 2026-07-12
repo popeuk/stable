@@ -427,7 +427,7 @@ function Pilotage() {
           {underThreshold.length > 0 && (
             <AlertRow
               href="/ecurie"
-              text={`${underThreshold.length} cheval${underThreshold.length > 1 ? "x" : ""} sous le seuil`}
+              text={`${underThreshold.length} ${underThreshold.length > 1 ? "chevaux" : "cheval"} sous le seuil`}
               hint={
                 underThreshold.length > 1
                   ? "leur place coûte plus qu'elle ne rapporte"
