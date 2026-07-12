@@ -161,6 +161,27 @@ export interface RecurringSchedule {
 }
 
 /**
+ * Une prestation libre définie par le gérant : balade, transport, douche,
+ * débourrage… Son prix préremplit la recette quand on l'ajoute au planning.
+ */
+export interface Service {
+  id: string;
+  name: string;
+  /** Recette par cheval (optionnelle : vide = prix libre à chaque fois). */
+  price?: number;
+}
+
+/** L'équipe de l'écurie : employés et prestataires réguliers. */
+export type TeamRole = "employe" | "prestataire";
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: TeamRole;
+  /** « Monitrice », « Maréchal-ferrant »… */
+  job?: string;
+}
+
+/**
  * La grille tarifaire de l'écurie : saisie UNE fois dans Réglages, elle
  * préremplit les prix partout (composeur, vocal, nouveau cheval) — et
  * chaque prix reste modifiable au cas par cas, rien n'est verrouillé.
@@ -197,4 +218,8 @@ export interface StableData {
   rhythms?: Rhythm[];
   /** La grille tarifaire : les prix par défaut, préremplis partout. */
   tariffs?: Tariffs;
+  /** Les prestations libres du gérant (balade, transport…). */
+  services?: Service[];
+  /** L'équipe : employés et prestataires, assignables aux tâches. */
+  team?: TeamMember[];
 }

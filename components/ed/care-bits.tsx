@@ -17,6 +17,7 @@ import {
   UsersRound,
   GraduationCap,
   CalendarClock,
+  HandCoins,
 } from "lucide-react";
 import { Horseshoe } from "@/components/ed/atoms";
 import { addDays, CARE_META, type CareKind, type Deadline, type PlannedEvent, type Session } from "@/lib/domain/care";
@@ -52,6 +53,8 @@ export function CareIcon({ kind, size = 15 }: { kind: CareKind; size?: number })
       return <Trophy {...common} />;
     case "document":
       return <FileText {...common} />;
+    case "prestation":
+      return <HandCoins {...common} />;
   }
 }
 
@@ -260,6 +263,7 @@ export function SessionRow({
           <p className="truncate text-[12px] font-semibold" style={{ color: tone }}>
             {when.text}
             {s.label ? ` · ${s.label}` : ""}
+            {s.provider ? ` · ${s.provider}` : ""}
           </p>
         </div>
         <button

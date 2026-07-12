@@ -66,8 +66,14 @@ function SoinComposer() {
     presetKind && CARE_KINDS.includes(presetKind) ? presetKind : "ferrure";
   const tariffs = data.tariffs ?? {};
 
+  const services = data.services ?? [];
+  const team = data.team ?? [];
+
   const [horseIds, setHorseIds] = useState<Set<string>>(() => new Set(presetIds));
   const [kind, setKind] = useState<CareKind>(initialKind);
+  // La prestation choisie (balade, transport…) : un kind « prestation »
+  // habillé du nom et du prix définis par le gérant.
+  const [serviceName, setServiceName] = useState<string | null>(null);
   const [date, setDate] = useState(search.get("date") ?? localToday());
   const [provider, setProvider] = useState(search.get("provider") ?? "");
   const [cost, setCost] = useState(search.get("cost") ?? "");
@@ -83,21 +89,34 @@ function SoinComposer() {
 
   function pickKind(k: CareKind) {
     setKind(k);
+    setServiceName(null);
     if (!revenueEdited) setRevenue(tariffFor(tariffs, k)?.toString() ?? "");
+  }
+
+  function pickService(name: string, price?: number) {
+    setKind("prestation");
+    setServiceName(name);
+    setLabel(name);
+    if (!revenueEdited) setRevenue(price?.toString() ?? "");
   }
 
   const selected = horses.filter((h) => horseIds.has(h.id));
   const allSelected = selected.length === horses.length && horses.length > 0;
   const today = localToday();
   const isPlanned = date > today;
-  // Les actes facturables : cours, concours (gains) et séance de travail.
+  // Les actes facturables : cours, concours (gains), travail et prestations.
   const billable =
     kind === "cours_collectif" ||
     kind === "cours_individuel" ||
     kind === "concours" ||
-    kind === "entrainement";
+    kind === "entrainement" ||
+    kind === "prestation";
   const canRepeat =
-    kind === "cours_collectif" || kind === "cours_individuel" || kind === "entrainement";
+    kind === "cours_collectif" ||
+    kind === "cours_individuel" ||
+    kind === "entrainement" ||
+    kind === "prestation";
+  const kindLabel = serviceName ?? CARE_META[kind].label;
   const costNum = Number(cost.replace(",", ".")) || 0;
   const revenueNum = Number(revenue.replace(",", ".")) || 0;
   const canSave = selected.length > 0;
@@ -145,7 +164,7 @@ function SoinComposer() {
     useFlashStore.getState().setFlash({
       kind: "care",
       amount: costNum,
-      label: `${CARE_META[kind].label} · ${who}${isPlanned ? " (prévu)" : ""}`,
+      label: `${kindLabel} · ${who}${isPlanned ? " (prévu)" : ""}`,
     });
     router.push(presetHorse ? `/cheval?id=${presetHorse}` : "/planning");
   }
@@ -161,7 +180,7 @@ function SoinComposer() {
         className="sticky z-20 -mx-5 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-fraunces)] text-[24px] leading-snug text-primary backdrop-blur-md"
         style={{ top: "env(safe-area-inset-top)" }}
       >
-        <span style={{ color: "var(--text-primary)" }}>{CARE_META[kind].label}</span> pour{" "}
+        <span style={{ color: "var(--text-primary)" }}>{kindLabel}</span> pour{" "}
         <span style={{ color: selected.length ? "var(--text-primary)" : "var(--text-disabled)" }}>
           {selected.length === 0
             ? "…"
@@ -194,7 +213,7 @@ function SoinComposer() {
           Quoi ?
         </p>
         <div className="flex flex-wrap gap-2">
-          {CARE_KINDS.map((k) => (
+          {CARE_KINDS.filter((k) => k !== "prestation").map((k) => (
             <button
               key={k}
               onClick={() => pickKind(k)}
@@ -209,6 +228,28 @@ function SoinComposer() {
               {CARE_META[k].label}
             </button>
           ))}
+          {/* Les prestations du gérant : ses propres offres, à son prix. */}
+          {services.map((svc) => (
+            <button
+              key={svc.id}
+              onClick={() => pickService(svc.name, svc.price)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold",
+                kind === "prestation" && serviceName === svc.name
+                  ? "border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--on-accent)]"
+                  : "border-[var(--accent-primary)] text-[var(--accent-primary)]",
+              )}
+            >
+              <CareIcon kind="prestation" size={13} />
+              {svc.name}
+            </button>
+          ))}
+          <Link
+            href="/parametres/tarifs"
+            className="flex items-center gap-1 rounded-full border border-dashed border-[var(--border-strong)] px-3 py-1.5 text-[12px] font-semibold text-tertiary"
+          >
+            + Ta prestation
+          </Link>
         </div>
       </motion.div>
 
@@ -353,29 +394,48 @@ function SoinComposer() {
         </motion.div>
       )}
 
-      <motion.div variants={item} className="grid grid-cols-2 gap-3">
-        <div>
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
-            Par qui ? (optionnel)
-          </p>
-          <input
-            value={provider}
-            onChange={(e) => setProvider(e.target.value)}
-            placeholder="Dr Lavigne, M. Roche…"
-            className="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3 text-sm text-primary outline-none"
-          />
-        </div>
-        <div>
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
-            Détail (optionnel)
-          </p>
-          <input
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            placeholder="Rappel grippe, 4 pieds…"
-            className="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3 text-sm text-primary outline-none"
-          />
-        </div>
+      {/* L'assignation : l'équipe en un tap, le champ libre en secours */}
+      <motion.div variants={item}>
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
+          Qui s&apos;en occupe ? (optionnel)
+        </p>
+        {team.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {team.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setProvider(provider === m.name ? "" : m.name)}
+                className={cn(
+                  "rounded-full border px-3 py-1.5 text-[12px] font-semibold",
+                  provider === m.name
+                    ? "border-[var(--text-primary)] bg-[var(--ink)] text-[var(--on-ink)]"
+                    : "border-[var(--border-strong)] text-secondary",
+                )}
+              >
+                {m.name}
+                {m.job ? <span className="opacity-60"> · {m.job}</span> : null}
+              </button>
+            ))}
+          </div>
+        )}
+        <input
+          value={provider}
+          onChange={(e) => setProvider(e.target.value)}
+          placeholder={team.length > 0 ? "Ou quelqu'un d'autre…" : "Dr Lavigne, M. Roche…"}
+          className="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3 text-sm text-primary outline-none"
+        />
+      </motion.div>
+
+      <motion.div variants={item}>
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
+          Détail (optionnel)
+        </p>
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="Rappel grippe, 4 pieds…"
+          className="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3 text-sm text-primary outline-none"
+        />
       </motion.div>
 
       <motion.div variants={item}>

@@ -19,7 +19,9 @@ export type CareKind =
   | "cours_collectif"
   | "cours_individuel"
   | "concours"
-  | "document";
+  | "document"
+  /** Une prestation libre définie par le gérant (balade, transport…). */
+  | "prestation";
 
 export interface CareEvent {
   id: string;
@@ -72,6 +74,7 @@ export const CARE_META: Record<
   cours_individuel: { label: "Cours individuel", cadenceDays: null },
   concours: { label: "Concours", cadenceDays: null },
   document: { label: "Document", cadenceDays: null },
+  prestation: { label: "Prestation", cadenceDays: null },
 };
 
 export const CARE_KINDS = Object.keys(CARE_META) as CareKind[];

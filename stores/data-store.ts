@@ -9,8 +9,10 @@ import type {
   RecurringRevenue,
   Revenue,
   SharedExpense,
+  Service,
   StableData,
   Tariffs,
+  TeamMember,
 } from "@/lib/domain/types";
 import type { CareEvent } from "@/lib/domain/care";
 import { CARE_META } from "@/lib/domain/care";
@@ -38,6 +40,12 @@ interface DataState extends StableData {
   deleteRhythm: (id: string) => void;
   /** Un tarif de la grille (vide = pas de prix par défaut). */
   setTariff: (key: keyof Tariffs, value: number | undefined) => void;
+  /** Une prestation libre (balade, transport…) avec son prix par défaut. */
+  addService: (s: Omit<Service, "id">) => void;
+  deleteService: (id: string) => void;
+  /** Un membre de l'équipe : employé ou prestataire, assignable aux tâches. */
+  addTeamMember: (m: Omit<TeamMember, "id">) => void;
+  deleteTeamMember: (id: string) => void;
   /**
    * L'autopilote : poste les pensions du mois et matérialise les rythmes
    * de la semaine. Idempotent — appelé à l'ouverture, il ne crée que ce
@@ -313,6 +321,22 @@ export const useDataStore = create<DataState>()(
           ),
         })),
 
+      addService: (svc) =>
+        set((s) => ({
+          services: [...(s.services ?? []), { ...svc, id: id("svc"), name: svc.name.trim() }],
+        })),
+
+      deleteService: (sid) =>
+        set((s) => ({ services: (s.services ?? []).filter((x) => x.id !== sid) })),
+
+      addTeamMember: (m) =>
+        set((s) => ({
+          team: [...(s.team ?? []), { ...m, id: id("tm"), name: m.name.trim() }],
+        })),
+
+      deleteTeamMember: (mid) =>
+        set((s) => ({ team: (s.team ?? []).filter((x) => x.id !== mid) })),
+
       setTariff: (key, value) =>
         set((s) => ({
           tariffs: { ...(s.tariffs ?? {}), [key]: value && value > 0 ? value : undefined },
@@ -406,6 +430,8 @@ export const useDataStore = create<DataState>()(
           careEvents: [],
           rhythms: [],
           tariffs: {},
+          services: [],
+          team: [],
           autopilotDismissed: [],
           revenueCategories: demo.revenueCategories,
           expenseCategories: demo.expenseCategories,

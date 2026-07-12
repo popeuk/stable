@@ -1,4 +1,4 @@
-import { PeriodStrip } from "@/components/ed/period-strip";
+import { AppHeader } from "@/components/ed/app-header";
 import { BottomNav } from "@/components/ed/bottom-nav";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { OnboardingGate } from "@/components/ed/onboarding-gate";
@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh bg-base text-primary">
       <OnboardingGate />
       <Autopilot />
-      <PeriodStrip />
+      <AppHeader />
       <main className="mx-auto max-w-[440px] px-5 pb-36 pt-4">
         <ImpactFlash />
         {children}

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Settings, Search, Plus, CalendarRange } from "lucide-react";
+import { ChevronRight, Plus, CalendarRange } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { DeadlineRow, SessionRow } from "@/components/ed/care-bits";
 import { FirstRun } from "@/components/ed/first-run";
@@ -92,22 +92,44 @@ function Maintenant() {
 
   const emptyDay = todaySessions.length === 0 && overdue.length === 0;
 
+  // Le héro respire avec l'état de l'écurie (les mêmes teintes que le Pouls).
+  const health: "good" | "tight" | "bad" =
+    agg.netResult >= 0 && eq.coverage >= 1 ? "good" : eq.coverage >= 0.85 ? "tight" : "bad";
+  const pulse = {
+    good: { a: "rgba(189, 96, 23, 0.26)", b: "rgba(124, 144, 112, 0.24)" },
+    tight: { a: "rgba(168, 119, 15, 0.26)", b: "rgba(189, 96, 23, 0.16)" },
+    bad: { a: "rgba(189, 63, 44, 0.20)", b: "rgba(168, 119, 15, 0.15)" },
+  }[health];
+  const summaryBits = [
+    todaySessions.length > 0 &&
+      `${todaySessions.length} séance${todaySessions.length > 1 ? "s" : ""} aujourd'hui`,
+    overdue.length > 0 && `${overdue.length} retard${overdue.length > 1 ? "s" : ""} à rattraper`,
+    tomorrowSessions.length > 0 && `${tomorrowSessions.length} demain`,
+  ].filter(Boolean);
+  const summary =
+    summaryBits.length > 0 ? summaryBits.join(" · ") : "Journée calme : rien à confirmer.";
+
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-7">
-      {/* L'en-tête fin */}
-      <motion.header variants={item} className="-mb-2 flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-secondary">
-          {greeting()} · <span className="capitalize">{formatLongDate(new Date())}</span>
-        </p>
-        <span className="flex items-center gap-1">
-          <Link href="/recherche" aria-label="Rechercher" className="p-1 text-tertiary">
-            <Search size={17} strokeWidth={1.7} />
-          </Link>
-          <Link href="/parametres" aria-label="Réglages" className="p-1 text-tertiary">
-            <Settings size={17} strokeWidth={1.7} />
-          </Link>
-        </span>
-      </motion.header>
+      {/* Le héro : ta journée, en un regard */}
+      <motion.section variants={item} className="tray">
+        <div className="grain card relative overflow-hidden !rounded-[24px]">
+          <div
+            aria-hidden
+            className="pulse-field absolute inset-0"
+            style={{ "--pulse-a": pulse.a, "--pulse-b": pulse.b } as React.CSSProperties}
+          />
+          <div className="relative px-5 pb-5 pt-6">
+            <p className="text-[12px] font-bold uppercase tracking-[0.12em] text-tertiary">
+              <span className="capitalize">{formatLongDate(new Date())}</span>
+            </p>
+            <h1 className="title-serif mt-1 text-[34px] leading-none text-primary">
+              {greeting()}.
+            </h1>
+            <p className="mt-3 max-w-[32ch] text-[15px] leading-snug text-primary">{summary}</p>
+          </div>
+        </div>
+      </motion.section>
 
       {/* Aujourd'hui : ce qu'il y a à faire */}
       <motion.section variants={item}>

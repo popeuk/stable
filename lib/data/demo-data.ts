@@ -276,6 +276,18 @@ export function buildDemoData(now = new Date()): StableData {
     rhythms,
     // La grille tarifaire de la démo : les prix se préremplissent partout.
     tariffs: { pension: 450, cours_collectif: 25, cours_individuel: 35, entrainement: 30 },
+    // Les prestations libres du gérant, avec leur prix par défaut.
+    services: [
+      { id: "svc-balade", name: "Balade encadrée", price: 20 },
+      { id: "svc-transport", name: "Transport concours", price: 50 },
+    ],
+    // L'équipe : on lui assigne les tâches du planning.
+    team: [
+      { id: "tm-julie", name: "Julie", role: "employe", job: "Monitrice" },
+      { id: "tm-marc", name: "Marc", role: "employe", job: "Palefrenier" },
+      { id: "tm-roche", name: "M. Roche", role: "prestataire", job: "Maréchal-ferrant" },
+      { id: "tm-lavigne", name: "Dr Lavigne", role: "prestataire", job: "Vétérinaire" },
+    ],
   };
 }
 
