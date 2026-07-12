@@ -160,6 +160,22 @@ export interface RecurringSchedule {
   frequency: Frequency;
 }
 
+/**
+ * La grille tarifaire de l'écurie : saisie UNE fois dans Réglages, elle
+ * préremplit les prix partout (composeur, vocal, nouveau cheval) — et
+ * chaque prix reste modifiable au cas par cas, rien n'est verrouillé.
+ */
+export interface Tariffs {
+  /** Pension par défaut d'un nouveau cheval (€/mois). */
+  pension?: number;
+  /** Cours collectif, recette par cavalier. */
+  cours_collectif?: number;
+  /** Cours individuel. */
+  cours_individuel?: number;
+  /** Séance de travail du cheval facturée au propriétaire. */
+  entrainement?: number;
+}
+
 import type { CareEvent } from "@/lib/domain/care";
 import type { Rhythm } from "@/lib/domain/rhythm";
 
@@ -179,4 +195,6 @@ export interface StableData {
   careEvents?: CareEvent[];
   /** Les rythmes hebdomadaires : le planning qui se remplit tout seul. */
   rhythms?: Rhythm[];
+  /** La grille tarifaire : les prix par défaut, préremplis partout. */
+  tariffs?: Tariffs;
 }

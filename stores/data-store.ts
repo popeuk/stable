@@ -10,6 +10,7 @@ import type {
   Revenue,
   SharedExpense,
   StableData,
+  Tariffs,
 } from "@/lib/domain/types";
 import type { CareEvent } from "@/lib/domain/care";
 import { CARE_META } from "@/lib/domain/care";
@@ -35,6 +36,8 @@ interface DataState extends StableData {
   /** Un rythme hebdomadaire : planifié une fois, généré chaque semaine. */
   addRhythm: (r: Omit<Rhythm, "id" | "stableId">) => void;
   deleteRhythm: (id: string) => void;
+  /** Un tarif de la grille (vide = pas de prix par défaut). */
+  setTariff: (key: keyof Tariffs, value: number | undefined) => void;
   /**
    * L'autopilote : poste les pensions du mois et matérialise les rythmes
    * de la semaine. Idempotent — appelé à l'ouverture, il ne crée que ce
@@ -310,6 +313,11 @@ export const useDataStore = create<DataState>()(
           ),
         })),
 
+      setTariff: (key, value) =>
+        set((s) => ({
+          tariffs: { ...(s.tariffs ?? {}), [key]: value && value > 0 ? value : undefined },
+        })),
+
       runAutopilot: (today) =>
         set((s) => {
           const pensions = ensurePensions(s, today, s.autopilotDismissed ?? []);
@@ -397,6 +405,7 @@ export const useDataStore = create<DataState>()(
           recurringRevenues: [],
           careEvents: [],
           rhythms: [],
+          tariffs: {},
           autopilotDismissed: [],
           revenueCategories: demo.revenueCategories,
           expenseCategories: demo.expenseCategories,

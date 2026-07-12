@@ -12,13 +12,22 @@ import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import { CARE_KINDS, CARE_META, type CareKind } from "@/lib/domain/care";
 import { weekdayOf, WEEKDAY_LABELS } from "@/lib/domain/rhythm";
+import type { Tariffs } from "@/lib/domain/types";
 import { cn } from "@/lib/utils/cn";
 import { localToday } from "@/lib/utils/local-date";
 
+/** Le tarif par défaut d'un acte facturable — la grille de Réglages. */
+function tariffFor(t: Tariffs, k: CareKind): number | undefined {
+  return k === "cours_collectif" || k === "cours_individuel" || k === "entrainement"
+    ? t[k]
+    : undefined;
+}
+
 /**
- * Noter un acte du carnet : « Ferrure pour Belle, 90 €, par M. Roche. »
- * Un coût saisi crée la dépense liée ; les actes à cadence replanifient
- * automatiquement la prochaine échéance.
+ * Ajouter au planning ou au carnet : un cours, une ferrure, un concours, un
+ * rendez-vous. Un coût saisi crée la dépense liée, une recette suit la
+ * feuille de présence, les actes à cadence replanifient automatiquement la
+ * prochaine échéance — et la grille tarifaire préremplit les prix.
  */
 const container = {
   hidden: {},
@@ -53,24 +62,40 @@ function SoinComposer() {
     .split(",")
     .filter((hid) => horses.some((h) => h.id === hid));
   const presetKind = search.get("kind") as CareKind | null;
+  const initialKind: CareKind =
+    presetKind && CARE_KINDS.includes(presetKind) ? presetKind : "ferrure";
+  const tariffs = data.tariffs ?? {};
 
   const [horseIds, setHorseIds] = useState<Set<string>>(() => new Set(presetIds));
-  const [kind, setKind] = useState<CareKind>(
-    presetKind && CARE_KINDS.includes(presetKind) ? presetKind : "ferrure",
-  );
+  const [kind, setKind] = useState<CareKind>(initialKind);
   const [date, setDate] = useState(search.get("date") ?? localToday());
   const [provider, setProvider] = useState(search.get("provider") ?? "");
   const [cost, setCost] = useState(search.get("cost") ?? "");
-  const [revenue, setRevenue] = useState(search.get("revenue") ?? "");
+  // La recette : préremplie par la grille tarifaire tant que le gérant n'y a
+  // pas touché — un défaut, jamais une cage.
+  const [revenue, setRevenue] = useState(
+    () => search.get("revenue") ?? (tariffFor(tariffs, initialKind)?.toString() ?? ""),
+  );
+  const [revenueEdited, setRevenueEdited] = useState(search.get("revenue") !== null);
   const [label, setLabel] = useState(search.get("label") ?? "");
   const [nextDue, setNextDue] = useState("");
   const [weekly, setWeekly] = useState(false);
+
+  function pickKind(k: CareKind) {
+    setKind(k);
+    if (!revenueEdited) setRevenue(tariffFor(tariffs, k)?.toString() ?? "");
+  }
 
   const selected = horses.filter((h) => horseIds.has(h.id));
   const allSelected = selected.length === horses.length && horses.length > 0;
   const today = localToday();
   const isPlanned = date > today;
-  const isCours = kind === "cours_collectif" || kind === "cours_individuel" || kind === "concours";
+  // Les actes facturables : cours, concours (gains) et séance de travail.
+  const billable =
+    kind === "cours_collectif" ||
+    kind === "cours_individuel" ||
+    kind === "concours" ||
+    kind === "entrainement";
   const canRepeat =
     kind === "cours_collectif" || kind === "cours_individuel" || kind === "entrainement";
   const costNum = Number(cost.replace(",", ".")) || 0;
@@ -96,7 +121,7 @@ function SoinComposer() {
         provider: provider.trim() || undefined,
         label: label.trim() || undefined,
         cost: costNum > 0 ? costNum : undefined,
-        revenue: isCours && revenueNum > 0 ? revenueNum : undefined,
+        revenue: billable && revenueNum > 0 ? revenueNum : undefined,
         nextDue: nextDue || undefined,
       },
     );
@@ -109,7 +134,7 @@ function SoinComposer() {
         label: label.trim() || undefined,
         provider: provider.trim() || undefined,
         horseIds: selected.map((h) => h.id),
-        revenue: isCours && revenueNum > 0 ? revenueNum : undefined,
+        revenue: billable && revenueNum > 0 ? revenueNum : undefined,
         cost: costNum > 0 ? costNum : undefined,
         active: true,
         materializedUntil: date,
@@ -147,7 +172,7 @@ function SoinComposer() {
         {costNum > 0 && (
           <span style={{ color: "var(--accent-primary)" }}> · {cost.replace(".", ",")} €</span>
         )}
-        {isCours && revenueNum > 0 && (
+        {billable && revenueNum > 0 && (
           <span style={{ color: "var(--c-success)" }}>
             {" "}· {revenue.replace(".", ",")} €/cheval
           </span>
@@ -163,16 +188,16 @@ function SoinComposer() {
         .
       </motion.p>
 
-      {/* Quel acte */}
+      {/* Quoi : un cours, un soin, un concours, un rendez-vous… */}
       <motion.div variants={item}>
         <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
-          Quel acte ?
+          Quoi ?
         </p>
         <div className="flex flex-wrap gap-2">
           {CARE_KINDS.map((k) => (
             <button
               key={k}
-              onClick={() => setKind(k)}
+              onClick={() => pickKind(k)}
               className={cn(
                 "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold",
                 kind === k
@@ -265,23 +290,31 @@ function SoinComposer() {
         </div>
       </motion.div>
 
-      {isCours && (
+      {billable && (
         <motion.div variants={item}>
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
-            Recette par cheval (optionnel)
+            {kind === "cours_collectif" ? "Recette par cheval (optionnel)" : "Recette (optionnel)"}
           </p>
           <div className="flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3">
             <input
               type="text"
               inputMode="decimal"
-              placeholder="25"
+              placeholder={tariffFor(tariffs, kind)?.toString() ?? "25"}
               value={revenue}
-              onChange={(e) => setRevenue(e.target.value.replace(/[^0-9,\.]/g, ""))}
+              onChange={(e) => {
+                setRevenueEdited(true);
+                setRevenue(e.target.value.replace(/[^0-9,\.]/g, ""));
+              }}
               className="w-full bg-transparent text-sm tabular-nums text-primary outline-none"
             />
-            <span className="text-sm text-tertiary">€ / cheval</span>
+            <span className="text-sm text-tertiary">
+              {kind === "cours_collectif" ? "€ / cheval" : "€"}
+            </span>
           </div>
           <p className="mt-1.5 text-[12px] text-tertiary">
+            {!revenueEdited && tariffFor(tariffs, kind)
+              ? "Ton tarif est prérempli — change-le librement pour cette fois. "
+              : ""}
             Attribuée à chaque cheval présent quand tu confirmes la séance.
           </p>
         </motion.div>

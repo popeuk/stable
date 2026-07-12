@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Moon, Sun, RotateCcw, Bell, Tags, ChevronRight, Eraser, Landmark, PlayCircle } from "lucide-react";
+import { Moon, Sun, RotateCcw, Bell, Tags, ChevronRight, Eraser, Landmark, PlayCircle, BadgeEuro } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -119,6 +119,7 @@ function Parametres() {
       </Section>
 
       <Section title="Gérer">
+        <NavRow href="/parametres/tarifs" icon={<BadgeEuro size={16} />} label="Tarifs" />
         <NavRow href="/parametres/categories" icon={<Tags size={16} />} label="Catégories" />
         <NavRow href="/parametres/notifications" icon={<Bell size={16} />} label="Notifications" />
       </Section>

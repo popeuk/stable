@@ -76,7 +76,7 @@ function Planning() {
           href="/saisie/soin"
           className="flex items-center gap-1 btn-primary px-3 py-1.5 text-[12px] font-bold text-[var(--on-accent)]"
         >
-          <Plus size={14} /> Noter un soin
+          <Plus size={14} /> Ajouter
         </Link>
       </header>
 
@@ -121,14 +121,14 @@ function Planning() {
           <div className="card p-5 text-center">
             <p className="text-[15px] font-bold text-primary">Rien à anticiper pour l&apos;instant.</p>
             <p className="mt-1 text-[13px] text-secondary">
-              Note un premier acte (vaccin, ferrure, vermifuge…) et je calculerai les suivants
-              tout seul.
+              Planifie un cours, ou note un premier acte (vaccin, ferrure…) : je calculerai
+              les suivants tout seul.
             </p>
             <Link
               href="/saisie/soin"
               className="mt-4 inline-flex items-center gap-1.5 btn-primary px-4 py-2 text-[13px] text-[var(--on-accent)]"
             >
-              <Plus size={14} /> Noter un soin
+              <Plus size={14} /> Ajouter au planning
             </Link>
           </div>
         ) : (

@@ -274,6 +274,8 @@ export function buildDemoData(now = new Date()): StableData {
     recurringExpenses,
     careEvents,
     rhythms,
+    // La grille tarifaire de la démo : les prix se préremplissent partout.
+    tariffs: { pension: 450, cours_collectif: 25, cours_individuel: 35, entrainement: 30 },
   };
 }
 

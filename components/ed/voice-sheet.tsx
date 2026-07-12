@@ -105,6 +105,16 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
       cmd = local.command;
       setMissing(local.missing);
     }
+    // Pas de montant dicté ? La grille tarifaire s'applique toute seule —
+    // et l'aperçu le montre avant toute confirmation.
+    if (cmd && !cmd.revenue) {
+      const tariffs = data.tariffs ?? {};
+      const t2 =
+        cmd.kind === "cours_collectif" || cmd.kind === "cours_individuel" || cmd.kind === "entrainement"
+          ? tariffs[cmd.kind]
+          : undefined;
+      if (t2) cmd = { ...cmd, revenue: t2 };
+    }
     setUsedLLM(llm);
     setCommand(cmd);
     setPhase(cmd ? "preview" : "notfound");

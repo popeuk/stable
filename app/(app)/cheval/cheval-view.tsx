@@ -225,7 +225,7 @@ function Cheval({ id }: { id: string }) {
           <div className="mb-1 flex items-baseline justify-between">
             <h2 className="title-serif text-[19px] text-primary">À venir pour {horse.name}</h2>
             <Link href={`/saisie/soin?horse=${horse.id}`} className="text-[12px] font-semibold text-tertiary">
-              + Noter un soin
+              + Ajouter
             </Link>
           </div>
           <ul>

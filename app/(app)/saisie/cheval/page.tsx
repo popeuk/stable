@@ -23,6 +23,7 @@ function SaisieCheval() {
   const horses = useDataStore((s) => s.horses);
   const addHorse = useDataStore((s) => s.addHorse);
   const updateHorse = useDataStore((s) => s.updateHorse);
+  const tariffs = useDataStore((s) => s.tariffs);
 
   // ?edit=<id> switches the form to edit mode, prefilled.
   const editId = search.get("edit");
@@ -31,8 +32,13 @@ function SaisieCheval() {
   const [name, setName] = useState(editing?.name ?? "");
   const [breed, setBreed] = useState(editing?.breed ?? "");
   const [ownerName, setOwnerName] = useState(editing?.ownerName ?? "");
+  // Un nouveau cheval arrive avec le tarif de la grille — modifiable ici.
   const [pension, setPension] = useState(
-    editing?.pension ? String(editing.pension) : "",
+    editing
+      ? editing.pension
+        ? String(editing.pension)
+        : ""
+      : (tariffs?.pension?.toString() ?? ""),
   );
   const [entryDate, setEntryDate] = useState(
     editing?.entryDate ?? localToday(),
