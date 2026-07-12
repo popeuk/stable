@@ -11,6 +11,7 @@ import { CareIcon } from "@/components/ed/care-bits";
 import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import { CARE_KINDS, CARE_META, type CareKind } from "@/lib/domain/care";
+import { weekdayOf, WEEKDAY_LABELS } from "@/lib/domain/rhythm";
 import { cn } from "@/lib/utils/cn";
 import { localToday } from "@/lib/utils/local-date";
 
@@ -43,6 +44,7 @@ function SoinComposer() {
   const search = useSearchParams();
   const data = useDataStore();
   const logCareMany = useDataStore((s) => s.logCareMany);
+  const addRhythm = useDataStore((s) => s.addRhythm);
 
   const horses = data.horses.filter((h) => !h.isArchived);
   const presetHorse = search.get("horse");
@@ -62,12 +64,15 @@ function SoinComposer() {
   const [revenue, setRevenue] = useState(search.get("revenue") ?? "");
   const [label, setLabel] = useState(search.get("label") ?? "");
   const [nextDue, setNextDue] = useState("");
+  const [weekly, setWeekly] = useState(false);
 
   const selected = horses.filter((h) => horseIds.has(h.id));
   const allSelected = selected.length === horses.length && horses.length > 0;
   const today = localToday();
   const isPlanned = date > today;
   const isCours = kind === "cours_collectif" || kind === "cours_individuel" || kind === "concours";
+  const canRepeat =
+    kind === "cours_collectif" || kind === "cours_individuel" || kind === "entrainement";
   const costNum = Number(cost.replace(",", ".")) || 0;
   const revenueNum = Number(revenue.replace(",", ".")) || 0;
   const canSave = selected.length > 0;
@@ -95,6 +100,21 @@ function SoinComposer() {
         nextDue: nextDue || undefined,
       },
     );
+    // Le rythme : cette séance revient chaque semaine, générée toute seule.
+    // La borne part de la date saisie — l'occurrence du jour vient d'être créée.
+    if (weekly) {
+      addRhythm({
+        kind,
+        weekday: weekdayOf(date),
+        label: label.trim() || undefined,
+        provider: provider.trim() || undefined,
+        horseIds: selected.map((h) => h.id),
+        revenue: isCours && revenueNum > 0 ? revenueNum : undefined,
+        cost: costNum > 0 ? costNum : undefined,
+        active: true,
+        materializedUntil: date,
+      });
+    }
     const who =
       selected.length === 1 ? selected[0].name : `${selected.length} chevaux`;
     useFlashStore.getState().setFlash({
@@ -136,6 +156,9 @@ function SoinComposer() {
           <span className="text-secondary">
             , pour le {date.slice(8, 10)}/{date.slice(5, 7)}
           </span>
+        )}
+        {weekly && (
+          <span className="text-secondary">, chaque {WEEKDAY_LABELS[weekdayOf(date)]}</span>
         )}
         .
       </motion.p>
@@ -261,6 +284,39 @@ function SoinComposer() {
           <p className="mt-1.5 text-[12px] text-tertiary">
             Attribuée à chaque cheval présent quand tu confirmes la séance.
           </p>
+        </motion.div>
+      )}
+
+      {canRepeat && (
+        <motion.div variants={item}>
+          <button
+            onClick={() => setWeekly((w) => !w)}
+            className={cn(
+              "flex w-full items-center justify-between rounded-[var(--radius-md)] border px-4 py-3",
+              weekly
+                ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)]"
+                : "border-[var(--border-strong)]",
+            )}
+          >
+            <span className="text-left">
+              <span className="block text-[14px] font-bold text-primary">
+                Répéter chaque {WEEKDAY_LABELS[weekdayOf(date)]}
+              </span>
+              <span className="block text-[12px] text-secondary">
+                La séance apparaîtra toute seule à l&apos;agenda, chaque semaine.
+              </span>
+            </span>
+            <span
+              aria-hidden
+              className="relative h-6 w-11 shrink-0 rounded-full transition-colors"
+              style={{ background: weekly ? "var(--accent-primary)" : "var(--border-strong)" }}
+            >
+              <span
+                className="absolute top-0.5 size-5 rounded-full bg-white transition-all"
+                style={{ left: weekly ? "22px" : "2px" }}
+              />
+            </span>
+          </button>
         </motion.div>
       )}
 

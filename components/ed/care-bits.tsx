@@ -19,7 +19,7 @@ import {
   CalendarClock,
 } from "lucide-react";
 import { Horseshoe } from "@/components/ed/atoms";
-import { CARE_META, type CareKind, type Deadline, type PlannedEvent, type Session } from "@/lib/domain/care";
+import { addDays, CARE_META, type CareKind, type Deadline, type PlannedEvent, type Session } from "@/lib/domain/care";
 import { useDataStore } from "@/stores/data-store";
 import { HorseAvatar } from "@/components/horse/horse-avatar";
 import { formatEur } from "@/lib/utils/format-currency";
@@ -64,7 +64,9 @@ export function deadlinePhrase(d: Deadline): string {
 
 /**
  * Une échéance anticipée, actionnable sur place : « Fait ✓ » note l'acte du
- * jour et la prochaine échéance se replanifie toute seule. La boucle Flighty.
+ * jour et la prochaine échéance se replanifie toute seule ; « RDV » ouvre le
+ * composeur prérempli (cheval, acte, date) pour caler le rendez-vous en un
+ * geste. La boucle Flighty.
  */
 export function DeadlineRow({
   d,
@@ -82,6 +84,11 @@ export function DeadlineRow({
       : d.status === "soon"
         ? "var(--c-warning)"
         : "var(--text-tertiary)";
+  const today = localToday();
+  // Le RDV proposé : l'échéance — et jamais avant demain, pour qu'il reste
+  // un rendez-vous à confirmer, pas un acte déjà fait.
+  const tomorrow = addDays(today, 1);
+  const rdvDate = d.dueDate > tomorrow ? d.dueDate : tomorrow;
 
   return (
     <motion.li
@@ -108,6 +115,15 @@ export function DeadlineRow({
           )}
         </p>
       </Link>
+      {!d.plannedFor && (
+        <Link
+          href={`/saisie/soin?kind=${d.kind}&horses=${d.horseId}&date=${rdvDate}`}
+          aria-label="Caler le rendez-vous"
+          className="btn-ghost flex shrink-0 items-center gap-1 px-2.5 py-1.5 text-[12px]"
+        >
+          <CalendarClock size={13} /> RDV
+        </Link>
+      )}
       <button
         onClick={() =>
           logCare({ horseId: d.horseId, kind: d.kind, date: localToday() })

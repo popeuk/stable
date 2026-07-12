@@ -8,6 +8,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { CareIcon, DeadlineRow, SessionRow } from "@/components/ed/care-bits";
 import { useDataStore } from "@/stores/data-store";
 import { upcomingDeadlines, agendaSessions, CARE_META, type Deadline } from "@/lib/domain/care";
+import { WEEKDAY_LABELS } from "@/lib/domain/rhythm";
 import { formatEur } from "@/lib/utils/format-currency";
 import { cn } from "@/lib/utils/cn";
 import { localToday } from "@/lib/utils/local-date";
@@ -34,8 +35,10 @@ export default function PlanningPage() {
 function Planning() {
   const data = useDataStore();
   const deleteCareEvent = useDataStore((s) => s.deleteCareEvent);
+  const deleteRhythm = useDataStore((s) => s.deleteRhythm);
   const [view, setView] = useState<View>("avenir");
   const today = localToday();
+  const rhythms = data.rhythms ?? [];
 
   const horseName = (id: string) =>
     data.horses.find((h) => h.id === id)?.name ?? "cheval retiré";
@@ -145,6 +148,48 @@ function Planning() {
               </ul>
             </section>
           ))
+          )}
+
+          {/* Les rythmes : le planning qui se remplit tout seul */}
+          {rhythms.length > 0 && (
+            <section>
+              <h2 className="title-serif mb-1 text-[19px] text-primary">Chaque semaine</h2>
+              <ul>
+                {rhythms.map((r) => (
+                  <li
+                    key={r.id}
+                    className="flex items-center gap-3 border-b border-[var(--border-default)] py-3"
+                  >
+                    <span className="shrink-0 text-tertiary">
+                      <CareIcon kind={r.kind} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[14px] font-bold leading-tight text-primary">
+                        {r.label ?? CARE_META[r.kind].label} · chaque {WEEKDAY_LABELS[r.weekday]}
+                      </p>
+                      <p className="truncate text-[12px] text-tertiary">
+                        {r.horseIds.map(horseName).join(", ")}
+                        {r.revenue ? ` · ${formatEur(r.revenue)}/cheval` : ""}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() =>
+                        confirm(
+                          "Arrêter ce rythme ? Les séances à venir déjà générées seront retirées de l'agenda.",
+                        ) && deleteRhythm(r.id)
+                      }
+                      aria-label="Arrêter ce rythme"
+                      className="shrink-0 p-1 text-tertiary hover:text-[var(--c-danger)]"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1.5 text-[12px] text-tertiary">
+                Planifié une fois, généré chaque semaine. La feuille de présence fait le reste.
+              </p>
+            </section>
           )}
         </>
       ) : view === "calendrier" ? (

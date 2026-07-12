@@ -31,9 +31,13 @@ function SaisieCheval() {
   const [name, setName] = useState(editing?.name ?? "");
   const [breed, setBreed] = useState(editing?.breed ?? "");
   const [ownerName, setOwnerName] = useState(editing?.ownerName ?? "");
+  const [pension, setPension] = useState(
+    editing?.pension ? String(editing.pension) : "",
+  );
   const [entryDate, setEntryDate] = useState(
     editing?.entryDate ?? localToday(),
   );
+  const pensionNum = Number(pension.replace(",", ".")) || 0;
 
   function save() {
     if (!name.trim()) return;
@@ -42,6 +46,7 @@ function SaisieCheval() {
         name: name.trim(),
         breed: breed.trim() || undefined,
         ownerName: ownerName.trim() || undefined,
+        pension: pensionNum > 0 ? pensionNum : undefined,
         entryDate,
       });
       router.push(`/cheval?id=${editing.id}`);
@@ -53,6 +58,7 @@ function SaisieCheval() {
       name: name.trim(),
       breed: breed.trim() || undefined,
       ownerName: ownerName.trim() || undefined,
+      pension: pensionNum > 0 ? pensionNum : undefined,
       entryDate,
       exitDate: null,
     });
@@ -90,6 +96,23 @@ function SaisieCheval() {
           onChange={(e) => setOwnerName(e.target.value)}
           className="w-full rounded-[var(--radius-md)] border bg-elevated px-4 py-3 text-sm text-primary outline-none"
         />
+      </Field>
+      <Field label="Pension (€/mois, optionnel)">
+        <div className="flex items-center gap-1 rounded-[var(--radius-md)] border bg-elevated px-4 py-3">
+          <input
+            type="text"
+            inputMode="decimal"
+            value={pension}
+            onChange={(e) => setPension(e.target.value.replace(/[^0-9,\.]/g, ""))}
+            placeholder="450"
+            className="w-full bg-transparent text-sm tabular-nums text-primary outline-none"
+          />
+          <span className="text-sm text-tertiary">€ / mois</span>
+        </div>
+        <p className="mt-1.5 text-[12px] text-tertiary">
+          Postée automatiquement chaque mois en revenu. Une seule saisie, plus jamais
+          de ligne « pension » à entrer.
+        </p>
       </Field>
       <Field label="Date d'entrée">
         <input

@@ -13,6 +13,9 @@ import type {
 } from "@/lib/domain/types";
 import type { CareEvent } from "@/lib/domain/care";
 import { CARE_META } from "@/lib/domain/care";
+import type { Rhythm } from "@/lib/domain/rhythm";
+import { materializeRhythms } from "@/lib/domain/rhythm";
+import { ensurePensions } from "@/lib/domain/autopilot";
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
 
@@ -24,6 +27,20 @@ import { enqueueMutation } from "@/lib/data/sync";
  */
 interface DataState extends StableData {
   hydrated: boolean;
+  /**
+   * Les pensions auto-postées que le gérant a supprimées : on ne les
+   * recrée jamais (il sait pourquoi il les a enlevées).
+   */
+  autopilotDismissed?: string[];
+  /** Un rythme hebdomadaire : planifié une fois, généré chaque semaine. */
+  addRhythm: (r: Omit<Rhythm, "id" | "stableId">) => void;
+  deleteRhythm: (id: string) => void;
+  /**
+   * L'autopilote : poste les pensions du mois et matérialise les rythmes
+   * de la semaine. Idempotent — appelé à l'ouverture, il ne crée que ce
+   * qui manque et ne touche à rien d'existant.
+   */
+  runAutopilot: (today: string) => void;
   addRevenue: (r: Omit<Revenue, "id" | "stableId">) => void;
   addDirectExpense: (e: Omit<DirectExpense, "id" | "stableId">) => void;
   addSharedExpense: (e: Omit<SharedExpense, "id" | "stableId">) => void;
@@ -145,7 +162,13 @@ export const useDataStore = create<DataState>()(
 
       deleteRevenue: (rid) => {
         enqueueMutation("delete", "revenues", { id: rid });
-        set((s) => ({ revenues: s.revenues.filter((r) => r.id !== rid) }));
+        set((s) => ({
+          revenues: s.revenues.filter((r) => r.id !== rid),
+          // Une pension auto-postée supprimée ne revient jamais.
+          autopilotDismissed: rid.startsWith("rev-pension-")
+            ? [...(s.autopilotDismissed ?? []), rid]
+            : s.autopilotDismissed,
+        }));
       },
 
       deleteDirectExpense: (eid) => {
@@ -273,6 +296,42 @@ export const useDataStore = create<DataState>()(
           };
         }),
 
+      addRhythm: (r) =>
+        set((s) => ({
+          rhythms: [...(s.rhythms ?? []), { ...r, id: id("rh"), stableId: STABLE_ID }],
+        })),
+
+      deleteRhythm: (rid) =>
+        set((s) => ({
+          rhythms: (s.rhythms ?? []).filter((r) => r.id !== rid),
+          // Les séances futures déjà générées par ce rythme s'en vont avec.
+          careEvents: (s.careEvents ?? []).filter(
+            (e) => !(e.pending && e.groupId?.startsWith(`rh-${rid}-`)),
+          ),
+        })),
+
+      runAutopilot: (today) =>
+        set((s) => {
+          const pensions = ensurePensions(s, today, s.autopilotDismissed ?? []);
+          const { events, advanced } = materializeRhythms(
+            s.rhythms ?? [],
+            s.horses,
+            today,
+          );
+          if (pensions.length === 0 && events.length === 0 && advanced.length === 0) return s;
+          for (const p of pensions) enqueueMutation("insert", "revenues", { ...p });
+          const until = new Map(advanced.map((a) => [a.id, a.materializedUntil]));
+          return {
+            revenues: pensions.length ? [...s.revenues, ...pensions] : s.revenues,
+            careEvents: events.length ? [...(s.careEvents ?? []), ...events] : s.careEvents,
+            rhythms: advanced.length
+              ? (s.rhythms ?? []).map((r) =>
+                  until.has(r.id) ? { ...r, materializedUntil: until.get(r.id)! } : r,
+                )
+              : s.rhythms,
+          };
+        }),
+
       addRecurringExpense: (e) =>
         set((s) => ({
           recurringExpenses: [
@@ -324,7 +383,7 @@ export const useDataStore = create<DataState>()(
       deleteExpenseCategory: (catId) =>
         set((s) => ({ expenseCategories: s.expenseCategories.filter((c) => c.id !== catId) })),
 
-      resetToDemo: () => set({ ...buildDemoData() }),
+      resetToDemo: () => set({ ...buildDemoData(), autopilotDismissed: [] }),
 
       // Empty stable, keeping the default categories — the from-zero experience.
       startEmpty: () => {
@@ -337,6 +396,8 @@ export const useDataStore = create<DataState>()(
           recurringExpenses: [],
           recurringRevenues: [],
           careEvents: [],
+          rhythms: [],
+          autopilotDismissed: [],
           revenueCategories: demo.revenueCategories,
           expenseCategories: demo.expenseCategories,
         });

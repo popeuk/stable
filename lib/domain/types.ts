@@ -28,6 +28,11 @@ export interface Horse {
   exitDate?: ISODate | null;
   isArchived: boolean;
   pensionType?: string;
+  /**
+   * Le contrat de pension (€/mois). Renseigné, il est posté automatiquement
+   * chaque mois en revenu : le loyer d'une place ne se ressaisit jamais.
+   */
+  pension?: number;
   notes?: string;
   /** Optional accent colour seed for the monogram placeholder. */
   photoUrl?: string | null;
@@ -156,6 +161,7 @@ export interface RecurringSchedule {
 }
 
 import type { CareEvent } from "@/lib/domain/care";
+import type { Rhythm } from "@/lib/domain/rhythm";
 
 /** The full bundle of data the domain functions operate on. */
 export interface StableData {
@@ -171,4 +177,6 @@ export interface StableData {
   recurringRevenues?: RecurringRevenue[];
   /** Le carnet de vie : soins, santé, sport, documents (voir domain/care). */
   careEvents?: CareEvent[];
+  /** Les rythmes hebdomadaires : le planning qui se remplit tout seul. */
+  rhythms?: Rhythm[];
 }

@@ -8,6 +8,8 @@ import type {
 } from "@/lib/domain/types";
 import type { CareEvent } from "@/lib/domain/care";
 import { addDays } from "@/lib/domain/care";
+import type { Rhythm } from "@/lib/domain/rhythm";
+import { weekdayOf } from "@/lib/domain/rhythm";
 import { distribute } from "@/lib/domain/distribution";
 import { addMonths, currentPeriod, periodStart } from "@/lib/utils/period";
 
@@ -80,6 +82,8 @@ export function buildDemoData(now = new Date()): StableData {
     exitDate: null,
     isArchived: false,
     pensionType: "Pension complète",
+    // Le contrat : la pension se poste toute seule chaque mois.
+    pension: h.pension,
   }));
 
   const revenues: Revenue[] = [];
@@ -243,6 +247,23 @@ export function buildDemoData(now = new Date()): StableData {
     });
   }
 
+  // Le rythme : ce même cours revient chaque semaine, tout seul. La borne
+  // est à aujourd'hui — l'occurrence du jour est déjà semée ci-dessus,
+  // l'autopilote générera la suivante.
+  const rhythms: Rhythm[] = [
+    {
+      id: "rh-demo-cours",
+      stableId: STABLE_ID,
+      kind: "cours_collectif",
+      weekday: weekdayOf(today),
+      label: "Cours du soir, 18 h",
+      horseIds: [horses[2].id, horses[4].id, horses[6].id],
+      revenue: 25,
+      active: true,
+      materializedUntil: today,
+    },
+  ];
+
   return {
     horses,
     revenues,
@@ -252,6 +273,7 @@ export function buildDemoData(now = new Date()): StableData {
     expenseCategories: DEFAULT_EXPENSE_CATEGORIES,
     recurringExpenses,
     careEvents,
+    rhythms,
   };
 }
 

@@ -3,19 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, ReceiptText, CalendarRange, Mic } from "lucide-react";
+import { House, TrendingUp, CalendarRange, Mic } from "lucide-react";
 import { VoiceSheet } from "@/components/ed/voice-sheet";
 import { HorseLine } from "@/components/ed/atoms";
 
 /**
- * Le dock : une pilule vert chasse qui flotte au-dessus du canvas. Quatre
- * lieux, et le + cognac au centre qui mène droit au composeur.
+ * Le dock : une pilule vert chasse qui flotte au-dessus du canvas. La
+ * journée et le planning d'abord (on FAIT tourner l'écurie), le micro au
+ * centre, l'écurie et le pilotage (tout ce qui se calcule tout seul) après.
  */
 const TABS = [
   { href: "/maintenant", label: "Aujourd’hui", icon: <House size={20} strokeWidth={1.7} /> },
-  { href: "/ecurie", label: "Écurie", icon: <HorseLine size={22} stroke={1.7} /> },
   { href: "/planning", label: "Planning", icon: <CalendarRange size={19} strokeWidth={1.7} /> },
-  { href: "/depenses", label: "Journal", icon: <ReceiptText size={19} strokeWidth={1.7} /> },
+  { href: "/ecurie", label: "Écurie", icon: <HorseLine size={22} stroke={1.7} /> },
+  { href: "/pilotage", label: "Pilotage", icon: <TrendingUp size={19} strokeWidth={1.7} /> },
 ];
 
 export function BottomNav() {

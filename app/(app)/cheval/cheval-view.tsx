@@ -140,6 +140,12 @@ function Cheval({ id }: { id: string }) {
             {horse.birthYear ? ` · ${new Date().getFullYear() - horse.birthYear} ans` : ""}
             {horse.ownerName ? ` · ${horse.ownerName}` : ""}
           </p>
+          {horse.pension ? (
+            <p className="mt-0.5 text-[12px] text-tertiary">
+              Pension {new Intl.NumberFormat("fr-FR").format(horse.pension)} €/mois · postée
+              toute seule chaque mois
+            </p>
+          ) : null}
         </div>
         <Link
           href={`/saisie/cheval?edit=${horse.id}`}
