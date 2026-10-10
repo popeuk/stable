@@ -1,0 +1,490 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-11T00:00:00Z",
+  "title": "Design System: Be Stable, Le Livret",
+  "extensions": {
+    "colorMeta": {
+      "vert": {
+        "role": "primary",
+        "displayName": "Vert anglais",
+        "canonical": "#134E3A",
+        "tonalRamp": [
+          "oklch(15% 0.069 166.1)",
+          "oklch(26% 0.069 166.1)",
+          "oklch(37% 0.069 166.1)",
+          "oklch(48% 0.069 166.1)",
+          "oklch(60% 0.069 166.1)",
+          "oklch(72% 0.069 166.1)",
+          "oklch(84% 0.069 166.1)",
+          "oklch(95% 0.069 166.1)"
+        ]
+      },
+      "vert-deep": {
+        "role": "primary",
+        "displayName": "Vert profond",
+        "canonical": "#0B3325",
+        "tonalRamp": [
+          "oklch(15% 0.051 165.9)",
+          "oklch(26% 0.051 165.9)",
+          "oklch(37% 0.051 165.9)",
+          "oklch(48% 0.051 165.9)",
+          "oklch(60% 0.051 165.9)",
+          "oklch(72% 0.051 165.9)",
+          "oklch(84% 0.051 165.9)",
+          "oklch(95% 0.051 165.9)"
+        ]
+      },
+      "rose": {
+        "role": "secondary",
+        "displayName": "Rose casaque",
+        "canonical": "#F6B3CB",
+        "tonalRamp": [
+          "oklch(15% 0.083 355.8)",
+          "oklch(26% 0.083 355.8)",
+          "oklch(37% 0.083 355.8)",
+          "oklch(48% 0.083 355.8)",
+          "oklch(60% 0.083 355.8)",
+          "oklch(72% 0.083 355.8)",
+          "oklch(84% 0.083 355.8)",
+          "oklch(95% 0.083 355.8)"
+        ]
+      },
+      "rose-soft": {
+        "role": "secondary",
+        "displayName": "Rose doux",
+        "canonical": "#FCE3EC",
+        "tonalRamp": [
+          "oklch(15% 0.030 353.9)",
+          "oklch(26% 0.030 353.9)",
+          "oklch(37% 0.030 353.9)",
+          "oklch(48% 0.030 353.9)",
+          "oklch(60% 0.030 353.9)",
+          "oklch(72% 0.030 353.9)",
+          "oklch(84% 0.030 353.9)",
+          "oklch(95% 0.030 353.9)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Encre",
+        "canonical": "#1B1225",
+        "tonalRamp": [
+          "oklch(15% 0.039 305.0)",
+          "oklch(26% 0.039 305.0)",
+          "oklch(37% 0.039 305.0)",
+          "oklch(48% 0.039 305.0)",
+          "oklch(60% 0.039 305.0)",
+          "oklch(72% 0.039 305.0)",
+          "oklch(84% 0.039 305.0)",
+          "oklch(95% 0.039 305.0)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Encre seconde",
+        "canonical": "#5A5264",
+        "tonalRamp": [
+          "oklch(15% 0.031 305.3)",
+          "oklch(26% 0.031 305.3)",
+          "oklch(37% 0.031 305.3)",
+          "oklch(48% 0.031 305.3)",
+          "oklch(60% 0.031 305.3)",
+          "oklch(72% 0.031 305.3)",
+          "oklch(84% 0.031 305.3)",
+          "oklch(95% 0.031 305.3)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Papier",
+        "canonical": "#FCFBF9",
+        "tonalRamp": [
+          "oklch(15% 0.003 84.6)",
+          "oklch(26% 0.003 84.6)",
+          "oklch(37% 0.003 84.6)",
+          "oklch(48% 0.003 84.6)",
+          "oklch(60% 0.003 84.6)",
+          "oklch(72% 0.003 84.6)",
+          "oklch(84% 0.003 84.6)",
+          "oklch(95% 0.003 84.6)"
+        ]
+      },
+      "mist": {
+        "role": "neutral",
+        "displayName": "Brume",
+        "canonical": "#F1EEF3",
+        "tonalRamp": [
+          "oklch(15% 0.007 312.3)",
+          "oklch(26% 0.007 312.3)",
+          "oklch(37% 0.007 312.3)",
+          "oklch(48% 0.007 312.3)",
+          "oklch(60% 0.007 312.3)",
+          "oklch(72% 0.007 312.3)",
+          "oklch(84% 0.007 312.3)",
+          "oklch(95% 0.007 312.3)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Ligne",
+        "canonical": "#DCD6E0",
+        "tonalRamp": [
+          "oklch(15% 0.015 312.2)",
+          "oklch(26% 0.015 312.2)",
+          "oklch(37% 0.015 312.2)",
+          "oklch(48% 0.015 312.2)",
+          "oklch(60% 0.015 312.2)",
+          "oklch(72% 0.015 312.2)",
+          "oklch(84% 0.015 312.2)",
+          "oklch(95% 0.015 312.2)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "oklch(15% 0.000 89.9)",
+          "oklch(26% 0.000 89.9)",
+          "oklch(37% 0.000 89.9)",
+          "oklch(48% 0.000 89.9)",
+          "oklch(60% 0.000 89.9)",
+          "oklch(72% 0.000 89.9)",
+          "oklch(84% 0.000 89.9)",
+          "oklch(95% 0.000 89.9)"
+        ]
+      },
+      "on-vert-muted": {
+        "role": "neutral",
+        "displayName": "Sauge sur vert",
+        "canonical": "#BFD6CB",
+        "tonalRamp": [
+          "oklch(15% 0.029 165.3)",
+          "oklch(26% 0.029 165.3)",
+          "oklch(37% 0.029 165.3)",
+          "oklch(48% 0.029 165.3)",
+          "oklch(60% 0.029 165.3)",
+          "oklch(72% 0.029 165.3)",
+          "oklch(84% 0.029 165.3)",
+          "oklch(95% 0.029 165.3)"
+        ]
+      },
+      "vert-2": {
+        "role": "primary",
+        "displayName": "Vert survol",
+        "canonical": "#1A5E47",
+        "tonalRamp": [
+          "oklch(15% 0.078 166.4)",
+          "oklch(26% 0.078 166.4)",
+          "oklch(37% 0.078 166.4)",
+          "oklch(48% 0.078 166.4)",
+          "oklch(60% 0.078 166.4)",
+          "oklch(72% 0.078 166.4)",
+          "oklch(84% 0.078 166.4)",
+          "oklch(95% 0.078 166.4)"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Encre tierce",
+        "canonical": "#7A7284",
+        "tonalRamp": [
+          "oklch(15% 0.029 305.5)",
+          "oklch(26% 0.029 305.5)",
+          "oklch(37% 0.029 305.5)",
+          "oklch(48% 0.029 305.5)",
+          "oklch(60% 0.029 305.5)",
+          "oklch(72% 0.029 305.5)",
+          "oklch(84% 0.029 305.5)",
+          "oklch(95% 0.029 305.5)"
+        ]
+      },
+      "line-2": {
+        "role": "neutral",
+        "displayName": "Ligne douce",
+        "canonical": "#EAE6ED",
+        "tonalRamp": [
+          "oklch(15% 0.010 311.2)",
+          "oklch(26% 0.010 311.2)",
+          "oklch(37% 0.010 311.2)",
+          "oklch(48% 0.010 311.2)",
+          "oklch(60% 0.010 311.2)",
+          "oklch(72% 0.010 311.2)",
+          "oklch(84% 0.010 311.2)",
+          "oklch(95% 0.010 311.2)"
+        ]
+      },
+      "on-vert-2": {
+        "role": "neutral",
+        "displayName": "Sauge tierce sur vert",
+        "canonical": "#8FB3A3",
+        "tonalRamp": [
+          "oklch(15% 0.045 166.3)",
+          "oklch(26% 0.045 166.3)",
+          "oklch(37% 0.045 166.3)",
+          "oklch(48% 0.045 166.3)",
+          "oklch(60% 0.045 166.3)",
+          "oklch(72% 0.045 166.3)",
+          "oklch(84% 0.045 166.3)",
+          "oklch(95% 0.045 166.3)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "Lowercase be stable logotype and the biggest price figures."
+      },
+      "display": {
+        "displayName": "Display",
+        "purpose": "Lead punchlines and board heroes."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section heads; stable name atop its livret."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Formula prices and card titles."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "One introductory paragraph."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Livret text and formula rows."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Captions, distances, availability."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Numbered field labels only."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Values in a data strip."
+      },
+      "app-figure": {
+        "displayName": "App figure",
+        "purpose": "The app's month result in the Vert banner (84px in the Le mois hero, 44px to 52px in panels)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "search-float",
+        "value": "0 1px 2px rgba(27,18,37,.06), 0 8px 24px rgba(27,18,37,.07), inset 0 0 0 1px #DCD6E0",
+        "purpose": "The search bar."
+      },
+      {
+        "name": "frame",
+        "value": "0 2px 4px rgba(27,18,37,.05), 0 24px 60px rgba(27,18,37,.10), inset 0 0 0 1px #DCD6E0",
+        "purpose": "A whole page, livret or the app column shown in situ."
+      },
+      {
+        "name": "print",
+        "value": "0 2px 4px rgba(27,18,37,.06), 0 18px 44px rgba(27,18,37,.12)",
+        "purpose": "Posters and social posts as objects."
+      },
+      {
+        "name": "app-float",
+        "value": "0 1px 2px rgba(27,18,37,.06), 0 8px 24px rgba(27,18,37,.08)",
+        "purpose": "The say field in the Noter sheet."
+      },
+      {
+        "name": "noter",
+        "value": "0 6px 18px rgba(19,78,58,.32), 0 0 0 5px #FCFBF9",
+        "purpose": "The central Noter button raised above the tab bar."
+      },
+      {
+        "name": "sheet",
+        "value": "0 -10px 40px rgba(27,18,37,.18)",
+        "purpose": "Bottom sheets, over a rgba(27,18,37,.42) scrim."
+      },
+      {
+        "name": "toast",
+        "value": "0 12px 32px rgba(27,18,37,.3)",
+        "purpose": "The ink toast above the tab bar."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.22,1,.36,1)",
+        "purpose": "Screen entry (0.32s), sheets (0.34s), stamp (0.45s), bars and seuil marker (0.4s to 0.5s)."
+      },
+      {
+        "name": "roll",
+        "value": "0.7s cubic-bezier(.2,.9,.2,1)",
+        "purpose": "Rolling digits when a figure changes."
+      },
+      {
+        "name": "flot-stamp",
+        "value": "0.5s ease-out",
+        "purpose": "Flot earned for the first time, from -14 degrees and 125 %."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "All animations and transitions collapse under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "app-desktop",
+        "value": "980px"
+      },
+      {
+        "name": "livret-md",
+        "value": "700px"
+      },
+      {
+        "name": "livret-lg",
+        "value": "1100px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one Vert action per view.",
+      "html": "<button class=\"ds-btn-vert\">Noter un soin</button>",
+      "css": ".ds-btn-vert{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 22px;border:0;border-radius:6px;background:var(--vert,#134E3A);color:#fff;font-family:'Bricolage Grotesque',sans-serif;font-weight:600;font-size:17px;letter-spacing:-.01em;cursor:pointer;transition:background .18s,transform .12s} .ds-btn-vert:hover{background:var(--vert-2,#1A5E47)} .ds-btn-vert:active{transform:scale(.98)} .ds-btn-vert:focus-visible{outline:2px solid var(--vert,#134E3A);outline-offset:2px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Navigation-like or row actions; 1.5px inset ink ring.",
+      "html": "<button class=\"ds-btn-line\">Fait</button>",
+      "css": ".ds-btn-line{min-height:44px;padding:0 16px;border:0;border-radius:6px;background:none;box-shadow:inset 0 0 0 1.5px var(--ink,#1B1225);color:var(--ink,#1B1225);font-family:'Bricolage Grotesque',sans-serif;font-weight:600;font-size:15px;cursor:pointer} .ds-btn-line:hover{background:var(--ink,#1B1225);color:#fff} .ds-btn-line:focus-visible{outline:2px solid var(--vert,#134E3A);outline-offset:2px}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Pill filter or choice; pressed turns solid ink.",
+      "html": "<button class=\"ds-chip\">Soin</button> <button class=\"ds-chip\" aria-pressed=\"true\">Dépense</button>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;min-height:40px;padding:0 15px;border:0;border-radius:40px;background:#fff;box-shadow:inset 0 0 0 1px var(--line,#DCD6E0);color:var(--ink,#1B1225);font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:500;cursor:pointer} .ds-chip:hover{box-shadow:inset 0 0 0 1px var(--ink-3,#7A7284)} .ds-chip[aria-pressed=true]{background:var(--ink,#1B1225);color:#fff;box-shadow:none}"
+    },
+    {
+      "name": "Amount Field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "The sheet's amount input; tabular figure, Vert ring on focus.",
+      "html": "<label class=\"ds-amount\"><input value=\"85\" inputmode=\"decimal\" aria-label=\"Montant\"><span>€</span></label>",
+      "css": ".ds-amount{display:flex;align-items:baseline;gap:8px;background:#fff;border-radius:10px;box-shadow:inset 0 0 0 1px var(--line,#DCD6E0);padding:6px 16px;font-family:'Bricolage Grotesque',sans-serif} .ds-amount:focus-within{box-shadow:inset 0 0 0 2px var(--vert,#134E3A)} .ds-amount input{border:0;outline:0;background:transparent;font:inherit;font-size:40px;font-weight:800;font-variation-settings:'wdth' 88;font-variant-numeric:tabular-nums;width:100%;min-height:60px;color:var(--ink,#1B1225)} .ds-amount span{font-size:22px;font-weight:600;color:var(--ink-2,#5A5264)}"
+    },
+    {
+      "name": "Plan des boxes",
+      "kind": "custom",
+      "refersTo": "box-gain",
+      "description": "Boxes coloured by what each horse leaves this month; walls shared, free box hatched.",
+      "html": "<div class=\"ds-plan\"><a class=\"ds-box gain\"><span class=\"no\">Box 01</span><span class=\"nm\">Sirius</span><span class=\"fig\">+184 €</span></a><a class=\"ds-box loss\"><span class=\"no\">Box 02</span><span class=\"nm\">Diva</span><span class=\"fig\">−71 €</span></a><a class=\"ds-box even\"><span class=\"no\">Box 03</span><span class=\"nm\">Belle</span><span class=\"fig\">−9 €</span></a><a class=\"ds-box free\"><span class=\"no\">Box 04</span><span class=\"nm\">Libre</span><span class=\"fig\">à louer</span></a></div>",
+      "css": ".ds-plan{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5px;background:var(--ink-3,#7A7284);border:1.5px solid var(--ink-3,#7A7284);max-width:320px;font-family:'Bricolage Grotesque',sans-serif} .ds-box{min-height:84px;padding:9px 10px 8px;display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;cursor:pointer;transition:filter .18s} .ds-box:hover{filter:brightness(1.08)} .ds-box .no{font-size:10.5px;font-weight:600;letter-spacing:.08em;opacity:.7} .ds-box .nm{font-weight:700;font-size:16.5px;letter-spacing:-.02em;font-variation-settings:'wdth' 92} .ds-box .fig{font-weight:800;font-size:19px;font-variation-settings:'wdth' 88;font-variant-numeric:tabular-nums} .ds-box.gain{background:var(--vert,#134E3A);color:#fff} .ds-box.gain .fig{color:var(--rose,#F6B3CB)} .ds-box.even{background:var(--mist,#F1EEF3);color:var(--ink,#1B1225)} .ds-box.loss{background:var(--ink,#1B1225);color:#fff} .ds-box.free{background:var(--paper,#FCFBF9) repeating-linear-gradient(135deg,transparent 0 7px,var(--line-2,#EAE6ED) 7px 8px);color:var(--ink-2,#5A5264)} .ds-box.free .fig{font-size:14px;font-weight:700;color:var(--vert,#134E3A)}"
+    },
+    {
+      "name": "Month Banner",
+      "kind": "card",
+      "refersTo": "month-banner",
+      "description": "Full-bleed Vert band with the month result in Rose and the copilot line.",
+      "html": "<section class=\"ds-banner\"><div class=\"m\"><strong>Octobre</strong><span>mois en cours</span></div><div class=\"big\">+352 €<small>ce mois</small></div><p><span class=\"who\">Ton copilote</span>Ton écurie gagne 352 € ce mois.</p></section>",
+      "css": ".ds-banner{background:var(--vert,#134E3A);color:#fff;padding:14px 18px 16px;font-family:'Bricolage Grotesque',sans-serif;max-width:390px} .ds-banner .m{display:flex;justify-content:space-between;font-size:14px;color:#BFD6CB} .ds-banner .m strong{color:#fff;font-weight:600;font-size:15px} .ds-banner .big{font-weight:800;font-variation-settings:'wdth' 88;letter-spacing:-.02em;line-height:.9;font-variant-numeric:tabular-nums;font-size:56px;color:var(--rose,#F6B3CB);margin-top:8px;display:flex;align-items:baseline;gap:8px} .ds-banner .big small{font-size:18px;font-weight:500;color:#fff;letter-spacing:0;font-variation-settings:'wdth' 100} .ds-banner p{font-size:16.5px;line-height:1.45;margin-top:10px} .ds-banner .who{display:block;font-size:12px;font-weight:600;color:var(--on-vert-2,#8FB3A3)}"
+    },
+    {
+      "name": "Fait Stamp",
+      "kind": "custom",
+      "refersTo": "stamp-done",
+      "description": "The tamponné done state of a task; lands once, never erased for the day.",
+      "html": "<span class=\"ds-stamp\">Fait 8:12</span>",
+      "css": ".ds-stamp{display:inline-flex;align-items:center;padding:6px 10px 6px 8px;border-radius:4px;background:var(--rose,#F6B3CB);color:var(--vert-deep,#0B3325);font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-variant-numeric:tabular-nums;transform:rotate(-5deg);box-shadow:inset 0 0 0 1.5px var(--vert-deep,#0B3325);animation:ds-stamp .45s cubic-bezier(.22,1,.36,1) both} @keyframes ds-stamp{0%{transform:rotate(-16deg) scale(1.6);opacity:0}100%{transform:rotate(-5deg) scale(1);opacity:1}} @media (prefers-reduced-motion:reduce){.ds-stamp{animation:none}}"
+    },
+    {
+      "name": "Tab Bar with Noter",
+      "kind": "nav",
+      "refersTo": "tab-note",
+      "description": "Five-column bottom bar; current tab carries a Vert top bar; central raised Noter disc.",
+      "html": "<nav class=\"ds-tabs\"><a aria-current=\"page\">Écurie</a><a>Journée</a><a class=\"note\"><span>+</span>Noter</a><a>Le mois</a><a>Livret</a></nav>",
+      "css": ".ds-tabs{display:grid;grid-template-columns:repeat(5,1fr);align-items:end;padding:8px 10px;background:rgba(252,251,249,.96);border-top:1px solid var(--line,#DCD6E0);font-family:'Bricolage Grotesque',sans-serif;max-width:390px;margin-top:30px} .ds-tabs a{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-height:44px;font-size:11.5px;font-weight:600;color:var(--ink-3,#7A7284);cursor:pointer} .ds-tabs a:hover{color:var(--ink,#1B1225)} .ds-tabs a[aria-current=page]{color:var(--ink,#1B1225)} .ds-tabs a[aria-current=page]::after{content:'';position:absolute;top:-9px;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--vert,#134E3A)} .ds-tabs .note{color:var(--vert,#134E3A);gap:3px} .ds-tabs .note span{width:58px;height:58px;margin-top:-22px;border-radius:50%;background:var(--vert,#134E3A);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 6px 18px rgba(19,78,58,.32),0 0 0 5px var(--paper,#FCFBF9);transition:background .15s,transform .15s} .ds-tabs .note:hover span{background:var(--vert-2,#1A5E47)} .ds-tabs .note:active span{transform:scale(.94)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Le livret signalétique",
+    "overview": "**Creative North Star: \"Le livret signalétique\"**\n\nEvery stable gets a livret, like the identity booklet a horse carries: numbered fields, true data, an official stamp once it is complete. The system is a near-white page ruled by hairlines, inked in a green-black, set in a single grotesk with character, where prices are the loudest information and two colours (Vert, Rose casaque) make all the noise. Precision in the layout, humour in the words.\n\nDensity is editorial and calm: generous page margins (88px), large square photographs, a field grid of 1px hairlines that carries structure instead of cards and shadows. Vert owns whole regions (a poster, a price card, a brand tile, the primary button); Rose casaque is a highlighter band under one key word and the fill of the flot stamp. The flot de concours is a precise geometric stamp earned by a listing, never a costume.\n\nThe world refuses the directory default: grey cards, star ratings, a map as the hero. The price comes first, and it is set like a record, in tabular digits.",
+    "keyCharacteristics": [
+      "Near-white paper, green-black ink, 1px lilac-grey hairlines.",
+      "Two loud colours only, used as regions and highlights, never as scattered accents.",
+      "One family (Bricolage Grotesque) from 11px labels to 192px wordmark, driven by the width axis.",
+      "Numbered field labels structure every livret.",
+      "The flot: an 18-scallop rosette stamp that a listing earns field by field.",
+      "Square-cornered photography; 6px radius on UI only."
+    ],
+    "rules": [
+      {
+        "name": "The Two Loud Colours Rule",
+        "body": "On a typical page the proportions are paper 66 %, ink 16 %, vert 12 %, rose 6 %. Vert and Rose occupy whole zones or a single highlighted word; everything else stays quiet.",
+        "section": "colors"
+      },
+      {
+        "name": "The Rose Legibility Rule",
+        "body": "Rose is never text on paper or white. It is text only on vert (figures, display lines), and a ground only under vert or vert-deep text.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "Bricolage Grotesque is the only typeface, including inside the flot. Hierarchy comes from weight, size and the width axis (88 wordmark, 90 display, default text).",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Price Rule",
+        "body": "Every price, count and figure uses tabular digits, with a thin space before the unit (\"330 €\", \"/ mois\" in 500 weight at roughly a third of the figure's size).",
+        "section": "typography"
+      },
+      {
+        "name": "The One Highlight Rule",
+        "body": "A headline carries at most one Rose highlight, a flat band from 58 % to 92 % of the line box under a single key word, padded 0.06em. The punchline without its highlight must still read.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline Grid Rule",
+        "body": "Group content with shared 1px Ligne rules, not with separate boxed cards.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Page Rule",
+        "body": "Content on the page is never lifted; only the search bar and presented artefacts float, and their shadows stay soft and ink-tinted.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Square Photo Rule",
+        "body": "A photo never gets its own radius or a decorative frame.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** keep the page at paper 66 %, ink 16 %, vert 12 %, rose 6 %, with Vert as whole regions.",
+      "**Do** set every price and figure in tabular digits, and show the price before any other listing detail.",
+      "**Do** open each livret data section with a round-numbered field label and separate sections with 1px Ligne rules.",
+      "**Do** highlight at most one key word per headline with the Rose band.",
+      "**Do** keep the wordmark lowercase \"be stable\", 800, width 88, letter-spacing -0.004em, on one line.",
+      "**Do** award the flot only for a named status, tilted at most 8 degrees.",
+      "**Do** label fictitious stables, prices and portraits in mockups.",
+      "**Do** colour a box by what its horse leaves this month (Vert rapporte, mist à l'équilibre, ink pèse, hatched paper for a free box) and always show the legend.",
+      "**Do** roll a changed figure digit by digit and keep a stamped Fait visible for the day."
+    ],
+    "donts": [
+      "**Don't** set Rose text on paper or white.",
+      "**Don't** introduce a second typeface or a third loud colour.",
+      "**Don't** build listings as grey cards with star ratings.",
+      "**Don't** round or frame photographs on their own.",
+      "**Don't** lift page content with shadows; only the search bar and presented artefacts float, softly.",
+      "**Don't** use the flot as ornament or change its geometry; it is a stamp, not a costume.",
+      "**Don't** round or space the plan's boxes like cards; neighbours share 1.5px ink-3 walls.",
+      "**Don't** carry the boards' filled index badges or specimen captions onto product surfaces; they annotate the planche."
+    ]
+  }
+}
