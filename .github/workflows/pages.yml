@@ -29,15 +29,21 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
-      - name: Build static export
+      - name: Build static export (previous app, served under /stable/v1)
         run: npm run build
         env:
           DEPLOY_TARGET: pages
-          NEXT_PUBLIC_BASE_PATH: /stable
+          PAGES_BASE: /stable/v1
+          NEXT_PUBLIC_BASE_PATH: /stable/v1
+      - name: Assemble site (prototype at the root, previous app in v1/)
+        run: |
+          mkdir -p site
+          cp -R prototype/. site/
+          mv out site/v1
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./out
+          path: ./site
 
   deploy:
     needs: build
