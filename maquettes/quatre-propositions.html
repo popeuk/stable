@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Be Stable, quatre propositions</title>
+<meta name="description" content="Quatre maquettes de l'app Be Stable, et une nouvelle façon d'expliquer l'application.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --vert:#134E3A; --vert-deep:#0B3325; --vert-2:#1A5E47; --vert-soft:#E3ECE7;
+  --rose:#F6B3CB; --rose-soft:#FCE3EC;
+  --ink:#1B1225; --ink-2:#5A5264; --ink-3:#7A7284;
+  --paper:#FCFBF9; --mist:#F1EEF3; --line:#DCD6E0; --line-2:#EAE6ED;
+  --on-vert:#BFD6CB;
+  --alezan:#B4612C; --bai:#6E4128; --gris:#B7B1BC; --noir:#2E2733; --isabelle:#D8B06A; --pie:#F4EFE7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-optical-sizing:auto;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+::selection{background:var(--rose);color:var(--vert-deep)}
+.num{font-variant-numeric:tabular-nums}
+.d{font-weight:700;letter-spacing:-.03em;line-height:1;font-variation-settings:"wdth" 90;text-wrap:balance}
+.wm{font-weight:800;letter-spacing:-.004em;font-variation-settings:"wdth" 88;white-space:nowrap}
+.hl{background:linear-gradient(transparent 58%,var(--rose) 58%,var(--rose) 92%,transparent 92%);padding:0 .06em}
+
+/* ---------- Page ---------- */
+.page{max-width:1440px;margin:0 auto;padding:40px 40px 80px}
+.mast{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.mast .wm{font-size:30px}
+.mast span{font-size:14px;color:var(--ink-2)}
+.intro{display:grid;grid-template-columns:1.1fr 1fr;gap:72px;padding:56px 0 64px;border-bottom:1px solid var(--line)}
+.intro h1{font-size:64px}
+.intro .lead{font-size:20px;color:var(--ink-2);margin-top:22px;max-width:30em}
+.promise{margin-top:28px;padding:22px 24px;background:var(--vert);color:#fff;border-radius:6px;font-size:22px;line-height:1.35;font-weight:600;letter-spacing:-.01em;max-width:30em}
+.promise small{display:block;font-size:14px;font-weight:500;color:var(--on-vert);margin-top:8px;letter-spacing:0}
+.how h2{font-size:28px}
+.how ol{list-style:none;margin-top:18px}
+.how li{display:grid;grid-template-columns:64px 1fr;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line-2)}
+.how li .pic{width:64px;height:64px;border-radius:50%;background:var(--vert-soft);color:var(--vert);display:flex;align-items:center;justify-content:center}
+.how li .pic svg{width:32px;height:32px}
+.how li b{display:block;font-size:19px;letter-spacing:-.01em}
+.how li span{font-size:15.5px;color:var(--ink-2)}
+.changes{margin-top:26px}
+.changes h3{font-size:15px;font-weight:600;color:var(--ink-2)}
+.changes ul{list-style:none;margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
+.changes li{font-size:14.5px;padding:7px 14px;border-radius:40px;box-shadow:inset 0 0 0 1px var(--line);background:#fff}
+
+.nav-props{position:sticky;top:0;z-index:10;background:rgba(252,251,249,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:6px;padding:12px 0;overflow-x:auto}
+.nav-props a{flex:none;text-decoration:none;color:var(--ink);font-weight:600;font-size:15px;padding:9px 16px;border-radius:40px;box-shadow:inset 0 0 0 1px var(--line);background:#fff}
+.nav-props a:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.nav-props a b{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;align-items:center;justify-content:center;margin-right:8px}
+
+.prop{padding:64px 0 40px;border-bottom:1px solid var(--line);scroll-margin-top:60px}
+.prop-head{display:grid;grid-template-columns:auto 1fr 1fr;gap:40px;align-items:start}
+.prop-no{width:72px;height:72px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;font-variation-settings:"wdth" 88}
+.prop-head h2{font-size:48px}
+.prop-head .idea{font-size:19px;color:var(--ink-2);margin-top:12px;max-width:30em}
+.facts{font-size:15.5px}
+.facts div{padding:10px 0;border-bottom:1px solid var(--line-2)}
+.facts div:first-child{border-top:1px solid var(--line-2)}
+.facts b{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:2px}
+.phones{display:flex;gap:28px;margin-top:40px;overflow-x:auto;padding:6px 4px 20px;scroll-snap-type:x mandatory}
+.ph{flex:none;scroll-snap-align:start;width:320px}
+.ph figcaption{font-size:14.5px;color:var(--ink-2);margin-top:14px;padding:0 6px;line-height:1.45}
+.ph figcaption b{color:var(--ink);font-weight:600;display:block;font-size:15.5px}
+
+/* ---------- Phone frame ---------- */
+.phone{width:320px;height:680px;border-radius:40px;background:#fff;padding:10px;box-shadow:0 2px 4px rgba(27,18,37,.06),0 24px 60px rgba(27,18,37,.14),inset 0 0 0 1px var(--line)}
+.scr{position:relative;width:100%;height:100%;border-radius:31px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column;font-size:15px}
+.sb{height:34px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-size:12.5px;font-weight:700}
+.sb i{width:70px;height:20px;border-radius:20px;background:var(--ink)}
+.body{flex:1;overflow:hidden;padding:4px 18px 0}
+.tabbar{flex:none;height:70px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 64px 1fr 1fr;align-items:center;padding:0 6px 6px;background:#fff}
+.tabbar span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;font-weight:600;color:var(--ink-3)}
+.tabbar span.on{color:var(--vert)}
+.tabbar svg{width:24px;height:24px}
+.tabbar .add{width:52px;height:52px;border-radius:50%;background:var(--vert);color:#fff;justify-self:center;display:flex;align-items:center;justify-content:center;margin-top:-18px;box-shadow:0 6px 14px rgba(19,78,58,.3),0 0 0 4px #fff}
+.tabbar .add svg{width:26px;height:26px}
+
+/* ---------- In-phone atoms ---------- */
+.hello{font-size:13.5px;color:var(--ink-2);margin-top:6px}
+.t1{font-size:27px;margin-top:2px}
+.t2{font-size:21px}
+.p{font-size:14.5px;color:var(--ink-2);line-height:1.45}
+.pic{flex:none;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--vert-soft);color:var(--vert)}
+.pic svg{width:24px;height:24px}
+.pic.rose{background:var(--rose-soft);color:var(--vert-deep)}
+.pic.mist{background:var(--mist);color:var(--ink)}
+.pic.big{width:56px;height:56px}.pic.big svg{width:30px;height:30px}
+.row{display:flex;align-items:center;gap:12px}
+.li{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-2)}
+.li .tx{flex:1;min-width:0}
+.li .tx b{display:block;font-size:15px;font-weight:600;line-height:1.25}
+.li .tx span{font-size:13px;color:var(--ink-2)}
+.amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:15px}
+.amt.plus{color:var(--vert)}
+.amt.minus{color:var(--ink)}
+.ck{flex:none;width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--line);display:flex;align-items:center;justify-content:center;color:transparent}
+.ck.on{background:var(--vert);box-shadow:none;color:#fff}
+.ck svg{width:18px;height:18px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:6px;font-weight:600;font-size:16px;background:var(--vert);color:#fff;margin-top:14px}
+.btn.line{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.btn.rose{background:var(--rose);color:var(--vert-deep)}
+.card-v{background:var(--vert);color:#fff;border-radius:8px;padding:16px}
+.card-v .big{color:var(--rose)}
+.big{font-weight:800;font-variation-settings:"wdth" 88;letter-spacing:-.02em;line-height:.95;font-variant-numeric:tabular-nums}
+.tip{display:flex;gap:12px;align-items:flex-start;background:var(--rose-soft);color:var(--vert-deep);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:14px;line-height:1.4}
+.tip .pic{width:34px;height:34px;background:#fff;color:var(--vert-deep)}
+.tip .pic svg{width:19px;height:19px}
+.sec{font-size:13px;font-weight:600;color:var(--ink-2);margin:16px 0 2px}
+.face{flex:none;border-radius:50%;overflow:hidden;background:var(--mist);display:flex;align-items:flex-end;justify-content:center}
+.face svg{width:100%;height:100%}
+.pill{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border-radius:30px;font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill.g{background:var(--vert);color:#fff}
+.pill.r{background:var(--rose);color:var(--vert-deep)}
+.pill.n{background:var(--mist);color:var(--ink)}
+.pill svg{width:14px;height:14px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:40px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);font-size:13.5px;font-weight:500}
+.chip svg{width:18px;height:18px;color:var(--vert)}
+.chip.on{background:var(--ink);color:#fff;box-shadow:none}
+.chip.on svg{color:var(--rose)}
+.steps{list-style:none;margin-top:16px}
+.steps li{display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.steps li b{display:block;font-size:15.5px;line-height:1.25}
+.steps li span{font-size:13.5px;color:var(--ink-2)}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:14px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dots i.on{width:20px;border-radius:7px;background:var(--ink)}
+.back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ink-2);margin-top:4px}
+.back svg{width:18px;height:18px}
+
+/* ticket */
+.ticket{background:#fff;margin-top:12px;padding:16px 16px 18px;position:relative;filter:drop-shadow(0 2px 2px rgba(27,18,37,.06)) drop-shadow(0 10px 18px rgba(27,18,37,.08))}
+.ticket::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:8px;background:linear-gradient(-45deg,transparent 6px,#fff 0) 0 0/12px 8px repeat-x,linear-gradient(45deg,transparent 6px,#fff 0) 0 0/12px 8px repeat-x}
+.ticket .th{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1.5px dashed var(--line)}
+.ticket .tl{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px}
+.ticket .tl svg{width:20px;height:20px;flex:none;color:var(--vert)}
+.ticket .tl span{flex:1}
+.ticket .tl b{font-variant-numeric:tabular-nums}
+.ticket .tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1.5px solid var(--ink);margin-top:6px;padding-top:10px}
+
+/* parcours */
+.course{position:relative;margin-top:8px}
+.ob{display:flex;align-items:center;gap:14px;padding:5px 0;position:relative}
+.ob .jn{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:inset 0 0 0 2px var(--line);color:var(--ink-3);position:relative;z-index:1}
+.ob.done .jn{background:var(--vert);color:#fff;box-shadow:none}
+.ob.now .jn{background:var(--rose);color:var(--vert-deep);box-shadow:0 0 0 5px var(--rose-soft)}
+.ob .jn svg{width:24px;height:24px}
+.ob b{display:block;font-size:15px;line-height:1.2}
+.ob span{font-size:13px;color:var(--ink-2)}
+.course::before{content:"";position:absolute;left:22px;top:24px;bottom:24px;border-left:2px dashed var(--line)}
+.progress{height:8px;border-radius:8px;background:var(--line-2);overflow:hidden;margin-top:8px}
+.progress i{display:block;height:100%;background:var(--vert);border-radius:8px}
+
+@media (max-width:1000px){
+  .page{padding:24px 16px 60px}
+  .intro{grid-template-columns:1fr;gap:36px;padding:36px 0 44px}
+  .intro h1{font-size:42px}
+  .prop-head{grid-template-columns:1fr;gap:16px}
+  .prop-head h2{font-size:34px}
+  .prop-no{width:52px;height:52px;font-size:24px}
+  .phones{gap:18px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="mast"><span class="wm">be stable</span><span>Quatre propositions pour l'app · maquettes · octobre 2026 · données fictives</span></header>
+
+  <section class="intro">
+    <div>
+      <h1 class="d">Une app qu'un gérant comprend <span class="hl">sans notice.</span></h1>
+      <p class="lead">Avant de dessiner, on a réécrit la façon de présenter Be Stable. Une promesse en une phrase, trois gestes, et des mots qu'on dit dans une écurie. Les quatre maquettes racontent la même chose, chacune avec une image différente.</p>
+      <p class="promise">Be Stable te dit, chaque mois, ce que ton écurie te rapporte vraiment. Cheval par cheval.<small>La phrase qui ouvre l'app, quelle que soit la proposition retenue.</small></p>
+      <div class="changes"><h3>Ce qui change par rapport au plan des boxes</h3>
+        <ul><li>Une seule colonne</li><li>Une information par ligne</li><li>Des pictos sur chaque action</li><li>Des chevaux qu'on reconnaît</li><li>Des mots du métier, pas de compta</li><li>Un chiffre, toujours avec sa phrase</li></ul></div>
+    </div>
+    <div class="how">
+      <h2 class="d">Comment ça marche, en trois gestes</h2>
+      <ol>
+        <li><span class="pic" data-i="check"></span><div><b>1. Tu notes ce que tu fais</b><span>Un soin, un cours, une facture de foin. Dix secondes, au pouce ou à la voix.</span></div></li>
+        <li><span class="pic" data-i="horseLine"></span><div><b>2. Be Stable range l'argent au bon cheval</b><span>La pension, le maréchal, sa part de foin et de loyer : tout est compté pour lui.</span></div></li>
+        <li><span class="pic" data-i="bulb"></span><div><b>3. Tu sais qui rapporte, qui coûte, et quoi faire</b><span>Une phrase claire, et une idée concrète pour améliorer le mois.</span></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <nav class="nav-props" aria-label="Propositions">
+    <a href="#p1"><b>1</b>Le carnet du jour</a>
+    <a href="#p2"><b>2</b>Le ticket de chaque cheval</a>
+    <a href="#p3"><b>3</b>Le seau du mois</a>
+    <a href="#p4"><b>4</b>Le parcours</a>
+  </nav>
+
+  <!-- ================= 1 ================= -->
+  <section class="prop" id="p1">
+    <div class="prop-head">
+      <div class="prop-no">1</div>
+      <div><h2 class="d">Le carnet du <span class="hl">jour.</span></h2><p class="idea">L'app s'ouvre sur ce qu'il y a à faire aujourd'hui, comme le carnet posé dans la sellerie. On coche, et l'argent se range tout seul. Les chiffres viennent ensuite, un par un.</p></div>
+      <div class="facts">
+        <div><b>Ce qu'on comprend en 5 secondes</b>Ma journée, et ce que mon écurie a gagné ce mois.</div>
+        <div><b>Pour qui</b>Le gérant qui vit dans la cour et ouvre l'app entre deux soins.</div>
+        <div><b>Le risque</b>L'argent passe au second plan : il faut que la carte du bas donne envie de cliquer.</div>
+      </div>
+    </div>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="p1a"></div></div><figcaption><b>Bienvenue</b>Les trois gestes, avec un picto chacun. Rien d'autre.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p1b"></div></div><figcaption><b>Aujourd'hui</b>Une tâche par ligne : un picto, une phrase, une coche. Le gain du mois en bas.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p1c"></div></div><figcaption><b>Noter</b>Quoi, pour qui, combien. On choisit le cheval par sa tête.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p1d"></div></div><figcaption><b>Un cheval</b>Ce qu'il rapporte, ce qu'il coûte, ce qu'il reste, et une idée.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ================= 2 ================= -->
+  <section class="prop" id="p2">
+    <div class="prop-head">
+      <div class="prop-no">2</div>
+      <div><h2 class="d">Le ticket de chaque <span class="hl">cheval.</span></h2><p class="idea">Tout le monde sait lire un ticket de caisse. Chaque cheval a le sien, chaque mois : ce qui est entré, ce qui est sorti, le total en bas. L'accueil, c'est la liste des chevaux, ceux qui rapportent d'abord.</p></div>
+      <div class="facts">
+        <div><b>Ce qu'on comprend en 5 secondes</b>Quels chevaux me rapportent, lesquels me coûtent.</div>
+        <div><b>Pour qui</b>Le gérant qui pense « cheval par cheval » et veut savoir si un prix de pension tient.</div>
+        <div><b>Le risque</b>La « part de l'écurie » (foin, loyer, salaires) doit être expliquée une fois, très bien.</div>
+      </div>
+    </div>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="p2a"></div></div><figcaption><b>Bienvenue</b>On montre un ticket, tout de suite. L'image fait l'explication.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p2b"></div></div><figcaption><b>Mes chevaux</b>Une tête, un nom, un total. Rangés en deux groupes clairs.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p2c"></div></div><figcaption><b>Le ticket de Pacha</b>Chaque ligne a son picto. Le total dit tout.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p2d"></div></div><figcaption><b>La part de l'écurie, expliquée</b>La facture commune partagée entre les têtes. La leçon tient en une image.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ================= 3 ================= -->
+  <section class="prop" id="p3">
+    <div class="prop-head">
+      <div class="prop-no">3</div>
+      <div><h2 class="d">Le seau du <span class="hl">mois.</span></h2><p class="idea">L'argent qui rentre remplit le seau, l'argent qui sort le vide. Ce qui reste au fond, c'est ce que tu as gagné. Une seule image pour comprendre la rentabilité, et deux boutons pour noter : j'ai encaissé, j'ai payé.</p></div>
+      <div class="facts">
+        <div><b>Ce qu'on comprend en 5 secondes</b>Il me reste de l'argent ce mois, ou pas, et ce qui le fait fuir.</div>
+        <div><b>Pour qui</b>Le gérant qui n'aime pas les chiffres et veut une image qui parle.</div>
+        <div><b>Le risque</b>La vue « par cheval » arrive au deuxième niveau ; il faut la rendre évidente.</div>
+      </div>
+    </div>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="p3a"></div></div><figcaption><b>Bienvenue</b>Le seau expliqué en trois phrases.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p3b"></div></div><figcaption><b>Mon mois</b>Ce qui entre en haut, le seau au milieu, ce qui sort en bas.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p3c"></div></div><figcaption><b>Noter</b>Deux gros boutons. Puis un picto pour dire quoi.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p3d"></div></div><figcaption><b>Et si…</b>On bouge un curseur, le seau monte. Le trait montre aujourd'hui.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ================= 4 ================= -->
+  <section class="prop" id="p4">
+    <div class="prop-head">
+      <div class="prop-no">4</div>
+      <div><h2 class="d">Le <span class="hl">parcours.</span></h2><p class="idea">Comme un parcours d'obstacles : six barres à passer pour connaître son écurie par cœur. Chaque obstacle est une action simple. Chaque semaine, un bulletin raconte trois nouvelles. Au bout, le flot, et la porte de Be Stable.</p></div>
+      <div class="facts">
+        <div><b>Ce qu'on comprend en 5 secondes</b>Où j'en suis, et la seule chose à faire maintenant.</div>
+        <div><b>Pour qui</b>Le gérant qui démarre, ou qui a besoin d'être guidé pas à pas.</div>
+        <div><b>Le risque</b>Une fois le parcours fini, l'accueil doit basculer sur le bulletin.</div>
+      </div>
+    </div>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="p4a"></div></div><figcaption><b>Bienvenue</b>Six obstacles, un flot à l'arrivée.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p4b"></div></div><figcaption><b>Mon parcours</b>Le tracé, les barres passées, et l'obstacle du moment.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p4c"></div></div><figcaption><b>Le bulletin de la semaine</b>Trois nouvelles, trois pictos : une bonne, une à surveiller, une idée.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="p4d"></div></div><figcaption><b>Une leçon : le seuil</b>Des têtes de chevaux au lieu de carrés. Le drapeau montre le seuil.</figcaption></figure>
+    </div>
+  </section>
+
+  <p class="p" style="margin-top:28px">Écurie, chevaux, propriétaires et chiffres fictifs, repris du prototype « Les Trois Pommiers » pour que les quatre propositions se comparent sur les mêmes données.</p>
+</div>
+
+<script>
+(() => {
+/* ---------- Pictos (24 grid, 1.8 stroke) ---------- */
+const P = {
+  check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  back:'<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  arrowR:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  up:'<path d="M12 19V5M6 11l6-6 6 6"/>',
+  down:'<path d="M12 5v14M6 13l6 6 6-6"/>',
+  fer:'<path d="M6.3 4.2C4.8 6.8 4 9.7 4 12.6a8 8 0 0 0 16 0c0-2.9-.8-5.8-2.3-8.4"/><path d="M9.2 5.6c-1 1.9-1.6 4.2-1.6 6.6a4.4 4.4 0 0 0 8.8 0c0-2.4-.6-4.7-1.6-6.6"/><path d="M6.3 4.2 9.2 5.6M17.7 4.2l-2.9 1.4"/>',
+  veto:'<path d="m17.5 3 3.5 3.5M15.5 5l3.5 3.5M17.2 6.8 8 16H5v-3l9.2-9.2"/><path d="m5 19-2 2M10.5 9.5l2 2M8.5 11.5l2 2"/>',
+  foin:'<rect x="3" y="8" width="18" height="10" rx="2"/><path d="M3 13h18M8 8v10M16 8v10M6 6l1 2M12 5v3M18 6l-1 2"/>',
+  granule:'<path d="M7 7h10l2 13H5L7 7z"/><path d="M9 7V4.5h6V7M9.5 13h5"/>',
+  paille:'<path d="M12 3v18M8 3v5a4 4 0 0 0 8 0V3"/>',
+  cours:'<path d="M4 15a8 8 0 0 1 16 0z"/><path d="M2.5 15H21M12 7V5M8 15l-1 4M16 15l1 4"/>',
+  box:'<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M9.5 20v-6h5v6M9.5 14l5 6M14.5 14l-5 6"/>',
+  euro:'<circle cx="12" cy="12" r="9"/><path d="M15 8.5a4.5 4.5 0 1 0 0 7M7.5 11h6M7.5 13h6"/>',
+  personne:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/>',
+  cle:'<circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16.5 6.5l2 2M14 9l2 2"/>',
+  main:'<path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V11M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6h-.5a6 6 0 0 1-5.1-2.9L3.6 14a1.5 1.5 0 0 1 2.6-1.5L8 15"/>',
+  pot:'<path d="M7 8h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V8z"/><path d="M6 5h12v3H6zM10 13h4"/>',
+  dent:'<path d="M7.5 4C5.3 4 4 6 4 8.2c0 3 1.9 4.3 2 8.3.1 2.4.8 4.5 2 4.5 1.4 0 1.5-3.6 2.4-5.4h3.2c.9 1.8 1 5.4 2.4 5.4 1.2 0 1.9-2.1 2-4.5.1-4 2-5.3 2-8.3C20 6 18.7 4 16.5 4c-1.9 0-2.8 1-4.5 1S9.4 4 7.5 4z"/>',
+  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
+  bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+  loupe:'<circle cx="11" cy="11" r="6.5"/><path d="m16 16 5 5"/>',
+  trophee:'<path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4M12 13v4M8.5 20h7M10 17h4"/>',
+  jump:'<path d="M4 20V6M20 20V6M4 10h16M4 14.5h16"/><path d="M2.5 20h3M18.5 20h3"/>',
+  flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  chart:'<path d="M4 20h16M7 16v-4M12 16V7M17 16v-7"/>',
+  seau:'<path d="M5 8h14l-1.6 11.2a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8L5 8z"/><path d="M5 8a7 4 0 0 1 14 0"/>',
+  horseLine:'<path d="M7.5 21c.3-3 .1-5.3-.7-7.3l-2.3 2c-.9.8-2.3.3-2.5-.9l-.2-1.2c-.1-.6.1-1.2.6-1.6l5.3-5.1c1.5-1.4 3.4-2.2 5.5-2.3L14.6 2l1.1 2.5 1.7-1.8.2 3c2.4 2.3 3.9 6 3.9 10.4V21"/><path d="M15.7 7.2c1.4 1.9 2.2 4.4 2.4 7.3"/><circle cx="10.6" cy="8.6" r=".9" fill="currentColor" stroke="none"/>',
+  camion:'<path d="M3 6h11v10H3zM14 9h4l3 3.5V16h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+  home:'<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/>',
+  list:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+};
+const ic = (n, w = 24) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+document.querySelectorAll('[data-i]').forEach(e => { e.innerHTML = ic(e.dataset.i); });
+
+/* ---------- Horse portraits ---------- */
+const COATS = { alezan:['#B4612C','#8A4520'], bai:['#6E4128','#2A1C18'], gris:['#B7B1BC','#7F7884'], noir:['#2E2733','#17121B'], isabelle:['#D8B06A','#8C6A35'], pie:['#F4EFE7','#6E4128'] };
+function horse(coat = 'alezan', blaze = true, bg = 'var(--mist)') {
+  const [c, m] = COATS[coat];
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="${bg}"/>
+    <path d="M30 100 C33 82 36 70 40 62 L30 66 C22 70 14 68 12 60 C10 54 14 48 20 44 L40 28 C46 23 52 20 58 20 L62 8 L66 19 L71 10 L72 24 C82 34 88 50 88 70 L90 100 Z" fill="${c}"/>
+    <path d="M58 20 C66 22 72 28 74 36 C70 34 66 33 64 34 C68 40 76 46 80 54 C76 54 72 52 70 51 C74 58 80 64 84 70 C82 70 79 69 77 68 C80 76 84 84 88 90 L90 100 L84 100 C82 80 78 62 70 48 C66 40 62 32 58 20 Z" fill="${m}"/>
+    ${blaze ? `<path d="M40 30 C34 36 26 44 20 50 C24 49 28 46 31 43 C35 39 38 34 40 30 Z" fill="#fff" opacity=".9"/>` : ''}
+    <circle cx="44" cy="38" r="2.6" fill="#1B1225"/><circle cx="44.8" cy="37.2" r=".8" fill="#fff"/>
+    <path d="M14 56 C16 57 18 57 19 56" stroke="#1B1225" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M60 12 L62 8 L64 17" fill="${m}" opacity=".5"/>
+  </svg>`;
+}
+const face = (coat, size = 44, blaze = true, bg) => `<span class="face" style="width:${size}px;height:${size}px">${horse(coat, blaze, bg)}</span>`;
+
+const sb = `<div class="sb"><span class="num">9:41</span><i></i><span>●●● ▮</span></div>`.replace('●●● ▮', '<svg width="34" height="12" viewBox="0 0 34 12"><rect x="0" y="5" width="3" height="7" rx="1" fill="#1B1225"/><rect x="5" y="3" width="3" height="9" rx="1" fill="#1B1225"/><rect x="10" y="0" width="3" height="12" rx="1" fill="#1B1225"/><rect x="17" y="1" width="15" height="10" rx="3" fill="none" stroke="#1B1225" stroke-width="1.4"/><rect x="19" y="3" width="10" height="6" rx="1.5" fill="#1B1225"/></svg>');
+const tabbar = (items, on) => `<div class="tabbar">${items.slice(0, 2).map((t, i) => `<span class="${on === i ? 'on' : ''}">${ic(t[0])}${t[1]}</span>`).join('')}<span class="add">${ic('plus')}</span>${items.slice(2).map((t, i) => `<span class="${on === i + 2 ? 'on' : ''}">${ic(t[0])}${t[1]}</span>`).join('')}</div>`;
+const TABS1 = [['cal', 'Aujourd’hui'], ['horseLine', 'Chevaux'], ['euro', 'Argent'], ['personne', 'Moi']];
+const put = (id, html) => { document.getElementById(id).innerHTML = sb + html; };
+const li = (pic, title, sub, right, cls = '') => `<div class="li"><span class="pic ${cls}">${ic(pic)}</span><div class="tx"><b>${title}</b><span>${sub}</span></div>${right || ''}</div>`;
+
+/* ================= 1. Le carnet du jour ================= */
+put('p1a', `<div class="body" style="display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:center;gap:-10px;margin-top:22px">${face('alezan', 92)}<span style="margin-left:-18px">${face('gris', 92, false)}</span><span style="margin-left:-18px">${face('noir', 92)}</span></div>
+  <h2 class="d t1" style="text-align:center;margin-top:18px">Note ta journée. <span class="hl">On fait les comptes.</span></h2>
+  <ul class="steps">
+    <li><span class="pic">${ic('check')}</span><div><b>Tu coches ce que tu fais</b><span>Un soin, un cours, une facture.</span></div></li>
+    <li><span class="pic">${ic('horseLine')}</span><div><b>L'argent va au bon cheval</b><span>Tout seul, sans tableau.</span></div></li>
+    <li><span class="pic">${ic('bulb')}</span><div><b>Tu sais où tu en es</b><span>Et ce que tu peux améliorer.</span></div></li>
+  </ul>
+  <div style="margin-top:auto;padding-bottom:22px"><div class="btn">C'est parti ${ic('arrowR', 20)}</div><div class="dots"><i class="on"></i><i></i><i></i></div></div>
+</div>`);
+
+put('p1b', `<div class="body">
+  <p class="hello">Dimanche 11 octobre</p>
+  <h2 class="d t1">Bonjour Claire</h2>
+  <p class="p" style="margin-top:4px">2 choses à faire aujourd'hui.</p>
+  <p class="sec">Ce matin</p>
+  ${li('cours', 'Cours de Sirius · 10 h', 'avec Léa', `<span class="ck on">${ic('check')}</span>`)}
+  ${li('fer', 'Maréchal pour Pacha', '11 h 30 · 85 €', `<span class="ck">${ic('check')}</span>`, 'rose')}
+  <p class="sec">Cet après-midi</p>
+  ${li('pot', 'Vermifuge · 3 chevaux', '14 h · 12 € chacun', `<span class="ck">${ic('check')}</span>`, 'rose')}
+  <div class="card-v" style="margin-top:14px;display:flex;gap:12px;align-items:center">
+    <span class="pic" style="background:rgba(255,255,255,.12);color:var(--rose)">${ic('euro')}</span>
+    <div style="flex:1"><div style="font-size:13px;color:var(--on-vert)">Ce mois, ton écurie a gagné</div><div class="big" style="font-size:30px">+352 €</div></div>
+    ${ic('arrowR', 22)}
+  </div>
+</div>${tabbar(TABS1, 0)}`);
+
+const faceRow = (list, on) => `<div style="display:flex;flex-wrap:wrap;gap:10px 8px;margin-top:8px">${list.map(([n, c, b]) => `<div style="width:60px;text-align:center;font-size:12px;font-weight:600"><span style="display:inline-block;border-radius:50%;padding:2px;${n === on ? 'box-shadow:0 0 0 2.5px var(--vert)' : ''}">${face(c, 44, b)}</span><div style="margin-top:2px;${n === on ? 'color:var(--vert)' : ''}">${n}</div></div>`).join('')}</div>`;
+const HORSES = [['Sirius', 'alezan', true], ['Diva', 'gris', false], ['Belle', 'isabelle', true], ['Tonnerre', 'noir', false], ['Princesse', 'pie', true], ['Vaillant', 'bai', true], ['Pacha', 'alezan', false], ['Mistral', 'gris', true]];
+put('p1c', `<div class="body">
+  <div class="back">${ic('back')}Annuler</div>
+  <h2 class="d t1" style="margin-top:8px">Qu'as-tu fait ?</h2>
+  <div class="chips" style="margin-top:12px">
+    <span class="chip on">${ic('fer', 18)}Maréchal</span><span class="chip">${ic('veto', 18)}Véto</span><span class="chip">${ic('pot', 18)}Vermifuge</span><span class="chip">${ic('cours', 18)}Cours</span><span class="chip">${ic('foin', 18)}Foin</span><span class="chip">${ic('main', 18)}Ostéo</span>
+  </div>
+  <p class="sec" style="margin-top:16px">Pour quel cheval ?</p>
+  ${faceRow(HORSES, 'Pacha')}
+  <p class="sec" style="margin-top:12px">Combien ?</p>
+  <div style="display:flex;align-items:baseline;gap:6px;padding:8px 14px;background:#fff;border-radius:10px;box-shadow:inset 0 0 0 2px var(--vert);margin-top:4px"><span class="big" style="font-size:34px">85</span><span style="font-weight:600;color:var(--ink-2)">€</span></div>
+  <div class="btn" style="margin-top:12px">${ic('mic', 20)}Ou dis-le à voix haute</div>
+</div>`);
+
+put('p1d', `<div class="body">
+  <div class="back">${ic('back')}Mes chevaux</div>
+  <div class="row" style="margin-top:8px">${face('alezan', 76, false)}<div><h2 class="d t1">Pacha</h2><p class="p">Welsh, 8 ans · box + paddock</p></div></div>
+  <p style="font-size:19px;font-weight:600;line-height:1.3;margin-top:14px;letter-spacing:-.01em">Ce mois, Pacha te coûte <span class="hl">86 €</span>.</p>
+  ${li('down', 'Il rapporte', 'sa pension', '<span class="amt plus">+490 €</span>')}
+  ${li('fer', 'Ses soins', 'ostéo, compléments', '<span class="amt minus">−145 €</span>', 'rose')}
+  ${li('foin', 'Sa part de l’écurie', 'foin, paille, salaires, loyer', '<span class="amt minus">−431 €</span>', 'mist')}
+  <div class="tip"><span class="pic">${ic('bulb')}</span><div><b>Une idée</b><br>Refacture l'ostéo à sa propriétaire : Pacha repasse à −11 €.</div></div>
+</div>${tabbar(TABS1, 1)}`);
+
+/* ================= 2. Le ticket de chaque cheval ================= */
+const TABS2 = [['horseLine', 'Chevaux'], ['cal', 'Journée'], ['euro', 'Le mois'], ['personne', 'Moi']];
+put('p2a', `<div class="body" style="display:flex;flex-direction:column">
+  <div class="ticket" style="margin:18px 14px 0;transform:rotate(-2deg)">
+    <div class="th"><div class="row">${face('isabelle', 34)}<b>Belle · octobre</b></div></div>
+    <div class="tl">${ic('down')}<span>Pension</span><b>+450 €</b></div>
+    <div class="tl">${ic('pot')}<span>Soins</span><b>−28 €</b></div>
+    <div class="tl">${ic('foin')}<span>Part de l'écurie</span><b>−431 €</b></div>
+    <div class="tot"><span style="font-weight:600">Il reste</span><span class="big" style="font-size:26px">−9 €</span></div>
+  </div>
+  <h2 class="d t1" style="text-align:center;margin-top:28px">Chaque cheval a son <span class="hl">ticket du mois.</span></h2>
+  <p class="p" style="text-align:center;margin-top:10px">Ce qu'il rapporte, ce qu'il coûte, ce qu'il te reste. Tu notes, on fait les additions.</p>
+  <div style="margin-top:auto;padding-bottom:22px"><div class="btn">Voir mes chevaux ${ic('arrowR', 20)}</div><div class="dots"><i class="on"></i><i></i><i></i></div></div>
+</div>`);
+
+const hrow = (n, c, b, sub, amt, kind) => `<div class="li">${face(c, 46, b)}<div class="tx"><b>${n}</b><span>${sub}</span></div><span class="pill ${kind}">${kind === 'g' ? ic('up') : ''}${amt}</span></div>`;
+put('p2b', `<div class="body">
+  <p class="hello">Octobre</p>
+  <h2 class="d t1">Mes chevaux</h2>
+  <p class="p" style="margin-top:4px">Ce mois, ils te laissent <b style="color:var(--vert)">+352 €</b> à eux tous.</p>
+  <p class="sec">Ils te rapportent</p>
+  ${hrow('Tonnerre', 'noir', false, 'pension travail', '+249 €', 'g')}
+  ${hrow('Sirius', 'alezan', true, 'pension travail', '+184 €', 'g')}
+  ${hrow('Mistral', 'gris', true, 'pension travail', '+104 €', 'g')}
+  <p class="sec">Ils te coûtent</p>
+  ${hrow('Pacha', 'alezan', false, 'box + paddock', '−86 €', 'r')}
+  ${hrow('Princesse', 'pie', true, 'pension seule', '−81 €', 'r')}
+  ${hrow('Diva', 'gris', false, 'box + paddock', '−71 €', 'r')}
+</div>${tabbar(TABS2, 0)}`);
+
+put('p2c', `<div class="body">
+  <div class="back">${ic('back')}Mes chevaux</div>
+  <div class="row" style="margin-top:6px">${face('alezan', 58, false)}<div><h2 class="d t2">Le ticket de Pacha</h2><p class="p">octobre · propriétaire Julie P.</p></div></div>
+  <div class="ticket">
+    <div class="tl">${ic('box')}<span>Pension box + paddock</span><b>+490 €</b></div>
+    <div class="tl">${ic('main')}<span>Ostéopathe</span><b>−75 €</b></div>
+    <div class="tl">${ic('pot')}<span>Compléments</span><b>−70 €</b></div>
+    <div class="tl">${ic('foin')}<span style="text-decoration:underline dotted;text-underline-offset:3px">Part de l'écurie</span><b>−431 €</b></div>
+    <div class="tot"><span style="font-weight:600">Il te coûte</span><span class="big" style="font-size:30px">−86 €</span></div>
+  </div>
+  <div class="tip" style="margin-top:20px"><span class="pic">${ic('bulb')}</span><div>Sa pension paie sa part de l'écurie, pas ses soins. Refacturer l'ostéo à sa propriétaire le ramène à −11 €.</div></div>
+</div>${tabbar(TABS2, 0)}`);
+
+put('p2d', `<div class="body">
+  <div class="back">${ic('back')}Le ticket de Pacha</div>
+  <h2 class="d t1" style="margin-top:8px">La part de l'écurie, c'est quoi ?</h2>
+  <p class="p" style="margin-top:8px">Les factures qui ne dépendent d'aucun cheval. On les partage entre ceux qui sont là.</p>
+  <div style="margin-top:12px;background:#fff;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line);padding:12px 14px">
+    <div class="tl" style="display:flex;gap:10px;align-items:center;font-size:14px;padding:4px 0"><span style="color:var(--vert)">${ic('foin', 20)}</span><span style="flex:1">Foin, granulés, paille</span><b class="num">1 880 €</b></div>
+    <div class="tl" style="display:flex;gap:10px;align-items:center;font-size:14px;padding:4px 0"><span style="color:var(--vert)">${ic('personne', 20)}</span><span style="flex:1">Salaires</span><b class="num">1 100 €</b></div>
+    <div class="tl" style="display:flex;gap:10px;align-items:center;font-size:14px;padding:4px 0"><span style="color:var(--vert)">${ic('cle', 20)}</span><span style="flex:1">Loyer</span><b class="num">900 €</b></div>
+    <div style="display:flex;justify-content:space-between;border-top:1.5px solid var(--ink);margin-top:6px;padding-top:6px;font-weight:700"><span>Par mois</span><span class="num">3 880 €</span></div>
+  </div>
+  <div style="text-align:center;margin:8px 0 2px;color:var(--ink-3)">${ic('down', 22)}</div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${HORSES.concat([['Câline', 'bai', false]]).map(([n, c, b]) => face(c, 34, b)).join('')}</div>
+  <p style="text-align:center;font-weight:700;font-size:18px;margin-top:10px" class="num">3 880 € ÷ 9 chevaux = <span class="hl">431 € chacun</span></p>
+  <p class="p" style="text-align:center;margin-top:6px">Avec 12 chevaux, ce ne serait plus que 323 € chacun.</p>
+</div>`);
+
+/* ================= 3. Le seau du mois ================= */
+function bucket(level, label, sub, ghost) {
+  const top = 30, bot = 170, h = bot - top;
+  const y = bot - h * level;
+  const gy = ghost != null ? bot - h * ghost : null;
+  return `<svg viewBox="0 0 220 190" width="100%" aria-hidden="true">
+    <defs><clipPath id="bk${label.replace(/\W/g, '')}"><path d="M40 ${top} L180 ${top} L166 ${bot} Q164 180 154 180 L66 180 Q56 180 54 ${bot} Z"/></clipPath></defs>
+    <path d="M40 ${top} Q110 -20 180 ${top}" fill="none" stroke="#7A7284" stroke-width="3"/>
+    <g clip-path="url(#bk${label.replace(/\W/g, '')})"><rect x="0" y="${y}" width="220" height="200" fill="#134E3A"/><path d="M0 ${y} Q27 ${y - 5} 55 ${y} T110 ${y} T165 ${y} T220 ${y} V${y + 8} H0z" fill="#1A5E47"/></g>
+    <path d="M40 ${top} L180 ${top} L166 ${bot} Q164 180 154 180 L66 180 Q56 180 54 ${bot} Z" fill="none" stroke="#1B1225" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M44 56 L176 56 M48 100 L172 100 M52 144 L168 144" stroke="#1B1225" stroke-opacity=".12" stroke-width="2"/>
+    ${gy != null ? `<path d="M30 ${gy} H190" stroke="#1B1225" stroke-width="2" stroke-dasharray="5 4"/><text x="192" y="${gy + 4}" font-size="10" font-weight="700" fill="#5A5264" font-family="Bricolage Grotesque">auj.</text>` : ''}
+    <text x="110" y="${Math.min(y + 34, 160)}" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="800" font-size="30" fill="#F6B3CB" style="font-variation-settings:'wdth' 88">${label}</text>
+    <text x="110" y="${Math.min(y + 52, 176)}" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="500" font-size="11.5" fill="#BFD6CB">${sub}</text>
+  </svg>`;
+}
+const TABS3 = [['seau', 'Mon mois'], ['cal', 'Journée'], ['horseLine', 'Chevaux'], ['personne', 'Moi']];
+put('p3a', `<div class="body" style="display:flex;flex-direction:column">
+  <div style="width:200px;margin:14px auto 0">${bucket(.42, '+352 €', 'il te reste')}</div>
+  <h2 class="d t1" style="text-align:center;margin-top:8px">Ton écurie, c'est <span class="hl">un seau.</span></h2>
+  <ul class="steps" style="margin-top:8px">
+    <li><span class="pic">${ic('down')}</span><div><b>Les pensions le remplissent</b><span>et les cours, les montes.</span></div></li>
+    <li><span class="pic rose">${ic('up')}</span><div><b>Les factures le vident</b><span>foin, maréchal, salaires, loyer.</span></div></li>
+  </ul>
+  <div style="margin-top:auto;padding-bottom:22px"><div class="btn">Voir mon seau ${ic('arrowR', 20)}</div><div class="dots"><i class="on"></i><i></i><i></i></div></div>
+</div>`);
+
+const flow = (pic, label, amt, out) => `<div style="display:flex;align-items:center;gap:10px;padding:6px 0"><span class="pic ${out ? 'rose' : ''}" style="width:34px;height:34px">${ic(pic, 19)}</span><span style="flex:1;font-size:14px">${label}</span><span class="amt ${out ? 'minus' : 'plus'}">${amt}</span></div>`;
+put('p3b', `<div class="body">
+  <p class="hello">Octobre</p>
+  <h2 class="d t1">Mon mois</h2>
+  <p class="sec" style="display:flex;align-items:center;gap:6px;margin-top:8px"><span style="color:var(--vert)">${ic('down', 16)}</span>Ce qui rentre · 4 960 €</p>
+  ${flow('box', 'Pensions', '+4 530 €')}
+  ${flow('cours', 'Cours, montes, coaching', '+430 €')}
+  <div style="width:150px;margin:0 auto">${bucket(.4, '+352 €', 'il te reste')}</div>
+  <p class="sec" style="display:flex;align-items:center;gap:6px;margin-top:0"><span style="color:var(--vert-deep)">${ic('up', 16)}</span>Ce qui sort · 4 608 €</p>
+  ${flow('foin', 'Foin, granulés, paille', '−1 880 €', 1)}
+  ${flow('personne', 'Salaires', '−1 100 €', 1)}
+  ${flow('cle', 'Loyer', '−900 €', 1)}
+  ${flow('fer', 'Soins des chevaux', '−728 €', 1)}
+</div>${tabbar(TABS3, 0)}`);
+
+put('p3c', `<div class="body">
+  <div class="back">${ic('back')}Annuler</div>
+  <h2 class="d t1" style="margin-top:8px">Noter</h2>
+  <div style="display:grid;gap:10px;margin-top:14px">
+    <div style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:10px;background:var(--vert);color:#fff"><span class="pic big" style="background:rgba(255,255,255,.14);color:var(--rose)">${ic('down')}</span><div><b style="font-size:19px;display:block">J'ai encaissé</b><span style="font-size:13.5px;color:var(--on-vert)">une pension, un cours, une vente</span></div></div>
+    <div style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:10px;background:#fff;box-shadow:inset 0 0 0 2px var(--ink)"><span class="pic big rose">${ic('up')}</span><div><b style="font-size:19px;display:block">J'ai payé</b><span style="font-size:13.5px;color:var(--ink-2)">un soin, du foin, une facture</span></div></div>
+  </div>
+  <p class="sec" style="margin-top:18px">Payé pour quoi ?</p>
+  <div class="chips" style="margin-top:6px"><span class="chip on">${ic('fer', 18)}Maréchal</span><span class="chip">${ic('veto', 18)}Véto</span><span class="chip">${ic('foin', 18)}Foin</span><span class="chip">${ic('paille', 18)}Paille</span><span class="chip">${ic('granule', 18)}Granulés</span><span class="chip">${ic('camion', 18)}Transport</span></div>
+  <div class="btn line" style="margin-top:16px">${ic('mic', 20)}Je le dis à voix haute</div>
+</div>`);
+
+put('p3d', `<div class="body">
+  <div class="back">${ic('back')}Mon mois</div>
+  <h2 class="d t1" style="margin-top:8px">Et si… <span class="hl">je louais mes boxes ?</span></h2>
+  <div style="width:190px;margin:4px auto 0">${bucket(.82, '+1 196 €', 'il te resterait', .4)}</div>
+  <div style="padding:10px 0;border-bottom:1px solid var(--line-2)">
+    <div style="display:flex;justify-content:space-between;font-weight:600"><span class="row" style="gap:8px"><span style="color:var(--vert)">${ic('box', 20)}</span>Boxes loués en plus</span><b class="num">+2</b></div>
+    <div style="position:relative;height:30px;margin-top:4px"><div style="position:absolute;top:13px;left:0;right:0;height:5px;border-radius:5px;background:var(--line)"></div><div style="position:absolute;top:13px;left:0;width:66%;height:5px;border-radius:5px;background:var(--vert)"></div><div style="position:absolute;top:3px;left:calc(66% - 12px);width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 2px var(--vert),0 2px 5px rgba(0,0,0,.15)"></div></div>
+  </div>
+  <div style="padding:10px 0">
+    <div style="display:flex;justify-content:space-between;font-weight:600"><span class="row" style="gap:8px"><span style="color:var(--vert)">${ic('foin', 20)}</span>Prix du foin</span><b class="num">pareil</b></div>
+    <div style="position:relative;height:30px;margin-top:4px"><div style="position:absolute;top:13px;left:0;right:0;height:5px;border-radius:5px;background:var(--line)"></div><div style="position:absolute;top:3px;left:calc(30% - 12px);width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 2px var(--vert),0 2px 5px rgba(0,0,0,.15)"></div></div>
+  </div>
+  <div class="tip" style="margin-top:4px"><span class="pic">${ic('bulb')}</span><div>Deux boxes de plus, c'est +844 € par mois : les factures, elles, ne bougent presque pas.</div></div>
+</div>`);
+
+/* ================= 4. Le parcours ================= */
+const TABS4 = [['flag', 'Parcours'], ['cal', 'Journée'], ['horseLine', 'Chevaux'], ['chart', 'Bulletin']];
+put('p4a', `<div class="body" style="display:flex;flex-direction:column">
+  <svg viewBox="0 0 270 200" width="100%" style="margin-top:12px" aria-hidden="true"><path d="M6 170 C40 170 50 120 70 120 S100 150 118 140 S150 100 166 104 S195 130 206 124 S232 80 262 40" fill="none" stroke="#DCD6E0" stroke-width="3" stroke-dasharray="6 6"/><g transform="translate(11 120)"><rect x="0" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="30" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="0" y="9" width="34" height="5" rx="2.5" fill="#134E3A"/><rect x="0" y="18" width="34" height="5" rx="2.5" fill="#134E3A"/><circle cx="17" cy="44" r="9" fill="#134E3A" stroke="none" stroke-width="1.5"/><text x="17" y="48" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="700" font-size="11" fill="#fff">1</text></g><g transform="translate(53 78)"><rect x="0" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="30" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="0" y="9" width="34" height="5" rx="2.5" fill="#134E3A"/><rect x="0" y="18" width="34" height="5" rx="2.5" fill="#134E3A"/><circle cx="17" cy="44" r="9" fill="#134E3A" stroke="none" stroke-width="1.5"/><text x="17" y="48" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="700" font-size="11" fill="#fff">2</text></g><g transform="translate(101 98)"><rect x="0" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="30" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="0" y="9" width="34" height="5" rx="2.5" fill="#F6B3CB"/><rect x="0" y="18" width="34" height="5" rx="2.5" fill="#F6B3CB"/><circle cx="17" cy="44" r="9" fill="#F6B3CB" stroke="none" stroke-width="1.5"/><text x="17" y="48" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="700" font-size="11" fill="#0B3325">3</text></g><g transform="translate(149 62)"><rect x="0" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="30" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="0" y="9" width="34" height="5" rx="2.5" fill="#DCD6E0"/><rect x="0" y="18" width="34" height="5" rx="2.5" fill="#DCD6E0"/><circle cx="17" cy="44" r="9" fill="#fff" stroke="#DCD6E0" stroke-width="1.5"/><text x="17" y="48" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="700" font-size="11" fill="#7A7284">4</text></g><g transform="translate(189 82)"><rect x="0" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="30" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="0" y="9" width="34" height="5" rx="2.5" fill="#DCD6E0"/><rect x="0" y="18" width="34" height="5" rx="2.5" fill="#DCD6E0"/><circle cx="17" cy="44" r="9" fill="#fff" stroke="#DCD6E0" stroke-width="1.5"/><text x="17" y="48" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="700" font-size="11" fill="#7A7284">5</text></g><g transform="translate(223 40)"><rect x="0" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="30" y="0" width="4" height="32" rx="2" fill="#1B1225"/><rect x="0" y="9" width="34" height="5" rx="2.5" fill="#DCD6E0"/><rect x="0" y="18" width="34" height="5" rx="2.5" fill="#DCD6E0"/><circle cx="17" cy="44" r="9" fill="#fff" stroke="#DCD6E0" stroke-width="1.5"/><text x="17" y="48" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="700" font-size="11" fill="#7A7284">6</text></g><g transform="translate(236 2) rotate(8)"><path d="M10 26 L5 48 L11 44 L14 48 L17 30Z" fill="#134E3A"/><path d="M24 26 L29 48 L23 44 L20 48 L17 30Z" fill="#134E3A" opacity=".8"/><circle cx="31.0" cy="18.0" r="4" fill="#134E3A"/><circle cx="29.124358748835714" cy="24.99999463782158" r="4" fill="#134E3A"/><circle cx="24.000010724352734" cy="30.12434946126788" r="4" fill="#134E3A"/><circle cx="17.000018575128557" cy="31.99999999998768" r="4" fill="#134E3A"/><circle cx="10.000021448721895" cy="30.124368036382204" r="4" fill="#134E3A"/><circle cx="4.8756598263212965" cy="25.00002681087156" r="4" fill="#134E3A"/><circle cx="3.0000000000492903" cy="18.000037150257114" r="4" fill="#134E3A"/><circle cx="4.875622676092647" cy="11.000037535277695" r="4" fill="#134E3A"/><circle cx="9.999957102621929" cy="5.875669113931821" r="4" fill="#134E3A"/><circle cx="16.999944274614347" cy="4.000000000110905" r="4" fill="#134E3A"/><circle cx="23.999946378154192" cy="5.875613388588848" r="4" fill="#134E3A"/><circle cx="29.124321598436318" cy="10.99994101612775" r="4" fill="#134E3A"/><circle cx="17" cy="18" r="14" fill="#134E3A"/><circle cx="17" cy="18" r="11" fill="#F6B3CB"/></g></svg>
+  <h2 class="d t1" style="text-align:center;margin-top:4px">Connaître ton écurie, <span class="hl">en six obstacles.</span></h2>
+  <p class="p" style="text-align:center;margin-top:10px">Chaque obstacle est une chose simple à faire. À l'arrivée, tu sais ce que chaque cheval te rapporte, et tu gagnes ton flot.</p>
+  <div style="margin-top:auto;padding-bottom:22px"><div class="btn">Prendre le départ ${ic('arrowR', 20)}</div><div class="dots"><i class="on"></i><i></i><i></i></div></div>
+</div>`);
+
+const ob = (state, title, sub, pic) => `<div class="ob ${state}"><span class="jn">${ic(state === 'done' ? 'check' : pic)}</span><div><b>${title}</b><span>${sub}</span></div></div>`;
+put('p4b', `<div class="body">
+  <p class="hello">Ton parcours</p>
+  <h2 class="d t1">2 obstacles sur 6</h2>
+  <div class="progress"><i style="width:33%"></i></div>
+  <div class="course" style="margin-top:12px">
+    ${ob('done', 'Tes chevaux', '9 chevaux inscrits')}
+    ${ob('done', 'Tes tarifs', 'chaque pension a son prix')}
+    ${ob('now', 'Ta première semaine', 'note 5 choses que tu fais · 2 sur 5', 'jump')}
+    ${ob('', 'Tes factures du mois', 'foin, salaires, loyer', 'jump')}
+    ${ob('', 'Ton premier mois', 'qui rapporte, qui coûte', 'jump')}
+    ${ob('', 'Ton seuil', 'combien de chevaux il te faut', 'flag')}
+  </div>
+  <div class="card-v" style="margin-top:8px;display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:13px;color:var(--on-vert)">Obstacle du moment</div><b style="font-size:16px">Note ton prochain soin</b></div><span class="pic" style="background:var(--rose);color:var(--vert-deep)">${ic('plus')}</span></div>
+</div>${tabbar(TABS4, 0)}`);
+
+const news = (pic, cls, k, title, sub) => `<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)"><span class="pic big ${cls}">${ic(pic)}</span><div><span style="font-size:12.5px;font-weight:600;color:var(--ink-2)">${k}</span><b style="display:block;font-size:16px;line-height:1.25;margin-top:1px">${title}</b><span style="font-size:13.5px;color:var(--ink-2)">${sub}</span></div></div>`;
+put('p4c', `<div class="body">
+  <p class="hello">Semaine du 5 au 11 octobre</p>
+  <h2 class="d t1">Ton bulletin</h2>
+  <div class="card-v" style="margin-top:10px"><div style="font-size:13px;color:var(--on-vert)">Cette semaine, ton écurie a gagné</div><div class="big" style="font-size:40px;margin-top:4px">+96 €</div><div style="font-size:13px;color:var(--on-vert);margin-top:4px">Mieux que la semaine dernière (+41 €).</div></div>
+  ${news('trophee', '', 'La bonne nouvelle', 'Tonnerre a rapporté 249 € ce mois', 'grâce au coaching concours')}
+  ${news('loupe', 'rose', 'À surveiller', 'Pacha te coûte 86 €', 'ses soins dépassent sa pension')}
+  ${news('bulb', 'mist', 'Une idée', 'Le foin a pris 12 % depuis l’été', 'et tes pensions n’ont pas bougé')}
+</div>${tabbar(TABS4, 3)}`);
+
+put('p4d', `<div class="body">
+  <div class="back">${ic('back')}Obstacle 6</div>
+  <h2 class="d t1" style="margin-top:8px">Le seuil : combien de chevaux <span class="hl">paient tout.</span></h2>
+  <p class="p" style="margin-top:8px">En dessous, tu perds de l'argent chaque mois. Au-dessus, chaque cheval en plus te rapporte presque toute sa pension.</p>
+  <div style="position:relative;margin-top:16px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px 4px;justify-items:center">
+    ${Array.from({ length: 12 }, (_, i) => i < 9 ? face(['alezan','gris','isabelle','noir','pie','bai','alezan','gris','bai'][i], 40, i % 2 === 0) : `<span class="face" style="width:40px;height:40px;background:#fff;box-shadow:inset 0 0 0 1.5px var(--line);border-style:dashed"></span>`).join('')}
+    <div style="position:absolute;left:calc(38.3% + 2px);top:44px;height:54px;border-left:3px solid var(--rose)"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);margin-top:8px"><span>9 chevaux · 3 boxes vides</span><span class="row" style="gap:4px;color:var(--ink);font-weight:700">${ic('flag', 16)}seuil : 8,3</span></div>
+  <p style="font-size:18px;font-weight:700;line-height:1.3;margin-top:16px;letter-spacing:-.01em">Il te faut 9 chevaux. Tu en as 9 : tu passes, de justesse.</p>
+  <div class="btn">J'ai compris, obstacle passé ${ic('check', 20)}</div>
+</div>`);
+})();
+</script>
+</body>
+</html>

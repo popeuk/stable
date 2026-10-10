@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Be Stable, l'app assemblée</title>
+<meta name="description" content="Quatre maquettes de l'app Be Stable, et une nouvelle façon d'expliquer l'application.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --vert:#134E3A; --vert-deep:#0B3325; --vert-2:#1A5E47; --vert-soft:#E3ECE7;
+  --rose:#F6B3CB; --rose-soft:#FCE3EC;
+  --ink:#1B1225; --ink-2:#5A5264; --ink-3:#7A7284;
+  --paper:#FCFBF9; --mist:#F1EEF3; --line:#DCD6E0; --line-2:#EAE6ED;
+  --on-vert:#BFD6CB;
+  --alezan:#B4612C; --bai:#6E4128; --gris:#B7B1BC; --noir:#2E2733; --isabelle:#D8B06A; --pie:#F4EFE7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-optical-sizing:auto;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+::selection{background:var(--rose);color:var(--vert-deep)}
+.num{font-variant-numeric:tabular-nums}
+.d{font-weight:700;letter-spacing:-.03em;line-height:1;font-variation-settings:"wdth" 90;text-wrap:balance}
+.wm{font-weight:800;letter-spacing:-.004em;font-variation-settings:"wdth" 88;white-space:nowrap}
+.hl{background:linear-gradient(transparent 58%,var(--rose) 58%,var(--rose) 92%,transparent 92%);padding:0 .06em}
+
+/* ---------- Page ---------- */
+.page{max-width:1440px;margin:0 auto;padding:40px 40px 80px}
+.mast{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.mast .wm{font-size:30px}
+.mast span{font-size:14px;color:var(--ink-2)}
+.intro{display:grid;grid-template-columns:1.1fr 1fr;gap:72px;padding:56px 0 64px;border-bottom:1px solid var(--line)}
+.intro h1{font-size:64px}
+.intro .lead{font-size:20px;color:var(--ink-2);margin-top:22px;max-width:30em}
+.promise{margin-top:28px;padding:22px 24px;background:var(--vert);color:#fff;border-radius:6px;font-size:22px;line-height:1.35;font-weight:600;letter-spacing:-.01em;max-width:30em}
+.promise small{display:block;font-size:14px;font-weight:500;color:var(--on-vert);margin-top:8px;letter-spacing:0}
+.how h2{font-size:28px}
+.how ol{list-style:none;margin-top:18px}
+.how li{display:grid;grid-template-columns:64px 1fr;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line-2)}
+.how li .pic{width:64px;height:64px;border-radius:50%;background:var(--vert-soft);color:var(--vert);display:flex;align-items:center;justify-content:center}
+.how li .pic svg{width:32px;height:32px}
+.how li b{display:block;font-size:19px;letter-spacing:-.01em}
+.how li span{font-size:15.5px;color:var(--ink-2)}
+.changes{margin-top:26px}
+.changes h3{font-size:15px;font-weight:600;color:var(--ink-2)}
+.changes ul{list-style:none;margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
+.changes li{font-size:14.5px;padding:7px 14px;border-radius:40px;box-shadow:inset 0 0 0 1px var(--line);background:#fff}
+
+.nav-props{position:sticky;top:0;z-index:10;background:rgba(252,251,249,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:6px;padding:12px 0;overflow-x:auto}
+.nav-props a{flex:none;text-decoration:none;color:var(--ink);font-weight:600;font-size:15px;padding:9px 16px;border-radius:40px;box-shadow:inset 0 0 0 1px var(--line);background:#fff}
+.nav-props a:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.nav-props a b{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;align-items:center;justify-content:center;margin-right:8px}
+
+.prop{padding:64px 0 40px;border-bottom:1px solid var(--line);scroll-margin-top:60px}
+.prop-head{display:grid;grid-template-columns:auto 1fr 1fr;gap:40px;align-items:start}
+.prop-no{width:72px;height:72px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;font-variation-settings:"wdth" 88}
+.prop-head h2{font-size:48px}
+.prop-head .idea{font-size:19px;color:var(--ink-2);margin-top:12px;max-width:30em}
+.facts{font-size:15.5px}
+.facts div{padding:10px 0;border-bottom:1px solid var(--line-2)}
+.facts div:first-child{border-top:1px solid var(--line-2)}
+.facts b{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:2px}
+.phones{display:flex;gap:28px;margin-top:40px;overflow-x:auto;padding:6px 4px 20px;scroll-snap-type:x mandatory}
+.ph{flex:none;scroll-snap-align:start;width:320px}
+.ph figcaption{font-size:14.5px;color:var(--ink-2);margin-top:14px;padding:0 6px;line-height:1.45}
+.ph figcaption b{color:var(--ink);font-weight:600;display:block;font-size:15.5px}
+
+/* ---------- Phone frame ---------- */
+.phone{width:320px;height:680px;border-radius:40px;background:#fff;padding:10px;box-shadow:0 2px 4px rgba(27,18,37,.06),0 24px 60px rgba(27,18,37,.14),inset 0 0 0 1px var(--line)}
+.scr{position:relative;width:100%;height:100%;border-radius:31px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column;font-size:15px}
+.sb{height:34px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-size:12.5px;font-weight:700}
+.sb i{width:70px;height:20px;border-radius:20px;background:var(--ink)}
+.body{flex:1;overflow:hidden;padding:4px 18px 0}
+.tabbar{flex:none;height:70px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 64px 1fr 1fr;align-items:center;padding:0 6px 6px;background:#fff}
+.tabbar span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;font-weight:600;color:var(--ink-3)}
+.tabbar span.on{color:var(--vert)}
+.tabbar svg{width:24px;height:24px}
+.tabbar .add{width:52px;height:52px;border-radius:50%;background:var(--vert);color:#fff;justify-self:center;display:flex;align-items:center;justify-content:center;margin-top:-18px;box-shadow:0 6px 14px rgba(19,78,58,.3),0 0 0 4px #fff}
+.tabbar .add svg{width:26px;height:26px}
+
+/* ---------- In-phone atoms ---------- */
+.hello{font-size:13.5px;color:var(--ink-2);margin-top:6px}
+.t1{font-size:27px;margin-top:2px}
+.t2{font-size:21px}
+.p{font-size:14.5px;color:var(--ink-2);line-height:1.45}
+.pic{flex:none;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--vert-soft);color:var(--vert)}
+.pic svg{width:24px;height:24px}
+.pic.rose{background:var(--rose-soft);color:var(--vert-deep)}
+.pic.mist{background:var(--mist);color:var(--ink)}
+.pic.big{width:56px;height:56px}.pic.big svg{width:30px;height:30px}
+.row{display:flex;align-items:center;gap:12px}
+.li{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-2)}
+.li .tx{flex:1;min-width:0}
+.li .tx b{display:block;font-size:15px;font-weight:600;line-height:1.25}
+.li .tx span{font-size:13px;color:var(--ink-2)}
+.amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:15px}
+.amt.plus{color:var(--vert)}
+.amt.minus{color:var(--ink)}
+.ck{flex:none;width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--line);display:flex;align-items:center;justify-content:center;color:transparent}
+.ck.on{background:var(--vert);box-shadow:none;color:#fff}
+.ck svg{width:18px;height:18px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:6px;font-weight:600;font-size:16px;background:var(--vert);color:#fff;margin-top:14px}
+.btn.line{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.btn.rose{background:var(--rose);color:var(--vert-deep)}
+.card-v{background:var(--vert);color:#fff;border-radius:8px;padding:16px}
+.card-v .big{color:var(--rose)}
+.big{font-weight:800;font-variation-settings:"wdth" 88;letter-spacing:-.02em;line-height:.95;font-variant-numeric:tabular-nums}
+.tip{display:flex;gap:12px;align-items:flex-start;background:var(--rose-soft);color:var(--vert-deep);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:14px;line-height:1.4}
+.tip .pic{width:34px;height:34px;background:#fff;color:var(--vert-deep)}
+.tip .pic svg{width:19px;height:19px}
+.sec{font-size:13px;font-weight:600;color:var(--ink-2);margin:16px 0 2px}
+.face{flex:none;border-radius:50%;overflow:hidden;background:var(--mist);display:flex;align-items:flex-end;justify-content:center}
+.face svg{width:100%;height:100%}
+.pill{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border-radius:30px;font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill.g{background:var(--vert);color:#fff}
+.pill.r{background:var(--rose);color:var(--vert-deep)}
+.pill.n{background:var(--mist);color:var(--ink)}
+.pill svg{width:14px;height:14px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:40px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);font-size:13.5px;font-weight:500}
+.chip svg{width:18px;height:18px;color:var(--vert)}
+.chip.on{background:var(--ink);color:#fff;box-shadow:none}
+.chip.on svg{color:var(--rose)}
+.steps{list-style:none;margin-top:16px}
+.steps li{display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.steps li b{display:block;font-size:15.5px;line-height:1.25}
+.steps li span{font-size:13.5px;color:var(--ink-2)}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:14px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dots i.on{width:20px;border-radius:7px;background:var(--ink)}
+.back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ink-2);margin-top:4px}
+.back svg{width:18px;height:18px}
+
+/* ticket */
+.ticket{background:#fff;margin-top:12px;padding:16px 16px 18px;position:relative;filter:drop-shadow(0 2px 2px rgba(27,18,37,.06)) drop-shadow(0 10px 18px rgba(27,18,37,.08))}
+.ticket::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:8px;background:linear-gradient(-45deg,transparent 6px,#fff 0) 0 0/12px 8px repeat-x,linear-gradient(45deg,transparent 6px,#fff 0) 0 0/12px 8px repeat-x}
+.ticket .th{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1.5px dashed var(--line)}
+.ticket .tl{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px}
+.ticket .tl svg{width:20px;height:20px;flex:none;color:var(--vert)}
+.ticket .tl span{flex:1}
+.ticket .tl b{font-variant-numeric:tabular-nums}
+.ticket .tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1.5px solid var(--ink);margin-top:6px;padding-top:10px}
+
+/* parcours */
+.course{position:relative;margin-top:8px}
+.ob{display:flex;align-items:center;gap:14px;padding:5px 0;position:relative}
+.ob .jn{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;box-shadow:inset 0 0 0 2px var(--line);color:var(--ink-3);position:relative;z-index:1}
+.ob.done .jn{background:var(--vert);color:#fff;box-shadow:none}
+.ob.now .jn{background:var(--rose);color:var(--vert-deep);box-shadow:0 0 0 5px var(--rose-soft)}
+.ob .jn svg{width:24px;height:24px}
+.ob b{display:block;font-size:15px;line-height:1.2}
+.ob span{font-size:13px;color:var(--ink-2)}
+.course::before{content:"";position:absolute;left:22px;top:24px;bottom:24px;border-left:2px dashed var(--line)}
+.progress{height:8px;border-radius:8px;background:var(--line-2);overflow:hidden;margin-top:8px}
+.progress i{display:block;height:100%;background:var(--vert);border-radius:8px}
+
+@media (max-width:1000px){
+  .page{padding:24px 16px 60px}
+  .intro{grid-template-columns:1fr;gap:36px;padding:36px 0 44px}
+  .intro h1{font-size:42px}
+  .prop-head{grid-template-columns:1fr;gap:16px}
+  .prop-head h2{font-size:34px}
+  .prop-no{width:52px;height:52px;font-size:24px}
+  .phones{gap:18px}
+}
+
+.chap{padding:56px 0 36px;border-bottom:1px solid var(--line);scroll-margin-top:60px}
+.chap-head{display:grid;grid-template-columns:auto 1fr 1fr;gap:40px;align-items:start}
+.chap-head .from{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;padding:6px 12px;border-radius:30px;background:var(--rose-soft);color:var(--vert-deep);margin-bottom:12px}
+.fil{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:28px;border-top:1px solid var(--line)}
+.fil div{padding:18px 18px 18px 0;border-right:1px solid var(--line-2)}
+.fil div:last-child{border-right:0}
+.fil .pic{margin-bottom:10px}
+.fil b{display:block;font-size:18px;letter-spacing:-.01em}
+.fil span{font-size:14.5px;color:var(--ink-2)}
+.fil em{font-style:normal;font-size:12.5px;font-weight:600;color:var(--vert)}
+.lock{background:linear-gradient(180deg,#0B3325,#134E3A 60%,#1A5E47);color:#fff}
+.lock .sb{color:#fff}
+.lock .sb svg rect{fill:#fff;stroke:#fff}
+.notif{background:rgba(255,255,255,.9);color:var(--ink);border-radius:18px;padding:12px 14px;margin-top:10px;backdrop-filter:blur(10px)}
+.notif .nh{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2)}
+.notif .nh i{width:22px;height:22px;border-radius:6px;background:var(--vert);display:flex;align-items:center;justify-content:center}
+.notif .nh i::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--rose);box-shadow:0 0 0 2px var(--vert),0 0 0 3.5px var(--rose)}
+.notif .nh span{margin-left:auto}
+.notif b{display:block;font-size:14.5px;margin-top:4px}
+.notif p{font-size:14px;line-height:1.35;margin-top:2px}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);border-radius:22px 22px 0 0;padding:10px 18px 22px;box-shadow:0 -10px 30px rgba(27,18,37,.18)}
+.dim{position:absolute;inset:0;background:rgba(27,18,37,.42)}
+.grab{width:40px;height:5px;border-radius:5px;background:var(--line);margin:0 auto 12px}
+.stepper{display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:10px;box-shadow:inset 0 0 0 1px var(--line);margin-top:8px}
+.stepper span{width:48px;height:48px;display:flex;align-items:center;justify-content:center}
+.stepper b{font-size:26px;font-weight:800;font-variation-settings:"wdth" 88;font-variant-numeric:tabular-nums}
+.stepper b small{font-size:14px;color:var(--ink-2);font-weight:600}
+.qlab{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;margin-top:14px}
+.qlab .pic{width:34px;height:34px}.qlab .pic svg{width:19px;height:19px}
+.new{background:var(--rose-soft);margin:0 -6px;padding-left:6px;padding-right:6px;border-radius:4px}
+@media (max-width:1000px){.chap-head{grid-template-columns:1fr;gap:16px}.fil{grid-template-columns:1fr 1fr}}
+
+/* ===== Affinage (11 octobre) : plus fin, même lisibilité ===== */
+.d{font-weight:640;letter-spacing:-.022em;line-height:1.05}
+.big{font-weight:700;letter-spacing:-.015em}
+.intro h1{font-size:52px}
+.chap-head h2.d{font-size:36px!important}
+.prop-no{width:48px;height:48px;font-size:22px;background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.promise{font-size:19px;font-weight:500;padding:18px 22px}
+.chap-head .from{font-size:12.5px;font-weight:500;padding:4px 10px}
+.fil b{font-size:16.5px;font-weight:600}
+.nav-props a{font-weight:500;font-size:14.5px}
+.nav-props a b{width:20px;height:20px;font-size:11px}
+/* phone : haut d'écran */
+.sb{height:30px;font-weight:600;font-size:12px}
+.body{padding:2px 20px 0}
+.hello{font-size:12.5px;color:var(--ink-3);margin-top:10px;letter-spacing:.01em}
+.t1{font-size:23px;margin-top:3px}
+.t2{font-size:18.5px}
+.p{font-size:13.5px;line-height:1.5}
+.back{font-size:13px;font-weight:500;color:var(--ink-3);margin-top:8px}
+.back svg{width:16px;height:16px}
+.sec{font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin:18px 0 0}
+/* lignes et pictos */
+.pic{width:38px;height:38px;background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--vert)}
+.pic svg{width:20px;height:20px;stroke-width:1.6}
+.pic.rose{background:transparent;box-shadow:inset 0 0 0 1px #F2C9D8;color:#A2476B}
+.pic.mist{background:transparent;color:var(--ink-3)}
+.li{gap:12px;padding:12px 0}
+.li .tx b{font-size:14.5px;font-weight:560}
+.li .tx span{font-size:12.5px;color:var(--ink-3)}
+.amt{font-weight:600;font-size:14px}
+.ck{width:28px;height:28px;box-shadow:inset 0 0 0 1.5px var(--line)}
+.ck svg{width:15px;height:15px}
+.chip{height:34px;padding:0 12px;font-size:13px;font-weight:450;gap:6px}
+.chip svg{width:16px;height:16px}
+.pill{height:24px;padding:0 9px;font-size:12.5px;font-weight:600}
+.pill.g{background:var(--vert-soft);color:var(--vert)}
+.pill.r{background:var(--rose-soft);color:#8E3A5C}
+.pill svg{width:12px;height:12px}
+/* actions et blocs */
+.btn{height:46px;border-radius:10px;font-size:15px;font-weight:560}
+.btn svg{width:18px;height:18px}
+.card-v{border-radius:12px;padding:14px;background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.card-v .big{color:var(--vert)}
+.card-v [style*="on-vert"]{color:var(--ink-3)!important}
+.card-v .pic{box-shadow:none!important;background:var(--vert-soft)!important;color:var(--vert)!important}
+.tip{background:#FBF1F5;border-radius:10px;font-size:13px;color:var(--ink);padding:11px 12px}
+.tip .pic{width:28px;height:28px;box-shadow:none;background:#fff;color:#A2476B}
+.tip .pic svg{width:16px;height:16px}
+.progress{height:5px;margin-top:10px}
+.ob .jn{width:38px;height:38px;box-shadow:inset 0 0 0 1.5px var(--line)}
+.ob .jn svg{width:19px;height:19px}
+.ob b{font-size:14px;font-weight:560}
+.ob span{font-size:12.5px;color:var(--ink-3)}
+.ob.now .jn{box-shadow:0 0 0 4px var(--rose-soft)}
+.course::before{left:18px;border-left-width:1.5px}
+.ticket{filter:drop-shadow(0 1px 1px rgba(27,18,37,.05)) drop-shadow(0 6px 14px rgba(27,18,37,.06));padding:14px 14px 16px}
+.ticket .tl{font-size:13.5px;padding:7px 0}
+.ticket .tl svg{width:18px;height:18px;stroke-width:1.6}
+.ticket .tl b{font-weight:600}
+.ticket .tot{border-top-width:1px}
+.tabbar{height:64px;border-top-color:var(--line-2)}
+.tabbar span{font-size:10px;font-weight:500}
+.tabbar svg{width:22px;height:22px;stroke-width:1.6}
+.tabbar .add{width:46px;height:46px;margin-top:-14px;box-shadow:0 4px 10px rgba(19,78,58,.22),0 0 0 4px #fff}
+.tabbar .add svg{width:22px;height:22px}
+.notif b{font-size:14px;font-weight:600}
+.notif p{font-size:13.5px}
+.phone{box-shadow:0 2px 4px rgba(27,18,37,.05),0 18px 44px rgba(27,18,37,.10),inset 0 0 0 1px var(--line)}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="mast"><span class="wm">be stable</span><span>L'app assemblée · maquettes · octobre 2026 · données fictives</span></header>
+
+  <section class="intro" style="grid-template-columns:1fr;gap:0;padding-bottom:40px">
+    <div>
+      <h1 class="d" style="max-width:13em">Le parcours pour démarrer, le carnet chaque jour, <span class="hl">le ticket par cheval.</span></h1>
+      <p class="promise" style="margin-top:26px">Be Stable te dit, chaque mois, ce que ton écurie te rapporte vraiment. Cheval par cheval.</p>
+    </div>
+    <div class="fil">
+      <div><span class="pic"></span><em>Proposition 4</em><b>1. Le premier lancement</b><span>Un parcours de six obstacles : on installe l'écurie sans s'en rendre compte.</span></div>
+      <div><span class="pic"></span><em>Proposition 1</em><b>2. Chaque jour</b><span>Un rappel le matin, la journée à cocher, et on note en dix secondes.</span></div>
+      <div><span class="pic"></span><em>Proposition 2</em><b>3. Chaque cheval</b><span>Son ticket du mois : ce qu'il rapporte, ce qu'il coûte, ce qu'il reste.</span></div>
+      <div><span class="pic"></span><em>Le lien</em><b>Ce qu'on note devient le ticket</b><span>Cocher « maréchal pour Pacha » ajoute la ligne à son ticket, tout de suite.</span></div>
+    </div>
+  </section>
+
+  <nav class="nav-props" aria-label="Chapitres">
+    <a href="#c1"><b>1</b>Le premier lancement</a>
+    <a href="#c2"><b>2</b>Chaque jour</a>
+    <a href="#c3"><b>3</b>Chaque cheval</a>
+  </nav>
+
+  <section class="chap" id="c1">
+    <div class="chap-head">
+      <div class="prop-no">1</div>
+      <div><span class="from">Tiré de la proposition 4, le parcours</span><h2 class="d" style="font-size:44px">Le premier lancement : <span class="hl">un parcours.</span></h2><p class="idea" style="font-size:19px;color:var(--ink-2);margin-top:12px;max-width:30em">Au lieu d'un formulaire, six obstacles. Chacun installe une partie de l'écurie : les chevaux, les tarifs, les factures communes. Au dernier, le gérant connaît son seuil et gagne son flot.</p></div>
+      <div class="facts">
+        <div><b>Les six obstacles</b>Tes chevaux · tes tarifs · tes factures communes · ta première journée · ton premier ticket · ton seuil.</div>
+        <div><b>Durée</b>Les trois premiers en cinq minutes. Les trois suivants se passent en utilisant l'app.</div>
+        <div><b>Après le parcours</b>L'accueil devient la journée (chapitre 2).</div>
+      </div>
+    </div>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="c1a"></div></div><figcaption><b>Bienvenue</b>La promesse, puis le parcours dessiné : six barres, un flot à l'arrivée.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="c1b"></div></div><figcaption><b>Obstacle 1 : tes chevaux</b>Un nom, une robe, une formule. Le cheval apparaît avec sa tête.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="c1c"></div></div><figcaption><b>Obstacle 3 : tes factures communes</b>Foin, salaires, loyer : un picto, un montant à la louche.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="c1d"></div></div><figcaption><b>Ton parcours</b>Trois barres passées. Les trois suivantes se passent en vivant l'écurie.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="c1e"></div></div><figcaption><b>L'arrivée</b>Dernier obstacle, le seuil. Le flot se gagne, il ne se perd jamais.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="chap" id="c2">
+    <div class="chap-head">
+      <div class="prop-no">2</div>
+      <div><span class="from">Tiré de la proposition 1, le carnet du jour</span><h2 class="d" style="font-size:44px">Chaque jour : <span class="hl">le carnet.</span></h2><p class="idea" style="font-size:19px;color:var(--ink-2);margin-top:12px;max-width:30em">Le matin, un rappel. Dans l'app, la journée à cocher, une tâche par ligne. Ce qui n'était pas prévu se note en trois gestes : quoi, pour qui, combien.</p></div>
+      <div class="facts">
+        <div><b>Le rappel</b>Le matin à l'heure choisie, et le soir s'il reste quelque chose.</div>
+        <div><b>Cocher</b>Une coche range la dépense ou la recette au bon cheval.</div>
+        <div><b>Noter</b>Au pouce ou à la voix : « maréchal Pacha 85 ».</div>
+      </div>
+    </div>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr lock" id="c2a"></div></div><figcaption><b>Le rappel du matin</b>La journée tient dans la notification. Le soir, ce qui reste.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="c2b"></div></div><figcaption><b>Aujourd'hui</b>La journée à cocher, et le parcours tant qu'il n'est pas fini.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="c2c"></div></div><figcaption><b>Noter</b>Quoi, pour qui (par sa tête), combien.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="c2d"></div></div><figcaption><b>Noté</b>La ligne arrive sur le ticket de Pacha. C'est le pont vers le chapitre 3.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="chap" id="c3">
+    <div class="chap-head">
+      <div class="prop-no">3</div>
+      <div><span class="from">Tiré de la proposition 2, le ticket</span><h2 class="d" style="font-size:44px">Chaque cheval : <span class="hl">son ticket.</span></h2><p class="idea" style="font-size:19px;color:var(--ink-2);margin-top:12px;max-width:30em">La liste des chevaux, ceux qui rapportent d'abord. Chaque cheval a son ticket de caisse du mois. La part de l'écurie s'explique une fois, en une image.</p></div>
+      <div class="facts">
+        <div><b>Ce qu'on comprend en 5 secondes</b>Quels chevaux rapportent, lesquels coûtent.</div>
+        <div><b>Ce qu'on peut faire</b>Une idée par ticket : refacturer un soin, revoir une pension.</div>
+        <div><b>Chiffres</b>Après la ferrure de Pacha notée au chapitre 2.</div>
+      </div>
+    </div>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="c3a"></div></div><figcaption><b>Mes chevaux</b>Une tête, un nom, un total, en deux groupes.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="c3b"></div></div><figcaption><b>Le ticket de Pacha</b>Chaque ligne a son picto. La ferrure de ce matin y est déjà.</figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="c3c"></div></div><figcaption><b>La part de l'écurie, expliquée</b>La facture commune partagée entre les têtes.</figcaption></figure>
+    </div>
+  </section>
+
+  <p class="p" style="margin-top:28px">Écurie, chevaux, propriétaires et chiffres fictifs (« Les Trois Pommiers »). Maquettes : rien n'est intégré ni mis en ligne.</p>
+</div>
+
+<script>
+(() => {
+/* ---------- Pictos (24 grid, 1.8 stroke) ---------- */
+const P = {
+  check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  back:'<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  arrowR:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  up:'<path d="M12 19V5M6 11l6-6 6 6"/>',
+  down:'<path d="M12 5v14M6 13l6 6 6-6"/>',
+  fer:'<path d="M6.3 4.2C4.8 6.8 4 9.7 4 12.6a8 8 0 0 0 16 0c0-2.9-.8-5.8-2.3-8.4"/><path d="M9.2 5.6c-1 1.9-1.6 4.2-1.6 6.6a4.4 4.4 0 0 0 8.8 0c0-2.4-.6-4.7-1.6-6.6"/><path d="M6.3 4.2 9.2 5.6M17.7 4.2l-2.9 1.4"/>',
+  veto:'<path d="m17.5 3 3.5 3.5M15.5 5l3.5 3.5M17.2 6.8 8 16H5v-3l9.2-9.2"/><path d="m5 19-2 2M10.5 9.5l2 2M8.5 11.5l2 2"/>',
+  foin:'<rect x="3" y="8" width="18" height="10" rx="2"/><path d="M3 13h18M8 8v10M16 8v10M6 6l1 2M12 5v3M18 6l-1 2"/>',
+  granule:'<path d="M7 7h10l2 13H5L7 7z"/><path d="M9 7V4.5h6V7M9.5 13h5"/>',
+  paille:'<path d="M12 3v18M8 3v5a4 4 0 0 0 8 0V3"/>',
+  cours:'<path d="M4 15a8 8 0 0 1 16 0z"/><path d="M2.5 15H21M12 7V5M8 15l-1 4M16 15l1 4"/>',
+  box:'<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M9.5 20v-6h5v6M9.5 14l5 6M14.5 14l-5 6"/>',
+  euro:'<circle cx="12" cy="12" r="9"/><path d="M15 8.5a4.5 4.5 0 1 0 0 7M7.5 11h6M7.5 13h6"/>',
+  personne:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/>',
+  cle:'<circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16.5 6.5l2 2M14 9l2 2"/>',
+  main:'<path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V11M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6h-.5a6 6 0 0 1-5.1-2.9L3.6 14a1.5 1.5 0 0 1 2.6-1.5L8 15"/>',
+  pot:'<path d="M7 8h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V8z"/><path d="M6 5h12v3H6zM10 13h4"/>',
+  dent:'<path d="M7.5 4C5.3 4 4 6 4 8.2c0 3 1.9 4.3 2 8.3.1 2.4.8 4.5 2 4.5 1.4 0 1.5-3.6 2.4-5.4h3.2c.9 1.8 1 5.4 2.4 5.4 1.2 0 1.9-2.1 2-4.5.1-4 2-5.3 2-8.3C20 6 18.7 4 16.5 4c-1.9 0-2.8 1-4.5 1S9.4 4 7.5 4z"/>',
+  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
+  bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+  loupe:'<circle cx="11" cy="11" r="6.5"/><path d="m16 16 5 5"/>',
+  trophee:'<path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4M12 13v4M8.5 20h7M10 17h4"/>',
+  jump:'<path d="M4 20V6M20 20V6M4 10h16M4 14.5h16"/><path d="M2.5 20h3M18.5 20h3"/>',
+  flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  chart:'<path d="M4 20h16M7 16v-4M12 16V7M17 16v-7"/>',
+  seau:'<path d="M5 8h14l-1.6 11.2a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8L5 8z"/><path d="M5 8a7 4 0 0 1 14 0"/>',
+  horseLine:'<path d="M7.5 21c.3-3 .1-5.3-.7-7.3l-2.3 2c-.9.8-2.3.3-2.5-.9l-.2-1.2c-.1-.6.1-1.2.6-1.6l5.3-5.1c1.5-1.4 3.4-2.2 5.5-2.3L14.6 2l1.1 2.5 1.7-1.8.2 3c2.4 2.3 3.9 6 3.9 10.4V21"/><path d="M15.7 7.2c1.4 1.9 2.2 4.4 2.4 7.3"/><circle cx="10.6" cy="8.6" r=".9" fill="currentColor" stroke="none"/>',
+  camion:'<path d="M3 6h11v10H3zM14 9h4l3 3.5V16h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+  home:'<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/>',
+  list:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+};
+const ic = (n, w = 24) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+document.querySelectorAll('[data-i]').forEach(e => { e.innerHTML = ic(e.dataset.i); });
+
+/* ---------- Horse portraits ---------- */
+const COATS = { alezan:['#B4612C','#8A4520'], bai:['#6E4128','#2A1C18'], gris:['#B7B1BC','#7F7884'], noir:['#2E2733','#17121B'], isabelle:['#D8B06A','#8C6A35'], pie:['#F4EFE7','#6E4128'] };
+function horse(coat = 'alezan', blaze = true, bg = 'var(--mist)') {
+  const [c, m] = COATS[coat];
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="${bg}"/>
+    <path d="M30 100 C33 82 36 70 40 62 L30 66 C22 70 14 68 12 60 C10 54 14 48 20 44 L40 28 C46 23 52 20 58 20 L62 8 L66 19 L71 10 L72 24 C82 34 88 50 88 70 L90 100 Z" fill="${c}"/>
+    <path d="M58 20 C66 22 72 28 74 36 C70 34 66 33 64 34 C68 40 76 46 80 54 C76 54 72 52 70 51 C74 58 80 64 84 70 C82 70 79 69 77 68 C80 76 84 84 88 90 L90 100 L84 100 C82 80 78 62 70 48 C66 40 62 32 58 20 Z" fill="${m}"/>
+    ${blaze ? `<path d="M40 30 C34 36 26 44 20 50 C24 49 28 46 31 43 C35 39 38 34 40 30 Z" fill="#fff" opacity=".9"/>` : ''}
+    <circle cx="44" cy="38" r="2.6" fill="#1B1225"/><circle cx="44.8" cy="37.2" r=".8" fill="#fff"/>
+    <path d="M14 56 C16 57 18 57 19 56" stroke="#1B1225" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M60 12 L62 8 L64 17" fill="${m}" opacity=".5"/>
+  </svg>`;
+}
+const face = (coat, size = 44, blaze = true, bg) => `<span class="face" style="width:${size}px;height:${size}px">${horse(coat, blaze, bg)}</span>`;
+
+const sb = `<div class="sb"><span class="num">9:41</span><i></i><span>●●● ▮</span></div>`.replace('●●● ▮', '<svg width="34" height="12" viewBox="0 0 34 12"><rect x="0" y="5" width="3" height="7" rx="1" fill="#1B1225"/><rect x="5" y="3" width="3" height="9" rx="1" fill="#1B1225"/><rect x="10" y="0" width="3" height="12" rx="1" fill="#1B1225"/><rect x="17" y="1" width="15" height="10" rx="3" fill="none" stroke="#1B1225" stroke-width="1.4"/><rect x="19" y="3" width="10" height="6" rx="1.5" fill="#1B1225"/></svg>');
+const tabbar = (items, on) => `<div class="tabbar">${items.slice(0, 2).map((t, i) => `<span class="${on === i ? 'on' : ''}">${ic(t[0])}${t[1]}</span>`).join('')}<span class="add">${ic('plus')}</span>${items.slice(2).map((t, i) => `<span class="${on === i + 2 ? 'on' : ''}">${ic(t[0])}${t[1]}</span>`).join('')}</div>`;
+const TABS1 = [['cal', 'Aujourd’hui'], ['horseLine', 'Chevaux'], ['euro', 'Argent'], ['personne', 'Moi']];
+const put = (id, html) => { document.getElementById(id).innerHTML = sb + html; };
+const li = (pic, title, sub, right, cls = '') => `<div class="li"><span class="pic ${cls}">${ic(pic)}</span><div class="tx"><b>${title}</b><span>${sub}</span></div>${right || ''}</div>`;
+
+
+document.querySelectorAll('.fil .pic').forEach((e, k) => { e.innerHTML = ic(['flag', 'cal', 'horseLine', 'bulb'][k]); });
+const TABS = [['cal', 'Aujourd’hui'], ['horseLine', 'Chevaux'], ['euro', 'Le mois'], ['personne', 'Moi']];
+const HORSES = [['Sirius', 'alezan', true], ['Diva', 'gris', false], ['Belle', 'isabelle', true], ['Tonnerre', 'noir', false], ['Princesse', 'pie', true], ['Vaillant', 'bai', true], ['Pacha', 'alezan', false], ['Mistral', 'gris', true]];
+const faceRow = (list, on) => `<div style="display:flex;flex-wrap:wrap;gap:10px 8px;margin-top:8px">${list.map(([n, c, b]) => `<div style="width:56px;text-align:center;font-size:11.5px;font-weight:500"><span style="display:inline-block;border-radius:50%;padding:2px;${n === on ? 'box-shadow:0 0 0 2px var(--vert)' : ''}">${face(c, 40, b)}</span><div style="margin-top:2px;${n === on ? 'color:var(--vert)' : ''}">${n}</div></div>`).join('')}</div>`;
+
+/* parcours drawing */
+function course(done, w = '100%') {
+  const jumps = [[28, 150], [70, 108], [118, 128], [166, 92], [206, 112], [240, 70]];
+  const g = jumps.map(([x, y], k) => { const col = k < done ? '#134E3A' : k === done ? '#F6B3CB' : '#DCD6E0'; return `<g transform="translate(${x - 17} ${y - 30})"><rect width="4" height="32" rx="2" fill="#1B1225"/><rect x="30" width="4" height="32" rx="2" fill="#1B1225"/><rect y="9" width="34" height="5" rx="2.5" fill="${col}"/><rect y="18" width="34" height="5" rx="2.5" fill="${col}"/><circle cx="17" cy="44" r="9" fill="${k <= done ? col : '#fff'}" stroke="${k <= done ? 'none' : '#DCD6E0'}" stroke-width="1.5"/><text x="17" y="48" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="700" font-size="11" fill="${k < done ? '#fff' : k === done ? '#0B3325' : '#7A7284'}">${k + 1}</text></g>`; }).join('');
+  let sc = ''; for (let a = 0; a < 12; a++) sc += `<circle cx="${(17 + 14 * Math.cos(a * Math.PI / 6)).toFixed(1)}" cy="${(18 + 14 * Math.sin(a * Math.PI / 6)).toFixed(1)}" r="4" fill="${done >= 6 ? '#134E3A' : '#DCD6E0'}"/>`;
+  return `<svg viewBox="0 0 270 200" width="${w}" aria-hidden="true"><path d="M6 170 C40 170 50 120 70 120 S100 150 118 140 S150 100 166 104 S195 130 206 124 S232 80 262 40" fill="none" stroke="#DCD6E0" stroke-width="3" stroke-dasharray="6 6"/>${g}<g transform="translate(236 2) rotate(8)"><path d="M10 26 L5 48 L11 44 L14 48 L17 30Z" fill="${done >= 6 ? '#134E3A' : '#DCD6E0'}"/><path d="M24 26 L29 48 L23 44 L20 48 L17 30Z" fill="${done >= 6 ? '#134E3A' : '#E4DFE8'}"/>${sc}<circle cx="17" cy="18" r="14" fill="${done >= 6 ? '#134E3A' : '#DCD6E0'}"/><circle cx="17" cy="18" r="11" fill="${done >= 6 ? '#F6B3CB' : '#fff'}"/></g></svg>`;
+}
+function rosette(lines, size = 150) {
+  let sc = ''; for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2; sc += `<circle cx="${(60 + 41 * Math.cos(a)).toFixed(1)}" cy="${(52 + 41 * Math.sin(a)).toFixed(1)}" r="9.5" fill="#134E3A"/>`; }
+  return `<svg viewBox="0 0 120 146" width="${size}" style="transform:rotate(-6deg)" aria-hidden="true"><path d="M44 84 L34 140 L46 130 L54 140 L60 90 Z" fill="#134E3A"/><path d="M76 84 L86 140 L74 130 L66 140 L60 90 Z" fill="#134E3A" opacity=".82"/>${sc}<circle cx="60" cy="52" r="42" fill="#134E3A"/><circle cx="60" cy="52" r="35" fill="#F6B3CB"/><circle cx="60" cy="52" r="30" fill="none" stroke="#0B3325" stroke-width=".9" stroke-dasharray="1.6 2.4"/>${lines.map((l, i) => `<text x="60" y="${52 + (i - (lines.length - 1) / 2) * 14 + 4.5}" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="700" font-size="12.5" fill="#0B3325">${l}</text>`).join('')}</svg>`;
+}
+
+/* ===== Chapitre 1 : parcours ===== */
+put('c1a', `<div class="body" style="display:flex;flex-direction:column">
+  <div style="margin-top:6px">${course(0)}</div>
+  <h2 class="d t1" style="text-align:center;margin-top:2px">Ce que ton écurie te rapporte, <span>en six obstacles.</span></h2>
+  <p class="p" style="text-align:center;margin-top:10px">Pas de formulaire. Chaque barre installe une partie de ton écurie. À l'arrivée, tu sais ce que chaque cheval te rapporte.</p>
+  <div style="margin-top:auto;padding-bottom:22px"><div class="btn">Prendre le départ ${ic('arrowR', 20)}</div><p class="p" style="text-align:center;margin-top:8px;font-size:13px">Les trois premiers obstacles prennent 5 minutes.</p></div>
+</div>`);
+
+put('c1b', `<div class="body">
+  <div class="back">${ic('back')}Parcours · obstacle 1 sur 6</div>
+  <div class="progress"><i style="width:8%"></i></div>
+  <h2 class="d t1" style="margin-top:14px">Tes chevaux</h2>
+  <p class="p" style="margin-top:4px">Ceux qui sont en pension chez toi. Les tiens viendront après.</p>
+  <div style="display:flex;flex-direction:column;align-items:center;margin-top:12px">${face('alezan', 80, false)}<b style="font-size:17px;font-weight:600;margin-top:6px">Pacha</b></div>
+  <p class="sec">Sa robe</p>
+  <div style="display:flex;gap:10px;margin-top:6px">${['alezan', 'bai', 'noir', 'gris', 'isabelle', 'pie'].map((c, i) => `<span style="border-radius:50%;padding:2px;${i === 0 ? 'box-shadow:0 0 0 2.5px var(--vert)' : ''}"><span style="display:block;width:30px;height:30px;border-radius:50%;background:${{ alezan: '#B4612C', bai: '#6E4128', noir: '#2E2733', gris: '#B7B1BC', isabelle: '#D8B06A', pie: 'linear-gradient(135deg,#F4EFE7 50%,#6E4128 50%)' }[c]};box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)"></span></span>`).join('')}</div>
+  <p class="sec">Sa formule</p>
+  <div class="chips" style="margin-top:6px"><span class="chip">${ic('box', 18)}Box seul</span><span class="chip on">${ic('box', 18)}Box + paddock</span><span class="chip">${ic('cours', 18)}Travail</span><span class="chip">${ic('foin', 18)}Retraite</span></div>
+  <div class="btn" style="margin-top:14px">Ajouter Pacha · 8 chevaux déjà</div>
+</div>`);
+
+const bill = (pic, label, amt) => `<div class="li"><span class="pic">${ic(pic)}</span><div class="tx"><b>${label}</b><span>par mois, à la louche</span></div><span class="amt">${amt}</span></div>`;
+put('c1c', `<div class="body">
+  <div class="back">${ic('back')}Parcours · obstacle 3 sur 6</div>
+  <div class="progress"><i style="width:42%"></i></div>
+  <h2 class="d t1" style="margin-top:14px">Tes factures communes</h2>
+  <p class="p" style="margin-top:4px">Celles qui ne dépendent d'aucun cheval. On les partagera entre eux.</p>
+  ${bill('foin', 'Foin, granulés, paille', '1 880 €')}
+  ${bill('personne', 'Salaires', '1 100 €')}
+  ${bill('cle', 'Loyer ou crédit', '900 €')}
+  <div class="li" style="color:var(--ink-3)"><span class="pic mist">${ic('plus')}</span><div class="tx"><b style="color:var(--ink-2)">Eau, électricité, assurance…</b><span>ajouter une facture</span></div></div>
+  <div class="tip"><span class="pic">${ic('bulb')}</span><div>Un ordre d'idée suffit. Tu pourras corriger quand la vraie facture arrive.</div></div>
+  <div class="btn">Barre passée ${ic('check', 20)}</div>
+</div>`);
+
+const ob = (state, title, sub, pic) => `<div class="ob ${state}"><span class="jn">${ic(state === 'done' ? 'check' : pic)}</span><div><b>${title}</b><span>${sub}</span></div></div>`;
+put('c1d', `<div class="body">
+  <p class="hello">Ton parcours</p>
+  <h2 class="d t1">3 obstacles sur 6</h2>
+  <div class="progress"><i style="width:50%"></i></div>
+  <div class="course" style="margin-top:10px">
+    ${ob('done', 'Tes chevaux', '9 chevaux inscrits')}
+    ${ob('done', 'Tes tarifs', 'chaque pension a son prix')}
+    ${ob('done', 'Tes factures communes', '3 880 € par mois')}
+    ${ob('now', 'Ta première journée', 'coche 3 choses que tu fais · 1 sur 3', 'jump')}
+    ${ob('', 'Ton premier ticket', 'regarde ce que rapporte un cheval', 'jump')}
+    ${ob('', 'Ton seuil', 'combien de chevaux paient tout', 'flag')}
+  </div>
+  <div class="card-v" style="margin-top:8px;display:flex;align-items:center;gap:12px"><div style="flex:1"><div style="font-size:13px;color:var(--on-vert)">Obstacle du moment</div><b style="font-size:14.5px;font-weight:560">Coche ce que tu fais aujourd'hui</b></div><span class="pic" style="background:var(--rose);color:var(--vert-deep)">${ic('arrowR')}</span></div>
+</div>${tabbar(TABS, 0)}`);
+
+put('c1e', `<div class="body" style="display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:center;margin-top:16px">${rosette(['Écurie', 'prête'], 112)}</div>
+  <h2 class="d t1" style="text-align:center;margin-top:10px">Six barres sur six. <span>Ton flot est gagné.</span></h2>
+  <div style="margin-top:14px;display:grid;grid-template-columns:repeat(6,1fr);gap:8px 4px;justify-items:center;position:relative">
+    ${['alezan', 'gris', 'isabelle', 'noir', 'pie', 'bai', 'alezan', 'gris', 'bai'].map((c, i) => face(c, 36, i % 2 === 0)).join('')}${'<span class="face" style="width:36px;height:36px;background:#fff;box-shadow:inset 0 0 0 1.5px var(--line)"></span>'.repeat(3)}
+    <div style="position:absolute;left:calc(38.3% + 2px);top:42px;height:48px;border-left:3px solid var(--rose)"></div>
+  </div>
+  <p style="font-size:15px;font-weight:500;line-height:1.45;margin-top:12px;text-align:center">Ton seuil : 9 chevaux. Tu en as 9, tu passes de justesse. Chaque box loué en plus te rapporte environ 420 € par mois.</p>
+  <div style="margin-top:auto;padding-bottom:22px"><div class="btn">Ouvrir ma journée ${ic('arrowR', 20)}</div></div>
+</div>`);
+
+/* ===== Chapitre 2 : chaque jour ===== */
+put('c2a', `<div class="body" style="text-align:center">
+  <p style="font-size:15px;margin-top:10px;opacity:.85">Lundi 12 octobre</p>
+  <p class="big" style="font-size:66px;font-weight:500;color:#fff;margin-top:2px">7:45</p>
+  <div style="text-align:left;margin-top:26px">
+    <div class="notif"><div class="nh"><i></i>Be Stable<span>maintenant</span></div><b>Ta journée : 3 choses</b><p>Cours de Sirius à 10 h, maréchal pour Pacha à 11 h 30, vermifuge de 3 chevaux à 14 h.</p></div>
+    <div class="notif" style="opacity:.82"><div class="nh"><i></i>Be Stable<span>hier, 19:30</span></div><b>Il reste le vermifuge</b><p>Tu as coché 2 choses sur 3. Un geste suffit, même demain.</p></div>
+  </div>
+</div>`);
+
+put('c2b', `<div class="body">
+  <p class="hello">Lundi 12 octobre</p>
+  <h2 class="d t1">Bonjour Claire</h2>
+  <p class="p" style="margin-top:4px">2 choses à faire aujourd'hui.</p>
+  <p class="sec">Ce matin</p>
+  ${li('cours', 'Cours de Sirius · 10 h', 'avec Léa · +30 €', `<span class="ck on">${ic('check')}</span>`)}
+  ${li('fer', 'Maréchal pour Pacha', '11 h 30 · 85 €', `<span class="ck">${ic('check')}</span>`, 'rose')}
+  <p class="sec">Cet après-midi</p>
+  ${li('pot', 'Vermifuge · 3 chevaux', '14 h · 12 € chacun', `<span class="ck">${ic('check')}</span>`, 'rose')}
+  <div class="card-v" style="margin-top:14px;display:flex;gap:12px;align-items:center">
+    <span class="pic" style="background:rgba(255,255,255,.12);color:var(--rose)">${ic('flag')}</span>
+    <div style="flex:1"><div style="font-size:13px;color:var(--on-vert)">Ton parcours · 4 sur 6</div><b style="font-size:14.5px;font-weight:560">Prochain obstacle : ton premier ticket</b></div>
+    ${ic('arrowR', 22)}
+  </div>
+</div>${tabbar(TABS, 0)}`);
+
+put('c2c', `<div class="body">
+  <div class="back">${ic('back')}Annuler</div>
+  <h2 class="d t1" style="margin-top:8px">Qu'as-tu fait ?</h2>
+  <div class="chips" style="margin-top:12px">
+    <span class="chip on">${ic('fer', 18)}Maréchal</span><span class="chip">${ic('veto', 18)}Véto</span><span class="chip">${ic('pot', 18)}Vermifuge</span><span class="chip">${ic('cours', 18)}Cours</span><span class="chip">${ic('foin', 18)}Foin</span><span class="chip">${ic('main', 18)}Ostéo</span>
+  </div>
+  <p class="sec" style="margin-top:16px">Pour quel cheval ?</p>
+  ${faceRow(HORSES, 'Pacha')}
+  <p class="sec" style="margin-top:12px">Combien ?</p>
+  <div style="display:flex;align-items:baseline;gap:6px;padding:8px 14px;background:#fff;border-radius:10px;box-shadow:inset 0 0 0 2px var(--vert);margin-top:4px"><span class="big" style="font-size:28px">85</span><span style="font-weight:600;color:var(--ink-2)">€</span></div>
+  <div class="btn" style="margin-top:12px">Noter pour Pacha · 85 €</div>
+  <div class="btn line" style="margin-top:8px;box-shadow:inset 0 0 0 1px var(--line)">${ic('mic', 18)}Ou dis-le à voix haute</div>
+</div>`);
+
+put('c2d', `<div class="body" style="opacity:.5">
+  <p class="hello">Lundi 12 octobre</p>
+  <h2 class="d t1">Bonjour Claire</h2>
+  ${li('cours', 'Cours de Sirius · 10 h', 'avec Léa', `<span class="ck on">${ic('check')}</span>`)}
+  ${li('fer', 'Maréchal pour Pacha', '11 h 30', `<span class="ck on">${ic('check')}</span>`, 'rose')}
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <div class="row"><span class="ck on" style="width:32px;height:32px">${ic('check')}</span><h3 class="d t2">Noté pour Pacha</h3></div>
+  <div class="ticket" style="margin-top:14px">
+    <div class="th"><div class="row">${face('alezan', 32, false)}<b>Ticket de Pacha · octobre</b></div></div>
+    <div class="tl">${ic('box')}<span>Pension</span><b>+490 €</b></div>
+    <div class="tl">${ic('main')}<span>Ostéo, compléments</span><b>−145 €</b></div>
+    <div class="tl new">${ic('fer')}<span><b>Ferrure orthopédique</b></span><b>−85 €</b></div>
+    <div class="tl">${ic('foin')}<span>Part de l'écurie</span><b>−431 €</b></div>
+    <div class="tot"><span style="font-weight:600">Il te coûte</span><span class="big" style="font-size:21px">−171 €</span></div>
+  </div>
+  <p class="p" style="margin-top:16px">Pacha te coûte maintenant 171 € ce mois.</p>
+  <div class="btn" style="margin-top:10px">Voir le ticket de Pacha</div>
+</div>`);
+
+/* ===== Chapitre 3 : chaque cheval ===== */
+const hrow = (n, c, b, sub, amt, kind) => `<div class="li">${face(c, 46, b)}<div class="tx"><b>${n}</b><span>${sub}</span></div><span class="pill ${kind}">${kind === 'g' ? ic('up') : ''}${amt}</span></div>`;
+put('c3a', `<div class="body">
+  <p class="hello">Octobre</p>
+  <h2 class="d t1">Mes chevaux</h2>
+  <p class="p" style="margin-top:4px">Ce mois, ils te laissent <b style="color:var(--vert)">+267 €</b> à eux tous.</p>
+  <p class="sec">Ils te rapportent</p>
+  ${hrow('Tonnerre', 'noir', false, 'pension travail', '+249 €', 'g')}
+  ${hrow('Sirius', 'alezan', true, 'pension travail', '+184 €', 'g')}
+  ${hrow('Mistral', 'gris', true, 'pension travail', '+104 €', 'g')}
+  <p class="sec">Ils te coûtent</p>
+  ${hrow('Pacha', 'alezan', false, 'box + paddock', '−171 €', 'r')}
+  ${hrow('Princesse', 'pie', true, 'pension seule', '−81 €', 'r')}
+  ${hrow('Diva', 'gris', false, 'box + paddock', '−71 €', 'r')}
+</div>${tabbar(TABS, 1)}`);
+
+put('c3b', `<div class="body">
+  <div class="back">${ic('back')}Mes chevaux</div>
+  <div class="row" style="margin-top:6px">${face('alezan', 58, false)}<div><h2 class="d t2">Le ticket de Pacha</h2><p class="p">octobre · propriétaire Julie P.</p></div></div>
+  <div class="ticket">
+    <div class="tl">${ic('box')}<span>Pension box + paddock</span><b>+490 €</b></div>
+    <div class="tl">${ic('fer')}<span>Ferrure orthopédique</span><b>−85 €</b></div>
+    <div class="tl">${ic('main')}<span>Ostéopathe</span><b>−75 €</b></div>
+    <div class="tl">${ic('pot')}<span>Compléments</span><b>−70 €</b></div>
+    <div class="tl">${ic('foin')}<span style="text-decoration:underline dotted;text-underline-offset:3px">Part de l'écurie</span><b>−431 €</b></div>
+    <div class="tot"><span style="font-weight:600">Il te coûte</span><span class="big" style="font-size:25px">−171 €</span></div>
+  </div>
+  <div class="tip" style="margin-top:20px"><span class="pic">${ic('bulb')}</span><div>Sa pension paie sa part de l'écurie, pas ses soins. Refacturer la ferrure le ramène à −86 €.</div></div>
+</div>${tabbar(TABS, 1)}`);
+
+put('c3c', `<div class="body">
+  <div class="back">${ic('back')}Le ticket de Pacha</div>
+  <h2 class="d t1" style="margin-top:8px">La part de l'écurie, c'est quoi ?</h2>
+  <p class="p" style="margin-top:8px">Les factures qui ne dépendent d'aucun cheval. On les partage entre ceux qui sont là.</p>
+  <div style="margin-top:12px;background:#fff;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line);padding:12px 14px">
+    <div style="display:flex;gap:10px;align-items:center;font-size:14px;padding:4px 0"><span style="color:var(--vert)">${ic('foin', 20)}</span><span style="flex:1">Foin, granulés, paille</span><b class="num">1 880 €</b></div>
+    <div style="display:flex;gap:10px;align-items:center;font-size:14px;padding:4px 0"><span style="color:var(--vert)">${ic('personne', 20)}</span><span style="flex:1">Salaires</span><b class="num">1 100 €</b></div>
+    <div style="display:flex;gap:10px;align-items:center;font-size:14px;padding:4px 0"><span style="color:var(--vert)">${ic('cle', 20)}</span><span style="flex:1">Loyer</span><b class="num">900 €</b></div>
+    <div style="display:flex;justify-content:space-between;border-top:1.5px solid var(--ink);margin-top:6px;padding-top:6px;font-weight:700"><span>Par mois</span><span class="num">3 880 €</span></div>
+  </div>
+  <div style="text-align:center;margin:8px 0 2px;color:var(--ink-3)">${ic('down', 22)}</div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${HORSES.concat([['Câline', 'bai', false]]).map(([n, c, b]) => face(c, 34, b)).join('')}</div>
+  <p style="text-align:center;font-weight:700;font-size:18px;margin-top:10px" class="num">3 880 € ÷ 9 chevaux = <span>431 € chacun</span></p>
+  <p class="p" style="text-align:center;margin-top:6px">Avec 12 chevaux, ce ne serait plus que 323 € chacun.</p>
+</div>`);
+})();
+</script>
+</body>
+</html>
