@@ -262,7 +262,7 @@ export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; cr
                 </li>
               </ul>
             )}
-            <div className="rj-foot">
+            <div className="rj-foot rj-foot-libre">
               <p className="rj-proof">
                 <b className="num">{chiffres ? nf(chiffres.ecuries) : "7 681"}</b> écuries · gratuit · 0 % de commission
               </p>

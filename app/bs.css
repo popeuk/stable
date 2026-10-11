@@ -681,6 +681,7 @@ kbd { font: 600 10.5px/1 var(--font-bricolage), sans-serif; font-variant-numeric
 .rj-fait { text-align: center; align-items: center; }
 .rj-fait .rj-q { margin-top: 12px; }
 .rj-fait .rj-foot { width: 100%; }
+.rj-foot-libre { position: static; }
 .rj-stamp { margin-top: clamp(28px, 8vh, 64px); animation: rj-stamp .65s cubic-bezier(.2, .9, .2, 1) both; }
 @keyframes rj-stamp { from { transform: rotate(-16deg) scale(1.6); opacity: 0; } to { transform: none; opacity: 1; } }
 .rj-side { display: none; }
