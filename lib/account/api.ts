@@ -24,6 +24,19 @@ export class ApiError extends Error {
   }
 }
 
+/** WordPress rend parfois les titres en entités (« d&rsquo;Elwing ») : on les décode. */
+function plain(s: unknown): unknown {
+  if (typeof s !== "string" || !s.includes("&")) return s;
+  const t = document.createElement("textarea");
+  t.innerHTML = s;
+  return t.value;
+}
+function clean<T>(v: T): T {
+  if (Array.isArray(v)) return v.map(clean) as T;
+  if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, ["title", "commune", "description", "nom", "structure_nom"].includes(k) ? plain(x) : clean(x)])) as T;
+  return v;
+}
+
 const OFFLINE = "Impossible de joindre mon-ecurie.fr. Vérifiez votre connexion et réessayez.";
 
 export interface Demande {
@@ -54,7 +67,7 @@ async function call<T>(method: "GET" | "POST" | "PUT" | "DELETE", path: string, 
     const j = (json ?? {}) as { code?: string; message?: string; data?: Record<string, unknown> };
     throw new ApiError(j.code ?? "erreur", j.message ?? "Une erreur est survenue. Réessayez dans un instant.", res.status, j.data ?? {});
   }
-  return json as T;
+  return clean(json) as T;
 }
 
 export interface Me {
