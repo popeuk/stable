@@ -21,7 +21,7 @@ import { materializeRhythms } from "@/lib/domain/rhythm";
 import { ensurePensions } from "@/lib/domain/autopilot";
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
-import type { ActionState, Person, PersonRole, Seance, TeamTask } from "@/lib/domain/types";
+import type { ActionState, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { distribute } from "@/lib/domain/distribution";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
@@ -111,6 +111,11 @@ interface DataState extends StableData {
   /** Trouve une personne par son nom, ou la crée. Rend son identifiant. */
   ensurePerson: (name: string, role: PersonRole) => string;
   updatePerson: (id: string, patch: Partial<Omit<Person, "id">>) => void;
+  /** Les prestations vendues : ajouter, modifier (prix, nom, actif), retirer. */
+  addPrestation: (p: Omit<Prestation, "id" | "active">) => string;
+  updatePrestation: (id: string, patch: Partial<Omit<Prestation, "id">>) => void;
+  /** Retire une prestation jamais utilisée ; sinon la met en pause (l'historique reste). */
+  removePrestation: (id: string) => "supprimee" | "en_pause";
   /** Crée une séance, ou une série (une séance par date). */
   addSeances: (base: Omit<Seance, "id" | "date" | "rev" | "status" | "seriesId">, dates: string[]) => void;
   /** Modifie une séance ; la portée reporte seulement ce qui a changé. */
@@ -510,6 +515,22 @@ export const useDataStore = create<DataState>()(
       },
 
       updatePerson: (pid, patch) => set((s) => ({ people: (s.people ?? []).map((p) => (p.id === pid ? { ...p, ...patch } : p)) })),
+
+      addPrestation: (p) => {
+        const pid = id("prest");
+        set((s) => ({ prestations: [...(s.prestations ?? []), { ...p, label: p.label.trim(), id: pid, active: true }] }));
+        return pid;
+      },
+      updatePrestation: (pid, patch) => set((s) => ({ prestations: (s.prestations ?? []).map((p) => (p.id === pid ? { ...p, ...patch } : p)) })),
+      removePrestation: (pid) => {
+        const used = (get().seances ?? []).some((x) => x.prestationId === pid);
+        if (used) {
+          set((s) => ({ prestations: (s.prestations ?? []).map((p) => (p.id === pid ? { ...p, active: false } : p)) }));
+          return "en_pause";
+        }
+        set((s) => ({ prestations: (s.prestations ?? []).filter((p) => p.id !== pid) }));
+        return "supprimee";
+      },
 
       addSeances: (base, dates) =>
         set((s) => {

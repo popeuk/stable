@@ -30,7 +30,7 @@ const plusOneHour = (t: string) => {
   return `${String(Math.min(23, h + 1)).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
 
-export function SeanceForm({ onDone, date: presetDate, start: presetStart }: { onDone: () => void; date?: string; start?: string }) {
+export function SeanceForm({ onDone, date: presetDate, start: presetStart, prestationId }: { onDone: () => void; date?: string; start?: string; prestationId?: string }) {
   const data = useDataStore();
   const ensurePerson = useDataStore((s) => s.ensurePerson);
   const addSeances = useDataStore((s) => s.addSeances);
@@ -41,7 +41,7 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart }: { o
   const horses = data.horses.filter((h) => !h.isArchived);
   const people = (data.people ?? []).filter((p) => p.active);
 
-  const [prestId, setPrestId] = useState(prestations[0]?.id ?? "");
+  const [prestId, setPrestId] = useState(prestations.find((p) => p.id === prestationId)?.id ?? prestations[0]?.id ?? "");
   const prest = prestations.find((p) => p.id === prestId);
   const [format, setFormat] = useState<"particulier" | "collectif">("collectif");
   const [places, setPlaces] = useState(6);

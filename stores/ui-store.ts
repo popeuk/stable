@@ -17,6 +17,8 @@ export interface NoterPrefill {
   kind?: NoteKindId;
   amount?: number;
   date?: string;
+  /** Pour une séance : la prestation choisie d'avance. */
+  prestationId?: string;
 }
 
 export type NoteKindId =

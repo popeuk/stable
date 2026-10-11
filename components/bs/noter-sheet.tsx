@@ -250,7 +250,7 @@ function NoterInner() {
         {done ? (
           <Done done={done} count={horseIds.length} onClose={close} />
         ) : mode === "seance" ? (
-          <SeanceForm onDone={close} date={prefill.date} start={prefill.start} />
+          <SeanceForm onDone={close} date={prefill.date} start={prefill.start} prestationId={prefill.prestationId} />
         ) : mode === "tache" ? (
           <TaskForm onDone={close} />
         ) : (
