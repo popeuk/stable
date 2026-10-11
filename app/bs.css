@@ -309,7 +309,7 @@ a.bs-ob:hover b { text-decoration: underline; text-underline-offset: 3px; }
 .bs-quick input:focus { outline: 0; box-shadow: inset 0 0 0 2px var(--vert); }
 
 /* ============================================================
-   Ordinateur et installation (12 octobre 2026)
+   Ordinateur et installation (11 octobre 2026)
    Au téléphone rien ne change. À partir de 1024 px : la barre latérale
    vert profond, l'écran sur toute la largeur utile, les feuilles en
    panneau flottant à droite, la palette (Ctrl K) et les raccourcis.
