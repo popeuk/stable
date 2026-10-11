@@ -32,7 +32,7 @@ export function HorseCard({ item, index }: { item: HorseWithPnl; index: number }
           <div className="flex items-center gap-3">
             <HorseAvatar name={horse.name} size={40} />
             <div>
-              <p className="font-[family-name:var(--font-fraunces)] text-lg leading-tight text-primary">
+              <p className="font-[family-name:var(--font-bricolage)] text-lg leading-tight text-primary">
                 {horse.name}
               </p>
               <p className="text-2xs text-tertiary">

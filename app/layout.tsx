@@ -1,36 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Fraunces, Hanken_Grotesk } from "next/font/google";
+import { Bricolage_Grotesque } from "next/font/google";
 import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
+import "./bs.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-const hanken = Hanken_Grotesk({
-  variable: "--font-hanken",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  axes: ["wdth", "opsz"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Be Stable",
-  description: "Le copilote chiffré de ton écurie",
-  manifest: "/manifest.webmanifest",
+  description: "Ce que ton écurie te rapporte vraiment. Cheval par cheval.",
+  manifest: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/manifest.webmanifest`,
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "Be Stable",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#efe9da",
+  themeColor: "#FCFBF9",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -46,16 +39,9 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${hanken.variable} antialiased`}
+      className={`${bricolage.variable} antialiased`}
     >
       <body>
-        {/* Apply the saved theme before first paint so there's no light/dark flash. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "try{if(localStorage.getItem('be-stable-theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}",
-          }}
-        />
         {children}
         <PwaRegister />
       </body>

@@ -104,7 +104,7 @@ export function DeadlineRow({
       <span className="flex size-8 shrink-0 items-center justify-center rounded-full" style={{ color, background: "var(--bg-pressed)" }}>
         <CareIcon kind={d.kind} />
       </span>
-      <Link href={`/cheval?id=${d.horseId}`} className="min-w-0 flex-1">
+      <Link href={`/ticket?id=${d.horseId}`} className="min-w-0 flex-1">
         <p className="truncate text-[14px] font-bold leading-tight text-primary">
           {CARE_META[d.kind].label}
           {showHorse ? ` · ${horseName}` : ""}
@@ -169,7 +169,7 @@ export function AgendaRow({
       >
         <CareIcon kind={e.kind} />
       </span>
-      <Link href={`/cheval?id=${e.horseId}`} className="min-w-0 flex-1">
+      <Link href={`/ticket?id=${e.horseId}`} className="min-w-0 flex-1">
         <p className="truncate text-[14px] font-bold leading-tight text-primary">
           {CARE_META[e.kind].label}
           {showHorse ? ` · ${horseName}` : ""}

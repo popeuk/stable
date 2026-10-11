@@ -134,7 +134,7 @@ function Cheval({ id }: { id: string }) {
 
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-[family-name:var(--font-fraunces)] text-3xl text-primary">{horse.name}</h1>
+          <h1 className="font-[family-name:var(--font-bricolage)] text-3xl text-primary">{horse.name}</h1>
           <p className="text-[13px] font-semibold uppercase tracking-wide text-tertiary">
             {horse.breed}
             {horse.birthYear ? ` · ${new Date().getFullYear() - horse.birthYear} ans` : ""}
@@ -162,7 +162,7 @@ function Cheval({ id }: { id: string }) {
           Ce qu&apos;il te laisse ce mois
         </Explain>
         <p
-          className="font-[family-name:var(--font-fraunces)] text-5xl tabular-nums"
+          className="font-[family-name:var(--font-bricolage)] text-5xl tabular-nums"
           style={{ color: ok ? "var(--c-success)" : "var(--c-danger)" }}
         >
           {eur(pnl.netResult)}

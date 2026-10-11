@@ -29,11 +29,11 @@ function Contacts() {
 
   return (
     <div className="space-y-4">
-      <Link href="/ecurie" className="inline-flex items-center gap-1 text-sm text-tertiary">
+      <Link href="/chevaux" className="inline-flex items-center gap-1 text-sm text-tertiary">
         <ChevronLeft size={16} /> Mon écurie
       </Link>
       <header>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">Contacts</h1>
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">Contacts</h1>
         <p className="mt-0.5 text-[13px] text-tertiary">
           Déduits de tes chevaux et de ton carnet, sans rien saisir.
         </p>
@@ -80,7 +80,7 @@ function Contacts() {
                   {p.horseIds.map((id) => (
                     <Link
                       key={id}
-                      href={`/cheval?id=${id}`}
+                      href={`/ticket?id=${id}`}
                       className="rounded-full border border-[var(--border-default)] px-2.5 py-0.5 text-[12px] font-semibold text-secondary"
                     >
                       {horseName(id)}

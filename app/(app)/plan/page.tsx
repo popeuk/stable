@@ -56,7 +56,7 @@ function Plan() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">Mon plan</h1>
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">Mon plan</h1>
         <p className="mt-0.5 text-[14px] text-secondary">
           Ton copilote te propose, tu décides, il suit l&apos;effet.
         </p>
@@ -69,7 +69,7 @@ function Plan() {
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
               Ton niveau de pilotage
             </p>
-            <p className="mt-1 font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+            <p className="mt-1 font-[family-name:var(--font-bricolage)] text-2xl text-primary">
               {masteryLabel(score)}
             </p>
           </div>

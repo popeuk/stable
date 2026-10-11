@@ -72,7 +72,7 @@ export function KeyNumber({
   return (
     <span
       className={cn(
-        "font-[family-name:var(--font-fraunces)] tabnums font-semibold tracking-tight",
+        "font-[family-name:var(--font-bricolage)] tabnums font-semibold tracking-tight",
         color,
         className,
       )}

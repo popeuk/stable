@@ -70,7 +70,7 @@ function Tarifs() {
         <ChevronLeft size={16} /> Réglages
       </Link>
       <div>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
           Tes tarifs
         </h1>
         <p className="mt-1 text-[13px] text-secondary">
@@ -111,7 +111,7 @@ function Tarifs() {
 
       {/* Les prestations libres : les offres propres à cette écurie */}
       <div>
-        <h2 className="font-[family-name:var(--font-fraunces)] text-xl text-primary">
+        <h2 className="font-[family-name:var(--font-bricolage)] text-xl text-primary">
           Tes prestations
         </h2>
         <p className="mt-1 text-[13px] text-secondary">

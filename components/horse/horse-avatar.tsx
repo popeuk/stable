@@ -30,7 +30,7 @@ export function HorseAvatar({
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full font-[family-name:var(--font-fraunces)]",
+        "flex shrink-0 items-center justify-center rounded-full font-[family-name:var(--font-bricolage)]",
         className,
       )}
       style={{

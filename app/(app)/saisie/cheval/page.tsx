@@ -55,7 +55,7 @@ function SaisieCheval() {
         pension: pensionNum > 0 ? pensionNum : undefined,
         entryDate,
       });
-      router.push(`/cheval?id=${editing.id}`);
+      router.push(`/ticket?id=${editing.id}`);
       return;
     }
     // First horse → back to the home so the guided first-run steps continue.
@@ -68,7 +68,7 @@ function SaisieCheval() {
       entryDate,
       exitDate: null,
     });
-    router.push(isFirst ? "/maintenant" : "/ecurie");
+    router.push(isFirst ? "/aujourdhui" : "/chevaux");
   }
 
   return (
@@ -76,7 +76,7 @@ function SaisieCheval() {
       <button onClick={() => router.back()} className="inline-flex items-center gap-1 text-sm text-tertiary">
         <ChevronLeft size={16} /> Annuler
       </button>
-      <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+      <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
         {editing ? `Modifier ${editing.name}` : "Ajouter un cheval"}
       </h1>
 

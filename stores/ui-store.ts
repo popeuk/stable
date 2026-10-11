@@ -1,0 +1,59 @@
+"use client";
+
+import { create } from "zustand";
+import type { CareKind } from "@/lib/domain/care";
+
+/**
+ * L'état d'interface partagé : la feuille « Noter » (ouverte depuis le +,
+ * un ticket ou une échéance), le message du bas, et la dernière ligne
+ * ajoutée (surlignée sur le ticket du cheval).
+ */
+export interface NoterPrefill {
+  horseIds?: string[];
+  kind?: NoteKindId;
+  amount?: number;
+  date?: string;
+}
+
+export type NoteKindId =
+  | CareKind
+  | "recette"
+  | "depense"
+  | "commune";
+
+interface Toast {
+  id: number;
+  html: string;
+  undo?: () => void;
+}
+
+interface UiState {
+  noterOpen: boolean;
+  prefill: NoterPrefill;
+  toast: Toast | null;
+  lastLine: { horseId: string; sourceId: string } | null;
+  openNoter: (p?: NoterPrefill) => void;
+  closeNoter: () => void;
+  say: (html: string, undo?: () => void) => void;
+  dismiss: () => void;
+  markLine: (horseId: string, sourceId: string) => void;
+}
+
+let timer: ReturnType<typeof setTimeout> | undefined;
+
+export const useUiStore = create<UiState>((set) => ({
+  noterOpen: false,
+  prefill: {},
+  toast: null,
+  lastLine: null,
+  openNoter: (p = {}) => set({ noterOpen: true, prefill: p }),
+  closeNoter: () => set({ noterOpen: false }),
+  say: (html, undo) => {
+    const id = Date.now();
+    set({ toast: { id, html, undo } });
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => set((s) => (s.toast?.id === id ? { toast: null } : s)), undo ? 6000 : 4000);
+  },
+  dismiss: () => set({ toast: null }),
+  markLine: (horseId, sourceId) => set({ lastLine: { horseId, sourceId } }),
+}));

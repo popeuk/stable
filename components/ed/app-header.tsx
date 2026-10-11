@@ -29,7 +29,7 @@ export function AppHeader() {
           >
             <Horseshoe size={18} stroke={2} />
           </span>
-          <span className="font-[family-name:var(--font-fraunces)] text-[21px] italic leading-none text-primary">
+          <span className="font-[family-name:var(--font-bricolage)] text-[21px] italic leading-none text-primary">
             Be Stable
           </span>
         </Link>

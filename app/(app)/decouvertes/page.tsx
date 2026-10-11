@@ -27,7 +27,7 @@ function Decouvertes() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
           Découvertes
         </h1>
         <p className="text-sm text-tertiary capitalize">{formatMonthYear(period)}</p>
@@ -48,7 +48,7 @@ function Decouvertes() {
                 transition={{ delay: i * 0.05 }}
                 className="rounded-[var(--radius-lg)] border bg-elevated p-5"
               >
-                <p className="font-[family-name:var(--font-fraunces)] text-xl text-primary">
+                <p className="font-[family-name:var(--font-bricolage)] text-xl text-primary">
                   {insight.title}
                 </p>
                 <div className="my-2">

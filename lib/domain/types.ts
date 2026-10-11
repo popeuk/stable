@@ -36,6 +36,10 @@ export interface Horse {
   notes?: string;
   /** Optional accent colour seed for the monogram placeholder. */
   photoUrl?: string | null;
+  /** La robe (alezan, bai, noir, gris, isabelle, pie) : le portrait du cheval. */
+  coat?: string;
+  /** Une liste en tête : le détail du portrait. */
+  blaze?: boolean;
 }
 
 export interface Category {

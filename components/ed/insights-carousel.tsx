@@ -29,7 +29,7 @@ export function InsightsCarousel() {
             key={insight.id}
             href={
               insight.relatedHorseId
-                ? `/cheval?id=${insight.relatedHorseId}`
+                ? `/ticket?id=${insight.relatedHorseId}`
                 : `/decouvertes/detail?id=${encodeURIComponent(insight.id)}`
             }
             className="flex w-[260px] shrink-0 snap-start flex-col justify-between card p-4"

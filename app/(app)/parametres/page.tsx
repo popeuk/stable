@@ -53,7 +53,7 @@ function Parametres() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+      <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
         Paramètres
       </h1>
 

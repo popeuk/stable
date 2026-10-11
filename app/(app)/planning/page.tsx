@@ -71,7 +71,7 @@ function Planning() {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">Planning</h1>
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">Planning</h1>
         <Link
           href="/saisie/soin"
           className="flex items-center gap-1 btn-primary px-3 py-1.5 text-[12px] font-bold text-[var(--on-accent)]"

@@ -50,7 +50,7 @@ function Equipe() {
         <ChevronLeft size={16} /> Réglages
       </Link>
       <div>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
           L&apos;équipe
         </h1>
         <p className="mt-1 text-[13px] text-secondary">

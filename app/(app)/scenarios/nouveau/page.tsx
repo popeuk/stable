@@ -56,12 +56,12 @@ function Simulator() {
 
   return (
     <div className="space-y-6">
-      <Link href="/maintenant" className="inline-flex items-center gap-1 text-sm text-tertiary">
+      <Link href="/aujourdhui" className="inline-flex items-center gap-1 text-sm text-tertiary">
         <ChevronLeft size={16} /> Retour
       </Link>
 
       <header>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
           Tester un scénario
         </h1>
         <p className="text-sm text-tertiary">

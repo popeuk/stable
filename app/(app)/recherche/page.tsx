@@ -131,7 +131,7 @@ function Recherche() {
           {results.horses.length > 0 && (
             <Group title="Chevaux">
               {results.horses.map((h) => (
-                <Link key={h.id} href={`/cheval?id=${h.id}`} className="flex items-baseline justify-between py-2">
+                <Link key={h.id} href={`/ticket?id=${h.id}`} className="flex items-baseline justify-between py-2">
                   <span className="text-[15px] font-bold text-primary">{h.name}</span>
                   <span className="text-[12px] text-tertiary">
                     {h.breed}
@@ -144,7 +144,7 @@ function Recherche() {
           {results.care.length > 0 && (
             <Group title="Carnet">
               {results.care.map((e) => (
-                <Link key={e.id} href={`/cheval?id=${e.horseId}`} className="flex items-center gap-2.5 py-2">
+                <Link key={e.id} href={`/ticket?id=${e.horseId}`} className="flex items-center gap-2.5 py-2">
                   <span className="text-tertiary">
                     <CareIcon kind={e.kind} size={14} />
                   </span>

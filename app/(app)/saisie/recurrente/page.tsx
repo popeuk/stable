@@ -75,7 +75,7 @@ function SaisieRecurrente() {
         <ChevronLeft size={16} /> Annuler
       </button>
       <div>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
           Charge récurrente
         </h1>
         <p className="mt-1 text-[13px] text-secondary">

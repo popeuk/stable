@@ -166,7 +166,7 @@ function SoinComposer() {
       amount: costNum,
       label: `${kindLabel} · ${who}${isPlanned ? " (prévu)" : ""}`,
     });
-    router.push(presetHorse ? `/cheval?id=${presetHorse}` : "/planning");
+    router.push(presetHorse ? `/ticket?id=${presetHorse}` : "/planning");
   }
 
   return (
@@ -177,7 +177,7 @@ function SoinComposer() {
 
       <motion.p
         variants={item}
-        className="sticky z-20 -mx-5 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-fraunces)] text-[24px] leading-snug text-primary backdrop-blur-md"
+        className="sticky z-20 -mx-5 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-bricolage)] text-[24px] leading-snug text-primary backdrop-blur-md"
         style={{ top: "env(safe-area-inset-top)" }}
       >
         <span style={{ color: "var(--text-primary)" }}>{kindLabel}</span> pour{" "}

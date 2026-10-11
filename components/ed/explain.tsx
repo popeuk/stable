@@ -101,7 +101,7 @@ export function Explain({
                 </button>
               </div>
 
-              <h3 className="mt-2 font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+              <h3 className="mt-2 font-[family-name:var(--font-bricolage)] text-2xl text-primary">
                 {lesson.title}
               </h3>
               <p className="mt-2 text-[15px] leading-relaxed text-secondary">

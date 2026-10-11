@@ -6,81 +6,56 @@
    ============================================================ */
 
 :root {
-  /* v4 « Grand Ouvert » — luxe équestre : vert chasse, cognac, ivoire.
-     Canvas pierre-ivoire, cartes papier flottantes, grands arrondis. */
-  --bg-base: #efe9da;
-  --bg-elevated: #fbf8f0;
-  --bg-pressed: #e3dcc8;
-  --bg-overlay: rgba(27, 36, 30, 0.45);
+  /* v5 « Le Livret » (octobre 2026) : papier, encre, vert anglais, rose casaque.
+     Les anciens noms de jetons sont gardés : les écrans secondaires suivent. */
+  --bg-base: #FCFBF9;
+  --bg-elevated: #FFFFFF;
+  --bg-pressed: #F1EEF3;
+  --bg-overlay: rgba(27, 18, 37, 0.4);
 
-  --text-primary: #1b241e;
-  --text-secondary: #4c5548;
-  --text-tertiary: #78806f;
-  --text-disabled: #b3b5a8;
+  --text-primary: #1B1225;
+  --text-secondary: #5A5264;
+  --text-tertiary: #7A7284;
+  --text-disabled: #B9B3C0;
 
-  /* Le panneau d'encre : vert chasse profond, texte ivoire. */
-  --ink: #1e3a2e;
-  --on-ink: #f5efdf;
+  --ink: #134E3A;
+  --on-ink: #FFFFFF;
 
-  /* Cognac en action principale, sauge en secondaire. */
-  --accent-primary: #bd6017;
-  --on-accent: #fff6e8;
-  --accent-primary-soft: rgba(189, 96, 23, 0.13);
-  --accent-secondary: #7c9070;
+  --accent-primary: #134E3A;
+  --on-accent: #FFFFFF;
+  --accent-primary-soft: #E3ECE7;
+  --accent-secondary: #8FB3A3;
 
-  --c-success: #2e7d4f;
-  --c-success-soft: rgba(46, 125, 79, 0.12);
-  --c-danger: #bd3f2c;
-  --c-danger-soft: rgba(189, 63, 44, 0.12);
-  --c-warning: #a8770f;
-  --c-warning-soft: rgba(168, 119, 15, 0.14);
+  --c-success: #134E3A;
+  --c-success-soft: #E3ECE7;
+  --c-danger: #8E3A5C;
+  --c-danger-soft: #FCE3EC;
+  --c-warning: #8C6A35;
+  --c-warning-soft: #F5ECDC;
 
-  --border-subtle: rgba(27, 36, 30, 0.07);
-  --border-default: rgba(27, 36, 30, 0.13);
-  --border-strong: rgba(27, 36, 30, 0.24);
+  --border-subtle: #EAE6ED;
+  --border-default: #DCD6E0;
+  --border-strong: #C9C2CF;
 
-  /* Grands arrondis — la géométrie douce. */
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 26px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 
-  --shadow-card: 0 1px 2px rgba(27, 36, 30, 0.05), 0 10px 28px rgba(27, 36, 30, 0.07);
-  --shadow-elevated: 0 2px 6px rgba(27, 36, 30, 0.07), 0 16px 40px rgba(27, 36, 30, 0.1);
-  --shadow-floating: 0 18px 50px rgba(27, 36, 30, 0.24);
+  --shadow-card: 0 1px 2px rgba(27, 18, 37, 0.04), inset 0 0 0 1px #DCD6E0;
+  --shadow-elevated: 0 2px 4px rgba(27, 18, 37, 0.05), 0 12px 30px rgba(27, 18, 37, 0.08);
+  --shadow-floating: 0 10px 30px rgba(27, 18, 37, 0.16);
+
+  /* Le Livret */
+  --vert: #134E3A; --vert-deep: #0B3325; --vert-2: #1A5E47; --vert-soft: #E3ECE7;
+  --rose: #F6B3CB; --rose-soft: #FCE3EC; --rose-ink: #8E3A5C; --rose-line: #F2C9D8; --rose-pic: #A2476B;
+  --ink-1: #1B1225; --ink-2: #5A5264; --ink-3: #7A7284;
+  --paper: #FCFBF9; --mist: #F1EEF3; --line: #DCD6E0; --line-2: #EAE6ED;
+  --on-vert: #BFD6CB;
+  --ease: cubic-bezier(.22, 1, .36, 1);
 }
 
-:root[data-theme="dark"] {
-  --bg-base: #101610;
-  --bg-elevated: #1a221a;
-  --bg-pressed: #242e24;
-  --bg-overlay: rgba(8, 12, 9, 0.7);
-
-  --text-primary: #f2efe4;
-  --text-secondary: #bcc0b2;
-  --text-tertiary: #8d927f;
-  --text-disabled: #4c5245;
-
-  --ink: #234437;
-  --on-ink: #f2ecdc;
-
-  --accent-primary: #d97e2f;
-  --on-accent: #fff3e2;
-  --accent-primary-soft: rgba(217, 126, 47, 0.16);
-
-  --c-success: #6fae83;
-  --c-success-soft: rgba(111, 174, 131, 0.15);
-  --c-danger: #cf5b47;
-  --c-danger-soft: rgba(207, 91, 71, 0.15);
-
-  --border-subtle: rgba(242, 239, 228, 0.06);
-  --border-default: rgba(242, 239, 228, 0.12);
-  --border-strong: rgba(242, 239, 228, 0.24);
-
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.35);
-  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-floating: 0 8px 32px rgba(0, 0, 0, 0.55);
-}
+/* Thème clair seul : la cour, en plein jour. */
 
 /* Map tokens into the Tailwind v4 theme so utilities like
    bg-elevated, text-secondary, text-success exist. */
@@ -114,9 +89,9 @@
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
 
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-bricolage);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-fraunces);
+  --font-display: var(--font-bricolage);
 }
 
 * {
@@ -131,9 +106,9 @@ html {
 body {
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: var(--font-hanken), var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-bricolage), system-ui, sans-serif;
+  font-optical-sizing: auto;
   font-weight: 400;
-  padding-top: env(safe-area-inset-top);
   overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -173,10 +148,10 @@ body {
 
 /* Titre de section : serif italique, fini les petites capitales. */
 .title-serif {
-  font-family: var(--font-fraunces);
-  font-style: italic;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-family: var(--font-bricolage);
+  font-weight: 640;
+  letter-spacing: -0.022em;
+  font-variation-settings: "wdth" 90;
 }
 
 /* Bouton principal : pilule cognac. */

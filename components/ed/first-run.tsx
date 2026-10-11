@@ -81,7 +81,7 @@ export function FirstRun() {
         <p className="relative text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
           Bienvenue
         </p>
-        <h1 className="relative mt-1 max-w-[18rem] font-[family-name:var(--font-fraunces)] text-2xl leading-tight text-primary">
+        <h1 className="relative mt-1 max-w-[18rem] font-[family-name:var(--font-bricolage)] text-2xl leading-tight text-primary">
           Construisons ton écurie, étape par étape.
         </h1>
         <p className="relative mt-2 max-w-[20rem] text-[14px] text-secondary">

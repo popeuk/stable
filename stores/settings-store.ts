@@ -9,6 +9,10 @@ export interface NotificationPrefs {
   horseAlerts: boolean;
 }
 
+export type ObstacleId = "chevaux" | "tarifs" | "factures" | "journee" | "ticket" | "seuil";
+export const OBSTACLES: ObstacleId[] = ["chevaux", "tarifs", "factures", "journee", "ticket", "seuil"];
+const NO_OBSTACLE: Record<ObstacleId, boolean> = { chevaux: false, tarifs: false, factures: false, journee: false, ticket: false, seuil: false };
+
 interface SettingsState {
   notifications: NotificationPrefs;
   /** Number of stalls the stable can host — drives occupancy advice. */
@@ -21,6 +25,22 @@ interface SettingsState {
    * interpréteur local seul.
    */
   openRouterKey: string;
+  /** Le parcours de démarrage : six obstacles, gagnés une fois pour toutes. */
+  parcours: Record<ObstacleId, boolean>;
+  /** Le flot « Écurie prête » a été montré. */
+  arrived: boolean;
+  stableName: string;
+  gerant: string;
+  /** L'heure du rappel du matin (« 7:45 »). */
+  reminder: string;
+  /** Un rappel le soir s'il reste quelque chose. */
+  evening: boolean;
+  passObstacle: (id: ObstacleId) => boolean;
+  setArrived: () => void;
+  setReminder: (t: string) => void;
+  toggleEvening: () => void;
+  setIdentity: (p: { stableName?: string; gerant?: string }) => void;
+  resetParcours: () => void;
   toggle: (key: keyof NotificationPrefs) => void;
   setCapacity: (n: number) => void;
   setOpenRouterKey: (k: string) => void;
@@ -31,7 +51,7 @@ interface SettingsState {
 /** Granular, opt-in notification preferences (spec 1.3 / 9.4) + stable config. */
 export const useSettingsStore = create<SettingsState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       notifications: {
         weeklyInsight: true,
         monthlyAudit: true,
@@ -39,6 +59,22 @@ export const useSettingsStore = create<SettingsState>()(
       },
       capacity: 12,
       onboarded: false,
+      parcours: { ...NO_OBSTACLE },
+      arrived: false,
+      stableName: "Les Trois Pommiers",
+      gerant: "Claire",
+      reminder: "7:45",
+      evening: true,
+      passObstacle: (id) => {
+        if (get().parcours[id]) return false;
+        set((s) => ({ parcours: { ...s.parcours, [id]: true } }));
+        return true;
+      },
+      setArrived: () => set({ arrived: true }),
+      setReminder: (t) => set({ reminder: t }),
+      toggleEvening: () => set((s) => ({ evening: !s.evening })),
+      setIdentity: (p) => set((s) => ({ stableName: p.stableName?.trim() || s.stableName, gerant: p.gerant?.trim() || s.gerant })),
+      resetParcours: () => set({ parcours: { ...NO_OBSTACLE }, arrived: false, onboarded: false }),
       openRouterKey: "",
       setOpenRouterKey: (k) => set({ openRouterKey: k.trim() }),
       toggle: (key) =>
@@ -49,6 +85,11 @@ export const useSettingsStore = create<SettingsState>()(
       completeOnboarding: () => set({ onboarded: true }),
       resetOnboarding: () => set({ onboarded: false }),
     }),
-    { name: "be-stable-settings", version: 3 },
+    {
+      name: "be-stable-settings",
+      version: 4,
+      // v4 : le parcours de démarrage arrive ; les anciens réglages sont gardés.
+      migrate: (old) => ({ ...(old as object), parcours: { ...NO_OBSTACLE }, arrived: false }) as never,
+    },
   ),
 );

@@ -84,7 +84,7 @@ function Pilotage() {
           construira ici toute seule.
         </p>
         <Link
-          href="/maintenant"
+          href="/aujourdhui"
           className="mt-4 inline-flex items-center gap-1.5 btn-primary px-4 py-2 text-[13px] text-[var(--on-accent)]"
         >
           Retour à ma journée
@@ -146,7 +146,7 @@ function Pilotage() {
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">
       <motion.header variants={item} className="-mb-3 flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">Pilotage</h1>
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">Pilotage</h1>
         <p className="text-[12px] text-tertiary">Dérivé de ton planning, tout seul.</p>
       </motion.header>
 
@@ -226,7 +226,7 @@ function Pilotage() {
           <Explain k="chiffre_affaires" className="text-[13px] font-bold uppercase tracking-wide text-tertiary">
             Chiffre d&apos;affaires
           </Explain>
-          <span className="font-[family-name:var(--font-fraunces)] text-xl tabular-nums text-primary">
+          <span className="font-[family-name:var(--font-bricolage)] text-xl tabular-nums text-primary">
             {eur(agg.revenue)}
           </span>
         </div>
@@ -234,7 +234,7 @@ function Pilotage() {
           <Explain k="depenses" className="text-[13px] font-bold uppercase tracking-wide text-tertiary">
             Dépenses
           </Explain>
-          <span className="font-[family-name:var(--font-fraunces)] text-xl tabular-nums text-secondary">
+          <span className="font-[family-name:var(--font-bricolage)] text-xl tabular-nums text-secondary">
             −{eur(agg.charges)}
           </span>
         </div>
@@ -426,7 +426,7 @@ function Pilotage() {
         <motion.section variants={item} className="space-y-2">
           {underThreshold.length > 0 && (
             <AlertRow
-              href="/ecurie"
+              href="/chevaux"
               text={`${underThreshold.length} ${underThreshold.length > 1 ? "chevaux" : "cheval"} sous le seuil`}
               hint={
                 underThreshold.length > 1
@@ -438,7 +438,7 @@ function Pilotage() {
           {declining.slice(0, 1).map((h) => (
             <AlertRow
               key={h.horse.id}
-              href={`/cheval?id=${h.horse.id}`}
+              href={`/ticket?id=${h.horse.id}`}
               text={`${h.horse.name} perd en marge`}
               hint="sa tendance baisse depuis 3 mois"
             />
@@ -448,14 +448,14 @@ function Pilotage() {
 
       {/* Tes chevaux */}
       <motion.section variants={item}>
-        <SectionHead title="Tes chevaux" action={<Link href="/ecurie">Tout voir ›</Link>} />
+        <SectionHead title="Tes chevaux" action={<Link href="/chevaux">Tout voir ›</Link>} />
         <ul className="hairline">
           {ranked.slice(0, 4).map((h, i) => {
             const ok = h.net >= 0;
             return (
               <li key={h.horse.id}>
                 <Link
-                  href={`/cheval?id=${h.horse.id}`}
+                  href={`/ticket?id=${h.horse.id}`}
                   className="flex items-center gap-4 border-b border-[var(--border-default)] py-3.5"
                 >
                   <span className="w-7 text-[13px] font-bold tabular-nums text-tertiary">

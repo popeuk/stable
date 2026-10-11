@@ -79,7 +79,7 @@ function SaisieMutualisee() {
       source: "manual",
       allocations,
     });
-    router.push("/maintenant");
+    router.push("/aujourdhui");
   }
 
   const nameOf = (id: string) => horses.find((h) => h.id === id)?.name ?? "";
@@ -89,7 +89,7 @@ function SaisieMutualisee() {
       <button onClick={() => router.back()} className="inline-flex items-center gap-1 text-sm text-tertiary">
         <ChevronLeft size={16} /> Annuler
       </button>
-      <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+      <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
         <LessonTerm lessonKey="charges_mutualisees">Charge mutualisée</LessonTerm>
       </h1>
 

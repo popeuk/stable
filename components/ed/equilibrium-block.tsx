@@ -42,7 +42,7 @@ export function EquilibriumBlock() {
           Ton point d&apos;équilibre
         </Explain>
         <span
-          className="font-[family-name:var(--font-fraunces)] text-2xl tabular-nums"
+          className="font-[family-name:var(--font-bricolage)] text-2xl tabular-nums"
           style={{ color: barColor }}
         >
           {pct} %

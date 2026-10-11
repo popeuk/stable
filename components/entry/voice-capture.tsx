@@ -68,7 +68,7 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
           className="w-full max-w-sm rounded-[var(--radius-xl)] border bg-elevated p-6 text-center"
         >
           <p className="text-2xs uppercase tracking-wide text-tertiary">J&apos;ai compris</p>
-          <p className="mt-2 font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+          <p className="mt-2 font-[family-name:var(--font-bricolage)] text-2xl text-primary">
             {parsed.summary}
           </p>
           <p className="mt-1 text-sm text-secondary">{parsed.type} · c&apos;est ça ?</p>

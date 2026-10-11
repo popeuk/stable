@@ -19,12 +19,12 @@ export default function NotFound() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-[440px] flex-col items-center justify-center gap-4 px-6 text-center">
       <script dangerouslySetInnerHTML={{ __html: LEGACY_REDIRECT }} />
-      <p className="font-[family-name:var(--font-fraunces)] text-3xl text-primary">
+      <p className="font-[family-name:var(--font-bricolage)] text-3xl text-primary">
         Page introuvable
       </p>
       <p className="text-secondary">Cette page n&apos;existe pas, ou plus.</p>
       <Link
-        href="/maintenant"
+        href="/aujourdhui"
         className="btn-primary px-5 py-2.5 text-sm font-bold text-[var(--on-accent)]"
       >
         Retour à l&apos;accueil

@@ -79,7 +79,7 @@ function SaisieRevenu() {
         source: "manual",
       });
     }
-    router.push("/maintenant");
+    router.push("/aujourdhui");
   }
 
   return (
@@ -87,7 +87,7 @@ function SaisieRevenu() {
       <button onClick={() => router.back()} className="inline-flex items-center gap-1 text-sm text-tertiary">
         <ChevronLeft size={16} /> Annuler
       </button>
-      <h1 className="font-[family-name:var(--font-fraunces)] text-2xl text-primary">
+      <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
         Encaisser un revenu
       </h1>
 

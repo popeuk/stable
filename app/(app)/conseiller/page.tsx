@@ -56,7 +56,7 @@ function Conseiller() {
           <HorseLine size={26} stroke={1.4} color="var(--accent-primary)" />
         </div>
         <div>
-          <h1 className="font-[family-name:var(--font-fraunces)] text-xl text-primary">Le conseiller</h1>
+          <h1 className="font-[family-name:var(--font-bricolage)] text-xl text-primary">Le conseiller</h1>
           <p className="text-[12px] text-tertiary">Il répond à partir de tes données.</p>
         </div>
       </header>

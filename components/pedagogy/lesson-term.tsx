@@ -71,7 +71,7 @@ export function LessonTerm({ lessonKey, children, className }: LessonTermProps) 
                 <X size={20} />
               </button>
 
-              <h3 className="font-[family-name:var(--font-fraunces)] text-xl text-primary">
+              <h3 className="font-[family-name:var(--font-bricolage)] text-xl text-primary">
                 {lesson.title}
               </h3>
               <p className="mt-2 text-sm text-secondary">{lesson.definition}</p>

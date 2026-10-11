@@ -51,7 +51,7 @@ function InsightDetail({ id }: { id: string }) {
 
       <motion.h1
         {...stagger(1)}
-        className="mt-2 font-[family-name:var(--font-fraunces)] text-3xl leading-tight text-primary"
+        className="mt-2 font-[family-name:var(--font-bricolage)] text-3xl leading-tight text-primary"
       >
         {insight.title}
       </motion.h1>

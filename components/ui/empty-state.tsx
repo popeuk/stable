@@ -16,7 +16,7 @@ export function EmptyState({ title, body, action, icon }: EmptyStateProps) {
           {icon}
         </div>
       )}
-      <h2 className="font-[family-name:var(--font-fraunces)] text-xl text-primary">
+      <h2 className="font-[family-name:var(--font-bricolage)] text-xl text-primary">
         {title}
       </h2>
       <p className="mt-2 max-w-xs text-sm text-secondary">{body}</p>

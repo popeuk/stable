@@ -87,7 +87,7 @@ export function HorseGalaxy({ items }: { items: HorseWithPnl[] }) {
                 fill="var(--text-secondary)"
                 fontSize="9"
                 textAnchor="middle"
-                className="font-[family-name:var(--font-fraunces)]"
+                className="font-[family-name:var(--font-bricolage)]"
               >
                 {it.horse.name}
               </text>

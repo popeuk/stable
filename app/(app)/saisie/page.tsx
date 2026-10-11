@@ -142,7 +142,7 @@ function Composer() {
         });
       }
     }
-    router.push("/maintenant");
+    router.push("/aujourdhui");
   }
 
   // La phrase vivante.
@@ -192,7 +192,7 @@ function Composer() {
       {/* La phrase */}
       <motion.p
         variants={item}
-        className="sticky z-20 -mx-5 mt-4 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-fraunces)] text-[24px] leading-snug text-primary backdrop-blur-md"
+        className="sticky z-20 -mx-5 mt-4 border-b border-[var(--border-default)] bg-base/95 px-5 py-3 font-[family-name:var(--font-bricolage)] text-[24px] leading-snug text-primary backdrop-blur-md"
         style={{ top: "env(safe-area-inset-top)" }}
       >
         {kind === "revenu" ? (

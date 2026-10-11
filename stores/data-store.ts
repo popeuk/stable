@@ -91,6 +91,17 @@ interface DataState extends StableData {
   deleteExpenseCategory: (id: string) => void;
   resetToDemo: () => void;
   startEmpty: () => void;
+  /**
+   * Change la pension d'un cheval : le contrat, et la pension déjà postée
+   * ce mois-ci par l'autopilote (sinon le ticket du mois mentirait).
+   */
+  setPension: (horseId: string, amount: number, monthKey: string) => void;
+  /**
+   * Une facture commune mensuelle, réglée une fois : elle devient une charge
+   * récurrente partagée à partir du mois donné, et remplace ce qui avait été
+   * saisi pour ce mois-là dans la même catégorie.
+   */
+  setMonthlyCharge: (categoryId: string, label: string, amount: number, period: { year: number; month: number }) => void;
 }
 
 const STABLE_ID = "demo-stable";
@@ -414,6 +425,48 @@ export const useDataStore = create<DataState>()(
 
       deleteExpenseCategory: (catId) =>
         set((s) => ({ expenseCategories: s.expenseCategories.filter((c) => c.id !== catId) })),
+
+      setPension: (horseId, amount, monthKey) =>
+        set((s) => {
+          const value = Math.max(0, Math.round(amount));
+          const rid = `rev-pension-${horseId}-${monthKey}`;
+          return {
+            horses: s.horses.map((h) => (h.id === horseId ? { ...h, pension: value } : h)),
+            revenues: s.revenues.map((r) => (r.id === rid ? { ...r, amount: value } : r)),
+          };
+        }),
+
+      setMonthlyCharge: (categoryId, label, amount, period) =>
+        set((s) => {
+          const start = `${period.year}-${String(period.month).padStart(2, "0")}-01`;
+          const value = Math.max(0, Math.round(amount));
+          const sharedExpenses = s.sharedExpenses.filter(
+            (e) => !(e.categoryId === categoryId && e.periodYear === period.year && e.periodMonth === period.month),
+          );
+          // L'ancienne charge s'arrête au mois précédent : le passé ne bouge pas.
+          const prevEnd = new Date(Date.UTC(period.year, period.month - 1, 0)).toISOString().slice(0, 10);
+          const recurringExpenses = (s.recurringExpenses ?? []).flatMap((r) => {
+            if (!(r.isShared && r.categoryId === categoryId)) return [r];
+            if (r.startDate < start) return [{ ...r, endDate: r.endDate && r.endDate < prevEnd ? r.endDate : prevEnd }];
+            return [];
+          });
+          if (value > 0) {
+            recurringExpenses.push({
+              id: id("rec"),
+              stableId: STABLE_ID,
+              label,
+              amount: value,
+              categoryId,
+              isShared: true,
+              distributionMode: "equal",
+              frequency: "monthly",
+              startDate: start,
+              endDate: null,
+              source: "manual",
+            });
+          }
+          return { sharedExpenses, recurringExpenses };
+        }),
 
       resetToDemo: () => set({ ...buildDemoData(), autopilotDismissed: [] }),
 

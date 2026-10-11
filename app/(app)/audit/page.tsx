@@ -58,7 +58,7 @@ function Audit() {
       render: (
         <CardBody accent="var(--c-success)">
           <HorseAvatar name={hero.horse.name} size={72} />
-          <h2 className="mt-4 font-[family-name:var(--font-fraunces)] text-3xl text-primary">
+          <h2 className="mt-4 font-[family-name:var(--font-bricolage)] text-3xl text-primary">
             {hero.horse.name}
           </h2>
           <p className="mt-1 text-sm text-secondary">Ton meilleur cheval ce mois</p>
@@ -71,7 +71,7 @@ function Audit() {
       render: (
         <CardBody accent="var(--c-danger)">
           <HorseAvatar name={worry.horse.name} size={72} />
-          <h2 className="mt-4 font-[family-name:var(--font-fraunces)] text-3xl text-primary">
+          <h2 className="mt-4 font-[family-name:var(--font-bricolage)] text-3xl text-primary">
             {worry.horse.name}
           </h2>
           <p className="mt-1 text-sm text-secondary">Celui qui pèse le plus</p>
@@ -97,7 +97,7 @@ function Audit() {
       render: (
         <CardBody accent="var(--c-warning)">
           <p className="text-sm text-secondary">Charge mutualisée la plus lourde</p>
-          <h2 className="mt-2 font-[family-name:var(--font-fraunces)] text-3xl text-primary">
+          <h2 className="mt-2 font-[family-name:var(--font-bricolage)] text-3xl text-primary">
             {heaviest?.label ?? "Aucune"}
           </h2>
           <KeyNumber value={heaviest?.totalAmount ?? 0} className="mt-3 text-4xl" />
@@ -110,7 +110,7 @@ function Audit() {
       render: (
         <CardBody accent="var(--accent-secondary)">
           <p className="text-sm text-secondary">À tester ce mois</p>
-          <h2 className="mt-2 max-w-xs font-[family-name:var(--font-fraunces)] text-2xl leading-snug text-primary">
+          <h2 className="mt-2 max-w-xs font-[family-name:var(--font-bricolage)] text-2xl leading-snug text-primary">
             {worry.pnl.netResult < 0
               ? `Et si tu réalignais la pension de ${worry.horse.name} à son prochain renouvellement ?`
               : "Et si tu indexais tes pensions sur tes coûts ?"}
@@ -132,7 +132,7 @@ function Audit() {
     <div className="space-y-4">
       <header>
         <p className="text-2xs uppercase tracking-wide text-tertiary">Audit mensuel</p>
-        <h1 className="font-[family-name:var(--font-fraunces)] text-2xl capitalize text-primary">
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl capitalize text-primary">
           {formatMonthYear(period)}
         </h1>
       </header>

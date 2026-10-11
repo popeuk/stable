@@ -15,22 +15,27 @@ import { addMonths, currentPeriod, periodStart } from "@/lib/utils/period";
 
 const STABLE_ID = "demo-stable";
 
-/** Seed horses from section 20.2 of the spec. */
+/** L'écurie de démonstration « Les Trois Pommiers » (fictive). */
 const DEMO_HORSES: {
   name: string;
   breed: string;
   birthYear: number;
   pension: number;
   variableCost: number;
+  formule: string;
+  owner: string;
+  coat: string;
+  blaze: boolean;
 }[] = [
-  { name: "Sirius", breed: "SF", birthYear: 2015, pension: 600, variableCost: 240 },
-  { name: "Diva", breed: "PSA", birthYear: 2017, pension: 500, variableCost: 195 },
-  { name: "Belle", breed: "Connemara", birthYear: 2013, pension: 450, variableCost: 180 },
-  { name: "Tonnerre", breed: "PRE", birthYear: 2014, pension: 380, variableCost: 165 },
-  { name: "Princesse", breed: "TF", birthYear: 2008, pension: 420, variableCost: 230 },
-  { name: "Vaillant", breed: "AA", birthYear: 2010, pension: 450, variableCost: 310 },
-  { name: "Pacha", breed: "Welsh", birthYear: 2018, pension: 250, variableCost: 110 },
-  { name: "Mistral", breed: "SF", birthYear: 2009, pension: 300, variableCost: 175 },
+  { name: "Sirius", breed: "SF", birthYear: 2015, pension: 590, variableCost: 90, formule: "Pension travail", owner: "Léa B.", coat: "alezan", blaze: true },
+  { name: "Diva", breed: "PSA", birthYear: 2017, pension: 490, variableCost: 150, formule: "Box + paddock", owner: "Inès R.", coat: "gris", blaze: false },
+  { name: "Belle", breed: "Connemara", birthYear: 2013, pension: 450, variableCost: 30, formule: "Retraite", owner: "Marc T.", coat: "isabelle", blaze: true },
+  { name: "Tonnerre", breed: "PRE", birthYear: 2014, pension: 590, variableCost: 70, formule: "Pension travail", owner: "Hugo L.", coat: "noir", blaze: false },
+  { name: "Princesse", breed: "TF", birthYear: 2008, pension: 390, variableCost: 45, formule: "Box seul", owner: "Nadia S.", coat: "pie", blaze: true },
+  { name: "Vaillant", breed: "AA", birthYear: 2010, pension: 490, variableCost: 80, formule: "Box + paddock", owner: "Claire M.", coat: "bai", blaze: true },
+  { name: "Pacha", breed: "Welsh", birthYear: 2018, pension: 490, variableCost: 150, formule: "Box + paddock", owner: "Julie P.", coat: "alezan", blaze: false },
+  { name: "Mistral", breed: "SF", birthYear: 2009, pension: 590, variableCost: 55, formule: "Pension travail", owner: "Paul D.", coat: "gris", blaze: true },
+  { name: "Câline", breed: "Haflinger", birthYear: 2004, pension: 450, variableCost: 30, formule: "Retraite", owner: "Sophie G.", coat: "bai", blaze: false },
 ];
 
 export const DEFAULT_REVENUE_CATEGORIES: Category[] = [
@@ -81,7 +86,10 @@ export function buildDemoData(now = new Date()): StableData {
     entryDate: periodStart(addMonths(end, -(8 + idx * 3))),
     exitDate: null,
     isArchived: false,
-    pensionType: "Pension complète",
+    pensionType: DEMO_HORSES[idx].formule,
+    ownerName: DEMO_HORSES[idx].owner,
+    coat: DEMO_HORSES[idx].coat,
+    blaze: DEMO_HORSES[idx].blaze,
     // Le contrat : la pension se poste toute seule chaque mois.
     pension: h.pension,
   }));
@@ -136,14 +144,14 @@ export function buildDemoData(now = new Date()): StableData {
       });
 
       // ~20% of months: a vet bill.
-      if (rng() > 0.8) {
+      if (rng() > 0.88) {
         directExpenses.push({
           id: `vet-${horse.id}-${monthDate}`,
           stableId: STABLE_ID,
           horseId: horse.id,
           categoryId: DEFAULT_EXPENSE_CATEGORIES[1].id,
           label: "Vétérinaire",
-          amount: 60 + Math.round(rng() * 240),
+          amount: 60 + Math.round(rng() * 120),
           date: monthDate,
           source: "photo",
         });
@@ -152,11 +160,11 @@ export function buildDemoData(now = new Date()): StableData {
 
     // Mutualised charges, split across all horses.
     const sharedDefs: { label: string; cat: number; total: number; mode: "equal" | "weighted_by_days" }[] = [
-      { label: "Foin", cat: 7, total: 900 + Math.round(rng() * 200), mode: "weighted_by_days" },
-      { label: "Granulés", cat: 8, total: 600 + Math.round(rng() * 150), mode: "weighted_by_days" },
-      { label: "Litière", cat: 9, total: 400, mode: "equal" },
-      { label: "Personnel", cat: 10, total: 2200, mode: "equal" },
-      { label: "Loyer / foncier", cat: 11, total: 1500, mode: "equal" },
+      { label: "Foin", cat: 7, total: 930 + Math.round(rng() * 100), mode: "weighted_by_days" },
+      { label: "Granulés", cat: 8, total: 480 + Math.round(rng() * 80), mode: "weighted_by_days" },
+      { label: "Litière", cat: 9, total: 380, mode: "equal" },
+      { label: "Personnel", cat: 10, total: 1100, mode: "equal" },
+      { label: "Loyer / foncier", cat: 11, total: 780, mode: "equal" },
     ];
 
     for (const def of sharedDefs) {
@@ -184,9 +192,9 @@ export function buildDemoData(now = new Date()): StableData {
     {
       id: "rec-credit",
       stableId: STABLE_ID,
-      label: "Crédit matériel",
-      amount: 340,
-      categoryId: undefined,
+      label: "Assurance",
+      amount: 120,
+      categoryId: DEFAULT_EXPENSE_CATEGORIES.find((c) => c.name === "Assurance")?.id,
       isShared: true,
       distributionMode: "equal" as const,
       frequency: "monthly" as const,
@@ -236,9 +244,10 @@ export function buildDemoData(now = new Date()): StableData {
   // Tout rendez-vous est en attente de confirmation (pending).
   care(0, "concours", -9, { label: "CSO Amateur 2, Deauville", pending: true });
   care(1, "veto", -2, { provider: "Dr Lavigne", label: "Contrôle boiterie", pending: true });
-  care(2, "cours_individuel", -1, { label: "Mise en selle, 10 h", pending: true, revenue: 35 });
+  care(7, "cours_individuel", -1, { label: "Mise en selle, 10 h", pending: true, revenue: 35 });
+  care(6, "ferrure", 0, { label: "Ferrure orthopédique, 11 h 30", provider: "M. Roche", pending: true, cost: 85 });
   // Un cours collectif AUJOURD'HUI, à confirmer : la feuille de présence.
-  for (const idx of [2, 4, 6]) {
+  for (const idx of [0, 3, 5]) {
     care(idx, "cours_collectif", 0, {
       label: "Cours du soir, 18 h",
       pending: true,
@@ -257,7 +266,7 @@ export function buildDemoData(now = new Date()): StableData {
       kind: "cours_collectif",
       weekday: weekdayOf(today),
       label: "Cours du soir, 18 h",
-      horseIds: [horses[2].id, horses[4].id, horses[6].id],
+      horseIds: [horses[0].id, horses[3].id, horses[5].id],
       revenue: 25,
       active: true,
       materializedUntil: today,
