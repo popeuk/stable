@@ -191,7 +191,7 @@ function EtapeFiche({ f, onOk }: { f: Partial<Fiche>; onOk: () => void }) {
   return (
     <>
       <h1 className="bs-d bs-t1" style={{ marginTop: 10 }}>
-        Voilà ce que les cavaliers voient de {f.title}.
+        Voilà ta fiche, telle que les cavaliers la voient.
       </h1>
       <p className="bs-p">
         {manque > 40
