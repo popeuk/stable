@@ -1,30 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { CareIcon, DeadlineRow, SessionRow } from "@/components/ed/care-bits";
+import { Screen, cap, signed } from "@/components/bs/ui";
+import { Picto } from "@/components/bs/picto";
+import { DayBlock } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
-import { upcomingDeadlines, agendaSessions, CARE_META, type Deadline } from "@/lib/domain/care";
-import { WEEKDAY_LABELS } from "@/lib/domain/rhythm";
-import { formatEur } from "@/lib/utils/format-currency";
-import { cn } from "@/lib/utils/cn";
+import { useUiStore } from "@/stores/ui-store";
+import { dayItems, dayTones, seanceAmount, toValidate, type DayItem, type Tone } from "@/lib/domain/seances";
+import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { localToday } from "@/lib/utils/local-date";
 
 /**
- * Le Planning : le temps de l'écurie, anticipé. Les échéances (vaccins,
- * ferrures, vermifuges…) se calculent toutes seules à partir du carnet ;
- * « Fait ✓ » replanifie la suivante. L'onglet Carnet garde toute l'histoire.
+ * Le planning (repris du planning des cours du Clos) : semaine ou mois,
+ * puis la journée en liste ou en créneaux de 6 h à 21 h. Glisser change de
+ * période ; toucher une heure vide ouvre l'ajout à cette heure. Chaque
+ * élément porte son argent : vert ce qui rapporte, rose ce qui coûte.
  */
-type View = "avenir" | "calendrier" | "carnet";
-
-function shortDate(iso: string) {
-  return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
-}
-
-export default function PlanningPage() {
+export default function Page() {
   return (
     <ClientGate>
       <Planning />
@@ -32,368 +26,310 @@ export default function PlanningPage() {
   );
 }
 
+const DOT: Record<Tone, string> = { g: "var(--vert)", r: "var(--rose)", o: "#8C6A35", n: "var(--ink-3)" };
+const read = (k: string, d: string) => {
+  try {
+    return localStorage.getItem(k) ?? d;
+  } catch {
+    return d;
+  }
+};
+const write = (k: string, v: string) => {
+  try {
+    localStorage.setItem(k, v);
+  } catch {}
+};
+const hhmm = () => {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
+
 function Planning() {
   const data = useDataStore();
-  const deleteCareEvent = useDataStore((s) => s.deleteCareEvent);
-  const deleteRhythm = useDataStore((s) => s.deleteRhythm);
-  const [view, setView] = useState<View>("avenir");
+  const openNoter = useUiStore((s) => s.openNoter);
   const today = localToday();
-  const rhythms = data.rhythms ?? [];
+  const now = hhmm();
+  const [view, setView] = useState<"semaine" | "mois">(() => read("bs:planning-vue", "semaine") as "semaine" | "mois");
+  const [dayView, setDayView] = useState<"liste" | "creneaux">(() => read("bs:planning-jour", "creneaux") as "liste" | "creneaux");
+  const [sel, setSel] = useState(today);
+  useEffect(() => write("bs:planning-vue", view), [view]);
+  useEffect(() => write("bs:planning-jour", dayView), [dayView]);
 
-  const horseName = (id: string) =>
-    data.horses.find((h) => h.id === id)?.name ?? "cheval retiré";
+  const monday = addDays(sel, -weekdayIndex(sel));
+  const week = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const monthStart = `${sel.slice(0, 7)}-01`;
+  const gridStart = addDays(monthStart, -weekdayIndex(monthStart));
+  const monthDays = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i)).filter((d, i) => i < 35 || d.slice(0, 7) === sel.slice(0, 7));
+  const rangeKey = view === "semaine" ? monday : sel.slice(0, 7);
 
-  const deadlines = useMemo(
-    () => upcomingDeadlines(data, today),
+  // Le bilan de la période : séances, ce qui est validé, ce qui reste prévu.
+  const sum = useMemo(() => {
+    const days = view === "semaine" ? week : monthDays.filter((d) => d.slice(0, 7) === sel.slice(0, 7));
+    const inR = new Set(days);
+    const ss = (data.seances ?? []).filter((s) => inR.has(s.date) && s.status !== "cancelled");
+    const done = ss.filter((s) => s.status === "done");
+    // Les séances seules : les frais des soins vivent sur les tickets des chevaux.
+    const validated = done.reduce((t, s) => t + seanceAmount(s), 0);
+    const planned = ss.filter((s) => s.status === "planned").reduce((t, s) => t + seanceAmount(s), 0);
+    return { count: ss.length, validated, planned };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data.careEvents, data.horses, today],
-  );
-  const agenda = useMemo(
-    () => agendaSessions(data, today),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data.careEvents, data.horses, today],
-  );
-  const groups: { title: string; items: Deadline[] }[] = [
-    { title: "En retard", items: deadlines.filter((d) => d.status === "overdue") },
-    { title: "Sous 14 jours", items: deadlines.filter((d) => d.status === "soon") },
-    { title: "Plus tard", items: deadlines.filter((d) => d.status === "ok").slice(0, 12) },
-  ].filter((g) => g.items.length > 0);
+  }, [data, rangeKey, view]);
+  const pending = useMemo(() => toValidate(data, today, now).length, [data, today, now]);
+  const items = useMemo(() => dayItems(data, sel, today, now), [data, sel, today, now]);
 
-  const log = useMemo(
-    () =>
-      (data.careEvents ?? [])
-        .filter((e) => e.date <= today)
-        .sort((a, b) => (a.date < b.date ? 1 : -1))
-        .slice(0, 40),
-    [data.careEvents, today],
-  );
+  // Glisser à gauche ou à droite : la période suivante ou précédente.
+  const touch = useRef<{ x: number; y: number; done: boolean } | null>(null);
+  const shift = (dir: 1 | -1) => {
+    if (view === "semaine") setSel(addDays(sel, 7 * dir));
+    else {
+      const [y, m] = sel.split("-").map(Number);
+      setSel(new Date(Date.UTC(y, m - 1 + dir, 1)).toISOString().slice(0, 10));
+    }
+  };
+
+  const title =
+    view === "semaine"
+      ? `Semaine du ${Number(monday.slice(8))} ${new Date(monday + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" })}`
+      : cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { month: "long", year: "numeric" }));
 
   return (
-    <div className="space-y-4">
-      <header className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">Planning</h1>
-        <Link
-          href="/saisie/soin"
-          className="flex items-center gap-1 btn-primary px-3 py-1.5 text-[12px] font-bold text-[var(--on-accent)]"
-        >
-          <Plus size={14} /> Ajouter
-        </Link>
-      </header>
-
-      {/* Vue */}
-      <div className="grid grid-cols-3 overflow-hidden rounded-full border border-[var(--border-strong)]">
-        {(
-          [
-            { v: "avenir", l: "À venir" },
-            { v: "calendrier", l: "Calendrier" },
-            { v: "carnet", l: "Le carnet" },
-          ] as { v: View; l: string }[]
-        ).map((o) => (
-          <button
-            key={o.v}
-            onClick={() => setView(o.v)}
-            className={cn("py-2.5 text-[14px] font-bold transition-colors")}
-            style={{
-              background: view === o.v ? "var(--ink)" : "transparent",
-              color: view === o.v ? "var(--on-ink)" : "var(--text-primary)",
-            }}
-          >
-            {o.l}
-          </button>
-        ))}
-      </div>
-
-      {view === "avenir" ? (
-        <>
-          {agenda.length > 0 && (
-            <section>
-              <h2 className="title-serif mb-1 text-[19px] text-primary">L&apos;agenda</h2>
-              <ul>
-                <AnimatePresence initial={false}>
-                  {agenda.slice(0, 8).map((sess) => (
-                    <SessionRow key={sess.key} s={sess} horseName={horseName} />
-                  ))}
-                </AnimatePresence>
-              </ul>
-            </section>
+    <Screen>
+      <div
+        onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, done: false })}
+        onTouchMove={(e) => {
+          const t = touch.current;
+          if (!t || t.done) return;
+          const dx = e.touches[0].clientX - t.x;
+          const dy = e.touches[0].clientY - t.y;
+          if (Math.abs(dx) > 45 && Math.abs(dx) > 1.5 * Math.abs(dy)) {
+            t.done = true;
+            shift(dx < 0 ? 1 : -1);
+          }
+        }}
+      >
+        <div className="bs-over">
+          <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <button type="button" className="bs-back" style={{ margin: 0, minHeight: 28 }} onClick={() => shift(-1)} aria-label="Période précédente">
+              <Picto name="chevL" />
+            </button>
+            {title}
+            <button type="button" className="bs-back" style={{ margin: 0, minHeight: 28 }} onClick={() => shift(1)} aria-label="Période suivante">
+              <Picto name="chev" />
+            </button>
+          </span>
+          {sel !== today && (
+            <button type="button" className="bs-link" onClick={() => setSel(today)}>
+              Aujourd’hui
+            </button>
           )}
-          {groups.length === 0 && agenda.length === 0 ? (
-          <div className="card p-5 text-center">
-            <p className="text-[15px] font-bold text-primary">Rien à anticiper pour l&apos;instant.</p>
-            <p className="mt-1 text-[13px] text-secondary">
-              Planifie un cours, ou note un premier acte (vaccin, ferrure…) : je calculerai
-              les suivants tout seul.
-            </p>
-            <Link
-              href="/saisie/soin"
-              className="mt-4 inline-flex items-center gap-1.5 btn-primary px-4 py-2 text-[13px] text-[var(--on-accent)]"
-            >
-              <Plus size={14} /> Ajouter au planning
-            </Link>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <h1 className="bs-d bs-t1">Planning</h1>
+          <div className="bs-seg" style={{ margin: 0, width: 150 }}>
+            <button type="button" aria-pressed={view === "semaine"} onClick={() => setView("semaine")}>
+              Semaine
+            </button>
+            <button type="button" aria-pressed={view === "mois"} onClick={() => setView("mois")}>
+              Mois
+            </button>
+          </div>
+        </div>
+
+        {pending > 0 && (
+          <Link href="/valider" className="bs-banner">
+            <Picto name="clock" />
+            <span style={{ flex: 1 }}>
+              <b>{pending} à valider</b> · les séances passées attendent
+            </span>
+            <Picto name="chev" />
+          </Link>
+        )}
+
+        {view === "semaine" ? (
+          <div className="bs-week">
+            {week.map((d) => (
+              <button
+                key={d}
+                type="button"
+                aria-pressed={d === sel}
+                className={d === today ? "td" : ""}
+                onClick={() => setSel(d)}
+                aria-label={new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+              >
+                {new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "narrow" }).toUpperCase()}
+                <b>{Number(d.slice(8))}</b>
+                <span className="bs-dots">
+                  {dayTones(data, d).map((t, i) => (
+                    <i key={i} style={{ background: DOT[t] }} />
+                  ))}
+                </span>
+              </button>
+            ))}
           </div>
         ) : (
-          groups.map((g) => (
-            <section key={g.title}>
-              <h2 className="title-serif mb-1 text-[19px] text-primary">{g.title}</h2>
-              <ul>
-                <AnimatePresence initial={false}>
-                  {g.items.map((d) => (
-                    <DeadlineRow
-                      key={`${d.horseId}-${d.kind}`}
-                      d={d}
-                      horseName={horseName(d.horseId)}
-                    />
-                  ))}
-                </AnimatePresence>
-              </ul>
-            </section>
-          ))
-          )}
+          <>
+            <div className="bs-mhead">
+              {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
+                <span key={i}>{d}</span>
+              ))}
+            </div>
+            <div className="bs-mgrid">
+              {monthDays.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`${d.slice(0, 7) !== sel.slice(0, 7) ? "out" : ""}${d === today ? " td" : ""}`}
+                  onClick={() => {
+                    setSel(d);
+                    setView("semaine");
+                  }}
+                >
+                  {Number(d.slice(8))}
+                  <span className="bs-dots">
+                    {d.slice(0, 7) === sel.slice(0, 7) &&
+                      dayTones(data, d).map((t, i) => (
+                        <i key={i} style={{ background: DOT[t] }} />
+                      ))}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div className="bs-legend">
+              {(
+                [
+                  ["g", "rapporte"],
+                  ["r", "coûte"],
+                  ["o", "écurie"],
+                ] as [Tone, string][]
+              ).map(([t, l]) => (
+                <span key={t}>
+                  <i style={{ background: DOT[t] }} />
+                  {l}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
 
-          {/* Les rythmes : le planning qui se remplit tout seul */}
-          {rhythms.length > 0 && (
-            <section>
-              <h2 className="title-serif mb-1 text-[19px] text-primary">Chaque semaine</h2>
-              <ul>
-                {rhythms.map((r) => (
-                  <li
-                    key={r.id}
-                    className="flex items-center gap-3 border-b border-[var(--border-default)] py-3"
-                  >
-                    <span className="shrink-0 text-tertiary">
-                      <CareIcon kind={r.kind} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[14px] font-bold leading-tight text-primary">
-                        {r.label ?? CARE_META[r.kind].label} · chaque {WEEKDAY_LABELS[r.weekday]}
-                      </p>
-                      <p className="truncate text-[12px] text-tertiary">
-                        {r.horseIds.map(horseName).join(", ")}
-                        {r.revenue ? ` · ${formatEur(r.revenue)}/cheval` : ""}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() =>
-                        confirm(
-                          "Arrêter ce rythme ? Les séances à venir déjà générées seront retirées de l'agenda.",
-                        ) && deleteRhythm(r.id)
-                      }
-                      aria-label="Arrêter ce rythme"
-                      className="shrink-0 p-1 text-tertiary hover:text-[var(--c-danger)]"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-1.5 text-[12px] text-tertiary">
-                Planifié une fois, généré chaque semaine. La feuille de présence fait le reste.
-              </p>
-            </section>
+        <div className="bs-sum3">
+          <div>
+            <b>{sum.count}</b>
+            <span>séances</span>
+          </div>
+          <div>
+            <b style={{ color: "var(--vert)" }}>{signed(sum.validated)}</b>
+            <span>validés</span>
+          </div>
+          <div>
+            <b style={{ color: "var(--ink-3)" }}>{signed(sum.planned)}</b>
+            <span>encore prévus</span>
+          </div>
+        </div>
+      </div>
+
+      {view === "semaine" && (
+        <>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>
+            <span style={{ fontWeight: 600, fontSize: 15 }}>{cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" }))}</span>
+            <div className="bs-seg" style={{ margin: 0, width: 150 }}>
+              <button type="button" aria-pressed={dayView === "liste"} onClick={() => setDayView("liste")}>
+                Liste
+              </button>
+              <button type="button" aria-pressed={dayView === "creneaux"} onClick={() => setDayView("creneaux")}>
+                Créneaux
+              </button>
+            </div>
+          </div>
+          {dayView === "liste" ? (
+            items.length ? (
+              items.map((it) => <DayBlock key={it.key} it={it} />)
+            ) : (
+              <button type="button" className="bs-li tap" onClick={() => openNoter({ mode: "seance", date: sel })}>
+                <span className="bs-pic soft">
+                  <Picto name="plus" />
+                </span>
+                <span className="tx">
+                  <b>Rien de prévu</b>
+                  <span>planifier une séance, un soin ou une tâche</span>
+                </span>
+              </button>
+            )
+          ) : (
+            <Creneaux items={items} isToday={sel === today} now={now} onEmpty={(h) => openNoter({ mode: "seance", date: sel, start: `${String(h).padStart(2, "0")}:00` })} />
           )}
         </>
-      ) : view === "calendrier" ? (
-        <MonthCalendar
-          deadlines={deadlines}
-          events={data.careEvents ?? []}
-          horseName={horseName}
-          today={today}
-        />
-      ) : log.length === 0 ? (
-        <p className="py-10 text-center text-sm text-tertiary">
-          Le carnet est vide. Chaque soin noté s&apos;inscrit ici, pour toute l&apos;écurie.
-        </p>
-      ) : (
-        <ul>
-          {log.map((e, i) => (
-            <motion.li
-              key={e.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: Math.min(i, 12) * 0.03, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="flex items-center gap-3 border-b border-[var(--border-default)] py-3"
-            >
-              <span className="w-11 shrink-0 text-[11px] font-semibold text-tertiary">
-                {shortDate(e.date)}
-              </span>
-              <span className="shrink-0 text-tertiary">
-                <CareIcon kind={e.kind} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[14px] font-bold leading-tight text-primary">
-                  {CARE_META[e.kind].label} · {horseName(e.horseId)}
-                </p>
-                <p className="truncate text-[12px] text-tertiary">
-                  {e.label ?? ""}
-                  {e.provider ? `${e.label ? " · " : ""}${e.provider}` : ""}
-                </p>
-              </div>
-              {e.cost ? (
-                <span className="text-[13px] font-bold tabular-nums text-primary">
-                  −{formatEur(e.cost)}
-                </span>
-              ) : null}
-              <button
-                onClick={() =>
-                  confirm("Supprimer cet acte du carnet (et sa dépense liée) ?") &&
-                  deleteCareEvent(e.id)
-                }
-                aria-label="Supprimer"
-                className="shrink-0 p-1 text-tertiary hover:text-[var(--c-danger)]"
-              >
-                <Trash2 size={15} />
-              </button>
-            </motion.li>
-          ))}
-        </ul>
       )}
-    </div>
+    </Screen>
   );
 }
 
-/** La grille du mois : échéances (points cognac/rouge) et actes passés (sauge). */
-function MonthCalendar({
-  deadlines,
-  events,
-  horseName,
-  today,
-}: {
-  deadlines: Deadline[];
-  events: { id: string; date: string; kind: import("@/lib/domain/care").CareKind; horseId: string }[];
-  horseName: (id: string) => string;
-  today: string;
-}) {
-  const [offset, setOffset] = useState(0);
-  const [selected, setSelected] = useState<string | null>(null);
-
-  const base = new Date(today + "T00:00:00Z");
-  const first = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + offset, 1));
-  const monthKey = first.toISOString().slice(0, 7);
-  const title = first.toLocaleDateString("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" });
-  // Lundi = 0.
-  const lead = (first.getUTCDay() + 6) % 7;
-  const daysInMonth = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
-  const cells: (string | null)[] = [
-    ...Array.from({ length: lead }, () => null),
-    ...Array.from({ length: daysInMonth }, (_, i) => `${monthKey}-${String(i + 1).padStart(2, "0")}`),
-  ];
-
-  const dueByDay = new Map<string, Deadline[]>();
-  for (const d of deadlines) {
-    if (!d.dueDate.startsWith(monthKey)) continue;
-    dueByDay.set(d.dueDate, [...(dueByDay.get(d.dueDate) ?? []), d]);
-  }
-  const doneByDay = new Map<string, typeof events>();
-  const plannedByDay = new Map<string, typeof events>();
-  for (const e of events) {
-    if (!e.date.startsWith(monthKey)) continue;
-    const bucket = e.date > today ? plannedByDay : doneByDay;
-    bucket.set(e.date, [...(bucket.get(e.date) ?? []), e]);
-  }
-
-  const sel = selected?.startsWith(monthKey) ? selected : null;
-
+/** La journée en créneaux, de 6 h à 21 h (élargie si un bloc en sort). */
+function Creneaux({ items, isToday, now, onEmpty }: { items: DayItem[]; isToday: boolean; now: string; onEmpty: (h: number) => void }) {
+  const openSeance = useUiStore((s) => s.openSeance);
+  const HOUR = 52;
+  const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  const timed = items.filter((i) => i.start);
+  const untimed = items.filter((i) => !i.start);
+  const first = Math.min(6, ...timed.map((i) => Math.floor(mins(i.start!) / 60)));
+  const last = Math.max(21, ...timed.map((i) => Math.ceil((mins(i.end ?? i.start!) + (i.end ? 0 : 45)) / 60)));
+  const top = (t: string) => ((mins(t) - first * 60) / 60) * HOUR;
+  // Les blocs qui se chevauchent se partagent la largeur.
+  const placed = timed.map((it) => ({ it, s: mins(it.start!), e: mins(it.end ?? it.start!) + (it.end ? 0 : 45), col: 0, cols: 1 }));
+  placed.forEach((p, idx) => {
+    const overlap = placed.filter((q) => q !== p && q.s < p.e && p.s < q.e);
+    const used = new Set(overlap.filter((q) => placed.indexOf(q) < idx).map((q) => q.col));
+    while (used.has(p.col)) p.col++;
+    p.cols = Math.max(p.cols, overlap.length + 1);
+    for (const q of overlap) q.cols = Math.max(q.cols, p.cols);
+  });
+  const bg = { g: "var(--vert-soft)", r: "var(--rose-soft)", o: "#F5ECDC", n: "var(--mist)" };
+  const fg = { g: "var(--vert-deep)", r: "#5E2240", o: "#5C4420", n: "var(--ink-2)" };
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (isToday && ref.current) window.scrollTo({ top: Math.max(0, ref.current.offsetTop + top(now) - 220), behavior: "smooth" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isToday]);
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <button onClick={() => setOffset((o) => o - 1)} aria-label="Mois précédent" className="p-2 text-tertiary">
-          <ChevronLeft size={18} />
-        </button>
-        <p className="title-serif text-[19px] capitalize text-primary">{title}</p>
-        <button onClick={() => setOffset((o) => o + 1)} aria-label="Mois suivant" className="p-2 text-tertiary">
-          <ChevronRight size={18} />
-        </button>
+    <>
+      {untimed.map((it) => (
+        <DayBlock key={it.key} it={it} showTime={false} />
+      ))}
+      <div className="bs-grid" ref={ref} style={{ height: (last - first) * HOUR + 10 }}>
+        {Array.from({ length: last - first }, (_, i) => (
+          <div key={i} className="hr" style={{ top: i * HOUR + 6 }}>
+            <button type="button" aria-label={`Ajouter à ${first + i} h`} onClick={() => onEmpty(first + i)} />
+            <span>{String(first + i).padStart(2, "0")}</span>
+          </div>
+        ))}
+        {placed.map(({ it, s, e, col, cols }) => {
+          const w = `((100% - 40px) / ${cols})`;
+          return (
+            <button
+              key={it.key}
+              type="button"
+              className="ev"
+              onClick={() => it.seance && openSeance(it.seance.id)}
+              style={{
+                top: top(it.start!) + 6,
+                height: Math.max(30, ((e - s) / 60) * HOUR - 3),
+                left: `calc(38px + ${w} * ${col})`,
+                width: `calc(${w} - 2px)`,
+                background: bg[it.tone],
+                color: fg[it.tone],
+                opacity: it.done ? 0.55 : 1,
+                boxShadow: it.late && !it.done ? "inset 0 0 0 1.5px var(--rose-ink)" : undefined,
+              }}
+            >
+              <b>
+                {it.title}
+                {it.money ? <span style={{ float: "right", fontWeight: 700 }}>{signed(it.money)}</span> : null}
+              </b>
+              {it.sub}
+            </button>
+          );
+        })}
+        {isToday && mins(now) >= first * 60 && mins(now) <= last * 60 && <div className="now" style={{ top: top(now) + 6 }} />}
       </div>
-
-      <div className="card p-3">
-        <div className="mb-1 grid grid-cols-7 text-center text-[10px] font-bold uppercase text-tertiary">
-          {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
-            <span key={i}>{d}</span>
-          ))}
-        </div>
-        <div className="grid grid-cols-7">
-          {cells.map((day, i) => {
-            if (!day) return <span key={`pad-${i}`} />;
-            const due = dueByDay.get(day) ?? [];
-            const done = doneByDay.get(day) ?? [];
-            const isToday = day === today;
-            const overdue = due.some((d) => d.status === "overdue");
-            return (
-              <button
-                key={day}
-                onClick={() => setSelected(day === sel ? null : day)}
-                className="flex flex-col items-center gap-0.5 rounded-[10px] py-1.5"
-                style={{
-                  background: sel === day ? "var(--bg-pressed)" : "transparent",
-                }}
-              >
-                <span
-                  className="flex size-6 items-center justify-center rounded-full text-[12px] tabular-nums"
-                  style={{
-                    background: isToday ? "var(--ink)" : "transparent",
-                    color: isToday ? "var(--on-ink)" : "var(--text-primary)",
-                    fontWeight: isToday ? 700 : 500,
-                  }}
-                >
-                  {Number(day.slice(8, 10))}
-                </span>
-                <span className="flex h-1.5 items-center gap-0.5">
-                  {(plannedByDay.get(day) ?? []).length > 0 && (
-                    <span className="size-1.5 rounded-full" style={{ background: "var(--ink)" }} />
-                  )}
-                  {due.length > 0 && (
-                    <span
-                      className="size-1.5 rounded-full"
-                      style={{ background: overdue ? "var(--c-danger)" : "var(--accent-primary)" }}
-                    />
-                  )}
-                  {done.length > 0 && (
-                    <span className="size-1.5 rounded-full" style={{ background: "var(--accent-secondary)" }} />
-                  )}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {sel && (
-        <div>
-          {(dueByDay.get(sel) ?? []).map((d) => (
-            <p key={`${d.horseId}-${d.kind}`} className="flex items-center gap-2 border-b border-[var(--border-default)] py-2 text-[13px]">
-              <span className="size-1.5 shrink-0 rounded-full" style={{ background: d.status === "overdue" ? "var(--c-danger)" : "var(--accent-primary)" }} />
-              <span className="font-bold text-primary">
-                {CARE_META[d.kind].label} · {horseName(d.horseId)}
-              </span>
-              <span className="text-tertiary">échéance</span>
-            </p>
-          ))}
-          {(plannedByDay.get(sel) ?? []).map((e) => (
-            <p key={e.id} className="flex items-center gap-2 border-b border-[var(--border-default)] py-2 text-[13px]">
-              <span className="size-1.5 shrink-0 rounded-full" style={{ background: "var(--ink)" }} />
-              <span className="font-bold text-primary">
-                {CARE_META[e.kind].label} · {horseName(e.horseId)}
-              </span>
-              <span className="text-tertiary">prévu</span>
-            </p>
-          ))}
-          {(doneByDay.get(sel) ?? []).map((e) => (
-            <p key={e.id} className="flex items-center gap-2 border-b border-[var(--border-default)] py-2 text-[13px]">
-              <span className="size-1.5 shrink-0 rounded-full" style={{ background: "var(--accent-secondary)" }} />
-              <span className="font-bold text-primary">
-                {CARE_META[e.kind].label} · {horseName(e.horseId)}
-              </span>
-              <span className="text-tertiary">fait</span>
-            </p>
-          ))}
-          {(dueByDay.get(sel) ?? []).length +
-            (doneByDay.get(sel) ?? []).length +
-            (plannedByDay.get(sel) ?? []).length ===
-            0 && (
-            <p className="py-2 text-[13px] text-tertiary">Rien ce jour-là.</p>
-          )}
-        </div>
-      )}
-    </div>
+    </>
   );
 }

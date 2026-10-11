@@ -21,6 +21,10 @@ import { materializeRhythms } from "@/lib/domain/rhythm";
 import { ensurePensions } from "@/lib/domain/autopilot";
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
+import type { ActionState, Person, PersonRole, Seance, TeamTask } from "@/lib/domain/types";
+import { revenuesForSeance } from "@/lib/domain/seances";
+import { distribute } from "@/lib/domain/distribution";
+import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
 
 /**
  * Client-side data store. In the full product this is the IndexedDB-backed
@@ -102,6 +106,31 @@ interface DataState extends StableData {
    * saisi pour ce mois-là dans la même catégorie.
    */
   setMonthlyCharge: (categoryId: string, label: string, amount: number, period: { year: number; month: number }) => void;
+
+  /* ---- Planning, validation, facturation, équipe (octobre 2026) ---- */
+  /** Trouve une personne par son nom, ou la crée. Rend son identifiant. */
+  ensurePerson: (name: string, role: PersonRole) => string;
+  updatePerson: (id: string, patch: Partial<Omit<Person, "id">>) => void;
+  /** Crée une séance, ou une série (une séance par date). */
+  addSeances: (base: Omit<Seance, "id" | "date" | "rev" | "status" | "seriesId">, dates: string[]) => void;
+  /** Modifie une séance ; la portée reporte seulement ce qui a changé. */
+  updateSeance: (id: string, patch: Partial<Omit<Seance, "id" | "seriesId" | "rev">>, scope: "one" | "following" | "all") => void;
+  deleteSeance: (id: string, scope: "one" | "following" | "all") => void;
+  /** Valide : présences pointées, recettes créées au prix figé. */
+  validateSeance: (id: string, presence: Record<string, boolean>, chargeAbsent?: boolean) => void;
+  unvalidateSeance: (id: string) => void;
+  cancelSeance: (id: string, reason: string) => void;
+  /** Refacture une dépense au propriétaire : une recette du même montant. */
+  rebillExpense: (expenseId: string) => void;
+  unrebillExpense: (expenseId: string) => void;
+  setActionStatus: (id: string, status: ActionState["status"]) => void;
+  addTask: (t: Omit<TeamTask, "id" | "sort" | "checklist" | "comments"> & Partial<Pick<TeamTask, "checklist" | "comments">>) => void;
+  updateTask: (id: string, patch: Partial<Omit<TeamTask, "id">>) => void;
+  /** Déplace une carte ; posée dans « Fait » avec un coût, elle crée la facture commune. */
+  moveTask: (id: string, listId: string) => void;
+  deleteTask: (id: string) => void;
+  addPayment: (payer: string, month: string, amount: number) => void;
+  removePayments: (payer: string, month: string) => void;
 }
 
 const STABLE_ID = "demo-stable";
@@ -468,6 +497,189 @@ export const useDataStore = create<DataState>()(
           return { sharedExpenses, recurringExpenses };
         }),
 
+      ensurePerson: (name, role) => {
+        const n = name.trim();
+        const found = (get().people ?? []).find((p) => p.name.toLowerCase() === n.toLowerCase());
+        if (found) {
+          if (!found.active) set((s) => ({ people: (s.people ?? []).map((p) => (p.id === found.id ? { ...p, active: true } : p)) }));
+          return found.id;
+        }
+        const pid = id("pers");
+        set((s) => ({ people: [...(s.people ?? []), { id: pid, name: n, role, active: true }] }));
+        return pid;
+      },
+
+      updatePerson: (pid, patch) => set((s) => ({ people: (s.people ?? []).map((p) => (p.id === pid ? { ...p, ...patch } : p)) })),
+
+      addSeances: (base, dates) =>
+        set((s) => {
+          const seriesId = dates.length > 1 ? id("serie") : undefined;
+          const created: Seance[] = dates.map((date) => ({ ...base, id: id("seance"), date, status: "planned", seriesId, rev: 1 }));
+          return { seances: [...(s.seances ?? []), ...created] };
+        }),
+
+      updateSeance: (sid, patch, scope) =>
+        set((s) => {
+          const all = s.seances ?? [];
+          const target = all.find((x) => x.id === sid);
+          if (!target) return s;
+          const shift = patch.date ? diffDays(target.date, patch.date) : 0;
+          const inScope = (x: Seance) =>
+            x.id === sid ||
+            (!!target.seriesId && x.seriesId === target.seriesId && (scope === "all" || (scope === "following" && x.date >= target.date)));
+          return {
+            seances: all.map((x) => {
+              if (!inScope(x) || (scope === "one" && x.id !== sid)) return x;
+              const { date: _d, ...rest } = patch;
+              void _d;
+              const next: Seance = { ...x, ...(x.id === sid ? patch : rest), rev: x.rev + 1 };
+              if (shift && x.id !== sid) next.date = addDaysIso(x.date, shift);
+              return next;
+            }),
+          };
+        }),
+
+      deleteSeance: (sid, scope) =>
+        set((s) => {
+          const all = s.seances ?? [];
+          const target = all.find((x) => x.id === sid);
+          if (!target) return s;
+          const gone = new Set(
+            all
+              .filter((x) => x.id === sid || (scope !== "one" && !!target.seriesId && x.seriesId === target.seriesId && (scope === "all" || x.date >= target.date)))
+              .map((x) => x.id),
+          );
+          return {
+            seances: all.filter((x) => !gone.has(x.id)),
+            revenues: s.revenues.filter((r) => !r.seanceId || !gone.has(r.seanceId)),
+          };
+        }),
+
+      validateSeance: (sid, presence, chargeAbsent) =>
+        set((s) => {
+          const all = s.seances ?? [];
+          const target = all.find((x) => x.id === sid);
+          if (!target) return s;
+          const done: Seance = {
+            ...target,
+            status: "done",
+            chargeAbsent: !!chargeAbsent,
+            participants: target.participants.map((p) => ({ ...p, present: presence[p.personId] ?? true })),
+            rev: target.rev + 1,
+          };
+          const revs = revenuesForSeance(done, s, () => id("rev"), STABLE_ID);
+          for (const r of revs) enqueueMutation("insert", "revenues", { ...r });
+          return {
+            seances: all.map((x) => (x.id === sid ? done : x)),
+            revenues: [...s.revenues.filter((r) => r.seanceId !== sid), ...revs],
+          };
+        }),
+
+      unvalidateSeance: (sid) =>
+        set((s) => ({
+          seances: (s.seances ?? []).map((x) =>
+            x.id === sid ? { ...x, status: "planned", cancelReason: undefined, participants: x.participants.map((p) => ({ ...p, present: undefined })), rev: x.rev + 1 } : x,
+          ),
+          revenues: s.revenues.filter((r) => r.seanceId !== sid),
+        })),
+
+      cancelSeance: (sid, reason) =>
+        set((s) => ({
+          seances: (s.seances ?? []).map((x) => (x.id === sid ? { ...x, status: "cancelled", cancelReason: reason.trim() || undefined, rev: x.rev + 1 } : x)),
+          revenues: s.revenues.filter((r) => r.seanceId !== sid),
+        })),
+
+      rebillExpense: (eid) =>
+        set((s) => {
+          const e = s.directExpenses.find((x) => x.id === eid);
+          if (!e || e.rebillRevenueId) return s;
+          const horse = s.horses.find((h) => h.id === e.horseId);
+          const rid = id("rev");
+          const rev = {
+            id: rid,
+            stableId: STABLE_ID,
+            horseId: e.horseId,
+            categoryId: s.revenueCategories.find((c) => c.name === "Refacturation")?.id,
+            amount: e.amount,
+            date: e.date,
+            note: `Refacturation · ${e.label}`,
+            source: "manual" as const,
+            payer: horse?.ownerName,
+            rebillOf: e.id,
+          };
+          enqueueMutation("insert", "revenues", rev);
+          return {
+            revenues: [...s.revenues, rev],
+            directExpenses: s.directExpenses.map((x) => (x.id === eid ? { ...x, rebillRevenueId: rid } : x)),
+          };
+        }),
+
+      unrebillExpense: (eid) =>
+        set((s) => ({
+          revenues: s.revenues.filter((r) => r.rebillOf !== eid),
+          directExpenses: s.directExpenses.map((x) => (x.id === eid ? { ...x, rebillRevenueId: undefined } : x)),
+        })),
+
+      setActionStatus: (aid, status) =>
+        set((s) => {
+          const others = (s.actions ?? []).filter((a) => a.id !== aid);
+          return { actions: [...others, { id: aid, status, at: new Date().toISOString() }] };
+        }),
+
+      addTask: (t) =>
+        set((s) => {
+          const inList = (s.tasks ?? []).filter((x) => x.listId === t.listId);
+          const sort = inList.length ? Math.max(...inList.map((x) => x.sort)) + 1 : 1;
+          return { tasks: [...(s.tasks ?? []), { checklist: [], comments: [], ...t, id: id("task"), sort }] };
+        }),
+
+      updateTask: (tid, patch) => set((s) => ({ tasks: (s.tasks ?? []).map((x) => (x.id === tid ? { ...x, ...patch } : x)) })),
+
+      moveTask: (tid, listId) =>
+        set((s) => {
+          const task = (s.tasks ?? []).find((x) => x.id === tid);
+          if (!task) return s;
+          const doneList = (s.taskLists ?? []).find((l) => l.isDone)?.id;
+          let sharedExpenses = s.sharedExpenses;
+          let costExpenseId = task.costExpenseId;
+          // Une carte avec un coût, posée dans « Fait » : la facture commune du mois.
+          if (listId === doneList && task.cost && task.cost > 0 && !costExpenseId) {
+            const now = new Date();
+            const period = { year: now.getFullYear(), month: now.getMonth() + 1 };
+            const active = s.horses.filter((h) => !h.isArchived);
+            costExpenseId = id("shared");
+            sharedExpenses = [
+              ...sharedExpenses,
+              {
+                id: costExpenseId,
+                stableId: STABLE_ID,
+                label: task.title,
+                totalAmount: task.cost,
+                periodMonth: period.month,
+                periodYear: period.year,
+                distributionMode: "equal",
+                source: "manual",
+                allocations: distribute(task.cost, active, "equal", period),
+              },
+            ];
+          }
+          // Rouverte : la facture créée par la carte s'en va avec.
+          if (listId !== doneList && costExpenseId && task.listId === doneList) {
+            sharedExpenses = sharedExpenses.filter((e) => e.id !== costExpenseId);
+            costExpenseId = undefined;
+          }
+          const inList = (s.tasks ?? []).filter((x) => x.listId === listId && x.id !== tid);
+          const sort = inList.length ? Math.max(...inList.map((x) => x.sort)) + 1 : 1;
+          return { sharedExpenses, tasks: (s.tasks ?? []).map((x) => (x.id === tid ? { ...x, listId, sort, costExpenseId } : x)) };
+        }),
+
+      deleteTask: (tid) => set((s) => ({ tasks: (s.tasks ?? []).filter((x) => x.id !== tid) })),
+
+      addPayment: (payer, month, amount) =>
+        set((s) => ({ payments: [...(s.payments ?? []), { id: id("pay"), payer, month, amount, at: new Date().toISOString() }] })),
+
+      removePayments: (payer, month) => set((s) => ({ payments: (s.payments ?? []).filter((p) => !(p.payer === payer && p.month === month)) })),
+
       resetToDemo: () => set({ ...buildDemoData(), autopilotDismissed: [] }),
 
       // Empty stable, keeping the default categories — the from-zero experience.
@@ -485,6 +697,13 @@ export const useDataStore = create<DataState>()(
           tariffs: {},
           services: [],
           team: [],
+          people: [],
+          prestations: demo.prestations,
+          seances: [],
+          taskLists: demo.taskLists,
+          tasks: [],
+          actions: [],
+          payments: [],
           autopilotDismissed: [],
           revenueCategories: demo.revenueCategories,
           expenseCategories: demo.expenseCategories,
@@ -493,7 +712,10 @@ export const useDataStore = create<DataState>()(
     }),
     {
       name: "be-stable-data",
-      version: 1,
+      version: 2,
+      // v2 : séances, personnes, tâches d'équipe, actions, paiements. Une
+      // version 1 repart de la démo complète pour avoir des exemples cohérents.
+      migrate: () => ({ ...buildDemoData(), autopilotDismissed: [] }) as never,
       onRehydrateStorage: () => (state) => {
         if (state) state.hydrated = true;
       },

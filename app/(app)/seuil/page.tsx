@@ -30,7 +30,7 @@ function Seuil() {
   const horses = data.horses.filter((h) => !h.isArchived);
   return (
     <Screen>
-      <Back href={parcours.seuil ? "/mois" : "/parcours"}>{parcours.seuil ? "Le mois" : "Parcours · obstacle 6 sur 6"}</Back>
+      <Back href={parcours.seuil ? "/argent" : "/parcours"}>{parcours.seuil ? "Argent" : "Parcours · obstacle 6 sur 6"}</Back>
       <h1 className="bs-d bs-t1" style={{ marginTop: 6 }}>
         Le seuil : combien de chevaux paient tout.
       </h1>

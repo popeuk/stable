@@ -56,7 +56,7 @@ function Simulator() {
 
   return (
     <div className="space-y-6">
-      <Link href="/aujourdhui" className="inline-flex items-center gap-1 text-sm text-tertiary">
+      <Link href="/accueil" className="inline-flex items-center gap-1 text-sm text-tertiary">
         <ChevronLeft size={16} /> Retour
       </Link>
 

@@ -9,7 +9,7 @@ export function Redirect({ to, keepQuery }: { to?: string; keepQuery?: boolean }
   const router = useRouter();
   const parcours = useSettingsStore((s) => s.parcours);
   useEffect(() => {
-    const target = to ?? (parcours.chevaux && parcours.tarifs && parcours.factures ? "/aujourdhui" : "/bienvenue");
+    const target = to ?? (parcours.chevaux && parcours.tarifs && parcours.factures ? "/accueil" : "/bienvenue");
     router.replace(keepQuery ? `${target}${window.location.search}` : target);
   }, [to, keepQuery, parcours, router]);
   return null;

@@ -62,6 +62,9 @@ function Ticket({ horse }: { horse: Horse }) {
   const lastLine = useUiStore((s) => s.lastLine);
   const { pass, setupDone, parcours } = useParcours();
   const [offset, setOffset] = useState(0);
+  const [seg, setSeg] = useState<"ticket" | "carnet" | "planning">("ticket");
+  const say = useUiStore((s) => s.say);
+  const openSeance = useUiStore((s) => s.openSeance);
   const period = useMemo(() => addMonths(currentPeriod(), offset), [offset]);
   const t = useMemo(() => horseTicket(data, horse.id, period), [data, horse.id, period]);
   const nets = useMemo(() => reconciledNets(data, period), [data, period]);
@@ -70,6 +73,15 @@ function Ticket({ horse }: { horse: Horse }) {
   const log = horseCareLog(data, horse.id, today).slice(0, 6);
   const due = upcomingDeadlines(data, today).filter((d) => d.horseId === horse.id && d.status !== "ok");
   const monthName = new Date(period.year, period.month - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: offset ? "numeric" : undefined });
+
+  // Le plus gros frais du mois pas encore refacturé au propriétaire.
+  const rebill = data.directExpenses
+    .filter((e) => e.horseId === horse.id && !e.rebillRevenueId && e.date.startsWith(`${period.year}-${String(period.month).padStart(2, "0")}`) && e.amount > 20)
+    .sort((a, b) => b.amount - a.amount)[0];
+  const seances = (data.seances ?? [])
+    .filter((x) => x.horseIds.includes(horse.id) && x.status !== "cancelled" && x.date >= today)
+    .sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start))
+    .slice(0, 12);
 
   useEffect(() => {
     if (setupDone && !parcours.ticket) pass("ticket");
@@ -98,7 +110,23 @@ function Ticket({ horse }: { horse: Horse }) {
         </button>
       </div>
 
-      <div className="bs-ticket" style={{ marginTop: 6 }}>
+      <div className="bs-seg">
+        {(
+          [
+            ["ticket", "Ticket"],
+            ["carnet", "Carnet"],
+            ["planning", "Planning"],
+          ] as const
+        ).map(([k, l]) => (
+          <button key={k} type="button" aria-pressed={seg === k} onClick={() => setSeg(k)}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {seg === "ticket" && (
+      <>
+      <div className="bs-ticket" style={{ marginTop: 10 }}>
         {t.lines.length === 0 && <p className="bs-p">Rien ce mois-ci pour l’instant.</p>}
         {t.lines.map((l) => (
           <div key={l.key} className={`bs-tl${lastLine && lastLine.horseId === horse.id && lastLine.sourceId === l.sourceId ? " new" : ""}`}>
@@ -122,13 +150,62 @@ function Ticket({ horse }: { horse: Horse }) {
         </div>
       </div>
 
-      {offset === 0 && t.lines.length > 0 && <div style={{ marginTop: 22 }}><Tip>{tipFor(horse, t)}</Tip></div>}
+      {offset === 0 && t.lines.length > 0 && (
+        <div style={{ marginTop: 22 }}>
+          <Tip>{tipFor(horse, t)}</Tip>
+          {net < 0 && rebill && (
+            <button
+              type="button"
+              className="bs-btn"
+              style={{ marginTop: 10 }}
+              onClick={() => {
+                const st = useDataStore.getState();
+                const snap = { revenues: st.revenues, directExpenses: st.directExpenses };
+                st.rebillExpense(rebill.id);
+                say(`« ${rebill.label} » ajouté à la facture${horse.ownerName ? ` de ${horse.ownerName}` : ""} : <strong>+${eur(rebill.amount)}</strong>.`, () => useDataStore.setState(snap));
+              }}
+            >
+              Ajouter « {rebill.label.toLowerCase()} » à sa facture · +{eur(rebill.amount)}
+            </button>
+          )}
+        </div>
+      )}
 
       <button type="button" className="bs-btn line" style={{ marginTop: 16 }} onClick={() => openNoter({ horseIds: [horse.id] })}>
         <Picto name="plus" />
         Noter pour {horse.name}
       </button>
 
+      </>
+      )}
+
+      {seg === "planning" && (
+        <>
+          <Sec>À venir</Sec>
+          {seances.length === 0 && <p className="bs-p">Aucune séance prévue pour {horse.name}.</p>}
+          {seances.map((x) => (
+            <button key={x.id} type="button" className="bs-li tap" onClick={() => openSeance(x.id)}>
+              <span className="bs-pic">
+                <Picto name="cours" />
+              </span>
+              <span className="tx">
+                <b>{x.title}</b>
+                <span>
+                  {new Date(x.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })} · {x.start}
+                </span>
+              </span>
+              <Picto name="chev" />
+            </button>
+          ))}
+          <button type="button" className="bs-btn line" style={{ marginTop: 16 }} onClick={() => openNoter({ mode: "seance", horseIds: [horse.id] })}>
+            <Picto name="plus" />
+            Planifier une séance
+          </button>
+        </>
+      )}
+
+      {seg === "carnet" && (
+      <>
       {due.length > 0 && (
         <>
           <Sec>À prévoir</Sec>
@@ -164,6 +241,8 @@ function Ticket({ horse }: { horse: Horse }) {
           {e.cost ? <span className="bs-amt">{signed(-e.cost)}</span> : e.revenue ? <span className="bs-amt plus">{signed(e.revenue)}</span> : null}
         </div>
       ))}
+      </>
+      )}
 
       <button
         type="button"

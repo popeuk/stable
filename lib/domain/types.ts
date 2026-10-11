@@ -59,6 +59,12 @@ export interface Revenue {
   date: ISODate;
   note?: string;
   source: EntrySource;
+  /** Qui paie : le nom d'une personne. Absent = le propriétaire du cheval. */
+  payer?: string;
+  /** La séance d'origine, quand la recette vient d'une validation. */
+  seanceId?: string;
+  /** La dépense refacturée dont cette recette est le pendant. */
+  rebillOf?: string;
 }
 
 export interface DirectExpense {
@@ -72,6 +78,8 @@ export interface DirectExpense {
   note?: string;
   source: EntrySource;
   receiptUrl?: string | null;
+  /** Refacturée au propriétaire : une recette du même montant existe. */
+  rebillRevenueId?: string;
 }
 
 export interface SharedExpenseAllocation {
@@ -204,6 +212,113 @@ export interface Tariffs {
 import type { CareEvent } from "@/lib/domain/care";
 import type { Rhythm } from "@/lib/domain/rhythm";
 
+/**
+ * Une personne de l'écurie : propriétaire d'un cheval en pension ou
+ * cavalier qui prend des cours. C'est à elle qu'on facture.
+ */
+export type PersonRole = "proprietaire" | "cavalier";
+export interface Person {
+  id: string;
+  name: string;
+  role: PersonRole;
+  phone?: string;
+  active: boolean;
+}
+
+/** Une prestation vendue (cours, travail du cheval, balade…), avec son prix. */
+export interface Prestation {
+  id: string;
+  label: string;
+  /** Prix par cavalier présent (ou par séance pour un travail du cheval). */
+  price: number;
+  /** Seul le cours d'équitation a un format particulier ou collectif. */
+  hasFormat?: boolean;
+  active: boolean;
+}
+
+export type SeanceStatus = "planned" | "done" | "cancelled";
+export type SeanceFormat = "particulier" | "collectif";
+
+/** Un participant : qui monte, sur quel cheval, présent ou non. */
+export interface Participant {
+  personId: string;
+  horseId?: string;
+  /** Renseigné à la validation. Absent = pas encore pointé. */
+  present?: boolean;
+}
+
+/**
+ * Une séance du planning (repris du planning des cours du Clos) : une
+ * prestation à une date et une heure, des participants, un statut. Une
+ * séance faite met l'argent sur les tickets ; son prix est figé.
+ */
+export interface Seance {
+  id: string;
+  prestationId: string;
+  title: string;
+  format?: SeanceFormat;
+  places?: number;
+  participants: Participant[];
+  /** Les chevaux concernés quand la séance ne porte pas de cavalier (travail). */
+  horseIds: string[];
+  date: ISODate;
+  start: string; // HH:MM
+  end: string; // HH:MM
+  lieu?: string;
+  notes?: string;
+  status: SeanceStatus;
+  cancelReason?: string;
+  /** Prix unitaire figé à la création : changer un tarif ne réécrit pas le passé. */
+  unitPrice: number;
+  seriesId?: string;
+  /** Facturer un absent qui n'a pas prévenu. */
+  chargeAbsent?: boolean;
+  updatedBy?: string;
+  rev: number;
+}
+
+/** Le tableau d'équipe (repris du Clos) : colonnes et cartes. */
+export interface TaskList {
+  id: string;
+  title: string;
+  isDone?: boolean;
+}
+export interface TeamTask {
+  id: string;
+  title: string;
+  listId: string;
+  labels: string[];
+  due?: string; // AAAA-MM-JJTHH:MM
+  forWho: string[];
+  notes?: string;
+  checklist: { id: string; text: string; done: boolean }[];
+  comments: { by: string; at: string; text: string }[];
+  /** Un coût : devient une facture commune quand la carte passe en « Fait ». */
+  cost?: number;
+  costExpenseId?: string;
+  createdBy?: string;
+  sort: number;
+}
+
+/** Une action de rentabilité suivie : proposée, en cours, faite. */
+export type ActionStatus = "proposee" | "en_cours" | "faite" | "ecartee";
+export interface ActionState {
+  id: string;
+  status: ActionStatus;
+  at: string;
+  /** Ce que l'action a rapporté, mesuré quand elle est faite. */
+  measured?: number;
+}
+
+/** Un paiement reçu d'une personne pour un mois. */
+export interface Payment {
+  id: string;
+  payer: string;
+  month: string; // AAAA-MM
+  amount: number;
+  at: string;
+}
+
 /** The full bundle of data the domain functions operate on. */
 export interface StableData {
   horses: Horse[];
@@ -226,4 +341,11 @@ export interface StableData {
   services?: Service[];
   /** L'équipe : employés et prestataires, assignables aux tâches. */
   team?: TeamMember[];
+  people?: Person[];
+  prestations?: Prestation[];
+  seances?: Seance[];
+  taskLists?: TaskList[];
+  tasks?: TeamTask[];
+  actions?: ActionState[];
+  payments?: Payment[];
 }

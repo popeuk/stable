@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Be Stable, maquettes définitives</title>
+<meta name="description" content="Les maquettes définitives de l'app Be Stable et la façon dont elle se comporte.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --vert:#134E3A; --vert-deep:#0B3325; --vert-2:#1A5E47; --vert-soft:#E3ECE7; --vert-mid:#8FB3A3;
+  --rose:#F6B3CB; --rose-soft:#FCE3EC; --rose-ink:#8E3A5C; --rose-pic:#A2476B; --rose-line:#F2C9D8;
+  --ink:#1B1225; --ink-2:#5A5264; --ink-3:#7A7284;
+  --paper:#FCFBF9; --mist:#F1EEF3; --line:#DCD6E0; --line-2:#EAE6ED; --on-vert:#BFD6CB;
+  --ochre:#8C6A35; --ochre-soft:#F5ECDC;
+  --r:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-optical-sizing:auto;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+::selection{background:var(--rose);color:var(--vert-deep)}
+.num{font-variant-numeric:tabular-nums}
+.d{font-weight:640;letter-spacing:-.022em;line-height:1.06;font-variation-settings:"wdth" 90;text-wrap:balance}
+.wm{font-weight:800;letter-spacing:-.004em;font-variation-settings:"wdth" 88;white-space:nowrap;line-height:.9}
+.big{font-weight:700;letter-spacing:-.015em;line-height:1;font-variation-settings:"wdth" 88;font-variant-numeric:tabular-nums}
+.hl{background:linear-gradient(transparent 58%,var(--rose) 58%,var(--rose) 92%,transparent 92%);padding:0 .06em}
+
+/* ---------- Page ---------- */
+.page{max-width:1440px;margin:0 auto;padding:40px 40px 90px}
+.mast{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.mast .wm{font-size:30px}
+.mast span{font-size:14px;color:var(--ink-2)}
+.toc{position:sticky;top:0;z-index:20;background:rgba(252,251,249,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;gap:6px;padding:12px 0;overflow-x:auto}
+.toc a{flex:none;text-decoration:none;color:var(--ink);font-weight:500;font-size:14px;padding:7px 12px;border-radius:var(--r);box-shadow:inset 0 0 0 1px var(--line);background:#fff}
+.toc a:hover{box-shadow:inset 0 0 0 1px var(--ink-3)}
+section.part{padding:60px 0 44px;border-bottom:1px solid var(--line);scroll-margin-top:60px}
+.kick{font-size:13px;font-weight:600;color:var(--vert);margin-bottom:12px}
+h1.h{font-size:54px;max-width:15em}
+h2.h{font-size:38px;max-width:20em}
+h3.h{font-size:22px}
+.lead{font-size:18px;color:var(--ink-2);margin-top:16px;max-width:38em}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:56px;margin-top:32px}
+.note{font-size:13.5px;color:var(--ink-3);margin-top:12px}
+.choices{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:30px;border-top:1px solid var(--ink)}
+.choices div{padding:16px 18px 16px 0;border-right:1px solid var(--line-2)}
+.choices div:last-child{border-right:0}
+.choices b{display:block;font-size:12.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+.choices p{font-size:16px;margin-top:6px;font-weight:500}
+.rules{margin-top:12px}
+.rule{display:grid;grid-template-columns:200px 1fr;gap:20px;padding:12px 0;border-bottom:1px solid var(--line-2);font-size:15px}
+.rule:first-child{border-top:1px solid var(--line-2)}
+.rule b{font-weight:600}
+.rule p{color:var(--ink-2)}
+.rule p strong{color:var(--ink);font-weight:600}
+.states{display:flex;align-items:center;gap:0;margin-top:20px;flex-wrap:wrap}
+.st{padding:10px 14px;border-radius:var(--r);font-weight:600;font-size:14.5px;display:flex;flex-direction:column;gap:2px;min-width:150px}
+.st span{font-size:12.5px;font-weight:400;opacity:.85}
+.arrow{padding:0 10px;color:var(--ink-3);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.arrow svg{width:22px;height:22px}
+table.map{width:100%;border-collapse:collapse;margin-top:20px;font-size:14.5px}
+.map th{text-align:left;font-size:12px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;padding:9px 10px;border-bottom:1px solid var(--ink)}
+.map td{padding:11px 10px;border-bottom:1px solid var(--line-2);vertical-align:top}
+.map td:first-child{font-weight:560;width:24%}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:4px;font-size:12px;font-weight:600}
+.tag.g{background:var(--vert-soft);color:var(--vert)} .tag.r{background:var(--rose-soft);color:var(--rose-ink)} .tag.n{background:var(--mist);color:var(--ink-2)}
+
+.group{margin-top:44px}
+.group h3{display:flex;align-items:baseline;gap:12px}
+.group h3 em{font-style:normal;font-size:14px;font-weight:500;color:var(--ink-3);letter-spacing:0}
+.phones{display:flex;gap:26px;margin-top:20px;overflow-x:auto;padding:6px 4px 20px;scroll-snap-type:x mandatory}
+.ph{flex:none;scroll-snap-align:start;width:320px}
+.ph figcaption{font-size:14px;color:var(--ink-2);margin-top:12px;padding:0 4px;line-height:1.45}
+.ph figcaption b{color:var(--ink);font-weight:600;display:block;font-size:15px}
+.beh{margin-top:6px;font-size:13px;border-top:1px dashed var(--line);padding-top:8px}
+.beh li{list-style:none;padding:3px 0 3px 16px;position:relative;color:var(--ink-2)}
+.beh li::before{content:"";position:absolute;left:2px;top:10px;width:6px;height:6px;border-radius:1px;background:var(--vert)}
+
+/* ---------- Téléphone ---------- */
+.phone{width:320px;height:680px;border-radius:38px;background:#fff;padding:10px;box-shadow:0 2px 4px rgba(27,18,37,.05),0 16px 40px rgba(27,18,37,.10),inset 0 0 0 1px var(--line)}
+.scr{position:relative;width:100%;height:100%;border-radius:29px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column;font-size:14px}
+.sb{height:30px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-size:12px;font-weight:600}
+.sb i{width:70px;height:20px;border-radius:20px;background:var(--ink)}
+.hd{flex:none;display:flex;align-items:center;gap:8px;padding:6px 12px 8px 16px;border-bottom:1px solid var(--line-2);background:#fff}
+.hd .wm{font-size:18px}
+.hd .stb{font-size:11.5px;color:var(--ink-3);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chipm{display:inline-flex;align-items:center;gap:3px;height:26px;padding:0 8px;border-radius:4px;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;background:var(--vert-soft);color:var(--vert);white-space:nowrap}
+.burger{width:32px;height:32px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--line);color:var(--ink)}
+.burger svg{width:18px;height:18px}
+.body{flex:1;overflow:hidden;padding:2px 16px 0;position:relative}
+.tb{flex:none;height:62px;border-top:1px solid var(--line-2);display:grid;grid-template-columns:1fr 1fr 58px 1fr 1fr;align-items:center;padding:0 4px 6px;background:#fff}
+.tb span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:500;color:var(--ink-3)}
+.tb span.on{color:var(--vert);font-weight:600}
+.tb svg{width:21px;height:21px}
+.tb .add{width:44px;height:44px;border-radius:50%;background:var(--vert);color:#fff;justify-self:center;display:flex;align-items:center;justify-content:center;margin-top:-12px;box-shadow:0 4px 10px rgba(19,78,58,.22),0 0 0 4px #fff}
+
+.over{font-size:12px;color:var(--ink-3);margin-top:10px;display:flex;justify-content:space-between}
+.t1{font-size:22px;margin-top:1px}
+.t2{font-size:17px}
+.p{font-size:12.5px;color:var(--ink-2);line-height:1.45}
+.sec{font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin:14px 0 4px;display:flex;justify-content:space-between;align-items:baseline}
+.sec a{text-transform:none;letter-spacing:0;font-weight:500;color:var(--vert);font-size:11.5px}
+.pic{flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--line);color:var(--vert);background:#fff}
+.pic svg{width:17px;height:17px}
+.pic.r{box-shadow:inset 0 0 0 1px var(--rose-line);color:var(--rose-pic)}
+.pic.s{box-shadow:none;background:var(--vert-soft)}
+.li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-2)}
+.li .tx{flex:1;min-width:0}
+.li .tx b{display:block;font-size:13.5px;font-weight:560;line-height:1.25}
+.li .tx span{font-size:11.5px;color:var(--ink-3)}
+.amt{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.amt.g{color:var(--vert)} .amt.r{color:var(--rose-ink)}
+.pill{display:inline-flex;align-items:center;gap:2px;height:22px;padding:0 7px;border-radius:4px;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill.g{background:var(--vert-soft);color:var(--vert)} .pill.r{background:var(--rose-soft);color:var(--rose-ink)} .pill.n{background:var(--mist);color:var(--ink-2)} .pill.o{background:var(--ochre-soft);color:var(--ochre)}
+.card{border-radius:var(--r);background:#fff;box-shadow:inset 0 0 0 1px var(--line);padding:11px 12px;margin-top:10px}
+.card.v{background:var(--vert);color:#fff;box-shadow:none}
+.card.v .k{color:var(--on-vert)}
+.card .k{font-size:11.5px;color:var(--ink-3)}
+.card .big{font-size:28px;color:var(--vert);margin-top:2px}
+.card.v .big{color:var(--rose)}
+.track{position:relative;height:6px;border-radius:2px;background:var(--line-2);margin-top:10px}
+.card.v .track{background:rgba(255,255,255,.18)}
+.track i{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--vert)}
+.card.v .track i{background:var(--rose)}
+.tlab{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:5px}
+.card.v .tlab{color:var(--on-vert)}
+.banner{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--r);background:var(--rose-soft);color:#5E2240;margin-top:10px;font-size:12.5px}
+.banner b{font-weight:600}
+.banner svg{width:16px;height:16px;flex:none}
+.act{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line-2)}
+.act .tx{flex:1;min-width:0}
+.act .tx b{display:block;font-size:13px;font-weight:560;line-height:1.25}
+.act .tx span{font-size:11.5px;color:var(--ink-3)}
+.gain{font-size:12.5px;font-weight:700;color:var(--vert);white-space:nowrap;text-align:right;line-height:1.1}
+.gain small{display:block;font-size:10px;font-weight:500;color:var(--ink-3)}
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;height:40px;border-radius:var(--r);background:var(--vert);color:#fff;font-weight:560;font-size:13.5px;margin-top:10px}
+.btn.line{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.btn svg{width:16px;height:16px}
+.segs{display:flex;gap:3px;margin-top:10px;background:var(--mist);border-radius:var(--r);padding:3px}
+.segs span{flex:1;text-align:center;font-size:11.5px;font-weight:500;padding:5px 0;border-radius:4px;color:var(--ink-2)}
+.segs span.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 9px;border-radius:4px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);font-size:12px;font-weight:500}
+.chip svg{width:14px;height:14px;color:var(--vert)}
+.chip.on{background:var(--ink);color:#fff;box-shadow:none}
+.chip.on svg{color:var(--rose)}
+.field{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#fff;border-radius:var(--r);box-shadow:inset 0 0 0 1px var(--line);padding:0 11px;height:38px;margin-top:5px;font-size:13px}
+.field span{color:var(--ink-3)}
+.field svg{width:14px;height:14px;color:var(--ink-3)}
+
+/* planning */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px}
+.week div{text-align:center;padding:5px 0 6px;border-radius:4px;font-size:10.5px;color:var(--ink-3)}
+.week div b{display:block;font-size:15px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.week div.on{background:var(--ink);color:#fff}
+.week div.on b{color:#fff}
+.week div.td b{color:var(--vert)}
+.dots{display:flex;gap:2px;justify-content:center;margin-top:3px;height:4px}
+.dots i{width:4px;height:4px;border-radius:50%}
+.sum3{display:grid;grid-template-columns:repeat(3,1fr);border-radius:var(--r);box-shadow:inset 0 0 0 1px var(--line);background:#fff;margin-top:10px}
+.sum3 div{padding:8px 10px;border-right:1px solid var(--line-2)}
+.sum3 div:last-child{border-right:0}
+.sum3 b{display:block;font-size:17px;font-weight:700;font-variation-settings:"wdth" 88;font-variant-numeric:tabular-nums}
+.sum3 span{font-size:10.5px;color:var(--ink-3)}
+.blk{border-radius:var(--r);padding:7px 8px 7px 9px;display:flex;gap:8px;align-items:center}
+.blk .tx{flex:1;min-width:0}
+.blk .tx b{display:block;font-size:12.5px;font-weight:600;line-height:1.2}
+.blk .tx span{font-size:10.5px;opacity:.8}
+.blk.g{background:var(--vert-soft);color:var(--vert-deep)}
+.blk.r{background:var(--rose-soft);color:#5E2240}
+.blk.n{background:var(--mist);color:var(--ink-2)}
+.blk.o{background:var(--ochre-soft);color:#5C4420}
+.blk.k{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink-3)}
+.blk.done{opacity:.55}
+.blk .money{font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ckx{width:24px;height:24px;border-radius:50%;box-shadow:inset 0 0 0 1.5px currentColor;opacity:.55;flex:none;display:flex;align-items:center;justify-content:center}
+.ckx.on{background:var(--vert);box-shadow:none;color:#fff;opacity:1}
+.ckx svg{width:13px;height:13px}
+.row{display:grid;grid-template-columns:36px 1fr;gap:6px;margin-top:5px}
+.row .h{font-size:10.5px;font-weight:600;color:var(--ink-3);padding-top:8px;font-variant-numeric:tabular-nums}
+.grid{position:relative;margin-top:8px;height:470px;overflow:hidden}
+.grid .hr{position:absolute;left:0;right:0;border-top:1px solid var(--line-2);font-size:10px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.grid .hr span{position:absolute;top:-7px;left:0;background:var(--paper);padding-right:4px}
+.grid .ev{position:absolute;left:38px;right:2px;border-radius:4px;padding:4px 7px;font-size:11px;overflow:hidden}
+.grid .ev b{display:block;font-size:11.5px;font-weight:600;line-height:1.2}
+.grid .now{position:absolute;left:30px;right:0;border-top:2px solid var(--rose-ink)}
+.grid .now::before{content:"";position:absolute;left:-4px;top:-5px;width:8px;height:8px;border-radius:50%;background:var(--rose-ink)}
+.mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:8px}
+.mgrid div{height:52px;border-radius:4px;background:#fff;box-shadow:inset 0 0 0 1px var(--line-2);padding:4px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+.mgrid div.out{background:transparent;box-shadow:none;color:var(--line)}
+.mgrid div.td{box-shadow:inset 0 0 0 1.5px var(--vert);color:var(--vert)}
+.mgrid .dots{justify-content:flex-start;margin-top:4px;flex-wrap:wrap;height:auto}
+.mgrid .dots i{width:5px;height:5px}
+.mhead{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:10px;font-size:10px;color:var(--ink-3);text-align:center}
+
+/* chevaux / ticket */
+.face{flex:none;border-radius:50%;overflow:hidden;display:inline-flex}
+.face svg{width:100%;height:100%;display:block}
+.ticket{background:#fff;margin-top:10px;padding:10px 12px 14px;position:relative;filter:drop-shadow(0 1px 1px rgba(27,18,37,.05)) drop-shadow(0 6px 14px rgba(27,18,37,.06))}
+.ticket::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:8px;background:linear-gradient(-45deg,transparent 6px,#fff 0) 0 0/12px 8px repeat-x,linear-gradient(45deg,transparent 6px,#fff 0) 0 0/12px 8px repeat-x}
+.tl{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:12.5px}
+.tl svg{width:16px;height:16px;flex:none;color:var(--vert)}
+.tl span{flex:1}
+.tl small{display:block;font-size:10.5px;color:var(--ink-3)}
+.tl b{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tl.new{background:var(--rose-soft);margin:0 -6px;padding-left:6px;padding-right:6px;border-radius:3px}
+.tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--ink);margin-top:5px;padding-top:9px}
+.tot .big{font-size:24px}
+.tip{display:flex;gap:9px;align-items:flex-start;background:#FBF1F5;border-radius:var(--r);padding:9px 10px;margin-top:14px;font-size:12px;line-height:1.4}
+.tip .pic{width:24px;height:24px;box-shadow:none;background:#fff;color:var(--rose-pic)}
+.tip .pic svg{width:14px;height:14px}
+.bars{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:end;height:74px;margin-top:8px}
+.bars div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px;font-size:10px;color:var(--ink-3)}
+.bars i{width:66%;border-radius:2px 2px 1px 1px;background:var(--vert)}
+.bars i.f{background:repeating-linear-gradient(135deg,var(--vert-soft) 0 4px,#fff 4px 7px);box-shadow:inset 0 0 0 1px var(--vert-mid)}
+
+/* équipe */
+.board{display:flex;gap:8px;margin-top:10px;overflow:hidden}
+.colb{flex:none;width:200px;background:var(--mist);border-radius:var(--r);padding:8px}
+.colb h5{font-size:12px;font-weight:600;display:flex;justify-content:space-between;margin-bottom:6px}
+.colb h5 span{color:var(--ink-3);font-weight:500}
+.tcard{background:#fff;border-radius:4px;box-shadow:0 1px 2px rgba(27,18,37,.08);padding:8px;margin-top:6px;font-size:12px}
+.tcard b{display:block;font-weight:560;line-height:1.25}
+.lab{display:inline-block;height:6px;width:26px;border-radius:2px;margin-right:3px}
+.meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:10.5px;color:var(--ink-3)}
+.who{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--rose);color:var(--vert-deep);font-size:9.5px;font-weight:700;align-items:center;justify-content:center;margin-left:-4px;box-shadow:0 0 0 2px #fff}
+
+/* feuille */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);border-radius:14px 14px 0 0;padding:8px 16px 16px;box-shadow:0 -10px 30px rgba(27,18,37,.18)}
+.dim{position:absolute;inset:0;background:rgba(27,18,37,.4)}
+.grab{width:38px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 10px}
+.drawer{position:absolute;inset:0;background:rgba(27,18,37,.4);display:flex;justify-content:flex-end}
+.drawer .pan{width:82%;height:100%;background:var(--paper);padding:44px 16px 16px;overflow:hidden}
+.drawer .grp{font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin:12px 0 2px}
+.drawer .it{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13.5px;font-weight:500;border-bottom:1px solid var(--line-2)}
+.drawer .it svg{width:17px;height:17px;color:var(--vert)}
+.drawer .it em{margin-left:auto;font-style:normal;font-size:11.5px;color:var(--ink-3)}
+.drawer .it em.r{color:var(--rose-ink);font-weight:600}
+.lock{position:absolute;inset:0;background:linear-gradient(180deg,#0B3325,#134E3A 70%,#1A5E47);color:#fff;text-align:center;padding:40px 14px}
+.notif{background:rgba(255,255,255,.93);color:var(--ink);border-radius:12px;padding:10px 12px;margin-top:12px;text-align:left}
+.notif .nh{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-2)}
+.notif .nh i{width:18px;height:18px;border-radius:4px;background:var(--vert)}
+.notif .nh span{margin-left:auto}
+.notif b{display:block;font-size:13px;font-weight:600;margin-top:3px}
+.notif p{font-size:12.5px;line-height:1.35}
+
+@media (max-width:1100px){.page{padding:24px 16px 60px} h1.h{font-size:36px} h2.h{font-size:28px} .cols,.choices{grid-template-columns:1fr} .rule{grid-template-columns:1fr;gap:4px}}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="mast"><span class="wm">be stable</span><span>Maquettes définitives · comportement de l'app · octobre 2026 · données fictives</span></header>
+
+  <section class="part" style="border-bottom:0;padding-bottom:16px">
+    <h1 class="d h">La version définitive : le cockpit, le planning du Clos, et ce que chaque journée <span class="hl">rapporte.</span></h1>
+    <p class="lead">Sur la base de tes choix : la navigation A (le cockpit) avec les leviers dans Argent, tes chevaux dessinés et le ticket de caisse gardés, des coins resserrés à 6 px. Le planning reprend le meilleur de Dreadsprint (créneaux, séries, validation, décompte par client, tableau d'équipe) et le branche sur l'argent.</p>
+    <div class="choices">
+      <div><b>Navigation</b><p>Accueil · Planning · + · Chevaux · Argent, et un menu dans l'en-tête</p></div>
+      <div><b>Chevaux</b><p>Le dessin actuel, dans sa robe, sans changement</p></div>
+      <div><b>Ticket</b><p>Gardé, sur la fiche du cheval et à chaque saisie</p></div>
+      <div><b>Formes</b><p>Rectangles à 6 px, étiquettes à 4 px, seuls les portraits restent ronds</p></div>
+    </div>
+  </section>
+
+  <nav class="toc" aria-label="Sommaire">
+    <a href="#ecrans">1 · Les écrans</a>
+    <a href="#planning">2 · Le planning</a>
+    <a href="#valider">3 · Valider</a>
+    <a href="#chevaux">4 · Chevaux</a>
+    <a href="#argent">5 · Argent</a>
+    <a href="#equipe">6 · Équipe</a>
+    <a href="#comportement">7 · Comportement</a>
+    <a href="#dread">8 · Repris de Dreadsprint</a>
+  </nav>
+
+  <!-- ============ 1 ============ -->
+  <section class="part" id="ecrans">
+    <div class="kick">1 · L'accueil, le menu, le rappel</div>
+    <h2 class="d h">On ouvre l'app : où en est le mois, ce qu'il y a à faire, ce qui reste à valider.</h2>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="s-lock"></div></div><figcaption><b>Le rappel du matin</b>À l'heure choisie : la journée, et ce qu'elle peut rapporter.<ul class="beh"><li>Toucher la notification ouvre l'accueil.</li><li>Le soir, un second rappel s'il reste des séances à valider.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-home"></div></div><figcaption><b>Accueil</b>Objectif du mois, séances à valider, la journée, l'action de la semaine.<ul class="beh"><li>Le compteur de l'en-tête bouge à chaque validation.</li><li>Le bandeau rose apparaît dès qu'une séance passée n'est pas validée.</li><li>Une coche valide sans quitter l'accueil.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-menu"></div></div><figcaption><b>Le menu</b>Toute l'app depuis l'en-tête, avec les compteurs utiles.<ul class="beh"><li>S'ouvre depuis n'importe quel écran, se ferme d'un glissement.</li><li>Recherche en tête : un cheval, un client, une séance, une dépense.</li></ul></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="part" id="planning">
+    <div class="kick">2 · Le planning</div>
+    <h2 class="d h">Semaine ou mois, puis la journée à l'heure. Chaque séance porte son argent.</h2>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="s-week"></div></div><figcaption><b>Planning · semaine</b>La bande des 7 jours, les points de couleur, le bilan de la période, la journée choisie.<ul class="beh"><li>Glisser à gauche ou à droite change de semaine.</li><li>« Aujourd'hui » revient au jour même.</li><li>Le choix Semaine / Mois est mémorisé.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-day"></div></div><figcaption><b>Planning · créneaux du jour</b>De 6 h à 21 h, les séances à leur place, le trait de l'heure, l'agenda Google en contour.<ul class="beh"><li>Toucher une heure vide ouvre l'ajout à cette heure.</li><li>Deux séances en même temps se partagent la largeur.</li><li>Glisser change de jour.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-month"></div></div><figcaption><b>Planning · mois</b>Le mois en grille, avec ce qu'il a rapporté et ce qu'il doit encore rapporter.<ul class="beh"><li>Toucher un jour l'ouvre en créneaux.</li><li>Les jours hors du mois restent grisés.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-add"></div></div><figcaption><b>Ajouter une séance</b>Prestation, cavaliers ou chevaux, quand, et la répétition.<ul class="beh"><li>Le prix vient de la prestation, le total prévu s'affiche avant d'enregistrer.</li><li>Une série crée au plus 60 séances sur 12 mois.</li><li>Le bouton reste grisé tant qu'il manque quelque chose, avec la raison écrite.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-scope"></div></div><figcaption><b>Modifier une séance d'une série</b>Cette séance, celle-ci et les suivantes, ou toute la série.<ul class="beh"><li>Seul ce qui a changé est reporté sur les autres séances.</li><li>Changer la date décale toute la portée d'autant de jours.</li></ul></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="part" id="valider">
+    <div class="kick">3 · Valider</div>
+    <h2 class="d h">Une séance passée attend sa validation. Valider met l'argent sur les tickets.</h2>
+    <div class="states">
+      <div class="st" style="background:var(--mist)">Prévue<span>dans le planning</span></div>
+      <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>l'heure passe</div>
+      <div class="st" style="background:var(--rose-soft);color:#5E2240">À valider<span>bandeau sur l'accueil</span></div>
+      <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>présences</div>
+      <div class="st" style="background:var(--vert);color:#fff">Faite<span>l'argent va aux tickets</span></div>
+      <div class="arrow" style="padding:0 18px">ou</div>
+      <div class="st" style="background:#fff;box-shadow:inset 0 0 0 1px var(--line)">Annulée<span>rien n'est compté, motif gardé</span></div>
+    </div>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="s-val"></div></div><figcaption><b>Les séances à valider</b>Tout ce qui est passé et pas encore validé, du plus ancien au plus récent.<ul class="beh"><li>Un bouton valide d'un coup les séances simples ; les cours collectifs passent par la feuille de présence.</li><li>Une séance particulière se valide d'une coche.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-pres"></div></div><figcaption><b>La feuille de présence</b>Un cours collectif : qui était là. Les absents ne sont pas facturés.<ul class="beh"><li>Tous présents par défaut : on ne touche que les absents.</li><li>« Annulée » demande un motif (météo, cheval boiteux…).</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-done"></div></div><figcaption><b>Après la validation</b>Le compteur monte, la ligne rejoint les tickets, et on peut annuler.<ul class="beh"><li>« Annuler » pendant 6 secondes remet tout comme avant.</li><li>Ensuite, on corrige depuis la séance : « Annuler la validation ».</li></ul></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="part" id="chevaux">
+    <div class="kick">4 · Chevaux</div>
+    <h2 class="d h">Tes chevaux dessinés, et leur ticket du mois.</h2>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="s-horses"></div></div><figcaption><b>Mes chevaux</b>Ceux qui rapportent, ceux qui coûtent, ceux qui ont un soin à prévoir.<ul class="beh"><li>Les filtres en haut, le chiffre du mois au bout de chaque ligne.</li><li>Les totaux s'additionnent exactement au résultat du mois.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-ticket"></div></div><figcaption><b>Le ticket de Pacha</b>Ce qui est entré, ce qui est sorti, sa part de l'écurie, et une idée chiffrée.<ul class="beh"><li>La dernière ligne ajoutée est surlignée.</li><li>Les flèches passent au mois précédent.</li><li>« Part de l'écurie » ouvre l'explication avec les chiffres.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-carnet"></div></div><figcaption><b>Son carnet et son planning</b>Les soins passés, les échéances, ses séances à venir.<ul class="beh"><li>Une échéance en retard se règle d'un geste : elle ouvre l'ajout prérempli.</li><li>Les cadences (ferrure 7 semaines, vermifuge 3 mois) replanifient seules.</li></ul></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="part" id="argent">
+    <div class="kick">5 · Argent</div>
+    <h2 class="d h">Le mois, les leviers, ce qu'il faut facturer, tous les mouvements.</h2>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="s-mois"></div></div><figcaption><b>Le mois</b>Le résultat face à l'objectif, semaine par semaine, ce qui rentre, ce qui sort.<ul class="beh"><li>Les semaines à venir sont hachurées : ce qui est prévu au planning.</li><li>Touché, chaque poste ouvre ses mouvements.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-leviers"></div></div><figcaption><b>Les leviers</b>Remplir, facturer juste, dépenser mieux : des actions chiffrées, suivies.<ul class="beh"><li>Une action passe de proposée à faite puis mesurée.</li><li>Les montants sont recalculés à chaque saisie.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-facture"></div></div><figcaption><b>À facturer</b>Le décompte par propriétaire et par cavalier, prêt pour la fin du mois.<ul class="beh"><li>Pension, séances faites, soins refacturés : un total par personne.</li><li>« Marquer payé » sort la personne des impayés.</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-mvts"></div></div><figcaption><b>Les mouvements</b>Toutes les recettes et dépenses, à corriger ou supprimer.<ul class="beh"><li>Filtres par cheval, par poste, par personne.</li><li>Supprimer propose « Annuler » pendant 6 secondes.</li></ul></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="part" id="equipe">
+    <div class="kick">6 · L'équipe</div>
+    <h2 class="d h">Les tâches de l'écurie, partagées, sur un tableau.</h2>
+    <div class="phones">
+      <figure class="ph"><div class="phone"><div class="scr" id="s-board"></div></div><figcaption><b>Le tableau d'équipe</b>À faire, en cours, fait. Les étiquettes du métier, pour qui.<ul class="beh"><li>Un appui long soulève une carte, on la pose dans une autre colonne.</li><li>Poser dans « Fait » la coche ; en sortir la rouvre.</li><li>Filtre « Pour moi ».</li></ul></figcaption></figure>
+      <figure class="ph"><div class="phone"><div class="scr" id="s-tcard"></div></div><figcaption><b>Une carte</b>Échéance, checklist, commentaires, et le coût si elle en a un.<ul class="beh"><li>Chaque champ s'enregistre seul.</li><li>Une carte avec un coût crée la dépense de l'écurie quand elle passe en « Fait ».</li></ul></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="part" id="comportement">
+    <div class="kick">7 · Comment l'app se comporte</div>
+    <h2 class="d h">Les règles, une par une.</h2>
+    <div class="cols">
+      <div>
+        <h3 class="d h">L'argent</h3>
+        <div class="rules">
+          <div class="rule"><b>La pension</b><p>Postée seule le 1er de chaque mois sur le ticket du cheval. Changer un tarif corrige aussi le mois en cours.</p></div>
+          <div class="rule"><b>Une séance faite</b><p><strong>Un cavalier présent = une prestation facturée</strong>, au prix de la prestation ce jour-là. Le prix est figé dans la séance : changer un tarif ne réécrit pas le passé.</p></div>
+          <div class="rule"><b>Un soin</b><p>Son coût va sur le ticket du cheval. Si la case « refacturer » est cochée, il s'ajoute aussi à ce que doit le propriétaire.</p></div>
+          <div class="rule"><b>Une facture commune</b><p>Foin, salaires, loyer : partagée entre les chevaux présents, à parts égales ou au prorata des jours.</p></div>
+          <div class="rule"><b>Le compteur du mois</b><p>Ce qui est validé seulement. Le prévu s'affiche à part, hachuré.</p></div>
+          <div class="rule"><b>L'objectif</b><p>Un montant à se verser par mois, fixé par le gérant. Le bilan du mois dit s'il est tenu, et ce que les actions ont rapporté.</p></div>
+        </div>
+      </div>
+      <div>
+        <h3 class="d h">Le quotidien</h3>
+        <div class="rules">
+          <div class="rule"><b>À valider</b><p>Une séance dont l'heure de fin est passée et qui n'est ni faite ni annulée. Elle reste sur l'accueil jusqu'à ce qu'on la règle.</p></div>
+          <div class="rule"><b>Les rappels</b><p>Le matin à l'heure choisie ; le soir s'il reste des séances à valider. Une échéance de soin prévient 14 jours avant.</p></div>
+          <div class="rule"><b>Annuler</b><p>Toute validation, saisie ou suppression propose « Annuler » pendant 6 secondes.</p></div>
+          <div class="rule"><b>L'équipe</b><p>Les membres voient le même planning et le même tableau, mis à jour en direct. Chacun signe ce qu'il modifie.</p></div>
+          <div class="rule"><b>Deux personnes en même temps</b><p>Si quelqu'un a modifié la séance entre-temps, l'app recharge et le dit : <strong>« Vérane vient de la modifier, vérifie avant d'enregistrer. »</strong></p></div>
+          <div class="rule"><b>Sans réseau</b><p>Tout reste consultable. Les validations et les saisies attendent et partent au retour du réseau, dans l'ordre.</p></div>
+          <div class="rule"><b>Google Agenda</b><p>Les rendez-vous s'affichent en contour, en lecture. Une séance peut être copiée dans Google.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section class="part" id="dread" style="border-bottom:0">
+    <div class="kick">8 · Ce qu'on reprend de Dreadsprint</div>
+    <h2 class="d h">Le planning du Clos, branché sur l'argent.</h2>
+    <table class="map">
+      <thead><tr><th>Dans Dreadsprint</th><th>Dans Be Stable</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Semaine, mois, créneaux 6 h-21 h, glisser pour changer de période</td><td>Repris tel quel, avec les couleurs de l'argent</td><td><span class="tag g">repris</span></td></tr>
+        <tr><td>Séance : prestation, format particulier ou collectif, places, clients</td><td>Repris, et la séance porte aussi les chevaux concernés</td><td><span class="tag g">repris</span></td></tr>
+        <tr><td>Répétition chaque semaine, 2 semaines, mois, jusqu'au ; portée des modifications</td><td>Repris, avec le total prévu affiché avant d'enregistrer</td><td><span class="tag g">repris</span></td></tr>
+        <tr><td>Validation prévue → faite, bandeau « à valider »</td><td>Ajout de la présence par cavalier, du statut « annulée » avec motif, et d'« Annuler » 6 secondes</td><td><span class="tag r">amélioré</span></td></tr>
+        <tr><td>Décompte par client, CA = prix × séances faites</td><td>« À facturer » par personne, avec pension et soins refacturés ; prix figé dans la séance</td><td><span class="tag r">amélioré</span></td></tr>
+        <tr><td>Tableau d'équipe, étiquettes, checklist, commentaires</td><td>Repris ; une carte peut porter un coût</td><td><span class="tag g">repris</span></td></tr>
+        <tr><td>Verrou de révision, temps réel, signature</td><td>Repris, et étendu aux séries et aux suppressions</td><td><span class="tag r">amélioré</span></td></tr>
+        <tr><td>Écriture impossible hors-ligne</td><td>File d'attente : tout part au retour du réseau</td><td><span class="tag r">amélioré</span></td></tr>
+        <tr><td>Clients liés par leur nom</td><td>Fiches personnes (propriétaires, cavaliers) avec identifiant</td><td><span class="tag r">amélioré</span></td></tr>
+        <tr><td>Nœuds, branches IA, bibliothèque, carte du cerveau</td><td>Pas repris : hors du métier de l'écurie</td><td><span class="tag n">laissé</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">Données fictives (Les Trois Pommiers). Le contenu de Dreadsprint vient de la branche du 7 octobre 2026 du dépôt popeuk/Dreadsprint-v2.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+const P = {
+  check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>', plus:'<path d="M12 5v14M5 12h14"/>', back:'<path d="M19 12H5M11 6l-6 6 6 6"/>', arrowR:'<path d="M5 12h14M13 6l6 6-6 6"/>', chev:'<path d="m9 6 6 6-6 6"/>', chevL:'<path d="m15 6-6 6 6 6"/>', chevD:'<path d="m6 9 6 6 6-6"/>', up:'<path d="M12 19V5M6 11l6-6 6 6"/>', down:'<path d="M12 5v14M6 13l6 6 6-6"/>', x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  fer:'<path d="M6.3 4.2C4.8 6.8 4 9.7 4 12.6a8 8 0 0 0 16 0c0-2.9-.8-5.8-2.3-8.4"/><path d="M9.2 5.6c-1 1.9-1.6 4.2-1.6 6.6a4.4 4.4 0 0 0 8.8 0c0-2.4-.6-4.7-1.6-6.6"/><path d="M6.3 4.2 9.2 5.6M17.7 4.2l-2.9 1.4"/>',
+  veto:'<path d="m17.5 3 3.5 3.5M15.5 5l3.5 3.5M17.2 6.8 8 16H5v-3l9.2-9.2"/><path d="m5 19-2 2M10.5 9.5l2 2M8.5 11.5l2 2"/>',
+  foin:'<rect x="3" y="8" width="18" height="10" rx="2"/><path d="M3 13h18M8 8v10M16 8v10M6 6l1 2M12 5v3M18 6l-1 2"/>',
+  cours:'<path d="M4 15a8 8 0 0 1 16 0z"/><path d="M2.5 15H21M12 7V5M8 15l-1 4M16 15l1 4"/>',
+  box:'<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M9.5 20v-6h5v6"/>', home:'<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/>',
+  euro:'<circle cx="12" cy="12" r="9"/><path d="M15 8.5a4.5 4.5 0 1 0 0 7M7.5 11h6M7.5 13h6"/>', personne:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/>', equipe:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M15.5 4.8a3.2 3.2 0 0 1 0 6.4M17.5 14.2A6 6 0 0 1 21 20"/>',
+  cle:'<circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16.5 6.5l2 2M14 9l2 2"/>', main:'<path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V11M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6h-.5a6 6 0 0 1-5.1-2.9L3.6 14a1.5 1.5 0 0 1 2.6-1.5L8 15"/>',
+  pot:'<path d="M7 8h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V8z"/><path d="M6 5h12v3H6zM10 13h4"/>', cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
+  bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>', flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  horse:'<path d="M7.5 21c.3-3 .1-5.3-.7-7.3l-2.3 2c-.9.8-2.3.3-2.5-.9l-.2-1.2c-.1-.6.1-1.2.6-1.6l5.3-5.1c1.5-1.4 3.4-2.2 5.5-2.3L14.6 2l1.1 2.5 1.7-1.8.2 3c2.4 2.3 3.9 6 3.9 10.4V21"/><path d="M15.7 7.2c1.4 1.9 2.2 4.4 2.4 7.3"/><circle cx="10.6" cy="8.6" r=".9" fill="currentColor" stroke="none"/>',
+  chart:'<path d="M4 20h16M7 16v-4M12 16V7M17 16v-7"/>', menu:'<path d="M4 7h16M4 12h16M4 17h10"/>', search:'<circle cx="11" cy="11" r="6.5"/><path d="m16 16 5 5"/>', bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+  book:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>', reglages:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>',
+  tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>', repeat:'<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>', clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>', board:'<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="7" rx="1"/>', trophee:'<path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4M12 13v4M8.5 20h7M10 17h4"/>', gcal:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 14h2M13 14h2M9 17h2"/>', list:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>', comment:'<path d="M4 5h16v11H9l-5 4z"/>',
+};
+const ic = (n, w) => `<svg viewBox="0 0 24 24"${w ? ` width="${w}" height="${w}"` : ''} fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || P.fer}</svg>`;
+
+/* Le portrait actuel de l'app (components/bs/horse-face.tsx), à l'identique. */
+const COATS = { alezan:['#B4612C','#8A4520'], bai:['#6E4128','#2A1C18'], gris:['#B7B1BC','#7F7884'], noir:['#2E2733','#17121B'], isabelle:['#D8B06A','#8C6A35'], pie:['#F4EFE7','#6E4128'] };
+const face = (coat, size = 40, blaze = true) => { const [c, m] = COATS[coat]; return `<span class="face" style="width:${size}px;height:${size}px"><svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#F1EEF3"/><path d="M30 100 C33 82 36 70 40 62 L30 66 C22 70 14 68 12 60 C10 54 14 48 20 44 L40 28 C46 23 52 20 58 20 L62 8 L66 19 L71 10 L72 24 C82 34 88 50 88 70 L90 100 Z" fill="${c}"/><path d="M58 20 C66 22 72 28 74 36 C70 34 66 33 64 34 C68 40 76 46 80 54 C76 54 72 52 70 51 C74 58 80 64 84 70 C82 70 79 69 77 68 C80 76 84 84 88 90 L90 100 L84 100 C82 80 78 62 70 48 C66 40 62 32 58 20 Z" fill="${m}"/>${blaze ? '<path d="M40 30 C34 36 26 44 20 50 C24 49 28 46 31 43 C35 39 38 34 40 30 Z" fill="#fff" opacity=".9"/>' : ''}<circle cx="44" cy="38" r="2.6" fill="#1B1225"/><circle cx="44.8" cy="37.2" r=".8" fill="#fff"/><path d="M14 56 C16 57 18 57 19 56" stroke="#1B1225" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></span>`; };
+const H = { Sirius:['alezan',true], Diva:['gris',false], Belle:['isabelle',true], Tonnerre:['noir',false], Princesse:['pie',true], Vaillant:['bai',true], Pacha:['alezan',false], Mistral:['gris',true], Câline:['bai',false] };
+const hf = (n, s) => face(H[n][0], s, H[n][1]);
+
+const sb = `<div class="sb"><span class="num">9:41</span><i></i><svg width="34" height="12" viewBox="0 0 34 12"><rect x="0" y="5" width="3" height="7" rx="1" fill="#1B1225"/><rect x="5" y="3" width="3" height="9" rx="1" fill="#1B1225"/><rect x="10" y="0" width="3" height="12" rx="1" fill="#1B1225"/><rect x="17" y="1" width="15" height="10" rx="3" fill="none" stroke="#1B1225" stroke-width="1.4"/><rect x="19" y="3" width="10" height="6" rx="1.5" fill="#1B1225"/></svg></div>`;
+const hd = (m = '+612 €') => `<div class="hd"><span class="wm">be stable</span><span class="stb">· Les Trois Pommiers</span><span class="chipm">${ic('up', 12)}${m}</span><span class="burger">${ic('menu')}</span></div>`;
+const TABS = [['home', 'Accueil'], ['cal', 'Planning'], ['horse', 'Chevaux'], ['euro', 'Argent']];
+const tb = on => `<div class="tb">${TABS.slice(0, 2).map((t, i) => `<span class="${on === i ? 'on' : ''}">${ic(t[0])}${t[1]}</span>`).join('')}<span class="add">${ic('plus')}</span>${TABS.slice(2).map((t, i) => `<span class="${on === i + 2 ? 'on' : ''}">${ic(t[0])}${t[1]}</span>`).join('')}</div>`;
+const put = (id, html) => { document.getElementById(id).innerHTML = sb + html; };
+const pic = (n, c = '') => `<span class="pic ${c}">${ic(n)}</span>`;
+const tone = c => c === 'g' ? 'var(--vert)' : c === 'r' ? 'var(--rose-pic)' : c === 'o' ? 'var(--ochre)' : 'var(--ink-2)';
+const blk = (h, c, p, t, s, m, done) => `<div class="row"><span class="h">${h}</span><div class="blk ${c}${done ? ' done' : ''}"><span style="color:${tone(c)};display:flex">${ic(p, 17)}</span><div class="tx"><b>${t}</b><span>${s}</span></div>${m ? `<span class="money">${m}</span>` : ''}${c === 'k' ? '' : `<span class="ckx ${done ? 'on' : ''}">${ic('check')}</span>`}</div></div>`;
+const dotc = { g: 'var(--vert)', r: 'var(--rose)', o: 'var(--ochre)', k: 'var(--ink)' };
+const week = (on, td) => `<div class="week">${[['L', 6, 'gr'], ['M', 7, 'gg'], ['M', 8, 'rg'], ['J', 9, 'gk'], ['V', 10, 'ro'], ['S', 11, 'grg'], ['D', 12, 'k']].map(([d, n, dots], i) => `<div class="${i === on ? 'on' : ''}${i === td && i !== on ? ' td' : ''}">${d}<b>${n}</b><span class="dots">${[...dots].map(c => `<i style="background:${dotc[c]}"></i>`).join('')}</span></div>`).join('')}</div>`;
+const goal = `<div class="card v"><div class="k">Objectif d'octobre : te verser 1 000 €</div><div style="display:flex;align-items:baseline;justify-content:space-between"><span class="big">+612 €</span><span style="font-size:11.5px;color:var(--on-vert)">validés au 11</span></div><div class="track"><i style="width:61%"></i></div><div class="tlab"><span>61 %</span><span>+310 € prévus au planning · 20 jours</span></div></div>`;
+
+/* 1 */
+document.getElementById('s-lock').innerHTML = sb + `<div class="lock"><div style="font-size:13px;opacity:.85">Samedi 11 octobre</div><div class="big" style="font-size:64px;font-weight:500;color:#fff">7:45</div>
+  <div class="notif"><div class="nh"><i></i>Be Stable<span>maintenant</span></div><b>4 séances aujourd'hui, +105 € de cours prévus</b><p>Cours de Sirius à 10 h, maréchal pour Pacha à 11 h 30, vermifuge à 14 h, cours collectif à 18 h.</p></div>
+  <div class="notif" style="opacity:.85"><div class="nh"><i></i>Be Stable<span>hier, 20:00</span></div><b>3 séances à valider</b><p>Cours du soir, ostéo de Diva, cours de Mistral. Un geste chacune.</p></div></div>`;
+
+put('s-home', hd() + `<div class="body">
+  <p class="over"><span>Samedi 11 octobre</span></p><h2 class="d t1">Bonjour Claire</h2>
+  ${goal}
+  <div class="banner">${ic('clock')}<span style="flex:1"><b>3 séances à valider</b> · +135 € en attente</span>${ic('chev')}</div>
+  <p class="sec"><span>Aujourd'hui · 4 séances</span><a>Planning</a></p>
+  ${blk('10:00', 'g', 'cours', 'Cours de Sirius', 'avec Léa', '+30 €', true)}
+  ${blk('11:30', 'r', 'fer', 'Maréchal · Pacha', 'ferrure orthopédique', '−85 €')}
+  ${blk('18:00', 'g', 'cours', 'Cours collectif', '3 cavaliers sur 6', '+75 €')}
+  <p class="sec"><span>L'action de la semaine</span><a>Leviers</a></p>
+  <div class="act">${pic('main', 'r')}<div class="tx"><b>Refacturer l'ostéo de Pacha</b><span>à Julie P., sur octobre</span></div><span class="gain">+75 €</span></div>
+</div>` + tb(0));
+
+put('s-menu', hd() + `<div class="body" style="opacity:.35"><p class="over"><span>Samedi 11 octobre</span></p><h2 class="d t1">Bonjour Claire</h2>${goal}</div>${tb(0)}
+<div class="drawer"><div class="pan">
+  <div style="display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line)"><span class="wm" style="font-size:20px">be stable</span><span style="font-size:11.5px;color:var(--ink-3);line-height:1.2">Les Trois Pommiers<br>Claire · gérante</span></div>
+  <div class="field" style="margin-top:10px">${ic('search')}<span style="flex:1">Un cheval, un client, une séance…</span></div>
+  <p class="grp">Le quotidien</p>
+  <div class="it">${ic('home')}Accueil</div><div class="it">${ic('cal')}Planning<em class="r">2 à valider</em></div><div class="it">${ic('horse')}Chevaux<em>9</em></div><div class="it">${ic('board')}Tâches d'équipe<em>5</em></div>
+  <p class="grp">L'argent</p>
+  <div class="it">${ic('euro')}Le mois<em>+612 €</em></div><div class="it">${ic('bulb')}Leviers et actions<em>4</em></div><div class="it">${ic('doc')}À facturer<em>3 640 €</em></div><div class="it">${ic('list')}Mouvements</div><div class="it">${ic('chart')}Bilans</div>
+  <p class="grp">L'écurie</p>
+  <div class="it">${ic('personne')}Clients et propriétaires</div><div class="it">${ic('reglages')}Mon écurie</div>
+  <p class="grp">Be Stable</p><div class="it">${ic('book')}Guide, communauté, annuaire</div>
+</div></div>`);
+
+/* 2 */
+put('s-week', hd() + `<div class="body">
+  <div class="over"><span>Octobre · semaine 41</span><span style="color:var(--vert);font-weight:500">Aujourd'hui</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:center"><h2 class="d t1">Planning</h2><div class="segs" style="margin:0;width:130px"><span class="on">Semaine</span><span>Mois</span></div></div>
+  ${week(5, 5)}
+  <div class="sum3"><div><b>18</b><span>séances</span></div><div><b>14</b><span>faites</span></div><div><b style="color:var(--vert)">+640 €</b><span>validés</span></div></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><span style="font-weight:600;font-size:13.5px">Samedi 11</span><div class="segs" style="margin:0;width:128px"><span>Liste</span><span class="on">Créneaux</span></div></div>
+  ${blk('08:00', 'n', 'horse', 'Sortie au pré', 'tous les chevaux', '', true)}
+  ${blk('10:00', 'g', 'cours', 'Cours de Sirius', 'avec Léa · particulier', '+30 €', true)}
+  ${blk('11:30', 'r', 'fer', 'Maréchal · Pacha', 'M. Roche', '−85 €')}
+  ${blk('14:00', 'r', 'pot', 'Vermifuge · 3 chevaux', 'Belle, Câline, Princesse', '−36 €')}
+  ${blk('15:00', 'k', 'gcal', 'Rendez-vous comptable', 'Google Agenda', '')}
+  ${blk('18:00', 'g', 'cours', 'Cours collectif', '3 cavaliers sur 6', '+75 €')}
+</div>` + tb(1));
+
+const ev = (top, h, c, t, s, m, done, col) => `<div class="ev" style="top:${top}px;height:${h}px;${col || ''};background:${c === 'g' ? 'var(--vert-soft)' : c === 'r' ? 'var(--rose-soft)' : c === 'o' ? 'var(--ochre-soft)' : c === 'n' ? 'var(--mist)' : '#fff'};color:${c === 'g' ? 'var(--vert-deep)' : c === 'r' ? '#5E2240' : c === 'o' ? '#5C4420' : 'var(--ink)'};${c === 'k' ? 'box-shadow:inset 0 0 0 1px var(--ink-3);' : ''}${done ? 'opacity:.55;' : ''}"><b>${t}${m ? ` <span style="float:right;font-weight:700">${m}</span>` : ''}</b>${s}</div>`;
+const hrs = Array.from({ length: 14 }, (_, i) => `<div class="hr" style="top:${i * 34 + 6}px"><span>${String(7 + i).padStart(2, '0')}</span></div>`).join('');
+put('s-day', hd() + `<div class="body">
+  <div class="over"><span>Samedi 11 octobre</span><span style="color:var(--vert);font-weight:500">${ic('chevL', 12)} ${ic('chev', 12)}</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 class="d t1">Ta journée</h2><span class="pill g">+105 €</span><span class="pill r" style="margin-left:4px">−121 €</span></div>
+  <div class="grid">${hrs}
+    ${ev(40, 30, 'n', 'Sortie au pré', 'tous', '', true)}
+    ${ev(108, 32, 'g', 'Cours de Sirius', 'Léa · particulier', '+30 €', true)}
+    ${ev(160, 32, 'r', 'Maréchal · Pacha', 'M. Roche', '−85 €')}
+    <div class="now" style="top:138px"></div>
+    ${ev(244, 30, 'r', 'Vermifuge · 3', 'Belle, Câline, Princesse', '−36 €', false, 'right:calc(50% + 2px)')}
+    ${ev(244, 46, 'k', 'Comptable', 'Google Agenda', '', false, 'left:calc(50% + 20px)')}
+    ${ev(312, 34, 'o', 'Livraison de foin', '120 bottes', '−980 €')}
+    ${ev(380, 46, 'g', 'Cours collectif', '3 cavaliers sur 6', '+75 €')}
+  </div>
+</div>` + tb(1));
+
+const md = [['', 0], ['', 0], [1, 'g'], [2, 'gr'], [3, 'g'], [4, 'gk'], [5, 'r'], [6, 'gr'], [7, 'gg'], [8, 'rg'], [9, 'gk'], [10, 'ro'], [11, 'grg'], [12, 'k'], [13, 'g'], [14, 'gg'], [15, 'gr'], [16, 'g'], [17, 'o'], [18, 'g'], [19, ''], [20, 'gg'], [21, 'gr'], [22, 'g'], [23, 'gk'], [24, 'r'], [25, 'g'], [26, ''], [27, 'g'], [28, 'gg'], [29, 'g'], [30, 'gr'], [31, 'g'], ['', 0], ['', 0]];
+put('s-month', hd() + `<div class="body">
+  <div class="over"><span>2026</span><span style="color:var(--vert);font-weight:500">Aujourd'hui</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:center"><h2 class="d t1">Octobre</h2><div class="segs" style="margin:0;width:130px"><span>Semaine</span><span class="on">Mois</span></div></div>
+  <div class="sum3"><div><b>64</b><span>séances</span></div><div><b style="color:var(--vert)">+612 €</b><span>validés</span></div><div><b style="color:var(--ink-3)">+310 €</b><span>encore prévus</span></div></div>
+  <div class="mhead"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+  <div class="mgrid">${md.map(([n, dots], i) => n === '' ? `<div class="out">${i < 2 ? 29 + i : i - 32}</div>` : `<div class="${n === 11 ? 'td' : ''}">${n}<span class="dots">${[...(dots || '')].map(c => `<i style="background:${dotc[c]}"></i>`).join('')}</span></div>`).join('')}</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:10.5px;color:var(--ink-3)">${[['g', 'rapporte'], ['r', 'coûte'], ['o', 'écurie'], ['k', 'Google']].map(([c, l]) => `<span style="display:flex;align-items:center;gap:4px"><i style="width:7px;height:7px;border-radius:50%;background:${dotc[c]}"></i>${l}</span>`).join('')}</div>
+</div>` + tb(1));
+
+put('s-add', hd() + `<div class="body" style="opacity:.3">${week(5, 5)}</div>${tb(1)}<div class="dim"></div><div class="sheet" style="height:92%">
+  <div class="grab"></div>
+  <div class="segs" style="margin-top:0"><span class="on">Séance</span><span>Soin</span><span>Tâche</span><span>Dépense</span></div>
+  <p class="sec"><span>Prestation</span></p>
+  <div class="field"><b style="font-weight:560;color:var(--ink)">Cours d'équitation</b><span style="display:flex;align-items:center;gap:4px">25 € / cavalier ${ic('chevD')}</span></div>
+  <div class="chips"><span class="chip">Particulier</span><span class="chip on">Collectif</span><span class="chip" style="margin-left:auto">${ic('personne')}6 places</span></div>
+  <p class="sec"><span>Cavaliers · 3 sur 6</span></p>
+  <div class="chips"><span class="chip on">Emma ${ic('x')}</span><span class="chip on">Hugo ${ic('x')}</span><span class="chip on">Lou ${ic('x')}</span><span class="chip" style="color:var(--ink-3)">${ic('plus')}Ajouter</span></div>
+  <p class="sec"><span>Chevaux</span></p>
+  <div style="display:flex;gap:8px">${['Sirius', 'Tonnerre', 'Vaillant'].map(n => `<span style="display:flex;flex-direction:column;align-items:center;font-size:10.5px;gap:2px"><span style="border-radius:50%;box-shadow:0 0 0 2px var(--vert);padding:1px">${hf(n, 34)}</span>${n}</span>`).join('')}</div>
+  <p class="sec"><span>Quand</span></p>
+  <div class="chips"><span class="chip">Aujourd'hui</span><span class="chip on">Mardi 14</span><span class="chip">Autre jour</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="field"><span>Début</span><b>18:00</b></div><div class="field"><span>Fin</span><b>19:00</b></div></div>
+  <p class="sec"><span>Répétition</span></p>
+  <div class="chips"><span class="chip">Une fois</span><span class="chip on">${ic('repeat')}Chaque semaine</span><span class="chip">2 sem.</span><span class="chip">Mois</span></div>
+  <div class="field"><span>Jusqu'au</span><b>23 décembre · 11 séances</b></div>
+  <div class="btn" style="margin-top:12px">Planifier 11 séances · +825 € prévus</div>
+</div>`);
+
+put('s-scope', hd() + `<div class="body" style="opacity:.3">${week(1, 5)}</div>${tb(1)}<div class="dim"></div><div class="sheet">
+  <div class="grab"></div>
+  <h3 class="d t2">Cours du mardi, 14 octobre</h3>
+  <p class="p" style="margin-top:4px">Tu passes de 18 h à 18 h 30. Cette séance fait partie d'une série de 11.</p>
+  <p class="sec"><span>Appliquer à</span></p>
+  ${[['Cette séance seulement', 'le 14 octobre', false], ['Celle-ci et les suivantes', '10 séances, jusqu’au 23 décembre', true], ['Toute la série', '11 séances, déjà faites comprises', false]].map(([t, s, on]) => `<div class="li"><span class="ckx ${on ? 'on' : ''}" style="opacity:1;color:${on ? '#fff' : 'var(--line)'}">${ic('check')}</span><div class="tx"><b>${t}</b><span>${s}</span></div></div>`).join('')}
+  <p class="p" style="margin-top:8px">Seule l'heure change. Les cavaliers et le prix restent ceux de chaque séance.</p>
+  <div class="btn">Enregistrer pour 10 séances</div>
+  <div class="btn line">Annuler</div>
+</div>`);
+
+/* 3 */
+put('s-val', hd() + `<div class="body">
+  <div class="over"><span>Planning</span></div><h2 class="d t1">À valider</h2>
+  <p class="p" style="margin-top:2px">Les séances passées, pas encore validées. Valider, c'est mettre l'argent sur les tickets.</p>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span><span class="k">En attente</span><br><b class="big" style="font-size:22px">+135 €</b></span><span class="pill r">3 séances</span></div>
+  <p class="sec"><span>Hier, vendredi 10</span></p>
+  ${blk('18:00', 'g', 'cours', 'Cours du soir', 'collectif · Emma, Hugo, Lou, Nina', '+100 €')}
+  ${blk('16:00', 'r', 'main', 'Ostéo · Diva', 'C. Bonnet · refacturé à Inès R.', '0 €')}
+  <p class="sec"><span>Jeudi 9</span></p>
+  ${blk('10:00', 'g', 'cours', 'Cours de Mistral', 'Paul D. · particulier', '+35 €')}
+  <div class="btn">Valider les 2 séances simples · +35 €</div>
+  <p class="p" style="text-align:center;margin-top:6px">Les cours collectifs ouvrent d'abord la feuille de présence.</p>
+</div>` + tb(1));
+
+const pres = (n, cheval, on) => `<div class="li"><span class="pic" style="width:30px;height:30px;font-size:11px;font-weight:700;color:var(--vert-deep);background:var(--rose);box-shadow:none">${n.slice(0, 2)}</span><div class="tx"><b>${n}</b><span>sur ${cheval}</span></div><div class="segs" style="margin:0;width:118px"><span class="${on ? 'on' : ''}">Présent</span><span class="${on ? '' : 'on'}">Absent</span></div></div>`;
+put('s-pres', hd() + `<div class="body" style="opacity:.3"><h2 class="d t1">À valider</h2></div>${tb(1)}<div class="dim"></div><div class="sheet" style="height:86%">
+  <div class="grab"></div>
+  <p class="over" style="margin-top:0"><span>Vendredi 10 · 18:00 · carrière</span></p>
+  <h3 class="d t2">Cours du soir · qui était là ?</h3>
+  ${pres('Emma', 'Sirius', true)}${pres('Hugo', 'Tonnerre', true)}${pres('Lou', 'Vaillant', false)}${pres('Nina', 'Sirius', true)}
+  <div class="tip">${pic('bulb')}<span>Lou était absente sans prévenir. Ta règle : une absence non prévenue est due. <b>Facturer quand même ?</b></span></div>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span class="k">3 présents × 25 €</span><b class="big" style="font-size:22px">+75 €</b></div>
+  <div class="btn">Valider · +75 €</div>
+  <div style="display:flex;gap:6px"><div class="btn line" style="flex:1">Séance annulée</div><div class="btn line" style="flex:1">Plus tard</div></div>
+</div>`);
+
+put('s-done', hd('+722 €') + `<div class="body">
+  <div class="over"><span>Planning</span></div><h2 class="d t1">À valider</h2>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span><span class="k">En attente</span><br><b class="big" style="font-size:22px;color:var(--ink-3)">0 €</b></span><span class="pill g">tout est validé</span></div>
+  <p class="sec"><span>Validé à l'instant</span></p>
+  ${blk('18:00', 'g', 'cours', 'Cours du soir', '3 présents · Lou absente', '+75 €', true)}
+  ${blk('16:00', 'r', 'main', 'Ostéo · Diva', 'refacturé à Inès R.', '0 €', true)}
+  ${blk('10:00', 'g', 'cours', 'Cours de Mistral', 'Paul D.', '+35 €', true)}
+  <div style="display:flex;justify-content:center;margin-top:18px"><svg viewBox="0 0 120 146" width="70" style="transform:rotate(-6deg)" aria-hidden="true"><path d="M44 84 L34 140 L46 130 L54 140 L60 90 Z" fill="#134E3A"/><path d="M76 84 L86 140 L74 130 L66 140 L60 90 Z" fill="#134E3A" opacity=".82"/>${Array.from({ length: 18 }, (_, i) => { const a = i / 18 * Math.PI * 2; return `<circle cx="${60 + 41 * Math.cos(a)}" cy="${52 + 41 * Math.sin(a)}" r="9.5" fill="#134E3A"/>`; }).join('')}<circle cx="60" cy="52" r="42" fill="#134E3A"/><circle cx="60" cy="52" r="35" fill="#F6B3CB"/><circle cx="60" cy="52" r="30" fill="none" stroke="#0B3325" stroke-width=".9" stroke-dasharray="1.6 2.4"/><text x="60" y="49" text-anchor="middle" font-weight="700" font-size="12.5" fill="#0B3325">Semaine</text><text x="60" y="63" text-anchor="middle" font-weight="700" font-size="12.5" fill="#0B3325">à jour</text></svg></div>
+  <div style="position:absolute;left:12px;right:12px;bottom:10px;background:var(--ink);color:#fff;border-radius:var(--r);padding:11px 12px;display:flex;gap:10px;align-items:center;font-size:12.5px"><span style="flex:1">3 séances validées : <b style="color:var(--rose)">+110 €</b> au compteur.</span><b style="color:var(--rose);text-decoration:underline">Annuler</b></div>
+</div>` + tb(1));
+
+/* 4 */
+const hrow = (n, sub, v, cls) => `<div class="li">${hf(n, 40)}<div class="tx"><b>${n}</b><span>${sub}</span></div><span class="pill ${cls}">${cls === 'g' ? ic('up', 11) : ''}${v}</span></div>`;
+put('s-horses', hd() + `<div class="body">
+  <div class="over"><span>Octobre · 9 chevaux · 3 boxes libres</span></div><h2 class="d t1">Mes chevaux</h2>
+  <div class="segs"><span class="on">Tous</span><span>Rapportent</span><span>Coûtent</span><span>À prévoir</span></div>
+  <p class="sec"><span>Ils te rapportent</span></p>
+  ${hrow('Tonnerre', 'pension travail', '+249 €', 'g')}${hrow('Sirius', 'pension travail', '+184 €', 'g')}${hrow('Mistral', 'pension travail', '+104 €', 'g')}${hrow('Vaillant', 'box + paddock', '+74 €', 'g')}
+  <p class="sec"><span>Ils te coûtent</span></p>
+  ${hrow('Pacha', 'box + paddock · soins à refacturer', '−171 €', 'r')}${hrow('Princesse', 'box seul · pension sous le coût', '−81 €', 'r')}${hrow('Diva', 'box + paddock', '−71 €', 'r')}
+</div>` + tb(2));
+
+const tline = (p, l, d, a, cls = '') => `<div class="tl ${cls}">${ic(p)}<span>${l}${d ? `<small>${d}</small>` : ''}</span><b>${a}</b></div>`;
+put('s-ticket', hd() + `<div class="body">
+  <div class="over"><span style="display:flex;align-items:center;gap:4px">${ic('back', 13)} Mes chevaux</span></div>
+  <div style="display:flex;align-items:center;gap:10px;margin-top:4px">${hf('Pacha', 50)}<div><h2 class="d t2">Le ticket de Pacha</h2><p class="p">box + paddock · propriétaire Julie P.</p></div></div>
+  <div class="segs"><span class="on">Ticket</span><span>Carnet</span><span>Planning</span><span>Infos</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:12.5px;font-weight:560">${ic('chevL', 14)}octobre${ic('chev', 14)}</div>
+  <div class="ticket">
+    ${tline('box', 'Pension box + paddock', '1 oct.', '+490 €')}
+    ${tline('main', 'Ostéopathe', '3 oct.', '−75 €')}
+    ${tline('pot', 'Compléments', '8 oct.', '−70 €')}
+    ${tline('fer', 'Ferrure orthopédique', 'aujourd’hui', '−85 €', 'new')}
+    ${tline('foin', 'Part de l’écurie', 'foin, salaires, loyer', '−431 €')}
+    <div class="tot"><span style="font-weight:560">Il te coûte</span><span class="big">−171 €</span></div>
+  </div>
+  <div class="tip">${pic('bulb')}<span>Refacturer l'ostéo et la ferrure à Julie P. ramène Pacha à <b>−11 €</b>. <b style="color:var(--rose-ink);text-decoration:underline">Ajouter à sa facture</b></span></div>
+</div>` + tb(2));
+
+put('s-carnet', hd() + `<div class="body">
+  <div style="display:flex;align-items:center;gap:10px;margin-top:10px">${hf('Pacha', 50)}<div><h2 class="d t2">Pacha</h2><p class="p">Welsh, 8 ans · Julie P.</p></div></div>
+  <div class="segs"><span>Ticket</span><span class="on">Carnet</span><span>Planning</span><span>Infos</span></div>
+  <p class="sec"><span>À prévoir</span></p>
+  <div class="li">${pic('veto', 'r')}<div class="tx"><b>Vaccin grippe</b><span style="color:var(--rose-ink)">en retard de 6 j</span></div><span class="pill r">noter</span></div>
+  <div class="li">${pic('pot')}<div class="tx"><b>Vermifuge</b><span>dans 12 jours · prévenu 14 j avant</span></div></div>
+  <p class="sec"><span>Ses séances à venir</span></p>
+  ${blk('mar.', 'g', 'cours', 'Cours collectif', '18:00 · avec Emma', '', false)}
+  <p class="sec"><span>Son carnet</span></p>
+  <div class="li">${pic('fer')}<div class="tx"><b>Ferrure orthopédique</b><span>aujourd'hui · M. Roche</span></div><span class="amt">−85 €</span></div>
+  <div class="li">${pic('main')}<div class="tx"><b>Ostéopathe</b><span>3 octobre · C. Bonnet</span></div><span class="amt">−75 €</span></div>
+  <div class="li">${pic('veto')}<div class="tx"><b>Vétérinaire · boiterie</b><span>12 septembre · repos 1 semaine</span></div><span class="amt">−120 €</span></div>
+</div>` + tb(2));
+
+/* 5 */
+put('s-mois', hd() + `<div class="body">
+  <div class="over"><span style="display:flex;align-items:center;gap:4px">${ic('chevL', 12)} septembre</span></div><h2 class="d t1">Octobre</h2>
+  <div class="segs"><span class="on">Le mois</span><span>Leviers</span><span>À facturer</span><span>Mouvements</span></div>
+  ${goal}
+  <p class="sec"><span>Semaine par semaine</span></p>
+  <div class="bars"><div><i style="height:46%"></i>S40</div><div><i style="height:70%"></i>S41</div><div><i class="f" style="height:40%"></i>S42</div><div><i class="f" style="height:44%"></i>S43</div><div><i class="f" style="height:28%"></i>S44</div></div>
+  <p class="sec"><span>Ce qui rentre · 4 960 €</span></p>
+  <div class="li">${pic('box')}<div class="tx"><b>Pensions</b></div><span class="amt g">+4 530 €</span></div>
+  <div class="li">${pic('cours')}<div class="tx"><b>Cours et prestations</b></div><span class="amt g">+430 €</span></div>
+  <p class="sec"><span>Ce qui sort · 4 348 €</span></p>
+  <div class="li">${pic('foin', 'r')}<div class="tx"><b>Foin, granulés, paille</b></div><span class="amt">−1 880 €</span></div>
+</div>` + tb(3));
+
+const lev = (bg, col, p, t, s, g) => `<div style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--r);background:${bg};color:${col};margin-top:6px"><span style="display:flex">${ic(p, 18)}</span><span style="flex:1"><b style="font-size:13px;display:block">${t}</b><span style="font-size:11px;opacity:.8">${s}</span></span><b style="font-size:13px">${g}</b></div>`;
+put('s-leviers', hd() + `<div class="body">
+  <div class="over"><span>Argent · octobre</span></div><h2 class="d t1">Les leviers</h2>
+  <div class="segs"><span>Le mois</span><span class="on">Leviers</span><span>À facturer</span><span>Mouvements</span></div>
+  <div class="card"><div class="k">Il manque 388 € pour l'objectif. Les actions possibles :</div><span class="big">+592 €</span><span style="font-size:11px;color:var(--ink-3)"> par mois, estimé</span></div>
+  ${lev('var(--vert-soft)', 'var(--vert-deep)', 'box', 'Remplir', '3 boxes libres', '+1 290 €')}
+  <div class="act">${pic('box')}<div class="tx"><b>Publier le box 4</b><span>sur mon-ecurie.fr</span></div><span class="pill n">proposée</span></div>
+  ${lev('var(--rose-soft)', '#5E2240', 'euro', 'Facturer juste', '2 pensions, 2 soins', '+155 €')}
+  <div class="act">${pic('main', 'r')}<div class="tx"><b>Refacturer l'ostéo de Pacha</b><span>validée le 3, encaissée le 10</span></div><span class="pill g">+75 € gagnés</span></div>
+  <div class="act">${pic('euro', 'r')}<div class="tx"><b>Princesse : 390 → 430 €</b><span>au 1er janvier, lettre prête</span></div><span class="pill o">en cours</span></div>
+  ${lev('var(--ochre-soft)', '#5C4420', 'foin', 'Dépenser mieux', 'le foin, ton premier poste', '+47 €')}
+</div>` + tb(3));
+
+const due = (init, n, d, a, paid) => `<div class="li"><span class="pic" style="width:30px;height:30px;font-size:11px;font-weight:700;color:var(--vert-deep);background:var(--rose);box-shadow:none">${init}</span><div class="tx"><b>${n}</b><span>${d}</span></div><div style="text-align:right"><b class="amt">${a}</b><br>${paid ? '<span class="pill g" style="height:18px;font-size:10px">payé</span>' : '<span style="font-size:10.5px;color:var(--vert);font-weight:600;text-decoration:underline">marquer payé</span>'}</div></div>`;
+put('s-facture', hd() + `<div class="body">
+  <div class="over"><span>Argent · octobre</span></div><h2 class="d t1">À facturer</h2>
+  <div class="segs"><span>Le mois</span><span>Leviers</span><span class="on">À facturer</span><span>Mouvements</span></div>
+  <div class="sum3"><div><b>3 640 €</b><span>à facturer</span></div><div><b style="color:var(--vert)">2 150 €</b><span>déjà payés</span></div><div><b style="color:var(--rose-ink)">1 490 €</b><span>en attente</span></div></div>
+  <div class="segs"><span class="on">Propriétaires</span><span>Cavaliers</span></div>
+  ${due('JP', 'Julie P. · Pacha', 'pension 490 € · ostéo refacturé 75 €', '565 €')}
+  ${due('LB', 'Léa B. · Sirius', 'pension 590 € · 4 cours 120 €', '710 €', true)}
+  ${due('IR', 'Inès R. · Diva', 'pension 490 € · ostéo 75 € · marcheur 50 €', '615 €')}
+  ${due('HL', 'Hugo L. · Tonnerre', 'pension 590 € · coaching 160 €', '750 €', true)}
+  <div class="btn">Préparer les factures d'octobre</div>
+</div>` + tb(3));
+
+const mv = (p, c, l, s, a, cls) => `<div class="li">${pic(p, c)}<div class="tx"><b>${l}</b><span>${s}</span></div><span class="amt ${cls}">${a}</span></div>`;
+put('s-mvts', hd() + `<div class="body">
+  <div class="over"><span>Argent · octobre</span></div><h2 class="d t1">Mouvements</h2>
+  <div class="segs"><span>Le mois</span><span>Leviers</span><span>À facturer</span><span class="on">Mouvements</span></div>
+  <div class="chips"><span class="chip on">Tout</span><span class="chip">Recettes</span><span class="chip">Dépenses</span><span class="chip">${ic('horse')}Cheval</span><span class="chip">${ic('personne')}Personne</span></div>
+  <p class="sec"><span>Aujourd'hui</span></p>
+  ${mv('fer', 'r', 'Ferrure orthopédique', 'Pacha · M. Roche', '−85 €', '')}
+  ${mv('cours', '', 'Cours particulier', 'Sirius · Léa', '+30 €', 'g')}
+  <p class="sec"><span>Hier</span></p>
+  ${mv('cours', '', 'Cours du soir', '3 cavaliers', '+75 €', 'g')}
+  ${mv('main', 'r', 'Ostéopathe', 'Diva · refacturé à Inès R.', '−75 €', '')}
+  ${mv('foin', 'r', 'Litière', 'facture commune · 9 chevaux', '−380 €', '')}
+  <p class="sec"><span>Jeudi 9</span></p>
+  ${mv('cours', '', 'Cours particulier', 'Mistral · Paul D.', '+35 €', 'g')}
+</div>` + tb(3));
+
+/* 6 */
+const LB = { Urgent: '#8E3A5C', Chevaux: '#134E3A', Écurie: '#8C6A35', Clients: '#F6B3CB', Travaux: '#7A7284', Admin: '#1B1225' };
+const tcard = (labels, t, due, who) => `<div class="tcard">${labels.map(l => `<span class="lab" style="background:${LB[l]}"></span>`).join('')}<b style="margin-top:4px">${t}</b><div class="meta"><span style="display:flex;align-items:center;gap:3px">${due ? ic('clock', 11) + due : ''}</span><span>${who.map(w => `<span class="who">${w}</span>`).join('')}</span></div></div>`;
+put('s-board', hd() + `<div class="body">
+  <div class="over"><span>L'équipe · 3 membres</span><span style="color:var(--vert);font-weight:500">Pour moi</span></div><h2 class="d t1">Tâches d'équipe</h2>
+  <div class="segs"><span class="on">Tableau</span><span>Liste</span></div>
+  <div class="board">
+    <div class="colb"><h5>À faire <span>4</span></h5>${tcard(['Urgent', 'Écurie'], 'Réparer la clôture du pré 2', 'auj.', ['F'])}${tcard(['Chevaux'], 'Prendre RDV dentiste Mistral', 'mar.', ['V'])}${tcard(['Clients'], 'Rappeler la cavalière du 25', '', ['C'])}${tcard(['Admin'], 'Envoyer la lettre de tarifs', 'ven.', ['C', 'V'])}</div>
+    <div class="colb"><h5>En cours <span>2</span></h5>${tcard(['Travaux'], 'Abri du paddock 3', '30 oct.', ['F'])}${tcard(['Écurie'], 'Devis foin à l’année', '', ['C'])}</div>
+  </div>
+</div>` + tb(0));
+
+put('s-tcard', hd() + `<div class="body" style="opacity:.3"><h2 class="d t1">Tâches d'équipe</h2></div>${tb(0)}<div class="dim"></div><div class="sheet" style="height:88%">
+  <div class="grab"></div>
+  <div style="display:flex;gap:4px">${['Urgent', 'Écurie'].map(l => `<span class="pill" style="background:${LB[l]};color:#fff">${l}</span>`).join('')}</div>
+  <h3 class="d t2" style="margin-top:6px">Réparer la clôture du pré 2</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="field"><span>Colonne</span><b>À faire</b></div><div class="field"><span>Échéance</span><b>17:00</b></div></div>
+  <div class="field"><span>Pour qui</span><span style="display:flex"><span class="who">F</span><span class="who">C</span></span></div>
+  <div class="field"><span>Coût</span><b>120 € · facture commune</b></div>
+  <p class="sec"><span>Checklist · 1 sur 3</span></p>
+  <div class="track" style="margin-top:4px"><i style="width:33%"></i></div>
+  ${[['Acheter 4 piquets', true], ['Retendre le fil', false], ['Vérifier le courant', false]].map(([t, d]) => `<div class="li" style="padding:6px 0"><span class="ckx ${d ? 'on' : ''}" style="opacity:1;color:${d ? '#fff' : 'var(--line)'}">${ic('check')}</span><div class="tx"><b style="${d ? 'color:var(--ink-3);text-decoration:line-through' : ''}">${t}</b></div></div>`).join('')}
+  <p class="sec"><span>Commentaires</span></p>
+  <div class="li" style="align-items:flex-start"><span class="who" style="margin:0">V</span><div class="tx"><b style="font-size:12px">Vérane · il y a 2 h</b><span style="color:var(--ink-2);font-size:12px">Les chevaux du pré 2 sont rentrés au paddock en attendant.</span></div></div>
+</div>`);
+})();
+</script>
+</body>
+</html>

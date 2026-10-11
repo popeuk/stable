@@ -41,7 +41,7 @@ function Arrivee() {
             : "Tes chevaux ne couvrent pas encore leurs propres soins : commence par revoir tes pensions."}
         </p>
         <div style={{ marginTop: "auto", paddingTop: 20 }}>
-          <Link href="/aujourdhui" className="bs-btn">
+          <Link href="/accueil" className="bs-btn">
             Ouvrir ma journée <Picto name="arrowR" />
           </Link>
         </div>

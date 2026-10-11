@@ -79,7 +79,7 @@ function SaisieMutualisee() {
       source: "manual",
       allocations,
     });
-    router.push("/aujourdhui");
+    router.push("/accueil");
   }
 
   const nameOf = (id: string) => horses.find((h) => h.id === id)?.name ?? "";

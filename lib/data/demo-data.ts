@@ -1,4 +1,10 @@
 import type {
+  Payment,
+  Person,
+  Prestation,
+  Seance,
+  TaskList,
+  TeamTask,
   Category,
   DirectExpense,
   Horse,
@@ -8,9 +14,9 @@ import type {
 } from "@/lib/domain/types";
 import type { CareEvent } from "@/lib/domain/care";
 import { addDays } from "@/lib/domain/care";
-import type { Rhythm } from "@/lib/domain/rhythm";
 import { weekdayOf } from "@/lib/domain/rhythm";
 import { distribute } from "@/lib/domain/distribution";
+import { revenuesForSeance } from "@/lib/domain/seances";
 import { addMonths, currentPeriod, periodStart } from "@/lib/utils/period";
 
 const STABLE_ID = "demo-stable";
@@ -46,6 +52,7 @@ export const DEFAULT_REVENUE_CATEGORIES: Category[] = [
   "Débourrage",
   "Demi-pension",
   "Vente",
+  "Refacturation",
 ].map((name, i) => ({ id: `rev-${i}`, name }));
 
 export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
@@ -244,34 +251,80 @@ export function buildDemoData(now = new Date()): StableData {
   // Tout rendez-vous est en attente de confirmation (pending).
   care(0, "concours", -9, { label: "CSO Amateur 2, Deauville", pending: true });
   care(1, "veto", -2, { provider: "Dr Lavigne", label: "Contrôle boiterie", pending: true });
-  care(7, "cours_individuel", -1, { label: "Mise en selle, 10 h", pending: true, revenue: 35 });
-  care(6, "ferrure", 0, { label: "Ferrure orthopédique, 11 h 30", provider: "M. Roche", pending: true, cost: 85 });
-  // Un cours collectif AUJOURD'HUI, à confirmer : la feuille de présence.
-  for (const idx of [0, 3, 5]) {
-    care(idx, "cours_collectif", 0, {
-      label: "Cours du soir, 18 h",
-      pending: true,
-      revenue: 25,
-      groupId: "grp-demo-cours",
-    });
+  care(6, "ferrure", 0, { label: "Ferrure orthopédique", provider: "M. Roche", pending: true, cost: 85, start: "11:30" });
+  careEvents.find((e) => e.kind === "veto" && e.pending)!.start = "09:00";
+
+  // Les personnes : les propriétaires des chevaux, et les cavaliers des cours.
+  const people: Person[] = [
+    ...DEMO_HORSES.map((h, i) => ({ id: `pers-owner-${i}`, name: h.owner, role: "proprietaire" as const, active: true })),
+    ...["Emma", "Hugo", "Lou", "Nina"].map((n, i) => ({ id: `pers-cav-${i}`, name: n, role: "cavalier" as const, active: true })),
+  ];
+  const prestations: Prestation[] = [
+    { id: "prest-cours", label: "Cours d’équitation", price: 25, hasFormat: true, active: true },
+    { id: "prest-particulier", label: "Cours particulier", price: 35, active: true },
+    { id: "prest-travail", label: "Travail du cheval", price: 30, active: true },
+    { id: "prest-balade", label: "Balade encadrée", price: 20, active: true },
+  ];
+
+  // Les séances : le cours du soir chaque semaine (collectif, 6 places),
+  // deux cours particuliers réguliers. Le passé est validé, la dernière
+  // séance passée attend sa validation.
+  const seances: Seance[] = [];
+  const mkSeries = (
+    key: string,
+    weekday: number,
+    weeksBack: number,
+    weeksAhead: number,
+    base: Omit<Seance, "id" | "date" | "status" | "seriesId" | "rev">,
+  ) => {
+    const offset = (weekdayOf(today) - weekday + 7) % 7;
+    const anchor = addDays(today, -offset);
+    for (let w = -weeksBack; w <= weeksAhead; w++) {
+      const date = addDays(anchor, w * 7);
+      seances.push({ ...base, id: `seance-${key}-${date}`, date, status: "planned", seriesId: `serie-${key}`, rev: 1 });
+    }
+  };
+  const cav = (i: number, horse: number) => ({ personId: `pers-cav-${i}`, horseId: horses[horse].id });
+  mkSeries("soir", (weekdayOf(today) + 6) % 7, 5, 9, {
+    prestationId: "prest-cours", title: "Cours du soir", format: "collectif", places: 6,
+    participants: [cav(0, 0), cav(1, 3), cav(2, 5), cav(3, 7)], horseIds: [horses[0].id, horses[3].id, horses[5].id, horses[7].id],
+    start: "18:00", end: "19:00", lieu: "Carrière", unitPrice: 25,
+  });
+  mkSeries("lea", weekdayOf(today), 5, 9, {
+    prestationId: "prest-particulier", title: "Cours de Sirius", format: "particulier", places: 1,
+    participants: [{ personId: "pers-owner-0", horseId: horses[0].id }], horseIds: [horses[0].id],
+    start: "10:00", end: "11:00", lieu: "Carrière", unitPrice: 35,
+  });
+  mkSeries("paul", (weekdayOf(today) + 5) % 7, 5, 9, {
+    prestationId: "prest-particulier", title: "Cours de Mistral", format: "particulier", places: 1,
+    participants: [{ personId: "pers-owner-7", horseId: horses[7].id }], horseIds: [horses[7].id],
+    start: "10:00", end: "11:00", unitPrice: 35,
+  });
+  // Le passé (avant hier) est validé, recettes comprises ; hier attend.
+  const yesterday = addDays(today, -1);
+  let n = 0;
+  for (const se of seances) {
+    if (se.date >= yesterday) continue;
+    se.status = "done";
+    se.participants = se.participants.map((p) => ({ ...p, present: true }));
+    revenues.push(...revenuesForSeance(se, { people, revenueCategories: DEFAULT_REVENUE_CATEGORIES }, () => `rev-seance-${n++}`, STABLE_ID));
   }
 
-  // Le rythme : ce même cours revient chaque semaine, tout seul. La borne
-  // est à aujourd'hui — l'occurrence du jour est déjà semée ci-dessus,
-  // l'autopilote générera la suivante.
-  const rhythms: Rhythm[] = [
-    {
-      id: "rh-demo-cours",
-      stableId: STABLE_ID,
-      kind: "cours_collectif",
-      weekday: weekdayOf(today),
-      label: "Cours du soir, 18 h",
-      horseIds: [horses[0].id, horses[3].id, horses[5].id],
-      revenue: 25,
-      active: true,
-      materializedUntil: today,
-    },
+  const taskLists: TaskList[] = [
+    { id: "list-todo", title: "À faire" },
+    { id: "list-doing", title: "En cours" },
+    { id: "list-done", title: "Fait", isDone: true },
   ];
+  const tasks: TeamTask[] = [
+    { id: "task-cloture", title: "Réparer la clôture du pré 2", listId: "list-todo", labels: ["Urgent", "Écurie"], due: `${today}T17:00`, forWho: ["Marc"], cost: 120, checklist: [{ id: "c1", text: "Acheter 4 piquets", done: true }, { id: "c2", text: "Retendre le fil", done: false }, { id: "c3", text: "Vérifier le courant", done: false }], comments: [{ by: "Julie", at: new Date(now.getTime() - 2 * 3600e3).toISOString(), text: "Les chevaux du pré 2 sont rentrés au paddock en attendant." }], sort: 1 },
+    { id: "task-dentiste", title: "Prendre rendez-vous dentiste pour Mistral", listId: "list-todo", labels: ["Chevaux"], due: `${addDays(today, 3)}`, forWho: ["Julie"], checklist: [], comments: [], sort: 2 },
+    { id: "task-cavaliere", title: "Rappeler la cavalière intéressée par un box", listId: "list-todo", labels: ["Clients"], forWho: [], checklist: [], comments: [], sort: 3 },
+    { id: "task-tarifs", title: "Envoyer la lettre de tarifs 2027", listId: "list-todo", labels: ["Admin"], due: `${addDays(today, 6)}`, forWho: [], checklist: [], comments: [], sort: 4 },
+    { id: "task-abri", title: "Abri du paddock 3", listId: "list-doing", labels: ["Travaux"], due: `${addDays(today, 19)}`, forWho: ["Marc"], checklist: [], comments: [], sort: 1 },
+    { id: "task-foin", title: "Deux devis de foin à l’année", listId: "list-doing", labels: ["Écurie"], forWho: [], checklist: [], comments: [], sort: 2 },
+  ];
+  const monthKeyNow = today.slice(0, 7);
+  const payments: Payment[] = [0, 3].map((i) => ({ id: `pay-${i}`, payer: DEMO_HORSES[i].owner, month: monthKeyNow, amount: DEMO_HORSES[i].pension, at: now.toISOString() }));
 
   return {
     horses,
@@ -282,7 +335,14 @@ export function buildDemoData(now = new Date()): StableData {
     expenseCategories: DEFAULT_EXPENSE_CATEGORIES,
     recurringExpenses,
     careEvents,
-    rhythms,
+    rhythms: [],
+    people,
+    prestations,
+    seances,
+    taskLists,
+    tasks,
+    actions: [],
+    payments,
     // La grille tarifaire de la démo : les prix se préremplissent partout.
     tariffs: { pension: 450, cours_collectif: 25, cours_individuel: 35, entrainement: 30 },
     // Les prestations libres du gérant, avec leur prix par défaut.

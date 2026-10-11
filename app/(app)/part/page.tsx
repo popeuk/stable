@@ -31,7 +31,7 @@ function Part() {
   const n = horses.length || 1;
   return (
     <Screen>
-      <Back href={id ? `/ticket?id=${id}` : "/mois"}>{id ? "Retour au ticket" : "Le mois"}</Back>
+      <Back href={id ? `/ticket?id=${id}` : "/argent"}>{id ? "Retour au ticket" : "Argent"}</Back>
       <h1 className="bs-d bs-t1" style={{ marginTop: 6 }}>
         La part de l’écurie, c’est quoi&nbsp;?
       </h1>

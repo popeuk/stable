@@ -79,7 +79,7 @@ function SaisieRevenu() {
         source: "manual",
       });
     }
-    router.push("/aujourdhui");
+    router.push("/accueil");
   }
 
   return (

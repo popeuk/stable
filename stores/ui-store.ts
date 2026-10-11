@@ -8,7 +8,11 @@ import type { CareKind } from "@/lib/domain/care";
  * un ticket ou une échéance), le message du bas, et la dernière ligne
  * ajoutée (surlignée sur le ticket du cheval).
  */
+export type AddMode = "seance" | "soin" | "tache" | "depense";
 export interface NoterPrefill {
+  mode?: AddMode;
+  /** Pour une séance : l'heure touchée dans les créneaux. */
+  start?: string;
   horseIds?: string[];
   kind?: NoteKindId;
   amount?: number;
@@ -32,6 +36,11 @@ interface UiState {
   prefill: NoterPrefill;
   toast: Toast | null;
   lastLine: { horseId: string; sourceId: string } | null;
+  /** La séance ouverte (fiche, présence, modification). */
+  seanceId: string | null;
+  seanceView: "fiche" | "presence" | "modifier";
+  openSeance: (id: string, view?: "fiche" | "presence" | "modifier") => void;
+  closeSeance: () => void;
   openNoter: (p?: NoterPrefill) => void;
   closeNoter: () => void;
   say: (html: string, undo?: () => void) => void;
@@ -46,6 +55,10 @@ export const useUiStore = create<UiState>((set) => ({
   prefill: {},
   toast: null,
   lastLine: null,
+  seanceId: null,
+  seanceView: "fiche",
+  openSeance: (id, view = "fiche") => set({ seanceId: id, seanceView: view }),
+  closeSeance: () => set({ seanceId: null }),
   openNoter: (p = {}) => set({ noterOpen: true, prefill: p }),
   closeNoter: () => set({ noterOpen: false }),
   say: (html, undo) => {

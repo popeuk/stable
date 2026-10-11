@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useDataStore } from "@/stores/data-store";
-import { useUiStore, type NoteKindId } from "@/stores/ui-store";
+import { useUiStore, type AddMode, type NoteKindId } from "@/stores/ui-store";
+import { SeanceForm } from "@/components/bs/seance-form";
+import { TaskForm } from "@/components/bs/task-form";
 import { Picto, pictoForLabel, type PictoName } from "@/components/bs/picto";
 import { HorseFace } from "@/components/bs/horse-face";
 import { eur, signed, esc } from "@/components/bs/ui";
@@ -58,12 +60,17 @@ function NoterInner() {
   const horses = useMemo(() => data.horses.filter((h) => !h.isArchived), [data.horses]);
   const today = localToday();
 
-  const [kind, setKind] = useState<NoteKindId>(prefill.kind ?? "ferrure");
+  const MONEY_KINDS: NoteKindId[] = ["recette", "depense", "commune"];
+  const [mode, setMode] = useState<AddMode>(
+    prefill.mode ?? (prefill.kind ? (MONEY_KINDS.includes(prefill.kind) ? "depense" : "soin") : prefill.horseIds?.length ? "soin" : "seance"),
+  );
+  const [kind, setKind] = useState<NoteKindId>(prefill.kind ?? (mode === "depense" ? "depense" : "ferrure"));
   const [horseIds, setHorseIds] = useState<string[]>(prefill.horseIds ?? []);
   const [amount, setAmount] = useState(prefill.amount ? String(prefill.amount) : "");
   const [when, setWhen] = useState<When>(prefill.date && prefill.date !== today ? "other" : "today");
   const [otherDate, setOtherDate] = useState(prefill.date ?? today);
   const [label, setLabel] = useState("");
+  const [time, setTime] = useState("");
   const [catId, setCatId] = useState<string | undefined>();
   const [heard, setHeard] = useState("");
   const [listening, setListening] = useState(false);
@@ -189,6 +196,7 @@ function NoterInner() {
     st.logCareMany(horseIds, {
       kind: kind as CareKind,
       date,
+      start: time || undefined,
       label: label.trim() || undefined,
       cost: K.money === "cost" && value ? value : undefined,
       revenue: K.money === "revenue" && value ? value : undefined,
@@ -213,15 +221,45 @@ function NoterInner() {
         <button type="button" className="bs-x" onClick={close} aria-label="Fermer">
           <Picto name="x" size={20} />
         </button>
+        {!done && (
+          <div className="bs-seg" aria-label="Ajouter" style={{ marginTop: 2, marginRight: 40 }}>
+            {(
+              [
+                ["seance", "Séance"],
+                ["soin", "Soin"],
+                ["tache", "Tâche"],
+                ["depense", "Argent"],
+              ] as [AddMode, string][]
+            ).map(([m, l]) => (
+              <button
+                key={m}
+                type="button"
+                aria-pressed={mode === m}
+                onClick={() => {
+                  setMode(m);
+                  if (m === "soin") setKind("ferrure");
+                  if (m === "depense") setKind("depense");
+                  setCatId(undefined);
+                }}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        )}
         {done ? (
           <Done done={done} count={horseIds.length} onClose={close} />
+        ) : mode === "seance" ? (
+          <SeanceForm onDone={close} date={prefill.date} start={prefill.start} />
+        ) : mode === "tache" ? (
+          <TaskForm onDone={close} />
         ) : (
           <>
-            <h2 className="bs-d bs-t1" style={{ marginTop: 4 }}>
-              Qu’as-tu fait&nbsp;?
+            <h2 className="bs-d bs-t2" style={{ marginTop: 14 }}>
+              {mode === "soin" ? "Quel soin ?" : "Quelle recette ou dépense ?"}
             </h2>
             <div className="bs-chips">
-              {KINDS.map((k) => (
+              {KINDS.filter((k) => (mode === "depense") === MONEY_KINDS.includes(k.id)).map((k) => (
                 <button key={k.id} type="button" className="bs-chip" aria-pressed={kind === k.id} onClick={() => { setKind(k.id); setCatId(undefined); }}>
                   <Picto name={k.picto} />
                   {k.label}
@@ -285,6 +323,12 @@ function NoterInner() {
               <div className="bs-field">
                 <input type="date" value={otherDate} onChange={(e) => setOtherDate(e.target.value)} aria-label="Choisir la date" />
               </div>
+            )}
+            {isCare && (
+              <label className="bs-field">
+                <span>Heure</span>
+                <input type="time" value={time} style={{ textAlign: "right" }} onChange={(e) => setTime(e.target.value)} />
+              </label>
             )}
 
             {(kind === "recette" || kind === "depense" || kind === "commune" || isCare) && (

@@ -142,7 +142,7 @@ function Composer() {
         });
       }
     }
-    router.push("/aujourdhui");
+    router.push("/accueil");
   }
 
   // La phrase vivante.

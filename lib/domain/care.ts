@@ -31,6 +31,8 @@ export interface CareEvent {
   /** Détail libre : « Rappel grippe », « Ferrure 4 pieds »… */
   label?: string;
   date: ISODate;
+  /** L'heure prévue (HH:MM), pour le planning en créneaux. */
+  start?: string;
   /** Le prestataire (vétérinaire, maréchal…) : le lien vers les personnes. */
   provider?: string;
   /** Coût de l'acte. Quand il est saisi, une dépense directe liée existe. */

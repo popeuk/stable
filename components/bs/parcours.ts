@@ -15,7 +15,7 @@ export const OBSTACLE_META: Record<ObstacleId, { title: string; todo: string; hr
   chevaux: { title: "Tes chevaux", todo: "Ajoute les chevaux en pension", href: "/parcours/chevaux", picto: "horse" },
   tarifs: { title: "Tes tarifs", todo: "Donne le prix de chaque pension", href: "/parcours/tarifs", picto: "euro" },
   factures: { title: "Tes factures communes", todo: "Foin, salaires, loyer, à la louche", href: "/parcours/factures", picto: "foin" },
-  journee: { title: "Ta première journée", todo: "Coche 3 choses que tu fais", href: "/aujourdhui", picto: "cal" },
+  journee: { title: "Ta première journée", todo: "Valide 3 choses que tu fais", href: "/planning", picto: "cal" },
   ticket: { title: "Ton premier ticket", todo: "Ouvre le ticket d’un cheval", href: "/chevaux", picto: "jump" },
   seuil: { title: "Ton seuil", todo: "Découvre combien de chevaux paient tout", href: "/seuil", picto: "flag" },
 };

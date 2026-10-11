@@ -68,7 +68,7 @@ function SaisieCheval() {
       entryDate,
       exitDate: null,
     });
-    router.push(isFirst ? "/aujourdhui" : "/chevaux");
+    router.push(isFirst ? "/accueil" : "/chevaux");
   }
 
   return (

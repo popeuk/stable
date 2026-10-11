@@ -22,7 +22,7 @@ function Parcours() {
       <div className="bs-over">
         <span>Ton parcours</span>
         {setupDone && (
-          <Link href="/aujourdhui" style={{ color: "var(--vert)", fontWeight: 500 }}>
+          <Link href="/accueil" style={{ color: "var(--vert)", fontWeight: 500 }}>
             Ma journée
           </Link>
         )}

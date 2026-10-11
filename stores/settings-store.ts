@@ -35,6 +35,9 @@ interface SettingsState {
   reminder: string;
   /** Un rappel le soir s'il reste quelque chose. */
   evening: boolean;
+  /** L'objectif du mois : ce que le gérant veut se verser (€/mois). */
+  objective: number;
+  setObjective: (n: number) => void;
   passObstacle: (id: ObstacleId) => boolean;
   setArrived: () => void;
   setReminder: (t: string) => void;
@@ -65,6 +68,8 @@ export const useSettingsStore = create<SettingsState>()(
       gerant: "Claire",
       reminder: "7:45",
       evening: true,
+      objective: 1000,
+      setObjective: (n) => set({ objective: Math.max(0, Math.round(n)) }),
       passObstacle: (id) => {
         if (get().parcours[id]) return false;
         set((s) => ({ parcours: { ...s.parcours, [id]: true } }));
@@ -87,9 +92,9 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "be-stable-settings",
-      version: 4,
+      version: 5,
       // v4 : le parcours de démarrage arrive ; les anciens réglages sont gardés.
-      migrate: (old) => ({ ...(old as object), parcours: { ...NO_OBSTACLE }, arrived: false }) as never,
+      migrate: (old, v) => ({ objective: 1000, ...(old as object), ...(v < 4 ? { parcours: { ...NO_OBSTACLE }, arrived: false } : {}) }) as never,
     },
   ),
 );

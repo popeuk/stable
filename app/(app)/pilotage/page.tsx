@@ -84,7 +84,7 @@ function Pilotage() {
           construira ici toute seule.
         </p>
         <Link
-          href="/aujourdhui"
+          href="/accueil"
           className="mt-4 inline-flex items-center gap-1.5 btn-primary px-4 py-2 text-[13px] text-[var(--on-accent)]"
         >
           Retour à ma journée

@@ -85,7 +85,7 @@ function SaisieCharge() {
         source: photoMode ? "photo" : "manual",
       });
     }
-    router.push("/aujourdhui");
+    router.push("/accueil");
   }
 
   return (

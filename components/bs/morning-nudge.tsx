@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { agendaSessions, CARE_META } from "@/lib/domain/care";
+import { dayItems, toValidate } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 
 /**
@@ -27,8 +27,9 @@ export function MorningNudge() {
         sent = JSON.parse(localStorage.getItem(KEY) ?? "{}");
       } catch {}
       const data = useDataStore.getState();
-      const names = (ids: string[]) => ids.map((id) => data.horses.find((h) => h.id === id)?.name).filter(Boolean).slice(0, 2).join(", ");
-      const todays = agendaSessions(data, today).filter((s) => s.daysUntil <= 0);
+      const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const todays = dayItems(data, today, today, hhmm).filter((i) => !i.done);
+      const late = toValidate(data, today, hhmm);
       const [h, m] = reminder.split(":").map(Number);
       const minutes = now.getHours() * 60 + now.getMinutes();
       const notify = async (tag: string, title: string, body: string) => {
@@ -44,10 +45,10 @@ export function MorningNudge() {
         notify(
           "morning",
           `Ta journée : ${todays.length} chose${todays.length > 1 ? "s" : ""}`,
-          todays.length ? todays.slice(0, 3).map((s) => `${CARE_META[s.kind].label} ${names(s.events.map((e) => e.horseId))}`).join(", ") : "Rien de prévu. Une journée pour avancer.",
+          todays.length ? todays.slice(0, 3).map((i) => `${i.start ? `${i.start} ` : ""}${i.title}`).join(", ") : "Rien de prévu. Une journée pour avancer.",
         );
-      } else if (evening && minutes >= 19 * 60 + 30 && todays.length > 0 && sent.evening !== today) {
-        notify("evening", `Il reste ${todays.length} chose${todays.length > 1 ? "s" : ""}`, "Un geste suffit, même demain.");
+      } else if (evening && minutes >= 19 * 60 + 30 && late.length > 0 && sent.evening !== today) {
+        notify("evening", `${late.length} chose${late.length > 1 ? "s" : ""} à valider`, "Valide ce qui a eu lieu : le compteur du mois ne compte que ça.");
       }
     };
     check();
