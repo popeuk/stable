@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Over, Screen, Sec, Toggle, cap } from "@/components/bs/ui";
 import { Picto } from "@/components/bs/picto";
+import { InstallCard } from "@/components/bs/desk";
 import { useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -20,6 +21,36 @@ export default function Page() {
       <Moi />
     </ClientGate>
   );
+}
+
+/** Les deux mémoires de l'app dans le navigateur : l'écurie et les réglages. */
+const KEYS = ["be-stable-data", "be-stable-settings"] as const;
+
+function exportData() {
+  const out: Record<string, unknown> = { app: "be-stable", version: 1, exportedAt: new Date().toISOString() };
+  for (const k of KEYS) {
+    try {
+      out[k] = JSON.parse(localStorage.getItem(k) ?? "null");
+    } catch {}
+  }
+  const blob = new Blob([JSON.stringify(out)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `be-stable-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+async function importData(file: File) {
+  try {
+    const json = JSON.parse(await file.text());
+    if (json?.app !== "be-stable" || !json["be-stable-data"]) throw new Error("format");
+    if (!window.confirm("Remplacer les données de cet appareil par celles du fichier ?")) return;
+    for (const k of KEYS) if (json[k]) localStorage.setItem(k, JSON.stringify(json[k]));
+    window.location.reload();
+  } catch {
+    window.alert("Ce fichier n’est pas une sauvegarde Be Stable. Choisis le fichier .json exporté depuis l’app.");
+  }
 }
 
 function Moi() {
@@ -157,8 +188,32 @@ function Moi() {
       {soon(`Publier mes ${Math.max(0, s.capacity - horses.length)} boxes libres`, "sur mon-ecurie.fr, gratuit, sans commission", "box")}
       {soon("Gérer, la communauté des gérants", won ? "40 € par mois, tarif fondateur −20 % la première année" : "s’ouvre avec ton flot « Écurie prête »", "equipe")}
 
+      <Sec>L’app sur ton ordinateur et ton téléphone</Sec>
+      <InstallCard />
+
       <Sec>Tes données</Sec>
-      <p className="bs-p" style={{ marginTop: 6 }}>Tout est enregistré sur ce téléphone.</p>
+      <p className="bs-p" style={{ marginTop: 6 }}>
+        Tout est enregistré dans cet appareil. Pour passer du téléphone à l’ordinateur : exporte ici, puis importe le fichier sur l’autre appareil.
+      </p>
+      <button type="button" className="bs-li tap" onClick={exportData}>
+        <span className="bs-pic">
+          <Picto name="down" />
+        </span>
+        <span className="tx">
+          <b>Exporter mes données</b>
+          <span>un fichier .json avec toute l’écurie</span>
+        </span>
+      </button>
+      <label className="bs-li tap" style={{ cursor: "pointer" }}>
+        <span className="bs-pic">
+          <Picto name="up" />
+        </span>
+        <span className="tx">
+          <b>Importer un fichier</b>
+          <span>remplace les données de cet appareil</span>
+        </span>
+        <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
+      </label>
       <button
         type="button"
         className="bs-li tap"

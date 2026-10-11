@@ -1,18 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
+import { captureInstall } from "@/lib/pwa";
 
-/** Registers the service worker once, in production. */
+/**
+ * Enregistre le service worker (en production) à la racine de l'app, sous
+ * /stable sur GitHub Pages, et garde la proposition d'installation.
+ */
 export function PwaRegister() {
   useEffect(() => {
+    captureInstall();
     if (process.env.NODE_ENV !== "production") return;
-    // Skip on the static export (served from a sub-path) — the SW lives at the
-    // site root and would 404.
-    if (process.env.NEXT_PUBLIC_BASE_PATH) return;
     if (!("serviceWorker" in navigator)) return;
-    const onLoad = () => navigator.serviceWorker.register("/sw.js").catch(() => {});
-    window.addEventListener("load", onLoad);
-    return () => window.removeEventListener("load", onLoad);
+    const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+    navigator.serviceWorker.register(`${base}/sw.js`, { scope: `${base}/` }).catch(() => {});
   }, []);
   return null;
 }
+
+/** Écoute la proposition d'installation avant même le chargement de React. */
+export const EARLY_INSTALL_SCRIPT = `window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__bsInstall=e;});`;

@@ -51,6 +51,10 @@ const P: Record<string, string> = {
   chevD: '<path d="m6 9 6 6 6-6"/>',
   home: '<path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/>',
   trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  install: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 7v6M9.5 10.5 12 13l2.5-2.5"/>',
+  keys: '<rect x="2.5" y="6" width="19" height="12" rx="1.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
+  phone: '<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>',
+  sidebar: '<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M9 4v16"/>',
 };
 
 export type PictoName = keyof typeof P | string;

@@ -46,6 +46,13 @@ interface UiState {
   say: (html: string, undo?: () => void) => void;
   dismiss: () => void;
   markLine: (horseId: string, sourceId: string) => void;
+  /** Ordinateur : la palette (Ctrl K) et l'aide des raccourcis (?). */
+  paletteOpen: boolean;
+  openPalette: () => void;
+  closePalette: () => void;
+  helpOpen: boolean;
+  openHelp: () => void;
+  closeHelp: () => void;
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -69,4 +76,10 @@ export const useUiStore = create<UiState>((set) => ({
   },
   dismiss: () => set({ toast: null }),
   markLine: (horseId, sourceId) => set({ lastLine: { horseId, sourceId } }),
+  paletteOpen: false,
+  openPalette: () => set({ paletteOpen: true, helpOpen: false }),
+  closePalette: () => set({ paletteOpen: false }),
+  helpOpen: false,
+  openHelp: () => set({ helpOpen: true, paletteOpen: false }),
+  closeHelp: () => set({ helpOpen: false }),
 }));

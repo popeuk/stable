@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useDesk } from "@/components/bs/desk";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, Sec, eur } from "@/components/bs/ui";
 import { Picto } from "@/components/bs/picto";
@@ -20,7 +22,9 @@ import type { PersonRole } from "@/lib/domain/types";
 export default function Page() {
   return (
     <ClientGate>
-      <Clients />
+      <Suspense fallback={null}>
+        <Clients />
+      </Suspense>
     </ClientGate>
   );
 }
@@ -31,8 +35,11 @@ function Clients() {
   const data = useDataStore();
   const active = usePeriodStore((s) => s.active);
   const say = useUiStore((s) => s.say);
-  const [role, setRole] = useState<PersonRole>("proprietaire");
-  const [q, setQ] = useState("");
+  const q0 = useSearchParams().get("q") ?? "";
+  const role0 = (data.people ?? []).find((p) => p.name === q0)?.role ?? "proprietaire";
+  const [role, setRole] = useState<PersonRole>(role0);
+  const [q, setQ] = useState(q0);
+  const desk = useDesk();
   const [adding, setAdding] = useState("");
   const bills = useMemo(() => billsFor(data, active), [data, active]);
   const people = (data.people ?? []).filter((p) => p.active && p.role === role && (!q || p.name.toLowerCase().includes(q.toLowerCase()))).sort((a, b) => a.name.localeCompare(b.name, "fr"));
@@ -47,12 +54,12 @@ function Clients() {
   }
 
   return (
-    <Screen>
+    <Screen wide={desk}>
       <div className="bs-over">
         <span>{(data.people ?? []).filter((p) => p.active).length} personnes</span>
       </div>
       <h1 className="bs-d bs-t1">Clients</h1>
-      <div className="bs-seg">
+      <div className="bs-seg" style={{ maxWidth: desk ? 420 : undefined }}>
         <button type="button" aria-pressed={role === "proprietaire"} onClick={() => setRole("proprietaire")}>
           Propriétaires
         </button>
@@ -60,12 +67,73 @@ function Clients() {
           Cavaliers
         </button>
       </div>
-      <div className="bs-quick" style={{ marginTop: 12 }}>
+      <div className="bs-quick" style={{ marginTop: 12, maxWidth: desk ? 420 : undefined }}>
         <input placeholder="Chercher un nom" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Chercher un client" />
       </div>
       <Sec>{role === "proprietaire" ? "Ceux qui ont un cheval en pension" : "Ceux qui montent en cours"}</Sec>
       {people.length === 0 && <p className="bs-p">Personne ici pour l’instant.</p>}
-      {people.map((p) => {
+      {desk && people.length > 0 && (
+        <table className="bs-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>{role === "proprietaire" ? "Chevaux" : "Monte"}</th>
+              <th className="n">Séances du mois</th>
+              <th>Téléphone</th>
+              <th className="n">Ce mois</th>
+              <th className="n">Reste dû</th>
+            </tr>
+          </thead>
+          <tbody>
+            {people.map((p) => {
+              const horses = data.horses.filter((h) => !h.isArchived && h.ownerName === p.name);
+              const ss = (data.seances ?? []).filter((x) => x.date.startsWith(mm) && x.status !== "cancelled" && x.participants.some((y) => y.personId === p.id));
+              const rides = [...new Set(ss.flatMap((x) => x.participants.filter((y) => y.personId === p.id).map((y) => y.horseId)).filter(Boolean))]
+                .map((id) => data.horses.find((h) => h.id === id))
+                .filter((h): h is NonNullable<typeof h> => !!h);
+              const bill = bills.find((b) => b.payer === p.name);
+              const shownHorses = role === "proprietaire" ? horses : rides;
+              return (
+                <tr key={p.id}>
+                  <td>
+                    <span className="who">
+                      <span className="bs-ini" style={{ width: 30, height: 30, fontSize: 11 }}>
+                        {ini(p.name)}
+                      </span>
+                      {p.name}
+                    </span>
+                  </td>
+                  <td>
+                    <span style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                      {shownHorses.map((h) => (
+                        <Link key={h.id} href={`/ticket?id=${h.id}`} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13 }} title={`Ticket de ${h.name}`}>
+                          <HorseFace horse={h} size={24} />
+                          {h.name}
+                        </Link>
+                      ))}
+                    </span>
+                  </td>
+                  <td className="n">{ss.length || ""}</td>
+                  <td className="m">
+                    <input
+                      defaultValue={p.phone ?? ""}
+                      placeholder="ajouter"
+                      aria-label={`Téléphone de ${p.name}`}
+                      onChange={(e) => useDataStore.getState().updatePerson(p.id, { phone: e.target.value.trim() || undefined })}
+                      style={{ border: 0, background: "none", font: "inherit", color: "inherit", width: 130, outline: "none" }}
+                    />
+                  </td>
+                  <td className="n">{bill ? eur(bill.total) : ""}</td>
+                  <td className="n">
+                    {bill ? <span className={`bs-pill ${bill.due <= 0 ? "g" : "o"}`}>{bill.due <= 0 ? "payé" : eur(bill.due)}</span> : <span className="m">rien</span>}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+      {!desk && people.map((p) => {
         const horses = data.horses.filter((h) => !h.isArchived && h.ownerName === p.name);
         const seances = (data.seances ?? []).filter((s) => s.date.startsWith(mm) && s.status !== "cancelled" && s.participants.some((x) => x.personId === p.id));
         const bill = bills.find((b) => b.payer === p.name);

@@ -6,6 +6,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, Sec, esc, eur } from "@/components/bs/ui";
 import { Picto } from "@/components/bs/picto";
 import { LABELS } from "@/components/bs/task-form";
+import { useDesk } from "@/components/bs/desk";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -49,6 +50,26 @@ function Equipe() {
   const [mine, setMine] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [quick, setQuick] = useState<Record<string, string>>({});
+  const desk = useDesk();
+  const [drag, setDrag] = useState<string | null>(null);
+  const [over, setOver] = useState<string | null>(null);
+
+  // Ordinateur : glisser une carte d'une colonne à l'autre.
+  function drop(listId: string) {
+    const id = drag;
+    setDrag(null);
+    setOver(null);
+    const t = (useDataStore.getState().tasks ?? []).find((x) => x.id === id);
+    if (!t || t.listId === listId) return;
+    const st = useDataStore.getState();
+    const snap = { tasks: st.tasks, sharedExpenses: st.sharedExpenses };
+    st.moveTask(t.id, listId);
+    const l = lists.find((x) => x.id === listId);
+    say(
+      l?.isDone && t.cost ? `Fait. <strong>${eur(t.cost)}</strong> ajoutés aux factures communes.` : `Carte déplacée dans <strong>${esc(l?.title ?? "")}</strong>.`,
+      () => useDataStore.setState(snap),
+    );
+  }
   const today = localToday();
   const lists = data.taskLists ?? [];
   const tasks = useMemo(
@@ -74,7 +95,22 @@ function Equipe() {
     const late = t.due && t.due.slice(0, 10) < today && !lists.find((l) => l.id === t.listId)?.isDone;
     const done = t.checklist.filter((c) => c.done).length;
     return (
-      <button key={t.id} type="button" className="bs-tcard" onClick={() => setOpen(t.id)}>
+      <button
+        key={t.id}
+        type="button"
+        className={`bs-tcard${drag === t.id ? " drag" : ""}`}
+        onClick={() => setOpen(t.id)}
+        draggable={desk && vue === "tableau"}
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", t.id);
+          setDrag(t.id);
+        }}
+        onDragEnd={() => {
+          setDrag(null);
+          setOver(null);
+        }}
+      >
         {t.labels.length > 0 && (
           <span style={{ display: "block", marginBottom: 5 }}>
             {t.labels.map((l) => (
@@ -117,7 +153,7 @@ function Equipe() {
   };
 
   return (
-    <Screen>
+    <Screen wide={desk}>
       <div className="bs-over">
         <span>{data.team?.length ? `${data.team.length + 1} dans l’équipe` : "Toi et ton équipe"}</span>
         <button type="button" className="bs-link" onClick={() => openNoter({ mode: "tache" })}>
@@ -126,7 +162,7 @@ function Equipe() {
       </div>
       <h1 className="bs-d bs-t1">Tâches d’équipe</h1>
       <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10 }}>
-        <div className="bs-seg" style={{ flex: 1, marginTop: 0 }}>
+        <div className="bs-seg" style={{ flex: desk ? "0 0 260px" : 1, marginTop: 0 }}>
           <button type="button" aria-pressed={vue === "tableau"} onClick={() => pick("tableau")}>
             Tableau
           </button>
@@ -144,7 +180,23 @@ function Equipe() {
           {lists.map((l) => {
             const ts = tasks.filter((t) => t.listId === l.id);
             return (
-              <section key={l.id} className="bs-colb" aria-label={l.title}>
+              <section
+                key={l.id}
+                className={`bs-colb${over === l.id ? " over" : ""}`}
+                aria-label={l.title}
+                onDragOver={(e) => {
+                  if (!drag) return;
+                  e.preventDefault();
+                  if (over !== l.id) setOver(l.id);
+                }}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  drop(l.id);
+                }}
+              >
                 <h3>
                   {l.title} <span>{ts.length}</span>
                 </h3>
@@ -183,7 +235,7 @@ function Equipe() {
       )}
       {tasks.length === 0 && <p className="bs-p" style={{ marginTop: 12 }}>{mine ? "Rien ne t’est attribué." : "Aucune tâche. Ajoute la première avec le +."}</p>}
       <p className="bs-p" style={{ fontSize: 12, marginTop: 14 }}>
-        Une carte avec un coût devient une facture commune quand elle passe en « {lists.find((l) => l.isDone)?.title ?? "Fait"} ». Les tâches datées apparaissent aussi au planning.
+        {desk ? "Glisse une carte d’une colonne à l’autre. " : ""}Une carte avec un coût devient une facture commune quand elle passe en « {lists.find((l) => l.isDone)?.title ?? "Fait"} ». Les tâches datées apparaissent aussi au planning.
       </p>
       {open && <TaskSheet id={open} onClose={() => setOpen(null)} />}
     </Screen>

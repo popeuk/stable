@@ -7,6 +7,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Back, Screen, Sec, Tip, eur, signed } from "@/components/bs/ui";
 import { CARE_PICTO, Picto, pictoForLabel } from "@/components/bs/picto";
 import { HorseFace } from "@/components/bs/horse-face";
+import { useDesk } from "@/components/bs/desk";
 import { useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -63,6 +64,7 @@ function Ticket({ horse }: { horse: Horse }) {
   const { pass, setupDone, parcours } = useParcours();
   const [offset, setOffset] = useState(0);
   const [seg, setSeg] = useState<"ticket" | "carnet" | "planning">("ticket");
+  const desk = useDesk();
   const say = useUiStore((s) => s.say);
   const openSeance = useUiStore((s) => s.openSeance);
   const period = useMemo(() => addMonths(currentPeriod(), offset), [offset]);
@@ -88,9 +90,10 @@ function Ticket({ horse }: { horse: Horse }) {
   }, [setupDone, parcours.ticket, pass]);
 
   return (
-    <Screen>
+    <Screen wide={desk}>
       <Back href="/chevaux">Mes chevaux</Back>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6 }}>
+      {desk && <HorseStrip current={horse.id} nets={nets} />}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: desk ? 14 : 6 }}>
         <HorseFace horse={horse} size={56} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 className="bs-d bs-t2">Le ticket de {horse.name}</h1>
@@ -110,6 +113,7 @@ function Ticket({ horse }: { horse: Horse }) {
         </button>
       </div>
 
+      {!desk && (
       <div className="bs-seg">
         {(
           [
@@ -123,8 +127,11 @@ function Ticket({ horse }: { horse: Horse }) {
           </button>
         ))}
       </div>
+      )}
 
-      {seg === "ticket" && (
+      <div className={desk ? "bs-split wide-l" : undefined}>
+      <div>
+      {(desk || seg === "ticket") && (
       <>
       <div className="bs-ticket" style={{ marginTop: 10 }}>
         {t.lines.length === 0 && <p className="bs-p">Rien ce mois-ci pour l’instant.</p>}
@@ -178,8 +185,27 @@ function Ticket({ horse }: { horse: Horse }) {
 
       </>
       )}
+      </div>
 
-      {seg === "planning" && (
+      <div className={desk ? "stick" : undefined}>
+      {(desk || seg === "carnet") && due.length > 0 && desk && (
+        <>
+          <Sec>À prévoir</Sec>
+          {due.map((d) => (
+            <button key={d.kind} type="button" className="bs-li tap" onClick={() => openNoter({ kind: d.kind, horseIds: [horse.id] })}>
+              <span className={`bs-pic ${d.status === "overdue" ? "rose" : ""}`}>
+                <Picto name={CARE_PICTO[d.kind]} />
+              </span>
+              <span className="tx">
+                <b>{CARE_META[d.kind].label}</b>
+                <span className={d.status === "overdue" ? "bs-late" : ""}>{d.daysLeft < 0 ? `en retard de ${-d.daysLeft} j` : d.daysLeft === 0 ? "aujourd’hui" : `dans ${d.daysLeft} j`}</span>
+              </span>
+              <Picto name="chev" />
+            </button>
+          ))}
+        </>
+      )}
+      {(desk || seg === "planning") && (
         <>
           <Sec>À venir</Sec>
           {seances.length === 0 && <p className="bs-p">Aucune séance prévue pour {horse.name}.</p>}
@@ -204,9 +230,9 @@ function Ticket({ horse }: { horse: Horse }) {
         </>
       )}
 
-      {seg === "carnet" && (
+      {(desk || seg === "carnet") && (
       <>
-      {due.length > 0 && (
+      {!desk && due.length > 0 && (
         <>
           <Sec>À prévoir</Sec>
           {due.map((d) => (
@@ -243,6 +269,8 @@ function Ticket({ horse }: { horse: Horse }) {
       ))}
       </>
       )}
+      </div>
+      </div>
 
       <button
         type="button"
@@ -258,5 +286,23 @@ function Ticket({ horse }: { horse: Horse }) {
         {horse.name} quitte l’écurie
       </button>
     </Screen>
+  );
+}
+
+/** Ordinateur : tous les chevaux en bandeau, pour passer d'un ticket à l'autre. */
+function HorseStrip({ current, nets }: { current: string; nets: Record<string, number> }) {
+  const horses = useDataStore((s) => s.horses);
+  return (
+    <nav className="bs-hstrip" aria-label="Changer de cheval">
+      {horses
+        .filter((h) => !h.isArchived)
+        .map((h) => (
+          <Link key={h.id} href={`/ticket?id=${h.id}`} aria-current={h.id === current ? "page" : undefined}>
+            <HorseFace horse={h} size={36} />
+            {h.name}
+            <i style={{ color: (nets[h.id] ?? 0) >= 0 ? "var(--vert)" : "var(--rose-ink)" }}>{signed(nets[h.id] ?? 0)}</i>
+          </Link>
+        ))}
+    </nav>
   );
 }

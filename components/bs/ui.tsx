@@ -20,8 +20,12 @@ export const esc = (s: string) =>
 export const withBase = (path: string) => `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${path}`;
 
 /* ---------- Haut d'écran ---------- */
-export function Screen({ children }: { children: ReactNode }) {
-  return <div className="bs-screen">{children}</div>;
+/**
+ * Un écran. Sur ordinateur, « wide » occupe toute la largeur utile
+ * (cockpit, planning, tableaux) ; sinon une colonne de lecture.
+ */
+export function Screen({ children, wide }: { children: ReactNode; wide?: boolean }) {
+  return <div className={`bs-screen${wide ? " wide" : ""}`}>{children}</div>;
 }
 
 export function Over({ left, right }: { left: ReactNode; right?: ReactNode }) {

@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useDesk } from "@/components/bs/desk";
+import { WeekGrid } from "@/components/bs/week-grid";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap, signed } from "@/components/bs/ui";
 import { Picto } from "@/components/bs/picto";
@@ -21,7 +24,9 @@ import { localToday } from "@/lib/utils/local-date";
 export default function Page() {
   return (
     <ClientGate>
-      <Planning />
+      <Suspense fallback={null}>
+        <Planning />
+      </Suspense>
     </ClientGate>
   );
 }
@@ -51,7 +56,9 @@ function Planning() {
   const now = hhmm();
   const [view, setView] = useState<"semaine" | "mois">(() => read("bs:planning-vue", "semaine") as "semaine" | "mois");
   const [dayView, setDayView] = useState<"liste" | "creneaux">(() => read("bs:planning-jour", "creneaux") as "liste" | "creneaux");
-  const [sel, setSel] = useState(today);
+  const jour = useSearchParams().get("jour");
+  const [sel, setSel] = useState(jour && /^\d{4}-\d{2}-\d{2}$/.test(jour) ? jour : today);
+  const desk = useDesk();
   useEffect(() => write("bs:planning-vue", view), [view]);
   useEffect(() => write("bs:planning-jour", dayView), [dayView]);
 
@@ -87,10 +94,145 @@ function Planning() {
     }
   };
 
+  // Ordinateur : ← et → changent de période, T revient à aujourd'hui.
+  useEffect(() => {
+    if (!desk) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (e.metaKey || e.ctrlKey || e.altKey || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName)) return;
+      const ui = useUiStore.getState();
+      if (ui.noterOpen || ui.seanceId || ui.paletteOpen || ui.helpOpen) return;
+      if (e.key === "ArrowLeft") shift(-1);
+      else if (e.key === "ArrowRight") shift(1);
+      else if (e.key.toLowerCase() === "t") setSel(today);
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   const title =
     view === "semaine"
       ? `Semaine du ${Number(monday.slice(8))} ${new Date(monday + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" })}`
       : cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { month: "long", year: "numeric" }));
+
+  if (desk) {
+    const nav = (
+      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <button type="button" className="bs-back" style={{ margin: 0, minHeight: 30 }} onClick={() => shift(-1)} aria-label="Période précédente" title="Période précédente (←)">
+          <Picto name="chevL" />
+        </button>
+        <button type="button" className="bs-back" style={{ margin: 0, minHeight: 30 }} onClick={() => shift(1)} aria-label="Période suivante" title="Période suivante (→)">
+          <Picto name="chev" />
+        </button>
+        <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink-1)", marginLeft: 4, whiteSpace: "nowrap" }}>{title}</span>
+        <button type="button" className="bs-chip" style={{ marginLeft: 10, height: 30 }} onClick={() => setSel(today)} disabled={view === "semaine" ? week.includes(today) : sel.slice(0, 7) === today.slice(0, 7)} title="Aujourd’hui (T)">
+          Aujourd’hui
+        </button>
+      </span>
+    );
+    return (
+      <Screen wide>
+        <div className="bs-dhead">
+          <div>
+            <h1 className="bs-d bs-t1">Planning</h1>
+            <div style={{ marginTop: 8 }}>{nav}</div>
+          </div>
+          <div style={{ display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div className="bs-sum3" style={{ margin: 0, width: 360, maxWidth: "100%" }}>
+              <div>
+                <b>{sum.count}</b>
+                <span>séances</span>
+              </div>
+              <div>
+                <b style={{ color: "var(--vert)" }}>{signed(sum.validated)}</b>
+                <span>validés</span>
+              </div>
+              <div>
+                <b style={{ color: "var(--ink-3)" }}>{signed(sum.planned)}</b>
+                <span>encore prévus</span>
+              </div>
+            </div>
+            <div className="bs-seg" style={{ margin: 0, width: 180 }}>
+              <button type="button" aria-pressed={view === "semaine"} onClick={() => setView("semaine")}>
+                Semaine
+              </button>
+              <button type="button" aria-pressed={view === "mois"} onClick={() => setView("mois")}>
+                Mois
+              </button>
+            </div>
+          </div>
+        </div>
+        {pending > 0 && (
+          <Link href="/valider" className="bs-banner" style={{ marginTop: 14 }}>
+            <Picto name="clock" />
+            <span style={{ flex: 1 }}>
+              <b>{pending} à valider</b> · les séances passées attendent ta coche
+            </span>
+            <Picto name="chev" />
+          </Link>
+        )}
+        {view === "semaine" ? (
+          <WeekGrid days={week} today={today} now={now} onPickDay={(d) => openNoter({ mode: "seance", date: d })} />
+        ) : (
+          <>
+            <div className="bs-mhead big" style={{ marginTop: 16 }}>
+              {["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"].map((d) => (
+                <span key={d}>{d}</span>
+              ))}
+            </div>
+            <div className="bs-mgrid big" style={{ marginTop: 6 }}>
+              {monthDays.map((d) => {
+                const inMonth = d.slice(0, 7) === sel.slice(0, 7);
+                const its = inMonth ? dayItems(data, d, today, now) : [];
+                const money = its.reduce((t, i) => t + (i.type === "seance" ? (i.money ?? 0) : 0), 0);
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`${inMonth ? "" : "out"}${d === today ? " td" : ""}`}
+                    onClick={() => {
+                      setSel(d);
+                      setView("semaine");
+                    }}
+                    title="Voir la semaine"
+                  >
+                    <span style={{ display: "flex", width: "100%" }}>
+                      {Number(d.slice(8))}
+                      {money ? <span className="tot">{signed(money)}</span> : null}
+                    </span>
+                    {its.slice(0, 3).map((it) => (
+                      <span key={it.key} className="ttl" style={{ background: { g: "var(--vert-soft)", r: "var(--rose-soft)", o: "#F5ECDC", n: "var(--mist)" }[it.tone], opacity: it.done ? 0.6 : 1 }}>
+                        {it.start ? `${it.start} ` : ""}
+                        {it.title}
+                      </span>
+                    ))}
+                    {its.length > 3 && <span className="more">+ {its.length - 3} autre{its.length > 4 ? "s" : ""}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+        <div className="bs-legend" style={{ marginTop: 12 }}>
+          {(
+            [
+              ["g", "rapporte"],
+              ["r", "coûte"],
+              ["o", "écurie"],
+            ] as [Tone, string][]
+          ).map(([t, l]) => (
+            <span key={t}>
+              <i style={{ background: DOT[t] }} />
+              {l}
+            </span>
+          ))}
+          <span style={{ marginLeft: "auto", color: "var(--ink-3)" }}>Clique une heure vide pour planifier · ← → pour changer de semaine</span>
+        </div>
+      </Screen>
+    );
+  }
 
   return (
     <Screen>

@@ -7,6 +7,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, Sec, cap, dec1, eur, esc, signed } from "@/components/bs/ui";
 import { Picto, pictoForLabel } from "@/components/bs/picto";
 import { GoalCard } from "@/components/bs/goal-card";
+import { useDesk } from "@/components/bs/desk";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { usePeriodStore } from "@/stores/period-store";
@@ -48,9 +49,10 @@ function Argent() {
   const active = usePeriodStore((s) => s.active);
   const step = usePeriodStore((s) => s.step);
   const isNow = samePeriod(active, currentPeriod());
+  const desk = useDesk();
   const label = cap(new Date(active.year, active.month - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: isNow ? undefined : "numeric" }));
   return (
-    <Screen>
+    <Screen wide={desk}>
       <div className="bs-over">
         <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
           <button type="button" className="bs-back" style={{ margin: 0, minHeight: 28 }} onClick={() => step(-1)} aria-label="Mois précédent">
@@ -65,7 +67,7 @@ function Argent() {
         </span>
       </div>
       <h1 className="bs-d bs-t1">{{ mois: "Le mois", leviers: "Les leviers", facturer: "À facturer", mouvements: "Mouvements" }[vue]}</h1>
-      <div className="bs-seg" style={{ fontSize: 13 }}>
+      <div className="bs-seg" style={{ fontSize: 13, maxWidth: desk ? 520 : undefined }}>
         {VUES.map(([v, l]) => (
           <button key={v} type="button" aria-pressed={vue === v} onClick={() => router.replace(v === "mois" ? "/argent" : `/argent?vue=${v}`)}>
             {l}
@@ -110,7 +112,8 @@ function Mois() {
   const max = Math.max(1, ...weeks.map((w) => w.done + w.planned));
 
   return (
-    <>
+    <div className="bs-split">
+      <div>
       {isNow ? (
         <GoalCard href="/argent?vue=leviers" />
       ) : (
@@ -151,7 +154,9 @@ function Mois() {
         ))}
       </div>
       <p className="bs-p" style={{ fontSize: 12 }}>Plein : validé. Hachuré : encore prévu au planning. Sous chaque barre, le premier jour de la semaine.</p>
+      </div>
 
+      <div>
       <Sec>Ce qui rentre · {eur(m.revenue)}</Sec>
       {m.ins.map((x) => (
         <div key={x.label} className="bs-li">
@@ -205,7 +210,8 @@ function Mois() {
         </div>
         <Picto name="arrowR" />
       </Link>
-    </>
+      </div>
+    </div>
   );
 }
 
@@ -262,6 +268,7 @@ function Leviers() {
         <span style={{ fontSize: 12, color: "var(--ink-3)" }}> par mois, estimé</span>
         {gained > 0 && <p className="bs-p" style={{ marginTop: 4 }}>Déjà gagné avec tes actions : <b style={{ color: "var(--vert)" }}>+{eur(gained)}</b></p>}
       </div>
+      <div className="bs-lev3">
       {LEVERS.map((lv) => {
         const acts = list.filter((s) => s.lever === lv.id);
         return (
@@ -309,6 +316,7 @@ function Leviers() {
           </div>
         );
       })}
+      </div>
       <p className="bs-p" style={{ fontSize: 12, marginTop: 12 }}>Les montants sont recalculés à chaque saisie, à partir des chiffres de l’écurie.</p>
       <Link href="/scenarios" className="bs-btn line" style={{ marginTop: 10 }}>
         Simuler une hausse des pensions
@@ -330,6 +338,38 @@ function Facturer() {
   const paid = bills.reduce((t, b) => t + Math.min(b.paid, b.total), 0);
   const shown = bills.filter((b) => b.role === role);
   const ini = (n: string) => n.split(/\s+/).map((x) => x[0]).join("").slice(0, 2).toUpperCase();
+  const desk = useDesk();
+  const current = shown.find((b) => b.payer === open) ?? shown[0];
+  const billTicket = (b: (typeof shown)[number]) => (
+    <div className="bs-ticket" style={{ marginTop: desk ? 14 : 0, marginBottom: 16 }}>
+      {desk && (
+        <div className="th">
+          <span className="bs-ini" style={{ width: 28, height: 28, fontSize: 10.5 }}>
+            {ini(b.payer)}
+          </span>
+          <span style={{ flex: 1 }}>{b.payer}</span>
+          <span className={`bs-pill ${b.due <= 0 ? "g" : "o"}`}>{b.due <= 0 ? "payé" : `${eur(b.due)} dus`}</span>
+        </div>
+      )}
+      {b.lines.map((l, i) => (
+        <div key={i} className="bs-tl">
+          <Picto name={pictoForLabel(l.label)} />
+          <span>
+            {l.label}
+            <small>
+              {l.horse ? `${l.horse} · ` : ""}
+              {new Date(l.date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+            </small>
+          </span>
+          <b>{eur(l.amount)}</b>
+        </div>
+      ))}
+      <div className="bs-tot">
+        <span>Total</span>
+        <span className="bs-big">{eur(b.total)}</span>
+      </div>
+    </div>
+  );
 
   function copy() {
     const txt = shown
@@ -342,7 +382,8 @@ function Facturer() {
   }
 
   return (
-    <>
+    <div className={desk ? "bs-split wide-l" : undefined}>
+    <div>
       <div className="bs-sum3">
         <div>
           <b>{eur(total)}</b>
@@ -367,10 +408,10 @@ function Facturer() {
       </div>
       {shown.length === 0 && <p className="bs-p" style={{ marginTop: 12 }}>Rien à facturer ce mois-ci.</p>}
       {shown.map((b) => (
-        <div key={b.payer} style={{ borderBottom: "1px solid var(--line-2)" }}>
+        <div key={b.payer} style={{ borderBottom: "1px solid var(--line-2)", boxShadow: desk && current?.payer === b.payer ? "inset 2px 0 0 var(--vert)" : undefined, paddingLeft: desk ? 10 : undefined, background: desk && current?.payer === b.payer ? "#fff" : undefined }}>
           <div className="bs-act" style={{ borderBottom: 0 }}>
             <span className="bs-ini">{ini(b.payer)}</span>
-            <button type="button" className="tx" style={{ textAlign: "left" }} onClick={() => setOpen(open === b.payer ? null : b.payer)} aria-expanded={open === b.payer}>
+            <button type="button" className="tx" style={{ textAlign: "left" }} onClick={() => setOpen(desk ? b.payer : open === b.payer ? null : b.payer)} aria-expanded={desk ? undefined : open === b.payer} aria-pressed={desk ? current?.payer === b.payer : undefined}>
               <b>{b.payer}</b>
               <span>
                 {b.lines.length} ligne{b.lines.length > 1 ? "s" : ""} · {[...new Set(b.lines.map((l) => l.horse).filter(Boolean))].join(", ")}
@@ -405,27 +446,7 @@ function Facturer() {
               )}
             </span>
           </div>
-          {open === b.payer && (
-            <div className="bs-ticket" style={{ marginTop: 0, marginBottom: 16 }}>
-              {b.lines.map((l, i) => (
-                <div key={i} className="bs-tl">
-                  <Picto name={pictoForLabel(l.label)} />
-                  <span>
-                    {l.label}
-                    <small>
-                      {l.horse ? `${l.horse} · ` : ""}
-                      {new Date(l.date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                    </small>
-                  </span>
-                  <b>{eur(l.amount)}</b>
-                </div>
-              ))}
-              <div className="bs-tot">
-                <span>Total</span>
-                <span className="bs-big">{eur(b.total)}</span>
-              </div>
-            </div>
-          )}
+          {!desk && open === b.payer && billTicket(b)}
         </div>
       ))}
       {shown.length > 0 && (
@@ -433,7 +454,26 @@ function Facturer() {
           Copier le récapitulatif de {new Date(active.year, active.month - 1, 1).toLocaleDateString("fr-FR", { month: "long" })}
         </button>
       )}
-    </>
+    </div>
+    {desk && current && (
+      <div className="stick">
+        {billTicket(current)}
+        {current.due > 0 && (
+          <button
+            type="button"
+            className="bs-btn"
+            onClick={() => {
+              const snap = useDataStore.getState().payments;
+              useDataStore.getState().addPayment(current.payer, mk, current.due);
+              say(`${esc(current.payer)} : <strong>${eur(current.due)}</strong> reçus.`, () => useDataStore.setState({ payments: snap }));
+            }}
+          >
+            {current.payer} a payé {eur(current.due)}
+          </button>
+        )}
+      </div>
+    )}
+    </div>
   );
 }
 
@@ -443,6 +483,7 @@ function Mouvements() {
   const active = usePeriodStore((s) => s.active);
   const say = useUiStore((s) => s.say);
   const [kind, setKind] = useState<"tout" | "in" | "out">("tout");
+  const desk = useDesk();
   const [horse, setHorse] = useState("");
   const name = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "";
   const cat = (id?: string) => [...data.revenueCategories, ...data.expenseCategories].find((c) => c.id === id)?.name;
@@ -498,7 +539,55 @@ function Mouvements() {
         </select>
       </div>
       {rows.length === 0 && <p className="bs-p" style={{ marginTop: 12 }}>Aucun mouvement.</p>}
-      {[...groups.entries()].map(([d, rs]) => (
+      {desk && rows.length > 0 && (
+        <table className="bs-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Libellé</th>
+              <th>Détail</th>
+              <th className="n">Montant</th>
+              <th style={{ width: 44 }}>
+                <span className="sr-only">Supprimer</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id}>
+                <td className="m" style={{ whiteSpace: "nowrap" }}>
+                  {new Date(r.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}
+                </td>
+                <td>
+                  <span className="who" style={{ fontWeight: 500 }}>
+                    <Picto name={pictoForLabel(r.label)} size={17} />
+                    {r.label}
+                  </span>
+                </td>
+                <td className="m">{r.sub}</td>
+                <td className="n" style={{ fontWeight: 600, color: r.amount > 0 ? "var(--vert)" : undefined }}>
+                  {signed(r.amount)}
+                </td>
+                <td>
+                  <button type="button" className="bs-x" style={{ float: "none", margin: 0, width: 32, height: 32 }} aria-label={`Supprimer ${r.label}`} title="Supprimer (annulable 6 s)" onClick={() => remove(r)}>
+                    <Picto name="trash" size={15} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan={3}>
+                {rows.length} mouvement{rows.length > 1 ? "s" : ""}
+              </td>
+              <td className="n">{signed(rows.reduce((t, r) => t + r.amount, 0))}</td>
+              <td />
+            </tr>
+          </tfoot>
+        </table>
+      )}
+      {!desk && [...groups.entries()].map(([d, rs]) => (
         <div key={d}>
           <Sec>{new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</Sec>
           {rs.map((r) => (
