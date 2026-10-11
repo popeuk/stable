@@ -130,7 +130,7 @@ export function HitRow({ h, onPick }: { h: StableHit; onPick: () => void }) {
 }
 
 /** La fiche telle que les cavaliers la voient sur mon-ecurie.fr. */
-export function FichePreview({ f, claimed }: { f: Partial<Fiche>; claimed?: boolean }) {
+export function FichePreview({ f, claimed, pending }: { f: Partial<Fiche>; claimed?: boolean; pending?: boolean }) {
   const photo = f.photos?.[0]?.url;
   const price = Number(f.prix_min);
   const places = f.places_libres;
@@ -146,7 +146,9 @@ export function FichePreview({ f, claimed }: { f: Partial<Fiche>; claimed?: bool
       <div className="bd">
         <h3>{f.title || "Le nom de ton écurie"}</h3>
         <p className="loc">{[f.commune, f.code_postal].filter(Boolean).join(" · ") || "Commune"}</p>
-        {claimed ? (
+        {pending ? (
+          <span className="badge n">En vérification</span>
+        ) : claimed ? (
           <span className="badge r">
             <Picto name="check" size={13} /> Revendiquée
           </span>

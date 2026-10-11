@@ -40,11 +40,11 @@ function clean<T>(v: T): T {
 const OFFLINE = "Impossible de joindre mon-ecurie.fr. Vérifiez votre connexion et réessayez.";
 
 export interface Demande {
-  fonction: string;
-  telephone: string;
-  siret: string;
-  raison: string;
-  message: string;
+  fonction?: string;
+  telephone?: string;
+  siret?: string;
+  raison?: string;
+  message?: string;
   fiche: Partial<Fiche>;
 }
 
@@ -143,6 +143,9 @@ export const api = {
   inscription: (p: { prenom: string; nom: string; email: string; telephone: string; password: string; site: string }) => call<AuthResponse>("POST", "/inscription", p),
   connexion: (p: { email: string; password: string }) => call<AuthResponse>("POST", "/connexion", p),
   deconnexion: () => call<{ ok: true }>("POST", "/deconnexion", {}),
+  envoyerCode: (email: string) => call<{ ok: true; compte?: boolean }>("POST", "/code/envoyer", { email }),
+  verifierCode: (email: string, code: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/code/verifier", { email, code }),
+  majMoi: (p: { prenom?: string; nom?: string; telephone?: string }) => call<{ user: Me }>("PUT", "/moi", p),
   oubli: (email: string) => call<{ ok: true }>("POST", "/mot-de-passe/oubli", { email, retour: appUrl("/compte/nouveau-mot-de-passe/") }),
   nouveau: (p: { login: string; key: string; password: string }) => call<AuthResponse>("POST", "/mot-de-passe/nouveau", p),
   moi: () => call<{ user: Me; listing: Listing | null; data_key: string }>("GET", "/moi"),
