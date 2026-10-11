@@ -1,7 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { vault, wasFresh } from "@/lib/account/vault";
+import { getSession } from "@/lib/account/session";
 
 export interface NotificationPrefs {
   weeklyInsight: boolean;
@@ -93,6 +95,19 @@ export const useSettingsStore = create<SettingsState>()(
     {
       name: "be-stable-settings",
       version: 5,
+      storage: createJSONStorage(() => vault),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const s = getSession();
+        // Nouveau compte : l'écurie porte le nom de sa fiche, le gérant son prénom.
+        if (wasFresh("be-stable-settings") && s?.kind === "compte")
+          useSettingsStore.setState({
+            stableName: s.listing?.title || "Mon écurie",
+            gerant: s.prenom || "",
+            parcours: { ...NO_OBSTACLE },
+            arrived: false,
+          });
+      },
       // v4 : le parcours de démarrage arrive ; les anciens réglages sont gardés.
       migrate: (old, v) => ({ objective: 1000, ...(old as object), ...(v < 4 ? { parcours: { ...NO_OBSTACLE }, arrived: false } : {}) }) as never,
     },

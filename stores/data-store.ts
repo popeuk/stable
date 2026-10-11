@@ -1,7 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { vault, wasFresh } from "@/lib/account/vault";
+import { getSession } from "@/lib/account/session";
 import type {
   DirectExpense,
   Horse,
@@ -734,11 +736,17 @@ export const useDataStore = create<DataState>()(
     {
       name: "be-stable-data",
       version: 2,
+      // Un tiroir par compte, chiffré avec la clé du compte (lib/account/vault).
+      storage: createJSONStorage(() => vault),
       // v2 : séances, personnes, tâches d'équipe, actions, paiements. Une
       // version 1 repart de la démo complète pour avoir des exemples cohérents.
       migrate: () => ({ ...buildDemoData(), autopilotDismissed: [] }) as never,
       onRehydrateStorage: () => (state) => {
-        if (state) state.hydrated = true;
+        if (!state) return;
+        // Un compte qui n'a encore rien sur cet appareil démarre vide ; la
+        // démo garde son écurie d'exemple.
+        if (wasFresh("be-stable-data") && getSession()?.kind === "compte") state.startEmpty();
+        useDataStore.setState({ hydrated: true });
       },
     },
   ),

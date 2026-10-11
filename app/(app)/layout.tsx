@@ -8,6 +8,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { NoterSheet } from "@/components/bs/noter-sheet";
 import { SeanceSheet } from "@/components/bs/seance-sheet";
 import { MorningNudge } from "@/components/bs/morning-nudge";
+import { SessionSync } from "@/components/bs/session-sync";
 
 /**
  * La coque de l'app. Au téléphone : une colonne au pouce, l'en-tête et la
@@ -21,6 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <OnboardingGate />
       <Autopilot />
       <MorningNudge />
+      <SessionSync />
       <ClientGate>
         <Suspense fallback={null}>
           <Sidebar />

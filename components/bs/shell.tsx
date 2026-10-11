@@ -109,6 +109,7 @@ function Drawer({ onClose }: { onClose: () => void }) {
         {it("/argent?vue=mouvements", "list", "Mouvements")}
         {it("/pilotage", "chart", "Bilans")}
         <p className="grp">L’écurie</p>
+        {it("/ma-fiche", "flag", "Ma fiche mon-ecurie.fr")}
         {it("/prestations", "cours", "Prestations et tarifs")}
         {it("/clients", "personne", "Clients et propriétaires")}
         {it("/moi", "reglages", "Mon écurie et réglages")}
@@ -122,7 +123,7 @@ function Drawer({ onClose }: { onClose: () => void }) {
 
 /** La barre d'onglets : Accueil, Planning, +, Chevaux, Argent. */
 const TABS = [
-  { href: "/accueil", label: "Accueil", picto: "home", match: ["/accueil", "/equipe", "/moi", "/clients", "/prestations", "/recherche"] },
+  { href: "/accueil", label: "Accueil", picto: "home", match: ["/accueil", "/equipe", "/moi", "/clients", "/prestations", "/ma-fiche", "/recherche"] },
   { href: "/planning", label: "Planning", picto: "cal", match: ["/planning", "/valider"] },
   { href: "/chevaux", label: "Chevaux", picto: "horse", match: ["/chevaux", "/ticket", "/part", "/cheval"] },
   { href: "/argent", label: "Argent", picto: "euro", match: ["/argent", "/mois", "/seuil", "/pilotage", "/depenses", "/scenarios"] },

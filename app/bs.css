@@ -525,3 +525,99 @@ kbd { font: 600 10.5px/1 var(--font-bricolage), sans-serif; font-variant-numeric
 @media (prefers-reduced-motion: reduce) {
   .bs-dialog, .bs-palette, .bs-install { animation: none; }
 }
+
+/* ============================================================
+   Compte et fiche mon-ecurie.fr (11 octobre 2026)
+   Chercher son écurie, voir sa fiche, créer son compte, la reprendre.
+   ============================================================ */
+.bs-acc { max-width: 480px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 16px) 20px 48px; min-height: 100dvh; display: flex; flex-direction: column; }
+.bs-acc-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; }
+.bs-acc-top .bs-wm { font-size: 21px; color: var(--ink-1); }
+.bs-acc-top .with { font-size: 12px; color: var(--ink-3); }
+.bs-acc-top .with b { color: var(--vert); font-weight: 650; }
+.bs-hl { background: linear-gradient(transparent 58%, var(--rose) 58%, var(--rose) 92%, transparent 92%); padding: 0 .06em; }
+.bs-lbl { display: block; margin-top: 14px; }
+.bs-lbl > span:not(.bs-in):not(.bs-pwbar) { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--ink-1); margin-bottom: 6px; }
+.bs-lbl > span:not(.bs-in) em { font-style: normal; font-weight: 500; color: var(--ink-3); }
+.bs-in { display: flex; align-items: center; gap: 6px; background: #fff; border-radius: 6px; box-shadow: inset 0 0 0 1px var(--line); padding: 0 6px 0 14px; min-height: 50px; transition: box-shadow .15s; }
+.bs-in:focus-within { box-shadow: inset 0 0 0 2px var(--vert); }
+.bs-in.err { box-shadow: inset 0 0 0 2px var(--rose-ink); }
+.bs-in input, .bs-in textarea { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: 16px; color: var(--ink-1); min-height: 48px; }
+.bs-in textarea { padding: 12px 0; resize: vertical; min-height: 88px; line-height: 1.45; }
+.bs-in input::placeholder, .bs-in textarea::placeholder { color: var(--ink-3); }
+.bs-in .eye { width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--ink-3); font-size: 12.5px; font-weight: 600; }
+.bs-in .eye:hover { color: var(--ink-1); background: var(--mist); }
+.bs-in .unit { color: var(--ink-3); font-size: 14px; padding-right: 8px; }
+.bs-help { font-size: 12.5px; color: var(--ink-3); margin-top: 6px; line-height: 1.4; }
+.bs-err { font-size: 13px; color: var(--rose-ink); margin-top: 6px; line-height: 1.4; font-weight: 500; }
+.bs-err a, .bs-err button { color: var(--rose-ink); text-decoration: underline; text-underline-offset: 3px; font-weight: 650; }
+.bs-alert { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 6px; background: var(--rose-soft); color: #5E2240; font-size: 14px; line-height: 1.45; margin-top: 14px; }
+.bs-alert.ok { background: var(--vert-soft); color: var(--vert-deep); }
+.bs-alert svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.bs-pwbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 8px; }
+.bs-pwbar i { height: 4px; border-radius: 2px; background: var(--line-2); transition: background .2s; }
+.bs-or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: 12px; margin: 18px 0 4px; }
+.bs-or::before, .bs-or::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+.bs-steps-top { display: flex; gap: 4px; margin: 14px 0 4px; }
+.bs-steps-top i { flex: 1; height: 4px; border-radius: 2px; background: var(--line-2); }
+.bs-steps-top i.on { background: var(--vert); }
+.bs-steps-top + p { font-size: 12px; color: var(--ink-3); }
+
+/* La recherche d'écurie */
+.bs-find { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 10px; padding: 6px 6px 6px 14px; box-shadow: 0 1px 2px rgba(27, 18, 37, .06), 0 8px 24px rgba(27, 18, 37, .07), inset 0 0 0 1px var(--line); margin-top: 18px; }
+.bs-find svg { width: 20px; height: 20px; color: var(--ink-3); flex: none; }
+.bs-find input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: 16px; min-height: 44px; color: var(--ink-1); }
+.bs-find:focus-within { box-shadow: 0 1px 2px rgba(27, 18, 37, .06), 0 8px 24px rgba(27, 18, 37, .07), inset 0 0 0 2px var(--vert); }
+.bs-find button { height: 44px; padding: 0 16px; border-radius: 6px; background: var(--vert); color: #fff; font-weight: 600; font-size: 14.5px; }
+.bs-find button:hover { background: var(--vert-2); }
+.bs-hit { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 0; border-bottom: 1px solid var(--line-2); }
+.bs-hit:hover .tx b { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); }
+.bs-hit .ph { flex: none; width: 52px; height: 52px; background: var(--mist) center/cover; display: flex; align-items: center; justify-content: center; color: var(--ink-3); }
+.bs-hit .ph svg { width: 22px; height: 22px; }
+.bs-hit .tx { flex: 1; min-width: 0; }
+.bs-hit .tx b { display: block; font-size: 15px; font-weight: 600; color: var(--ink-1); line-height: 1.25; }
+.bs-hit .tx span { font-size: 12.5px; color: var(--ink-3); }
+
+/* L'aperçu de la fiche, tel que les cavaliers la voient */
+.bs-prev { background: #fff; border-radius: 6px; box-shadow: 0 2px 4px rgba(27, 18, 37, .05), 0 18px 44px rgba(27, 18, 37, .1), inset 0 0 0 1px var(--line); overflow: hidden; margin-top: 14px; }
+.bs-prev .img { aspect-ratio: 16 / 7; background: var(--mist) center/cover; display: flex; align-items: center; justify-content: center; color: var(--ink-3); font-size: 12.5px; gap: 6px; }
+.bs-prev .img svg { width: 20px; height: 20px; }
+.bs-prev .bd { padding: 14px 16px 16px; }
+.bs-prev .bd h3 { font-size: 20px; font-weight: 700; letter-spacing: -.02em; font-variation-settings: "wdth" 90; line-height: 1.1; color: var(--ink-1); }
+.bs-prev .bd .loc { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
+.bs-prev .badge { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 4px; font-size: 12px; font-weight: 650; margin-top: 10px; }
+.bs-prev .badge.r { background: var(--rose); color: var(--vert-deep); box-shadow: inset 0 0 0 1.5px var(--vert-deep); }
+.bs-prev .badge.n { background: var(--mist); color: var(--ink-2); }
+.bs-prev .price { display: flex; align-items: baseline; gap: 6px; margin-top: 12px; padding: 10px 12px; border-radius: 6px; background: var(--vert); color: #fff; }
+.bs-prev .price b { font-size: 24px; font-weight: 800; font-variation-settings: "wdth" 88; color: var(--rose); font-variant-numeric: tabular-nums; }
+.bs-prev .price.empty { background: var(--mist); color: var(--ink-3); font-size: 13.5px; }
+.bs-sheet-res { margin-top: 16px; }
+.bs-sheet-res .row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-2); font-size: 14.5px; color: var(--ink-1); }
+.bs-sheet-res .n { flex: none; width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-1); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+.bs-sheet-res .row.ok .n { background: var(--ink-1); color: #fff; box-shadow: none; }
+.bs-sheet-res .row span:nth-child(2) { flex: 1; }
+.bs-sheet-res .st { font-size: 12.5px; font-weight: 600; color: var(--rose-ink); }
+.bs-sheet-res .row.ok .st { color: var(--vert); }
+.bs-score { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+.bs-score b { font-size: 30px; font-weight: 800; font-variation-settings: "wdth" 88; font-variant-numeric: tabular-nums; color: var(--ink-1); line-height: 1; }
+.bs-score .trk { flex: 1; height: 8px; border-radius: 2px; background: var(--line-2); overflow: hidden; }
+.bs-score .trk i { display: block; height: 100%; background: var(--vert); border-radius: 2px; }
+.bs-proof { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1.5px solid var(--ink-1); margin-top: 22px; padding-top: 10px; }
+.bs-proof b { display: block; font-size: 22px; font-weight: 800; font-variation-settings: "wdth" 88; font-variant-numeric: tabular-nums; color: var(--ink-1); letter-spacing: -.01em; }
+.bs-proof span { font-size: 11.5px; color: var(--ink-2); line-height: 1.3; display: block; }
+.bs-gain3 { display: grid; gap: 0; margin-top: 18px; }
+.bs-gain3 > div { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line-2); }
+.bs-gain3 b { display: block; font-size: 15px; font-weight: 650; color: var(--ink-1); }
+.bs-gain3 p { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; margin-top: 2px; }
+
+@media (min-width: 1024px) {
+  .bs-acc { max-width: 1120px; padding: 28px 48px 64px; }
+  .bs-acc-split { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 72px; align-items: start; margin-top: 28px; }
+  .bs-acc-split > .aside { position: sticky; top: 28px; }
+  .bs-acc .bs-t1.xl { font-size: 46px; line-height: 1; letter-spacing: -.035em; }
+}
+.bs-hit > svg { flex: none; width: 18px; height: 18px; color: var(--ink-3); }
+.bs-hit .bs-pill { flex: none; white-space: nowrap; }
+.bs-lbl-t { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--ink-1); margin-bottom: 6px; }
+.bs-lbl-t em { font-style: normal; font-weight: 500; color: var(--ink-3); }
+.bs-pwbar { display: grid; }

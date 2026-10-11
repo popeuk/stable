@@ -100,6 +100,7 @@ function useNav(): { title: string; items: NavItem[] }[] {
     {
       title: "L’écurie",
       items: [
+        { href: "/ma-fiche", picto: "flag", label: "Ma fiche mon-ecurie.fr", match: (p) => p.startsWith("/ma-fiche") },
         { href: "/prestations", picto: "cours", label: "Prestations", match: (p) => p.startsWith("/prestations") },
         { href: "/clients", picto: "personne", label: "Clients", badge: c.clients ? String(c.clients) : undefined, key: "K", match: (p) => p.startsWith("/clients") },
         { href: "/moi", picto: "reglages", label: "Mon écurie", match: (p) => p.startsWith("/moi") },
@@ -329,6 +330,7 @@ function PaletteInner() {
       { id: "g-mouv", group: "Aller à", label: "Mouvements", picto: "list", run: go("/argent?vue=mouvements") },
       { id: "g-bilans", group: "Aller à", label: "Bilans", sub: "3, 6 ou 12 mois", picto: "chart", run: go("/pilotage") },
       { id: "g-seuil", group: "Aller à", label: "Mon seuil de rentabilité", picto: "flag", run: go("/seuil") },
+      { id: "g-fiche", group: "Aller à", label: "Ma fiche mon-ecurie.fr", sub: "places, tarifs, photos", picto: "flag", run: go("/ma-fiche") },
       { id: "g-prest", group: "Aller à", label: "Prestations et tarifs", sub: "cours, travail, balades", picto: "cours", run: go("/prestations") },
       { id: "g-clients", group: "Aller à", label: "Clients", picto: "personne", hint: "G K", run: go("/clients") },
       { id: "g-moi", group: "Aller à", label: "Mon écurie et réglages", picto: "reglages", run: go("/moi") },

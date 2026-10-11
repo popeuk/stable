@@ -7,6 +7,8 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Over, Screen, Sec, Toggle, cap } from "@/components/bs/ui";
 import { Picto } from "@/components/bs/picto";
 import { InstallCard } from "@/components/bs/desk";
+import { api } from "@/lib/account/api";
+import { getSession, leave } from "@/lib/account/session";
 import { useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -23,16 +25,11 @@ export default function Page() {
   );
 }
 
-/** Les deux mémoires de l'app dans le navigateur : l'écurie et les réglages. */
-const KEYS = ["be-stable-data", "be-stable-settings"] as const;
+/** Une copie des données du compte, en clair, dans un fichier que le gérant garde. */
+const plain = (o: object) => JSON.parse(JSON.stringify(o, (_k, v) => (typeof v === "function" ? undefined : v)));
 
 function exportData() {
-  const out: Record<string, unknown> = { app: "be-stable", version: 1, exportedAt: new Date().toISOString() };
-  for (const k of KEYS) {
-    try {
-      out[k] = JSON.parse(localStorage.getItem(k) ?? "null");
-    } catch {}
-  }
+  const out: Record<string, unknown> = { app: "be-stable", version: 2, exportedAt: new Date().toISOString(), "be-stable-data": { state: plain(useDataStore.getState()) }, "be-stable-settings": { state: plain(useSettingsStore.getState()) } };
   const blob = new Blob([JSON.stringify(out)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -45,9 +42,11 @@ async function importData(file: File) {
   try {
     const json = JSON.parse(await file.text());
     if (json?.app !== "be-stable" || !json["be-stable-data"]) throw new Error("format");
-    if (!window.confirm("Remplacer les données de cet appareil par celles du fichier ?")) return;
-    for (const k of KEYS) if (json[k]) localStorage.setItem(k, JSON.stringify(json[k]));
-    window.location.reload();
+    if (!window.confirm("Remplacer les données de ce compte, sur cet appareil, par celles du fichier ?")) return;
+    // Les stores réécrivent tout seuls dans le coffre du compte (chiffré).
+    useDataStore.setState({ ...json["be-stable-data"].state, hydrated: true });
+    if (json["be-stable-settings"]?.state) useSettingsStore.setState(json["be-stable-settings"].state);
+    setTimeout(() => window.location.reload(), 400);
   } catch {
     window.alert("Ce fichier n’est pas une sauvegarde Be Stable. Choisis le fichier .json exporté depuis l’app.");
   }
@@ -95,6 +94,8 @@ function Moi() {
     <Screen>
       <Over left={s.stableName} />
       <h1 className="bs-d bs-t1">Moi</h1>
+
+      <Compte />
 
       <Sec>Ton écurie</Sec>
       <div className="bs-li">
@@ -214,6 +215,7 @@ function Moi() {
         </span>
         <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
       </label>
+      {getSession()?.kind === "demo" && (
       <button
         type="button"
         className="bs-li tap"
@@ -233,6 +235,7 @@ function Moi() {
           <span>pour essayer sans risque</span>
         </span>
       </button>
+      )}
       <button
         type="button"
         className="bs-li tap"
@@ -253,5 +256,65 @@ function Moi() {
         </span>
       </button>
     </Screen>
+  );
+}
+
+/** Le compte : qui est connecté, sa fiche, se déconnecter. Dans la démo : créer son compte. */
+function Compte() {
+  const s = getSession();
+  if (s?.kind !== "compte")
+    return (
+      <>
+        <Sec>Ton compte</Sec>
+        <p className="bs-p" style={{ marginTop: 6 }}>Tu es dans l’écurie de démonstration : rien n’est enregistré à ton nom.</p>
+        <Link href="/bienvenue" className="bs-btn" style={{ marginTop: 12 }}>
+          Créer mon compte avec mon écurie
+        </Link>
+        <button type="button" className="bs-link" style={{ marginTop: 10 }} onClick={() => leave("/bienvenue")}>
+          Quitter la démo
+        </button>
+      </>
+    );
+  const etat = { validee: "revendiquée", revendication_en_attente: "en vérification", creation_en_attente: "en vérification", refusee: "demande refusée", aucune: "" }[s.listing?.status ?? "aucune"];
+  return (
+    <>
+      <Sec>Ton compte</Sec>
+      <div className="bs-li">
+        <span className="bs-ini">{(s.prenom || s.email).slice(0, 2).toUpperCase()}</span>
+        <span className="tx">
+          <b>{s.prenom} {s.nom}</b>
+          <span>{s.email} · le même compte que sur mon-ecurie.fr</span>
+        </span>
+      </div>
+      <Link href="/ma-fiche" className="bs-li tap">
+        <span className="bs-pic soft">
+          <Picto name="flag" />
+        </span>
+        <span className="tx">
+          <b>{s.listing ? s.listing.title : "Reprendre la fiche de mon écurie"}</b>
+          <span>{s.listing ? `fiche mon-ecurie.fr · ${etat}` : "gratuit, 0 % de commission"}</span>
+        </span>
+        <Picto name="chev" />
+      </Link>
+      <button
+        type="button"
+        className="bs-li tap"
+        onClick={async () => {
+          if (!window.confirm("Te déconnecter de cet appareil ? Tes données y restent, chiffrées : elles reviendront à ta prochaine connexion.")) return;
+          try {
+            await api.deconnexion();
+          } catch {}
+          leave("/compte/connexion");
+        }}
+      >
+        <span className="bs-pic">
+          <Picto name="back" />
+        </span>
+        <span className="tx">
+          <b>Me déconnecter</b>
+          <span>tes données restent chiffrées sur cet appareil</span>
+        </span>
+      </button>
+    </>
   );
 }
