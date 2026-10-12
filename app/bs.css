@@ -812,3 +812,4 @@ kbd { font: 600 10.5px/1 var(--font-bricolage), sans-serif; font-variant-numeric
 .bs-goal .lab > span:last-child { text-align: right; }
 /* Le retour est dans l'en-tête (téléphone) ou au-dessus de l'écran (ordinateur) : pas de doublon. */
 .bs-main .bs-back { display: none; }
+.bs-drawer { padding-bottom: calc(24px + env(safe-area-inset-bottom)); overscroll-behavior: contain; }

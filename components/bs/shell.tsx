@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Picto } from "@/components/bs/picto";
 import { signed } from "@/components/bs/ui";
 import { useUiStore } from "@/stores/ui-store";
@@ -68,7 +69,13 @@ export function Drawer({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
+    // La page ne défile pas derrière le menu ouvert.
+    const avant = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", k);
+      document.body.style.overflow = avant;
+    };
   }, [onClose]);
 
   const it = (href: string, picto: string, label: string, em?: string, red?: boolean) => (
@@ -170,7 +177,8 @@ export function TabBar() {
           Menu
         </button>
       </div>
-      {menu && <Drawer onClose={() => setMenu(false)} />}
+      {/* Le menu sort de la barre : sur iPhone, son flou enfermerait le menu dedans. */}
+      {menu && createPortal(<Drawer onClose={() => setMenu(false)} />, document.body)}
     </nav>
   );
 }
