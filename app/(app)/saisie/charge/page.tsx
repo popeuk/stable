@@ -14,9 +14,9 @@ import { localToday } from "@/lib/utils/local-date";
 import { formatEur } from "@/lib/utils/format-currency";
 
 const FREQS: { v: Frequency; l: string }[] = [
-  { v: "monthly", l: "Mensuel" },
-  { v: "quarterly", l: "Trimestriel" },
-  { v: "yearly", l: "Annuel" },
+  { v: "monthly", l: "Chaque mois" },
+  { v: "quarterly", l: "Chaque trimestre" },
+  { v: "yearly", l: "Chaque année" },
 ];
 
 export default function SaisieChargePage() {
@@ -94,13 +94,14 @@ function SaisieCharge() {
         <ChevronLeft size={16} /> Annuler
       </button>
       <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-        Saisir une charge
+        Noter une dépense
       </h1>
+      <p className="-mt-4 text-[13px] text-tertiary">Une dépense pour un cheval précis : maréchal, véto, complément…</p>
 
       <div className="grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
         {[
-          { v: false, l: "Ponctuelle" },
-          { v: true, l: "Récurrente" },
+          { v: false, l: "Une seule fois" },
+          { v: true, l: "Revient souvent" },
         ].map((o) => (
           <button
             key={String(o.v)}
@@ -125,7 +126,7 @@ function SaisieCharge() {
           }}
           className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-dashed py-6 text-sm text-secondary"
         >
-          <Camera size={20} /> Prendre la facture en photo (démo OCR)
+          <Camera size={20} /> Remplir avec un exemple (démo, sans vraie photo)
         </button>
       )}
 
@@ -136,10 +137,10 @@ function SaisieCharge() {
             className="flex items-center justify-between border border-dashed border-[var(--border-strong)] px-4 py-3.5"
           >
             <span className="pr-3 text-[13px] text-secondary">
-              Ajoute d&apos;abord un cheval pour lui attribuer cette charge.
+              Ajoute d&apos;abord un cheval pour lui noter cette dépense.
             </span>
             <span className="flex shrink-0 items-center gap-1 text-[13px] font-bold text-[var(--accent-primary)]">
-              Ajouter <ArrowRight size={14} />
+              Ajouter un cheval <ArrowRight size={14} />
             </span>
           </Link>
         ) : (
@@ -163,7 +164,7 @@ function SaisieCharge() {
         )}
       </Field>
 
-      <Field label="Libellé">
+      <Field label="C’est quoi ?">
         <input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
@@ -186,7 +187,7 @@ function SaisieCharge() {
         </div>
       </Field>
 
-      <Field label="Catégorie">
+      <Field label="Dans quelle catégorie ?">
         <div className="flex flex-wrap gap-2">
           {directCats.map((c) => (
             <button
@@ -206,7 +207,7 @@ function SaisieCharge() {
       </Field>
 
       {recurring && (
-        <Field label="Fréquence">
+        <Field label="Tous les combien ?">
           <div className="flex gap-2">
             {FREQS.map((f) => (
               <button
@@ -226,7 +227,7 @@ function SaisieCharge() {
 
       {recurring ? (
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Date de début">
+          <Field label="À partir du">
             <input
               type="date"
               value={date}
@@ -234,7 +235,7 @@ function SaisieCharge() {
               className="w-full rounded-[var(--radius-md)] border bg-elevated px-3 py-3 text-sm text-primary outline-none"
             />
           </Field>
-          <Field label="Date de fin">
+          <Field label="Jusqu’au">
             {hasEnd ? (
               <input
                 type="date"
@@ -247,7 +248,7 @@ function SaisieCharge() {
                 onClick={() => setHasEnd(true)}
                 className="w-full rounded-[var(--radius-md)] border border-dashed px-3 py-3 text-sm text-tertiary"
               >
-                Sans fin · définir
+                Pas de fin · ajouter une date
               </button>
             )}
           </Field>
@@ -269,7 +270,7 @@ function SaisieCharge() {
         className="flex w-full items-center justify-center gap-2 btn-primary py-3.5 text-[15px] font-bold text-[var(--on-accent)] disabled:opacity-40"
       >
         <Check size={18} /> Enregistrer{" "}
-        {Number(amount) > 0 ? `${formatEur(Number(amount))}${recurring ? "/échéance" : ""}` : ""}
+        {Number(amount) > 0 ? `${formatEur(Number(amount))}${recurring ? " à chaque fois" : ""}` : ""}
       </button>
     </div>
   );

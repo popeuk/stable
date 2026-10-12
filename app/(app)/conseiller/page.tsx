@@ -30,7 +30,7 @@ function Conseiller() {
   const [msgs, setMsgs] = useState<Msg[]>([
     {
       from: "coach",
-      text: "Salut. Je suis ton conseiller. Pose-moi une question sur ta rentabilité, tes coûts, ton tarif ou tes places : je réponds avec tes chiffres.",
+      text: "Salut. Pose-moi une question sur ce que te laisse l’écurie, ce qu’elle te coûte, le prix de tes pensions ou tes boxes libres. Je te réponds avec tes propres chiffres.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -56,8 +56,8 @@ function Conseiller() {
           <HorseLine size={26} stroke={1.4} color="var(--accent-primary)" />
         </div>
         <div>
-          <h1 className="font-[family-name:var(--font-bricolage)] text-xl text-primary">Le conseiller</h1>
-          <p className="text-[12px] text-tertiary">Il répond à partir de tes données.</p>
+          <h1 className="font-[family-name:var(--font-bricolage)] text-xl text-primary">Pose une question</h1>
+          <p className="text-[12px] text-tertiary">Les réponses partent de ce que tu as noté dans l’app.</p>
         </div>
       </header>
 
@@ -87,7 +87,7 @@ function Conseiller() {
       {/* Suggestions */}
       <div className="mt-4">
         <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
-          Pour démarrer, demande-lui
+          Quelques idées de questions
         </p>
         <div className="flex flex-wrap gap-2">
           {ADVISOR_TOPICS.map((t) => (
@@ -113,15 +113,14 @@ function Conseiller() {
         />
         <button
           onClick={send}
-          aria-label="Envoyer"
+          aria-label="Envoyer ma question"
           className="flex size-9 items-center justify-center bg-[var(--ink)] text-[var(--on-ink)]"
         >
           <Send size={16} />
         </button>
       </div>
       <p className="mt-2 text-center text-[10px] text-tertiary">
-        Le conseiller s&apos;appuie sur tes chiffres. La compréhension en langage libre (IA connectée)
-        arrive avec la version cloud.
+        Pour l’instant, il comprend surtout les questions proposées au-dessus. Écrire librement viendra plus tard.
       </p>
     </div>
   );

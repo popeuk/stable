@@ -32,13 +32,13 @@ function Arrivee() {
           <Rosette lines={["Écurie", "prête"]} />
         </div>
         <h1 className="bs-d bs-t1" style={{ textAlign: "center", marginTop: 12 }}>
-          Six barres sur six. Ton flot est gagné.
+          Six obstacles sur six. Ton flot est gagné.
         </h1>
         <SeuilGrid horses={horses} capacity={capacity} seuil={m.seuil} />
         <p style={{ fontSize: 15, lineHeight: 1.5, marginTop: 14, textAlign: "center" }}>
           {need
-            ? `Ton seuil : ${need} chevaux. Tu en as ${horses.length}${horses.length >= need ? ", tu passes" : `, il en manque ${need - horses.length}`}. Chaque box loué en plus te rapporte environ ${eur(m.contribution)} par mois.`
-            : "Tes chevaux ne couvrent pas encore leurs propres soins : commence par revoir tes pensions."}
+            ? `Il te faut ${need} chevaux pour ne pas perdre d’argent. Tu en as ${horses.length}${horses.length >= need ? ", c’est bon" : `, il en manque ${need - horses.length}`}. Chaque box loué en plus te laisse environ ${eur(m.contribution)} de plus par mois.`
+            : "Pour l’instant, les pensions ne suffisent pas à payer les soins des chevaux. Commence par revoir le prix de tes pensions."}
         </p>
         <div style={{ marginTop: "auto", paddingTop: 20 }}>
           <Link href="/accueil" className="bs-btn">

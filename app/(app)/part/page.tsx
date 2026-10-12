@@ -31,11 +31,12 @@ function Part() {
   const n = horses.length || 1;
   return (
     <Screen>
-      <Back href={id ? `/ticket?id=${id}` : "/argent"}>{id ? "Retour au ticket" : "Argent"}</Back>
+      <Back href={id ? `/ticket?id=${id}` : "/argent"}>{id ? "Retour au ticket" : "Bilan"}</Back>
       <h1 className="bs-d bs-t1" style={{ marginTop: 6 }}>
-        La part de l’écurie, c’est quoi&nbsp;?
+        Les frais communs, c’est quoi&nbsp;?
       </h1>
-      <p className="bs-p">Les factures qui ne dépendent d’aucun cheval. On les partage entre ceux qui sont là.</p>
+      <p className="bs-p">Ce sont les dépenses qui servent à toute l’écurie : foin, paille, loyer, salaires… Elles ne concernent pas un cheval en particulier.</p>
+      <p className="bs-p">Chaque cheval en paie un morceau : c’est sa part des frais communs.</p>
       <div style={{ marginTop: 12, background: "#fff", borderRadius: 10, boxShadow: "inset 0 0 0 1px var(--line)", padding: "6px 14px 10px" }}>
         {m.shared.map((x) => (
           <div key={x.label} className="bs-tl">
@@ -45,7 +46,7 @@ function Part() {
           </div>
         ))}
         <div className="bs-tot" style={{ marginTop: 2 }}>
-          <span>Ce mois</span>
+          <span>Total ce mois</span>
           <b className="bs-num">{eur(m.sharedTotal)}</b>
         </div>
       </div>
@@ -62,10 +63,10 @@ function Part() {
       </p>
       {capacity > horses.length && (
         <p className="bs-p" style={{ textAlign: "center", marginTop: 4 }}>
-          Avec tes {capacity} boxes pleins, ce ne serait plus que {eur(m.sharedTotal / capacity)} chacun.
+          Si tes {capacity} boxes étaient pleins, chaque cheval n’en paierait plus que {eur(m.sharedTotal / capacity)}.
         </p>
       )}
-      <Tip>Une pension doit couvrir au moins sa part de l’écurie et les soins du cheval. Sinon, chaque mois, ce cheval te coûte.</Tip>
+      <Tip>Une pension doit payer au moins sa part des frais communs et les soins du cheval. Sinon, chaque mois, ce cheval te coûte de l’argent.</Tip>
     </Screen>
   );
 }

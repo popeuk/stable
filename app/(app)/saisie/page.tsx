@@ -227,9 +227,9 @@ function Composer() {
             href="/saisie/cheval"
             className="flex items-center justify-between border border-dashed border-[var(--border-strong)] px-4 py-3.5"
           >
-            <span className="pr-3 text-[13px] text-secondary">Ajoute d&apos;abord un cheval.</span>
+            <span className="pr-3 text-[13px] text-secondary">Ajoute d&apos;abord un cheval pour pouvoir noter ce qu&apos;il rapporte ou coûte.</span>
             <span className="flex shrink-0 items-center gap-1 text-[13px] font-bold text-[var(--accent-primary)]">
-              Ajouter <ArrowRight size={14} />
+              Ajouter un cheval <ArrowRight size={14} />
             </span>
           </Link>
         ) : (
@@ -254,7 +254,7 @@ function Composer() {
                 href="/saisie/mutualisee"
                 className="flex items-center gap-1.5 border border-dashed border-[var(--border-strong)] px-3 py-1.5 text-[13px] font-bold text-tertiary"
               >
-                <Layers size={13} /> Toute l&apos;écurie
+                <Layers size={13} /> Frais communs (toute l&apos;écurie)
               </Link>
             )}
           </div>
@@ -329,11 +329,11 @@ function Composer() {
         onClick={save}
         className="mt-3 flex w-full items-center justify-center gap-2 btn-primary py-4 text-[16px] font-bold text-[var(--on-accent)] transition-opacity disabled:opacity-35"
       >
-        <Check size={18} /> C&apos;est noté
+        <Check size={18} /> Enregistrer
       </motion.button>
       {!canSave && amount > 0 && horse && !cat && (
         <p className="mt-2 text-center text-[12px] font-semibold text-[var(--c-warning)]">
-          Choisis une catégorie pour enregistrer.
+          Choisis ce que c&apos;est (pension, soin…) pour pouvoir enregistrer.
         </p>
       )}
     </motion.div>

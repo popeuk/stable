@@ -33,10 +33,10 @@ export function GoalCard({ href = "/argent" }: { href?: string }) {
   const month = now.toLocaleDateString("fr-FR", { month: "long" });
   return (
     <Link href={href} className="bs-goal">
-      <span className="k">Objectif de {month} : te verser {eur(objective)}</span>
+      <span className="k">Ton objectif pour {month} : te verser {eur(objective)}</span>
       <span className="row">
         <span className={`bs-big${m.net < 0 ? " neg" : ""}`}>{signed(m.net)}</span>
-        <span style={{ fontSize: 12, color: "var(--on-vert)" }}>validés au {now.getDate()}</span>
+        <span style={{ fontSize: 12, color: "var(--on-vert)" }}>ce qui te reste au {now.getDate()} {month}</span>
       </span>
       <span className="trk" aria-hidden="true">
         <i style={{ width: `${pct}%` }} />
@@ -45,8 +45,8 @@ export function GoalCard({ href = "/argent" }: { href?: string }) {
       <span className="lab">
         <span>{Math.round(pct)} %</span>
         <span>
-          {rest > 0 ? `${signed(rest)} prévus · ` : ""}
-          {left > 0 ? `encore ${eur(left)}` : "objectif tenu"} · {daysLeft} j
+          {rest > 0 ? `${signed(rest)} encore prévus · ` : ""}
+          {left > 0 ? `il manque ${eur(left)}` : "objectif atteint"} · {daysLeft} j restants
         </span>
       </span>
     </Link>

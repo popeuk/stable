@@ -7,25 +7,25 @@ export default function ScenariosPage() {
     <div className="space-y-4">
       <header className="flex items-center justify-between">
         <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-          Scénarios
+          Et si… ?
         </h1>
         <Link
           href="/scenarios/nouveau"
           className="flex items-center gap-1 btn-primary px-3 py-1.5 text-[12px] font-bold text-[var(--on-accent)]"
         >
-          <Plus size={14} /> Nouveau
+          <Plus size={14} /> Essayer
         </Link>
       </header>
       <EmptyState
-        title="Aucun scénario sauvegardé."
-        body="Simule une hausse de pension ou un changement de charges, et garde le résultat sous la main."
+        title="Tu n’as encore rien essayé."
+        body="Et si tu augmentais tes pensions ? Et si le foin coûtait moins cher ? Essaie un changement pour voir ce qu’il te resterait chaque mois. Rien n’est modifié dans tes vrais chiffres."
         icon={<TrendingUp size={22} />}
         action={
           <Link
             href="/scenarios/nouveau"
             className="btn-primary px-5 py-2.5 text-sm font-bold text-[var(--on-accent)]"
           >
-            Créer un scénario
+            Essayer un changement
           </Link>
         }
       />

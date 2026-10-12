@@ -64,7 +64,7 @@ export function horseTicket(data: StableData, horseId: string, period: Period): 
     lines.push({ key: rec.id, label: rec.label, amount: -rec.amount, kind: "out" });
   }
   const share = horseSharedCosts(data, horseId, period);
-  if (share > 0) lines.push({ key: "share", label: "Part de l'écurie", amount: -share, kind: "share" });
+  if (share > 0) lines.push({ key: "share", label: "Part des frais communs", amount: -share, kind: "share" });
 
   // Ce qui rentre d'abord (pension en tête), puis ce qui sort, la part en dernier.
   lines.sort((a, b) => {

@@ -74,7 +74,7 @@ function Recherche() {
         id: e.id,
         date: `${e.periodYear}-${String(e.periodMonth).padStart(2, "0")}-01`,
         label: e.label,
-        sub: "Écurie",
+        sub: "Frais communs",
         amount: e.totalAmount,
         isIn: false,
       })),
@@ -113,18 +113,19 @@ function Recherche() {
           autoFocus
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Cheval, soin, dépense, contact, notion…"
+          placeholder="Un cheval, un soin, une dépense, un nom…"
+          aria-label="Chercher"
           className="w-full bg-transparent py-2 text-[15px] text-primary outline-none"
         />
       </div>
 
       {!results ? (
         <p className="pt-6 text-center text-[13px] text-tertiary">
-          Tape au moins deux lettres : tout le graphe est fouillé à chaque frappe.
+          Tape au moins deux lettres pour chercher dans toute ton écurie.
         </p>
       ) : empty ? (
         <p className="pt-6 text-center text-[13px] text-tertiary">
-          Rien pour « {q.trim()} ».
+          Rien trouvé pour « {q.trim()} ». Essaie un autre mot.
         </p>
       ) : (
         <div className="space-y-5">
@@ -159,7 +160,7 @@ function Recherche() {
             </Group>
           )}
           {results.money.length > 0 && (
-            <Group title="Journal">
+            <Group title="Argent">
               {results.money.map((m) => (
                 <div key={m.id} className="flex items-baseline justify-between py-2">
                   <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-primary">
@@ -182,14 +183,14 @@ function Recherche() {
                 <Link key={p.name} href="/contacts" className="flex items-baseline justify-between py-2">
                   <span className="text-[14px] font-semibold text-primary">{p.name}</span>
                   <span className="text-[12px] text-tertiary">
-                    {p.roles.map((r) => (r === "proprietaire" ? "Propriétaire" : "Prestataire")).join(" · ")}
+                    {p.roles.map((r) => (r === "proprietaire" ? "Propriétaire" : "Pro (soins)")).join(" · ")}
                   </span>
                 </Link>
               ))}
             </Group>
           )}
           {results.lessons.length > 0 && (
-            <Group title="Notions">
+            <Group title="Mots expliqués">
               {results.lessons.map((l) => (
                 <Explain key={l.key} k={l.key} variant="plain" className="block w-full py-2 text-left">
                   <span className="text-[14px] font-semibold text-primary">{l.title}</span>

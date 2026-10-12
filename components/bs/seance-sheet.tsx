@@ -67,13 +67,13 @@ function Inner({ seance }: { seance: Seance }) {
   function validate() {
     const snap = snapshot();
     st().validateSeance(seance.id, presence, chargeAbsent);
-    say(`${esc(seance.title)} validée : <strong>${signed(amount)}</strong> sur les tickets.`, () => useDataStore.setState(snap));
+    say(`${esc(seance.title)} : c’est fait, <strong>${signed(amount)}</strong> sur les tickets.`, () => useDataStore.setState(snap));
     close();
   }
   function cancel() {
     const snap = snapshot();
     st().cancelSeance(seance.id, reason);
-    say(`${esc(seance.title)} annulée${reason ? ` (${esc(reason.toLowerCase())})` : ""}. Rien n’est compté.`, () => useDataStore.setState(snap));
+    say(`Séance annulée : ${esc(seance.title)}${reason ? ` (${esc(reason.toLowerCase())})` : ""}. Rien n’est compté.`, () => useDataStore.setState(snap));
     close();
   }
   function saveEdit() {
@@ -98,12 +98,12 @@ function Inner({ seance }: { seance: Seance }) {
   const scopePicker =
     seance.seriesId ? (
       <>
-        <p className="bs-sec">Appliquer à</p>
+        <p className="bs-sec">Pour quelles séances ?</p>
         {(
           [
             ["one", "Cette séance seulement", dateLabel],
             ["following", "Celle-ci et les suivantes", `${following} séance${following > 1 ? "s" : ""}`],
-            ["all", "Toute la série", `${series.length} séances, déjà faites comprises`],
+            ["all", "Toutes les séances de la série", `${series.length} séances, déjà faites comprises`],
           ] as const
         ).map(([k, t, sub]) => (
           <button key={k} type="button" className="bs-li tap" onClick={() => setScope(k)} aria-pressed={scope === k}>
@@ -148,7 +148,7 @@ function Inner({ seance }: { seance: Seance }) {
               <span className="bs-pill n">
                 {eur(seance.unitPrice)} {seance.participants.length ? "par cavalier" : "par cheval"}
               </span>
-              {seance.seriesId && <span className="bs-pill n">série de {series.length}</span>}
+              {seance.seriesId && <span className="bs-pill n">revient, {series.length} séances en tout</span>}
             </div>
             <p className="bs-sec">{seance.participants.length ? "Cavaliers" : "Chevaux"}</p>
             {(seance.participants.length ? seance.participants : seance.horseIds.map((h) => ({ personId: "", horseId: h, present: undefined }))).map((p, i) => {
@@ -173,7 +173,7 @@ function Inner({ seance }: { seance: Seance }) {
             {seance.status === "planned" && (
               <button type="button" className="bs-btn" style={{ marginTop: 12 }} onClick={() => (seance.participants.length > 1 ? setView("presence") : validate())}>
                 <Picto name="check" />
-                {seance.participants.length > 1 ? "Valider avec la feuille de présence" : `Valider · ${signed(amount)}`}
+                {seance.participants.length > 1 ? "Confirmer et dire qui était là" : `Confirmer que c’est fait · ${signed(amount)}`}
               </button>
             )}
             {seance.status !== "planned" && (
@@ -188,7 +188,7 @@ function Inner({ seance }: { seance: Seance }) {
                   close();
                 }}
               >
-                {seance.status === "done" ? "Annuler la validation" : "Rétablir la séance"}
+                {seance.status === "done" ? "Remettre en « prévue »" : "Remettre la séance au planning"}
               </button>
             )}
             <div style={{ display: "grid", gridTemplateColumns: seance.status === "planned" ? "1fr 1fr 1fr" : "1fr 1fr", gap: 6, marginTop: 6 }}>
@@ -209,7 +209,7 @@ function Inner({ seance }: { seance: Seance }) {
 
         {view === "presence" && (
           <>
-            <p className="bs-p" style={{ marginTop: 4 }}>Tous présents par défaut : touche seulement les absents.</p>
+            <p className="bs-p" style={{ marginTop: 4 }}>Tout le monde est noté présent. Touche seulement ceux qui ne sont pas venus.</p>
             {seance.participants.map((p) => {
               const h = horse(p.horseId);
               const on = presence[p.personId] !== false;
@@ -233,7 +233,7 @@ function Inner({ seance }: { seance: Seance }) {
             })}
             {absents > 0 && (
               <Toggle on={chargeAbsent} onClick={() => setChargeAbsent(!chargeAbsent)}>
-                Facturer {absents > 1 ? "les absents" : "l’absent"} (absence non prévenue)
+                Faire payer {absents > 1 ? "les absents" : "l’absent"} (pas prévenu à temps)
               </Toggle>
             )}
             <div className="bs-card" style={{ justifyContent: "space-between" }}>
@@ -243,11 +243,11 @@ function Inner({ seance }: { seance: Seance }) {
               <b className="bs-big" style={{ fontSize: 22, color: "var(--vert)" }}>{signed(amount)}</b>
             </div>
             <button type="button" className="bs-btn" style={{ marginTop: 12 }} onClick={validate}>
-              Valider · {signed(amount)}
+              Confirmer · {signed(amount)}
             </button>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 6 }}>
               <button type="button" className="bs-btn line" onClick={() => setView("annuler")}>
-                Séance annulée
+                Elle n’a pas eu lieu
               </button>
               <button type="button" className="bs-btn line" onClick={close}>
                 Plus tard
@@ -258,7 +258,7 @@ function Inner({ seance }: { seance: Seance }) {
 
         {view === "annuler" && (
           <>
-            <p className="bs-p" style={{ marginTop: 4 }}>Rien ne sera compté. Le motif reste sur la séance.</p>
+            <p className="bs-p" style={{ marginTop: 4 }}>Elle ne comptera pas dans ton argent. La raison reste notée sur la séance.</p>
             <div className="bs-chips">
               {REASONS.map((r) => (
                 <button key={r} type="button" className="bs-chip" aria-pressed={reason === r} onClick={() => setReason(r)}>
@@ -267,7 +267,7 @@ function Inner({ seance }: { seance: Seance }) {
               ))}
             </div>
             <div className="bs-field">
-              <input placeholder="Ou un autre motif" value={REASONS.includes(reason) ? "" : reason} onChange={(e) => setReason(e.target.value)} aria-label="Motif" />
+              <input placeholder="Ou écris une autre raison" value={REASONS.includes(reason) ? "" : reason} onChange={(e) => setReason(e.target.value)} aria-label="Raison" />
             </div>
             <button type="button" className="bs-btn" style={{ marginTop: 12 }} onClick={cancel}>
               Annuler la séance
@@ -298,7 +298,7 @@ function Inner({ seance }: { seance: Seance }) {
               <input placeholder="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} aria-label="Notes" />
             </div>
             {scopePicker}
-            <p className="bs-p" style={{ marginTop: 8 }}>Seul ce qui change est reporté. Changer la date décale les autres séances d’autant de jours.</p>
+            <p className="bs-p" style={{ marginTop: 8 }}>Seul ce que tu changes est modifié. Si tu changes la date, les autres séances choisies bougent du même nombre de jours.</p>
             <button type="button" className="bs-btn" style={{ marginTop: 10 }} disabled={end <= start} onClick={saveEdit}>
               Enregistrer
             </button>
@@ -311,7 +311,7 @@ function Inner({ seance }: { seance: Seance }) {
         {view === "supprimer" && (
           <>
             {scopePicker}
-            <p className="bs-p" style={{ marginTop: 10 }}>Les recettes des séances supprimées partent avec elles.</p>
+            <p className="bs-p" style={{ marginTop: 10 }}>L’argent compté pour ces séances est retiré aussi.</p>
             <button type="button" className="bs-btn" style={{ marginTop: 10, background: "var(--rose-ink)" }} onClick={remove}>
               Supprimer
             </button>

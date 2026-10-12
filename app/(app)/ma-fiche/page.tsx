@@ -60,7 +60,7 @@ function MaFiche() {
         <h1 className="bs-d bs-t1" style={{ marginTop: 14 }}>
           Ta fiche mon-ecurie.fr
         </h1>
-        <p className="bs-p">Dans la démo, il n’y a pas de vraie fiche. Crée ton compte pour reprendre celle de ton écurie : c’est gratuit et sans commission.</p>
+        <p className="bs-p">Dans l’écurie d’exemple, il n’y a pas de vraie fiche. Crée ton compte pour reprendre celle de ton écurie : c’est gratuit et sans commission.</p>
         <Link href="/bienvenue" className="bs-btn" style={{ marginTop: 16 }}>
           Trouver mon écurie
         </Link>
@@ -73,7 +73,7 @@ function MaFiche() {
         <h1 className="bs-d bs-t1" style={{ marginTop: 14 }}>
           Ta fiche ne répond pas.
         </h1>
-        <p className="bs-p">mon-ecurie.fr est injoignable pour le moment. Vérifie ta connexion ; ta gestion, elle, reste disponible.</p>
+        <p className="bs-p">mon-ecurie.fr ne répond pas pour le moment. Vérifie ta connexion internet. Le reste de l’app marche normalement.</p>
       </Screen>
     );
   if (etat === "aucune" || !f)
@@ -82,7 +82,7 @@ function MaFiche() {
         <h1 className="bs-d bs-t1" style={{ marginTop: 14 }}>
           Ton écurie n’a pas encore sa fiche.
         </h1>
-        <p className="bs-p">Retrouve-la parmi les écuries de mon-ecurie.fr et reprends-la, ou ajoute-la si elle n’y est pas. Gratuit, 0 % de commission.</p>
+        <p className="bs-p">Cherche ton écurie sur mon-ecurie.fr et mets-la à ton nom. Si elle n’y est pas, ajoute-la. C’est gratuit, sans commission.</p>
         <Link href="/bienvenue" className="bs-btn" style={{ marginTop: 16 }}>
           Trouver mon écurie
         </Link>
@@ -103,9 +103,9 @@ function MaFiche() {
       setF(r);
       setBase(JSON.stringify(r));
       updateAccount({ listing: s?.kind === "compte" && s.listing ? { ...s.listing, title: r.title } : undefined });
-      say(r.en_attente ? "Enregistré. Ce sera sur ta fiche dès la validation." : `Fiche à jour sur mon-ecurie.fr : <strong>${esc(r.title)}</strong>.`);
+      say(r.en_attente ? "C’est enregistré. Ça apparaîtra sur ta fiche dès qu’elle sera validée." : `Ta fiche est à jour sur mon-ecurie.fr : <strong>${esc(r.title)}</strong>.`);
     } catch (e) {
-      say(e instanceof ApiError ? esc(e.message) : "L’enregistrement n’a pas abouti. Réessaie.");
+      say(e instanceof ApiError ? esc(e.message) : "Ça n’a pas pu être enregistré. Réessaie dans un instant.");
     } finally {
       setBusy(false);
     }
@@ -133,14 +133,14 @@ function MaFiche() {
       <p className="bs-banner">
         <Picto name="clock" />
         <span style={{ flex: 1 }}>
-          <b>Vérification en cours.</b> Ce que tu saisis ici est gardé et posé sur la fiche dès la validation.
+          <b>On vérifie que c’est bien ton écurie.</b> Ce que tu remplis ici est gardé, et ira sur ta fiche dès qu’elle sera validée.
         </span>
       </p>
     ) : (
       <p className="bs-alert ok">
         <Picto name="check" />
         <span>
-          <b>Fiche revendiquée.</b> Chaque enregistrement est en ligne tout de suite.{" "}
+          <b>Ta fiche est à ton nom.</b> Ce que tu enregistres est en ligne tout de suite.{" "}
           {f.url && (
             <a href={f.url} target="_blank" rel="noreferrer" className="bs-link">
               Voir ma fiche
@@ -174,7 +174,7 @@ function MaFiche() {
             Ne pas dire
           </button>
         </div>
-        <p className="bs-help">Confirme-le chaque mois, même sans changement : la date dit aux cavaliers que l’info est fraîche.</p>
+        <p className="bs-help">Enregistre-le chaque mois, même si rien ne change. La date montre aux cavaliers que l’info est à jour.</p>
       </div>
 
       <div className="bs-lbl">
@@ -189,7 +189,7 @@ function MaFiche() {
               <span className="unit" style={{ padding: 0 }}>€</span>
             </span>
             <span className="bs-in" style={{ display: "flex", margin: 0, fontWeight: 400, paddingRight: 8 }}>
-              <input aria-label="Places libres sur cette formule" inputMode="numeric" value={x.places} placeholder="pl." onChange={(e) => formule(i, { places: e.target.value.replace(/\D/g, "") })} style={{ textAlign: "right" }} />
+              <input aria-label="Places libres sur cette formule" inputMode="numeric" value={x.places} placeholder="places" onChange={(e) => formule(i, { places: e.target.value.replace(/\D/g, "") })} style={{ textAlign: "right" }} />
             </span>
             <button type="button" className="bs-x" style={{ float: "none", margin: 0, width: 36, height: 36 }} aria-label={`Retirer ${x.nom || "la formule"}`} onClick={() => set({ formules: f.formules.filter((_, j) => j !== i) })}>
               <Picto name="x" size={15} />
@@ -199,7 +199,7 @@ function MaFiche() {
         <button type="button" className="bs-link" style={{ marginTop: 10 }} onClick={() => set({ formules: [...f.formules, { nom: "", description: "", prix: "", places: "" }] })}>
           + Ajouter une formule
         </button>
-        <p className="bs-help">Prix par mois. Le prix « à partir de » de ta fiche se calcule tout seul : la formule la moins chère qui a encore de la place.</p>
+        <p className="bs-help">Prix par mois. Ta fiche affiche tout seule un prix « à partir de » : celui de la formule la moins chère qui a encore de la place.</p>
       </div>
       {f.formules.length === 0 && <Field label="Ou simplement : pension à partir de" inputMode="numeric" unit="€ / mois" value={f.prix_min} onChange={(e) => set({ prix_min: e.target.value.replace(/\D/g, "").slice(0, 5) })} />}
 
@@ -232,7 +232,7 @@ function MaFiche() {
       <Field label="Nom de l’écurie" value={f.title} onChange={(e) => set({ title: e.target.value })} />
       <label className="bs-lbl">
         <span>
-          Présentation <em>{f.description.length < 120 ? `encore ${120 - f.description.length} caractères pour une fiche complète` : "parfait"}</em>
+          Présentation <em>{f.description.length < 120 ? `encore ${120 - f.description.length} lettres pour une fiche complète` : "parfait"}</em>
         </span>
         <span className="bs-in" style={{ display: "flex", margin: 0, fontWeight: 400 }}>
           <textarea rows={5} value={f.description} onChange={(e) => set({ description: e.target.value })} placeholder="Ce qui fait ton écurie : le cadre, les prés, l’ambiance, ce que les chevaux vivent au quotidien." />
@@ -244,7 +244,7 @@ function MaFiche() {
 
       <Sec>Photos · {f.photos.length} sur 12</Sec>
       {f.en_attente ? (
-        <p className="bs-p">Les photos s’ajoutent dès que la fiche est validée.</p>
+        <p className="bs-p">Tu pourras ajouter des photos dès que la fiche sera validée.</p>
       ) : (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: 6, marginTop: 8 }}>
@@ -277,7 +277,7 @@ function MaFiche() {
             )}
           </div>
           <input ref={file} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => e.target.files?.[0] && addPhoto(e.target.files[0])} />
-          <p className="bs-help">JPEG, PNG ou WebP, 10 Mo au plus. La première sert de couverture : prends le pré ou la cour, en plein jour.</p>
+          <p className="bs-help">Une photo de ton téléphone convient (JPEG, PNG ou WebP, 10 Mo au plus). La première s’affiche en grand : prends le pré ou la cour, en plein jour.</p>
         </>
       )}
     </>
@@ -288,7 +288,7 @@ function MaFiche() {
       <div className="bs-dhead" style={{ marginTop: desk ? 0 : 14 }}>
         <div>
           <h1 className="bs-d bs-t1">Ma fiche mon-ecurie.fr</h1>
-          <p className="bs-p">Ce que les cavaliers voient de {f.title}. Plus elle est complète, plus elle leur donne de raisons de t’écrire.</p>
+          <p className="bs-p">Ce que les cavaliers voient de {f.title} sur mon-ecurie.fr. Plus elle est complète, mieux ils comprennent ce que tu proposes.</p>
         </div>
       </div>
       {statut}
@@ -303,7 +303,7 @@ function MaFiche() {
           {form}
           <div style={{ position: sale ? "sticky" : "static", bottom: desk ? 16 : 84, marginTop: 22, zIndex: 5 }}>
             <button type="button" className="bs-btn" onClick={save} disabled={!sale || busy} style={{ boxShadow: sale ? "0 8px 24px rgba(19,78,58,.25)" : undefined }}>
-              {busy ? "Enregistrement…" : sale ? (f.en_attente ? "Enregistrer" : "Enregistrer et publier") : "Tout est enregistré"}
+              {busy ? "Enregistrement…" : sale ? (f.en_attente ? "Enregistrer" : "Enregistrer et mettre en ligne") : "Tout est enregistré"}
             </button>
           </div>
         </div>

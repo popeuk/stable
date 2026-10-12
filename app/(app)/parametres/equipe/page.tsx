@@ -54,8 +54,8 @@ function Equipe() {
           L&apos;équipe
         </h1>
         <p className="mt-1 text-[13px] text-secondary">
-          Tes employés et tes prestataires réguliers. Quand tu ajoutes une séance ou un
-          rendez-vous, tu les assignes en un tap (« Qui s&apos;en occupe ? »).
+          Les gens qui travaillent avec toi : salariés, maréchal, véto… Quand tu ajoutes une séance ou un
+          rendez-vous, tu choisis qui s&apos;en occupe en un geste.
         </p>
       </div>
 
@@ -71,13 +71,13 @@ function Equipe() {
                     {m.job ? <span className="font-normal text-secondary"> · {m.job}</span> : null}
                   </p>
                   <p className="text-[12px] text-tertiary">
-                    {m.role === "employe" ? "Employé" : "Prestataire"}
+                    {m.role === "employe" ? "Salarié" : "Pro extérieur"}
                     {n > 0 ? ` · ${n} tâche${n > 1 ? "s" : ""} à venir` : ""}
                   </p>
                 </div>
                 <button
                   onClick={() =>
-                    confirm(`Retirer ${m.name} de l'équipe ? (son historique reste au carnet)`) &&
+                    confirm(`Retirer ${m.name} de l’équipe ? Ce qu’il a fait reste noté dans le carnet des chevaux.`) &&
                     deleteTeamMember(m.id)
                   }
                   aria-label={`Retirer ${m.name}`}
@@ -96,8 +96,8 @@ function Equipe() {
         <div className="grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
           {(
             [
-              { v: "employe", l: "Employé" },
-              { v: "prestataire", l: "Prestataire" },
+              { v: "employe", l: "Salarié" },
+              { v: "prestataire", l: "Pro extérieur" },
             ] as { v: TeamRole; l: string }[]
           ).map((o) => (
             <button
@@ -117,6 +117,7 @@ function Equipe() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={role === "employe" ? "Julie" : "M. Roche"}
+          aria-label="Son nom"
           className="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-base px-3 py-2.5 text-sm text-primary outline-none"
         />
         <input

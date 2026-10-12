@@ -56,7 +56,7 @@ function Chevaux() {
 
   return (
     <Screen>
-      <ObHead retour={retour} n={1} title={retour ? "Ajouter un cheval" : "Tes chevaux"} sub="Ceux qui sont en pension chez toi. Les tiens viendront après." />
+      <ObHead retour={retour} n={1} title={retour ? "Ajouter un cheval" : "Tes chevaux"} sub="Commence par les chevaux en pension chez toi. Tu pourras ajouter les tiens plus tard." />
       <div style={{ display: "flex", justifyContent: "center", marginTop: 14 }}>
         <HorseFace coat={coat} blaze={blaze} size={76} />
       </div>
@@ -83,7 +83,7 @@ function Chevaux() {
           Liste en tête
         </button>
       </div>
-      <Sec>Sa formule</Sec>
+      <Sec>Sa formule de pension</Sec>
       <div className="bs-chips">
         {FORMULES.map((f) => (
           <button key={f.name} type="button" className="bs-chip" aria-pressed={formule === f.name} onClick={() => setFormule(f.name)}>
@@ -122,7 +122,7 @@ function Chevaux() {
           router.push(retour ? `/${retour}` : "/parcours/tarifs");
         }}
       >
-        {retour ? "Terminé" : "Barre passée"} <Picto name="check" />
+        {retour ? "Terminé" : "Passer à l’étape suivante"} <Picto name="check" />
       </button>
     </Screen>
   );

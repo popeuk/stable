@@ -9,6 +9,7 @@ import { NoterSheet } from "@/components/bs/noter-sheet";
 import { SeanceSheet } from "@/components/bs/seance-sheet";
 import { MorningNudge } from "@/components/bs/morning-nudge";
 import { SessionSync } from "@/components/bs/session-sync";
+import { AideCarte, RetourOrdinateur } from "@/components/bs/nav";
 
 /**
  * La coque de l'app. Au téléphone : une colonne au pouce, l'en-tête et la
@@ -32,6 +33,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main className="bs-main">
         <ClientGate>
           <Header />
+          <RetourOrdinateur />
+          <AideCarte />
         </ClientGate>
         {children}
       </main>

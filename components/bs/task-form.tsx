@@ -56,7 +56,7 @@ export function TaskForm({ onDone, listId: presetList }: { onDone: () => void; l
       <div className="bs-field" style={{ marginTop: 14 }}>
         <input autoFocus placeholder="Ex. Réparer la clôture du pré 2" value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} aria-label="Titre de la tâche" />
       </div>
-      <p className="bs-sec">Colonne</p>
+      <p className="bs-sec">Où en est-elle ?</p>
       <div className="bs-seg">
         {lists.map((l) => (
           <button key={l.id} type="button" aria-pressed={listId === l.id} onClick={() => setListId(l.id)}>
@@ -64,7 +64,7 @@ export function TaskForm({ onDone, listId: presetList }: { onDone: () => void; l
           </button>
         ))}
       </div>
-      <p className="bs-sec">Pour qui</p>
+      <p className="bs-sec">Pour qui ?</p>
       <div className="bs-chips">
         {members.map((m) => (
           <button key={m} type="button" className="bs-chip" aria-pressed={forWho.includes(m)} onClick={() => setForWho(forWho.includes(m) ? forWho.filter((x) => x !== m) : [...forWho, m])}>
@@ -72,11 +72,11 @@ export function TaskForm({ onDone, listId: presetList }: { onDone: () => void; l
           </button>
         ))}
       </div>
-      <p className="bs-sec">Échéance</p>
+      <p className="bs-sec">Pour quand ?</p>
       <div className="bs-seg">
         {(["none", "today", "tomorrow", "other"] as const).map((w) => (
           <button key={w} type="button" aria-pressed={when === w} onClick={() => setWhen(w)}>
-            {{ none: "Aucune", today: "Aujourd’hui", tomorrow: "Demain", other: "Autre" }[w]}
+            {{ none: "Pas de date", today: "Aujourd’hui", tomorrow: "Demain", other: "Autre" }[w]}
           </button>
         ))}
       </div>
@@ -103,7 +103,7 @@ export function TaskForm({ onDone, listId: presetList }: { onDone: () => void; l
         ))}
       </div>
       <label className="bs-sec" htmlFor="t-cost" style={{ display: "flex" }}>
-        Un coût ? <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>devient une facture commune une fois la tâche faite</span>
+        Ça coûte quelque chose ? <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>une fois la tâche faite, le montant va dans les frais communs, partagé entre tous les chevaux</span>
       </label>
       <div className="bs-field">
         <input id="t-cost" inputMode="decimal" placeholder="0" value={cost} onChange={(e) => setCost(e.target.value.replace(/[^\d.,]/g, ""))} />

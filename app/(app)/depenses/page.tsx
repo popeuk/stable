@@ -36,7 +36,7 @@ function shortDate(iso: string) {
 }
 
 function freqLabel(f: string) {
-  return f === "monthly" ? "mensuel" : f === "quarterly" ? "trimestriel" : "annuel";
+  return f === "monthly" ? "chaque mois" : f === "quarterly" ? "tous les 3 mois" : "chaque année";
 }
 
 export default function JournalPage() {
@@ -75,7 +75,7 @@ function Journal() {
       out.push({
         id: r.id,
         date: r.date,
-        label: catName(r.categoryId) ?? "Revenu",
+        label: catName(r.categoryId) ?? "Rentrée d’argent",
         target: horseName(r.horseId),
         amount: r.amount,
         kind: "revenue",
@@ -93,7 +93,7 @@ function Journal() {
         id: s.id,
         date: periodStart({ year: s.periodYear, month: s.periodMonth }),
         label: s.label,
-        target: `Écurie · ${s.allocations.length} chevaux`,
+        target: `Frais communs · partagés entre ${s.allocations.length} chevaux`,
         amount: s.totalAmount,
         kind: "shared",
       });
@@ -110,7 +110,7 @@ function Journal() {
   const agg = useMemo(() => aggregateStablePnl(data, periods), [data, periods]);
 
   function remove(r: Row) {
-    if (!confirm(`Supprimer « ${r.label} » (${formatEur(r.amount)}) ?`)) return;
+    if (!confirm(`Supprimer « ${r.label} » (${formatEur(r.amount)}) ? Cette ligne disparaîtra de tes comptes.`)) return;
     if (r.kind === "revenue") deleteRevenue(r.id);
     else if (r.kind === "direct") deleteDirect(r.id);
     else deleteShared(r.id);
@@ -119,8 +119,9 @@ function Journal() {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">Journal</h1>
+        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">Entrées et sorties d’argent</h1>
       </header>
+      <p className="text-sm text-tertiary">Tout ce qui est rentré et sorti, ligne par ligne. Tu peux supprimer une ligne notée par erreur.</p>
 
       <RangeSelector />
 
@@ -128,7 +129,7 @@ function Journal() {
       <div className="grid grid-cols-3 divide-x divide-[var(--border-default)] card">
         <div className="p-3">
           <Explain k="chiffre_affaires" className="text-[10px] font-bold uppercase tracking-wide text-tertiary">
-            Encaissé
+            Ce qui rentre
           </Explain>
           <p className="mt-0.5 text-[17px] font-extrabold tabular-nums" style={{ color: "var(--c-success)" }}>
             {formatEur(agg.revenue)}
@@ -136,7 +137,7 @@ function Journal() {
         </div>
         <div className="p-3">
           <Explain k="depenses" className="text-[10px] font-bold uppercase tracking-wide text-tertiary">
-            Dépensé
+            Ce qui sort
           </Explain>
           <p className="mt-0.5 text-[17px] font-extrabold tabular-nums text-primary">
             {formatEur(agg.charges)}
@@ -144,7 +145,7 @@ function Journal() {
         </div>
         <div className="p-3">
           <Explain k="marge_nette" className="text-[10px] font-bold uppercase tracking-wide text-tertiary">
-            Reste
+            Ce qui te reste
           </Explain>
           <p
             className="mt-0.5 text-[17px] font-extrabold tabular-nums"
@@ -160,8 +161,8 @@ function Journal() {
         {(
           [
             { v: "tout", l: "Tout" },
-            { v: "entrees", l: "Entrées" },
-            { v: "sorties", l: "Sorties" },
+            { v: "entrees", l: "Ce qui rentre" },
+            { v: "sorties", l: "Ce qui sort" },
           ] as { v: Filter; l: string }[]
         ).map((f) => (
           <button
@@ -184,10 +185,10 @@ function Journal() {
         <div>
           <div className="mb-2 flex items-baseline justify-between">
             <h2 className="text-[13px] font-bold uppercase tracking-[0.08em] text-tertiary">
-              Récurrents actifs
+              Compté tout seul, chaque mois
             </h2>
             <Link href="/saisie/recurrente" className="text-[12px] font-semibold text-tertiary">
-              + avancée
+              + Ajouter
             </Link>
           </div>
           <ul className="border-t border-[var(--border-default)]">
@@ -199,16 +200,16 @@ function Journal() {
                     {r.label ?? "Pension"} · {horseName(r.horseId)}
                   </p>
                   <p className="truncate text-[12px] text-tertiary">
-                    revenu {freqLabel(r.frequency)}
-                    {r.endDate ? ` · jusqu'au ${shortDate(r.endDate)}` : " · sans fin"}
+                    rentre {freqLabel(r.frequency)}
+                    {r.endDate ? ` · jusqu’au ${shortDate(r.endDate)}` : " · sans date de fin"}
                   </p>
                 </div>
                 <span className="text-[14px] font-extrabold tabular-nums" style={{ color: "var(--c-success)" }}>
                   +{formatEur(r.amount)}
                 </span>
                 <button
-                  onClick={() => confirm(`Arrêter ce revenu récurrent ?`) && deleteRecurringRevenue(r.id)}
-                  aria-label="Arrêter"
+                  onClick={() => confirm(`Arrêter cette rentrée d’argent qui revient chaque mois ?`) && deleteRecurringRevenue(r.id)}
+                  aria-label={`Arrêter ${r.label ?? "la pension"}`}
                   className="shrink-0 p-1 text-tertiary transition-colors hover:text-[var(--c-danger)]"
                 >
                   <Trash2 size={16} />
@@ -221,16 +222,16 @@ function Journal() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[15px] font-bold text-primary">{r.label}</p>
                   <p className="truncate text-[12px] text-tertiary">
-                    {freqLabel(r.frequency)} · {r.isShared ? "toute l'écurie" : "1 cheval"}
-                    {r.endDate ? ` · jusqu'au ${shortDate(r.endDate)}` : " · sans fin"}
+                    {freqLabel(r.frequency)} · {r.isShared ? "frais communs" : "pour 1 cheval"}
+                    {r.endDate ? ` · jusqu’au ${shortDate(r.endDate)}` : " · sans date de fin"}
                   </p>
                 </div>
                 <span className="text-[14px] font-extrabold tabular-nums text-primary">
                   −{formatEur(r.amount)}
                 </span>
                 <button
-                  onClick={() => confirm(`Arrêter « ${r.label} » ?`) && deleteRecurring(r.id)}
-                  aria-label={`Supprimer ${r.label}`}
+                  onClick={() => confirm(`Arrêter « ${r.label} » ? Elle ne sera plus comptée chaque mois.`) && deleteRecurring(r.id)}
+                  aria-label={`Arrêter ${r.label}`}
                   className="shrink-0 p-1 text-tertiary transition-colors hover:text-[var(--c-danger)]"
                 >
                   <Trash2 size={16} />
@@ -247,8 +248,8 @@ function Journal() {
           {rows.length > 0
             ? "Rien de ce côté sur cette période."
             : recurrings.length + recurringRevs.length > 0
-              ? "Aucun mouvement ponctuel : seuls tes récurrents courent sur cette période."
-              : "Aucun mouvement sur cette période."}
+              ? "Rien d’autre sur cette période. Seul ce qui revient chaque mois est compté."
+              : "Rien de noté sur cette période. Ajoute une dépense ou une rentrée d’argent pour la voir ici."}
         </p>
       ) : (
         <ul className="border-t border-[var(--border-default)]">
@@ -269,7 +270,6 @@ function Journal() {
                   <p className="truncate text-[15px] font-bold text-primary">{r.label}</p>
                   <p className="truncate text-[12px] text-tertiary">
                     {r.target}
-                    {r.kind === "shared" ? " · partagée" : ""}
                   </p>
                 </div>
                 <span

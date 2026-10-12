@@ -57,16 +57,16 @@ function Parametres() {
         Paramètres
       </h1>
 
-      <Section title="Écurie">
+      <Section title="Ton écurie">
         <Row label="Nom de l'écurie" value="Écurie démo" />
         <Row label="Type" value="Pension simple" />
-        <Row label="Chevaux actifs" value={`${activeHorses}`} />
+        <Row label="Chevaux chez toi" value={`${activeHorses}`} />
         <div className="flex items-center justify-between py-3">
-          <span className="text-sm text-secondary">Capacité d&apos;accueil</span>
+          <span className="text-sm text-secondary">Nombre de boxes</span>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCapacity(capacity - 1)}
-              aria-label="moins"
+              aria-label="Un box de moins"
               className="flex size-7 items-center justify-center border border-[var(--border-strong)] text-primary"
             >
               −
@@ -76,7 +76,7 @@ function Parametres() {
             </span>
             <button
               onClick={() => setCapacity(capacity + 1)}
-              aria-label="plus"
+              aria-label="Un box de plus"
               className="flex size-7 items-center justify-center border border-[var(--border-strong)] text-primary"
             >
               +
@@ -97,10 +97,10 @@ function Parametres() {
 
       <Section title="Assistant vocal">
         <div className="py-3">
-          <p className="text-sm text-primary">Clé OpenRouter (IA)</p>
+          <p className="text-sm text-primary">Clé OpenRouter (facultatif)</p>
           <p className="mt-0.5 text-2xs text-tertiary">
-            Ta clé reste sur cet appareil, jamais envoyée ailleurs qu&apos;à OpenRouter. Sans clé,
-            l&apos;assistant fonctionne en compréhension locale.
+            Sans clé, l&apos;assistant marche quand même et comprend les phrases simples. Avec une clé
+            OpenRouter, il comprend mieux. Ta clé reste sur ce téléphone et n&apos;est envoyée qu&apos;à OpenRouter.
           </p>
           <input
             type="password"
@@ -112,31 +112,31 @@ function Parametres() {
           />
           {openRouterKey && (
             <p className="mt-1.5 text-2xs font-semibold" style={{ color: "var(--c-success)" }}>
-              IA connectée · gpt-4o-mini via OpenRouter
+              Clé enregistrée · l’assistant passe par OpenRouter
             </p>
           )}
         </div>
       </Section>
 
-      <Section title="Gérer">
+      <Section title="Réglages">
         <NavRow href="/parametres/tarifs" icon={<BadgeEuro size={16} />} label="Tarifs et prestations" />
         <NavRow href="/parametres/equipe" icon={<UsersRound size={16} />} label="L'équipe" />
         <NavRow href="/parametres/categories" icon={<Tags size={16} />} label="Catégories" />
         <NavRow href="/parametres/notifications" icon={<Bell size={16} />} label="Notifications" />
       </Section>
 
-      <Section title="Données">
+      <Section title="Tes données">
         <button
           onClick={() => {
-            if (confirm("Réinitialiser avec les données de démonstration ?")) resetToDemo();
+            if (confirm("Remettre l’écurie d’exemple ? Ce que tu as noté sera remplacé.")) resetToDemo();
           }}
           className="flex w-full items-center gap-2 py-3 text-sm text-[var(--c-danger)]"
         >
-          <RotateCcw size={16} /> Réinitialiser la démo
+          <RotateCcw size={16} /> Remettre l&apos;écurie d&apos;exemple
         </button>
         <button
           onClick={() => {
-            if (confirm("Repartir de zéro ? Tout est vidé (chevaux, revenus, charges).")) startEmpty();
+            if (confirm("Repartir de zéro ? Tout sera effacé : chevaux, ce qui rentre, ce qui sort.")) startEmpty();
           }}
           className="flex w-full items-center gap-2 py-3 text-sm text-primary"
         >
@@ -149,20 +149,20 @@ function Parametres() {
           }}
           className="flex w-full items-center gap-2 py-3 text-sm text-primary"
         >
-          <PlayCircle size={16} /> Revoir l&apos;intro
+          <PlayCircle size={16} /> Revoir la présentation
         </button>
       </Section>
 
-      <Section title="À venir">
+      <Section title="Pas encore là">
         <div className="flex items-center justify-between py-3">
           <span className="flex items-center gap-2 text-sm text-secondary">
             <Landmark size={16} /> Connexion bancaire
           </span>
-          <span className="text-2xs font-bold uppercase text-tertiary">Bientôt</span>
+          <span className="text-2xs font-bold uppercase text-tertiary">Pas encore</span>
         </div>
         <p className="pb-3 text-2xs text-tertiary">
-          Importer automatiquement tes entrées et dépenses depuis ta banque (via un agrégateur), pour
-          un suivi en temps réel.
+          Récupérer tout seul ce qui rentre et ce qui sort de ton compte en banque. Ce n&apos;est pas encore
+          possible : pour l&apos;instant, tu le notes dans l&apos;app.
         </p>
       </Section>
 

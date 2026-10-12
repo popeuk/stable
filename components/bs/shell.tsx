@@ -14,6 +14,7 @@ import { billsFor } from "@/lib/domain/billing";
 import { suggestions } from "@/lib/domain/leviers";
 import { currentPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
+import { AideBouton, isRoot, useRetour, useSuiviNavigation } from "@/components/bs/nav";
 
 const nowHHMM = () => {
   const d = new Date();
@@ -21,38 +22,40 @@ const nowHHMM = () => {
 };
 
 /**
- * L'en-tête : be stable, l'écurie, le compteur du mois (ce qui est validé
- * depuis le 1er) et le menu. Il reste en haut de chaque écran.
+ * L'en-tête : à gauche be stable (ou le retour, hors des onglets), le nom de
+ * l'écurie, l'aide de l'écran, et à droite le Bilan avec ce qu'il reste ce
+ * mois. Le menu, lui, est dans la barre d'onglets.
  */
 export function Header() {
-  const [open, setOpen] = useState(false);
   const data = useDataStore();
   const stableName = useSettingsStore((s) => s.stableName);
   const net = useMemo(() => monthBreakdown(data, currentPeriod()).net, [data]);
-  const path = usePathname();
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setOpen(false), [path]);
+  const path = usePathname() ?? "";
+  const retour = useRetour();
+  useSuiviNavigation();
+  const surBilan = ["/argent", "/pilotage", "/seuil", "/scenarios", "/depenses"].some((m) => path.startsWith(m));
   return (
-    <>
-      <header className="bs-hd">
+    <header className="bs-hd">
+      {isRoot(path) ? (
         <Link href="/accueil" className="bs-wm">
           be stable
         </Link>
-        <span className="stb">· {stableName}</span>
-        <Link href="/argent" className={`bs-count${net < 0 ? " neg" : ""}`} aria-label={`Résultat du mois : ${signed(net)}`}>
-          {net >= 0 && <Picto name="up" />}
-          {signed(net)}
-        </Link>
-        <button type="button" className="bs-burger" aria-label="Ouvrir le menu" aria-expanded={open} onClick={() => setOpen(true)}>
-          <Picto name="menu" />
+      ) : (
+        <button type="button" className="bs-icon" onClick={retour} aria-label="Revenir en arrière">
+          <Picto name="chevL" />
         </button>
-      </header>
-      {open && <Drawer onClose={() => setOpen(false)} />}
-    </>
+      )}
+      <span className="stb">{isRoot(path) ? `· ${stableName}` : stableName}</span>
+      <AideBouton />
+      <Link href="/argent" className={`bs-bilan${net < 0 ? " neg" : ""}`} aria-current={surBilan ? "page" : undefined} aria-label={`Bilan du mois : il te reste ${signed(net)}`}>
+        <span className="l">Bilan</span>
+        <span className="v">{signed(net)}</span>
+      </Link>
+    </header>
   );
 }
 
-function Drawer({ onClose }: { onClose: () => void }) {
+export function Drawer({ onClose }: { onClose: () => void }) {
   const data = useDataStore();
   const s = useSettingsStore();
   const period = useMemo(() => currentPeriod(), []);
@@ -61,7 +64,6 @@ function Drawer({ onClose }: { onClose: () => void }) {
   const acts = useMemo(() => suggestions(data, period, s.capacity).filter((x) => x.status !== "faite").length, [data, period, s.capacity]);
   const net = useMemo(() => monthBreakdown(data, period).net, [data, period]);
   const openTasks = (data.tasks ?? []).filter((t) => t.listId !== data.taskLists?.find((l) => l.isDone)?.id).length;
-  const horses = data.horses.filter((h) => !h.isArchived).length;
 
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -97,41 +99,46 @@ function Drawer({ onClose }: { onClose: () => void }) {
           <Picto name="search" size={16} />
           <span style={{ flex: 1 }}>Chercher un cheval, un client…</span>
         </Link>
-        <p className="grp">Le quotidien</p>
-        {it("/accueil", "home", "Accueil")}
-        {it("/planning", "cal", "Planning", pending ? `${pending} à valider` : undefined, pending > 0)}
-        {it("/chevaux", "horse", "Chevaux", String(horses))}
-        {it("/equipe", "board", "Tâches d’équipe", String(openTasks))}
-        <p className="grp">L’argent</p>
-        {it("/argent", "euro", "Le mois", signed(net))}
-        {it("/argent?vue=leviers", "bulb", "Leviers et actions", acts ? String(acts) : undefined)}
+        <p className="grp">Au quotidien</p>
+        {it("/valider", "check", "Séances à confirmer", pending ? String(pending) : undefined, pending > 0)}
+        {it("/equipe", "board", "Tâches de l’équipe", openTasks ? String(openTasks) : undefined)}
+        {it("/clients", "personne", "Mes clients")}
+        <p className="grp">Ton bilan</p>
+        {it("/argent", "euro", "Bilan du mois", signed(net))}
+        {it("/argent?vue=leviers", "bulb", "Pistes pour gagner plus", acts ? String(acts) : undefined)}
         {it("/argent?vue=facturer", "doc", "À facturer", due ? `${Math.round(due)} €` : undefined)}
-        {it("/argent?vue=mouvements", "list", "Mouvements")}
-        {it("/pilotage", "chart", "Bilans")}
-        <p className="grp">L’écurie</p>
-        {it("/ma-fiche", "flag", "Ma fiche mon-ecurie.fr")}
-        {it("/prestations", "cours", "Prestations et tarifs")}
-        {it("/clients", "personne", "Clients et propriétaires")}
-        {it("/moi", "reglages", "Mon écurie et réglages")}
-        {it("/parcours", "flag", "Parcours de démarrage")}
-        <p className="grp">Be Stable</p>
-        {it("/moi#bestable", "book", "Guide, communauté, annuaire")}
+        {it("/argent?vue=mouvements", "list", "Entrées et sorties d’argent")}
+        {it("/pilotage", "chart", "Bilan sur plusieurs mois")}
+        <p className="grp">Ton écurie</p>
+        {it("/ma-fiche", "flag", "Ma fiche sur mon-ecurie.fr")}
+        {it("/prestations", "cours", "Mes cours, services et prix")}
+        {it("/moi", "reglages", "Mon écurie et mes réglages")}
+        {it("/parcours", "flag", "Mes premiers pas", s.parcoursPlusTard && !(s.parcours.chevaux && s.parcours.tarifs && s.parcours.factures) ? "à finir" : undefined, true)}
+        <p className="grp">Besoin d’aide ?</p>
+        <button type="button" className="it" onClick={() => (s.revoirAides(), onClose())}>
+          <Picto name="aide" />
+          Revoir les explications de chaque écran
+        </button>
+        {it("/moi#bestable", "book", "Le guide, la communauté, l’annuaire")}
       </nav>
     </>
   );
 }
 
-/** La barre d'onglets : Accueil, Planning, +, Chevaux, Argent. */
+/** La barre d'onglets : Accueil, Planning, +, Chevaux, Menu. Le Bilan est en haut à droite. */
 const TABS = [
-  { href: "/accueil", label: "Accueil", picto: "home", match: ["/accueil", "/equipe", "/moi", "/clients", "/prestations", "/ma-fiche", "/recherche"] },
+  { href: "/accueil", label: "Accueil", picto: "home", match: ["/accueil"] },
   { href: "/planning", label: "Planning", picto: "cal", match: ["/planning", "/valider"] },
   { href: "/chevaux", label: "Chevaux", picto: "horse", match: ["/chevaux", "/ticket", "/part", "/cheval"] },
-  { href: "/argent", label: "Argent", picto: "euro", match: ["/argent", "/mois", "/seuil", "/pilotage", "/depenses", "/scenarios"] },
 ];
 
 export function TabBar() {
   const path = usePathname() ?? "";
   const openNoter = useUiStore((s) => s.openNoter);
+  const [menu, setMenu] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMenu(false), [path]);
+  const ailleurs = !TABS.some((t) => t.match.some((m) => path === m || path.startsWith(m + "/"))) && !["/argent", "/pilotage", "/seuil", "/scenarios", "/depenses"].some((m) => path.startsWith(m));
   const tab = (t: (typeof TABS)[number]) => {
     const on = t.match.some((m) => path === m || path.startsWith(m + "/"));
     return (
@@ -158,8 +165,12 @@ export function TabBar() {
           <Picto name="plus" />
         </button>
         {tab(TABS[2])}
-        {tab(TABS[3])}
+        <button type="button" className="bs-tab" aria-current={ailleurs ? "page" : undefined} aria-expanded={menu} onClick={() => setMenu(true)}>
+          <Picto name="menu" />
+          Menu
+        </button>
       </div>
+      {menu && <Drawer onClose={() => setMenu(false)} />}
     </nav>
   );
 }

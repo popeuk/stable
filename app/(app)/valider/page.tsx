@@ -49,23 +49,23 @@ function Valider() {
       else if (it.care) st.confirmSession(it.care.map((e) => e.id), it.care.map((e) => e.horseId), it.care[0].date);
       money += it.money ?? 0;
     }
-    say(`${simple.length} validée${simple.length > 1 ? "s" : ""} : <strong>${esc(signed(money))}</strong> sur les tickets.`, () => useDataStore.setState(snap));
+    say(`C’est fait pour ${simple.length} : <strong>${esc(signed(money))}</strong> comptés sur les tickets des chevaux.`, () => useDataStore.setState(snap));
   }
 
   return (
     <Screen>
       <Back href="/planning">Planning</Back>
-      <h1 className="bs-d bs-t1">À valider</h1>
-      <p className="bs-p">Les séances passées, pas encore validées. Valider met l’argent sur les tickets.</p>
+      <h1 className="bs-d bs-t1">À confirmer</h1>
+      <p className="bs-p">Les séances et les soins déjà passés. Coche ce qui a bien eu lieu. L’argent est alors compté sur le ticket de chaque cheval.</p>
       <div className="bs-card" style={{ justifyContent: "space-between" }}>
         <span>
-          <span className="k">En attente</span>
+          <span className="k">En attente de ta coche</span>
           <br />
           <b className="bs-big" style={{ fontSize: 24, color: items.length ? "var(--vert)" : "var(--ink-3)" }}>
             {signed(total)}
           </b>
         </span>
-        <span className={`bs-pill ${items.length ? "r" : "g"}`}>{items.length ? `${items.length} à valider` : "tout est validé"}</span>
+        <span className={`bs-pill ${items.length ? "r" : "g"}`}>{items.length ? `${items.length} à confirmer` : "tout est à jour"}</span>
       </div>
       {items.length === 0 && (
         <div style={{ display: "flex", justifyContent: "center", marginTop: 26 }}>
@@ -82,10 +82,10 @@ function Valider() {
       ))}
       {simple.length > 0 && (
         <button type="button" className="bs-btn" style={{ marginTop: 16 }} onClick={validateSimple}>
-          {simple.length === items.length ? `Tout valider (${simple.length})` : `Valider les ${simple.length} sans feuille de présence`}
+          {simple.length === items.length ? `Tout confirmer (${simple.length})` : `Confirmer les ${simple.length} autres d’un coup`}
         </button>
       )}
-      {items.length > simple.length && <p className="bs-p" style={{ textAlign: "center", marginTop: 8 }}>Les cours collectifs passent par la feuille de présence : touche leur coche.</p>}
+      {items.length > simple.length && <p className="bs-p" style={{ textAlign: "center", marginTop: 8 }}>Pour les cours à plusieurs, touche leur coche pour dire qui était là.</p>}
     </Screen>
   );
 }

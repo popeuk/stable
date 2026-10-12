@@ -147,7 +147,7 @@ function Planning() {
               </div>
               <div>
                 <b style={{ color: "var(--vert)" }}>{signed(sum.validated)}</b>
-                <span>validés</span>
+                <span>confirmés</span>
               </div>
               <div>
                 <b style={{ color: "var(--ink-3)" }}>{signed(sum.planned)}</b>
@@ -168,7 +168,7 @@ function Planning() {
           <Link href="/valider" className="bs-banner" style={{ marginTop: 14 }}>
             <Picto name="clock" />
             <span style={{ flex: 1 }}>
-              <b>{pending} à valider</b> · les séances passées attendent ta coche
+              <b>{pending} à confirmer</b> · coche ce qui a bien eu lieu
             </span>
             <Picto name="chev" />
           </Link>
@@ -220,7 +220,7 @@ function Planning() {
             [
               ["g", "rapporte"],
               ["r", "coûte"],
-              ["o", "écurie"],
+              ["o", "pour l’écurie"],
             ] as [Tone, string][]
           ).map(([t, l]) => (
             <span key={t}>
@@ -228,7 +228,7 @@ function Planning() {
               {l}
             </span>
           ))}
-          <span style={{ marginLeft: "auto", color: "var(--ink-3)" }}>Clique une heure vide pour planifier · ← → pour changer de semaine</span>
+          <span style={{ marginLeft: "auto", color: "var(--ink-3)" }}>Clique sur une heure libre pour ajouter quelque chose · Flèches ← → pour changer de semaine</span>
         </div>
       </Screen>
     );
@@ -281,7 +281,7 @@ function Planning() {
           <Link href="/valider" className="bs-banner">
             <Picto name="clock" />
             <span style={{ flex: 1 }}>
-              <b>{pending} à valider</b> · les séances passées attendent
+              <b>{pending} à confirmer</b> · coche ce qui a eu lieu
             </span>
             <Picto name="chev" />
           </Link>
@@ -341,7 +341,7 @@ function Planning() {
                 [
                   ["g", "rapporte"],
                   ["r", "coûte"],
-                  ["o", "écurie"],
+                  ["o", "pour l’écurie"],
                 ] as [Tone, string][]
               ).map(([t, l]) => (
                 <span key={t}>
@@ -360,7 +360,7 @@ function Planning() {
           </div>
           <div>
             <b style={{ color: "var(--vert)" }}>{signed(sum.validated)}</b>
-            <span>validés</span>
+            <span>confirmés</span>
           </div>
           <div>
             <b style={{ color: "var(--ink-3)" }}>{signed(sum.planned)}</b>
@@ -391,8 +391,8 @@ function Planning() {
                   <Picto name="plus" />
                 </span>
                 <span className="tx">
-                  <b>Rien de prévu</b>
-                  <span>planifier une séance, un soin ou une tâche</span>
+                  <b>Rien de prévu ce jour-là</b>
+                  <span>Touche ici pour ajouter une séance, un soin ou une tâche</span>
                 </span>
               </button>
             )

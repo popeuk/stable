@@ -15,7 +15,7 @@ import { addMonths, currentPeriod, lastNPeriods, samePeriod } from "@/lib/utils/
 import type { Period } from "@/lib/domain/types";
 
 /**
- * Les bilans : les mois mis bout à bout. Les mêmes calculs que « Le mois »
+ * Bilan sur plusieurs mois : les mois mis bout à bout. Les mêmes calculs que « Le mois »
  * (ce qui est validé), sur 3, 6 ou 12 mois : le résultat, mois par mois
  * face à l'objectif, ce qui pèse, ce qui a bougé, les chevaux et les
  * prestations sur la période. Rien ne se saisit ici.
@@ -105,9 +105,9 @@ function Bilans() {
     return (
       <Screen>
         <h1 className="bs-d bs-t1" style={{ marginTop: 14 }}>
-          Bilans
+          Bilan sur plusieurs mois
         </h1>
-        <p className="bs-p">Encore rien à mettre bout à bout. Ajoute tes chevaux et valide tes premières journées : les bilans se construisent tout seuls.</p>
+        <p className="bs-p">Rien à montrer pour l’instant. Ajoute tes chevaux et confirme tes premières séances. Ce bilan se remplira tout seul, mois après mois.</p>
         <Link href="/parcours" className="bs-btn" style={{ marginTop: 16 }}>
           Reprendre le parcours
         </Link>
@@ -121,7 +121,7 @@ function Bilans() {
   const hero = (
     <div className="bs-goal" style={{ padding: "16px 18px" }}>
       <div className="k">
-        Ton résultat {rangeLabel} · {months.length} mois
+        Ce qui t’est resté {rangeLabel} · {months.length} mois
       </div>
       <div className="row">
         <span className={`bs-big${net < 0 ? " neg" : ""}`} style={{ fontSize: 44 }}>
@@ -134,15 +134,15 @@ function Bilans() {
         </span>
       </div>
       <p style={{ fontSize: 14, color: "#fff", marginTop: 8, lineHeight: 1.45 }}>
-        {net >= 0 ? `Tu gardes ${keep} % de ce que tu encaisses.` : "Sur la période, l’écurie te coûte de l’argent."}{" "}
-        {reached}/{months.length} mois au-dessus de ton objectif de {eur(objective)}.
+        {net >= 0 ? `Sur 100 € encaissés, il t’en reste ${keep}.` : "Sur cette période, l’écurie t’a coûté plus qu’elle n’a rapporté."}{" "}
+        Objectif de {eur(objective)} atteint {reached} mois sur {months.length}.
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, borderTop: "1px solid rgba(255,255,255,.18)", marginTop: 12, paddingTop: 10 }}>
         {(
           [
-            ["Encaissé", eur(revenue)],
-            ["Dépensé", eur(charges)],
-            ["chevaux paient tout", cur && isFinite(cur.seuil) ? dec1(cur.seuil) : "non atteint"],
+            ["Ce qui est rentré", eur(revenue)],
+            ["Ce qui est sorti", eur(charges)],
+            ["chevaux pour ne pas perdre d’argent", cur && isFinite(cur.seuil) ? dec1(cur.seuil) : "pas encore"],
           ] as const
         ).map(([k, v]) => (
           <div key={k}>
@@ -158,9 +158,9 @@ function Bilans() {
 
   const left = (
     <>
-      <Sec action={<Link href="/argent">Le mois</Link>}>Mois par mois</Sec>
+      <Sec action={<Link href="/argent">Ce mois-ci</Link>}>Ce qui t’est resté, mois par mois</Sec>
       {chart}
-      <Sec>Ce qui pèse · {eur(charges)}</Sec>
+      <Sec>Où part ton argent · {eur(charges)}</Sec>
       {weights.slice(0, 7).map((w, i) => (
         <div key={w.label} style={{ padding: "8px 0", borderBottom: "1px solid var(--line-2)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
@@ -178,7 +178,7 @@ function Bilans() {
       ))}
       {movers.length > 0 && (
         <>
-          <Sec>Ce qui a bougé depuis {mName(addMonths(now, -1))}</Sec>
+          <Sec>Ce qui a changé depuis {mName(addMonths(now, -1))}</Sec>
           {movers.map((x) => (
             <div key={x.label} className="bs-li" style={{ padding: "9px 0" }}>
               <span className={`bs-pic sm${x.delta > 0 ? " rose" : ""}`}>
@@ -186,7 +186,7 @@ function Bilans() {
               </span>
               <span className="tx">
                 <b>{x.label}</b>
-                <span>{eur(x.cur)} ce mois</span>
+                <span>{eur(x.cur)} ce mois-ci</span>
               </span>
               <b className="bs-amt" style={{ color: x.delta > 0 ? "var(--rose-ink)" : "var(--vert)" }}>
                 {x.delta > 0 ? "+" : "−"}
@@ -194,7 +194,7 @@ function Bilans() {
               </b>
             </div>
           ))}
-          <p className="bs-p" style={{ fontSize: 12 }}>En rose ce qui coûte plus que le mois dernier, en vert ce qui coûte moins.</p>
+          <p className="bs-p" style={{ fontSize: 12 }}>En rose, ce qui t’a coûté plus que le mois dernier. En vert, ce qui t’a coûté moins.</p>
         </>
       )}
     </>
@@ -209,25 +209,25 @@ function Bilans() {
             <b>
               {losers.length} cheva{losers.length > 1 ? "ux te coûtent" : "l te coûte"}
             </b>{" "}
-            sur la période : {losers.map((x) => x.h.name).join(", ")}
+            plus qu’ils ne rapportent sur cette période : {losers.map((x) => x.h.name).join(", ")}
           </span>
           <Picto name="chev" />
         </Link>
       )}
-      <Sec action={<Link href="/chevaux">Tous</Link>}>Tes chevaux sur la période</Sec>
+      <Sec action={<Link href="/chevaux">Voir tous</Link>}>Ce que chaque cheval t’a laissé</Sec>
       {horses.map(({ h, net: n }) => (
         <Link key={h.id} href={`/ticket?id=${h.id}`} className="bs-li tap" style={{ padding: "8px 0" }}>
           <HorseFace horse={h} size={34} />
           <span className="tx">
             <b>{h.name}</b>
-            <span>{signed(n / Math.max(1, months.length))} par mois</span>
+            <span>{signed(n / Math.max(1, months.length))} par mois en moyenne</span>
           </span>
           <NetPill value={n} />
         </Link>
       ))}
-      <Sec action={<Link href="/prestations">Prestations</Link>}>Ce que rapportent tes prestations</Sec>
+      <Sec action={<Link href="/prestations">Tes prestations</Link>}>Ce que rapportent tes cours et services</Sec>
       {prests.length === 0 ? (
-        <p className="bs-p">Aucune séance validée sur la période.</p>
+        <p className="bs-p">Aucune séance confirmée sur cette période. Confirme tes séances dans le planning pour les voir ici.</p>
       ) : (
         prests.map((x) => (
           <div key={x.p.id} className="bs-li" style={{ padding: "8px 0" }}>
@@ -237,7 +237,7 @@ function Bilans() {
             <span className="tx">
               <b>{x.p.label}</b>
               <span>
-                {x.n} séance{x.n > 1 ? "s" : ""} validée{x.n > 1 ? "s" : ""}
+                {x.n} séance{x.n > 1 ? "s" : ""} qui {x.n > 1 ? "ont" : "a"} eu lieu
               </span>
             </span>
             <b className="bs-amt plus">{signed(x.amount)}</b>
@@ -247,9 +247,9 @@ function Bilans() {
       <Sec>Pour aller plus loin</Sec>
       {(
         [
-          ["/seuil", "flag", "Ton seuil", "combien de chevaux paient tout"],
-          ["/scenarios/nouveau", "chart", "Et si…", "simuler une hausse de pension ou une place louée"],
-          ["/argent?vue=mouvements", "list", "Tous les mouvements", "chaque recette et chaque dépense"],
+          ["/seuil", "flag", "Combien de chevaux pour ne pas perdre d’argent", "le nombre de pensions qui paient tout"],
+          ["/scenarios/nouveau", "chart", "Et si… ?", "essayer une hausse de pension ou une place en plus, sans rien toucher"],
+          ["/argent?vue=mouvements", "list", "Toutes les entrées et sorties d’argent", "chaque ligne, une par une"],
         ] as const
       ).map(([href, pic, t, s]) => (
         <Link key={href} href={href} className="bs-li tap">
@@ -270,8 +270,8 @@ function Bilans() {
     <Screen wide={desk}>
       <div className="bs-dhead" style={{ marginTop: desk ? 0 : 14 }}>
         <div>
-          <h1 className="bs-d bs-t1">Bilans</h1>
-          <p className="bs-p">Tes mois mis bout à bout, à partir de ce que tu as validé.</p>
+          <h1 className="bs-d bs-t1">Bilan sur plusieurs mois</h1>
+          <p className="bs-p">Tes mois mis bout à bout, à partir de ce que tu as confirmé. Pratique pour voir si l’écurie va dans le bon sens.</p>
         </div>
         <div className="bs-seg" style={{ marginTop: desk ? 0 : 12, width: desk ? 400 : "100%" }}>
           {SPANS.map(([k, l]) => (

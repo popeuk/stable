@@ -46,13 +46,13 @@ function TicketRoute() {
 }
 
 function tipFor(h: Horse, t: HorseTicket): string {
-  if (t.net >= 0) return `${h.name} paie ses soins et sa part de l’écurie. Il te laisse ${eur(t.net)} ce mois.`;
+  if (t.net >= 0) return `${h.name} paie ses soins et sa part des frais communs. Une fois tout payé, il te laisse ${eur(t.net)} ce mois.`;
   const soins = t.lines.filter((l) => l.kind === "out" && /orthop|ost|compl|dent|vaccin|vermif/i.test(l.label));
   const big = (soins.length ? soins : t.lines.filter((l) => l.kind === "out")).sort((a, b) => a.amount - b.amount)[0];
   if (big && -big.amount > 20)
-    return `Sa pension ne couvre pas ses soins. Refacturer « ${big.label.toLowerCase()} »${h.ownerName ? ` à ${h.ownerName}` : " à son propriétaire"} le ramènerait à ${signed(t.net - big.amount)}.`;
+    return `Sa pension ne suffit pas à payer ses soins. Si tu fais payer « ${big.label.toLowerCase()} »${h.ownerName ? ` à ${h.ownerName}` : " à son propriétaire"}, il te laisserait ${signed(t.net - big.amount)}.`;
   const breakeven = Math.ceil((t.direct + t.share - (t.revenue - (h.pension ?? 0))) / 10) * 10;
-  return `Sa pension (${eur(h.pension ?? 0)}) est sous ce qu’il coûte. Une pension à ${eur(breakeven)} le mettrait à l’équilibre.`;
+  return `Sa pension (${eur(h.pension ?? 0)}) est plus basse que ce qu’il te coûte. À ${eur(breakeven)} par mois, tu ne perdrais plus d’argent avec lui.`;
 }
 
 function Ticket({ horse }: { horse: Horse }) {
@@ -97,6 +97,7 @@ function Ticket({ horse }: { horse: Horse }) {
         <HorseFace horse={horse} size={56} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 className="bs-d bs-t2">Le ticket de {horse.name}</h1>
+          <p className="bs-p" style={{ marginTop: 2 }}>Son ticket : ce qu’il rapporte et ce qu’il coûte ce mois.</p>
           <p className="bs-p" style={{ marginTop: 2 }}>
             {[horse.pensionType, horse.ownerName && `propriétaire ${horse.ownerName}`].filter(Boolean).join(" · ") || "pension"}
           </p>
@@ -134,7 +135,7 @@ function Ticket({ horse }: { horse: Horse }) {
       {(desk || seg === "ticket") && (
       <>
       <div className="bs-ticket" style={{ marginTop: 10 }}>
-        {t.lines.length === 0 && <p className="bs-p">Rien ce mois-ci pour l’instant.</p>}
+        {t.lines.length === 0 && <p className="bs-p">Rien de noté ce mois-ci. Ajoute sa pension ou un soin pour voir son ticket.</p>}
         {t.lines.map((l) => (
           <div key={l.key} className={`bs-tl${lastLine && lastLine.horseId === horse.id && lastLine.sourceId === l.sourceId ? " new" : ""}`}>
             <Picto name={pictoForLabel(l.label)} />
@@ -152,7 +153,7 @@ function Ticket({ horse }: { horse: Horse }) {
           </div>
         ))}
         <div className="bs-tot">
-          <span>{net >= 0 ? "Il te reste" : "Il te coûte"}</span>
+          <span>{net >= 0 ? "Il te laisse" : "Il te coûte"}</span>
           <span className="bs-big">{signed(net)}</span>
         </div>
       </div>
@@ -169,10 +170,10 @@ function Ticket({ horse }: { horse: Horse }) {
                 const st = useDataStore.getState();
                 const snap = { revenues: st.revenues, directExpenses: st.directExpenses };
                 st.rebillExpense(rebill.id);
-                say(`« ${rebill.label} » ajouté à la facture${horse.ownerName ? ` de ${horse.ownerName}` : ""} : <strong>+${eur(rebill.amount)}</strong>.`, () => useDataStore.setState(snap));
+                say(`« ${rebill.label} » ajouté à ce que doit payer ${horse.ownerName || "son propriétaire"} : <strong>+${eur(rebill.amount)}</strong>.`, () => useDataStore.setState(snap));
               }}
             >
-              Ajouter « {rebill.label.toLowerCase()} » à sa facture · +{eur(rebill.amount)}
+              Faire payer « {rebill.label.toLowerCase()} » au propriétaire · +{eur(rebill.amount)}
             </button>
           )}
         </div>
@@ -180,7 +181,7 @@ function Ticket({ horse }: { horse: Horse }) {
 
       <button type="button" className="bs-btn line" style={{ marginTop: 16 }} onClick={() => openNoter({ horseIds: [horse.id] })}>
         <Picto name="plus" />
-        Noter pour {horse.name}
+        Noter quelque chose pour {horse.name}
       </button>
 
       </>
@@ -208,7 +209,7 @@ function Ticket({ horse }: { horse: Horse }) {
       {(desk || seg === "planning") && (
         <>
           <Sec>À venir</Sec>
-          {seances.length === 0 && <p className="bs-p">Aucune séance prévue pour {horse.name}.</p>}
+          {seances.length === 0 && <p className="bs-p">Aucune séance prévue pour {horse.name}. Ajoute un cours ou une sortie ci-dessous.</p>}
           {seances.map((x) => (
             <button key={x.id} type="button" className="bs-li tap" onClick={() => openSeance(x.id)}>
               <span className="bs-pic">
@@ -251,7 +252,7 @@ function Ticket({ horse }: { horse: Horse }) {
       )}
 
       <Sec>Son carnet</Sec>
-      {log.length === 0 && <p className="bs-p">Rien de noté pour l’instant.</p>}
+      {log.length === 0 && <p className="bs-p">Rien de noté pour l’instant. Ses soins (vaccin, maréchal, dentiste…) apparaîtront ici.</p>}
       {log.map((e) => (
         <div key={e.id} className="bs-li">
           <span className="bs-pic">
@@ -277,7 +278,7 @@ function Ticket({ horse }: { horse: Horse }) {
         className="bs-back"
         style={{ marginTop: 24, color: "var(--rose-ink)" }}
         onClick={() => {
-          if (window.confirm(`${horse.name} quitte l’écurie ? Son historique reste dans les mois passés.`)) {
+          if (window.confirm(`${horse.name} quitte l’écurie ? Ce qu’il a rapporté et coûté reste visible dans les mois passés.`)) {
             archiveHorse(horse.id);
             router.push("/chevaux");
           }

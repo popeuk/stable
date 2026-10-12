@@ -69,19 +69,19 @@ function Accueil() {
           <Picto name="clock" />
           <span style={{ flex: 1 }}>
             <b>
-              {pending.length} chose{pending.length > 1 ? "s" : ""} à valider
+              {pending.length} chose{pending.length > 1 ? "s" : ""} à confirmer
             </b>
-            {pendingMoney ? ` · ${signed(pendingMoney)} en attente` : ""}
+            {pendingMoney ? ` · ${signed(pendingMoney)} t’attendent` : ""}
           </span>
           <Picto name="chev" />
         </Link>
       )}
 
       <Sec action={<Link href="/planning">Planning</Link>}>
-        Aujourd’hui · {left} chose{left > 1 ? "s" : ""}
+        Aujourd’hui · {left} chose{left > 1 ? "s" : ""} à faire
       </Sec>
       {items.length === 0 ? (
-        <p className="bs-p">Rien de prévu aujourd’hui. {desk ? "« Ajouter » (touche N)" : "Le +"} planifie une séance, un soin ou une tâche.</p>
+        <p className="bs-p">Rien de prévu aujourd’hui. {desk ? "Clique sur « Ajouter » (ou touche N)" : "Touche le +"} pour prévoir une séance, un soin ou une tâche.</p>
       ) : (
         items.map((it) => <DayBlock key={it.key} it={it} />)
       )}
@@ -91,7 +91,7 @@ function Accueil() {
     <>
       {action && (
         <>
-          <Sec action={<Link href="/argent?vue=leviers">Leviers</Link>}>L’action de la semaine</Sec>
+          <Sec action={<Link href="/argent?vue=leviers">Toutes les pistes</Link>}>Une piste pour gagner plus</Sec>
           <Link href="/argent?vue=leviers" className="bs-act">
             <span className={`bs-pic ${action.lever === "facturer" ? "rose" : ""}`}>
               <Picto name={action.lever === "remplir" ? "box" : action.lever === "facturer" ? "euro" : "foin"} />
@@ -113,7 +113,7 @@ function Accueil() {
             <Picto name="flag" />
           </span>
           <div style={{ flex: 1 }}>
-            <div className="k">Ton parcours · {n} sur 6</div>
+            <div className="k">Ton parcours · {n} étape{n > 1 ? "s" : ""} sur 6</div>
             <b>Prochain obstacle : {OBSTACLE_META[current].title.toLowerCase()}</b>
           </div>
           <Picto name="arrowR" />
@@ -186,7 +186,7 @@ function BillsGlance() {
   const total = bills.reduce((t, b) => t + b.due, 0);
   return (
     <>
-      <Sec action={<Link href="/argent?vue=facturer">Tout voir</Link>}>À encaisser · {eur(total)}</Sec>
+      <Sec action={<Link href="/argent?vue=facturer">Tout voir</Link>}>On te doit encore · {eur(total)}</Sec>
       {bills.slice(0, 4).map((b) => (
         <Link key={b.payer} href="/argent?vue=facturer" className="bs-li tap" style={{ padding: "8px 0" }}>
           <span className="bs-ini" style={{ width: 28, height: 28, fontSize: 10.5 }}>
@@ -219,7 +219,7 @@ function TeamGlance() {
   if (!tasks.length) return null;
   return (
     <>
-      <Sec action={<Link href="/equipe">Tableau</Link>}>L’équipe</Sec>
+      <Sec action={<Link href="/equipe">Voir les tâches</Link>}>L’équipe</Sec>
       {tasks.map((t) => (
         <Link key={t.id} href="/equipe" className="bs-li tap" style={{ padding: "8px 0" }}>
           <span className="bs-pic sm">

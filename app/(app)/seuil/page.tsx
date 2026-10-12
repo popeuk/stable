@@ -12,7 +12,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 
-/** Le seuil : combien de chevaux paient toutes les factures communes. */
+/** Le seuil : combien de chevaux paient tous les frais communs. */
 export default function Page() {
   return (
     <ClientGate>
@@ -30,16 +30,17 @@ function Seuil() {
   const horses = data.horses.filter((h) => !h.isArchived);
   return (
     <Screen>
-      <Back href={parcours.seuil ? "/argent" : "/parcours"}>{parcours.seuil ? "Argent" : "Parcours · obstacle 6 sur 6"}</Back>
+      <Back href={parcours.seuil ? "/argent" : "/parcours"}>{parcours.seuil ? "Bilan" : "Ton parcours · étape 6 sur 6"}</Back>
       <h1 className="bs-d bs-t1" style={{ marginTop: 6 }}>
-        Le seuil : combien de chevaux paient tout.
+        Combien de chevaux pour ne pas perdre d’argent ?
       </h1>
-      <p className="bs-p">En dessous, tu perds de l’argent chaque mois. Au-dessus, chaque cheval en plus te rapporte presque toute sa pension, parce que les factures communes sont déjà payées.</p>
+      <p className="bs-p">Chaque mois, tu paies des frais communs : foin, paille, loyer, salaires… Il faut un certain nombre de pensions pour les couvrir. En dessous, tu perds de l’argent. Au-dessus, chaque cheval en plus te rapporte presque toute sa pension.</p>
+      <p className="bs-p">Chaque case est un box. Le trait rose montre où tu arrêtes de perdre de l’argent.</p>
       <SeuilGrid horses={horses} capacity={capacity} seuil={m.seuil} />
       <p style={{ fontSize: 15.5, fontWeight: 560, lineHeight: 1.45, marginTop: 16 }}>
         {isFinite(m.seuil)
-          ? `${eur(m.sharedTotal)} de factures communes ÷ ${eur(m.contribution)} laissés par cheval après ses soins = ${dec1(m.seuil)} chevaux. Tu en as ${horses.length}.`
-          : "Tes chevaux ne couvrent pas encore leurs propres soins : le seuil ne peut pas être atteint tant que les pensions ne montent pas."}
+          ? `Tes frais communs font ${eur(m.sharedTotal)} par mois. Une fois ses soins payés, chaque cheval te laisse en moyenne ${eur(m.contribution)}. Il t’en faut donc ${dec1(m.seuil)} pour tout payer. Tu en as ${horses.length}.`
+          : "Pour l’instant, les pensions ne paient même pas les soins des chevaux. Peu importe leur nombre, tu perds de l’argent. La piste : revoir le prix des pensions."}
       </p>
       {!parcours.seuil && (
         <button
@@ -51,7 +52,7 @@ function Seuil() {
             if (!last) router.push("/parcours");
           }}
         >
-          J’ai compris, barre passée <Picto name="check" />
+          J’ai compris, obstacle passé <Picto name="check" />
         </button>
       )}
     </Screen>

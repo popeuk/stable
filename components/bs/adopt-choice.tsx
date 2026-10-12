@@ -19,7 +19,7 @@ export function AdoptChoice({ to = "/accueil" }: { to?: string }) {
       <AccTop />
       <div style={{ marginTop: "min(10vh, 60px)", maxWidth: 440, width: "100%", alignSelf: "center" }}>
         <h1 className="bs-d bs-t1">Une écurie t’attend déjà sur cet appareil.</h1>
-        <p className="bs-p">Des chevaux, des séances ou des chiffres ont été saisis ici avant la création des comptes. Tu peux les ranger dans ton compte : ils seront chiffrés et toi seul y auras accès.</p>
+        <p className="bs-p">Des chevaux, des séances ou des chiffres ont été notés sur cet appareil avant que tu aies un compte. Tu peux les mettre dans ton compte. Ils seront protégés et toi seul y auras accès.</p>
         <button
           type="button"
           className="bs-btn"
@@ -36,7 +36,7 @@ export function AdoptChoice({ to = "/accueil" }: { to?: string }) {
         <button type="button" className="bs-btn line" style={{ marginTop: 8 }} disabled={busy} onClick={() => s && enter(s, to)}>
           Partir d’une écurie vide
         </button>
-        <p className="bs-help" style={{ marginTop: 12 }}>Si tu pars d’une écurie vide, les anciennes données restent sur l’appareil sans être touchées.</p>
+        <p className="bs-help" style={{ marginTop: 12 }}>Si tu pars d’une écurie vide, rien n’est effacé : les anciennes données restent sur l’appareil.</p>
       </div>
     </main>
   );

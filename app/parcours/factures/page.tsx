@@ -38,7 +38,7 @@ function Factures() {
 
   return (
     <Screen>
-      <ObHead retour={retour} n={3} title="Tes factures communes" sub="Celles qui ne dépendent d’aucun cheval. Réglées une fois, elles reviennent chaque mois et se partagent entre tes chevaux." />
+      <ObHead retour={retour} n={3} title="Tes frais communs" sub="Les dépenses qui servent à toute l’écurie : foin, paille, loyer, salaires… Tu les notes une fois. Elles sont comptées chaque mois et partagées entre tes chevaux." />
       <div style={{ marginTop: 6 }}>
         {cats.map((c) => (
           <div key={c.id} className="bs-li">
@@ -47,7 +47,7 @@ function Factures() {
             </span>
             <span className="tx">
               <b>{c.name}</b>
-              <span>par mois, à la louche</span>
+              <span>par mois, à peu près</span>
             </span>
             <input className="bs-inline" inputMode="numeric" defaultValue={Math.round(amountOf(c.id)) || ""} placeholder="0" aria-label={`${c.name}, euros par mois`} onChange={(e) => setMonthlyCharge(c.id, c.name, Number(e.target.value.replace(",", ".")) || 0, period)} />
             <span className="bs-p" style={{ margin: 0 }}>€</span>
@@ -57,7 +57,7 @@ function Factures() {
       <p className="bs-p" style={{ marginTop: 12, fontWeight: 600, color: "var(--ink-1)" }}>
         Total par mois : {eur(total)}
       </p>
-      <Tip>Un ordre d’idée suffit. Tu pourras corriger ces montants à tout moment, depuis Moi.</Tip>
+      <Tip>Un ordre d’idée suffit. Tu pourras corriger ces montants quand tu veux, depuis « Mon écurie et mes réglages » dans le menu.</Tip>
       <button
         type="button"
         className="bs-btn"
@@ -68,7 +68,7 @@ function Factures() {
           router.push(retour ? `/${retour}` : "/parcours");
         }}
       >
-        {retour ? "Enregistrer" : "Barre passée"} <Picto name="check" />
+        {retour ? "Enregistrer" : "Terminer cette étape"} <Picto name="check" />
       </button>
     </Screen>
   );

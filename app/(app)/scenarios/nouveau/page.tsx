@@ -62,30 +62,30 @@ function Simulator() {
 
       <header>
         <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-          Tester un scénario
+          Et si… ?
         </h1>
         <p className="text-sm text-tertiary">
-          Déplace les curseurs, le résultat se recalcule en direct.
+          Bouge les curseurs pour voir ce qu’il te resterait chaque mois. C’est un essai : tes vrais chiffres ne changent pas.
         </p>
       </header>
 
       {/* Live projection */}
       <section className="rounded-[var(--radius-lg)] border bg-elevated p-5">
-        <p className="text-2xs uppercase tracking-wide text-tertiary">Résultat mensuel projeté</p>
+        <p className="text-2xs uppercase tracking-wide text-tertiary">Ce qu’il te resterait par mois</p>
         <KeyNumber value={results.monthlyResult} colorBySign className="text-4xl" animateOnMount={false} />
         <p className="mt-1 text-sm" style={{ color: delta >= 0 ? "var(--c-success)" : "var(--c-danger)" }}>
           {delta >= 0 ? "+" : ""}
-          {formatEur(delta)} vs actuel ({formatEur(baseStable.netResult)})
+          {formatEur(delta)} par rapport à aujourd’hui ({formatEur(baseStable.netResult)})
         </p>
         <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-4 text-center">
           <div>
             <LessonTerm lessonKey="seuil_rentabilite" className="text-2xs uppercase text-tertiary">
-              Seuil / place
+              Minimum par box pour ne pas perdre
             </LessonTerm>
             <p className="tabnums mt-1 text-lg text-primary">{formatEur(results.breakEvenPerSlot)}</p>
           </div>
           <div>
-            <p className="text-2xs uppercase text-tertiary">Chevaux sous seuil</p>
+            <p className="text-2xs uppercase text-tertiary">Chevaux qui coûtent plus qu’ils ne rapportent</p>
             <p className="tabnums mt-1 text-lg" style={{ color: results.horsesUnderThreshold > 0 ? "var(--c-danger)" : "var(--c-success)" }}>
               {results.horsesUnderThreshold} / {baseHorses.length}
             </p>
@@ -96,7 +96,7 @@ function Simulator() {
       {/* Sliders */}
       <section className="space-y-6 rounded-[var(--radius-lg)] border bg-elevated p-5">
         <Slider
-          label="Ajustement global des pensions"
+          label="Changer toutes les pensions de"
           value={pensionAdjustment}
           min={-20}
           max={30}
@@ -105,7 +105,7 @@ function Simulator() {
           onChange={setPensionAdjustment}
         />
         <Slider
-          label="Charges fixes globales"
+          label="Frais communs par mois (foin, paille, loyer, salaires…)"
           value={fixedCosts}
           min={500}
           max={Math.max(10000, baseFixed * 2)}
@@ -116,10 +116,10 @@ function Simulator() {
       </section>
 
       <button
-        onClick={() => alert("Scénario sauvegardé (démo locale).")}
+        onClick={() => alert("Essai gardé sur cet appareil.")}
         className="w-full btn-primary py-3.5 text-[15px] font-bold text-[var(--on-accent)]"
       >
-        Sauvegarder ce scénario
+        Garder cet essai
       </button>
     </div>
   );

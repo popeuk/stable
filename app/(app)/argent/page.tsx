@@ -21,16 +21,16 @@ import { localToday } from "@/lib/utils/local-date";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 
 /**
- * Argent : le mois face à l'objectif, les leviers (remplir, facturer
+ * Bilan (ancien onglet Argent) : le mois face à l'objectif, les leviers (remplir, facturer
  * juste, dépenser mieux), ce qu'il faut facturer par personne, et tous les
  * mouvements à corriger.
  */
 type Vue = "mois" | "leviers" | "facturer" | "mouvements";
 const VUES: [Vue, string][] = [
-  ["mois", "Mois"],
-  ["leviers", "Leviers"],
+  ["mois", "Le mois"],
+  ["leviers", "Gagner plus"],
   ["facturer", "Facturer"],
-  ["mouvements", "Mouvements"],
+  ["mouvements", "Historique"],
 ];
 
 export default function Page() {
@@ -66,7 +66,17 @@ function Argent() {
           )}
         </span>
       </div>
-      <h1 className="bs-d bs-t1">{{ mois: "Le mois", leviers: "Les leviers", facturer: "À facturer", mouvements: "Mouvements" }[vue]}</h1>
+      <h1 className="bs-d bs-t1">{{ mois: "Bilan du mois", leviers: "Pistes pour gagner plus", facturer: "À facturer", mouvements: "Entrées et sorties d’argent" }[vue]}</h1>
+      <p className="bs-p">
+        {
+          {
+            mois: "Ce qui est rentré, ce qui est sorti, et ce qu’il te reste.",
+            leviers: "Des idées concrètes, calculées sur tes chiffres. Tu choisis celles qui te parlent.",
+            facturer: "Ce que chaque propriétaire ou cavalier te doit ce mois-ci.",
+            mouvements: "Tout ce que tu as noté ce mois-ci. Tu peux corriger ou supprimer une ligne.",
+          }[vue]
+        }
+      </p>
       <div className="bs-seg" style={{ fontSize: 13, maxWidth: desk ? 520 : undefined }}>
         {VUES.map(([v, l]) => (
           <button key={v} type="button" aria-pressed={vue === v} onClick={() => router.replace(v === "mois" ? "/argent" : `/argent?vue=${v}`)}>
@@ -122,15 +132,15 @@ function Mois() {
             <Picto name="euro" />
           </span>
           <div style={{ flex: 1 }}>
-            <div className="k">Résultat du mois</div>
+            <div className="k">Ce qui te reste ce mois</div>
             <div className={`bs-big${m.net < 0 ? " neg" : ""}`}>{signed(m.net)}</div>
           </div>
-          <span className={`bs-pill ${m.net >= objective ? "g" : "n"}`}>{m.net >= objective ? "objectif tenu" : `objectif ${eur(objective)}`}</span>
+          <span className={`bs-pill ${m.net >= objective ? "g" : "n"}`}>{m.net >= objective ? "objectif atteint" : `objectif ${eur(objective)}`}</span>
         </div>
       )}
       {editGoal ? (
         <label className="bs-field">
-          <span>Objectif par mois</span>
+          <span>Ce que tu veux qu’il te reste par mois</span>
           <input inputMode="numeric" defaultValue={objective} style={{ textAlign: "right", fontWeight: 600 }} onChange={(e) => setObjective(Number(e.target.value) || 0)} onBlur={() => setEditGoal(false)} autoFocus />
           <span>€</span>
         </label>
@@ -140,7 +150,7 @@ function Mois() {
         </button>
       )}
 
-      <Sec>Séances, semaine par semaine</Sec>
+      <Sec>Tes séances, semaine par semaine</Sec>
       <div style={{ display: "grid", gridTemplateColumns: `repeat(${weeks.length},1fr)`, gap: 8, alignItems: "end", height: 90, marginTop: 6 }}>
         {weeks.map((w) => (
           <div key={w.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%", gap: 3 }}>
@@ -153,7 +163,7 @@ function Mois() {
           </div>
         ))}
       </div>
-      <p className="bs-p" style={{ fontSize: 12 }}>Plein : validé. Hachuré : encore prévu au planning. Sous chaque barre, le premier jour de la semaine.</p>
+      <p className="bs-p" style={{ fontSize: 12 }}>Barre pleine : séances qui ont eu lieu. Barre rayée : séances encore prévues. Le chiffre du bas, c’est le premier jour de la semaine.</p>
       </div>
 
       <div>
@@ -195,8 +205,8 @@ function Mois() {
           <Picto name="flag" />
         </span>
         <div style={{ flex: 1 }}>
-          <div className="k">Ton seuil</div>
-          <b>{isFinite(m.seuil) ? `${dec1(m.seuil)} chevaux paient tout · tu en as ${m.horseCount}` : "Tes pensions ne couvrent pas encore les soins"}</b>
+          <div className="k">Combien de chevaux pour ne pas perdre d’argent</div>
+          <b>{isFinite(m.seuil) ? `Il en faut ${dec1(m.seuil)} pour tout payer. Tu en as ${m.horseCount}.` : "Tes pensions ne paient pas encore les soins des chevaux"}</b>
         </div>
         <Picto name="arrowR" />
       </Link>
@@ -205,8 +215,8 @@ function Mois() {
           <Picto name="foin" />
         </span>
         <div style={{ flex: 1 }}>
-          <div className="k">La part de l’écurie</div>
-          <b>Comment les factures communes se partagent</b>
+          <div className="k">Les frais communs</div>
+          <b>Comment le foin, la paille ou le loyer se partagent entre les chevaux</b>
         </div>
         <Picto name="arrowR" />
       </Link>
@@ -217,15 +227,15 @@ function Mois() {
 
 /* ---------------- Leviers ---------------- */
 const LEVERS: { id: Lever; title: string; picto: string; bg: string; fg: string }[] = [
-  { id: "remplir", title: "Remplir", picto: "box", bg: "var(--vert-soft)", fg: "var(--vert-deep)" },
-  { id: "facturer", title: "Facturer juste", picto: "euro", bg: "var(--rose-soft)", fg: "#5E2240" },
-  { id: "depenser", title: "Dépenser mieux", picto: "foin", bg: "#F5ECDC", fg: "#5C4420" },
+  { id: "remplir", title: "Remplir les boxes", picto: "box", bg: "var(--vert-soft)", fg: "var(--vert-deep)" },
+  { id: "facturer", title: "Facturer ce qui est dû", picto: "euro", bg: "var(--rose-soft)", fg: "#5E2240" },
+  { id: "depenser", title: "Payer moins cher", picto: "foin", bg: "#F5ECDC", fg: "#5C4420" },
 ];
 const STATUS: Record<Suggestion["status"], [string, string]> = {
-  proposee: ["proposée", "n"],
+  proposee: ["idée", "n"],
   en_cours: ["en cours", "o"],
-  faite: ["faite", "g"],
-  ecartee: ["écartée", "n"],
+  faite: ["fait", "g"],
+  ecartee: ["mise de côté", "n"],
 };
 
 function Leviers() {
@@ -246,27 +256,27 @@ function Leviers() {
     const undo = () => useDataStore.setState(snap);
     if (s.apply.type === "rebill") {
       st().rebillExpense(s.apply.expenseId);
-      say(`Ajouté à la facture : <strong>+${eur(s.gain)}</strong>.`, undo);
+      say(`Ajouté à sa facture : <strong>+${eur(s.gain)}</strong>.`, undo);
     } else if (s.apply.type === "pension") {
       st().setPension(s.apply.horseId, s.apply.amount, localToday().slice(0, 7));
       st().setActionStatus(s.id, "faite");
-      say(`Pension changée : <strong>+${eur(s.gain)}</strong> par mois.`, undo);
+      say(`Pension changée : <strong>+${eur(s.gain)}</strong> par mois à partir du 1er.`, undo);
     } else if (s.apply.type === "publish") {
       st().setActionStatus(s.id, "en_cours");
-      say("Action en cours. La publication sur mon-ecurie.fr arrive avec Be Stable.", undo);
+      say("Noté, tu t’en occupes. La mise en ligne sur mon-ecurie.fr depuis l’app arrive bientôt.", undo);
     } else {
       st().setActionStatus(s.id, "en_cours");
-      say(`Action en cours : <strong>${esc(s.title)}</strong>.`, undo);
+      say(`Noté, tu t’en occupes : <strong>${esc(s.title)}</strong>.`, undo);
     }
   }
 
   return (
     <>
       <div className="bs-card" style={{ display: "block" }}>
-        <div className="k">{missing > 0 ? `Il manque ${eur(missing)} pour l’objectif. Ce que tu peux aller chercher :` : "Objectif tenu. Ce que tu peux encore aller chercher :"}</div>
+        <div className="k">{missing > 0 ? `Il te manque ${eur(missing)} pour atteindre ton objectif. En suivant ces pistes, tu pourrais gagner :` : "Objectif atteint. En suivant ces pistes, tu pourrais encore gagner :"}</div>
         <span className="bs-big" style={{ fontSize: 28, color: "var(--vert)" }}>+{eur(monthly)}</span>
-        <span style={{ fontSize: 12, color: "var(--ink-3)" }}> par mois, estimé</span>
-        {gained > 0 && <p className="bs-p" style={{ marginTop: 4 }}>Déjà gagné avec tes actions : <b style={{ color: "var(--vert)" }}>+{eur(gained)}</b></p>}
+        <span style={{ fontSize: 12, color: "var(--ink-3)" }}> de plus par mois (estimation)</span>
+        {gained > 0 && <p className="bs-p" style={{ marginTop: 4 }}>Déjà gagné grâce à ce que tu as fait : <b style={{ color: "var(--vert)" }}>+{eur(gained)}</b></p>}
       </div>
       <div className="bs-lev3">
       {LEVERS.map((lv) => {
@@ -277,7 +287,7 @@ function Leviers() {
               <Picto name={lv.picto} />
               <span className="tx">
                 <b>{lv.title}</b>
-                <span>{acts.length ? `${acts.length} action${acts.length > 1 ? "s" : ""}` : "rien à signaler ce mois"}</span>
+                <span>{acts.length ? `${acts.length} piste${acts.length > 1 ? "s" : ""}` : "rien à faire ce mois-ci"}</span>
               </span>
               <span className="v">+{eur(leverPotential(list, lv.id))}</span>
             </div>
@@ -289,7 +299,7 @@ function Leviers() {
                   {s.status !== "faite" && (
                     <span style={{ display: "flex", gap: 12, marginTop: 4 }}>
                       <button type="button" className="bs-link" onClick={() => apply(s)}>
-                        {s.apply.type === "rebill" ? "Ajouter à sa facture" : s.apply.type === "pension" ? "Appliquer au 1er du mois" : s.status === "en_cours" ? "Toujours en cours" : "Je m’en occupe"}
+                        {s.apply.type === "rebill" ? "Ajouter à sa facture" : s.apply.type === "pension" ? "Changer la pension au 1er du mois" : s.status === "en_cours" ? "J’y travaille encore" : "Je m’en occupe"}
                       </button>
                       {s.status === "en_cours" && (
                         <button type="button" className="bs-link" onClick={() => st().setActionStatus(s.id, "faite")}>
@@ -297,7 +307,7 @@ function Leviers() {
                         </button>
                       )}
                       <button type="button" className="bs-link" style={{ color: "var(--ink-3)" }} onClick={() => st().setActionStatus(s.id, "ecartee")}>
-                        Écarter
+                        Pas pour moi
                       </button>
                     </span>
                   )}
@@ -317,9 +327,9 @@ function Leviers() {
         );
       })}
       </div>
-      <p className="bs-p" style={{ fontSize: 12, marginTop: 12 }}>Les montants sont recalculés à chaque saisie, à partir des chiffres de l’écurie.</p>
+      <p className="bs-p" style={{ fontSize: 12, marginTop: 12 }}>Ces montants se mettent à jour dès que tu notes quelque chose. Ce sont des estimations, pas des promesses.</p>
       <Link href="/scenarios" className="bs-btn line" style={{ marginTop: 10 }}>
-        Simuler une hausse des pensions
+        Et si j’augmentais mes pensions ?
       </Link>
     </>
   );
@@ -376,8 +386,8 @@ function Facturer() {
       .map((b) => `${b.payer} : ${eur(b.total)}${b.paid ? ` (payé ${eur(b.paid)})` : ""}\n${b.lines.map((l) => `  · ${l.label}${l.horse ? ` (${l.horse})` : ""} ${eur(l.amount)}`).join("\n")}`)
       .join("\n\n");
     navigator.clipboard?.writeText(txt).then(
-      () => say("Récapitulatif copié : colle-le dans un e-mail ou ton logiciel de facturation."),
-      () => say("Copie impossible sur ce navigateur."),
+      () => say("Récapitulatif copié. Colle-le dans un e-mail ou dans ton logiciel de factures."),
+      () => say("La copie ne marche pas sur ce navigateur."),
     );
   }
 
@@ -391,11 +401,11 @@ function Facturer() {
         </div>
         <div>
           <b style={{ color: "var(--vert)" }}>{eur(paid)}</b>
-          <span>déjà payés</span>
+          <span>déjà reçus</span>
         </div>
         <div>
           <b style={{ color: "var(--rose-ink)" }}>{eur(total - paid)}</b>
-          <span>en attente</span>
+          <span>encore à recevoir</span>
         </div>
       </div>
       <div className="bs-seg">
@@ -406,7 +416,7 @@ function Facturer() {
           Cavaliers
         </button>
       </div>
-      {shown.length === 0 && <p className="bs-p" style={{ marginTop: 12 }}>Rien à facturer ce mois-ci.</p>}
+      {shown.length === 0 && <p className="bs-p" style={{ marginTop: 12 }}>Personne à facturer ce mois-ci. Les pensions, séances et soins à refacturer apparaîtront ici.</p>}
       {shown.map((b) => (
         <div key={b.payer} style={{ borderBottom: "1px solid var(--line-2)", boxShadow: desk && current?.payer === b.payer ? "inset 2px 0 0 var(--vert)" : undefined, paddingLeft: desk ? 10 : undefined, background: desk && current?.payer === b.payer ? "#fff" : undefined }}>
           <div className="bs-act" style={{ borderBottom: 0 }}>
@@ -426,7 +436,7 @@ function Facturer() {
                   className="bs-pill g"
                   onClick={() => {
                     useDataStore.getState().removePayments(b.payer, mk);
-                    say(`${esc(b.payer)} : paiement retiré.`);
+                    say(`${esc(b.payer)} : paiement annulé.`);
                   }}
                 >
                   payé
@@ -441,7 +451,7 @@ function Facturer() {
                     say(`${esc(b.payer)} : <strong>${eur(b.due)}</strong> reçus.`, () => useDataStore.setState({ payments: snap }));
                   }}
                 >
-                  marquer payé
+                  J’ai reçu le paiement
                 </button>
               )}
             </span>
@@ -490,13 +500,13 @@ function Mouvements() {
   const rows = useMemo(() => {
     const r = data.revenues
       .filter((x) => dateInPeriod(x.date, active))
-      .map((x) => ({ id: x.id, t: "rev" as const, date: x.date, label: x.note || cat(x.categoryId) || "Recette", sub: [name(x.horseId), x.payer].filter(Boolean).join(" · "), amount: x.amount, horseId: x.horseId }));
+      .map((x) => ({ id: x.id, t: "rev" as const, date: x.date, label: x.note || cat(x.categoryId) || "Rentrée d’argent", sub: [name(x.horseId), x.payer].filter(Boolean).join(" · "), amount: x.amount, horseId: x.horseId }));
     const d = data.directExpenses
       .filter((x) => dateInPeriod(x.date, active))
-      .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: x.label, sub: [name(x.horseId), x.rebillRevenueId ? "refacturé" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
+      .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: x.label, sub: [name(x.horseId), x.rebillRevenueId ? "remis sur sa facture" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
     const s = data.sharedExpenses
       .filter((x) => x.periodYear === active.year && x.periodMonth === active.month)
-      .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: x.label, sub: `facture commune · ${x.allocations.length} chevaux`, amount: -x.totalAmount, horseId: "" }));
+      .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: x.label, sub: `frais communs · partagé entre ${x.allocations.length} chevaux`, amount: -x.totalAmount, horseId: "" }));
     return [...r, ...d, ...s]
       .filter((x) => (kind === "in" ? x.amount > 0 : kind === "out" ? x.amount < 0 : true))
       .filter((x) => !horse || x.horseId === horse)
@@ -521,8 +531,8 @@ function Mouvements() {
         {(
           [
             ["tout", "Tout"],
-            ["in", "Recettes"],
-            ["out", "Dépenses"],
+            ["in", "Ce qui rentre"],
+            ["out", "Ce qui sort"],
           ] as const
         ).map(([k, l]) => (
           <button key={k} type="button" className="bs-chip" aria-pressed={kind === k} onClick={() => setKind(k)}>
@@ -538,13 +548,13 @@ function Mouvements() {
           ))}
         </select>
       </div>
-      {rows.length === 0 && <p className="bs-p" style={{ marginTop: 12 }}>Aucun mouvement.</p>}
+      {rows.length === 0 && <p className="bs-p" style={{ marginTop: 12 }}>Rien de noté ici pour l’instant. Ce que tu ajoutes avec le bouton + apparaîtra dans cette liste.</p>}
       {desk && rows.length > 0 && (
         <table className="bs-table">
           <thead>
             <tr>
               <th>Date</th>
-              <th>Libellé</th>
+              <th>Quoi</th>
               <th>Détail</th>
               <th className="n">Montant</th>
               <th style={{ width: 44 }}>
@@ -569,7 +579,7 @@ function Mouvements() {
                   {signed(r.amount)}
                 </td>
                 <td>
-                  <button type="button" className="bs-x" style={{ float: "none", margin: 0, width: 32, height: 32 }} aria-label={`Supprimer ${r.label}`} title="Supprimer (annulable 6 s)" onClick={() => remove(r)}>
+                  <button type="button" className="bs-x" style={{ float: "none", margin: 0, width: 32, height: 32 }} aria-label={`Supprimer ${r.label}`} title="Supprimer (tu as 6 secondes pour annuler)" onClick={() => remove(r)}>
                     <Picto name="trash" size={15} />
                   </button>
                 </td>
@@ -579,7 +589,7 @@ function Mouvements() {
           <tfoot>
             <tr>
               <td colSpan={3}>
-                {rows.length} mouvement{rows.length > 1 ? "s" : ""}
+                {rows.length} ligne{rows.length > 1 ? "s" : ""}
               </td>
               <td className="n">{signed(rows.reduce((t, r) => t + r.amount, 0))}</td>
               <td />

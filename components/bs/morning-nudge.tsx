@@ -44,11 +44,11 @@ export function MorningNudge() {
       if (minutes >= h * 60 + m && sent.morning !== today) {
         notify(
           "morning",
-          `Ta journée : ${todays.length} chose${todays.length > 1 ? "s" : ""}`,
-          todays.length ? todays.slice(0, 3).map((i) => `${i.start ? `${i.start} ` : ""}${i.title}`).join(", ") : "Rien de prévu. Une journée pour avancer.",
+          `Aujourd’hui : ${todays.length} chose${todays.length > 1 ? "s" : ""} à faire`,
+          todays.length ? todays.slice(0, 3).map((i) => `${i.start ? `${i.start} ` : ""}${i.title}`).join(", ") : "Rien de prévu aujourd’hui. Profites-en pour avancer.",
         );
       } else if (evening && minutes >= 19 * 60 + 30 && late.length > 0 && sent.evening !== today) {
-        notify("evening", `${late.length} chose${late.length > 1 ? "s" : ""} à valider`, "Valide ce qui a eu lieu : le compteur du mois ne compte que ça.");
+        notify("evening", `${late.length} chose${late.length > 1 ? "s" : ""} à confirmer`, "Coche ce qui a bien eu lieu. Seul ce qui est coché compte dans ton mois.");
       }
     };
     check();

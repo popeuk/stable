@@ -176,11 +176,11 @@ export function FichePreview({ f, claimed, pending }: { f: Partial<Fiche>; claim
 export function ResultSheet({ f, claimed }: { f: Partial<Fiche>; claimed?: boolean }) {
   const rows: [string, boolean, string, string][] = [
     ["Sur la carte de l’annuaire", true, "en ligne", ""],
-    ["Fiche reprise par l’écurie", !!claimed, "reprise", "à revendiquer"],
+    ["Fiche reprise par l’écurie", !!claimed, "reprise", "à reprendre"],
     ["Tarifs affichés", Number(f.prix_min) > 0 || !!f.formules?.some((x) => Number(x.prix) > 0), "affichés", "à renseigner"],
     ["Places libres", f.places_libres !== "" && f.places_libres !== undefined, "à jour", "à préciser"],
     ["Photos", !!f.photos?.length, `${f.photos?.length ?? 0} photo${(f.photos?.length ?? 0) > 1 ? "s" : ""}`, "à ajouter"],
-    ["Contact direct", !!(f.telephone || f.email), "joignable", "à ajouter"],
+    ["Téléphone ou e-mail", !!(f.telephone || f.email), "affiché", "à ajouter"],
   ];
   const ok = rows.filter((r) => r[1]).length;
   return (

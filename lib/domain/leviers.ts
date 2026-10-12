@@ -42,8 +42,8 @@ export function suggestions(data: StableData, period: Period, capacity: number):
     out.push({
       id: "remplir-box",
       lever: "remplir",
-      title: free > 1 ? `Louer tes ${free} boxes libres` : "Louer ton box libre",
-      sub: "les publier sur mon-ecurie.fr, l’annuaire des pensions",
+      title: free > 1 ? `Trouver un cheval pour tes ${free} boxes vides` : "Trouver un cheval pour ton box vide",
+      sub: free > 1 ? "un box occupé te rapporte autant que tes autres chevaux. Tu peux les annoncer sur mon-ecurie.fr, l’annuaire des pensions." : "un box occupé te rapporte autant que tes autres chevaux. Tu peux l’annoncer sur mon-ecurie.fr, l’annuaire des pensions.",
       gain: Math.round(m.contribution * free),
       unit: "par mois",
       apply: { type: "publish" },
@@ -58,8 +58,8 @@ export function suggestions(data: StableData, period: Period, capacity: number):
     out.push({
       id: `rebill-${e.id}`,
       lever: "facturer",
-      title: `Refacturer « ${e.label.toLowerCase()} » de ${h.name}`,
-      sub: `à ${h.ownerName ?? "son propriétaire"}, payé par l’écurie`,
+      title: `Faire payer « ${e.label.toLowerCase()} » de ${h.name}`,
+      sub: `tu l’as payé, mais d’habitude c’est ${h.ownerName ? `à ${h.ownerName}` : "au propriétaire"} de le régler. Ajoute-le à sa facture.`,
       gain: e.amount,
       unit: "une fois",
       apply: { type: "rebill", expenseId: e.id },
@@ -77,8 +77,8 @@ export function suggestions(data: StableData, period: Period, capacity: number):
       out.push({
         id: `pension-${h.id}`,
         lever: "facturer",
-        title: `${h.name} : pension ${h.pension} → ${floor} €`,
-        sub: "elle ne couvre pas sa part de l’écurie et ses soins courants",
+        title: `${h.name} : passer la pension de ${h.pension} à ${floor} €`,
+        sub: "aujourd’hui, sa pension ne paie pas sa part des frais communs et ses soins de base. Tu perds de l’argent avec lui.",
         gain: floor - h.pension,
         unit: "par mois",
         apply: { type: "pension", horseId: h.id, amount: floor },
@@ -92,8 +92,8 @@ export function suggestions(data: StableData, period: Period, capacity: number):
     out.push({
       id: `depense-${top.label}`,
       lever: "depenser",
-      title: `${top.label} : négocier 5 %`,
-      sub: `ton premier poste, ${Math.round(top.amount)} € ce mois ; demander deux devis à l’année`,
+      title: `${top.label} : obtenir 5 % moins cher`,
+      sub: `c’est ta plus grosse dépense commune (${Math.round(top.amount)} € ce mois-ci). Demande deux devis pour l’année et compare.`,
       gain: Math.round(top.amount * 0.05),
       unit: "estimé",
       apply: { type: "none" },

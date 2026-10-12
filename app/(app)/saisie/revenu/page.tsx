@@ -14,9 +14,9 @@ import { localToday } from "@/lib/utils/local-date";
 import { formatEur } from "@/lib/utils/format-currency";
 
 const FREQS: { v: Frequency; l: string }[] = [
-  { v: "monthly", l: "Mensuel" },
-  { v: "quarterly", l: "Trimestriel" },
-  { v: "yearly", l: "Annuel" },
+  { v: "monthly", l: "Chaque mois" },
+  { v: "quarterly", l: "Chaque trimestre" },
+  { v: "yearly", l: "Chaque année" },
 ];
 
 export default function SaisieRevenuPage() {
@@ -88,14 +88,14 @@ function SaisieRevenu() {
         <ChevronLeft size={16} /> Annuler
       </button>
       <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-        Encaisser un revenu
+        Noter ce qui rentre
       </h1>
 
       {/* Ponctuel ou récurrent (une pension est récurrente) */}
       <div className="grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
         {[
-          { v: false, l: "Ponctuel" },
-          { v: true, l: "Récurrent" },
+          { v: false, l: "Une seule fois" },
+          { v: true, l: "Revient souvent" },
         ].map((o) => (
           <button
             key={String(o.v)}
@@ -112,7 +112,7 @@ function SaisieRevenu() {
       </div>
       {recurring && (
         <p className="-mt-3 text-[12px] text-tertiary">
-          Parfait pour une pension : elle se réapplique chaque échéance, automatiquement.
+          Parfait pour une pension : elle est comptée toute seule à chaque fois, tu n&apos;as plus à la noter.
         </p>
       )}
 
@@ -123,10 +123,10 @@ function SaisieRevenu() {
             className="flex items-center justify-between border border-dashed border-[var(--border-strong)] px-4 py-3.5"
           >
             <span className="pr-3 text-[13px] text-secondary">
-              Ajoute d&apos;abord un cheval pour lui attribuer ce revenu.
+              Ajoute d&apos;abord un cheval pour noter ce qu&apos;il te rapporte.
             </span>
             <span className="flex shrink-0 items-center gap-1 text-[13px] font-bold text-[var(--accent-primary)]">
-              Ajouter <ArrowRight size={14} />
+              Ajouter un cheval <ArrowRight size={14} />
             </span>
           </Link>
         ) : (
@@ -164,7 +164,7 @@ function SaisieRevenu() {
         </div>
       </Field>
 
-      <Field label="Type">
+      <Field label="C’est quoi ?">
         <div className="flex flex-wrap gap-2">
           {data.revenueCategories.map((c) => (
             <button
@@ -184,7 +184,7 @@ function SaisieRevenu() {
       </Field>
 
       {recurring && (
-        <Field label="Fréquence">
+        <Field label="Tous les combien ?">
           <div className="flex gap-2">
             {FREQS.map((f) => (
               <button
@@ -204,7 +204,7 @@ function SaisieRevenu() {
 
       {recurring ? (
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Date de début">
+          <Field label="À partir du">
             <input
               type="date"
               value={date}
@@ -212,7 +212,7 @@ function SaisieRevenu() {
               className="w-full rounded-[var(--radius-md)] border bg-elevated px-3 py-3 text-sm text-primary outline-none"
             />
           </Field>
-          <Field label="Date de fin">
+          <Field label="Jusqu’au">
             {hasEnd ? (
               <input
                 type="date"
@@ -225,7 +225,7 @@ function SaisieRevenu() {
                 onClick={() => setHasEnd(true)}
                 className="w-full rounded-[var(--radius-md)] border border-dashed px-3 py-3 text-sm text-tertiary"
               >
-                Sans fin · définir
+                Pas de fin · ajouter une date
               </button>
             )}
           </Field>
@@ -247,7 +247,7 @@ function SaisieRevenu() {
         className="flex w-full items-center justify-center gap-2 btn-primary py-3.5 text-[15px] font-bold text-[var(--on-accent)] disabled:opacity-40"
       >
         <Check size={18} /> Enregistrer{" "}
-        {Number(amount) > 0 ? `${formatEur(Number(amount))}${recurring ? "/échéance" : ""}` : ""}
+        {Number(amount) > 0 ? `${formatEur(Number(amount))}${recurring ? " à chaque fois" : ""}` : ""}
       </button>
     </div>
   );

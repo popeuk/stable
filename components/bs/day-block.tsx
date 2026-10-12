@@ -35,10 +35,10 @@ export function useCheck() {
       if (it.seance) {
         if (it.seance.participants.length > 1) return openSeance(it.seance.id, "presence");
         st.validateSeance(it.seance.id, {});
-        say(`${esc(it.title)} validée : <strong>${signed(it.money ?? 0)}</strong> sur le ticket.`, undo);
+        say(`${esc(it.title)} : c’est fait, <strong>${signed(it.money ?? 0)}</strong> sur le ticket.`, undo);
       } else if (it.care) {
         st.confirmSession(it.care.map((e) => e.id), it.care.map((e) => e.horseId), it.care[0].date < localToday() ? it.care[0].date : localToday());
-        say(`${esc(it.title)} : fait${it.money ? `, <strong>${signed(it.money)}</strong> sur le ticket` : ""}.`, undo);
+        say(`${esc(it.title)} : c’est fait${it.money ? `, <strong>${signed(it.money)}</strong> sur le ticket` : ""}.`, undo);
       } else if (it.task) {
         const done = st.taskLists?.find((l) => l.isDone)?.id;
         if (done) st.moveTask(it.task.id, done);
@@ -72,7 +72,7 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
         <span>{it.sub || (it.type === "task" ? "tâche d’équipe" : "")}</span>
       </button>
       {it.money ? <span className="money">{signed(it.money)}</span> : null}
-      <button type="button" className={`bs-ck${it.done ? " on" : ""}`} onClick={() => (it.done ? open() : check(it))} aria-label={it.done ? `${it.title} : fait` : `Valider : ${it.title}`} aria-pressed={it.done}>
+      <button type="button" className={`bs-ck${it.done ? " on" : ""}`} onClick={() => (it.done ? open() : check(it))} aria-label={it.done ? `${it.title} : fait` : `Confirmer que c’est fait : ${it.title}`} aria-pressed={it.done}>
         <i>
           <Picto name="check" />
         </i>

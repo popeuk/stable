@@ -17,13 +17,13 @@ const ROWS: { key: keyof Tariffs; label: string; unit: string; hint: string }[] 
     key: "pension",
     label: "Pension",
     unit: "€ / mois",
-    hint: "Proposée pour chaque nouveau cheval, puis postée toute seule chaque mois.",
+    hint: "Proposée pour chaque nouveau cheval, puis comptée toute seule chaque mois.",
   },
   {
     key: "cours_collectif",
     label: "Cours collectif",
     unit: "€ / cavalier",
-    hint: "Attribuée à chaque cheval présent quand tu confirmes la séance.",
+    hint: "Comptée pour chaque cheval présent, une fois que tu as confirmé que le cours a eu lieu.",
   },
   {
     key: "cours_individuel",
@@ -35,7 +35,7 @@ const ROWS: { key: keyof Tariffs; label: string; unit: string; hint: string }[] 
     key: "entrainement",
     label: "Séance de travail",
     unit: "€",
-    hint: "Le travail d'un cheval facturé à son propriétaire.",
+    hint: "Quand tu travailles un cheval et que son propriétaire te paie pour ça.",
   },
 ];
 
@@ -74,8 +74,8 @@ function Tarifs() {
           Tes tarifs
         </h1>
         <p className="mt-1 text-[13px] text-secondary">
-          Saisis-les une fois : partout ailleurs, le prix se remplit tout seul. Tu peux
-          toujours le changer au cas par cas au moment de la saisie.
+          Note tes prix une fois. Ensuite, ils se remplissent tout seuls quand tu notes quelque chose.
+          Tu peux toujours changer le prix juste pour une fois.
         </p>
       </div>
 
@@ -93,7 +93,7 @@ function Tarifs() {
                     const v = Number(e.target.value.replace(",", ".").replace(/[^0-9.]/g, ""));
                     setTariff(row.key, Number.isFinite(v) && v > 0 ? v : undefined);
                   }}
-                  placeholder="—"
+                  placeholder="…"
                   className="w-16 bg-transparent text-right text-sm tabular-nums text-primary outline-none"
                 />
                 <span className="whitespace-nowrap text-[12px] text-tertiary">{row.unit}</span>
@@ -105,7 +105,7 @@ function Tarifs() {
       </div>
 
       <p className="text-[12px] text-tertiary">
-        Un champ vide = pas de prix par défaut : tu saisiras le montant librement à chaque
+        Si tu laisses une case vide, tu taperas le prix toi-même à chaque
         fois.
       </p>
 
@@ -115,7 +115,7 @@ function Tarifs() {
           Tes prestations
         </h2>
         <p className="mt-1 text-[13px] text-secondary">
-          Balade, transport, débourrage, douche… Tes offres à toi : elles apparaissent
+          Balade, transport, débourrage, douche… Ce que tu proposes en plus. Tu les retrouves
           dans « Quoi ? » quand tu ajoutes quelque chose au planning.
         </p>
       </div>
@@ -131,7 +131,7 @@ function Tarifs() {
             </span>
             <button
               onClick={() =>
-                confirm(`Retirer « ${svc.name} » de tes prestations ?`) && deleteService(svc.id)
+                confirm(`Retirer « ${svc.name} » de ta liste ?`) && deleteService(svc.id)
               }
               aria-label={`Retirer ${svc.name}`}
               className="shrink-0 p-1 text-tertiary hover:text-[var(--c-danger)]"
@@ -154,7 +154,7 @@ function Tarifs() {
               onChange={(e) => setNewPrice(e.target.value.replace(/[^0-9,\.]/g, ""))}
               onKeyDown={(e) => e.key === "Enter" && saveService()}
               inputMode="decimal"
-              placeholder="—"
+              placeholder="…"
               className="w-10 bg-transparent text-right text-sm tabular-nums text-primary outline-none"
             />
             <span className="text-[12px] text-tertiary">€</span>

@@ -62,8 +62,8 @@ function Prestations() {
 
   const list = (
     <>
-      <Sec>Tes prestations · {stats.filter((s) => s.p.active).length}</Sec>
-      {stats.length === 0 && <p className="bs-p">Aucune prestation. Ajoute la première ci-dessous.</p>}
+      <Sec>Ce que tu proposes · {stats.filter((s) => s.p.active).length}</Sec>
+      {stats.length === 0 && <p className="bs-p">Tu n’as encore rien ajouté. Cours, balades, travail du cheval : ajoute ce que tu proposes juste en dessous.</p>}
       {stats.map((s) => (
         <Row key={s.p.id} s={s} max={max} open={edit === s.p.id} onToggle={() => setEdit(edit === s.p.id ? null : s.p.id)} onPlan={() => openNoter({ mode: "seance", prestationId: s.p.id })} />
       ))}
@@ -72,18 +72,18 @@ function Prestations() {
 
   const side = (
     <>
-      <Sec>Ajouter une prestation</Sec>
+      <Sec>Ajouter un cours ou un service</Sec>
       <AddForm />
       <div style={{ marginTop: 18 }}>
-        <Tip>Le prix se fige dans chaque séance au moment où tu la planifies. Changer un tarif ici vaut pour les prochaines séances ; celles déjà au planning gardent leur prix.</Tip>
+        <Tip>Si tu changes un prix ici, il compte pour les prochaines séances. Celles déjà au planning gardent leur ancien prix.</Tip>
       </div>
       <Link href="/argent?vue=leviers" className="bs-card" style={{ marginTop: 14 }}>
         <span className="bs-pic soft">
           <Picto name="bulb" />
         </span>
         <div style={{ flex: 1 }}>
-          <div className="k">Les leviers</div>
-          <b>Ce qui ferait monter le mois</b>
+          <div className="k">Pistes pour gagner plus</div>
+          <b>Des idées pour qu’il te reste plus à la fin du mois</b>
         </div>
         <Picto name="arrowR" />
       </Link>
@@ -107,13 +107,13 @@ function Prestations() {
       </div>
       <div className="bs-dhead">
         <div>
-          <h1 className="bs-d bs-t1">Prestations</h1>
+          <h1 className="bs-d bs-t1">Cours et services</h1>
           <p className="bs-p">
-            Ce que tu vends en plus des pensions.
+            Tout ce que tu vends en plus des pensions : cours, balades, travail du cheval…
             {best ? (
               <>
                 {" "}
-                Ce mois, <b style={{ color: "var(--ink-1)", fontWeight: 600 }}>{best.p.label.toLowerCase()}</b> rapporte le plus.
+                Ce mois-ci, <b style={{ color: "var(--ink-1)", fontWeight: 600 }}>{best.p.label.toLowerCase()}</b> rapporte le plus.
               </>
             ) : null}
           </p>
@@ -133,11 +133,11 @@ function Prestations() {
         </div>
         <div>
           <b style={{ color: "var(--vert)" }}>{signed(tot.done)}</b>
-          <span>validés</span>
+          <span>déjà faites</span>
         </div>
         <div>
           <b style={{ color: "var(--ink-3)" }}>{signed(tot.planned)}</b>
-          <span>encore prévus</span>
+          <span>encore prévues</span>
         </div>
       </div>
 
@@ -156,7 +156,7 @@ function Prestations() {
   );
 }
 
-/** Une prestation : son prix, ce qu'elle a rapporté, et sa barre (validé plein, prévu hachuré). */
+/** Une prestation : son prix, ce qu'elle a rapporté, et sa barre (fait plein, prévu hachuré). */
 function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: boolean; onToggle: () => void; onPlan: () => void }) {
   const st = useDataStore.getState;
   const say = useUiStore((x) => x.say);
@@ -175,15 +175,15 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
           </b>
           <span style={{ fontSize: 12.5, color: "var(--ink-3)" }}>
             {eur(p.price)} {p.hasFormat ? "par cavalier" : "la séance"}
-            {p.hasFormat ? " · particulier ou collectif" : ""}
-            {s.count ? ` · ${s.count} séance${s.count > 1 ? "s" : ""}, ${s.riders} cavalier${s.riders > 1 ? "s" : ""}` : " · rien ce mois"}
+            {p.hasFormat ? " · seul ou en groupe" : ""}
+            {s.count ? ` · ${s.count} séance${s.count > 1 ? "s" : ""}, ${s.riders} cavalier${s.riders > 1 ? "s" : ""}` : " · rien ce mois-ci"}
           </span>
         </button>
         <span style={{ textAlign: "right" }}>
           <b className="bs-amt plus" style={{ fontSize: 15 }}>
             {s.done ? signed(s.done) : "0 €"}
           </b>
-          {s.planned > 0 && <span style={{ display: "block", fontSize: 11.5, color: "var(--ink-3)", fontVariantNumeric: "tabular-nums" }}>+{eur(s.planned)} prévus</span>}
+          {s.planned > 0 && <span style={{ display: "block", fontSize: 11.5, color: "var(--ink-3)", fontVariantNumeric: "tabular-nums" }}>+{eur(s.planned)} encore prévus</span>}
         </span>
       </div>
       <div style={{ display: "flex", height: 6, marginTop: 9, marginLeft: 50, borderRadius: 2, overflow: "hidden", background: "var(--line-2)" }} aria-hidden>
@@ -203,7 +203,7 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
             <span>€</span>
           </label>
           <Toggle on={!!p.hasFormat} onClick={() => upd({ hasFormat: !p.hasFormat })}>
-            Cours particulier ou collectif (prix par cavalier)
+            Cours seul ou en groupe (prix par cavalier)
           </Toggle>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 4 }}>
             {p.active && (
@@ -222,7 +222,7 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
                 const snap = st().prestations;
                 const r = st().removePrestation(p.id);
                 say(
-                  r === "supprimee" ? `Prestation retirée : ${esc(p.label)}.` : `${esc(p.label)} a déjà des séances : elle passe en pause, l’historique reste.`,
+                  r === "supprimee" ? `Retiré : ${esc(p.label)}.` : `${esc(p.label)} a déjà des séances. On la met en pause pour garder ton historique.`,
                   () => useDataStore.setState({ prestations: snap }),
                 );
               }}
@@ -246,7 +246,7 @@ function AddForm() {
   function add() {
     if (!ok) return;
     useDataStore.getState().addPrestation({ label: label.trim(), price: n, hasFormat: fmt });
-    say(`Prestation ajoutée : <strong>${esc(label.trim())}</strong> à ${eur(n)}.`);
+    say(`Ajouté : <strong>${esc(label.trim())}</strong> à ${eur(n)}.`);
     setLabel("");
     setPrice("");
     setFmt(false);
@@ -263,10 +263,10 @@ function AddForm() {
         <span>€</span>
       </label>
       <Toggle on={fmt} onClick={() => setFmt(!fmt)}>
-        Cours particulier ou collectif (prix par cavalier)
+        Cours seul ou en groupe (prix par cavalier)
       </Toggle>
       <button type="button" className="bs-btn" onClick={add} disabled={!ok}>
-        Ajouter la prestation
+        Ajouter
       </button>
     </div>
   );

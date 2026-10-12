@@ -59,6 +59,7 @@ function Clients() {
         <span>{(data.people ?? []).filter((p) => p.active).length} personnes</span>
       </div>
       <h1 className="bs-d bs-t1">Clients</h1>
+      <p className="bs-p">Les gens qui te paient : propriétaires et cavaliers. Pour chacun, ses chevaux et ce qu’il te doit ce mois.</p>
       <div className="bs-seg" style={{ maxWidth: desk ? 420 : undefined }}>
         <button type="button" aria-pressed={role === "proprietaire"} onClick={() => setRole("proprietaire")}>
           Propriétaires
@@ -71,7 +72,7 @@ function Clients() {
         <input placeholder="Chercher un nom" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Chercher un client" />
       </div>
       <Sec>{role === "proprietaire" ? "Ceux qui ont un cheval en pension" : "Ceux qui montent en cours"}</Sec>
-      {people.length === 0 && <p className="bs-p">Personne ici pour l’instant.</p>}
+      {people.length === 0 && <p className="bs-p">Personne ici pour l’instant. Ajoute un nom en bas de la page.</p>}
       {desk && people.length > 0 && (
         <table className="bs-table">
           <thead>
@@ -81,7 +82,7 @@ function Clients() {
               <th className="n">Séances du mois</th>
               <th>Téléphone</th>
               <th className="n">Ce mois</th>
-              <th className="n">Reste dû</th>
+              <th className="n">Encore à payer</th>
             </tr>
           </thead>
           <tbody>
@@ -117,7 +118,7 @@ function Clients() {
                   <td className="m">
                     <input
                       defaultValue={p.phone ?? ""}
-                      placeholder="ajouter"
+                      placeholder="ajouter un numéro"
                       aria-label={`Téléphone de ${p.name}`}
                       onChange={(e) => useDataStore.getState().updatePerson(p.id, { phone: e.target.value.trim() || undefined })}
                       style={{ border: 0, background: "none", font: "inherit", color: "inherit", width: 130, outline: "none" }}
@@ -125,7 +126,7 @@ function Clients() {
                   </td>
                   <td className="n">{bill ? eur(bill.total) : ""}</td>
                   <td className="n">
-                    {bill ? <span className={`bs-pill ${bill.due <= 0 ? "g" : "o"}`}>{bill.due <= 0 ? "payé" : eur(bill.due)}</span> : <span className="m">rien</span>}
+                    {bill ? <span className={`bs-pill ${bill.due <= 0 ? "g" : "o"}`}>{bill.due <= 0 ? "payé" : eur(bill.due)}</span> : <span className="m">rien à payer</span>}
                   </td>
                 </tr>
               );
@@ -166,7 +167,7 @@ function Clients() {
                 <>
                   <b className="bs-amt">{eur(bill.total)}</b>
                   <br />
-                  <span className={`bs-pill ${bill.due <= 0 ? "g" : "o"}`}>{bill.due <= 0 ? "payé" : `${eur(bill.due)} dus`}</span>
+                  <span className={`bs-pill ${bill.due <= 0 ? "g" : "o"}`}>{bill.due <= 0 ? "payé" : `${eur(bill.due)} à payer`}</span>
                 </>
               ) : (
                 <span style={{ fontSize: 12, color: "var(--ink-3)" }}>rien à facturer</span>
@@ -175,15 +176,15 @@ function Clients() {
           </div>
         );
       })}
-      <Sec>Ajouter</Sec>
+      <Sec>{role === "proprietaire" ? "Ajouter un propriétaire" : "Ajouter un cavalier"}</Sec>
       <div className="bs-quick">
         <input placeholder={role === "proprietaire" ? "Nom du propriétaire" : "Nom du cavalier"} value={adding} onChange={(e) => setAdding(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} aria-label="Nom" />
-        <button type="button" className="bs-chip" onClick={add} aria-label="Ajouter">
+        <button type="button" className="bs-chip" onClick={add} aria-label={role === "proprietaire" ? "Ajouter ce propriétaire" : "Ajouter ce cavalier"}>
           <Picto name="plus" size={16} />
         </button>
       </div>
       <Link href="/argent?vue=facturer" className="bs-btn line" style={{ marginTop: 18 }}>
-        Voir ce qu’il faut facturer
+        Voir ce que chacun doit payer
       </Link>
     </Screen>
   );

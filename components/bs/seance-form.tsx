@@ -21,7 +21,7 @@ import type { Seance } from "@/lib/domain/types";
 const REPEATS: [Repeat, string][] = [
   ["once", "Une fois"],
   ["weekly", "Chaque semaine"],
-  ["biweekly", "Toutes les 2 sem."],
+  ["biweekly", "Toutes les 2 semaines"],
   ["monthly", "Chaque mois"],
 ];
 
@@ -69,11 +69,11 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
     : [];
 
   const problem = !prest
-    ? "Choisis une prestation."
+    ? "Choisis le type de séance."
     : end <= start
       ? "La fin doit venir après le début."
       : names.length > maxP
-        ? `Trop de cavaliers : ${maxP} place${maxP > 1 ? "s" : ""}.`
+        ? `Trop de cavaliers : il y a ${maxP} place${maxP > 1 ? "s" : ""}.`
         : names.length === 0 && horseIds.length === 0
           ? "Ajoute un cavalier ou un cheval."
           : names.some((n) => n.includes(","))
@@ -112,13 +112,13 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
       updatedBy: gerant,
     };
     addSeances(base, dates);
-    say(dates.length > 1 ? `<strong>${dates.length} séances</strong> planifiées : ${esc(title)}.` : `<strong>${esc(title)}</strong> planifiée.`);
+    say(dates.length > 1 ? `<strong>${dates.length} séances</strong> ajoutées au planning : ${esc(title)}.` : `<strong>${esc(title)}</strong> : c’est au planning.`);
     onDone();
   }
 
   return (
     <>
-      <p className="bs-sec">Prestation</p>
+      <p className="bs-sec">Quel type de séance ?</p>
       <div className="bs-chips">
         {prestations.map((p) => (
           <button key={p.id} type="button" className="bs-chip" aria-pressed={prestId === p.id} onClick={() => setPrestId(p.id)}>
@@ -160,7 +160,7 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
         ))}
       </div>
       <div className="bs-field">
-        <input value={typed} placeholder="Un nom : cavalier ou propriétaire" onChange={(e) => setTyped(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addName(typed))} aria-label="Ajouter un cavalier" />
+        <input value={typed} placeholder="Nom du cavalier ou du propriétaire" onChange={(e) => setTyped(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addName(typed))} aria-label="Ajouter un cavalier" />
         {typed.trim() && (
           <button type="button" className="bs-link" onClick={() => addName(typed)}>
             Ajouter
@@ -193,7 +193,7 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
         })}
       </div>
 
-      <p className="bs-sec">Quand</p>
+      <p className="bs-sec">Quand ?</p>
       <div className="bs-seg" role="group" aria-label="Jour">
         {(["today", "tomorrow", "other"] as const).map((w) => (
           <button key={w} type="button" aria-pressed={when === w} onClick={() => setWhen(w)}>
@@ -231,7 +231,7 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
         </label>
       </div>
 
-      <p className="bs-sec">Répétition</p>
+      <p className="bs-sec">Ça se répète ?</p>
       <div className="bs-chips">
         {REPEATS.map(([r, l]) => (
           <button key={r} type="button" className="bs-chip" aria-pressed={repeat === r} onClick={() => setRepeat(r)}>
@@ -246,7 +246,7 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
           <input type="date" value={until} style={{ textAlign: "right" }} onChange={(e) => setUntil(e.target.value)} />
           <b style={{ whiteSpace: "nowrap" }}>
             {dates.length} séance{dates.length > 1 ? "s" : ""}
-            {dates.length >= MAX_SEANCES ? " (maximum)" : ""}
+            {dates.length >= MAX_SEANCES ? " (c’est le maximum)" : ""}
           </b>
         </label>
       )}
@@ -266,10 +266,10 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
       )}
 
       <p className="bs-p" style={{ marginTop: 12, color: problem ? "var(--rose-ink)" : "var(--ink-2)" }}>
-        {problem ?? `${dates.length} séance${dates.length > 1 ? "s" : ""} · ${payers} × ${eur(prest?.price ?? 0)} · ${eur(total)} prévus`}
+        {problem ?? `Ça doit te rapporter ${eur(total)} : ${payers} × ${eur(prest?.price ?? 0)}${dates.length > 1 ? `, sur ${dates.length} séances` : ""}.`}
       </p>
       <button type="button" className="bs-btn" style={{ marginTop: 8 }} disabled={!!problem} onClick={save}>
-        {dates.length > 1 ? `Planifier ${dates.length} séances · +${eur(total)}` : `Planifier · +${eur(total)}`}
+        {dates.length > 1 ? `Ajouter les ${dates.length} séances · +${eur(total)}` : `Ajouter au planning · +${eur(total)}`}
       </button>
     </>
   );

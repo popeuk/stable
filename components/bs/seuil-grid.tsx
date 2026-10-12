@@ -18,7 +18,7 @@ export function SeuilGrid({ horses, capacity, seuil }: { horses: Horse[]; capaci
   const col = sc - row * cols;
   return (
     <>
-      <div style={{ position: "relative", marginTop: 16, display: "grid", gridTemplateColumns: `repeat(${cols},1fr)`, gap: "10px 4px", justifyItems: "center" }} role="img" aria-label={`${horses.length} chevaux, seuil à ${dec1(seuil)} chevaux`}>
+      <div style={{ position: "relative", marginTop: 16, display: "grid", gridTemplateColumns: `repeat(${cols},1fr)`, gap: "10px 4px", justifyItems: "center" }} role="img" aria-label={isFinite(seuil) ? `${horses.length} chevaux. Il en faut ${dec1(seuil)} pour ne pas perdre d’argent.` : `${horses.length} chevaux. Les pensions ne paient pas encore les soins.`}>
         {Array.from({ length: cap }, (_, i) =>
           horses[i] ? <HorseFace key={i} horse={horses[i]} size={38} /> : <span key={i} className="bs-face" style={{ width: 38, height: 38, background: "#fff", boxShadow: "inset 0 0 0 1.5px var(--line)" }} />,
         )}
@@ -26,11 +26,11 @@ export function SeuilGrid({ horses, capacity, seuil }: { horses: Horse[]; capaci
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--ink-3)", marginTop: 8 }}>
         <span>
-          {horses.length} chevaux · {Math.max(0, capacity - horses.length)} boxes vides
+          {horses.length} cheva{horses.length > 1 ? "ux" : "l"} · {Math.max(0, capacity - horses.length)} box vide{capacity - horses.length > 1 ? "s" : ""}
         </span>
         <span style={{ color: "var(--ink-1)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
           <Picto name="flag" size={15} />
-          seuil : {dec1(seuil)}
+          {isFinite(seuil) ? `il en faut ${dec1(seuil)}` : "pas encore atteignable"}
         </span>
       </div>
     </>

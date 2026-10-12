@@ -25,9 +25,9 @@ function DetailRoute() {
     return (
       <div className="space-y-4">
         <Link href="/decouvertes" className="inline-flex items-center gap-1 text-sm text-tertiary">
-          <ChevronLeft size={16} /> Découvertes
+          <ChevronLeft size={16} /> Ce qu’on a remarqué
         </Link>
-        <p className="text-secondary">Découverte introuvable.</p>
+        <p className="text-secondary">On ne retrouve pas cette remarque. Elle a peut-être disparu avec tes derniers chiffres.</p>
       </div>
     );
   }

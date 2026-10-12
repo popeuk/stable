@@ -79,6 +79,9 @@ function SaisieCheval() {
       <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
         {editing ? `Modifier ${editing.name}` : "Ajouter un cheval"}
       </h1>
+      {!editing && (
+        <p className="-mt-4 text-[13px] text-tertiary">Seul son nom est obligatoire. Tu pourras compléter plus tard.</p>
+      )}
 
       <Field label="Nom">
         <input
@@ -116,11 +119,11 @@ function SaisieCheval() {
           <span className="text-sm text-tertiary">€ / mois</span>
         </div>
         <p className="mt-1.5 text-[12px] text-tertiary">
-          Postée automatiquement chaque mois en revenu. Une seule saisie, plus jamais
-          de ligne « pension » à entrer.
+          Comptée toute seule chaque mois dans ce qui rentre. Tu la notes une fois,
+          et tu n&apos;as plus jamais à y penser.
         </p>
       </Field>
-      <Field label="Date d'entrée">
+      <Field label="Arrivé chez toi le">
         <input
           type="date"
           value={entryDate}

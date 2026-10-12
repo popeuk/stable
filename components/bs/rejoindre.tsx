@@ -11,6 +11,7 @@ import { enter, getSession, hasAccountData, hasLegacyData, sessionFrom, setSessi
 
 /**
  * Rejoindre Be Stable : une question par écran.
+ *   0. ce qu'est Be Stable, puis pourquoi on cherche l'écurie (mon-ecurie.fr) ;
  *   1. le nom de l'écurie (ou l'ajouter si elle n'est pas dans l'annuaire) ;
  *   2. « C'est elle ? », puis sa fiche aujourd'hui / reprise, à faire glisser ;
  *   3. les places libres ;
@@ -19,8 +20,8 @@ import { enter, getSession, hasAccountData, hasLegacyData, sessionFrom, setSessi
  * La demande part toute seule après le code, et le flot se tamponne.
  * Sur ordinateur, la fiche se construit à côté de la question.
  */
-type Etape = "nom" | "creer" | "elle" | "gain" | "places" | "prix" | "email" | "code" | "envoi" | "fait";
-const RANG: Record<Etape, number> = { nom: 1, creer: 1, elle: 2, gain: 2, places: 3, prix: 4, email: 5, code: 5, envoi: 5, fait: 5 };
+type Etape = "accueil" | "pourquoi" | "nom" | "creer" | "elle" | "gain" | "places" | "prix" | "email" | "code" | "envoi" | "fait";
+const RANG: Record<Etape, number> = { accueil: 0, pourquoi: 0, nom: 1, creer: 1, elle: 2, gain: 2, places: 3, prix: 4, email: 5, code: 5, envoi: 5, fait: 5 };
 const PHOTO = withBase("/img/exemple-pre.jpg");
 
 /** Les messages du site sont au « vous » : l'app parle au « tu ». */
@@ -37,7 +38,7 @@ const dire = (x: unknown, defaut: string) => (x instanceof ApiError ? TU[x.code]
 
 export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; creer?: boolean }) {
   const chiffres = useAnnuaire();
-  const [etape, setEtape] = useState<Etape>(creer ? "creer" : ficheId ? "elle" : "nom");
+  const [etape, setEtape] = useState<Etape>(creer ? "creer" : ficheId ? "elle" : "accueil");
   const [hist, setHist] = useState<Etape[]>([]);
   const [compte, setCompte] = useState<AccountSession | null>(null);
   const [q, setQ] = useState("");
@@ -212,14 +213,14 @@ export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; cr
           ) : (
             <span className="bs-wm">be stable</span>
           )}
-          {etape !== "fait" && (
+          {etape !== "fait" && n > 0 && (
             <div className="rj-dots" aria-label={`Étape ${n} sur 5`}>
               {[1, 2, 3, 4, 5].map((i) => (
                 <i key={i} className={i <= n ? "on" : ""} />
               ))}
             </div>
           )}
-          {!compte && etape === "nom" ? (
+          {!compte && (etape === "nom" || etape === "accueil" || etape === "pourquoi") ? (
             <Link href="/compte/connexion" className="bs-link">
               Me connecter
             </Link>
@@ -227,6 +228,87 @@ export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; cr
             <span style={{ width: 24 }} />
           )}
         </header>
+
+        {/* 0. Ce qu'est Be Stable */}
+        {etape === "accueil" && (
+          <div className="rj-step rj-intro">
+            <h1 className="rj-q">
+              Ton écurie tourne. <span className="hl">Be Stable te dit ce qu’elle te rapporte.</span>
+            </h1>
+            <ul className="rj-pts">
+              <li>
+                <Picto name="cal" />
+                <span>
+                  <b>Tes chevaux, leurs soins, ton planning</b>
+                  Au même endroit, notés en deux gestes depuis la cour.
+                </span>
+              </li>
+              <li>
+                <Picto name="euro" />
+                <span>
+                  <b>Ce que chaque cheval te laisse</b>
+                  Pensions, soins, foin : l’app fait les comptes pour toi. Pas de tableur.
+                </span>
+              </li>
+              <li>
+                <Picto name="flag" />
+                <span>
+                  <b>Ta fiche sur mon-ecurie.fr</b>
+                  L’annuaire où les cavaliers cherchent une pension pour leur cheval.
+                </span>
+              </li>
+            </ul>
+            <div className="rj-foot">
+              <button type="button" className="bs-btn rj-go" onClick={() => aller("pourquoi")}>
+                Commencer
+              </button>
+              <button type="button" className="bs-link rj-demo" onClick={() => enter({ kind: "demo" }, "/accueil")}>
+                Juste regarder ? Ouvre l’écurie de démonstration
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 0 bis. Pourquoi on cherche l'écurie */}
+        {etape === "pourquoi" && (
+          <div className="rj-step rj-intro">
+            <h1 className="rj-q">D’abord, retrouvons ton écurie.</h1>
+            <p className="rj-sub">
+              Elle a sans doute déjà sa fiche sur <b>mon-ecurie.fr</b>, l’annuaire des pensions pour chevaux : <b className="num">{chiffres ? nf(chiffres.ecuries) : "7 681"}</b> écuries y sont, partout en France. En la reprenant :
+            </p>
+            <ul className="rj-pts">
+              <li>
+                <Picto name="check" />
+                <span>
+                  <b>Elle passe à ton nom</b>
+                  Tes places libres, tes prix, tes photos : c’est toi qui les donnes, plus personne d’autre.
+                </span>
+              </li>
+              <li>
+                <Picto name="check" />
+                <span>
+                  <b>Les cavaliers la voient à jour</b>
+                  Ceux qui cherchent une pension près de chez toi tombent sur les bonnes informations.
+                </span>
+              </li>
+              <li>
+                <Picto name="check" />
+                <span>
+                  <b>Gratuit, sans commission</b>
+                  Rien n’est pris sur tes pensions. On vérifie chaque demande à la main, en général sous deux jours ouvrés.
+                </span>
+              </li>
+            </ul>
+            <div className="rj-foot">
+              <button type="button" className="bs-btn rj-go" onClick={() => aller("nom")}>
+                Trouver mon écurie
+              </button>
+              <button type="button" className="bs-link rj-demo" onClick={() => aller("creer")}>
+                Elle n’est pas sur l’annuaire ? L’ajouter
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 1. Le nom */}
         {etape === "nom" && (

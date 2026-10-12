@@ -48,7 +48,7 @@ async function importData(file: File) {
     if (json["be-stable-settings"]?.state) useSettingsStore.setState(json["be-stable-settings"].state);
     setTimeout(() => window.location.reload(), 400);
   } catch {
-    window.alert("Ce fichier n’est pas une sauvegarde Be Stable. Choisis le fichier .json exporté depuis l’app.");
+    window.alert("Ce fichier n’est pas une sauvegarde Be Stable. Choisis le fichier créé avec « Exporter mes données ».");
   }
 }
 
@@ -130,9 +130,9 @@ function Moi() {
         </label>
         <input id="st-cap" className="bs-inline" inputMode="numeric" defaultValue={s.capacity} onChange={(e) => Number(e.target.value) > 0 && s.setCapacity(Number(e.target.value))} />
       </div>
-      {row("/parcours/tarifs?retour=moi", "euro", "Tes tarifs", "pensions, cours, travail du cheval")}
-      {row("/parcours/factures?retour=moi", "foin", "Tes factures communes", "foin, salaires, loyer, chaque mois")}
-      {row("/parametres", "reglages", "Tous les réglages", "équipe, prestations, catégories, rythmes")}
+      {row("/parcours/tarifs?retour=moi", "euro", "Tes tarifs", "ce que tu fais payer : pension, cours, travail")}
+      {row("/parcours/factures?retour=moi", "foin", "Tes frais communs", "foin, paille, loyer, salaires… chaque mois")}
+      {row("/parametres", "reglages", "Tous les réglages", "équipe, prestations, catégories")}
 
       <Sec>Le rappel du matin</Sec>
       <div className="bs-chips">
@@ -181,8 +181,8 @@ function Moi() {
           : "Le rappel s’affiche à l’heure choisie, dès que l’app est ouverte ou installée sur ton écran d’accueil."}
       </p>
 
-      <Sec>Ton parcours</Sec>
-      {row("/parcours", "flag", won ? "Flot « Écurie prête » gagné" : `${n} obstacles sur 6`, won ? "le parcours est terminé" : "continuer le parcours")}
+      <Sec>Tes premiers pas</Sec>
+      {row("/parcours", "flag", won ? "Flot « Écurie prête » gagné" : `${n} étapes sur 6 franchies`, won ? "toutes les étapes sont faites" : "passer à l’étape suivante")}
 
       <Sec>Aller plus loin avec Be Stable</Sec>
       {soon("Le guide de l’écurie active", "gratuit, 34 pages", "book")}
@@ -202,7 +202,7 @@ function Moi() {
         </span>
         <span className="tx">
           <b>Exporter mes données</b>
-          <span>un fichier .json avec toute l’écurie</span>
+          <span>un fichier de sauvegarde avec toute ton écurie</span>
         </span>
       </button>
       <label className="bs-li tap" style={{ cursor: "pointer" }}>
@@ -210,8 +210,8 @@ function Moi() {
           <Picto name="up" />
         </span>
         <span className="tx">
-          <b>Importer un fichier</b>
-          <span>remplace les données de cet appareil</span>
+          <b>Reprendre une sauvegarde</b>
+          <span>remplace ce qui est sur cet appareil</span>
         </span>
         <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
       </label>
@@ -220,10 +220,10 @@ function Moi() {
         type="button"
         className="bs-li tap"
         onClick={() => {
-          if (window.confirm("Repartir de l’écurie de démonstration ? Tes saisies seront remplacées.")) {
+          if (window.confirm("Repartir de l’écurie d’exemple ? Ce que tu as noté sera remplacé.")) {
             data.resetToDemo();
             s.setIdentity({ stableName: "Les Trois Pommiers" });
-            say("Écurie de démonstration rechargée.");
+            say("L’écurie d’exemple est de retour.");
           }
         }}
       >
@@ -231,7 +231,7 @@ function Moi() {
           <Picto name="repeat" />
         </span>
         <span className="tx">
-          <b>Recharger l’écurie de démonstration</b>
+          <b>Remettre l’écurie d’exemple</b>
           <span>pour essayer sans risque</span>
         </span>
       </button>
@@ -266,16 +266,16 @@ function Compte() {
     return (
       <>
         <Sec>Ton compte</Sec>
-        <p className="bs-p" style={{ marginTop: 6 }}>Tu es dans l’écurie de démonstration : rien n’est enregistré à ton nom.</p>
+        <p className="bs-p" style={{ marginTop: 6 }}>Tu visites une écurie d’exemple : rien n’est enregistré à ton nom.</p>
         <Link href="/bienvenue" className="bs-btn" style={{ marginTop: 12 }}>
           Créer mon compte avec mon écurie
         </Link>
         <button type="button" className="bs-link" style={{ marginTop: 10 }} onClick={() => leave("/bienvenue")}>
-          Quitter la démo
+          Quitter l’exemple
         </button>
       </>
     );
-  const etat = { validee: "revendiquée", revendication_en_attente: "en vérification", creation_en_attente: "en vérification", refusee: "demande refusée", aucune: "" }[s.listing?.status ?? "aucune"];
+  const etat = { validee: "validée", revendication_en_attente: "en vérification", creation_en_attente: "en vérification", refusee: "demande refusée", aucune: "" }[s.listing?.status ?? "aucune"];
   return (
     <>
       <Sec>Ton compte</Sec>
@@ -300,7 +300,7 @@ function Compte() {
         type="button"
         className="bs-li tap"
         onClick={async () => {
-          if (!window.confirm("Te déconnecter de cet appareil ? Tes données y restent, chiffrées : elles reviendront à ta prochaine connexion.")) return;
+          if (!window.confirm("Te déconnecter de cet appareil ? Tes données y restent, protégées. Tu les retrouves à ta prochaine connexion.")) return;
           try {
             await api.deconnexion();
           } catch {}
@@ -312,7 +312,7 @@ function Compte() {
         </span>
         <span className="tx">
           <b>Me déconnecter</b>
-          <span>tes données restent chiffrées sur cet appareil</span>
+          <span>tes données restent protégées sur cet appareil</span>
         </span>
       </button>
     </>

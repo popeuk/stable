@@ -67,7 +67,7 @@ function SaisieMutualisee() {
     useFlashStore.getState().setFlash({
       kind: "expense",
       amount: totalNum,
-      label: `${label.trim()} · partagée sur ${selectedHorses.length} chevaux`,
+      label: `${label.trim()} · partagé entre ${selectedHorses.length} chevaux`,
     });
     addSharedExpense({
       categoryId,
@@ -90,19 +90,20 @@ function SaisieMutualisee() {
         <ChevronLeft size={16} /> Annuler
       </button>
       <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-        <LessonTerm lessonKey="charges_mutualisees">Charge mutualisée</LessonTerm>
+        <LessonTerm lessonKey="charges_mutualisees">Frais communs</LessonTerm>
       </h1>
+      <p className="-mt-4 text-[13px] text-tertiary">Une dépense pour toute l&apos;écurie (foin, paille, loyer, salaires…). On la partage entre les chevaux.</p>
 
-      <Field label="Libellé">
+      <Field label="C’est quoi ?">
         <input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          placeholder="Foin, granulés, personnel…"
+          placeholder="Foin, granulés, salaire…"
           className="w-full card px-4 py-3 text-sm text-primary outline-none"
         />
       </Field>
 
-      <Field label="Montant total">
+      <Field label="Combien en tout ?">
         <div className="flex items-center gap-2 card px-4 py-3">
           <input
             type="number"
@@ -116,7 +117,7 @@ function SaisieMutualisee() {
         </div>
       </Field>
 
-      <Field label="Catégorie">
+      <Field label="Dans quelle catégorie ?">
         <div className="flex flex-wrap gap-2">
           {sharedCats.map((c) => (
             <button
@@ -135,12 +136,12 @@ function SaisieMutualisee() {
         </div>
       </Field>
 
-      <Field label="Répartir sur">
+      <Field label="Entre quels chevaux ?">
         <button
           onClick={toggleAll}
           className="mb-2 border border-[var(--border-strong)] px-3 py-1.5 text-xs font-bold text-primary"
         >
-          {allSelected ? "Tout décocher" : "Tout sélectionner"} · {selectedHorses.length}/{horses.length}
+          {allSelected ? "Aucun" : "Tous les chevaux"} · {selectedHorses.length}/{horses.length}
         </button>
         <div className="grid grid-cols-2 gap-2">
           {horses.map((h) => (
@@ -160,12 +161,12 @@ function SaisieMutualisee() {
         </div>
       </Field>
 
-      <Field label="Mode de répartition">
+      <Field label="Comment partager ?">
         <div className="flex gap-2">
           {(
             [
-              { v: "equal", l: "Égal" },
-              { v: "weighted_by_days", l: "Par jours de présence" },
+              { v: "equal", l: "La même part pour chacun" },
+              { v: "weighted_by_days", l: "Selon les jours passés chez toi" },
             ] as { v: DistributionMode; l: string }[]
           ).map((opt) => (
             <button
@@ -185,7 +186,7 @@ function SaisieMutualisee() {
         {mode === "weighted_by_days" && (
           <p className="mt-2 text-2xs text-tertiary">
             <LessonTerm lessonKey="repartition_jours">
-              Pondéré par les jours réellement passés à l&apos;écurie ce mois.
+              Un cheval arrivé en cours de mois paie moins : sa part dépend du nombre de jours passés chez toi ce mois.
             </LessonTerm>
           </p>
         )}
@@ -194,7 +195,7 @@ function SaisieMutualisee() {
       {/* Live preview */}
       {totalNum > 0 && selectedHorses.length > 0 && (
         <section className="card p-4">
-          <p className="mb-3 text-2xs uppercase tracking-wide text-tertiary">Aperçu de la répartition</p>
+          <p className="mb-3 text-2xs uppercase tracking-wide text-tertiary">Ce que chaque cheval paiera</p>
           <div className="space-y-1.5">
             {allocations.map((a) => (
               <div key={a.horseId} className="flex justify-between text-sm">

@@ -21,9 +21,9 @@ export default function SaisieRecurrentePage() {
 }
 
 const FREQS: { v: Frequency; l: string }[] = [
-  { v: "monthly", l: "Mensuelle" },
-  { v: "quarterly", l: "Trimestrielle" },
-  { v: "yearly", l: "Annuelle" },
+  { v: "monthly", l: "Chaque mois" },
+  { v: "quarterly", l: "Chaque trimestre" },
+  { v: "yearly", l: "Chaque année" },
 ];
 
 function SaisieRecurrente() {
@@ -52,7 +52,7 @@ function SaisieRecurrente() {
     useFlashStore.getState().setFlash({
       kind: "expense",
       amount: Number(amount),
-      label: `${label.trim()} · récurrente`,
+      label: `${label.trim()} · comptée à chaque fois`,
     });
     addRecurring({
       label: label.trim(),
@@ -76,12 +76,13 @@ function SaisieRecurrente() {
       </button>
       <div>
         <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-          Charge récurrente
+          Une dépense qui revient
         </h1>
         <p className="mt-1 text-[13px] text-secondary">
-          Un crédit, un abonnement, l&apos;assurance… avec une{" "}
+          Un crédit, un abonnement, l&apos;assurance… Tu la notes une fois, elle est comptée toute seule
+          à chaque fois, entre une{" "}
           <Explain k="depenses" className="text-[var(--accent-primary)]">
-            date de début et de fin
+            date de début et une date de fin
           </Explain>
           .
         </p>
@@ -90,7 +91,7 @@ function SaisieRecurrente() {
       <Field label="Pour qui ?">
         <div className="grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
           {[
-            { v: true, l: "Toute l'écurie" },
+            { v: true, l: "Toute l’écurie" },
             { v: false, l: "Un cheval" },
           ].map((o) => (
             <button
@@ -129,7 +130,7 @@ function SaisieRecurrente() {
         </Field>
       )}
 
-      <Field label="Libellé">
+      <Field label="C’est quoi ?">
         <input
           value={label}
           onChange={(e) => setLabel(e.target.value)}
@@ -138,7 +139,7 @@ function SaisieRecurrente() {
         />
       </Field>
 
-      <Field label="Montant par échéance">
+      <Field label="Combien à chaque fois ?">
         <div className="flex items-center gap-2 card px-4 py-3">
           <input
             type="number"
@@ -152,7 +153,7 @@ function SaisieRecurrente() {
         </div>
       </Field>
 
-      <Field label="Fréquence">
+      <Field label="Tous les combien ?">
         <div className="flex gap-2">
           {FREQS.map((f) => (
             <button
@@ -171,7 +172,7 @@ function SaisieRecurrente() {
         </div>
       </Field>
 
-      <Field label="Catégorie">
+      <Field label="Dans quelle catégorie ?">
         <div className="flex flex-wrap gap-2">
           {cats.map((c) => (
             <button
@@ -191,11 +192,11 @@ function SaisieRecurrente() {
       </Field>
 
       {shared && (
-        <Field label="Répartition">
+        <Field label="Comment la partager entre les chevaux ?">
           <div className="flex gap-2">
             {([
-              { v: "equal", l: "Égale" },
-              { v: "weighted_by_days", l: "Par jours" },
+              { v: "equal", l: "La même part pour chacun" },
+              { v: "weighted_by_days", l: "Selon les jours passés chez toi" },
             ] as { v: DistributionMode; l: string }[]).map((o) => (
               <button
                 key={o.v}
@@ -213,7 +214,7 @@ function SaisieRecurrente() {
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Date de début">
+        <Field label="À partir du">
           <input
             type="date"
             value={start}
@@ -221,7 +222,7 @@ function SaisieRecurrente() {
             className="w-full card px-3 py-3 text-sm text-primary outline-none"
           />
         </Field>
-        <Field label="Date de fin">
+        <Field label="Jusqu’au">
           {hasEnd ? (
             <input
               type="date"
@@ -234,7 +235,7 @@ function SaisieRecurrente() {
               onClick={() => setHasEnd(true)}
               className="w-full border border-dashed border-[var(--border-strong)] px-3 py-3 text-sm text-tertiary"
             >
-              Sans fin · définir
+              Pas de fin · ajouter une date
             </button>
           )}
         </Field>
@@ -245,7 +246,7 @@ function SaisieRecurrente() {
         onClick={save}
         className="flex w-full items-center justify-center gap-2 btn-primary py-3.5 text-sm font-bold text-[var(--on-accent)] disabled:opacity-40"
       >
-        <Check size={18} /> Enregistrer {Number(amount) > 0 ? `${formatEur(Number(amount))}/échéance` : ""}
+        <Check size={18} /> Enregistrer {Number(amount) > 0 ? `${formatEur(Number(amount))} à chaque fois` : ""}
       </button>
     </div>
   );

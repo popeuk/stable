@@ -8,18 +8,18 @@ import { useSettingsStore, type NotificationPrefs } from "@/stores/settings-stor
 const ITEMS: { key: keyof NotificationPrefs; title: string; desc: string }[] = [
   {
     key: "weeklyInsight",
-    title: "Découverte hebdomadaire",
-    desc: "Le dimanche soir, ce que tes chiffres t'apprennent sur la semaine.",
+    title: "Le point de la semaine",
+    desc: "Le dimanche soir, ce qu’il faut retenir de ta semaine.",
   },
   {
     key: "monthlyAudit",
-    title: "Audit mensuel",
-    desc: "Le 1er du mois, le bilan en 5 cartes.",
+    title: "Le bilan du mois",
+    desc: "Le 1er du mois, ce que le mois passé t’a laissé, en 5 cartes.",
   },
   {
     key: "horseAlerts",
-    title: "Alertes chevaux",
-    desc: "Quand un cheval passe sous son seuil ou décroche.",
+    title: "Un cheval qui coûte",
+    desc: "Quand un cheval commence à te coûter plus qu’il ne rapporte.",
   },
 ];
 
@@ -38,14 +38,14 @@ function Notifications() {
   return (
     <div className="space-y-5">
       <Link href="/parametres" className="inline-flex items-center gap-1 text-sm text-tertiary">
-        <ChevronLeft size={16} /> Paramètres
+        <ChevronLeft size={16} /> Réglages
       </Link>
       <div>
         <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
           Notifications
         </h1>
         <p className="mt-1 text-sm text-tertiary">
-          Tout est opt-in. Rien d&apos;anxiogène, jamais de rappel culpabilisant.
+          Tu choisis ce que tu veux recevoir. Pas de rappel pour te culpabiliser.
         </p>
       </div>
 

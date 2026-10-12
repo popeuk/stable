@@ -35,7 +35,7 @@ function Tarifs() {
 
   return (
     <Screen>
-      <ObHead retour={retour} n={2} title="Tes tarifs" sub="Ce que chaque propriétaire te paie par mois. La pension se poste ensuite toute seule, chaque mois." />
+      <ObHead retour={retour} n={2} title="Tes tarifs" sub="Ce que chaque propriétaire te paie par mois. Ensuite, la pension est comptée toute seule chaque mois." />
       <div style={{ marginTop: 8 }}>
         {horses.map((h) => (
           <div key={h.id} className="bs-li">
@@ -69,7 +69,7 @@ function Tarifs() {
           <span className="bs-p" style={{ margin: 0 }}>€</span>
         </div>
       ))}
-      <Tip>Ces prix se préremplissent quand tu notes un cours. Tu peux toujours les changer au cas par cas.</Tip>
+      <Tip>Ces prix se remplissent tout seuls quand tu notes un cours. Tu peux toujours les changer juste pour une fois.</Tip>
       <button
         type="button"
         className="bs-btn"
@@ -80,7 +80,7 @@ function Tarifs() {
           router.push(retour ? `/${retour}` : "/parcours/factures");
         }}
       >
-        {retour ? "Enregistrer" : missing ? `Barre passée, ${missing} pension${missing > 1 ? "s" : ""} à 0 €` : "Barre passée"} <Picto name="check" />
+        {retour ? "Enregistrer" : missing ? `Continuer avec ${missing} pension${missing > 1 ? "s" : ""} à 0 €` : "Passer à l’étape suivante"} <Picto name="check" />
       </button>
     </Screen>
   );

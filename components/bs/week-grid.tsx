@@ -71,7 +71,7 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
         {days.map((d, i) => {
           const money = (data.seances ?? []).filter((x) => x.date === d && x.status !== "cancelled").reduce((t, x) => t + seanceAmount(x), 0);
           return (
-            <button key={d} type="button" className={`d${d === today ? " td" : ""}`} onClick={() => onPickDay(d)} title="Planifier ce jour-là">
+            <button key={d} type="button" className={`d${d === today ? " td" : ""}`} onClick={() => onPickDay(d)} title="Ajouter quelque chose ce jour-là">
               <small>{new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "")}</small>
               <b>{Number(d.slice(8))}</b>
               <em>{money ? eur(money) : perDay[i].length ? `${perDay[i].length} chose${perDay[i].length > 1 ? "s" : ""}` : ""}</em>
@@ -94,8 +94,8 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
                     className="bs-wg-chip"
                     style={{ background: BG[it.tone], color: FG[it.tone], opacity: it.done ? 0.55 : 1, boxShadow: it.late && !it.done ? "inset 0 0 0 1.5px var(--rose-ink)" : undefined }}
                     onClick={() => open(it)}
-                    title={it.done ? `${label(it)} (fait)` : `${label(it)} : cliquer pour valider`}
-                    aria-label={it.done ? `${label(it)}, fait` : `Valider : ${label(it)}`}
+                    title={it.done ? `${label(it)} (fait)` : `${label(it)} : clique pour confirmer que c’est fait`}
+                    aria-label={it.done ? `${label(it)}, fait` : `Confirmer que c’est fait : ${label(it)}`}
                   >
                     {it.done && <Picto name="check" size={12} />}
                     <span>{it.title}</span>
@@ -122,7 +122,7 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
                 type="button"
                 className="slot"
                 style={{ height: HOUR }}
-                aria-label={`Planifier le ${new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })} à ${h} h`}
+                aria-label={`Ajouter quelque chose le ${new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })} à ${h} h`}
                 onClick={() => openNoter({ mode: "seance", date: d, start: `${String(h).padStart(2, "0")}:00` })}
               />
             ))}
@@ -156,7 +156,7 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
                   <button
                     type="button"
                     className={`ck${it.done ? " on" : ""}`}
-                    aria-label={it.done ? `${it.title} : fait` : `Valider : ${it.title}`}
+                    aria-label={it.done ? `${it.title} : fait` : `Confirmer que c’est fait : ${it.title}`}
                     onClick={(ev) => {
                       ev.stopPropagation();
                       if (!it.done) check(it);

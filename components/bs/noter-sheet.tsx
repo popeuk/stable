@@ -38,9 +38,9 @@ const KINDS: Kind[] = [
   { id: "dentiste", label: "Dentiste", picto: "dent", money: "cost", scope: "horse" },
   { id: "cours_individuel", label: "Cours", picto: "cours", money: "revenue", scope: "horse" },
   { id: "concours", label: "Concours", picto: "trophee", money: "cost", scope: "horse" },
-  { id: "recette", label: "Autre recette", picto: "euro", money: "revenue", scope: "horse" },
+  { id: "recette", label: "Autre entrée d’argent", picto: "euro", money: "revenue", scope: "horse" },
   { id: "depense", label: "Autre dépense", picto: "tag", money: "cost", scope: "horse" },
-  { id: "commune", label: "Facture commune", picto: "foin", money: "cost", scope: "stable" },
+  { id: "commune", label: "Frais communs", picto: "foin", money: "cost", scope: "stable" },
 ];
 
 type When = "today" | "yesterday" | "tomorrow" | "other";
@@ -101,7 +101,7 @@ function NoterInner() {
     ? needHorse && horseIds.length === 0
       ? "Choisis un cheval"
       : "Indique un montant"
-    : `${future ? "Planifier" : "Noter"}${needHorse ? ` pour ${who}` : ""}${value ? ` · ${K.money === "revenue" ? "+" : ""}${eur(value)}` : ""}`;
+    : `${future ? "Prévoir" : "Noter"}${needHorse ? ` pour ${who}` : ""}${value ? ` · ${K.money === "revenue" ? "+" : ""}${eur(value)}` : ""}`;
 
   function applyHeard(text: string) {
     const r = interpretLocal(text, { horses: horses.map((h) => ({ id: h.id, name: h.name })), today });
@@ -159,7 +159,7 @@ function NoterInner() {
     const period = currentPeriod(new Date(date + "T12:00:00"));
     if (kind === "commune") {
       const cat = sharedCats.find((c) => c.id === catId) ?? sharedCats[0];
-      const lbl = label.trim() || cat?.name || "Facture commune";
+      const lbl = label.trim() || cat?.name || "Frais communs";
       st.addSharedExpense({
         categoryId: cat?.id,
         label: lbl,
@@ -203,8 +203,8 @@ function NoterInner() {
     });
     const created = (useDataStore.getState().careEvents ?? []).filter((e) => !before.has(e.id));
     if (future) {
-      setDone({ text: `${CARE_META[kind as CareKind].label} planifié le ${new Date(date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}. Il t’attend dans ta journée ce jour-là ; l’argent ira au ticket quand tu le cocheras.` });
-      say(`<strong>${CARE_META[kind as CareKind].label}</strong> planifié.`);
+      setDone({ text: `${CARE_META[kind as CareKind].label} prévu le ${new Date(date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}. Il apparaîtra dans ta journée ce jour-là. L’argent ira sur le ticket quand tu le cocheras.` });
+      say(`<strong>${CARE_META[kind as CareKind].label}</strong> prévu.`);
       return;
     }
     const first = created.find((e) => e.horseId === horseIds[0]);
@@ -216,7 +216,7 @@ function NoterInner() {
   return (
     <>
       <div className="bs-scrim" onClick={close} />
-      <div className="bs-sheet" role="dialog" aria-modal="true" aria-label="Noter">
+      <div className="bs-sheet" role="dialog" aria-modal="true" aria-label="Ajouter">
         <div className="bs-grab" />
         <button type="button" className="bs-x" onClick={close} aria-label="Fermer">
           <Picto name="x" size={20} />
@@ -256,7 +256,7 @@ function NoterInner() {
         ) : (
           <>
             <h2 className="bs-d bs-t2" style={{ marginTop: 14 }}>
-              {mode === "soin" ? "Quel soin ?" : "Quelle recette ou dépense ?"}
+              {mode === "soin" ? "Quel soin ?" : "De l’argent qui rentre ou qui sort ?"}
             </h2>
             <div className="bs-chips">
               {KINDS.filter((k) => (mode === "depense") === MONEY_KINDS.includes(k.id)).map((k) => (
@@ -269,7 +269,7 @@ function NoterInner() {
 
             {(kind === "recette" || kind === "depense" || kind === "commune") && (
               <>
-                <p className="bs-sec">{kind === "commune" ? "Quelle facture ?" : "Quel genre ?"}</p>
+                <p className="bs-sec">{kind === "commune" ? "Quels frais ?" : "Quel genre ?"}</p>
                 <div className="bs-chips">
                   {catList.map((c) => (
                     <button key={c.id} type="button" className="bs-chip" aria-pressed={(catId ?? catList[0]?.id) === c.id} onClick={() => setCatId(c.id)}>
@@ -299,7 +299,7 @@ function NoterInner() {
               </>
             ) : (
               <p className="bs-p" style={{ marginTop: 12 }}>
-                Une facture commune se partage entre tes {horses.length} chevaux : chacun en porte une part sur son ticket.
+                Les frais communs (foin, paille, loyer…) sont partagés entre tes {horses.length} chevaux. Chacun en prend sa part sur son ticket.
               </p>
             )}
 
@@ -333,7 +333,7 @@ function NoterInner() {
 
             {(kind === "recette" || kind === "depense" || kind === "commune" || isCare) && (
               <div className="bs-field" style={{ marginTop: 10 }}>
-                <input placeholder={isCare ? "Un détail (facultatif) : « rappel grippe »" : "Un libellé (facultatif)"} value={label} onChange={(e) => setLabel(e.target.value)} aria-label="Détail" />
+                <input placeholder={isCare ? "Un détail (facultatif) : « rappel grippe »" : "Un nom pour t’y retrouver (facultatif)"} value={label} onChange={(e) => setLabel(e.target.value)} aria-label="Détail" />
               </div>
             )}
 
@@ -390,7 +390,7 @@ function Done({ done, count, onClose }: { done: { horseId?: string; sourceId?: s
       <div className="bs-ticket">
         <div className="th">
           <HorseFace horse={horse} size={30} />
-          Ticket de {horse.name} · ce mois
+          Ticket de {horse.name} ce mois-ci · ce qu’il rapporte et ce qu’il coûte
         </div>
         {t.lines.map((l) => (
           <div key={l.key} className={`bs-tl${l.sourceId && l.sourceId === done.sourceId ? " new" : ""}`}>
@@ -400,7 +400,7 @@ function Done({ done, count, onClose }: { done: { horseId?: string; sourceId?: s
           </div>
         ))}
         <div className="bs-tot">
-          <span>{t.net >= 0 ? "Il te reste" : "Il te coûte"}</span>
+          <span>{t.net >= 0 ? "Il te laisse" : "Il te coûte"}</span>
           <span className="bs-big">{signed(t.net)}</span>
         </div>
       </div>

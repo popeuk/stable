@@ -35,7 +35,7 @@ function Contacts() {
       <header>
         <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">Contacts</h1>
         <p className="mt-0.5 text-[13px] text-tertiary">
-          Déduits de tes chevaux et de ton carnet, sans rien saisir.
+          Les propriétaires de tes chevaux et les pros qui s’en occupent (maréchal, véto…). La liste se remplit toute seule.
         </p>
       </header>
 
@@ -43,8 +43,8 @@ function Contacts() {
         <div className="card p-5 text-center">
           <p className="text-[15px] font-bold text-primary">Personne pour l&apos;instant.</p>
           <p className="mt-1 text-[13px] text-secondary">
-            Renseigne le propriétaire d&apos;un cheval ou le prestataire d&apos;un soin : ils
-            apparaîtront ici, reliés à tout le reste.
+            Indique le propriétaire d&apos;un cheval, ou qui a fait un soin (maréchal, véto…).
+            Ils apparaîtront ici tout seuls.
           </p>
         </div>
       ) : (
@@ -68,9 +68,9 @@ function Contacts() {
                   <p className="truncate text-[15px] font-bold text-primary">{p.name}</p>
                   <p className="text-[12px] text-tertiary">
                     {p.roles
-                      .map((r) => (r === "proprietaire" ? "Propriétaire" : "Prestataire"))
+                      .map((r) => (r === "proprietaire" ? "Propriétaire" : "Pro (soins)"))
                       .join(" · ")}
-                    {p.actCount > 0 && ` · ${p.actCount} acte${p.actCount > 1 ? "s" : ""}`}
+                    {p.actCount > 0 && ` · ${p.actCount} soin${p.actCount > 1 ? "s" : ""}`}
                     {p.totalBilled > 0 && ` · ${formatEur(p.totalBilled)}`}
                   </p>
                 </div>

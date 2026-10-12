@@ -39,7 +39,7 @@ export function EquilibriumBlock() {
           k="seuil_rentabilite"
           className="text-[12px] font-bold uppercase tracking-wide text-tertiary"
         >
-          Ton point d&apos;équilibre
+          Tes frais sont-ils payés ?
         </Explain>
         <span
           className="font-[family-name:var(--font-bricolage)] text-2xl tabular-nums"
@@ -61,36 +61,36 @@ export function EquilibriumBlock() {
       </div>
       <div className="mt-1 flex justify-between text-[11px] text-tertiary">
         <span>0 €</span>
-        <span>tes charges : {formatEur(eq.monthlyCharges)}/mois</span>
+        <span>tes dépenses : {formatEur(eq.monthlyCharges)} par mois</span>
       </div>
 
       <p className="mt-2.5 text-[13px] leading-snug text-secondary">
         {covered ? (
           <>
-            Tes charges sont couvertes : au-delà de ce point, chaque euro encaissé est de la
-            marge.
+            Tes dépenses sont payées. À partir de maintenant, chaque euro qui rentre te
+            reste.
           </>
         ) : eq.missingPensionEquiv > 0 ? (
           <>
-            Il manque <strong className="text-primary">{formatEur(eq.monthlyGap)}/mois</strong>{" "}
-            pour couvrir tes charges, soit l&apos;équivalent de{" "}
+            Il manque <strong className="text-primary">{formatEur(eq.monthlyGap)} par mois</strong>{" "}
+            pour payer toutes tes dépenses. C&apos;est à peu près{" "}
             <strong className="text-primary">
-              {pensions} pension{eq.missingPensionEquiv >= 2 ? "s" : ""}
+              {pensions} pension{eq.missingPensionEquiv >= 2 ? "s" : ""} de plus
             </strong>
             .
           </>
         ) : (
           <>
-            Il manque <strong className="text-primary">{formatEur(eq.monthlyGap)}/mois</strong>{" "}
-            pour couvrir tes charges.
+            Il manque <strong className="text-primary">{formatEur(eq.monthlyGap)} par mois</strong>{" "}
+            pour payer toutes tes dépenses.
           </>
         )}
       </p>
 
       {eq.horseCount > 0 && eq.avgPension > 0 && (
         <p className="mt-2 border-t border-[var(--border-default)] pt-2 text-[12px] text-tertiary">
-          En moyenne, un cheval te rapporte {formatEur(eq.avgPension)}/mois et te coûte{" "}
-          {formatEur(eq.costPerHorse)}, soit{" "}
+          En moyenne, un cheval te rapporte {formatEur(eq.avgPension)} par mois et te coûte{" "}
+          {formatEur(eq.costPerHorse)}. Il te laisse donc{" "}
           <span
             className="font-bold"
             style={{
@@ -98,7 +98,7 @@ export function EquilibriumBlock() {
             }}
           >
             {eq.marginPerHorse >= 0 ? "+" : ""}
-            {formatEur(eq.marginPerHorse)} de marge par place occupée
+            {formatEur(eq.marginPerHorse)} par box occupé
           </span>
           .
         </p>

@@ -20,202 +20,201 @@ export interface Lesson {
 export const LESSONS: Record<string, Lesson> = {
   chiffre_affaires: {
     key: "chiffre_affaires",
-    title: "Le chiffre d'affaires",
-    definition: "Tout l'argent qui entre, avant la moindre dépense.",
+    title: "Ce qui rentre",
+    definition: "Tout l’argent qui rentre dans l’écurie, avant de payer quoi que ce soit.",
     whatToDo: [
-      "C'est le haut du compte : pensions, cours, ventes, transport…",
-      "Un gros chiffre d'affaires ne veut pas dire rentable : ce qui compte, c'est ce qui reste après les charges.",
+      "Ça compte les pensions, les cours, les ventes, le transport…",
+      "Beaucoup d’argent qui rentre ne veut pas dire que tu gagnes de l’argent. Ce qui compte, c’est ce qui te reste une fois tout payé.",
     ],
     related: ["depenses", "rentabilite"],
     yourData: (data, period) => {
       const p = stablePnl(data, period);
-      return `Ce mois, ${formatEur(p.revenue)} sont entrés dans ton écurie. C'est ton chiffre d'affaires, avant tes ${formatEur(p.directCosts + p.sharedCosts)} de dépenses.`;
+      return `Ce mois-ci, ${formatEur(p.revenue)} sont rentrés dans ton écurie. Il faut encore enlever tes ${formatEur(p.directCosts + p.sharedCosts)} de dépenses.`;
     },
   },
   depenses: {
     key: "depenses",
     title: "Tes dépenses",
-    definition: "Tout ce que tu paies pour faire tourner l'écurie : charges directes et partagées.",
+    definition: "Tout ce que tu paies pour faire tourner l’écurie.",
     whatToDo: [
-      "Directes : liées à un cheval précis (maréchal, véto).",
-      "Partagées : foin, personnel, loyer… réparties sur tout le monde.",
+      "Certaines dépenses concernent un seul cheval : le maréchal, le véto.",
+      "D’autres sont des frais communs, partagés entre les chevaux : foin, paille, loyer, salaires…",
     ],
     related: ["cout_direct", "charges_mutualisees"],
     yourData: (data, period) => {
       const p = stablePnl(data, period);
-      return `Ce mois, ${formatEur(p.directCosts + p.sharedCosts)} de dépenses : ${formatEur(p.directCosts)} directes et ${formatEur(p.sharedCosts)} partagées.`;
+      return `Ce mois-ci, ${formatEur(p.directCosts + p.sharedCosts)} de dépenses. ${formatEur(p.directCosts)} pour des chevaux précis, ${formatEur(p.sharedCosts)} de frais communs.`;
     },
   },
   rentabilite: {
     key: "rentabilite",
-    title: "La rentabilité",
-    definition: "La part de ton chiffre d'affaires qui te reste vraiment, en pourcentage.",
+    title: "Combien il te reste sur 100 €",
+    definition: "Sur chaque 100 € qui rentrent, combien il t’en reste une fois tout payé.",
     whatToDo: [
-      "Garder 20 € sur 100 € encaissés, c'est 20 % de rentabilité.",
-      "Pour la monter : plus de revenus, ou moins de charges sur tes plus gros postes.",
+      "S’il te reste 20 € sur 100 € encaissés, on dit que tu gardes 20 %.",
+      "Pour garder plus : faire rentrer plus d’argent, ou payer moins cher tes plus grosses dépenses.",
     ],
     related: ["marge_nette", "chiffre_affaires"],
     yourData: (data, period) => {
       const p = stablePnl(data, period);
       const pct = p.revenue ? (p.netResult / p.revenue) * 100 : 0;
-      return `Ce mois, tu gardes ${formatEur(p.netResult)} sur ${formatEur(p.revenue)} encaissés, soit ${formatPct(pct)} de rentabilité.`;
+      return `Ce mois-ci, il te reste ${formatEur(p.netResult)} sur ${formatEur(p.revenue)} encaissés. Tu gardes ${formatPct(pct)} de ce qui rentre.`;
     },
   },
   taux_occupation: {
     key: "taux_occupation",
-    title: "Le taux d'occupation",
-    definition: "La part de tes places réellement occupées : ton premier levier de rentabilité.",
+    title: "Tes boxes occupés",
+    definition: "Combien de tes boxes ont un cheval. C’est souvent la meilleure piste pour gagner plus.",
     whatToDo: [
-      "Une place vide coûte presque autant qu'une pleine : tes charges fixes tournent quand même.",
-      "Remplir une place ajoute du revenu ET dilue tes coûts fixes : c'est un double effet sur ta marge.",
+      "Un box vide te coûte presque autant qu’un box plein. Le loyer et les salaires tombent quand même.",
+      "Un cheval de plus, c’est une pension en plus, et les frais communs sont partagés entre plus de chevaux.",
     ],
     related: ["charges_mutualisees", "rentabilite"],
   },
   negocier_charges: {
     key: "negocier_charges",
-    title: "Quelles charges se négocient",
-    definition: "Certaines charges sont des leviers, d'autres sont fixes par contrat.",
+    title: "Quelles dépenses peuvent baisser",
+    definition: "Certaines dépenses peuvent baisser si tu négocies. D’autres sont fixées par contrat.",
     whatToDo: [
-      "Négociables : foin, granulés, litière, énergie, assurance, fournitures.",
-      "Fixes : salaires et loyer. On les allège en remplissant l'écurie, pas en les coupant.",
+      "Celles qu’on peut négocier : foin, granulés, litière, énergie, assurance, fournitures.",
+      "Les salaires et le loyer, on ne les coupe pas. On les rend moins lourds en remplissant l’écurie.",
     ],
     related: ["depenses", "taux_occupation"],
   },
   marge_brute: {
     key: "marge_brute",
-    title: "La marge brute",
-    definition: "Ce qu'il te reste de tes revenus après avoir payé les coûts directs.",
+    title: "Ce qui reste après les frais de chaque cheval",
+    definition: "Ce qui te reste quand tu as payé les frais propres à chaque cheval (maréchal, véto…), avant les frais communs.",
     whatToDo: [
-      "Si elle baisse de mois en mois, tes coûts directs montent plus vite que tes revenus.",
-      "Pour la remonter : augmenter tes prix ou baisser tes coûts variables.",
+      "Si ce chiffre baisse de mois en mois, les frais des chevaux montent plus vite que ce qui rentre.",
+      "Pour le faire remonter : revoir tes prix, ou payer moins cher les soins.",
     ],
     related: ["marge_nette", "cout_direct"],
     yourData: (data, period) => {
       const p = stablePnl(data, period);
       const gross = p.revenue - p.directCosts;
       const pct = p.revenue ? (gross / p.revenue) * 100 : 0;
-      return `Ce mois, ${formatEur(p.revenue)} de revenus et ${formatEur(p.directCosts)} de coûts directs. Ta marge brute est de ${formatEur(gross)}, soit ${formatPct(pct)} de tes revenus.`;
+      return `Ce mois-ci, ${formatEur(p.revenue)} sont rentrés et les frais des chevaux font ${formatEur(p.directCosts)}. Il te reste ${formatEur(gross)} avant les frais communs, soit ${formatPct(pct)} de ce qui rentre.`;
     },
   },
   marge_nette: {
     key: "marge_nette",
-    title: "La marge nette",
-    definition: "Ce qu'il te reste vraiment, une fois TOUTES les charges payées, directes et mutualisées.",
+    title: "Ce qui te reste",
+    definition: "Ce qui te reste vraiment, une fois TOUT payé : les frais de chaque cheval et les frais communs.",
     whatToDo: [
-      "C'est le chiffre qui dit si un cheval te rapporte ou te coûte.",
-      "Compare-la à ta marge brute : l'écart, ce sont tes charges mutualisées.",
+      "C’est le chiffre qui dit si un cheval te rapporte ou te coûte.",
+      "La différence avec « ce qui reste après les frais de chaque cheval », ce sont tes frais communs.",
     ],
     related: ["marge_brute", "charges_mutualisees"],
     yourData: (data, period) => {
       const p = stablePnl(data, period);
       const pct = p.revenue ? (p.netResult / p.revenue) * 100 : 0;
-      return `Ce mois, ton résultat net est de ${formatEur(p.netResult)}, soit ${formatPct(pct)} de marge nette sur ${formatEur(p.revenue)} de revenus.`;
+      return `Ce mois-ci, il te reste ${formatEur(p.netResult)} une fois tout payé. C’est ${formatPct(pct)} des ${formatEur(p.revenue)} qui sont rentrés.`;
     },
   },
   seuil_rentabilite: {
     key: "seuil_rentabilite",
-    title: "Le seuil de rentabilité",
-    definition:
-      "Le montant de revenus minimum pour être à l'équilibre, pour un cheval comme pour toute l'écurie.",
+    title: "Ne pas perdre d’argent",
+    definition: "Ce qui doit rentrer chaque mois pour payer toutes tes dépenses, pour un cheval comme pour toute l’écurie.",
     whatToDo: [
-      "En dessous, tu perds de l'argent chaque mois ; au-dessus, chaque euro encaissé devient de la marge.",
-      "Pour un cheval : ses coûts directs + sa part de charges partagées. Pour l'écurie : la somme de toutes tes charges.",
-      "Le connaître te dit combien de pensions il te faut pour tourner : c'est ta boussole.",
+      "En dessous, tu perds de l’argent chaque mois. Au-dessus, chaque euro qui rentre te reste.",
+      "Pour un cheval : ses propres frais, plus sa part des frais communs. Pour l’écurie : toutes tes dépenses.",
+      "Ça te dit combien de pensions il te faut pour ne pas perdre d’argent. C’est ton repère.",
     ],
     related: ["charges_mutualisees", "cout_direct"],
     yourData: (data, period) => {
       const p = stablePnl(data, period);
       const charges = p.directCosts + p.sharedCosts;
-      if (charges <= 0) return "Saisis tes premières charges pour connaître ton seuil.";
+      if (charges <= 0) return "Note tes premières dépenses pour savoir combien doit rentrer chaque mois.";
       const covered = p.revenue >= charges;
       return covered
-        ? `Ton écurie doit encaisser ${formatEur(charges)}/mois pour tourner. Tu es au-dessus (${formatEur(p.revenue)}) : le seuil est franchi.`
-        : `Ton écurie doit encaisser ${formatEur(charges)}/mois pour tourner. Tu en es à ${formatEur(p.revenue)} : il manque ${formatEur(charges - p.revenue)}.`;
+        ? `Il doit rentrer ${formatEur(charges)} par mois pour tout payer. Tu en es à ${formatEur(p.revenue)} : c’est bon, tu ne perds pas d’argent.`
+        : `Il doit rentrer ${formatEur(charges)} par mois pour tout payer. Tu en es à ${formatEur(p.revenue)} : il manque ${formatEur(charges - p.revenue)}.`;
     },
   },
   cout_direct: {
     key: "cout_direct",
-    title: "Charges directes vs mutualisées",
-    definition: "Les charges directes concernent un seul cheval ; les mutualisées sont partagées.",
+    title: "Frais d’un cheval ou frais communs",
+    definition: "Certaines dépenses concernent un seul cheval. D’autres sont partagées entre tous.",
     whatToDo: [
-      "Maréchal, véto : directes, affectées à un cheval précis.",
-      "Foin, personnel, loyer : mutualisées, réparties sur tout le monde.",
+      "Maréchal, véto : c’est pour un cheval précis.",
+      "Foin, paille, salaires, loyer : ce sont des frais communs, partagés entre les chevaux.",
     ],
     related: ["charges_mutualisees"],
   },
   charges_mutualisees: {
     key: "charges_mutualisees",
-    title: "Charges mutualisées",
-    definition: "Un coût global réparti entre plusieurs chevaux selon une règle.",
+    title: "Les frais communs",
+    definition: "Une dépense pour toute l’écurie (foin, paille, loyer, salaires…), partagée entre les chevaux.",
     whatToDo: [
-      "Répartition égale : chacun la même part.",
-      "Par jours de présence : un cheval arrivé en cours de mois paie moins.",
+      "Partage égal : chaque cheval paie la même part.",
+      "Selon les jours passés chez toi : un cheval arrivé en cours de mois paie moins.",
     ],
     related: ["repartition_jours"],
   },
   repartition_jours: {
     key: "repartition_jours",
-    title: "Répartir par jours de présence",
-    definition: "Chaque cheval paie au prorata des jours où il était réellement là.",
+    title: "Partager selon les jours passés chez toi",
+    definition: "Chaque cheval paie sa part selon le nombre de jours où il était vraiment là.",
     whatToDo: [
-      "Plus juste quand des chevaux entrent ou sortent en cours de mois.",
-      "Utile surtout pour le foin, les granulés, la litière.",
+      "C’est plus juste quand des chevaux arrivent ou partent en cours de mois.",
+      "C’est surtout utile pour le foin, les granulés, la litière.",
     ],
     related: ["charges_mutualisees"],
   },
   tendance: {
     key: "tendance",
-    title: "Comprendre la tendance",
-    definition: "On compare la marge du mois à la moyenne des 3 mois précédents.",
+    title: "Ça monte ou ça baisse ?",
+    definition: "On compare ce qui t’est resté ce mois-ci avec la moyenne des 3 mois d’avant.",
     whatToDo: [
-      "Plus de 5 % au-dessus de cette moyenne : en hausse. Plus de 5 % en dessous : en baisse.",
-      "Une baisse sur 3 mois mérite qu'on regarde de près.",
+      "Plus de 5 % au-dessus de cette moyenne : ça monte. Plus de 5 % en dessous : ça baisse.",
+      "Si ça baisse 3 mois de suite, ça vaut le coup de regarder pourquoi.",
     ],
   },
   point_de_marge: {
     key: "point_de_marge",
-    title: "Pourquoi un point de marge compte",
-    definition: "Sur de petites marges, 1 % de prix change beaucoup le résultat final.",
+    title: "Pourquoi un petit changement de prix compte",
+    definition: "Quand il te reste peu, augmenter un prix de 1 % change beaucoup ce qui te reste à la fin.",
     whatToDo: [
-      "Teste l'effet d'une hausse de pension dans un scénario.",
-      "Un petit ajustement répété sur 10 chevaux, ça s'additionne.",
+      "Essaie une hausse de pension dans « Et si… ? », sans rien toucher à tes vrais chiffres.",
+      "Quelques euros de plus sur 10 chevaux, ça finit par faire une vraie somme.",
     ],
     related: ["seuil_rentabilite"],
   },
   pension_indexee: {
     key: "pension_indexee",
-    title: "Pension indexée vs fixe",
-    definition: "Une pension indexée suit l'inflation de tes coûts ; une fixe non.",
+    title: "Pension qui suit les prix ou pension fixe",
+    definition: "Une pension peut monter avec le prix de tes dépenses, ou rester toujours la même.",
     whatToDo: [
-      "Si tes charges montent et tes pensions stagnent, ta marge fond.",
-      "Prévois une clause de révision annuelle dans tes contrats.",
+      "Si tes dépenses montent et que tes pensions ne bougent pas, il te reste de moins en moins.",
+      "Prévois dans tes contrats que la pension peut être revue une fois par an.",
     ],
   },
   roi_cheval: {
     key: "roi_cheval",
-    title: "Le ROI d'un cheval",
-    definition: "Ce que le cheval rapporte, comparé à ce qu'il te coûte.",
+    title: "Ce qu’un cheval te laisse",
+    definition: "Ce que le cheval rapporte, moins ce qu’il te coûte.",
     whatToDo: [
-      "Un cheval peut générer du chiffre mais peu de marge : regarde le net.",
-      "Trie ta galerie par rentabilité pour voir qui tire l'écurie.",
+      "Un cheval peut faire rentrer beaucoup d’argent mais te laisser peu. Regarde ce qui reste une fois tout payé.",
+      "Trie tes chevaux par ce qu’ils te laissent pour voir lesquels font vivre l’écurie.",
     ],
   },
   cheval_a_perte: {
     key: "cheval_a_perte",
-    title: "Un cheval à perte, que faire ?",
-    definition: "Trois leviers : le prix, les coûts, ou la décision de le garder.",
+    title: "Un cheval te coûte de l’argent : que faire ?",
+    definition: "Trois pistes : son prix, ses frais, ou la décision de le garder.",
     whatToDo: [
-      "Vérifie d'abord si la perte est ponctuelle (un véto) ou structurelle.",
-      "Teste un réalignement de sa pension au prochain renouvellement avant d'envisager un départ.",
+      "Regarde d’abord si c’est un mauvais mois (un gros passage du véto) ou si ça dure.",
+      "Essaie de revoir sa pension au prochain renouvellement avant de penser à un départ.",
     ],
   },
   justifier_hausse: {
     key: "justifier_hausse",
-    title: "Justifier une augmentation",
-    definition: "Appuie une hausse sur des chiffres concrets, pas sur un ressenti.",
+    title: "Expliquer une hausse de pension",
+    definition: "Appuie-toi sur des chiffres concrets, pas sur une impression.",
     whatToDo: [
-      "Montre l'évolution de tes coûts (foin, énergie) sur 12 mois.",
-      "Un scénario chiffré rend la conversation plus simple.",
+      "Montre comment tes dépenses (foin, énergie) ont bougé sur 12 mois.",
+      "Un essai chiffré dans « Et si… ? » rend la discussion plus simple.",
     ],
   },
 };

@@ -15,7 +15,7 @@ export function ObHead({ n, title, sub, retour }: { n: number; title: string; su
   }
   return (
     <>
-      <Back href="/parcours">Parcours · obstacle {n} sur 6</Back>
+      <Back href="/parcours">Mes premiers pas · étape {n} sur 6</Back>
       <div className="bs-progress">
         <i style={{ width: `${Math.round(((n - 1) / 6) * 100 + 6)}%` }} />
       </div>

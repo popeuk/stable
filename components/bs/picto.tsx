@@ -12,6 +12,7 @@ const P: Record<string, string> = {
   back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
   arrowR: '<path d="M5 12h14M13 6l6 6-6 6"/>',
   chev: '<path d="m9 6 6 6-6 6"/>',
+  aide: '<circle cx="12" cy="12" r="9"/><path d="M9.7 9.4a2.4 2.4 0 1 1 3.3 2.2c-.6.3-1 .8-1 1.5v.6M12 16.8v.1"/>',
   chevL: '<path d="m15 6-6 6 6 6"/>',
   up: '<path d="M12 19V5M6 11l6-6 6 6"/>',
   down: '<path d="M12 5v14M6 13l6 6 6-6"/>',
@@ -111,6 +112,6 @@ export function pictoForLabel(label: string): PictoName {
   if (/personnel|salaire/.test(t)) return "personne";
   if (/loyer|foncier|credit|emprunt/.test(t)) return "cle";
   if (/transport|camion/.test(t)) return "camion";
-  if (/part de l.ecurie/.test(t)) return "foin";
+  if (/part de l.ecurie|frais communs/.test(t)) return "foin";
   return "euro";
 }

@@ -248,7 +248,7 @@ function SoinComposer() {
             href="/parametres/tarifs"
             className="flex items-center gap-1 rounded-full border border-dashed border-[var(--border-strong)] px-3 py-1.5 text-[12px] font-semibold text-tertiary"
           >
-            + Ta prestation
+            + Ajouter ta prestation
           </Link>
         </div>
       </motion.div>
@@ -263,9 +263,9 @@ function SoinComposer() {
             href="/saisie/cheval"
             className="flex items-center justify-between rounded-[var(--radius-md)] border border-dashed border-[var(--border-strong)] px-4 py-3.5"
           >
-            <span className="pr-3 text-[13px] text-secondary">Ajoute d&apos;abord un cheval.</span>
+            <span className="pr-3 text-[13px] text-secondary">Ajoute d&apos;abord un cheval pour lui noter un soin ou un cours.</span>
             <span className="flex shrink-0 items-center gap-1 text-[13px] font-bold text-[var(--accent-primary)]">
-              Ajouter <ArrowRight size={14} />
+              Ajouter un cheval <ArrowRight size={14} />
             </span>
           </Link>
         ) : (
@@ -315,7 +315,7 @@ function SoinComposer() {
         </div>
         <div>
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
-            Coût (optionnel)
+            Combien ça t&apos;a coûté ? (optionnel)
           </p>
           <div className="flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3">
             <input
@@ -334,7 +334,7 @@ function SoinComposer() {
       {billable && (
         <motion.div variants={item}>
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
-            {kind === "cours_collectif" ? "Recette par cheval (optionnel)" : "Recette (optionnel)"}
+            {kind === "cours_collectif" ? "Combien ça te rapporte par cheval ? (optionnel)" : "Combien ça te rapporte ? (optionnel)"}
           </p>
           <div className="flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3">
             <input
@@ -354,9 +354,9 @@ function SoinComposer() {
           </div>
           <p className="mt-1.5 text-[12px] text-tertiary">
             {!revenueEdited && tariffFor(tariffs, kind)
-              ? "Ton tarif est prérempli — change-le librement pour cette fois. "
+              ? "On a mis ton tarif habituel. Tu peux le changer juste pour cette fois. "
               : ""}
-            Attribuée à chaque cheval présent quand tu confirmes la séance.
+            Ce montant compte pour chaque cheval présent, une fois que tu as confirmé que la séance a eu lieu.
           </p>
         </motion.div>
       )}
@@ -377,7 +377,7 @@ function SoinComposer() {
                 Répéter chaque {WEEKDAY_LABELS[weekdayOf(date)]}
               </span>
               <span className="block text-[12px] text-secondary">
-                La séance apparaîtra toute seule à l&apos;agenda, chaque semaine.
+                La séance s&apos;ajoutera toute seule au planning, chaque semaine.
               </span>
             </span>
             <span
@@ -440,7 +440,7 @@ function SoinComposer() {
 
       <motion.div variants={item}>
         <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-tertiary">
-          Échéance suivante (optionnel)
+          Prochain rendez-vous (optionnel)
         </p>
         <input
           type="date"
@@ -449,15 +449,14 @@ function SoinComposer() {
           className="w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-elevated px-3 py-3 text-sm text-primary outline-none"
         />
         <p className="mt-1.5 text-[12px] text-tertiary">
-          Renouvellement d&apos;un document, prochain rendez-vous fixé… Elle prime sur la cadence
-          automatique.
+          Si tu connais déjà la date du prochain (vaccin, maréchal…), note-la. Sinon, pour les soins
+          réguliers, l&apos;app calcule la prochaine date toute seule.
         </p>
       </motion.div>
 
       {costNum > 0 && (
         <motion.p variants={item} className="text-[12px] text-tertiary">
-          Le coût sera inscrit au Journal pour chaque cheval concerné :
-          une seule saisie, tout est relié.
+          Ce coût sera ajouté aux dépenses de chaque cheval concerné. Tu n&apos;as rien d&apos;autre à noter.
         </motion.p>
       )}
 
@@ -467,7 +466,7 @@ function SoinComposer() {
         onClick={save}
         className="flex w-full items-center justify-center gap-2 btn-primary py-3.5 text-[15px] text-[var(--on-accent)]"
       >
-        <Check size={18} /> C&apos;est noté
+        <Check size={18} /> Enregistrer
       </motion.button>
     </motion.div>
   );

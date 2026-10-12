@@ -66,7 +66,7 @@ function Equipe() {
     st.moveTask(t.id, listId);
     const l = lists.find((x) => x.id === listId);
     say(
-      l?.isDone && t.cost ? `Fait. <strong>${eur(t.cost)}</strong> ajoutés aux factures communes.` : `Carte déplacée dans <strong>${esc(l?.title ?? "")}</strong>.`,
+      l?.isDone && t.cost ? `C’est fait. <strong>${eur(t.cost)}</strong> ajoutés aux frais communs, partagés entre les chevaux.` : `Tâche rangée dans <strong>${esc(l?.title ?? "")}</strong>.`,
       () => useDataStore.setState(snap),
     );
   }
@@ -155,9 +155,9 @@ function Equipe() {
   return (
     <Screen wide={desk}>
       <div className="bs-over">
-        <span>{data.team?.length ? `${data.team.length + 1} dans l’équipe` : "Toi et ton équipe"}</span>
+        <span>{data.team?.length ? `${data.team.length + 1} personnes dans l’équipe` : "Toi et ton équipe"}</span>
         <button type="button" className="bs-link" onClick={() => openNoter({ mode: "tache" })}>
-          Nouvelle tâche
+          Ajouter une tâche
         </button>
       </div>
       <h1 className="bs-d bs-t1">Tâches d’équipe</h1>
@@ -204,13 +204,13 @@ function Equipe() {
                 {!l.isDone && (
                   <div className="bs-quick">
                     <input
-                      placeholder="Ajouter une carte"
+                      placeholder="Ajouter une tâche"
                       value={quick[l.id] ?? ""}
                       onChange={(e) => setQuick({ ...quick, [l.id]: e.target.value })}
                       onKeyDown={(e) => e.key === "Enter" && addQuick(l.id)}
-                      aria-label={`Ajouter une carte dans ${l.title}`}
+                      aria-label={`Ajouter une tâche dans ${l.title}`}
                     />
-                    <button type="button" className="bs-chip" onClick={() => addQuick(l.id)} aria-label="Ajouter">
+                    <button type="button" className="bs-chip" onClick={() => addQuick(l.id)} aria-label="Ajouter la tâche">
                       <Picto name="plus" size={16} />
                     </button>
                   </div>
@@ -233,9 +233,9 @@ function Equipe() {
           );
         })
       )}
-      {tasks.length === 0 && <p className="bs-p" style={{ marginTop: 12 }}>{mine ? "Rien ne t’est attribué." : "Aucune tâche. Ajoute la première avec le +."}</p>}
+      {tasks.length === 0 && <p className="bs-p" style={{ marginTop: 12 }}>{mine ? "Aucune tâche pour toi pour l’instant." : "Aucune tâche pour l’instant. Touche « Ajouter une tâche » en haut pour écrire la première."}</p>}
       <p className="bs-p" style={{ fontSize: 12, marginTop: 14 }}>
-        {desk ? "Glisse une carte d’une colonne à l’autre. " : ""}Une carte avec un coût devient une facture commune quand elle passe en « {lists.find((l) => l.isDone)?.title ?? "Fait"} ». Les tâches datées apparaissent aussi au planning.
+        {desk ? "Glisse une tâche d’une colonne à l’autre. " : ""}Quand une tâche qui a un coût passe en « {lists.find((l) => l.isDone)?.title ?? "Fait"} », le montant va dans les frais communs, partagé entre les chevaux. Les tâches avec une date apparaissent aussi dans le planning.
       </p>
       {open && <TaskSheet id={open} onClose={() => setOpen(null)} />}
     </Screen>
@@ -269,7 +269,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
           <Picto name="x" size={20} />
         </button>
         <input className="bs-d bs-t2" style={{ border: 0, background: "none", width: "88%", padding: 0, marginTop: 6 }} defaultValue={t.title} onChange={(e) => e.target.value.trim() && upd({ title: e.target.value.trim() })} aria-label="Titre" />
-        <p className="bs-sec">Colonne</p>
+        <p className="bs-sec">Où en est-elle ?</p>
         <div className="bs-seg">
           {lists.map((l) => (
             <button
@@ -280,14 +280,14 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
                 if (t.listId === l.id) return;
                 const undo = snap();
                 st().moveTask(t.id, l.id);
-                say(l.isDone && t.cost ? `Fait. <strong>${eur(t.cost)}</strong> ajoutés aux factures communes.` : `Carte déplacée dans <strong>${esc(l.title)}</strong>.`, undo);
+                say(l.isDone && t.cost ? `C’est fait. <strong>${eur(t.cost)}</strong> ajoutés aux frais communs, partagés entre les chevaux.` : `Tâche rangée dans <strong>${esc(l.title)}</strong>.`, undo);
               }}
             >
               {l.title}
             </button>
           ))}
         </div>
-        <p className="bs-sec">Pour qui</p>
+        <p className="bs-sec">Pour qui ?</p>
         <div className="bs-chips">
           {members.map((m) => (
             <button key={m} type="button" className="bs-chip" aria-pressed={t.forWho.includes(m)} onClick={() => upd({ forWho: t.forWho.includes(m) ? t.forWho.filter((x) => x !== m) : [...t.forWho, m] })}>
@@ -304,7 +304,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
             </button>
           ))}
         </div>
-        <p className="bs-sec">Liste de contrôle</p>
+        <p className="bs-sec">Étapes à cocher</p>
         {t.checklist.map((c) => (
           <label key={c.id} className="bs-li" style={{ cursor: "pointer" }}>
             <input type="checkbox" checked={c.done} onChange={() => upd({ checklist: t.checklist.map((x) => (x.id === c.id ? { ...x, done: !x.done } : x)) })} style={{ width: 18, height: 18, accentColor: "var(--vert)" }} />
@@ -318,7 +318,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
         ))}
         <div className="bs-quick">
           <input
-            placeholder="Ajouter un élément"
+            placeholder="Ajouter une étape"
             value={item}
             onChange={(e) => setItem(e.target.value)}
             onKeyDown={(e) => {
@@ -327,16 +327,16 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
                 setItem("");
               }
             }}
-            aria-label="Ajouter un élément à la liste"
+            aria-label="Ajouter une étape à cocher"
           />
         </div>
-        <p className="bs-sec">Coût</p>
+        <p className="bs-sec">Ça coûte combien ?</p>
         <label className="bs-field">
           <span>Montant</span>
           <input inputMode="decimal" defaultValue={t.cost ?? ""} style={{ textAlign: "right", fontWeight: 600 }} onChange={(e) => upd({ cost: Number(e.target.value.replace(",", ".")) > 0 ? Number(e.target.value.replace(",", ".")) : undefined })} disabled={!!t.costExpenseId} />
           <span>€</span>
         </label>
-        {t.costExpenseId && <p className="bs-p" style={{ fontSize: 12 }}>Déjà compté dans les factures communes du mois.</p>}
+        {t.costExpenseId && <p className="bs-p" style={{ fontSize: 12 }}>Déjà compté dans les frais communs du mois.</p>}
         <p className="bs-sec">Notes</p>
         <div className="bs-field">
           <textarea rows={3} defaultValue={t.notes ?? ""} onChange={(e) => upd({ notes: e.target.value })} aria-label="Notes" style={{ width: "100%", border: 0, background: "none", resize: "vertical", font: "inherit" }} />

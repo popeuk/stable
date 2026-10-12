@@ -28,15 +28,16 @@ function Decouvertes() {
     <div className="space-y-4">
       <header>
         <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-          Découvertes
+          Ce qu’on a remarqué
         </h1>
         <p className="text-sm text-tertiary capitalize">{formatMonthYear(period)}</p>
+        <p className="text-sm text-tertiary">Des choses repérées dans tes chiffres ce mois-ci. Touche une carte pour comprendre.</p>
       </header>
 
       {insights.length === 0 ? (
         <EmptyState
-          title="Rien à signaler ce mois."
-          body="Continue à saisir tes revenus et charges : les découvertes arrivent dès qu'un signal se dessine."
+          title="Rien de spécial ce mois-ci."
+          body="Continue à noter ce qui rentre et ce qui sort. Dès qu’on repère quelque chose d’utile, ça s’affiche ici."
         />
       ) : (
         <div className="space-y-3">
@@ -62,7 +63,7 @@ function Decouvertes() {
                 </div>
                 <p className="text-sm text-secondary line-clamp-2">{insight.body}</p>
                 <span className="mt-3 inline-flex items-center gap-1 text-2xs text-[var(--accent-primary)]">
-                  Lire <ChevronRight size={13} />
+                  Comprendre <ChevronRight size={13} />
                 </span>
               </motion.article>
             </Link>

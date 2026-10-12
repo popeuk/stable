@@ -31,6 +31,13 @@ interface SettingsState {
   parcours: Record<ObstacleId, boolean>;
   /** Le flot « Écurie prête » a été montré. */
   arrived: boolean;
+  /** Le parcours de démarrage est remis à plus tard : l'app s'ouvre quand même. */
+  parcoursPlusTard: boolean;
+  /** Les aides « Comment ça marche ici » déjà lues, écran par écran. */
+  aidesVues: string[];
+  voirAide: (id: string) => void;
+  revoirAides: () => void;
+  remettreParcours: () => void;
   stableName: string;
   gerant: string;
   /** L'heure du rappel du matin (« 7:45 »). */
@@ -66,6 +73,11 @@ export const useSettingsStore = create<SettingsState>()(
       onboarded: false,
       parcours: { ...NO_OBSTACLE },
       arrived: false,
+      parcoursPlusTard: false,
+      aidesVues: [],
+      voirAide: (id) => set((s) => (s.aidesVues.includes(id) ? s : { aidesVues: [...s.aidesVues, id] })),
+      revoirAides: () => set({ aidesVues: [] }),
+      remettreParcours: () => set({ parcoursPlusTard: true }),
       stableName: "Les Trois Pommiers",
       gerant: "Claire",
       reminder: "7:45",
