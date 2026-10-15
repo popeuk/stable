@@ -54,10 +54,15 @@ async function call<T>(method: "GET" | "POST" | "PUT" | "DELETE", path: string, 
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (s?.kind === "compte") headers["X-BS-Token"] = s.token;
   let res: Response;
-  try {
-    res = await fetch(`${API}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), credentials: "omit" });
-  } catch {
-    throw new ApiError("hors_ligne", OFFLINE);
+  // L'hébergeur refuse parfois une rafale de lectures (429) : on relit deux fois, sans bruit.
+  for (let essai = 0; ; essai++) {
+    try {
+      res = await fetch(`${API}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), credentials: "omit" });
+    } catch {
+      throw new ApiError("hors_ligne", OFFLINE);
+    }
+    if (res.status !== 429 || method !== "GET" || essai >= 2) break;
+    await new Promise((r) => setTimeout(r, 1200 * (essai + 1)));
   }
   let json: unknown = null;
   try {

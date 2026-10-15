@@ -392,10 +392,23 @@ export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; cr
           <div className="foot">
             {statut === "revendiquee" ? (
               <>
-                <p className="ar-proof">C’est toi ? Entre avec ton e-mail.</p>
+                <p className="ar-proof">
+                  Quelqu’un l’a déjà reprise. Si c’est toi, entre avec l’e-mail utilisé ce jour-là : tu retrouves ta fiche.
+                </p>
                 <Link href="/compte/connexion" className="btn full">
                   Me connecter
                 </Link>
+                <p className="ar-proof">
+                  Ce n’est pas toi qui l’as reprise ?{" "}
+                  <a className="lnk" href={`mailto:bonjour@mon-ecurie.fr?subject=${encodeURIComponent(`Ma fiche ${fiche.title ?? ""} est reprise par quelqu’un d’autre`)}`}>
+                    Écris-nous
+                  </a>
+                  , on vérifie à la main. Ou{" "}
+                  <button type="button" className="lnk" onClick={() => (setEtape("nom"), setHist([]))}>
+                    choisis une autre écurie
+                  </button>
+                  .
+                </p>
               </>
             ) : statut === "en_verification" ? (
               <>
