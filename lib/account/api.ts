@@ -37,6 +37,7 @@ function clean<T>(v: T): T {
   return v;
 }
 
+const SLOW = "mon-ecurie.fr met trop de temps à répondre. Réessaie dans quelques minutes.";
 const OFFLINE = "Impossible de joindre mon-ecurie.fr. Vérifiez votre connexion et réessayez.";
 
 export interface Demande {
@@ -56,10 +57,15 @@ async function call<T>(method: "GET" | "POST" | "PUT" | "DELETE", path: string, 
   let res: Response;
   // L'hébergeur refuse parfois une rafale de lectures (429) : on relit deux fois, sans bruit.
   for (let essai = 0; ; essai++) {
+    // Au-delà de 25 s, on rend la main avec un message clair plutôt que « injoignable ».
+    const stop = new AbortController();
+    const minuteur = setTimeout(() => stop.abort(), 25000);
     try {
-      res = await fetch(`${API}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), credentials: "omit" });
+      res = await fetch(`${API}${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), credentials: "omit", signal: stop.signal });
     } catch {
-      throw new ApiError("hors_ligne", OFFLINE);
+      throw stop.signal.aborted ? new ApiError("trop_long", SLOW) : new ApiError("hors_ligne", OFFLINE);
+    } finally {
+      clearTimeout(minuteur);
     }
     if (res.status !== 429 || method !== "GET" || essai >= 2) break;
     await new Promise((r) => setTimeout(r, 1200 * (essai + 1)));

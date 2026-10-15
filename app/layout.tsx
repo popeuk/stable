@@ -24,6 +24,7 @@ const plex = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
