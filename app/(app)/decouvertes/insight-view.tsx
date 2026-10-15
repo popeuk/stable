@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { KeyNumber } from "@/components/ui/key-number";
+import { CountUp, Empty, Hello, Page, Tip, eur, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { generateInsights } from "@/lib/domain/insights-engine";
@@ -24,61 +22,51 @@ function InsightDetail({ id }: { id: string }) {
 
   if (!insight) {
     return (
-      <div className="space-y-4">
-        <Link href="/decouvertes" className="inline-flex items-center gap-1 text-sm text-tertiary">
-          <ChevronLeft size={16} /> Découvertes
-        </Link>
-        <p className="text-secondary">Cette découverte n&apos;est plus d&apos;actualité.</p>
-      </div>
+      <Page>
+        <Empty ill="dodo">Cette découverte n’est plus d’actualité.</Empty>
+        <div className="pad" style={{ marginTop: 12 }}>
+          <Link href="/decouvertes" className="btn line full">
+            Découvertes
+          </Link>
+        </div>
+      </Page>
     );
   }
 
-  const stagger = (i: number) => ({
-    initial: { opacity: 0, y: 14 },
-    animate: { opacity: 1, y: 0 },
-    transition: { delay: i * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
-  });
+  const v = insight.keyMetricValue;
 
   return (
-    <div className="relative min-h-[70vh] overflow-hidden rounded-[var(--radius-xl)] border bg-gradient-to-br from-[var(--accent-primary-soft)] via-transparent to-[rgba(124,144,112,0.12)] p-6">
-      <Link href="/decouvertes" className="inline-flex items-center gap-1 text-sm text-tertiary">
-        <ChevronLeft size={16} /> Découvertes
-      </Link>
+    <Page>
+      <h1 className="ar-sr">{insight.title}</h1>
+      <div className="over">
+        <span>Découverte de la semaine</span>
+        <Link href="/decouvertes">Découvertes</Link>
+      </div>
+      <Hello title={insight.title} delay={0.1} />
 
-      <motion.p {...stagger(0)} className="mt-8 text-2xs uppercase tracking-wide text-[var(--accent-primary)]">
-        Découverte de la semaine
-      </motion.p>
+      <div className="card rise" style={{ animationDelay: ".2s", margin: "16px 14px 0" }}>
+        <p className="big">
+          <CountUp value={v} fmt={(n) => (n < 0 ? sg(n) : eur(n))} />
+        </p>
+        <p className="note">{insight.keyMetricLabel}</p>
+      </div>
 
-      <motion.h1
-        {...stagger(1)}
-        className="mt-2 font-[family-name:var(--font-bricolage)] text-3xl leading-tight text-primary"
-      >
-        {insight.title}
-      </motion.h1>
-
-      <motion.div {...stagger(2)} className="mt-6">
-        <KeyNumber value={insight.keyMetricValue} colorBySign className="text-5xl" />
-        <p className="mt-1 text-sm text-tertiary">{insight.keyMetricLabel}</p>
-      </motion.div>
-
-      <motion.p {...stagger(3)} className="mt-6 text-base leading-relaxed text-secondary">
+      <p className="pad note rise" style={{ animationDelay: ".3s", marginTop: 16, fontSize: 15 }}>
         {insight.body}
-      </motion.p>
+      </p>
 
       {insight.cta && (
-        <motion.div {...stagger(4)} className="mt-8">
-          <Link
-            href={insight.cta.action}
-            className="inline-block btn-primary px-6 py-3 text-sm font-bold text-[var(--on-accent)]"
-          >
+        <div className="pad rise" style={{ animationDelay: ".4s", marginTop: 16 }}>
+          <Link href={insight.cta.action} className="btn full">
             {insight.cta.label}
           </Link>
-        </motion.div>
+        </div>
       )}
 
-      <motion.p {...stagger(5)} className="mt-10 text-[10px] text-tertiary">
-        Découverte repérée automatiquement dans tes chiffres.
-      </motion.p>
-    </div>
+      <div className="pad rise" style={{ animationDelay: ".5s", marginTop: 18 }}>
+        <Tip ill="carnet-buste">Découverte repérée automatiquement dans tes chiffres.</Tip>
+      </div>
+      <div className="end" />
+    </Page>
   );
 }

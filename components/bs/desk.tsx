@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { Face, Ic, Ill, Money } from "@/components/carnet/ui";
 import { Picto } from "@/components/bs/picto";
-import { HorseFace } from "@/components/bs/horse-face";
 import { eur, signed } from "@/components/bs/ui";
 import { useUiStore } from "@/stores/ui-store";
 import { useDataStore } from "@/stores/data-store";
@@ -124,73 +124,69 @@ export function Sidebar() {
   const pct = Math.max(0, Math.min(100, c.objective ? (c.net / c.objective) * 100 : 0));
   const month = new Date().toLocaleDateString("fr-FR", { month: "long" });
 
+  const IC: Record<string, string> = { check: "ck", cours: "hay", personne: "people", reglages: "gear" };
   return (
-    <aside className="bs-side" aria-label="Navigation">
-      <div className="bs-side-hd">
-        <Link href="/accueil" className="bs-wm">
-          be stable
-        </Link>
-        <span>{stableName}</span>
-      </div>
-
-      <button type="button" className="bs-side-add" onClick={() => openNoter({ mode: "seance" })}>
-        <Picto name="plus" />
+    <aside className="cn-side" aria-label="Navigation">
+      <Link href="/accueil" className="wm">
+        be stable
+      </Link>
+      <span className="stb">{stableName}</span>
+      <button type="button" className="add" onClick={() => openNoter({ mode: "seance" })}>
+        <Ic n="plus" className="cn-ic sm" />
         Ajouter
         <kbd>N</kbd>
       </button>
-      <button type="button" className="bs-side-search" onClick={openPalette}>
-        <Picto name="search" />
+      <button type="button" className="find" onClick={openPalette}>
+        <Ic n="search" className="cn-ic sm" />
         Chercher, aller à…
         <kbd>{modKey()} K</kbd>
       </button>
-
-      <nav className="bs-side-nav">
-        {nav.map((g) => (
-          <div key={g.title}>
-            <p className="grp">{g.title}</p>
-            {g.items.map((it) => {
-              const on = it.match(path, vue);
-              return (
-                <Link key={it.href} href={it.href} className="it" aria-current={on ? "page" : undefined} title={it.key ? `${it.label} (G puis ${it.key})` : it.label}>
-                  <Picto name={it.picto} />
-                  <span className="l">{it.label}</span>
-                  {it.badge && <em className={it.hot ? "hot" : ""}>{it.badge}</em>}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
-      </nav>
-
-      <div className="bs-side-ft">
-        <Link href="/argent" className="bs-side-goal">
-          <span className="k">
-            Objectif de {month} · {eur(c.objective)}
-          </span>
-          <span className="v">{signed(c.net)}</span>
-          <span className="bar" aria-hidden>
-            <i style={{ transform: `scaleX(${pct / 100})` }} />
-          </span>
-        </Link>
+      {nav.map((g) => (
+        <div key={g.title} style={{ display: "grid", gap: 2 }}>
+          <p className="grp">{g.title}</p>
+          {g.items.map((it) => {
+            const on = it.match(path, vue);
+            const money = it.href === "/argent";
+            return (
+              <Link key={it.href} href={it.href} className="it" aria-current={on ? "page" : undefined} title={it.key ? `${it.label} (G puis ${it.key})` : it.label}>
+                <Ic n={IC[it.picto] ?? it.picto} />
+                <span style={{ flex: 1, minWidth: 0 }}>{it.label}</span>
+                {it.badge && <em className={it.hot ? "attn" : money ? (c.net >= 0 ? "in" : "") : ""}>{it.badge}</em>}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
+      <Link href="/argent" className="goal">
+        <span className="k">
+          Objectif de {month} · {eur(c.objective)}
+        </span>
+        <b style={c.net < 0 ? { color: "var(--out)" } : undefined}>{signed(c.net)}</b>
+        <span className="bar" style={{ marginTop: 4 }} aria-hidden>
+          <i style={{ width: `${pct}%` }} />
+        </span>
+      </Link>
+      <div className="ft">
         {!install.installed && (
           <button
             type="button"
-            className="bs-side-link"
+            className="it"
+            style={{ background: "none", border: 0, cursor: "pointer", textAlign: "left" }}
             onClick={async () => {
               if (install.way === "bouton") await install.prompt();
               else setHow(true);
             }}
           >
-            <Picto name="install" />
+            <Ic n="install" />
             Installer l’app
           </button>
         )}
-        <button type="button" className="bs-side-link" onClick={() => useUiStore.getState().openHelp()}>
-          <Picto name="keys" />
+        <button type="button" className="it" style={{ background: "none", border: 0, cursor: "pointer", textAlign: "left" }} onClick={() => useUiStore.getState().openHelp()}>
+          <Ic n="key" />
           Raccourcis clavier
-          <kbd>?</kbd>
+          <em>?</em>
         </button>
-        <p className="who">{gerant}</p>
+        <p className="stb" style={{ margin: "8px 10px 0" }}>{gerant}</p>
       </div>
       {how && <InstallHowto onClose={() => setHow(false)} />}
     </aside>
@@ -206,29 +202,37 @@ export function InstallHowto({ onClose }: { onClose: () => void }) {
   const steps = INSTALL_HOWTO[install.way === "bouton" ? "autre" : install.way];
   useEscape(onClose);
   return createPortal(
-    <>
-      <div className="bs-scrim" onClick={onClose} />
-      <div className="bs-dialog" role="dialog" aria-modal="true" aria-labelledby="bs-install-t">
-        <button type="button" className="bs-x" onClick={onClose} aria-label="Fermer">
-          <Picto name="x" size={20} />
-        </button>
-        <h2 id="bs-install-t" className="bs-d bs-t2">
-          Installer Be Stable
-        </h2>
-        <p className="bs-p">Une icône sur ton bureau ou ton écran d’accueil, une fenêtre à part, et l’app s’ouvre même sans réseau.</p>
-        <ol className="bs-steps">
-          {steps.map((s, i) => (
-            <li key={i}>
-              <span>{i + 1}</span>
-              {s}
-            </li>
-          ))}
-        </ol>
-        <p className="bs-p" style={{ fontSize: 12.5 }}>
-          Tes données restent dans cet appareil : l’app installée sur l’ordinateur et celle du téléphone ne se partagent pas encore leurs saisies.
-        </p>
+    <div className="carnet carnet-portal">
+      <div className="sheet-wrap open">
+        <div className="scrim" onClick={onClose} />
+        <div className="sheet nt-sheet" role="dialog" aria-modal="true" aria-labelledby="bs-install-t">
+          <div className="grab" />
+          <div className="shd">
+            <b id="bs-install-t">Installer Be Stable</b>
+            <button type="button" className="x" onClick={onClose} aria-label="Fermer">
+              <Ic n="x" className="" />
+            </button>
+          </div>
+          <div className="pad">
+            <p className="note" style={{ marginTop: 0 }}>
+              Une icône sur ton bureau ou ton écran d’accueil, une fenêtre à part, et l’app s’ouvre même sans réseau.
+            </p>
+            <ol className="nt-steps">
+              {steps.map((s, i) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ol>
+            <div className="tip" style={{ marginTop: 16 }}>
+              <Ill n="guide" />
+              <span>Tes données restent dans cet appareil : l’app installée sur l’ordinateur et celle du téléphone ne se partagent pas encore leurs saisies.</span>
+            </div>
+            <button type="button" className="btn full" style={{ marginTop: 16 }} onClick={onClose}>
+              J’ai compris
+            </button>
+          </div>
+        </div>
       </div>
-    </>,
+    </div>,
     document.body,
   );
 }
@@ -277,7 +281,7 @@ const norm = (s: string) =>
     .replace(/[̀-ͯ]/g, "")
     .replace(/[’']/g, " ");
 
-type Cmd = { id: string; group: string; label: string; sub?: string; picto?: string; face?: string; hint?: string; run: () => void };
+type Cmd = { id: string; group: string; label: string; sub?: string; ic?: string; money?: number; face?: string; hint?: string; run: () => void };
 
 function useEscape(f: () => void) {
   useEffect(() => {
@@ -315,31 +319,31 @@ function PaletteInner() {
 
   const all: Cmd[] = useMemo(
     () => [
-      { id: "a-seance", group: "Faire", label: "Planifier une séance", sub: "cours, travail, balade", picto: "cours", hint: "N", run: add("seance") },
-      { id: "a-soin", group: "Faire", label: "Noter un soin", sub: "maréchal, véto, vermifuge…", picto: "fer", run: add("soin") },
-      { id: "a-tache", group: "Faire", label: "Ajouter une tâche d’équipe", picto: "board", run: add("tache") },
-      { id: "a-depense", group: "Faire", label: "Noter une dépense ou une recette", picto: "euro", run: add("depense") },
-      ...(c.pending ? [{ id: "a-valider", group: "Faire", label: `Valider ce qui attend (${c.pending})`, picto: "check", run: go("/valider") }] : []),
-      { id: "a-facturer", group: "Faire", label: "Préparer les factures du mois", sub: c.due ? `${eur(c.due)} en attente` : undefined, picto: "doc", run: go("/argent?vue=facturer") },
-      { id: "g-accueil", group: "Aller à", label: "Accueil", picto: "home", hint: "G A", run: go("/accueil") },
-      { id: "g-planning", group: "Aller à", label: "Planning", picto: "cal", hint: "G P", run: go("/planning") },
-      { id: "g-chevaux", group: "Aller à", label: "Chevaux", picto: "horse", hint: "G C", run: go("/chevaux") },
-      { id: "g-equipe", group: "Aller à", label: "Tâches d’équipe", picto: "board", hint: "G E", run: go("/equipe") },
-      { id: "g-mois", group: "Aller à", label: "Bilan du mois", sub: signed(c.net), picto: "euro", hint: "G M", run: go("/argent") },
-      { id: "g-leviers", group: "Aller à", label: "Pistes pour gagner plus", picto: "bulb", hint: "G L", run: go("/argent?vue=leviers") },
-      { id: "g-mouv", group: "Aller à", label: "Entrées et sorties d’argent", picto: "list", run: go("/argent?vue=mouvements") },
-      { id: "g-bilans", group: "Aller à", label: "Bilans", sub: "3, 6 ou 12 mois", picto: "chart", run: go("/pilotage") },
-      { id: "g-seuil", group: "Aller à", label: "Mon seuil de rentabilité", picto: "flag", run: go("/seuil") },
-      { id: "g-fiche", group: "Aller à", label: "Ma fiche mon-ecurie.fr", sub: "places, tarifs, photos", picto: "flag", run: go("/ma-fiche") },
-      { id: "g-prest", group: "Aller à", label: "Prestations et tarifs", sub: "cours, travail, balades", picto: "cours", run: go("/prestations") },
-      { id: "g-clients", group: "Aller à", label: "Clients", picto: "personne", hint: "G K", run: go("/clients") },
-      { id: "g-moi", group: "Aller à", label: "Mon écurie et réglages", picto: "reglages", run: go("/moi") },
+      { id: "a-seance", group: "Faire", label: "Planifier une séance", sub: "cours, travail, balade", ic: "cal", hint: "N", run: add("seance") },
+      { id: "a-soin", group: "Faire", label: "Noter un soin", sub: "maréchal, véto, vermifuge…", ic: "shoe", run: add("soin") },
+      { id: "a-tache", group: "Faire", label: "Ajouter une tâche d’équipe", ic: "board", run: add("tache") },
+      { id: "a-depense", group: "Faire", label: "Noter une dépense", sub: "ou une recette", ic: "euro", run: add("depense") },
+      ...(c.pending ? [{ id: "a-valider", group: "Faire", label: `Confirmer ce qui attend (${c.pending})`, ic: "ck", run: go("/valider") }] : []),
+      { id: "a-facturer", group: "Faire", label: "Préparer les factures du mois", sub: c.due ? `${eur(c.due)} en attente` : undefined, ic: "doc", run: go("/argent?vue=facturer") },
+      { id: "g-accueil", group: "Aller à", label: "Accueil", ic: "home", hint: "G A", run: go("/accueil") },
+      { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
+      { id: "g-chevaux", group: "Aller à", label: "Chevaux", ic: "horse", hint: "G C", run: go("/chevaux") },
+      { id: "g-equipe", group: "Aller à", label: "Tâches d’équipe", ic: "board", hint: "G E", run: go("/equipe") },
+      { id: "g-mois", group: "Aller à", label: "Bilan du mois", sub: signed(c.net), money: c.net, ic: "euro", hint: "G M", run: go("/argent") },
+      { id: "g-leviers", group: "Aller à", label: "Pistes pour gagner plus", ic: "bulb", hint: "G L", run: go("/argent?vue=leviers") },
+      { id: "g-mouv", group: "Aller à", label: "Entrées et sorties d’argent", ic: "list", run: go("/argent?vue=mouvements") },
+      { id: "g-bilans", group: "Aller à", label: "Bilans", sub: "3, 6 ou 12 mois", ic: "chart", run: go("/pilotage") },
+      { id: "g-seuil", group: "Aller à", label: "Mon seuil de rentabilité", ic: "flag", run: go("/seuil") },
+      { id: "g-fiche", group: "Aller à", label: "Ma fiche mon-ecurie.fr", sub: "places, tarifs, photos", ic: "flag", run: go("/ma-fiche") },
+      { id: "g-prest", group: "Aller à", label: "Prestations et tarifs", sub: "cours, travail, balades", ic: "euro", run: go("/prestations") },
+      { id: "g-clients", group: "Aller à", label: "Clients", ic: "people", hint: "G K", run: go("/clients") },
+      { id: "g-moi", group: "Aller à", label: "Mon écurie et réglages", ic: "gear", run: go("/moi") },
       ...data.horses
         .filter((h) => !h.isArchived)
         .map((h) => ({ id: `h-${h.id}`, group: "Chevaux", label: h.name, sub: [h.pensionType, h.ownerName].filter(Boolean).join(" · "), face: h.id, run: go(`/ticket?id=${h.id}`) })),
       ...(data.people ?? [])
         .filter((p) => p.active)
-        .map((p) => ({ id: `p-${p.id}`, group: "Clients", label: p.name, sub: p.role === "proprietaire" ? "propriétaire" : "cavalier", picto: "personne", run: go(`/clients?q=${encodeURIComponent(p.name)}`) })),
+        .map((p) => ({ id: `p-${p.id}`, group: "Clients", label: p.name, sub: p.role === "proprietaire" ? "propriétaire" : "cavalier", ic: "user", run: go(`/clients?q=${encodeURIComponent(p.name)}`) })),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, c],
@@ -359,11 +363,11 @@ function PaletteInner() {
 
   let last = "";
   return createPortal(
-    <>
-      <div className="bs-scrim" onClick={close} />
-      <div className="bs-palette" role="dialog" aria-modal="true" aria-label="Chercher ou faire">
-        <label className="in">
-          <Picto name="search" />
+    <div className="carnet carnet-portal">
+      <div className="nt-pal-scrim" onClick={close} />
+      <div className="nt-pal" role="dialog" aria-modal="true" aria-label="Chercher ou faire">
+        <label className="nt-pin">
+          <Ic n="search" />
           <input
             autoFocus
             value={q}
@@ -390,8 +394,11 @@ function PaletteInner() {
             aria-activedescendant={shown[sel] ? `cmd-${shown[sel].id}` : undefined}
           />
           <kbd>Échap</kbd>
+          <button type="button" className="x" onClick={close} aria-label="Fermer">
+            <Ic n="x" className="" />
+          </button>
         </label>
-        <div className="ls" id="bs-palette-list" role="listbox" ref={list}>
+        <div className="nt-pls" id="bs-palette-list" role="listbox" ref={list}>
           {shown.length === 0 && <p className="none">Rien ne correspond à « {q} ».</p>}
           {shown.map((x, k) => {
             const head = x.group !== last ? x.group : null;
@@ -410,10 +417,16 @@ function PaletteInner() {
                   onMouseMove={() => k !== sel && setI(k)}
                   onClick={x.run}
                 >
-                  {horse ? <HorseFace horse={horse} size={26} /> : <Picto name={x.picto ?? "arrowR"} />}
+                  {horse ? <Face horse={horse} /> : <Ic n={x.ic ?? "arrow"} />}
                   <span className="l">
                     {x.label}
-                    {x.sub && <small>{x.sub}</small>}
+                    {x.money !== undefined ? (
+                      <small>
+                        <Money v={x.money} />
+                      </small>
+                    ) : (
+                      x.sub && <small>{x.sub}</small>
+                    )}
                   </span>
                   {x.hint && <kbd>{x.hint}</kbd>}
                 </button>
@@ -421,7 +434,7 @@ function PaletteInner() {
             );
           })}
         </div>
-        <p className="ft">
+        <p className="nt-pft">
           <span>
             <kbd>↑</kbd> <kbd>↓</kbd> choisir
           </span>
@@ -433,7 +446,7 @@ function PaletteInner() {
           </span>
         </p>
       </div>
-    </>,
+    </div>,
     document.body,
   );
 }
@@ -539,30 +552,33 @@ function HelpInner({ close }: { close: () => void }) {
     ["Fermer une fenêtre", ["Échap"]],
   ];
   return createPortal(
-    <>
-      <div className="bs-scrim" onClick={close} />
-      <div className="bs-dialog" role="dialog" aria-modal="true" aria-labelledby="bs-help-t">
-        <button type="button" className="bs-x" onClick={close} aria-label="Fermer">
-          <Picto name="x" size={20} />
-        </button>
-        <h2 id="bs-help-t" className="bs-d bs-t2">
-          Raccourcis clavier
-        </h2>
-        <p className="bs-p">Pour aller vite sur ordinateur. « G puis A » : tape G, puis A.</p>
-        <dl className="bs-keys">
-          {rows.map(([l, ks]) => (
-            <div key={l}>
-              <dt>{l}</dt>
-              <dd>
-                {ks.map((k, i) => (
-                  <kbd key={i}>{k}</kbd>
-                ))}
-              </dd>
-            </div>
-          ))}
-        </dl>
+    <div className="carnet carnet-portal">
+      <div className="sheet-wrap open">
+        <div className="scrim" onClick={close} />
+        <div className="sheet nt-sheet" role="dialog" aria-modal="true" aria-labelledby="bs-help-t">
+          <div className="grab" />
+          <div className="shd">
+            <b id="bs-help-t">Raccourcis clavier</b>
+            <button type="button" className="x" onClick={close} aria-label="Fermer">
+              <Ic n="x" className="" />
+            </button>
+          </div>
+          <p className="nt-lead">Pour aller vite sur ordinateur. « G puis A » : tape G, puis A.</p>
+          <dl className="nt-keyl">
+            {rows.map(([l, ks]) => (
+              <div key={l}>
+                <dt>{l}</dt>
+                <dd>
+                  {ks.map((k, i) => (
+                    <kbd key={i}>{k}</kbd>
+                  ))}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </div>
-    </>,
+    </div>,
     document.body,
   );
 }

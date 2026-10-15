@@ -1,17 +1,15 @@
 "use client";
 
 import { Suspense, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Back, Screen, Tip, eur } from "@/components/bs/ui";
-import { Picto, pictoForLabel } from "@/components/bs/picto";
-import { HorseFace } from "@/components/bs/horse-face";
+import { Face, Ic, Money, Page as Ecran, Sec, Tip, eur } from "@/components/carnet/ui";
+import { useDesk } from "@/components/bs/desk";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 
-/** La part de l'écurie, expliquée une fois, avec les chiffres de l'écurie. */
+/** Le pot commun, expliqué une fois, avec les chiffres de l'écurie. */
 export default function Page() {
   return (
     <ClientGate>
@@ -23,50 +21,75 @@ export default function Page() {
 }
 
 function Part() {
-  const id = useSearchParams().get("id");
   const data = useDataStore();
   const capacity = useSettingsStore((s) => s.capacity);
-  const m = useMemo(() => monthBreakdown(data, currentPeriod()), [data]);
+  const desk = useDesk();
+  const period = useMemo(() => currentPeriod(), []);
+  const m = useMemo(() => monthBreakdown(data, period), [data, period]);
   const horses = data.horses.filter((h) => !h.isArchived);
   const n = horses.length || 1;
+  const libres = Math.max(0, capacity - horses.length);
+  const mois = new Date(period.year, period.month - 1, 1).toLocaleDateString("fr-FR", { month: "long" });
+  const du = /^[aeiouyéèh]/i.test(mois) ? `d’${mois}` : `de ${mois}`;
+
   return (
-    <Screen>
-      <Back href={id ? `/ticket?id=${id}` : "/argent"}>{id ? "Retour au ticket" : "Bilan"}</Back>
-      <h1 className="bs-d bs-t1" style={{ marginTop: 6 }}>
-        Les frais communs, c’est quoi&nbsp;?
-      </h1>
-      <p className="bs-p">Ce sont les dépenses qui servent à toute l’écurie : foin, paille, loyer, salaires… Elles ne concernent pas un cheval en particulier.</p>
-      <p className="bs-p">Chaque cheval en paie un morceau : c’est sa part des frais communs.</p>
-      <div style={{ marginTop: 12, background: "#fff", borderRadius: 10, boxShadow: "inset 0 0 0 1px var(--line)", padding: "6px 14px 10px" }}>
-        {m.shared.map((x) => (
-          <div key={x.label} className="bs-tl">
-            <Picto name={pictoForLabel(x.label)} />
-            <span>{x.label}</span>
-            <b>{eur(x.amount)}</b>
+    <Ecran wide={desk} className={desk ? "ch-desk ch-narrow" : undefined}>
+      <div className="hello rise" style={{ animationDelay: ".04s" }}>
+        <h3>Le pot commun, c’est quoi&nbsp;?</h3>
+        <p>Ce sont les dépenses qui servent à toute l’écurie (foin, paille, loyer, salaires…), pas à un cheval en particulier. Chaque cheval en paie un morceau : c’est sa part.</p>
+      </div>
+      <Sec ill="brouette" title={`Le pot ${du}`} delay={0.12} />
+      <div className="pad rise" style={{ animationDelay: ".18s", paddingTop: 12 }}>
+        {m.shared.length === 0 ? (
+          <p className="note">Aucun frais commun noté ce mois pour l’instant.</p>
+        ) : (
+          <div className="ticket ch-mini print">
+            {m.shared.map((x) => (
+              <div key={x.label} className="r">
+                <span>{x.label}</span>
+                <Money v={-x.amount} />
+              </div>
+            ))}
+            <div className="r tot">
+              <span>Total ce mois</span>
+              <Money v={-m.sharedTotal} />
+            </div>
           </div>
-        ))}
-        <div className="bs-tot" style={{ marginTop: 2 }}>
-          <span>Total ce mois</span>
-          <b className="bs-num">{eur(m.sharedTotal)}</b>
+        )}
+      </div>
+      <div className="pad ch-sum rise" style={{ animationDelay: ".3s" }}>
+        <div className="ch-down">
+          <Ic n="arrow" className="" />
         </div>
-      </div>
-      <div style={{ textAlign: "center", margin: "8px 0 4px", color: "var(--ink-3)" }}>
-        <Picto name="down" size={20} />
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
-        {horses.map((h) => (
-          <HorseFace key={h.id} horse={h} size={32} />
-        ))}
-      </div>
-      <p className="bs-num" style={{ textAlign: "center", fontWeight: 600, fontSize: 16.5, marginTop: 12 }}>
-        {eur(m.sharedTotal)} ÷ {horses.length} chevaux ≈ {eur(m.sharedTotal / n)} chacun
-      </p>
-      {capacity > horses.length && (
-        <p className="bs-p" style={{ textAlign: "center", marginTop: 4 }}>
-          Si tes {capacity} boxes étaient pleins, chaque cheval n’en paierait plus que {eur(m.sharedTotal / capacity)}.
+        <div className="ch-heads" role="img" aria-label={`Les ${horses.length} chevaux`}>
+          {horses.map((h) => (
+            <Face key={h.id} horse={h} />
+          ))}
+        </div>
+        <p className="ch-div">
+          {eur(m.sharedTotal)} ÷ {horses.length} {horses.length > 1 ? "chevaux" : "cheval"} ≈ {eur(m.sharedTotal / n)} chacun
         </p>
-      )}
-      <Tip>Une pension doit payer au moins sa part des frais communs et les soins du cheval. Sinon, chaque mois, ce cheval te coûte de l’argent.</Tip>
-    </Screen>
+        {libres > 0 && (
+          <>
+            <div className="ch-heads" style={{ marginTop: 14 }} role="img" aria-label={`Les ${libres} boxes libres`}>
+              {Array.from({ length: Math.min(libres, 24) }, (_, i) => (
+                <span key={i} className="free" />
+              ))}
+            </div>
+            <p className="ch-div" style={{ marginTop: 6 }}>
+              <small>
+                Si {libres > 1 ? `tes ${libres} boxes libres étaient pleins` : "ton box libre était plein"}, chacun paierait {eur(m.sharedTotal / capacity)}.
+              </small>
+            </p>
+          </>
+        )}
+      </div>
+      <div className="ch-after rise" style={{ animationDelay: ".4s" }}>
+        <Tip>
+          <b>Une pension doit payer au moins sa part et les soins du cheval.</b> Sinon, chaque mois, ce cheval te coûte de l’argent.
+        </Tip>
+      </div>
+      <div className="end" />
+    </Ecran>
   );
 }

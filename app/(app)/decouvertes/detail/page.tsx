@@ -2,8 +2,8 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { Empty, Page } from "@/components/carnet/ui";
 import { InsightView } from "../insight-view";
 
 /**
@@ -23,12 +23,14 @@ function DetailRoute() {
   const id = useSearchParams().get("id");
   if (!id) {
     return (
-      <div className="space-y-4">
-        <Link href="/decouvertes" className="inline-flex items-center gap-1 text-sm text-tertiary">
-          <ChevronLeft size={16} /> Ce qu’on a remarqué
-        </Link>
-        <p className="text-secondary">On ne retrouve pas cette remarque. Elle a peut-être disparu avec tes derniers chiffres.</p>
-      </div>
+      <Page>
+        <Empty ill="dodo">On ne retrouve pas cette remarque. Elle a peut-être disparu avec tes derniers chiffres.</Empty>
+        <div className="pad" style={{ marginTop: 12 }}>
+          <Link href="/decouvertes" className="btn line full">
+            Ce qu’on a remarqué
+          </Link>
+        </div>
+      </Page>
     );
   }
   return <InsightView id={id} />;

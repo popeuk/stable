@@ -1,22 +1,19 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Check, ChevronLeft, Camera, ArrowRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { HorseAvatar } from "@/components/horse/horse-avatar";
+import { HorseChips, InField, NoHorse } from "@/components/bs/seance-form";
+import { Chips, Hello, Ic, Page, Seg, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import type { Frequency } from "@/lib/domain/types";
-import { cn } from "@/lib/utils/cn";
 import { localToday } from "@/lib/utils/local-date";
-import { formatEur } from "@/lib/utils/format-currency";
 
-const FREQS: { v: Frequency; l: string }[] = [
-  { v: "monthly", l: "Chaque mois" },
-  { v: "quarterly", l: "Chaque trimestre" },
-  { v: "yearly", l: "Chaque année" },
+const FREQS: [Frequency, string][] = [
+  ["monthly", "Chaque mois"],
+  ["quarterly", "Chaque trimestre"],
+  ["yearly", "Chaque année"],
 ];
 
 export default function SaisieChargePage() {
@@ -40,9 +37,7 @@ function SaisieCharge() {
   const horses = data.horses.filter((h) => !h.isArchived);
   const directCats = data.expenseCategories.filter((c) => c.isDirect);
   const presetHorse = search.get("horse");
-  const [horseId, setHorseId] = useState<string | null>(
-    presetHorse && horses.some((h) => h.id === presetHorse) ? presetHorse : null,
-  );
+  const [horseId, setHorseId] = useState<string | null>(presetHorse && horses.some((h) => h.id === presetHorse) ? presetHorse : null);
   const [label, setLabel] = useState("");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState(directCats[0]?.id);
@@ -52,8 +47,7 @@ function SaisieCharge() {
   const [hasEnd, setHasEnd] = useState(false);
   const [end, setEnd] = useState("");
 
-  const canSave =
-    horseId && Number(amount) > 0 && label.trim() && (!recurring || (date && (!hasEnd || end)));
+  const canSave = horseId && Number(amount) > 0 && label.trim() && (!recurring || (date && (!hasEnd || end)));
 
   function save() {
     if (!canSave) return;
@@ -89,198 +83,99 @@ function SaisieCharge() {
   }
 
   return (
-    <div className="space-y-6">
-      <button onClick={() => router.back()} className="inline-flex items-center gap-1 text-sm text-tertiary">
-        <ChevronLeft size={16} /> Annuler
-      </button>
-      <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-        Noter une dépense
-      </h1>
-      <p className="-mt-4 text-[13px] text-tertiary">Une dépense pour un cheval précis : maréchal, véto, complément…</p>
+    <Page className="nt-page">
+      <Hello title="Noter une dépense" sub="Une dépense pour un cheval précis : maréchal, véto, complément…" />
+      <div className="form nt-form rise" style={{ animationDelay: ".1s" }}>
+        <Seg
+          label="Une fois ou souvent ?"
+          value={recurring ? "oui" : "non"}
+          onChange={(v) => setRecurring(v === "oui")}
+          options={[
+            ["non", "Une seule fois"],
+            ["oui", "Revient souvent"],
+          ]}
+        />
 
-      <div className="grid grid-cols-2 overflow-hidden rounded-full border border-[var(--border-strong)]">
-        {[
-          { v: false, l: "Une seule fois" },
-          { v: true, l: "Revient souvent" },
-        ].map((o) => (
+        {photoMode && (
           <button
-            key={String(o.v)}
-            onClick={() => setRecurring(o.v)}
-            className="py-2.5 text-[14px] font-bold"
-            style={{
-              background: recurring === o.v ? "var(--text-primary)" : "transparent",
-              color: recurring === o.v ? "var(--on-ink)" : "var(--text-primary)",
+            type="button"
+            className="btn line full"
+            onClick={() => {
+              // Demo: simulate an OCR result.
+              setLabel("Maréchal-ferrant");
+              setAmount("120");
             }}
           >
-            {o.l}
+            <Ic n="camera" className="" />
+            Remplir avec un exemple (démo, sans vraie photo)
           </button>
-        ))}
-      </div>
+        )}
 
-      {photoMode && (
-        <button
-          onClick={() => {
-            // Demo: simulate an OCR result.
-            setLabel("Maréchal-ferrant");
-            setAmount("120");
-          }}
-          className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-dashed py-6 text-sm text-secondary"
-        >
-          <Camera size={20} /> Remplir avec un exemple (démo, sans vraie photo)
-        </button>
-      )}
+        <div className="field">
+          <span>Quel cheval ?</span>
+          {horses.length === 0 ? (
+            <NoHorse text="Ajoute d’abord un cheval pour lui noter cette dépense." />
+          ) : (
+            <HorseChips horses={horses} value={horseId ? [horseId] : []} onChange={(ids) => setHorseId(ids[0] ?? null)} multi={false} wrap />
+          )}
+        </div>
 
-      <Field label="Quel cheval ?">
-        {horses.length === 0 ? (
-          <Link
-            href="/saisie/cheval"
-            className="flex items-center justify-between border border-dashed border-[var(--border-strong)] px-4 py-3.5"
-          >
-            <span className="pr-3 text-[13px] text-secondary">
-              Ajoute d&apos;abord un cheval pour lui noter cette dépense.
-            </span>
-            <span className="flex shrink-0 items-center gap-1 text-[13px] font-bold text-[var(--accent-primary)]">
-              Ajouter un cheval <ArrowRight size={14} />
-            </span>
-          </Link>
-        ) : (
-          <div className="grid grid-cols-4 gap-2">
-            {horses.map((h) => (
-              <button
-                key={h.id}
-                onClick={() => setHorseId(h.id)}
-                className={cn(
-                  "flex flex-col items-center gap-1 border p-2",
-                  horseId === h.id
-                    ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)]"
-                    : "border-[var(--border-default)]",
-                )}
-              >
-                <HorseAvatar name={h.name} size={36} />
-                <span className="truncate text-[10px] text-secondary">{h.name}</span>
-              </button>
-            ))}
+        <label className="field">
+          <span>C’est quoi ?</span>
+          <input className="input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Maréchal, véto…" />
+        </label>
+
+        <label className="field">
+          <span>Combien ?</span>
+          <InField unit="€" big>
+            <input type="number" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          </InField>
+        </label>
+
+        <div className="field">
+          <span>Dans quelle catégorie ?</span>
+          <Chips value={categoryId ?? ""} onChange={setCategoryId} options={directCats.map((c) => [c.id, c.name] as [string, string])} />
+        </div>
+
+        {recurring && (
+          <div className="field">
+            <span>Tous les combien ?</span>
+            <Chips value={frequency} onChange={setFrequency} options={FREQS} />
           </div>
         )}
-      </Field>
 
-      <Field label="C’est quoi ?">
-        <input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="Maréchal, véto…"
-          className="w-full rounded-[var(--radius-md)] border bg-elevated px-4 py-3 text-sm text-primary outline-none"
-        />
-      </Field>
-
-      <Field label="Combien ?">
-        <div className="flex items-center gap-2 rounded-[var(--radius-md)] border bg-elevated px-4 py-3">
-          <input
-            type="number"
-            inputMode="decimal"
-            placeholder="0"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full bg-transparent text-2xl tabnums text-primary outline-none"
-          />
-          <span className="text-xl text-tertiary">€</span>
-        </div>
-      </Field>
-
-      <Field label="Dans quelle catégorie ?">
-        <div className="flex flex-wrap gap-2">
-          {directCats.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setCategoryId(c.id)}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-semibold",
-                categoryId === c.id
-                  ? "border-[var(--accent-primary)] bg-[var(--accent-primary-soft)] text-[var(--accent-primary)]"
-                  : "border-[var(--border-strong)] text-tertiary",
+        {recurring ? (
+          <div className="nt-two">
+            <label className="field">
+              <span>À partir du</span>
+              <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </label>
+            <div className="field">
+              <span>Jusqu’au</span>
+              {hasEnd ? (
+                <input className="input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} aria-label="Jusqu’au" />
+              ) : (
+                <button type="button" className="btn line nt-noend" onClick={() => setHasEnd(true)}>
+                  Pas de fin · ajouter une date
+                </button>
               )}
-            >
-              {c.name}
-            </button>
-          ))}
-        </div>
-      </Field>
-
-      {recurring && (
-        <Field label="Tous les combien ?">
-          <div className="flex gap-2">
-            {FREQS.map((f) => (
-              <button
-                key={f.v}
-                onClick={() => setFrequency(f.v)}
-                className={cn(
-                  "flex-1 rounded-[var(--radius-md)] border px-2 py-2 text-xs font-bold",
-                  frequency === f.v ? "border-[var(--accent-primary)] text-[var(--accent-primary)]" : "text-tertiary",
-                )}
-              >
-                {f.l}
-              </button>
-            ))}
+            </div>
           </div>
-        </Field>
-      )}
+        ) : (
+          <label className="field">
+            <span>Date</span>
+            <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          </label>
+        )}
 
-      {recurring ? (
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="À partir du">
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-[var(--radius-md)] border bg-elevated px-3 py-3 text-sm text-primary outline-none"
-            />
-          </Field>
-          <Field label="Jusqu’au">
-            {hasEnd ? (
-              <input
-                type="date"
-                value={end}
-                onChange={(e) => setEnd(e.target.value)}
-                className="w-full rounded-[var(--radius-md)] border bg-elevated px-3 py-3 text-sm text-primary outline-none"
-              />
-            ) : (
-              <button
-                onClick={() => setHasEnd(true)}
-                className="w-full rounded-[var(--radius-md)] border border-dashed px-3 py-3 text-sm text-tertiary"
-              >
-                Pas de fin · ajouter une date
-              </button>
-            )}
-          </Field>
-        </div>
-      ) : (
-        <Field label="Date">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full rounded-[var(--radius-md)] border bg-elevated px-4 py-3 text-sm text-primary outline-none"
-          />
-        </Field>
-      )}
-
-      <button
-        disabled={!canSave}
-        onClick={save}
-        className="flex w-full items-center justify-center gap-2 btn-primary py-3.5 text-[15px] font-bold text-[var(--on-accent)] disabled:opacity-40"
-      >
-        <Check size={18} /> Enregistrer{" "}
-        {Number(amount) > 0 ? `${formatEur(Number(amount))}${recurring ? " à chaque fois" : ""}` : ""}
-      </button>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="mb-2 text-2xs uppercase tracking-wide text-tertiary">{label}</p>
-      {children}
-    </div>
+        <button type="button" className="btn full" disabled={!canSave} onClick={save}>
+          <Ic n="ck" className="" />
+          Enregistrer{Number(amount) > 0 ? ` · ${sg(-Number(amount))}${recurring ? " à chaque fois" : ""}` : ""}
+        </button>
+        <button type="button" className="btn ghost nt-cancel" onClick={() => router.back()}>
+          Annuler
+        </button>
+      </div>
+    </Page>
   );
 }

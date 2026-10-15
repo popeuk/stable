@@ -1,16 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
-import { Picto } from "@/components/bs/picto";
-import { HorseFace } from "@/components/bs/horse-face";
-import { eur, esc } from "@/components/bs/ui";
+import { Chips, Face, Ic, Seg, eur, sg } from "@/components/carnet/ui";
+import { esc } from "@/components/bs/ui";
 import { MAX_PLACES, MAX_SEANCES, seriesDates, type Repeat } from "@/lib/domain/seances";
 import { addDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
-import type { Seance } from "@/lib/domain/types";
+import type { Horse, Seance } from "@/lib/domain/types";
 
 /**
  * Ajouter une séance (repris du planning des cours du Clos) : prestation,
@@ -29,6 +29,57 @@ const plusOneHour = (t: string) => {
   const [h, m] = t.split(":").map(Number);
   return `${String(Math.min(23, h + 1)).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
+
+/* ---------- Briques partagées des saisies (feuille Noter et écrans /saisie) ---------- */
+
+/** Les chevaux en puces avec leur tête ; un ou plusieurs selon `multi`. */
+export function HorseChips({ horses, value, onChange, multi = true, wrap }: { horses: Horse[]; value: string[]; onChange: (ids: string[]) => void; multi?: boolean; wrap?: boolean }) {
+  return (
+    <div className={`chips nt-faces${wrap ? " wrap" : ""}`}>
+      {horses.map((h) => {
+        const on = value.includes(h.id);
+        return (
+          <button
+            key={h.id}
+            type="button"
+            className={`chip nt-fchip${on ? " on" : ""}`}
+            aria-pressed={on}
+            onClick={() => onChange(multi ? (on ? value.filter((x) => x !== h.id) : [...value, h.id]) : [h.id])}
+          >
+            <Face horse={h} />
+            {h.name}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Un champ du carnet avec son vrai input dedans et l'unité à droite. */
+export function InField({ children, unit, big, className = "" }: { children: ReactNode; unit?: ReactNode; big?: boolean; className?: string }) {
+  return (
+    <span className={`input nt-in${big ? " big" : ""} ${className}`}>
+      {children}
+      {unit && <span className="u">{unit}</span>}
+    </span>
+  );
+}
+
+/** Ajoute d'abord un cheval : le lien quand l'écurie est vide. */
+export function NoHorse({ text }: { text: string }) {
+  return (
+    <Link href="/saisie/cheval" className="li nt-noh">
+      <span className="ini">
+        <Ic n="horse" />
+      </span>
+      <span>
+        <b>Ajouter un cheval</b>
+        <small>{text}</small>
+      </span>
+      <Ic n="chev" className="chev" />
+    </Link>
+  );
+}
 
 export function SeanceForm({ onDone, date: presetDate, start: presetStart, prestationId }: { onDone: () => void; date?: string; start?: string; prestationId?: string }) {
   const data = useDataStore();
@@ -117,102 +168,97 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
   }
 
   return (
-    <>
-      <p className="bs-sec">Quel type de séance ?</p>
-      <div className="bs-chips">
-        {prestations.map((p) => (
-          <button key={p.id} type="button" className="bs-chip" aria-pressed={prestId === p.id} onClick={() => setPrestId(p.id)}>
-            {p.label} · {eur(p.price)}
-          </button>
-        ))}
+    <div className="form nt-form">
+      <div className="field">
+        <span>Quel type de séance ?</span>
+        <Chips value={prestId} onChange={setPrestId} options={prestations.map((p) => [p.id, `${p.label} · ${eur(p.price)}`] as [string, string])} />
       </div>
       {prest?.hasFormat && (
-        <div className="bs-chips" style={{ marginTop: 8 }}>
-          <button type="button" className="bs-chip" aria-pressed={format === "particulier"} onClick={() => setFormat("particulier")}>
-            Particulier
-          </button>
-          <button type="button" className="bs-chip" aria-pressed={format === "collectif"} onClick={() => { setFormat("collectif"); setPlaces(6); }}>
-            Collectif
-          </button>
+        <div className="nt-fmt">
+          <Chips
+            value={format}
+            onChange={(f) => {
+              setFormat(f);
+              if (f === "collectif") setPlaces(6);
+            }}
+            options={[
+              ["particulier", "Particulier"],
+              ["collectif", "Collectif"],
+            ]}
+          />
           {isCollectif && (
-            <span className="bs-chip" style={{ marginLeft: "auto", gap: 2, padding: "0 4px" }}>
-              <button type="button" aria-label="Une place de moins" onClick={() => setPlaces(Math.max(1, places - 1))} style={{ width: 28, height: 28 }}>
+            <div className="stepper sm">
+              <button type="button" aria-label="Une place de moins" onClick={() => setPlaces(Math.max(1, places - 1))}>
                 −
               </button>
-              {places} places
-              <button type="button" aria-label="Une place de plus" onClick={() => setPlaces(Math.min(MAX_PLACES, places + 1))} style={{ width: 28, height: 28 }}>
+              <b>{places}</b>
+              <small>places</small>
+              <button type="button" aria-label="Une place de plus" onClick={() => setPlaces(Math.min(MAX_PLACES, places + 1))}>
                 +
               </button>
-            </span>
+            </div>
           )}
         </div>
       )}
 
-      <p className="bs-sec">
+      <div className="field">
         <span>Cavaliers{prest?.hasFormat ? ` · ${names.length} sur ${maxP}` : ""}</span>
-      </p>
-      <div className="bs-chips">
-        {names.map((n) => (
-          <button key={n} type="button" className="bs-chip" aria-pressed onClick={() => setNames(names.filter((x) => x !== n))} aria-label={`Retirer ${n}`}>
-            {n}
-            <Picto name="x" />
-          </button>
-        ))}
-      </div>
-      <div className="bs-field">
-        <input value={typed} placeholder="Nom du cavalier ou du propriétaire" onChange={(e) => setTyped(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addName(typed))} aria-label="Ajouter un cavalier" />
-        {typed.trim() && (
-          <button type="button" className="bs-link" onClick={() => addName(typed)}>
-            Ajouter
-          </button>
+        {names.length > 0 && (
+          <div className="chips">
+            {names.map((n) => (
+              <button key={n} type="button" className="chip on" aria-pressed onClick={() => setNames(names.filter((x) => x !== n))} aria-label={`Retirer ${n}`}>
+                {n} <span aria-hidden="true">×</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <InField>
+          <input value={typed} placeholder="Nom du cavalier ou du propriétaire" onChange={(e) => setTyped(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addName(typed))} aria-label="Ajouter un cavalier" />
+          {typed.trim() && (
+            <button type="button" className="lnk" onClick={() => addName(typed)}>
+              Ajouter
+            </button>
+          )}
+        </InField>
+        {suggestionsList.length > 0 && (
+          <div className="chips">
+            {suggestionsList.map((p) => (
+              <button key={p.id} type="button" className="chip" onClick={() => addName(p.name)}>
+                + {p.name}
+              </button>
+            ))}
+          </div>
         )}
       </div>
-      {suggestionsList.length > 0 && (
-        <div className="bs-chips">
-          {suggestionsList.map((p) => (
-            <button key={p.id} type="button" className="bs-chip" onClick={() => addName(p.name)}>
-              <Picto name="plus" />
-              {p.name}
-            </button>
-          ))}
+
+      {horses.length > 0 && (
+        <div className="field">
+          <span>Chevaux</span>
+          <HorseChips horses={horses} value={horseIds} onChange={setHorseIds} />
         </div>
       )}
 
-      <p className="bs-sec">Chevaux</p>
-      <div className="bs-faces">
-        {horses.map((h) => {
-          const on = horseIds.includes(h.id);
-          return (
-            <button key={h.id} type="button" className="bs-fpick" aria-pressed={on} onClick={() => setHorseIds(on ? horseIds.filter((x) => x !== h.id) : [...horseIds, h.id])}>
-              <span className="ring">
-                <HorseFace horse={h} size={38} />
-              </span>
-              {h.name}
-            </button>
-          );
-        })}
+      <div className="field">
+        <span>Quand ?</span>
+        <Seg
+          label="Jour"
+          value={when}
+          onChange={setWhen}
+          options={[
+            ["today", "Aujourd’hui"],
+            ["tomorrow", "Demain"],
+            ["other", "Autre jour"],
+          ]}
+        />
+        {when === "other" && <input className="input" type="date" value={other} onChange={(e) => setOther(e.target.value)} aria-label="Date" />}
       </div>
-
-      <p className="bs-sec">Quand ?</p>
-      <div className="bs-seg" role="group" aria-label="Jour">
-        {(["today", "tomorrow", "other"] as const).map((w) => (
-          <button key={w} type="button" aria-pressed={when === w} onClick={() => setWhen(w)}>
-            {{ today: "Aujourd’hui", tomorrow: "Demain", other: "Autre jour" }[w]}
-          </button>
-        ))}
-      </div>
-      {when === "other" && (
-        <div className="bs-field">
-          <input type="date" value={other} onChange={(e) => setOther(e.target.value)} aria-label="Date" />
-        </div>
-      )}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        <label className="bs-field">
+      <div className="nt-two">
+        <label className="field">
           <span>Début</span>
           <input
+            className="input"
             type="time"
             value={start}
-            style={{ textAlign: "right" }}
             onChange={(e) => {
               // La fin suit le début : la durée est gardée.
               const [h1, m1] = start.split(":").map(Number);
@@ -225,52 +271,63 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
             }}
           />
         </label>
-        <label className="bs-field">
+        <label className="field">
           <span>Fin</span>
-          <input type="time" value={end} style={{ textAlign: "right" }} onChange={(e) => setEnd(e.target.value)} />
+          <input className="input" type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
         </label>
       </div>
 
-      <p className="bs-sec">Ça se répète ?</p>
-      <div className="bs-chips">
-        {REPEATS.map(([r, l]) => (
-          <button key={r} type="button" className="bs-chip" aria-pressed={repeat === r} onClick={() => setRepeat(r)}>
-            {r !== "once" && <Picto name="repeat" />}
-            {l}
-          </button>
-        ))}
+      <div className="field">
+        <span>Ça se répète ?</span>
+        <Chips value={repeat} onChange={setRepeat} options={REPEATS} />
+        {repeat !== "once" && (
+          <label className="field nt-until">
+            <span>Jusqu’au</span>
+            <InField
+              unit={
+                <b>
+                  {dates.length} séance{dates.length > 1 ? "s" : ""}
+                  {dates.length >= MAX_SEANCES ? " (c’est le maximum)" : ""}
+                </b>
+              }
+            >
+              <input type="date" value={until} onChange={(e) => setUntil(e.target.value)} />
+            </InField>
+          </label>
+        )}
       </div>
-      {repeat !== "once" && (
-        <label className="bs-field">
-          <span>Jusqu’au</span>
-          <input type="date" value={until} style={{ textAlign: "right" }} onChange={(e) => setUntil(e.target.value)} />
-          <b style={{ whiteSpace: "nowrap" }}>
-            {dates.length} séance{dates.length > 1 ? "s" : ""}
-            {dates.length >= MAX_SEANCES ? " (c’est le maximum)" : ""}
-          </b>
-        </label>
-      )}
 
-      <button type="button" className="bs-link" style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 4 }} onClick={() => setMore(!more)} aria-expanded={more}>
-        Plus d’options
-      </button>
-      {more && (
-        <>
-          <div className="bs-field">
-            <input placeholder="Lieu (carrière, manège…)" value={lieu} onChange={(e) => setLieu(e.target.value)} aria-label="Lieu" />
-          </div>
-          <div className="bs-field">
-            <input placeholder="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} aria-label="Notes" />
-          </div>
-        </>
-      )}
+      <div className="nt-more">
+        <button type="button" className="lnk" onClick={() => setMore(!more)} aria-expanded={more}>
+          Plus d’options
+        </button>
+        {more && (
+          <>
+            <label className="field">
+              <span>Lieu</span>
+              <input className="input" placeholder="Carrière, manège…" value={lieu} onChange={(e) => setLieu(e.target.value)} />
+            </label>
+            <label className="field">
+              <span>Notes</span>
+              <input className="input" placeholder="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </label>
+          </>
+        )}
+      </div>
 
-      <p className="bs-p" style={{ marginTop: 12, color: problem ? "var(--rose-ink)" : "var(--ink-2)" }}>
-        {problem ?? `Ça doit te rapporter ${eur(total)} : ${payers} × ${eur(prest?.price ?? 0)}${dates.length > 1 ? `, sur ${dates.length} séances` : ""}.`}
+      <p className="note" role={problem ? "alert" : undefined}>
+        {problem ? (
+          <b>{problem}</b>
+        ) : (
+          <>
+            Ça doit te rapporter <b>{eur(total)}</b> : {payers} × {eur(prest?.price ?? 0)}
+            {dates.length > 1 ? `, sur ${dates.length} séances` : ""}.
+          </>
+        )}
       </p>
-      <button type="button" className="bs-btn" style={{ marginTop: 8 }} disabled={!!problem} onClick={save}>
-        {dates.length > 1 ? `Ajouter les ${dates.length} séances · +${eur(total)}` : `Ajouter au planning · +${eur(total)}`}
+      <button type="button" className="btn full" disabled={!!problem} onClick={save}>
+        {dates.length > 1 ? `Ajouter les ${dates.length} séances · ${sg(total)}` : `Ajouter au planning · ${sg(total)}`}
       </button>
-    </>
+    </div>
   );
 }

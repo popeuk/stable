@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
+import { Seg } from "@/components/carnet/ui";
+import { InField } from "@/components/bs/seance-form";
 import { esc } from "@/components/bs/ui";
 import { localToday } from "@/lib/utils/local-date";
 import { addDays } from "@/lib/domain/care";
@@ -26,6 +28,7 @@ export function TaskForm({ onDone, listId: presetList }: { onDone: () => void; l
   const say = useUiStore((s) => s.say);
   const lists = data.taskLists ?? [];
   const members = [gerant, ...(data.team ?? []).filter((m) => m.role === "employe").map((m) => m.name)];
+  const nbHorses = data.horses.filter((h) => !h.isArchived).length;
   const today = localToday();
   const [title, setTitle] = useState("");
   const [listId, setListId] = useState(presetList ?? lists[0]?.id ?? "");
@@ -51,67 +54,79 @@ export function TaskForm({ onDone, listId: presetList }: { onDone: () => void; l
     say(`Tâche ajoutée : <strong>${esc(title.trim())}</strong>.`);
     onDone();
   }
+  const toggle = (xs: string[], x: string) => (xs.includes(x) ? xs.filter((y) => y !== x) : [...xs, x]);
   return (
-    <>
-      <div className="bs-field" style={{ marginTop: 14 }}>
-        <input autoFocus placeholder="Ex. Réparer la clôture du pré 2" value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} aria-label="Titre de la tâche" />
+    <div className="form nt-form">
+      <label className="field">
+        <span>La tâche</span>
+        <input className="input" autoFocus placeholder="Ex. Réparer la clôture du pré 2" value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} aria-label="Titre de la tâche" />
+      </label>
+      {lists.length > 0 && (
+        <div className="field">
+          <span>Où en est-elle ?</span>
+          <Seg label="Où en est-elle ?" value={listId} onChange={setListId} options={lists.map((l) => [l.id, l.title] as [string, string])} />
+        </div>
+      )}
+      <div className="field">
+        <span>Pour qui ?</span>
+        <div className="chips">
+          {members.map((m) => (
+            <button key={m} type="button" className={`chip${forWho.includes(m) ? " on" : ""}`} aria-pressed={forWho.includes(m)} onClick={() => setForWho(toggle(forWho, m))}>
+              {m}
+            </button>
+          ))}
+        </div>
       </div>
-      <p className="bs-sec">Où en est-elle ?</p>
-      <div className="bs-seg">
-        {lists.map((l) => (
-          <button key={l.id} type="button" aria-pressed={listId === l.id} onClick={() => setListId(l.id)}>
-            {l.title}
-          </button>
-        ))}
-      </div>
-      <p className="bs-sec">Pour qui ?</p>
-      <div className="bs-chips">
-        {members.map((m) => (
-          <button key={m} type="button" className="bs-chip" aria-pressed={forWho.includes(m)} onClick={() => setForWho(forWho.includes(m) ? forWho.filter((x) => x !== m) : [...forWho, m])}>
-            {m}
-          </button>
-        ))}
-      </div>
-      <p className="bs-sec">Pour quand ?</p>
-      <div className="bs-seg">
-        {(["none", "today", "tomorrow", "other"] as const).map((w) => (
-          <button key={w} type="button" aria-pressed={when === w} onClick={() => setWhen(w)}>
-            {{ none: "Pas de date", today: "Aujourd’hui", tomorrow: "Demain", other: "Autre" }[w]}
-          </button>
-        ))}
+      <div className="field">
+        <span>Pour quand ?</span>
+        <Seg
+          label="Pour quand ?"
+          value={when}
+          onChange={setWhen}
+          options={[
+            ["none", "Pas de date"],
+            ["today", "Aujourd’hui"],
+            ["tomorrow", "Demain"],
+            ["other", "Autre"],
+          ]}
+        />
       </div>
       {when !== "none" && (
-        <div style={{ display: "grid", gridTemplateColumns: when === "other" ? "1fr 1fr" : "1fr", gap: 8 }}>
+        <div className={when === "other" ? "nt-two" : ""}>
           {when === "other" && (
-            <div className="bs-field">
-              <input type="date" value={other} onChange={(e) => setOther(e.target.value)} aria-label="Date" />
-            </div>
+            <label className="field">
+              <span>Date</span>
+              <input className="input" type="date" value={other} onChange={(e) => setOther(e.target.value)} />
+            </label>
           )}
-          <label className="bs-field">
+          <label className="field">
             <span>Heure</span>
-            <input type="time" value={time} style={{ textAlign: "right" }} onChange={(e) => setTime(e.target.value)} />
+            <input className="input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
           </label>
         </div>
       )}
-      <p className="bs-sec">Étiquettes</p>
-      <div className="bs-chips">
-        {Object.entries(LABELS).map(([l, c]) => (
-          <button key={l} type="button" className="bs-chip" aria-pressed={labels.includes(l)} onClick={() => setLabels(labels.includes(l) ? labels.filter((x) => x !== l) : [...labels, l])}>
-            <i style={{ width: 10, height: 10, borderRadius: 2, background: c }} />
-            {l}
-          </button>
-        ))}
+      <div className="field">
+        <span>Étiquettes</span>
+        <div className="chips">
+          {Object.keys(LABELS).map((l) => (
+            <button key={l} type="button" className={`chip${labels.includes(l) ? " on" : ""}`} aria-pressed={labels.includes(l)} onClick={() => setLabels(toggle(labels, l))}>
+              {l}
+            </button>
+          ))}
+        </div>
       </div>
-      <label className="bs-sec" htmlFor="t-cost" style={{ display: "flex" }}>
-        Ça coûte quelque chose ? <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>une fois la tâche faite, le montant va dans les frais communs, partagé entre tous les chevaux</span>
+      <label className="field">
+        <span>Ça coûte quelque chose ?</span>
+        <InField unit="€">
+          <input id="t-cost" inputMode="decimal" placeholder="0" value={cost} onChange={(e) => setCost(e.target.value.replace(/[^\d.,]/g, ""))} />
+        </InField>
+        <em>
+          Une fois la tâche faite, le montant va dans les frais communs, partagé entre {nbHorses > 0 ? `tes ${nbHorses} chevaux` : "tous les chevaux"}.
+        </em>
       </label>
-      <div className="bs-field">
-        <input id="t-cost" inputMode="decimal" placeholder="0" value={cost} onChange={(e) => setCost(e.target.value.replace(/[^\d.,]/g, ""))} />
-        <span>€</span>
-      </div>
-      <button type="button" className="bs-btn" style={{ marginTop: 14 }} disabled={!title.trim()} onClick={save}>
+      <button type="button" className="btn full" disabled={!title.trim()} onClick={save}>
         Ajouter la tâche
       </button>
-    </>
+    </div>
   );
 }

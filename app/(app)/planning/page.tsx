@@ -6,12 +6,12 @@ import { useSearchParams } from "next/navigation";
 import { useDesk } from "@/components/bs/desk";
 import { WeekGrid } from "@/components/bs/week-grid";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Screen, cap, signed } from "@/components/bs/ui";
-import { Picto } from "@/components/bs/picto";
-import { DayBlock } from "@/components/bs/day-block";
+import { Screen, cap } from "@/components/bs/ui";
+import { CountUp, Empty, Ic, Seg, Sec, sg, type IllName } from "@/components/carnet/ui";
+import { DayBlock, iconOf, lateLabel, moneyCls } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { dayItems, dayTones, seanceAmount, toValidate, type DayItem, type Tone } from "@/lib/domain/seances";
+import { dayItems, dayTones, seanceAmount, toValidate, type DayItem } from "@/lib/domain/seances";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { localToday } from "@/lib/utils/local-date";
 
@@ -20,6 +20,7 @@ import { localToday } from "@/lib/utils/local-date";
  * puis la journée en liste ou en créneaux de 6 h à 21 h. Glisser change de
  * période ; toucher une heure vide ouvre l'ajout à cette heure. Chaque
  * élément porte son argent : vert ce qui rapporte, rose ce qui coûte.
+ * Style : app/carnet/journee.css.
  */
 export default function Page() {
   return (
@@ -31,7 +32,6 @@ export default function Page() {
   );
 }
 
-const DOT: Record<Tone, string> = { g: "var(--vert)", r: "var(--rose)", o: "#8C6A35", n: "var(--ink-3)" };
 const read = (k: string, d: string) => {
   try {
     return localStorage.getItem(k) ?? d;
@@ -48,6 +48,11 @@ const hhmm = () => {
   const d = new Date();
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
+const nombre = (n: number) => String(Math.round(n));
+/** « +75 » sans l'euro, pour les cases du mois. */
+const court = (n: number) => sg(n).replace(/\s€$/, "");
+/** Ce que la journée rapporte ou coûte : séances, soins, tâches avec un coût. */
+const dayMoney = (its: DayItem[]) => its.reduce((t, i) => t + (i.money ?? 0), 0);
 
 function Planning() {
   const data = useDataStore();
@@ -116,299 +121,343 @@ function Planning() {
     view === "semaine"
       ? `Semaine du ${Number(monday.slice(8))} ${new Date(monday + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" })}`
       : cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { month: "long", year: "numeric" }));
+  const unit = view === "semaine" ? "Semaine" : "Mois";
+  const viewSeg = (
+    <Seg
+      value={view}
+      onChange={setView}
+      label="Semaine ou mois"
+      options={[
+        ["semaine", "Semaine"],
+        ["mois", "Mois"],
+      ]}
+    />
+  );
+  const trio = (soft: string) => (
+    <div className="trio">
+      <div>
+        <b>
+          <CountUp value={sum.count} fmt={nombre} />
+        </b>
+        <small>séance{sum.count > 1 ? "s" : ""}</small>
+      </div>
+      <div>
+        <b className={moneyCls(sum.validated)}>{sg(sum.validated)}</b>
+        <small>confirmés</small>
+      </div>
+      <div>
+        <b className={soft}>{sg(sum.planned)}</b>
+        <small>encore prévus</small>
+      </div>
+    </div>
+  );
 
+  /* ---------------- Ordinateur ---------------- */
   if (desk) {
-    const nav = (
-      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        <button type="button" className="bs-back" style={{ margin: 0, minHeight: 30 }} onClick={() => shift(-1)} aria-label="Période précédente" title="Période précédente (←)">
-          <Picto name="chevL" />
-        </button>
-        <button type="button" className="bs-back" style={{ margin: 0, minHeight: 30 }} onClick={() => shift(1)} aria-label="Période suivante" title="Période suivante (→)">
-          <Picto name="chev" />
-        </button>
-        <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink-1)", marginLeft: 4, whiteSpace: "nowrap" }}>{title}</span>
-        <button type="button" className="bs-chip" style={{ marginLeft: 10, height: 30 }} onClick={() => setSel(today)} disabled={view === "semaine" ? week.includes(today) : sel.slice(0, 7) === today.slice(0, 7)} title="Aujourd’hui (T)">
-          Aujourd’hui
-        </button>
-      </span>
-    );
     return (
       <Screen wide>
-        <div className="bs-dhead">
-          <div>
-            <h1 className="bs-d bs-t1">Planning</h1>
-            <div style={{ marginTop: 8 }}>{nav}</div>
-          </div>
-          <div style={{ display: "flex", gap: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
-            <div className="bs-sum3" style={{ margin: 0, width: 360, maxWidth: "100%" }}>
-              <div>
-                <b>{sum.count}</b>
-                <span>séances</span>
-              </div>
-              <div>
-                <b style={{ color: "var(--vert)" }}>{signed(sum.validated)}</b>
-                <span>confirmés</span>
-              </div>
-              <div>
-                <b style={{ color: "var(--ink-3)" }}>{signed(sum.planned)}</b>
-                <span>encore prévus</span>
+        <div className="jr-desk">
+          <div className="dhead">
+            <div>
+              <h3>Planning</h3>
+              <div className="pnav">
+                <button type="button" className="rb" onClick={() => shift(-1)} aria-label="Période précédente" title="Période précédente (←)">
+                  <Ic n="back" />
+                </button>
+                <button type="button" className="rb" onClick={() => shift(1)} aria-label="Période suivante" title="Période suivante (→)">
+                  <Ic n="chev" />
+                </button>
+                <b>{title}</b>
+                <button type="button" className="chip" onClick={() => setSel(today)} disabled={view === "semaine" ? week.includes(today) : sel.slice(0, 7) === today.slice(0, 7)} title="Aujourd’hui (T)">
+                  Aujourd’hui
+                </button>
               </div>
             </div>
-            <div className="bs-seg" style={{ margin: 0, width: 180 }}>
-              <button type="button" aria-pressed={view === "semaine"} onClick={() => setView("semaine")}>
-                Semaine
-              </button>
-              <button type="button" aria-pressed={view === "mois"} onClick={() => setView("mois")}>
-                Mois
-              </button>
+            <div className="pr">
+              {trio("soft")}
+              {viewSeg}
             </div>
           </div>
-        </div>
-        {pending > 0 && (
-          <Link href="/valider" className="bs-banner" style={{ marginTop: 14 }}>
-            <Picto name="clock" />
-            <span style={{ flex: 1 }}>
-              <b>{pending} à confirmer</b> · coche ce qui a bien eu lieu
-            </span>
-            <Picto name="chev" />
-          </Link>
-        )}
-        {view === "semaine" ? (
-          <WeekGrid days={week} today={today} now={now} onPickDay={(d) => openNoter({ mode: "seance", date: d })} />
-        ) : (
-          <>
-            <div className="bs-mhead big" style={{ marginTop: 16 }}>
-              {["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"].map((d) => (
-                <span key={d}>{d}</span>
-              ))}
-            </div>
-            <div className="bs-mgrid big" style={{ marginTop: 6 }}>
-              {monthDays.map((d) => {
-                const inMonth = d.slice(0, 7) === sel.slice(0, 7);
-                const its = inMonth ? dayItems(data, d, today, now) : [];
-                const money = its.reduce((t, i) => t + (i.type === "seance" ? (i.money ?? 0) : 0), 0);
-                return (
-                  <button
-                    key={d}
-                    type="button"
-                    className={`${inMonth ? "" : "out"}${d === today ? " td" : ""}`}
-                    onClick={() => {
-                      setSel(d);
-                      setView("semaine");
-                    }}
-                    title="Voir la semaine"
-                  >
-                    <span style={{ display: "flex", width: "100%" }}>
-                      {Number(d.slice(8))}
-                      {money ? <span className="tot">{signed(money)}</span> : null}
-                    </span>
-                    {its.slice(0, 3).map((it) => (
-                      <span key={it.key} className="ttl" style={{ background: { g: "var(--vert-soft)", r: "var(--rose-soft)", o: "#F5ECDC", n: "var(--mist)" }[it.tone], opacity: it.done ? 0.6 : 1 }}>
-                        {it.start ? `${it.start} ` : ""}
-                        {it.title}
+          {pending > 0 && (
+            <Link href="/valider" className="banner">
+              <Ic n="clock" />
+              <span>
+                <b>{pending} à confirmer</b> · coche ce qui a bien eu lieu
+              </span>
+              <Ic n="chev" className="cn-ic sm chev" />
+            </Link>
+          )}
+          {view === "semaine" ? (
+            <WeekGrid days={week} today={today} now={now} onPickDay={(d) => openNoter({ mode: "seance", date: d })} />
+          ) : (
+            <>
+              <div className="mhead">
+                {["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"].map((d) => (
+                  <span key={d}>{d}</span>
+                ))}
+              </div>
+              <div className="mgrid">
+                {monthDays.map((d) => {
+                  const inMonth = d.slice(0, 7) === sel.slice(0, 7);
+                  const its = inMonth ? dayItems(data, d, today, now) : [];
+                  const money = dayMoney(its);
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      className={`mc${inMonth ? "" : " out"}${d === today ? " td" : d < today ? " past" : ""}`}
+                      onClick={() => {
+                        setSel(d);
+                        setView("semaine");
+                      }}
+                      title="Voir la semaine"
+                      aria-label={new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+                    >
+                      <span className="mn">
+                        {Number(d.slice(8))}
+                        {money ? <span className={moneyCls(money)}>{sg(money)}</span> : null}
                       </span>
-                    ))}
-                    {its.length > 3 && <span className="more">+ {its.length - 3} autre{its.length > 4 ? "s" : ""}</span>}
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        )}
-        <div className="bs-legend" style={{ marginTop: 12 }}>
-          {(
-            [
-              ["g", "rapporte"],
-              ["r", "coûte"],
-              ["o", "pour l’écurie"],
-            ] as [Tone, string][]
-          ).map(([t, l]) => (
-            <span key={t}>
-              <i style={{ background: DOT[t] }} />
-              {l}
+                      {its.slice(0, 3).map((it) => (
+                        <i key={it.key} style={{ textDecoration: it.done ? "line-through" : undefined }}>
+                          {it.start ? `${it.start} ` : ""}
+                          {it.title}
+                        </i>
+                      ))}
+                      {its.length > 3 && <span className="more">+ {its.length - 3} autre{its.length > 4 ? "s" : ""}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+          <p className="legend2">
+            <span>
+              <span className="in">+</span> ce qui rapporte
             </span>
-          ))}
-          <span style={{ marginLeft: "auto", color: "var(--ink-3)" }}>Clique sur une heure libre pour ajouter quelque chose · Flèches ← → pour changer de semaine</span>
+            <span>
+              <span className="out">−</span> ce qui coûte
+            </span>
+            <span className="hint">Clique sur une heure libre pour ajouter quelque chose · Flèches ← → pour changer de {view === "semaine" ? "semaine" : "mois"} · T pour aujourd’hui</span>
+          </p>
         </div>
       </Screen>
     );
   }
+
+  /* ---------------- Téléphone ---------------- */
+  const groups: [string, IllName, DayItem[]][] = [
+    ["Le matin", "brouette", items.filter((i) => !i.start || i.start < "12:00")],
+    ["L’après-midi", "carnet-buste", items.filter((i) => i.start && i.start >= "12:00" && i.start < "17:00")],
+    ["Le soir", "foin", items.filter((i) => i.start && i.start >= "17:00")],
+  ];
+  const nowM = Number(now.slice(0, 2)) * 60 + Number(now.slice(3, 5));
+  // Le soleil : de 6 h à 21 h sur l'arc (courbe de Bézier du dessin).
+  const t = Math.min(1, Math.max(0, (nowM - 360) / 900));
+  const sunTop = (((1 - t) ** 2 * 66 + 2 * (1 - t) * t * -14 + t * t * 66) / 66) * 100;
 
   return (
     <Screen>
       <div
         onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, done: false })}
         onTouchMove={(e) => {
-          const t = touch.current;
-          if (!t || t.done) return;
-          const dx = e.touches[0].clientX - t.x;
-          const dy = e.touches[0].clientY - t.y;
+          const tc = touch.current;
+          if (!tc || tc.done) return;
+          const dx = e.touches[0].clientX - tc.x;
+          const dy = e.touches[0].clientY - tc.y;
           if (Math.abs(dx) > 45 && Math.abs(dx) > 1.5 * Math.abs(dy)) {
-            t.done = true;
+            tc.done = true;
             shift(dx < 0 ? 1 : -1);
           }
         }}
       >
-        <div className="bs-over">
-          <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <button type="button" className="bs-back" style={{ margin: 0, minHeight: 28 }} onClick={() => shift(-1)} aria-label="Période précédente">
-              <Picto name="chevL" />
+        <div className="jr-per rise" style={{ animationDelay: ".02s" }}>
+          <span className="nav">
+            <button type="button" onClick={() => shift(-1)} aria-label={`${unit} précédent${view === "semaine" ? "e" : ""}`}>
+              <Ic n="back" className="" />
             </button>
             {title}
-            <button type="button" className="bs-back" style={{ margin: 0, minHeight: 28 }} onClick={() => shift(1)} aria-label="Période suivante">
-              <Picto name="chev" />
+            <button type="button" onClick={() => shift(1)} aria-label={`${unit} suivant${view === "semaine" ? "e" : ""}`}>
+              <Ic n="chev" className="" />
             </button>
           </span>
           {sel !== today && (
-            <button type="button" className="bs-link" onClick={() => setSel(today)}>
+            <button type="button" className="lnk" onClick={() => setSel(today)}>
               Aujourd’hui
             </button>
           )}
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <h1 className="bs-d bs-t1">Planning</h1>
-          <div className="bs-seg" style={{ margin: 0, width: 150 }}>
-            <button type="button" aria-pressed={view === "semaine"} onClick={() => setView("semaine")}>
-              Semaine
-            </button>
-            <button type="button" aria-pressed={view === "mois"} onClick={() => setView("mois")}>
-              Mois
-            </button>
-          </div>
+        <div className="jr-ttl rise" style={{ animationDelay: ".05s" }}>
+          <h3>Planning</h3>
+          {viewSeg}
         </div>
 
         {pending > 0 && (
-          <Link href="/valider" className="bs-banner">
-            <Picto name="clock" />
-            <span style={{ flex: 1 }}>
+          <Link href="/valider" className="jr-ban rise" style={{ animationDelay: ".08s" }}>
+            <Ic n="clock" />
+            <span>
               <b>{pending} à confirmer</b> · coche ce qui a eu lieu
             </span>
-            <Picto name="chev" />
+            <Ic n="chev" className="cn-ic sm chev" />
           </Link>
         )}
 
         {view === "semaine" ? (
-          <div className="bs-week">
-            {week.map((d) => (
-              <button
-                key={d}
-                type="button"
-                aria-pressed={d === sel}
-                className={d === today ? "td" : ""}
-                onClick={() => setSel(d)}
-                aria-label={new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
-              >
-                {new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "narrow" }).toUpperCase()}
-                <b>{Number(d.slice(8))}</b>
-                <span className="bs-dots">
-                  {dayTones(data, d).map((t, i) => (
-                    <i key={i} style={{ background: DOT[t] }} />
-                  ))}
-                </span>
-              </button>
-            ))}
-          </div>
-        ) : (
           <>
-            <div className="bs-mhead">
-              {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
-                <span key={i}>{d}</span>
-              ))}
-            </div>
-            <div className="bs-mgrid">
-              {monthDays.map((d) => (
+            <div className="jr-days rise" style={{ animationDelay: ".12s" }}>
+              {week.map((d) => (
                 <button
                   key={d}
                   type="button"
-                  className={`${d.slice(0, 7) !== sel.slice(0, 7) ? "out" : ""}${d === today ? " td" : ""}`}
-                  onClick={() => {
-                    setSel(d);
-                    setView("semaine");
-                  }}
+                  aria-pressed={d === sel}
+                  className={d === today ? "td" : ""}
+                  onClick={() => setSel(d)}
+                  aria-label={new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
                 >
-                  {Number(d.slice(8))}
-                  <span className="bs-dots">
-                    {d.slice(0, 7) === sel.slice(0, 7) &&
-                      dayTones(data, d).map((t, i) => (
-                        <i key={i} style={{ background: DOT[t] }} />
+                  {new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "")}
+                  <b>{Number(d.slice(8))}</b>
+                  <span className="jr-dots">
+                    {dayTones(data, d)
+                      .slice(0, 3)
+                      .map((_, i) => (
+                        <i key={i} />
                       ))}
                   </span>
                 </button>
               ))}
             </div>
-            <div className="bs-legend">
-              {(
-                [
-                  ["g", "rapporte"],
-                  ["r", "coûte"],
-                  ["o", "pour l’écurie"],
-                ] as [Tone, string][]
-              ).map(([t, l]) => (
-                <span key={t}>
-                  <i style={{ background: DOT[t] }} />
-                  {l}
-                </span>
+            {sel === today && nowM >= 360 && nowM <= 1260 && (
+              <div className="jr-ciel rise" style={{ animationDelay: ".16s" }} role="img" aria-label={`Il est ${Number(now.slice(0, 2))} h ${now.slice(3)}.`}>
+                <div className="jr-arc">
+                  <svg viewBox="0 0 300 66" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M0 66 Q150 -14 300 66" />
+                  </svg>
+                  <span className="jr-sun" style={{ left: `${t * 100}%`, top: `${sunTop}%` }}>
+                    <em>{now.replace(/^0/, "")}</em>
+                  </span>
+                </div>
+                <div className="jr-hours" aria-hidden="true">
+                  <span>6 h</span>
+                  <span>10 h</span>
+                  <span>14 h</span>
+                  <span>18 h</span>
+                  <span>21 h</span>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="pad rise" style={{ animationDelay: ".12s" }}>
+            <div className="jr-mhead">
+              {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
+                <span key={i}>{d}</span>
               ))}
             </div>
-          </>
+            <div className="jr-mgrid">
+              {monthDays.map((d) => {
+                const inMonth = d.slice(0, 7) === sel.slice(0, 7);
+                const money = inMonth ? dayMoney(dayItems(data, d, today, now)) : 0;
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`jr-m${inMonth ? "" : " out"}${d === sel ? " sel" : d === today ? " td" : ""}`}
+                    onClick={() => {
+                      setSel(d);
+                      setView("semaine");
+                    }}
+                    aria-label={new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
+                  >
+                    <i>{Number(d.slice(8))}</i>
+                    {money ? <em className={moneyCls(money)}>{court(money)}</em> : <em />}
+                    <span className="jr-dots">
+                      {inMonth &&
+                        dayTones(data, d)
+                          .slice(0, 3)
+                          .map((_, i) => <s key={i} />)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="jr-legend">
+              <span>
+                <b className="in">+</b> la journée rapporte
+              </span>
+              <span>
+                <b className="out">−</b> elle coûte
+              </span>
+              <span>
+                <span className="jr-dots">
+                  <s />
+                </span>{" "}
+                quelque chose de prévu
+              </span>
+            </div>
+          </div>
         )}
 
-        <div className="bs-sum3">
-          <div>
-            <b>{sum.count}</b>
-            <span>séances</span>
-          </div>
-          <div>
-            <b style={{ color: "var(--vert)" }}>{signed(sum.validated)}</b>
-            <span>confirmés</span>
-          </div>
-          <div>
-            <b style={{ color: "var(--ink-3)" }}>{signed(sum.planned)}</b>
-            <span>encore prévus</span>
-          </div>
+        <div className="pad rise" style={{ animationDelay: ".2s", marginTop: view === "semaine" && sel === today ? 6 : 14 }}>
+          {trio("jr-plan")}
         </div>
+        {view === "mois" && (
+          <div className="pad rise" style={{ animationDelay: ".26s" }}>
+            <p className="note">Touche un jour pour ouvrir sa semaine.</p>
+          </div>
+        )}
       </div>
 
       {view === "semaine" && (
         <>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>
-            <span style={{ fontWeight: 600, fontSize: 15 }}>{cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" }))}</span>
-            <div className="bs-seg" style={{ margin: 0, width: 150 }}>
-              <button type="button" aria-pressed={dayView === "liste"} onClick={() => setDayView("liste")}>
-                Liste
-              </button>
-              <button type="button" aria-pressed={dayView === "creneaux"} onClick={() => setDayView("creneaux")}>
-                Créneaux
-              </button>
-            </div>
+          <div className="jr-dayh rise" style={{ animationDelay: ".24s" }}>
+            <b>{cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" }))}</b>
+            <Seg
+              value={dayView}
+              onChange={setDayView}
+              label="Liste ou créneaux"
+              options={[
+                ["liste", "Liste"],
+                ["creneaux", "Créneaux"],
+              ]}
+            />
           </div>
           {dayView === "liste" ? (
             items.length ? (
-              items.map((it) => <DayBlock key={it.key} it={it} />)
+              groups
+                .filter(([, , its]) => its.length)
+                .map(([label, ill, its], i) => (
+                  <Sec key={label} ill={ill} title={label} delay={0.28 + i * 0.08}>
+                    <div className="rows">
+                      {its.map((it) => (
+                        <DayBlock key={it.key} it={it} />
+                      ))}
+                    </div>
+                  </Sec>
+                ))
             ) : (
-              <button type="button" className="bs-li tap" onClick={() => openNoter({ mode: "seance", date: sel })}>
-                <span className="bs-pic soft">
-                  <Picto name="plus" />
-                </span>
-                <span className="tx">
-                  <b>Rien de prévu ce jour-là</b>
-                  <span>Touche ici pour ajouter une séance, un soin ou une tâche</span>
-                </span>
-              </button>
+              <div className="rise" style={{ animationDelay: ".28s" }}>
+                <Empty>Rien de prévu {sel === today ? "aujourd’hui" : "ce jour-là"}. Touche le + pour prévoir une séance, un soin ou une tâche.</Empty>
+                <div className="pad">
+                  <button type="button" className="btn line full jr-addday" onClick={() => openNoter({ mode: "seance", date: sel })}>
+                    <Ic n="plus" className="" />
+                    Ajouter ce jour-là
+                  </button>
+                </div>
+              </div>
             )
           ) : (
-            <Creneaux items={items} isToday={sel === today} now={now} onEmpty={(h) => openNoter({ mode: "seance", date: sel, start: `${String(h).padStart(2, "0")}:00` })} />
+            <Creneaux items={items} isToday={sel === today} now={now} today={today} onEmpty={(h) => openNoter({ mode: "seance", date: sel, start: `${String(h).padStart(2, "0")}:00` })} />
           )}
         </>
       )}
+      <div className="end" />
     </Screen>
   );
 }
 
 /** La journée en créneaux, de 6 h à 21 h (élargie si un bloc en sort). */
-function Creneaux({ items, isToday, now, onEmpty }: { items: DayItem[]; isToday: boolean; now: string; onEmpty: (h: number) => void }) {
+function Creneaux({ items, isToday, now, today, onEmpty }: { items: DayItem[]; isToday: boolean; now: string; today: string; onEmpty: (h: number) => void }) {
   const openSeance = useUiStore((s) => s.openSeance);
-  const HOUR = 52;
+  const HOUR = 44;
   const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
   const timed = items.filter((i) => i.start);
   const untimed = items.filter((i) => !i.start);
@@ -424,8 +473,6 @@ function Creneaux({ items, isToday, now, onEmpty }: { items: DayItem[]; isToday:
     p.cols = Math.max(p.cols, overlap.length + 1);
     for (const q of overlap) q.cols = Math.max(q.cols, p.cols);
   });
-  const bg = { g: "var(--vert-soft)", r: "var(--rose-soft)", o: "#F5ECDC", n: "var(--mist)" };
-  const fg = { g: "var(--vert-deep)", r: "#5E2240", o: "#5C4420", n: "var(--ink-2)" };
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (isToday && ref.current) window.scrollTo({ top: Math.max(0, ref.current.offsetTop + top(now) - 220), behavior: "smooth" });
@@ -433,44 +480,63 @@ function Creneaux({ items, isToday, now, onEmpty }: { items: DayItem[]; isToday:
   }, [isToday]);
   return (
     <>
-      {untimed.map((it) => (
-        <DayBlock key={it.key} it={it} showTime={false} />
-      ))}
-      <div className="bs-grid" ref={ref} style={{ height: (last - first) * HOUR + 10 }}>
-        {Array.from({ length: last - first }, (_, i) => (
-          <div key={i} className="hr" style={{ top: i * HOUR + 6 }}>
-            <button type="button" aria-label={`Ajouter à ${first + i} h`} onClick={() => onEmpty(first + i)} />
+      <div className="pad rise" style={{ animationDelay: ".28s" }}>
+        {untimed.length > 0 && (
+          <>
+            <p className="k jr-k">Dans la journée</p>
+            <div className="rows">
+              {untimed.map((it) => (
+                <DayBlock key={it.key} it={it} showTime={false} />
+              ))}
+            </div>
+          </>
+        )}
+        <p className="jr-hint">
+          <Ic n="plus" />
+          Touche une heure libre pour ajouter quelque chose à cette heure.
+        </p>
+      </div>
+      <div className="jr-grid" ref={ref} style={{ height: (last - first) * HOUR + 10 }}>
+        {Array.from({ length: last - first + 1 }, (_, i) => (
+          <div key={i} className="jr-h" style={{ top: i * HOUR }}>
             <span>{String(first + i).padStart(2, "0")}</span>
+            {i < last - first && <button type="button" aria-label={`Ajouter à ${first + i} h`} onClick={() => onEmpty(first + i)} />}
           </div>
         ))}
         {placed.map(({ it, s, e, col, cols }) => {
-          const w = `((100% - 40px) / ${cols})`;
+          const w = `((100% - 34px) / ${cols})`;
+          const h = Math.max(30, ((e - s) / 60) * HOUR - 3);
+          const late = lateLabel(it, today);
+          const sub = [it.start, late || it.sub].filter(Boolean).join(" · ");
           return (
             <button
               key={it.key}
               type="button"
-              className="ev"
+              className={`jr-ev${h < 40 ? " short" : ""}${cols > 1 ? " half" : ""}${it.done ? " done" : ""}${late ? " wait" : ""}`}
               onClick={() => it.seance && openSeance(it.seance.id)}
+              aria-label={`${it.title}, ${sub}${it.money ? `, ${sg(it.money)}` : ""}`}
               style={{
-                top: top(it.start!) + 6,
-                height: Math.max(30, ((e - s) / 60) * HOUR - 3),
-                left: `calc(38px + ${w} * ${col})`,
+                top: top(it.start!) + 1,
+                height: h,
+                left: `calc(34px + ${w} * ${col})`,
                 width: `calc(${w} - 2px)`,
-                background: bg[it.tone],
-                color: fg[it.tone],
-                opacity: it.done ? 0.55 : 1,
-                boxShadow: it.late && !it.done ? "inset 0 0 0 1.5px var(--rose-ink)" : undefined,
+                cursor: it.seance ? "pointer" : "default",
               }}
             >
-              <b>
-                {it.title}
-                {it.money ? <span style={{ float: "right", fontWeight: 700 }}>{signed(it.money)}</span> : null}
-              </b>
-              {it.sub}
+              <Ic n={iconOf(it)} />
+              <span>
+                <b>{it.title}</b>
+                <small>{sub}</small>
+              </span>
+              {it.money ? <span className={moneyCls(it.money)}>{sg(it.money)}</span> : null}
             </button>
           );
         })}
-        {isToday && mins(now) >= first * 60 && mins(now) <= last * 60 && <div className="now" style={{ top: top(now) + 6 }} />}
+        {isToday && mins(now) >= first * 60 && mins(now) <= last * 60 && (
+          <div className="jr-now" style={{ top: top(now) }} role="img" aria-label={`Maintenant, ${now}`}>
+            <em>{now.replace(/^0/, "")}</em>
+          </div>
+        )}
       </div>
     </>
   );

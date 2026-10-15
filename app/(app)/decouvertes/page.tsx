@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { EmptyState } from "@/components/ui/empty-state";
-import { KeyNumber } from "@/components/ui/key-number";
+import { cap } from "@/components/bs/ui";
+import { Empty, Hello, Ic, Page, Sec, eur, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { generateInsights } from "@/lib/domain/insights-engine";
@@ -25,51 +23,35 @@ function Decouvertes() {
   const insights = generateInsights(data, period);
 
   return (
-    <div className="space-y-4">
-      <header>
-        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-          Ce qu’on a remarqué
-        </h1>
-        <p className="text-sm text-tertiary capitalize">{formatMonthYear(period)}</p>
-        <p className="text-sm text-tertiary">Des choses repérées dans tes chiffres ce mois-ci. Touche une carte pour comprendre.</p>
-      </header>
+    <Page>
+      <h1 className="ar-sr">Ce qu’on a remarqué</h1>
+      <Hello title="Ce qu’on a remarqué" sub="Des choses repérées dans tes chiffres ce mois-ci. Touche une carte pour comprendre." />
 
       {insights.length === 0 ? (
-        <EmptyState
-          title="Rien de spécial ce mois-ci."
-          body="Continue à noter ce qui rentre et ce qui sort. Dès qu’on repère quelque chose d’utile, ça s’affiche ici."
-        />
+        <Empty ill="dodo">
+          <b>Rien de spécial ce mois-ci.</b> Continue à noter ce qui rentre et ce qui sort. Dès qu’on repère quelque chose d’utile, ça s’affiche ici.
+        </Empty>
       ) : (
-        <div className="space-y-3">
+        <Sec ill="carnet-buste" title={cap(formatMonthYear(period))} action={<span className="act">{insights.length}</span>} delay={0.08}>
           {insights.map((insight, i) => (
-            <Link key={insight.id} href={`/decouvertes/detail?id=${encodeURIComponent(insight.id)}`}>
-              <motion.article
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="rounded-[var(--radius-lg)] border bg-elevated p-5"
-              >
-                <p className="font-[family-name:var(--font-bricolage)] text-xl text-primary">
-                  {insight.title}
-                </p>
-                <div className="my-2">
-                  <KeyNumber
-                    value={insight.keyMetricValue}
-                    colorBySign
-                    className="text-3xl"
-                    animateOnMount={false}
-                  />
-                  <span className="ml-2 text-2xs text-tertiary">{insight.keyMetricLabel}</span>
-                </div>
-                <p className="text-sm text-secondary line-clamp-2">{insight.body}</p>
-                <span className="mt-3 inline-flex items-center gap-1 text-2xs text-[var(--accent-primary)]">
-                  Comprendre <ChevronRight size={13} />
-                </span>
-              </motion.article>
+            <Link key={insight.id} href={`/decouvertes/detail?id=${encodeURIComponent(insight.id)}`} className="card ar-ins rise" style={{ animationDelay: `${0.12 + i * 0.05}s`, marginLeft: 0, marginRight: 0 }}>
+              <p className="mid" style={{ fontSize: 20 }}>
+                {insight.title}
+              </p>
+              <p className="big num">{insight.keyMetricValue < 0 ? sg(insight.keyMetricValue) : eur(insight.keyMetricValue)}</p>
+              <p className="note" style={{ marginTop: 2 }}>
+                {insight.keyMetricLabel}
+              </p>
+              <p className="note ar-clamp">{insight.body}</p>
+              <p className="lnk" style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 10 }}>
+                Comprendre
+                <Ic n="chev" className="ar-ic" />
+              </p>
             </Link>
           ))}
-        </div>
+        </Sec>
       )}
-    </div>
+      <div className="end" />
+    </Page>
   );
 }

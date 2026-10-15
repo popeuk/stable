@@ -1,20 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Trash2, Repeat } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { RangeSelector } from "@/components/ed/range-selector";
 import { Explain } from "@/components/ed/explain";
+import { Chips, Empty, Hello, Ic, Money, Page, Sec, eur } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
-import { periodStart, rangePeriods } from "@/lib/utils/period";
+import { RANGE_PRESETS, periodStart, rangePeriods, type RangePreset } from "@/lib/utils/period";
 import { aggregateStablePnl } from "@/lib/domain/calculations";
-import { cn } from "@/lib/utils/cn";
-import { formatEur } from "@/lib/utils/format-currency";
 
 /**
  * The Journal: every euro in and out, in one list. The owner's paper notebook,
@@ -39,6 +35,20 @@ function freqLabel(f: string) {
   return f === "monthly" ? "chaque mois" : f === "quarterly" ? "tous les 3 mois" : "chaque année";
 }
 
+function icFor(label: string, kind: Row["kind"]): string {
+  const l = label.toLowerCase();
+  if (/pension|retraite/.test(l)) return "horse";
+  if (/foin/.test(l)) return "hay";
+  if (/loyer/.test(l)) return "home";
+  if (/granul|aliment/.test(l)) return "board";
+  if (/liti|paille|copeau/.test(l)) return "list";
+  if (/assurance/.test(l)) return "doc";
+  if (/maréchal|marechal|ferr/.test(l)) return "shoe";
+  if (/soin|véto|veto|vacc|vermif|compl|dentiste/.test(l)) return "syringe";
+  if (/salaire|cours|séance|seance|balade|stage/.test(l)) return "user";
+  return kind === "shared" ? "hay" : "euro";
+}
+
 export default function JournalPage() {
   return (
     <ClientGate>
@@ -51,6 +61,7 @@ function Journal() {
   const data = useDataStore();
   const active = usePeriodStore((s) => s.active);
   const preset = usePeriodStore((s) => s.preset);
+  const setPreset = usePeriodStore((s) => s.setPreset);
   const periods = useMemo(() => rangePeriods(active, preset), [active, preset]);
   const deleteRevenue = useDataStore((s) => s.deleteRevenue);
   const deleteDirect = useDataStore((s) => s.deleteDirectExpense);
@@ -102,195 +113,148 @@ function Journal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.revenues, data.directExpenses, data.sharedExpenses, periods]);
 
-  const visible = rows.filter((r) =>
-    filter === "tout" ? true : filter === "entrees" ? r.kind === "revenue" : r.kind !== "revenue",
-  );
+  const visible = rows.filter((r) => (filter === "tout" ? true : filter === "entrees" ? r.kind === "revenue" : r.kind !== "revenue"));
 
   // The same aggregation as the home equation — the two screens always agree.
   const agg = useMemo(() => aggregateStablePnl(data, periods), [data, periods]);
 
   function remove(r: Row) {
-    if (!confirm(`Supprimer « ${r.label} » (${formatEur(r.amount)}) ? Cette ligne disparaîtra de tes comptes.`)) return;
+    if (!confirm(`Supprimer « ${r.label} » (${eur(r.amount)}) ? Cette ligne disparaîtra de tes comptes.`)) return;
     if (r.kind === "revenue") deleteRevenue(r.id);
     else if (r.kind === "direct") deleteDirect(r.id);
     else deleteShared(r.id);
   }
 
-  return (
-    <div className="space-y-4">
-      <header className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">Entrées et sorties d’argent</h1>
-      </header>
-      <p className="text-sm text-tertiary">Tout ce qui est rentré et sorti, ligne par ligne. Tu peux supprimer une ligne notée par erreur.</p>
+  const presets = RANGE_PRESETS.filter((r) => ["month", "3m", "ytd"].includes(r.value)).map((r) => [r.value, r.label] as [RangePreset, string]);
 
-      <RangeSelector />
+  return (
+    <Page>
+      <h1 className="ar-sr">Entrées et sorties d’argent</h1>
+      <Hello title="Entrées et sorties d’argent" sub="Tout ce qui est rentré et sorti, ligne par ligne. Tu peux supprimer une ligne notée par erreur." />
+
+      <div className="ar-filt">
+        <Chips value={preset} onChange={setPreset} options={presets} />
+      </div>
 
       {/* Totaux identiques à l'équation de l'accueil */}
-      <div className="grid grid-cols-3 divide-x divide-[var(--border-default)] card">
-        <div className="p-3">
-          <Explain k="chiffre_affaires" className="text-[10px] font-bold uppercase tracking-wide text-tertiary">
-            Ce qui rentre
-          </Explain>
-          <p className="mt-0.5 text-[17px] font-extrabold tabular-nums" style={{ color: "var(--c-success)" }}>
-            {formatEur(agg.revenue)}
-          </p>
+      <div className="trio ar-sum3 rise" style={{ animationDelay: ".08s" }}>
+        <div>
+          <b className="in">{agg.revenue ? `+${eur(agg.revenue)}` : eur(0)}</b>
+          <small>
+            <Explain k="chiffre_affaires">Ce qui rentre</Explain>
+          </small>
         </div>
-        <div className="p-3">
-          <Explain k="depenses" className="text-[10px] font-bold uppercase tracking-wide text-tertiary">
-            Ce qui sort
-          </Explain>
-          <p className="mt-0.5 text-[17px] font-extrabold tabular-nums text-primary">
-            {formatEur(agg.charges)}
-          </p>
+        <div>
+          <b className="out">{agg.charges ? `−${eur(agg.charges)}` : eur(0)}</b>
+          <small>
+            <Explain k="depenses">Ce qui sort</Explain>
+          </small>
         </div>
-        <div className="p-3">
-          <Explain k="marge_nette" className="text-[10px] font-bold uppercase tracking-wide text-tertiary">
-            Ce qui te reste
-          </Explain>
-          <p
-            className="mt-0.5 text-[17px] font-extrabold tabular-nums"
-            style={{ color: agg.netResult >= 0 ? "var(--c-success)" : "var(--c-danger)" }}
-          >
-            {formatEur(agg.netResult)}
-          </p>
+        <div>
+          <b>
+            <Money v={agg.netResult} />
+          </b>
+          <small>
+            <Explain k="marge_nette">Ce qui te reste</Explain>
+          </small>
         </div>
       </div>
 
       {/* Filtre */}
-      <div className="flex gap-2">
-        {(
-          [
-            { v: "tout", l: "Tout" },
-            { v: "entrees", l: "Ce qui rentre" },
-            { v: "sorties", l: "Ce qui sort" },
-          ] as { v: Filter; l: string }[]
-        ).map((f) => (
-          <button
-            key={f.v}
-            onClick={() => setFilter(f.v)}
-            className={cn(
-              "rounded-full border px-3 py-1.5 text-[12px] font-bold",
-              filter === f.v
-                ? "border-[var(--text-primary)] bg-[var(--ink)] text-[var(--on-ink)]"
-                : "border-[var(--border-strong)] text-tertiary",
-            )}
-          >
-            {f.l}
-          </button>
-        ))}
+      <div className="ar-filt">
+        <Chips
+          value={filter}
+          onChange={setFilter}
+          options={[
+            ["tout", "Tout"],
+            ["entrees", "Ce qui rentre"],
+            ["sorties", "Ce qui sort"],
+          ]}
+        />
       </div>
 
       {/* Récurrents actifs (pensions et charges) */}
       {(recurrings.length > 0 || recurringRevs.length > 0) && filter === "tout" && (
-        <div>
-          <div className="mb-2 flex items-baseline justify-between">
-            <h2 className="text-[13px] font-bold uppercase tracking-[0.08em] text-tertiary">
-              Compté tout seul, chaque mois
-            </h2>
-            <Link href="/saisie/recurrente" className="text-[12px] font-semibold text-tertiary">
-              + Ajouter
-            </Link>
-          </div>
-          <ul className="border-t border-[var(--border-default)]">
-            {recurringRevs.map((r) => (
-              <li key={r.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-3">
-                <Repeat size={15} className="shrink-0" style={{ color: "var(--c-success)" }} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-bold text-primary">
-                    {r.label ?? "Pension"} · {horseName(r.horseId)}
-                  </p>
-                  <p className="truncate text-[12px] text-tertiary">
-                    rentre {freqLabel(r.frequency)}
-                    {r.endDate ? ` · jusqu’au ${shortDate(r.endDate)}` : " · sans date de fin"}
-                  </p>
-                </div>
-                <span className="text-[14px] font-extrabold tabular-nums" style={{ color: "var(--c-success)" }}>
-                  +{formatEur(r.amount)}
-                </span>
-                <button
-                  onClick={() => confirm(`Arrêter cette rentrée d’argent qui revient chaque mois ?`) && deleteRecurringRevenue(r.id)}
-                  aria-label={`Arrêter ${r.label ?? "la pension"}`}
-                  className="shrink-0 p-1 text-tertiary transition-colors hover:text-[var(--c-danger)]"
-                >
-                  <Trash2 size={16} />
+        <Sec blk ill="carnet-buste" delay={0.12} title="Compté tout seul, chaque mois" action={<Link href="/saisie">+ Ajouter</Link>}>
+          {recurringRevs.map((r) => (
+            <div key={r.id} className="ar-rec">
+              <span className="ar-pic">
+                <Ic n="clock" className="ar-ic" />
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <b>
+                  {r.label ?? "Pension"} · {horseName(r.horseId)}
+                </b>
+                <small>
+                  rentre {freqLabel(r.frequency)}
+                  {r.endDate ? ` · jusqu’au ${shortDate(r.endDate)}` : " · sans date de fin"}
+                </small>
+              </span>
+              <span className="ar-rt">
+                <Money v={r.amount} />
+                <button type="button" className="lnk" onClick={() => confirm(`Arrêter cette rentrée d’argent qui revient chaque mois ?`) && deleteRecurringRevenue(r.id)} aria-label={`Arrêter ${r.label ?? "la pension"}`}>
+                  Arrêter
                 </button>
-              </li>
-            ))}
-            {recurrings.map((r) => (
-              <li key={r.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-3">
-                <Repeat size={15} className="shrink-0 text-[var(--accent-primary)]" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-bold text-primary">{r.label}</p>
-                  <p className="truncate text-[12px] text-tertiary">
-                    {freqLabel(r.frequency)} · {r.isShared ? "frais communs" : "pour 1 cheval"}
-                    {r.endDate ? ` · jusqu’au ${shortDate(r.endDate)}` : " · sans date de fin"}
-                  </p>
-                </div>
-                <span className="text-[14px] font-extrabold tabular-nums text-primary">
-                  −{formatEur(r.amount)}
-                </span>
-                <button
-                  onClick={() => confirm(`Arrêter « ${r.label} » ? Elle ne sera plus comptée chaque mois.`) && deleteRecurring(r.id)}
-                  aria-label={`Arrêter ${r.label}`}
-                  className="shrink-0 p-1 text-tertiary transition-colors hover:text-[var(--c-danger)]"
-                >
-                  <Trash2 size={16} />
+              </span>
+            </div>
+          ))}
+          {recurrings.map((r) => (
+            <div key={r.id} className="ar-rec">
+              <span className="ar-pic">
+                <Ic n="clock" className="ar-ic" />
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <b>{r.label}</b>
+                <small>
+                  {freqLabel(r.frequency)} · {r.isShared ? "frais communs" : "pour 1 cheval"}
+                  {r.endDate ? ` · jusqu’au ${shortDate(r.endDate)}` : " · sans date de fin"}
+                </small>
+              </span>
+              <span className="ar-rt">
+                <Money v={-r.amount} />
+                <button type="button" className="lnk" onClick={() => confirm(`Arrêter « ${r.label} » ? Elle ne sera plus comptée chaque mois.`) && deleteRecurring(r.id)} aria-label={`Arrêter ${r.label}`}>
+                  Arrêter
                 </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+              </span>
+            </div>
+          ))}
+        </Sec>
       )}
 
       {/* Mouvements ponctuels */}
       {visible.length === 0 ? (
-        <p className="py-10 text-center text-sm text-tertiary">
+        <Empty>
           {rows.length > 0
             ? "Rien de ce côté sur cette période."
             : recurrings.length + recurringRevs.length > 0
               ? "Rien d’autre sur cette période. Seul ce qui revient chaque mois est compté."
               : "Rien de noté sur cette période. Ajoute une dépense ou une rentrée d’argent pour la voir ici."}
-        </p>
+        </Empty>
       ) : (
-        <ul className="border-t border-[var(--border-default)]">
-          {visible.map((r, i) => {
+        <div className="rise" style={{ animationDelay: ".16s", marginTop: 10 }}>
+          {visible.map((r) => {
             const isIn = r.kind === "revenue";
             return (
-              <motion.li
-                key={r.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i, 12) * 0.03, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                className="flex items-center gap-3 border-b border-[var(--border-default)] py-3"
-              >
-                <span className="w-12 shrink-0 text-[11px] font-semibold uppercase text-tertiary">
-                  {shortDate(r.date)}
+              <div key={r.id} className="ar-mv">
+                <span className="ar-pic">
+                  <Ic n={icFor(r.label, r.kind)} className="ar-ic" />
                 </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-bold text-primary">{r.label}</p>
-                  <p className="truncate text-[12px] text-tertiary">
-                    {r.target}
-                  </p>
-                </div>
-                <span
-                  className="text-[15px] font-extrabold tabular-nums"
-                  style={{ color: isIn ? "var(--c-success)" : "var(--text-primary)" }}
-                >
-                  {isIn ? "+" : "−"}
-                  {formatEur(r.amount)}
+                <span style={{ minWidth: 0 }}>
+                  <b>{r.label}</b>
+                  <small>
+                    {shortDate(r.date)} · {r.target}
+                  </small>
                 </span>
-                <button
-                  onClick={() => remove(r)}
-                  aria-label={`Supprimer ${r.label}`}
-                  className="shrink-0 p-1 text-tertiary transition-colors hover:text-[var(--c-danger)]"
-                >
-                  <Trash2 size={16} />
+                <Money v={isIn ? r.amount : -r.amount} />
+                <button type="button" className="ar-bin" onClick={() => remove(r)} aria-label={`Supprimer ${r.label}`}>
+                  <Ic n="trash" className="ar-ic" />
                 </button>
-              </motion.li>
+              </div>
             );
           })}
-        </ul>
+        </div>
       )}
-    </div>
+      <div className="end" />
+    </Page>
   );
 }

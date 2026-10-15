@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { PasswordField } from "@/components/bs/account-ui";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
-import { Picto } from "@/components/bs/picto";
+import { ArTop, CodeInput, PwInput } from "@/components/bs/rejoindre";
+import { Ill } from "@/components/carnet/ui";
 import { api, ApiError, type AuthResponse } from "@/lib/account/api";
 import { enter, hasAccountData, hasLegacyData, sessionFrom, setSession } from "@/lib/account/session";
 
@@ -43,38 +43,52 @@ export default function Page() {
     }
   }
 
-  if (adopt) return <AdoptChoice />;
+  if (adopt)
+    return (
+      <div className="carnet">
+        <AdoptChoice />
+      </div>
+    );
+
+  const top = (
+    <ArTop
+      onBack={mode === "email" ? undefined : () => (setMode("email"), setErr(""))}
+      right={
+        <Link href="/bienvenue" className="ar-link">
+          Créer mon accès
+        </Link>
+      }
+    />
+  );
+  const erreur = err ? (
+    <p className="ar-err" role="alert">
+      {err}
+    </p>
+  ) : null;
 
   return (
-    <main className="rj">
-      <div className="rj-main">
-        <header className="rj-top">
-          {mode === "email" ? (
-            <span className="bs-wm">be stable</span>
-          ) : (
-            <button type="button" className="rj-back" onClick={() => (setMode("email"), setErr(""))} aria-label="Revenir">
-              <Picto name="chevL" />
-            </button>
-          )}
-          <Link href="/bienvenue" className="bs-link">
-            Créer mon accès
-          </Link>
-        </header>
-
+    <div className="carnet">
+      <div className="ar ar-duo">
         {mode === "email" && (
-          <form className="rj-step" noValidate onSubmit={(e) => (e.preventDefault(), run(async () => (await api.envoyerCode(email.trim()), setCode(""), setMode("code"))))}>
-            <h1 className="rj-q">Content de te revoir.</h1>
-            <label className="rj-in">
+          <form className="ar-v" noValidate onSubmit={(e) => (e.preventDefault(), run(async () => (await api.envoyerCode(email.trim()), setCode(""), setMode("code"))))}>
+            {top}
+            <div className="hero-ill rise" style={{ height: 170 }}>
+              <Ill n="assise" alt="La gérante, assise, une tasse de café à la main." />
+            </div>
+            <div className="q rise" style={{ animationDelay: ".08s" }}>
+              <h3>Content de te revoir.</h3>
+            </div>
+            <label className="input ar-in">
               <input autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.fr" aria-label="Ton e-mail" />
             </label>
-            {err && <p className="rj-err">{err}</p>}
-            <div className="rj-foot">
-              <button className="bs-btn rj-go" disabled={busy || !email.trim()}>
+            {erreur}
+            <div className="foot">
+              <button className="btn full" disabled={busy || !email.trim()}>
                 {busy ? "Envoi…" : "Recevoir mon code"}
               </button>
-              <p className="rj-proof">
+              <p className="ar-proof">
                 Le même compte que sur mon-ecurie.fr.{" "}
-                <button type="button" className="bs-link" onClick={() => (setMode("mdp"), setErr(""))}>
+                <button type="button" className="lnk" onClick={() => (setMode("mdp"), setErr(""))}>
                   J’ai un mot de passe
                 </button>
               </p>
@@ -83,38 +97,28 @@ export default function Page() {
         )}
 
         {mode === "code" && (
-          <form className="rj-step" onSubmit={(e) => (e.preventDefault(), run(async () => ouvrir(await api.verifierCode(email.trim(), code))))}>
-            <h1 className="rj-q">Le code reçu.</h1>
-            <p className="rj-sub">Envoyé à {email.trim()}.</p>
-            <label className="rj-code">
-              <input
-                autoFocus
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                value={code}
-                disabled={busy}
-                aria-label="Code à six chiffres"
-                onChange={(e) => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 6);
-                  setCode(v);
-                  if (v.length === 6) run(async () => ouvrir(await api.verifierCode(email.trim(), v)));
-                }}
-              />
-              {Array.from({ length: 6 }, (_, i) => (
-                <span key={i} className={i === code.length ? "on" : code[i] ? "full" : ""}>
-                  {code[i] ?? ""}
-                </span>
-              ))}
-            </label>
-            {err && <p className="rj-err">{err}</p>}
-            <div className="rj-foot">
-              <button className="bs-btn rj-go" disabled={busy || code.length !== 6}>
+          <form className="ar-v" onSubmit={(e) => (e.preventDefault(), run(async () => ouvrir(await api.verifierCode(email.trim(), code))))}>
+            {top}
+            <div className="q">
+              <h3>Le code reçu.</h3>
+              <p>Envoyé à {email.trim()}.</p>
+            </div>
+            <CodeInput
+              value={code}
+              disabled={busy}
+              onChange={(v) => {
+                setCode(v);
+                if (v.length === 6) run(async () => ouvrir(await api.verifierCode(email.trim(), v)));
+              }}
+            />
+            {erreur}
+            <div className="foot">
+              <button className="btn full" disabled={busy || code.length !== 6}>
                 {busy ? "Vérification…" : "Entrer"}
               </button>
-              <p className="rj-proof">
+              <p className="ar-proof">
                 Rien reçu ? Regarde les indésirables, ou{" "}
-                <button type="button" className="bs-link" onClick={() => run(async () => (await api.envoyerCode(email.trim()), setCode("")))}>
+                <button type="button" className="lnk" onClick={() => run(async () => (await api.envoyerCode(email.trim()), setCode("")))}>
                   renvoie le code
                 </button>
                 .
@@ -124,34 +128,40 @@ export default function Page() {
         )}
 
         {mode === "mdp" && (
-          <form className="rj-step" noValidate onSubmit={(e) => (e.preventDefault(), run(async () => ouvrir(await api.connexion({ email: email.trim(), password: pw }))))}>
-            <h1 className="rj-q">Avec ton mot de passe.</h1>
-            <label className="rj-in">
-              <input autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.fr" aria-label="Ton e-mail" />
-            </label>
-            <PasswordField value={pw} onChange={setPw} meter={false} autoComplete="current-password" />
-            {err && <p className="rj-err">{err}</p>}
-            <div className="rj-foot">
-              <button className="bs-btn rj-go" disabled={busy || !email.trim() || !pw}>
+          <form className="ar-v" noValidate onSubmit={(e) => (e.preventDefault(), run(async () => ouvrir(await api.connexion({ email: email.trim(), password: pw }))))}>
+            {top}
+            <div className="q">
+              <h3>Avec ton mot de passe.</h3>
+            </div>
+            <div className="ar-form">
+              <label className="field">
+                <span>E-mail</span>
+                <input className="input" autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.fr" />
+              </label>
+              <PwInput value={pw} onChange={setPw} meter={false} autoComplete="current-password" />
+            </div>
+            {erreur}
+            <div className="foot">
+              <button className="btn full" disabled={busy || !email.trim() || !pw}>
                 {busy ? "Connexion…" : "Me connecter"}
               </button>
-              <p className="rj-proof">
-                <Link href={`/compte/oubli${email ? `?email=${encodeURIComponent(email.trim())}` : ""}`} className="bs-link">
+              <p className="ar-proof">
+                <Link href={`/compte/oubli${email ? `?email=${encodeURIComponent(email.trim())}` : ""}`} className="lnk">
                   Mot de passe oublié ?
                 </Link>
               </p>
             </div>
           </form>
         )}
+
+        <aside className="ar-side" aria-hidden="true">
+          <div className="hero-ill">
+            <Ill n="sereine" className="mul" />
+          </div>
+          <p className="k">Be Stable</p>
+          <p className="ar-big">Ton écurie, ce qu’elle te rapporte.</p>
+        </aside>
       </div>
-      <aside className="rj-side" aria-hidden="true">
-        <div className="rj-side-in">
-          <p className="rj-side-t">Be Stable</p>
-          <p className="bs-d" style={{ fontSize: 40, marginTop: 12, color: "var(--ink-1)" }}>
-            Ton écurie, ce qu’elle te <span className="bs-hl">rapporte</span>.
-          </p>
-        </div>
-      </aside>
-    </main>
+    </div>
   );
 }

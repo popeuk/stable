@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { NetPill, Screen, Sec, cap, dec1, eur, signed } from "@/components/bs/ui";
-import { Picto, pictoForLabel } from "@/components/bs/picto";
-import { HorseFace } from "@/components/bs/horse-face";
+import { cap, dec1 } from "@/components/bs/ui";
 import { useDesk } from "@/components/bs/desk";
+import { CountUp, Empty, Face, Hello, Ic, Ill, Money, Page, Sec, Seg, eur, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown, reconciledNets } from "@/lib/domain/ticket";
@@ -20,7 +19,7 @@ import type { Period } from "@/lib/domain/types";
  * face à l'objectif, ce qui pèse, ce qui a bougé, les chevaux et les
  * prestations sur la période. Rien ne se saisit ici.
  */
-export default function Page() {
+export default function Page_() {
   return (
     <ClientGate>
       <Bilans />
@@ -37,6 +36,23 @@ const SPANS: [Span, string][] = [
 ];
 const mName = (p: Period, style: "long" | "short" = "long") => new Date(p.year, p.month - 1, 1).toLocaleDateString("fr-FR", { month: style });
 
+function icFor(label: string): string {
+  const l = label.toLowerCase();
+  if (/pension|retraite|box/.test(l)) return "horse";
+  if (/foin/.test(l)) return "hay";
+  if (/loyer|fermage/.test(l)) return "home";
+  if (/granul|aliment/.test(l)) return "board";
+  if (/liti|paille|copeau/.test(l)) return "list";
+  if (/assurance/.test(l)) return "doc";
+  if (/maréchal|marechal|ferr/.test(l)) return "shoe";
+  if (/soin|véto|veto|vacc|vermif|compl/.test(l)) return "syringe";
+  if (/balade/.test(l)) return "flag";
+  if (/stage/.test(l)) return "cal";
+  if (/travail/.test(l)) return "horse";
+  if (/salaire|cours|séance|seance/.test(l)) return "user";
+  return "euro";
+}
+
 function Bilans() {
   const data = useDataStore();
   const objective = useSettingsStore((s) => s.objective);
@@ -51,7 +67,8 @@ function Bilans() {
   const net = months.reduce((t, x) => t + x.m.net, 0);
   const avg = net / Math.max(1, months.length);
   const keep = revenue > 0 ? Math.round((net / revenue) * 100) : 0;
-  const reached = months.filter((x) => x.m.net >= objective).length;
+  const reachedList = months.filter((x) => x.m.net >= objective);
+  const reached = reachedList.length;
   const cur = months[months.length - 1]?.m;
 
   // Ce qui pèse sur la période : les factures communes par poste, et les soins.
@@ -103,246 +120,233 @@ function Bilans() {
 
   if (!data.horses.some((h) => !h.isArchived))
     return (
-      <Screen>
-        <h1 className="bs-d bs-t1" style={{ marginTop: 14 }}>
-          Bilan sur plusieurs mois
-        </h1>
-        <p className="bs-p">Rien à montrer pour l’instant. Ajoute tes chevaux et confirme tes premières séances. Ce bilan se remplira tout seul, mois après mois.</p>
-        <Link href="/parcours" className="bs-btn" style={{ marginTop: 16 }}>
-          Reprendre le parcours
-        </Link>
-      </Screen>
+      <Page>
+        <Hello title="Bilan sur plusieurs mois" />
+        <Empty ill="dodo">Rien à montrer pour l’instant. Ajoute tes chevaux et confirme tes premières séances. Ce bilan se remplira tout seul, mois après mois.</Empty>
+        <div className="pad" style={{ marginTop: 14 }}>
+          <Link href="/parcours" className="btn full">
+            Reprendre le parcours
+          </Link>
+        </div>
+      </Page>
     );
 
   const first = periods[0];
-  const rangeLabel = periods.length > 1 ? `de ${mName(first)} à ${mName(now)}` : cap(mName(now));
+  const rangeLabel = periods.length > 1 ? `De ${mName(first)} à ${mName(now)}.` : `${cap(mName(now))}.`;
   const losers = horses.filter((x) => x.net < 0);
+  const prev = mName(addMonths(now, -1));
+  const daysLeft = new Date(now.year, now.month, 0).getDate() - new Date().getDate();
 
   const hero = (
-    <div className="bs-goal" style={{ padding: "16px 18px" }}>
-      <div className="k">
-        Ce qui t’est resté {rangeLabel} · {months.length} mois
-      </div>
-      <div className="row">
-        <span className={`bs-big${net < 0 ? " neg" : ""}`} style={{ fontSize: 44 }}>
-          {signed(net)}
-        </span>
-        <span style={{ fontSize: 13, color: "var(--on-vert)", textAlign: "right" }}>
-          soit <b style={{ color: "#fff", fontVariantNumeric: "tabular-nums" }}>{signed(avg)}</b>
-          <br />
-          par mois en moyenne
-        </span>
-      </div>
-      <p style={{ fontSize: 14, color: "#fff", marginTop: 8, lineHeight: 1.45 }}>
-        {net >= 0 ? `Sur 100 € encaissés, il t’en reste ${keep}.` : "Sur cette période, l’écurie t’a coûté plus qu’elle n’a rapporté."}{" "}
-        Objectif de {eur(objective)} atteint {reached} mois sur {months.length}.
+    <div className="card ar-hero6 rise" style={{ animationDelay: ".05s" }}>
+      <p className="k">Ce qui t’est resté sur {months.length} mois</p>
+      <p className={`big ${net > 0 ? "in" : net < 0 ? "out" : ""}`}>
+        <CountUp value={net} />
       </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, borderTop: "1px solid rgba(255,255,255,.18)", marginTop: 12, paddingTop: 10 }}>
-        {(
-          [
-            ["Ce qui est rentré", eur(revenue)],
-            ["Ce qui est sorti", eur(charges)],
-            ["chevaux pour ne pas perdre d’argent", cur && isFinite(cur.seuil) ? dec1(cur.seuil) : "pas encore"],
-          ] as const
-        ).map(([k, v]) => (
-          <div key={k}>
-            <b style={{ display: "block", fontSize: 17, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "#fff" }}>{v}</b>
-            <span style={{ fontSize: 11.5, color: "var(--on-vert)" }}>{k}</span>
-          </div>
-        ))}
+      <span className="ar-avg">
+        soit <Money v={avg} /> par mois en moyenne
+      </span>
+      <p className="note">
+        {rangeLabel} {net >= 0 ? `Sur 100 € encaissés, il t’en reste ${keep}.` : "Sur cette période, l’écurie t’a coûté plus qu’elle n’a rapporté."}
+      </p>
+      <div className="ar-reach">
+        {reached > 0 && <Ill n="rosette" />}
+        <span>
+          {reached > 0 ? (
+            <>
+              <b>
+                Objectif atteint {reached} mois sur {months.length}
+              </b>{" "}
+              : {reachedList.map((x) => mName(x.p)).join(", ").replace(/, ([^,]*)$/, " et $1")}.
+            </>
+          ) : (
+            <>
+              <b>Objectif de {eur(objective)} pas encore atteint</b> sur ces {months.length} mois.
+            </>
+          )}
+        </span>
+      </div>
+      <div className="trio">
+        <div>
+          <b className="in">{sg(revenue)}</b>
+          <small>ce qui est rentré</small>
+        </div>
+        <div>
+          <b className="out">{sg(-charges)}</b>
+          <small>ce qui est sorti</small>
+        </div>
+        <div>
+          <b>{cur && isFinite(cur.seuil) ? dec1(cur.seuil) : "pas encore"}</b>
+          <small>chevaux pour ne pas perdre</small>
+        </div>
       </div>
     </div>
   );
 
-  const chart = <MonthChart months={months.map((x) => ({ p: x.p, net: x.m.net }))} objective={objective} />;
-
   const left = (
     <>
-      <Sec action={<Link href="/argent">Ce mois-ci</Link>}>Ce qui t’est resté, mois par mois</Sec>
-      {chart}
-      <Sec>Où part ton argent · {eur(charges)}</Sec>
-      {weights.slice(0, 7).map((w, i) => (
-        <div key={w.label} style={{ padding: "8px 0", borderBottom: "1px solid var(--line-2)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-            <Picto name={pictoForLabel(w.label)} size={17} />
-            <span style={{ flex: 1, color: "var(--ink-1)", fontWeight: 500 }}>{w.label}</span>
-            <span style={{ fontSize: 12, color: "var(--ink-3)", fontVariantNumeric: "tabular-nums" }}>{Math.round((w.amount / Math.max(1, charges)) * 100)} %</span>
-            <b className="bs-amt" style={{ minWidth: 76, textAlign: "right" }}>
-              {eur(w.amount)}
-            </b>
+      <Sec ill="carnet-buste" title="Mois par mois" action={<Link href="/argent">Ce mois-ci</Link>} delay={0.14}>
+        <MonthChart months={months.map((x) => ({ p: x.p, net: x.m.net }))} objective={objective} />
+        <p className="note">
+          En euros. Le pointillé, c’est ton objectif de {eur(objective)}. {cap(mName(now))} est en cours, il reste {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
+        </p>
+      </Sec>
+      <Sec ill="brouette" title="Où part ton argent" action={<span className="act out">{sg(-charges)}</span>} delay={0.22}>
+        {weights.slice(0, 7).map((w, i) => (
+          <div key={w.label} className="ar-wgt">
+            <div className="ar-t">
+              <span>{w.label}</span>
+              <em>{Math.round((w.amount / Math.max(1, charges)) * 100)} %</em>
+              <Money v={-w.amount} />
+            </div>
+            <div className="ar-tr" aria-hidden="true">
+              <i style={{ width: `${(w.amount / wMax) * 100}%`, animationDelay: `${i * 0.06}s` }} />
+            </div>
           </div>
-          <div style={{ height: 5, borderRadius: 2, background: "var(--line-2)", marginTop: 6, marginLeft: 27, overflow: "hidden" }} aria-hidden>
-            <i style={{ display: "block", height: "100%", width: `${(w.amount / wMax) * 100}%`, background: i === 0 ? "var(--ink-1)" : "var(--vert-deep)", opacity: i === 0 ? 1 : 0.55, borderRadius: 2 }} />
-          </div>
-        </div>
-      ))}
+        ))}
+        {weights.length === 0 && <p className="note">Rien n’est sorti sur cette période.</p>}
+      </Sec>
       {movers.length > 0 && (
-        <>
-          <Sec>Ce qui a changé depuis {mName(addMonths(now, -1))}</Sec>
+        <Sec ill="piste" title={`Ce qui a changé depuis ${prev}`} delay={0.3}>
           {movers.map((x) => (
-            <div key={x.label} className="bs-li" style={{ padding: "9px 0" }}>
-              <span className={`bs-pic sm${x.delta > 0 ? " rose" : ""}`}>
-                <Picto name={x.delta > 0 ? "up" : "down"} />
+            <div key={x.label} className="ar-post">
+              <span className={`ar-arr ${x.delta > 0 ? "up" : "dn"}`}>
+                <Ic n="arrow" className="ar-ic" />
               </span>
-              <span className="tx">
-                <b>{x.label}</b>
-                <span>{eur(x.cur)} ce mois-ci</span>
+              <span>
+                {x.label}
+                <small>
+                  {eur(x.cur)} ce mois-ci, {eur(Math.abs(x.delta))} de {x.delta > 0 ? "plus" : "moins"}
+                </small>
               </span>
-              <b className="bs-amt" style={{ color: x.delta > 0 ? "var(--rose-ink)" : "var(--vert)" }}>
-                {x.delta > 0 ? "+" : "−"}
-                {eur(Math.abs(x.delta))}
-              </b>
+              <Money v={-x.delta} />
             </div>
           ))}
-          <p className="bs-p" style={{ fontSize: 12 }}>En rose, ce qui t’a coûté plus que le mois dernier. En vert, ce qui t’a coûté moins.</p>
-        </>
+          <p className="note">En rose, ce qui t’a coûté plus qu’en {prev}. En vert, ce que tu as gardé en plus.</p>
+        </Sec>
       )}
     </>
   );
 
   const right = (
     <>
-      {losers.length > 0 && (
-        <Link href="/chevaux" className="bs-banner" style={{ marginTop: desk ? 22 : 10 }}>
-          <Picto name="horse" />
-          <span style={{ flex: 1 }}>
+      <Sec ill="tete-fondu" title="Ce que chaque cheval t’a laissé" action={<Link href="/chevaux">Voir tous</Link>} delay={0.38}>
+        {losers.length > 0 && (
+          <p className="ar-lose">
             <b>
-              {losers.length} cheva{losers.length > 1 ? "ux te coûtent" : "l te coûte"}
+              {losers.length} cheva{losers.length > 1 ? "ux t’ont coûté" : "l t’a coûté"} plus qu’{losers.length > 1 ? "ils ne rapportent" : "il ne rapporte"}
             </b>{" "}
-            plus qu’ils ne rapportent sur cette période : {losers.map((x) => x.h.name).join(", ")}
-          </span>
-          <Picto name="chev" />
-        </Link>
-      )}
-      <Sec action={<Link href="/chevaux">Voir tous</Link>}>Ce que chaque cheval t’a laissé</Sec>
-      {horses.map(({ h, net: n }) => (
-        <Link key={h.id} href={`/ticket?id=${h.id}`} className="bs-li tap" style={{ padding: "8px 0" }}>
-          <HorseFace horse={h} size={34} />
-          <span className="tx">
-            <b>{h.name}</b>
-            <span>{signed(n / Math.max(1, months.length))} par mois en moyenne</span>
-          </span>
-          <NetPill value={n} />
-        </Link>
-      ))}
-      <Sec action={<Link href="/prestations">Tes prestations</Link>}>Ce que rapportent tes cours et services</Sec>
-      {prests.length === 0 ? (
-        <p className="bs-p">Aucune séance confirmée sur cette période. Confirme tes séances dans le planning pour les voir ici.</p>
-      ) : (
-        prests.map((x) => (
-          <div key={x.p.id} className="bs-li" style={{ padding: "8px 0" }}>
-            <span className="bs-pic sm">
-              <Picto name="cours" />
+            sur ces {months.length} mois : {losers.map((x) => x.h.name).join(", ")}.
+          </p>
+        )}
+        {horses.map(({ h, net: n }) => (
+          <Link key={h.id} href={`/ticket?id=${h.id}`} className="li">
+            <Face horse={h} />
+            <span>
+              <b>{h.name}</b>
+              <small>{sg(n / Math.max(1, months.length))} par mois en moyenne</small>
             </span>
-            <span className="tx">
-              <b>{x.p.label}</b>
-              <span>
-                {x.n} séance{x.n > 1 ? "s" : ""} qui {x.n > 1 ? "ont" : "a"} eu lieu
+            <span className={`pill${Math.round(n) > 0 ? " in" : Math.round(n) < 0 ? " out" : ""}`}>{sg(n)}</span>
+          </Link>
+        ))}
+      </Sec>
+      <Sec ill="confirmer" title="Ce que rapportent tes cours" action={<Link href="/prestations">Tes prestations</Link>} delay={0.46}>
+        {prests.length === 0 ? (
+          <p className="note">Aucune séance confirmée sur cette période. Confirme tes séances dans le planning pour les voir ici.</p>
+        ) : (
+          prests.map((x) => (
+            <div key={x.p.id} className="ar-post">
+              <span className="ar-pic">
+                <Ic n={icFor(x.p.label)} className="ar-ic" />
               </span>
+              <span>
+                {x.p.label}
+                <small>
+                  {x.n} séance{x.n > 1 ? "s" : ""} qui {x.n > 1 ? "ont" : "a"} eu lieu
+                </small>
+              </span>
+              <Money v={x.amount} />
+            </div>
+          ))
+        )}
+      </Sec>
+      <Sec ill="guide" title="Pour aller plus loin" delay={0.54}>
+        {(
+          [
+            ["/seuil", "flag", "Combien de chevaux pour ne pas perdre d’argent", "le nombre de pensions qui paient tout"],
+            ["/scenarios/nouveau", "chart", "Et si… ?", "essayer une hausse de pension, sans rien toucher"],
+            ["/argent?vue=mouvements", "list", "Toutes les entrées et sorties d’argent", "chaque ligne, une par une"],
+          ] as const
+        ).map(([href, pic, t, s]) => (
+          <Link key={href} href={href} className="li">
+            <span className="ar-pic">
+              <Ic n={pic} className="ar-ic" />
             </span>
-            <b className="bs-amt plus">{signed(x.amount)}</b>
-          </div>
-        ))
-      )}
-      <Sec>Pour aller plus loin</Sec>
-      {(
-        [
-          ["/seuil", "flag", "Combien de chevaux pour ne pas perdre d’argent", "le nombre de pensions qui paient tout"],
-          ["/scenarios/nouveau", "chart", "Et si… ?", "essayer une hausse de pension ou une place en plus, sans rien toucher"],
-          ["/argent?vue=mouvements", "list", "Toutes les entrées et sorties d’argent", "chaque ligne, une par une"],
-        ] as const
-      ).map(([href, pic, t, s]) => (
-        <Link key={href} href={href} className="bs-li tap">
-          <span className="bs-pic soft">
-            <Picto name={pic} />
-          </span>
-          <span className="tx">
-            <b>{t}</b>
-            <span>{s}</span>
-          </span>
-          <Picto name="chev" />
-        </Link>
-      ))}
+            <span>
+              <b>{t}</b>
+              <small>{s}</small>
+            </span>
+            <Ic n="chev" className="chev" />
+          </Link>
+        ))}
+      </Sec>
     </>
   );
 
   return (
-    <Screen wide={desk}>
-      <div className="bs-dhead" style={{ marginTop: desk ? 0 : 14 }}>
-        <div>
-          <h1 className="bs-d bs-t1">Bilan sur plusieurs mois</h1>
-          <p className="bs-p">Tes mois mis bout à bout, à partir de ce que tu as confirmé. Pratique pour voir si l’écurie va dans le bon sens.</p>
-        </div>
-        <div className="bs-seg" style={{ marginTop: desk ? 0 : 12, width: desk ? 400 : "100%" }}>
-          {SPANS.map(([k, l]) => (
-            <button key={k} type="button" aria-pressed={span === k} onClick={() => setSpan(k)}>
-              {l}
-            </button>
-          ))}
-        </div>
+    <Page wide={desk}>
+      <h1 className="ar-sr">Bilan sur plusieurs mois</h1>
+      <div className="ar-bseg" style={{ marginTop: 12 }}>
+        <Seg value={span} onChange={setSpan} options={SPANS} label="Période" />
       </div>
+      {hero}
       {desk ? (
-        <>
-          <div style={{ maxWidth: 720 }}>{hero}</div>
-          <div className="bs-split wide-l">
-            <div>{left}</div>
-            <div className="stick">{right}</div>
-          </div>
-        </>
+        <div className="ar-split">
+          <div>{left}</div>
+          <div>{right}</div>
+        </div>
       ) : (
         <>
-          {hero}
           {left}
           {right}
         </>
       )}
-    </Screen>
+      <div className="end" />
+    </Page>
   );
 }
 
 /**
- * Le résultat mois par mois : vert au-dessus de zéro, encre en dessous, le
- * mois en cours cerclé de rose ; la ligne pointillée rose est l'objectif.
+ * Le résultat mois par mois : barres à l'encre (hachurées sous zéro), le
+ * mois en cours cerclé ; le trait pointillé est l'objectif.
  */
 function MonthChart({ months, objective }: { months: { p: Period; net: number }[]; objective: number }) {
-  const H = 168;
+  const H = 150;
+  const BASE = 20;
   const pos = Math.max(objective, 1, ...months.map((m) => m.net));
   const neg = Math.max(0, ...months.map((m) => -m.net));
-  const zero = (pos / (pos + neg)) * H;
   const scale = H / (pos + neg);
+  const zero = BASE + neg * scale; // distance depuis le bas
   const now = currentPeriod();
+  const many = months.length > 8;
+  const nf = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+  const lab = (v: number) => (many ? `${dec1(v / 1000)} k` : `${Math.round(v) < 0 ? "−" : ""}${nf.format(Math.abs(Math.round(v))).replace(/\u202f/g, "\u00a0")}`);
+  const aria = `Ce qui t’est resté : ${months.map((m) => `${mName(m.p)} ${sg(m.net)}`).join(", ")}. Objectif ${eur(objective)}.`;
   return (
-    <div style={{ marginTop: 10 }}>
-      <div style={{ position: "relative", height: H + 22, display: "grid", gridTemplateColumns: `repeat(${months.length}, minmax(0, 1fr))`, gap: months.length > 8 ? 4 : 10 }}>
-        <div aria-hidden style={{ position: "absolute", left: 0, right: 0, top: zero, borderTop: "1px solid var(--ink-3)" }} />
-        <div aria-hidden style={{ position: "absolute", left: 0, right: 0, top: zero - objective * scale, borderTop: "1.5px dashed var(--rose-ink)", opacity: 0.7 }}>
-          <span style={{ position: "absolute", left: 0, top: 2, fontSize: 10.5, fontWeight: 600, color: "var(--rose-ink)", background: "var(--paper)", paddingLeft: 4 }}>objectif {eur(objective)}</span>
-        </div>
-        {months.map(({ p, net }) => {
-          const isNow = samePeriod(p, now);
-          const h = Math.max(2, Math.abs(net) * scale);
-          return (
-            <div key={`${p.year}-${p.month}`} style={{ position: "relative" }} title={`${cap(mName(p))} : ${signed(net)}`}>
-              <i
-                style={{
-                  position: "absolute",
-                  left: "14%",
-                  right: "14%",
-                  top: net >= 0 ? zero - h : zero,
-                  height: h,
-                  background: net >= 0 ? "var(--vert)" : "var(--ink-1)",
-                  borderRadius: net >= 0 ? "3px 3px 0 0" : "0 0 3px 3px",
-                  boxShadow: isNow ? "0 0 0 2px var(--paper), 0 0 0 4px var(--rose)" : undefined,
-                }}
-              />
-              <span style={{ position: "absolute", left: 0, right: 0, textAlign: "center", top: net >= 0 ? zero - h - 16 : zero - 16, fontSize: 10.5, fontWeight: 600, fontVariantNumeric: "tabular-nums", color: net >= 0 ? "var(--vert)" : "var(--ink-1)", whiteSpace: "nowrap" }}>
-                {months.length > 8 ? `${dec1(net / 1000)} k` : signed(net)}
-              </span>
-              <span style={{ position: "absolute", left: 0, right: 0, bottom: 0, textAlign: "center", fontSize: 11, color: isNow ? "var(--ink-1)" : "var(--ink-3)", fontWeight: isNow ? 650 : 500 }}>{mName(p, "short").replace(".", "")}</span>
-            </div>
-          );
-        })}
-      </div>
+    <div className="ar-mc" role="img" aria-label={aria} style={{ height: H + BASE + 18, gridTemplateColumns: `repeat(${months.length}, minmax(0, 1fr))`, gap: many ? 4 : 8 }}>
+      <span className="ar-base" style={{ bottom: zero }} />
+      <span className="ar-obj" style={{ bottom: zero + objective * scale }} />
+      {months.map(({ p, net }, i) => {
+        const isNow = samePeriod(p, now);
+        const h = Math.max(2, Math.abs(net) * scale);
+        return (
+          <div key={`${p.year}-${p.month}`} className={`ar-m${isNow ? " now" : ""}`} title={`${cap(mName(p))} : ${sg(net)}`}>
+            <i className={net < 0 ? "neg" : undefined} style={{ bottom: net >= 0 ? zero : zero - h, height: h, animationDelay: `${i * 0.06}s` }} />
+            <em style={{ bottom: net >= 0 ? zero + h + 4 : zero + 4 }}>{lab(net)}</em>
+            <small>{mName(p, "short").replace(".", "")}</small>
+          </div>
+        );
+      })}
     </div>
   );
 }

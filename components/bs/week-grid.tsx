@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { Picto } from "@/components/bs/picto";
-import { eur, signed } from "@/components/bs/ui";
-import { useCheck } from "@/components/bs/day-block";
+import { cap, signed } from "@/components/bs/ui";
+import { Ic, sg } from "@/components/carnet/ui";
+import { lateLabel, moneyCls, useCheck } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { dayItems, seanceAmount, type DayItem } from "@/lib/domain/seances";
@@ -11,13 +11,13 @@ import { dayItems, seanceAmount, type DayItem } from "@/lib/domain/seances";
 /**
  * La semaine sur ordinateur : sept colonnes, une ligne par heure. Cliquer
  * une heure vide planifie à cette heure ; cliquer une séance ouvre sa
- * fiche ; la petite coche valide d'un geste. Les éléments sans heure
- * (soins du jour, tâches) vivent dans la ligne « Journée ».
+ * fiche ; la petite coche (au survol) valide d'un geste. Les éléments sans
+ * heure (soins du jour, tâches) vivent dans la ligne « Journée ».
+ * Le style est dans app/carnet/journee.css (sous .jr-desk).
  */
-const HOUR = 48;
+const HOUR = 36;
 const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
-const BG = { g: "var(--vert-soft)", r: "var(--rose-soft)", o: "#F5ECDC", n: "var(--mist)" } as const;
-const FG = { g: "var(--vert-deep)", r: "#5E2240", o: "#5C4420", n: "var(--ink-2)" } as const;
+const pad2 = (h: number) => String(h).padStart(2, "0");
 
 type Placed = { it: DayItem; s: number; e: number; col: number; cols: number };
 
@@ -50,11 +50,14 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
 
   // À l'ouverture, la grille défile jusqu'à l'heure qu'il est (ou 8 h).
   const ref = useRef<HTMLDivElement>(null);
+  const headRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    const body = bodyRef.current;
+    if (!el || !body) return;
     const target = days.includes(today) ? mins(now) - 120 : 8 * 60;
-    el.scrollTop = Math.max(0, top(Math.max(first * 60, target)));
+    el.scrollTop = Math.max(0, body.offsetTop - (headRef.current?.offsetHeight ?? 0) + top(Math.max(first * 60, target)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days[0]]);
 
@@ -65,111 +68,132 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
   };
 
   return (
-    <div className="bs-wg">
-      <div className="bs-wg-head">
-        <span />
+    <div className="wg" ref={ref}>
+      <div className="wg-r wg-head" ref={headRef}>
+        <span className="gut" />
         {days.map((d, i) => {
           const money = (data.seances ?? []).filter((x) => x.date === d && x.status !== "cancelled").reduce((t, x) => t + seanceAmount(x), 0);
           return (
-            <button key={d} type="button" className={`d${d === today ? " td" : ""}`} onClick={() => onPickDay(d)} title="Ajouter quelque chose ce jour-là">
-              <small>{new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "")}</small>
+            <button key={d} type="button" className={`dh${d === today ? " td" : ""}`} onClick={() => onPickDay(d)} title="Ajouter quelque chose ce jour-là">
+              {cap(new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", ""))}
               <b>{Number(d.slice(8))}</b>
-              <em>{money ? eur(money) : perDay[i].length ? `${perDay[i].length} chose${perDay[i].length > 1 ? "s" : ""}` : ""}</em>
+              <em className={moneyCls(money)}>{money ? sg(money) : perDay[i].length ? `${perDay[i].length} chose${perDay[i].length > 1 ? "s" : ""}` : " "}</em>
             </button>
           );
         })}
       </div>
 
       {hasUntimed && (
-        <div className="bs-wg-day">
-          <span>Journée</span>
+        <div className="wg-r wg-day">
+          <span className="gut">Journée</span>
           {perDay.map((list, i) => (
-            <div key={days[i]}>
+            <span key={days[i]} className="jc">
               {list
                 .filter((it) => !it.start)
-                .map((it) => (
-                  <button
-                    key={it.key}
-                    type="button"
-                    className="bs-wg-chip"
-                    style={{ background: BG[it.tone], color: FG[it.tone], opacity: it.done ? 0.55 : 1, boxShadow: it.late && !it.done ? "inset 0 0 0 1.5px var(--rose-ink)" : undefined }}
-                    onClick={() => open(it)}
-                    title={it.done ? `${label(it)} (fait)` : `${label(it)} : clique pour confirmer que c’est fait`}
-                    aria-label={it.done ? `${label(it)}, fait` : `Confirmer que c’est fait : ${label(it)}`}
-                  >
-                    {it.done && <Picto name="check" size={12} />}
-                    <span>{it.title}</span>
-                  </button>
-                ))}
-            </div>
+                .map((it) => {
+                  const late = lateLabel(it, today);
+                  return (
+                    <button
+                      key={it.key}
+                      type="button"
+                      className={`jci${it.done ? " done" : ""}`}
+                      onClick={() => open(it)}
+                      title={it.done ? `${label(it)} (fait)` : `${label(it)} : clique pour confirmer que c’est fait`}
+                      aria-label={it.done ? `${label(it)}, fait` : `Confirmer que c’est fait : ${label(it)}`}
+                    >
+                      {it.done && (
+                        <span className="dk">
+                          <Ic n="ck" className="" />
+                        </span>
+                      )}
+                      <span>
+                        {late ? <b>{it.title}</b> : it.title}
+                        {late ? ` · ${late}` : it.sub ? ` · ${it.sub}` : ""}
+                      </span>
+                    </button>
+                  );
+                })}
+            </span>
           ))}
         </div>
       )}
 
-      <div className="bs-wg-body" ref={ref}>
-        <div className="bs-wg-gut" style={{ height: hours.length * HOUR }}>
+      <div className="wg-r wg-body" ref={bodyRef} style={{ height: hours.length * HOUR }}>
+        <span className="gut hrs">
           {hours.map((h) => (
             <span key={h} style={{ top: (h - first) * HOUR }}>
-              {h > first ? `${String(h).padStart(2, "0")} h` : ""}
+              {pad2(h)}
             </span>
           ))}
-        </div>
+        </span>
         {days.map((d, i) => (
-          <div key={d} className={`bs-wg-col${d === today ? " td" : ""}`} style={{ height: hours.length * HOUR }}>
+          <span key={d} className={`col${d === today ? " td" : ""}`}>
             {hours.map((h) => (
               <button
                 key={h}
                 type="button"
                 className="slot"
-                style={{ height: HOUR }}
+                style={{ top: (h - first) * HOUR, height: HOUR }}
                 aria-label={`Ajouter quelque chose le ${new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })} à ${h} h`}
-                onClick={() => openNoter({ mode: "seance", date: d, start: `${String(h).padStart(2, "0")}:00` })}
+                onClick={() => openNoter({ mode: "seance", date: d, start: `${pad2(h)}:00` })}
               />
             ))}
-            {place(perDay[i]).map(({ it, s, e, col, cols }) => (
-              <div
-                key={it.key}
-                role="button"
-                tabIndex={0}
-                className="ev"
-                onClick={() => open(it)}
-                onKeyDown={(ev) => (ev.key === "Enter" || ev.key === " ") && (ev.preventDefault(), open(it))}
-                aria-label={label(it)}
-                title={label(it)}
-                style={{
-                  top: top(s) + 1,
-                  height: Math.max(26, ((e - s) / 60) * HOUR - 3),
-                  left: `calc(${(100 / cols) * col}% + 3px)`,
-                  width: `calc(${100 / cols}% - 6px)`,
-                  background: BG[it.tone],
-                  color: FG[it.tone],
-                  opacity: it.done ? 0.6 : 1,
-                  boxShadow: it.late && !it.done ? "inset 0 0 0 1.5px var(--rose-ink)" : undefined,
-                }}
-              >
-                <b>
-                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.title}</span>
-                  {it.money ? <i>{signed(it.money)}</i> : null}
-                </b>
-                {(e - s) / 60 * HOUR > 40 && <span>{[it.start, it.sub].filter(Boolean).join(" · ")}</span>}
-                {(e - s) / 60 * HOUR > 52 && (
-                  <button
-                    type="button"
-                    className={`ck${it.done ? " on" : ""}`}
-                    aria-label={it.done ? `${it.title} : fait` : `Confirmer que c’est fait : ${it.title}`}
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      if (!it.done) check(it);
-                      else if (it.seance) openSeance(it.seance.id);
-                    }}
-                  >
-                    <Picto name="check" />
-                  </button>
-                )}
-              </div>
-            ))}
-            {d === today && mins(now) >= first * 60 && mins(now) <= last * 60 && <div className="now" style={{ top: top(mins(now)) }} />}
-          </div>
+            {place(perDay[i]).map(({ it, s, e, col, cols }) => {
+              const h = Math.max(24, ((e - s) / 60) * HOUR - 3);
+              const short = h < 30;
+              const money = it.money ? <span className={moneyCls(it.money)}>{sg(it.money)}</span> : null;
+              return (
+                <div
+                  key={it.key}
+                  role="button"
+                  tabIndex={0}
+                  className={`ev${short ? " short" : ""}${it.done ? " done" : ""}${it.late && !it.done ? " wait" : ""}`}
+                  onClick={() => open(it)}
+                  onKeyDown={(ev) => (ev.key === "Enter" || ev.key === " ") && (ev.preventDefault(), open(it))}
+                  aria-label={label(it)}
+                  title={label(it)}
+                  style={{
+                    top: top(s) + 1,
+                    height: h,
+                    left: `calc(${(100 / cols) * col}% + 3px)`,
+                    width: `calc(${100 / cols}% - 6px)`,
+                  }}
+                >
+                  <b>
+                    <span>{it.title}</span>
+                    {it.done ? (
+                      <span className="dk">
+                        <Ic n="ck" className="" />
+                      </span>
+                    ) : short ? (
+                      money
+                    ) : null}
+                  </b>
+                  {!short && (
+                    <small>
+                      <span>{[it.sub, it.late && !it.done ? lateLabel(it, today) : ""].filter(Boolean).join(" · ") || it.start}</span>
+                      {money}
+                    </small>
+                  )}
+                  {!it.done && (
+                    <button
+                      type="button"
+                      className="evck"
+                      aria-label={`Confirmer que c’est fait : ${it.title}`}
+                      title="C’est fait"
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        check(it);
+                      }}
+                    >
+                      <Ic n="ck" className="" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            {d === today && mins(now) >= first * 60 && mins(now) <= last * 60 && <span className="now" style={{ top: top(mins(now)) }} />}
+          </span>
         ))}
       </div>
     </div>

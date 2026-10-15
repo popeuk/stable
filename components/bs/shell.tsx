@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
-import { Picto } from "@/components/bs/picto";
 import { signed } from "@/components/bs/ui";
+import { CountUp, Ic, eur } from "@/components/carnet/ui";
 import { useUiStore } from "@/stores/ui-store";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -15,7 +16,7 @@ import { billsFor } from "@/lib/domain/billing";
 import { suggestions } from "@/lib/domain/leviers";
 import { currentPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
-import { AideBouton, isRoot, useRetour, useSuiviNavigation } from "@/components/bs/nav";
+import { AideBouton, isRoot, titreDe, useRetour, useSuiviNavigation } from "@/components/bs/nav";
 
 const nowHHMM = () => {
   const d = new Date();
@@ -23,9 +24,9 @@ const nowHHMM = () => {
 };
 
 /**
- * L'en-tête : à gauche be stable (ou le retour, hors des onglets), le nom de
- * l'écurie, l'aide de l'écran, et à droite le Bilan avec ce qu'il reste ce
- * mois. Le menu, lui, est dans la barre d'onglets.
+ * L'en-tête du carnet : be stable et l'écurie sur les onglets, sinon le
+ * retour et le titre de l'écran ; l'aide ; et le Bilan du mois, qui compte
+ * et saute quand de l'argent rentre.
  */
 export function Header() {
   const data = useDataStore();
@@ -34,27 +35,52 @@ export function Header() {
   const path = usePathname() ?? "";
   const retour = useRetour();
   useSuiviNavigation();
-  const surBilan = ["/argent", "/pilotage", "/seuil", "/scenarios", "/depenses"].some((m) => path.startsWith(m));
+  const surBilan = BILAN.some((m) => path.startsWith(m));
+  const avant = useRef(net);
+  const [gain, setGain] = useState(0);
+  useEffect(() => {
+    const d = Math.round(net - avant.current);
+    avant.current = net;
+    if (d <= 0) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setGain(d);
+    const t = setTimeout(() => setGain(0), 1400);
+    return () => clearTimeout(t);
+  }, [net]);
   return (
-    <header className="bs-hd">
+    <header className="hd">
       {isRoot(path) ? (
-        <Link href="/accueil" className="bs-wm">
-          be stable
-        </Link>
+        <>
+          <Link href="/accueil" className="wm">
+            be stable
+          </Link>
+          <span className="stb">· {stableName}</span>
+        </>
       ) : (
-        <button type="button" className="bs-icon" onClick={retour} aria-label="Revenir en arrière">
-          <Picto name="chevL" />
-        </button>
+        <>
+          <button type="button" className="back" onClick={retour} aria-label="Revenir en arrière">
+            <Ic n="back" />
+          </button>
+          <span className="ttl">{path.startsWith("/ticket") ? <Suspense fallback={titreDe(path)}><TitreCheval /></Suspense> : titreDe(path)}</span>
+        </>
       )}
-      <span className="stb">{isRoot(path) ? `· ${stableName}` : stableName}</span>
-      <AideBouton />
-      <Link href="/argent" className={`bs-bilan${net < 0 ? " neg" : ""}`} aria-current={surBilan ? "page" : undefined} aria-label={`Bilan du mois : il te reste ${signed(net)}`}>
-        <span className="l">Bilan</span>
-        <span className="v">{signed(net)}</span>
+      <AideBouton className="help" />
+      <Link href="/argent" className={`bilan${surBilan ? " on" : ""}${gain ? " bump" : ""}`} aria-current={surBilan ? "page" : undefined} aria-label={`Bilan du mois : il te reste ${signed(net)}`}>
+        <small>Bilan</small>
+        <b style={net < 0 && !surBilan ? { color: "var(--out)" } : undefined}>
+          <CountUp value={net} ms={600} />
+        </b>
+        {gain > 0 && (
+          <span className="chip-fly" style={{ right: 0, top: "100%", marginTop: 6 }} aria-hidden="true">
+            +{gain} €
+          </span>
+        )}
       </Link>
     </header>
   );
 }
+
+const BILAN = ["/argent", "/pilotage", "/seuil", "/scenarios", "/depenses", "/plan", "/audit", "/decouvertes", "/conseiller"];
 
 export function Drawer({ onClose }: { onClose: () => void }) {
   const data = useDataStore();
@@ -78,65 +104,67 @@ export function Drawer({ onClose }: { onClose: () => void }) {
     };
   }, [onClose]);
 
-  const it = (href: string, picto: string, label: string, em?: string, red?: boolean) => (
+  const it = (href: string, ic: string, label: string, em?: ReactNode, cls?: string) => (
     <Link href={href} className="it" onClick={onClose}>
-      <Picto name={picto} />
+      <Ic n={ic} />
       {label}
-      {em && <em className={red ? "r" : ""}>{em}</em>}
+      {em !== undefined && <em className={cls}>{em}</em>}
     </Link>
   );
   return (
-    <>
-      <div className="bs-drawer-scrim" onClick={onClose} />
-      <nav className="bs-drawer" aria-label="Menu">
+    <div className="carnet carnet-portal">
+      <div className="drawer-scrim" onClick={onClose} />
+      <nav className="drawer" aria-label="Menu">
         <div style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 12, borderBottom: "1px solid var(--line)" }}>
-          <span className="bs-wm" style={{ fontSize: 21 }}>
+          <span className="wm" style={{ fontWeight: 800, fontSize: 21, letterSpacing: "-.035em" }}>
             be stable
           </span>
-          <span style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.25, flex: 1 }}>
+          <span style={{ fontSize: 12, color: "var(--ink3)", lineHeight: 1.25, flex: 1 }}>
             {s.stableName}
             <br />
             {s.gerant}
           </span>
-          <button type="button" className="bs-burger" onClick={onClose} aria-label="Fermer le menu">
-            <Picto name="x" />
+          <button type="button" className="x" onClick={onClose} aria-label="Fermer le menu">
+            <svg viewBox="0 0 24 24">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
           </button>
         </div>
-        <Link href="/recherche" className="bs-field" style={{ marginTop: 12, color: "var(--ink-3)" }} onClick={onClose}>
-          <Picto name="search" size={16} />
-          <span style={{ flex: 1 }}>Chercher un cheval, un client…</span>
+        <Link href="/recherche" className="input" style={{ marginTop: 14, color: "var(--ink3)", textDecoration: "none" }} onClick={onClose}>
+          <Ic n="search" className="cn-ic sm" />
+          Chercher un cheval, un client…
         </Link>
         <p className="grp">Au quotidien</p>
-        {it("/valider", "check", "Séances à confirmer", pending ? String(pending) : undefined, pending > 0)}
-        {it("/equipe", "board", "Tâches de l’équipe", openTasks ? String(openTasks) : undefined)}
-        {it("/clients", "personne", "Mes clients")}
+        {it("/valider", "ck", "Séances à confirmer", pending ? pending : undefined, "attn")}
+        {it("/equipe", "board", "Tâches de l’équipe", openTasks ? openTasks : undefined)}
+        {it("/clients", "people", "Mes clients")}
         <p className="grp">Ton bilan</p>
-        {it("/argent", "euro", "Bilan du mois", signed(net))}
-        {it("/argent?vue=leviers", "bulb", "Pistes pour gagner plus", acts ? String(acts) : undefined)}
-        {it("/argent?vue=facturer", "doc", "À facturer", due ? `${Math.round(due)} €` : undefined)}
+        {it("/argent", "euro", "Bilan du mois", signed(net), net >= 0 ? "in" : "out")}
+        {it("/argent?vue=leviers", "bulb", "Pistes pour gagner plus", acts ? acts : undefined)}
+        {it("/argent?vue=facturer", "doc", "À facturer", due ? eur(due) : undefined)}
         {it("/argent?vue=mouvements", "list", "Entrées et sorties d’argent")}
         {it("/pilotage", "chart", "Bilan sur plusieurs mois")}
         <p className="grp">Ton écurie</p>
         {it("/ma-fiche", "flag", "Ma fiche sur mon-ecurie.fr")}
-        {it("/prestations", "cours", "Mes cours, services et prix")}
-        {it("/moi", "reglages", "Mon écurie et mes réglages")}
-        {it("/parcours", "flag", "Mes premiers pas", s.parcoursPlusTard && !(s.parcours.chevaux && s.parcours.tarifs && s.parcours.factures) ? "à finir" : undefined, true)}
+        {it("/prestations", "hay", "Mes cours, services et prix")}
+        {it("/moi", "gear", "Mon écurie et mes réglages")}
+        {it("/parcours", "flag", "Mes premiers pas", s.parcoursPlusTard && !(s.parcours.chevaux && s.parcours.tarifs && s.parcours.factures) ? "à finir" : undefined, "attn")}
         <p className="grp">Besoin d’aide ?</p>
-        <button type="button" className="it" onClick={() => (s.revoirAides(), onClose())}>
-          <Picto name="aide" />
+        <button type="button" className="it" style={{ width: "100%", background: "none", border: 0, borderBottom: "1px solid var(--line2)", textAlign: "left", cursor: "pointer" }} onClick={() => (s.revoirAides(), onClose())}>
+          <Ic n="help" />
           Revoir les explications de chaque écran
         </button>
-        {it("/moi#bestable", "book", "Le guide, la communauté, l’annuaire")}
+        {it("/moi#bestable", "doc", "Le guide, la communauté, l’annuaire")}
       </nav>
-    </>
+    </div>
   );
 }
 
 /** La barre d'onglets : Accueil, Planning, +, Chevaux, Menu. Le Bilan est en haut à droite. */
 const TABS = [
-  { href: "/accueil", label: "Accueil", picto: "home", match: ["/accueil"] },
-  { href: "/planning", label: "Planning", picto: "cal", match: ["/planning", "/valider"] },
-  { href: "/chevaux", label: "Chevaux", picto: "horse", match: ["/chevaux", "/ticket", "/part", "/cheval"] },
+  { href: "/accueil", label: "Accueil", ic: "home", match: ["/accueil"] },
+  { href: "/planning", label: "Planning", ic: "cal", match: ["/planning", "/valider"] },
+  { href: "/chevaux", label: "Chevaux", ic: "horse", match: ["/chevaux", "/ticket", "/part", "/cheval"] },
 ];
 
 export function TabBar() {
@@ -145,39 +173,39 @@ export function TabBar() {
   const [menu, setMenu] = useState(false);
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMenu(false), [path]);
-  const ailleurs = !TABS.some((t) => t.match.some((m) => path === m || path.startsWith(m + "/"))) && !["/argent", "/pilotage", "/seuil", "/scenarios", "/depenses"].some((m) => path.startsWith(m));
+  const ailleurs = !TABS.some((t) => t.match.some((m) => path === m || path.startsWith(m + "/"))) && !BILAN.some((m) => path.startsWith(m));
   const tab = (t: (typeof TABS)[number]) => {
     const on = t.match.some((m) => path === m || path.startsWith(m + "/"));
     return (
-      <Link key={t.href} href={t.href} className="bs-tab" aria-current={on ? "page" : undefined}>
-        <Picto name={t.picto} />
+      <Link key={t.href} href={t.href} aria-current={on ? "page" : undefined}>
+        <Ic n={t.ic} />
         {t.label}
       </Link>
     );
   };
   return (
-    <nav className="bs-tabs" aria-label="Navigation principale">
-      <div className="bs-tabs-in">
+    <nav className="tb" aria-label="Navigation principale">
+      <div>
         {tab(TABS[0])}
         {tab(TABS[1])}
         <button
           type="button"
-          className="bs-add"
-          aria-label="Ajouter une séance, un soin, une tâche ou une dépense"
+          className="plus"
+          aria-label="Noter une séance, un soin, une tâche ou de l’argent"
           onClick={() => {
             const id = path.startsWith("/ticket") ? new URLSearchParams(window.location.search).get("id") : null;
             openNoter(id ? { horseIds: [id] } : {});
           }}
         >
-          <Picto name="plus" />
+          <Ic n="plus" />
         </button>
         {tab(TABS[2])}
-        <button type="button" className="bs-tab" aria-current={ailleurs ? "page" : undefined} aria-expanded={menu} onClick={() => setMenu(true)}>
-          <Picto name="menu" />
+        <button type="button" aria-current={ailleurs ? "page" : undefined} aria-expanded={menu} onClick={() => setMenu(true)}>
+          <Ic n="menu" />
           Menu
         </button>
       </div>
-      {/* Le menu sort de la barre : sur iPhone, son flou enfermerait le menu dedans. */}
+      {/* Le menu sort de la barre : sur iPhone, une barre floutée enfermerait le menu dedans. */}
       {menu && createPortal(<Drawer onClose={() => setMenu(false)} />, document.body)}
     </nav>
   );
@@ -188,7 +216,7 @@ export function ToastHost() {
   const dismiss = useUiStore((s) => s.dismiss);
   if (!toast) return null;
   return (
-    <div className="bs-toast" role="status" aria-live="polite" key={toast.id}>
+    <div className="toast" role="status" aria-live="polite" key={toast.id}>
       <p dangerouslySetInnerHTML={{ __html: toast.html }} />
       {toast.undo && (
         <button
@@ -203,4 +231,11 @@ export function ToastHost() {
       )}
     </div>
   );
+}
+
+/** Sur la fiche d’un cheval, l’en-tête porte son nom. */
+function TitreCheval() {
+  const id = useSearchParams().get("id");
+  const nom = useDataStore((s) => s.horses.find((h) => h.id === id)?.name);
+  return <>{nom ?? "Fiche du cheval"}</>;
 }

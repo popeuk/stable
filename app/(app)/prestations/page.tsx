@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Screen, Sec, Tip, Toggle, cap, esc, eur, signed } from "@/components/bs/ui";
-import { Picto } from "@/components/bs/picto";
+import { Screen, cap, esc, eur } from "@/components/bs/ui";
 import { useDesk } from "@/components/bs/desk";
+import { CountUp, Hello, Ic, Ill, Sec, Switch, Tip, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -29,6 +29,8 @@ export default function Page() {
 
 type Stat = { p: Prestation; count: number; riders: number; done: number; planned: number };
 
+const nfmt = (n: number) => String(Math.round(n));
+
 function Prestations() {
   const data = useDataStore();
   const active = usePeriodStore((s) => s.active);
@@ -39,6 +41,7 @@ function Prestations() {
   const isNow = samePeriod(active, currentPeriod());
   const mm = `${active.year}-${String(active.month).padStart(2, "0")}`;
   const monthLabel = cap(new Date(active.year, active.month - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: isNow ? undefined : "numeric" }));
+  const auJour = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
 
   const stats: Stat[] = useMemo(
     () =>
@@ -61,97 +64,93 @@ function Prestations() {
   const best = stats.filter((s) => s.done + s.planned > 0)[0];
 
   const list = (
-    <>
-      <Sec>Ce que tu proposes · {stats.filter((s) => s.p.active).length}</Sec>
-      {stats.length === 0 && <p className="bs-p">Tu n’as encore rien ajouté. Cours, balades, travail du cheval : ajoute ce que tu proposes juste en dessous.</p>}
+    <Sec ill="carnet-buste" title={`Ce que tu proposes · ${stats.filter((s) => s.p.active).length}`} delay={0.2}>
+      {stats.length === 0 && <p className="note">Tu n’as encore rien ajouté. Cours, balades, travail du cheval : ajoute ce que tu proposes juste en dessous.</p>}
       {stats.map((s) => (
         <Row key={s.p.id} s={s} max={max} open={edit === s.p.id} onToggle={() => setEdit(edit === s.p.id ? null : s.p.id)} onPlan={() => openNoter({ mode: "seance", prestationId: s.p.id })} />
       ))}
-    </>
+    </Sec>
   );
 
   const side = (
     <>
-      <Sec>Ajouter un cours ou un service</Sec>
-      <AddForm />
-      <div style={{ marginTop: 18 }}>
-        <Tip>Si tu changes un prix ici, il compte pour les prochaines séances. Celles déjà au planning gardent leur ancien prix.</Tip>
+      <Sec ill="carnet" title="Ajouter un cours ou un service" blk delay={0.3}>
+        <AddForm />
+      </Sec>
+      <div className="pad rise" style={{ marginTop: 14, animationDelay: ".36s" }}>
+        <Tip ill="sacoche">
+          <b>Un prix changé vaut pour la suite.</b> Les séances déjà au planning gardent leur ancien prix.
+        </Tip>
       </div>
-      <Link href="/argent?vue=leviers" className="bs-card" style={{ marginTop: 14 }}>
-        <span className="bs-pic soft">
-          <Picto name="bulb" />
-        </span>
-        <div style={{ flex: 1 }}>
-          <div className="k">Pistes pour gagner plus</div>
+      <Link href="/argent?vue=leviers" className="ec-lcard rise" style={{ animationDelay: ".42s" }}>
+        <Ill n="piste" />
+        <span>
+          <span className="k">Pistes pour gagner plus</span>
           <b>Des idées pour qu’il te reste plus à la fin du mois</b>
-        </div>
-        <Picto name="arrowR" />
+        </span>
+        <Ic n="arrow" className="arr" />
       </Link>
     </>
   );
 
   return (
     <Screen wide={desk}>
-      <div className="bs-over">
-        <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <button type="button" className="bs-back" style={{ margin: 0, minHeight: 28 }} onClick={() => step(-1)} aria-label="Mois précédent">
-            <Picto name="chevL" />
-          </button>
-          {monthLabel}
-          {!isNow && (
-            <button type="button" className="bs-back" style={{ margin: 0, minHeight: 28 }} onClick={() => step(1)} aria-label="Mois suivant">
-              <Picto name="chev" />
+      <div className="ec-pg">
+        <div className="over rise" style={{ animationDelay: ".02s" }}>
+          <span className="ec-mnav">
+            <button type="button" onClick={() => step(-1)} aria-label="Mois précédent">
+              <Ic n="chevL" className="" />
+            </button>
+            {monthLabel}
+            <button type="button" className={isNow ? "dis" : ""} onClick={() => step(1)} aria-label="Mois suivant" disabled={isNow}>
+              <Ic n="chev" className="" />
+            </button>
+          </span>
+          {isNow && <span>au {auJour}</span>}
+        </div>
+        <div className="ec-hrow">
+          <Hello title={best ? `${best.p.label} rapporte le plus ce mois-ci.` : "Cours et services"} sub="Cours, balades, travail du cheval : tout ce que tu vends en plus des pensions." delay={0.06} />
+          {desk && (
+            <button type="button" className="btn" onClick={() => openNoter({ mode: "seance" })}>
+              <Ic n="plus" className="" />
+              Planifier une séance
             </button>
           )}
-        </span>
-      </div>
-      <div className="bs-dhead">
-        <div>
-          <h1 className="bs-d bs-t1">Cours et services</h1>
-          <p className="bs-p">
-            Tout ce que tu vends en plus des pensions : cours, balades, travail du cheval…
-            {best ? (
-              <>
-                {" "}
-                Ce mois-ci, <b style={{ color: "var(--ink-1)", fontWeight: 600 }}>{best.p.label.toLowerCase()}</b> rapporte le plus.
-              </>
-            ) : null}
-          </p>
         </div>
-        {desk && (
-          <button type="button" className="bs-btn" style={{ width: "auto" }} onClick={() => openNoter({ mode: "seance" })}>
-            <Picto name="plus" />
-            Planifier une séance
-          </button>
+        <div className="pad rise" style={{ marginTop: 14, animationDelay: ".12s" }}>
+          <div className="trio ec-trio">
+            <div>
+              <b>
+                <CountUp value={tot.count} fmt={nfmt} />
+              </b>
+              <small>séance{tot.count > 1 ? "s" : ""}</small>
+            </div>
+            <div>
+              <b className={tot.done > 0 ? "in" : ""}>
+                <CountUp value={tot.done} />
+              </b>
+              <small>déjà faites</small>
+            </div>
+            <div>
+              <b className="pl2">{sg(tot.planned)}</b>
+              <small>encore prévues</small>
+            </div>
+          </div>
+        </div>
+
+        {desk ? (
+          <div className="cols2 ec-cols">
+            <div>{list}</div>
+            <div className="ec-stick">{side}</div>
+          </div>
+        ) : (
+          <>
+            {list}
+            {side}
+          </>
         )}
+        <div className="end" />
       </div>
-
-      <div className="bs-sum3" style={{ maxWidth: desk ? 520 : undefined }}>
-        <div>
-          <b>{tot.count}</b>
-          <span>séances</span>
-        </div>
-        <div>
-          <b style={{ color: "var(--vert)" }}>{signed(tot.done)}</b>
-          <span>déjà faites</span>
-        </div>
-        <div>
-          <b style={{ color: "var(--ink-3)" }}>{signed(tot.planned)}</b>
-          <span>encore prévues</span>
-        </div>
-      </div>
-
-      {desk ? (
-        <div className="bs-split wide-l">
-          <div>{list}</div>
-          <div className="stick">{side}</div>
-        </div>
-      ) : (
-        <>
-          {list}
-          {side}
-        </>
-      )}
     </Screen>
   );
 }
@@ -162,62 +161,67 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
   const say = useUiStore((x) => x.say);
   const { p } = s;
   const upd = (patch: Partial<Prestation>) => st().updatePrestation(p.id, patch);
+  const dw = (s.done / max) * 100;
+  const pw = (s.planned / max) * 100;
   return (
-    <div style={{ borderBottom: "1px solid var(--line-2)", padding: "12px 0", opacity: p.active ? 1 : 0.6 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span className="bs-pic">
-          <Picto name={/balade/i.test(p.label) ? "horse" : /travail/i.test(p.label) ? "jump" : "cours"} />
-        </span>
-        <button type="button" onClick={onToggle} aria-expanded={open} style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-          <b style={{ display: "block", fontSize: 15, fontWeight: 600, color: "var(--ink-1)" }}>
+    <div className={`ec-pr${p.active ? "" : " off"}`}>
+      <button type="button" className="sum" onClick={onToggle} aria-expanded={open}>
+        <span>
+          <b>
             {p.label}
-            {!p.active && <span className="bs-pill n" style={{ marginLeft: 8 }}>en pause</span>}
+            {!p.active && <span className="pill">en pause</span>}
           </b>
-          <span style={{ fontSize: 12.5, color: "var(--ink-3)" }}>
-            {eur(p.price)} {p.hasFormat ? "par cavalier" : "la séance"}
-            {p.hasFormat ? " · seul ou en groupe" : ""}
-            {s.count ? ` · ${s.count} séance${s.count > 1 ? "s" : ""}, ${s.riders} cavalier${s.riders > 1 ? "s" : ""}` : " · rien ce mois-ci"}
-          </span>
-        </button>
-        <span style={{ textAlign: "right" }}>
-          <b className="bs-amt plus" style={{ fontSize: 15 }}>
-            {s.done ? signed(s.done) : "0 €"}
-          </b>
-          {s.planned > 0 && <span style={{ display: "block", fontSize: 11.5, color: "var(--ink-3)", fontVariantNumeric: "tabular-nums" }}>+{eur(s.planned)} encore prévus</span>}
+          <small>
+            {eur(p.price)} {p.hasFormat ? "par cavalier · seul ou en groupe" : "la séance"}
+          </small>
+          <small>{s.count ? `${s.count} séance${s.count > 1 ? "s" : ""}, ${s.riders} cavalier${s.riders > 1 ? "s" : ""}` : "rien ce mois-ci"}</small>
         </span>
-      </div>
-      <div style={{ display: "flex", height: 6, marginTop: 9, marginLeft: 50, borderRadius: 2, overflow: "hidden", background: "var(--line-2)" }} aria-hidden>
-        <i style={{ width: `${(s.done / max) * 100}%`, background: "var(--vert)" }} />
-        <i style={{ width: `${(s.planned / max) * 100}%`, background: "repeating-linear-gradient(135deg,var(--vert-soft) 0 3px,#fff 3px 6px)", boxShadow: "inset 0 0 0 1px var(--on-vert)" }} />
+        <span className="am">
+          {s.done > 0 ? <b className="in">{sg(s.done)}</b> : <b>0 €</b>}
+          {s.planned > 0 && (
+            <small>
+              {sg(s.planned)}
+              <br />
+              encore prévus
+            </small>
+          )}
+        </span>
+      </button>
+      <div className="bar" aria-hidden>
+        {s.done > 0 && <i style={{ width: `${dw}%` }} />}
+        {s.planned > 0 && <i className="plan" style={{ left: `${dw}%`, width: `${pw}%` }} />}
       </div>
 
       {open && (
-        <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 8, background: "#fff", boxShadow: "inset 0 0 0 1px var(--line-2)", borderRadius: 6, padding: "4px 12px 12px" }}>
-          <label className="bs-field">
+        <div className="ed">
+          <label className="lrow">
             <span>Nom</span>
-            <input defaultValue={p.label} onChange={(e) => e.target.value.trim() && upd({ label: e.target.value.trim() })} />
+            <span className="input">
+              <input defaultValue={p.label} onChange={(e) => e.target.value.trim() && upd({ label: e.target.value.trim() })} />
+            </span>
           </label>
-          <label className="bs-field">
+          <label className="lrow">
             <span>Prix</span>
-            <input inputMode="decimal" defaultValue={p.price} style={{ textAlign: "right", fontWeight: 600 }} onChange={(e) => Number(e.target.value.replace(",", ".")) >= 0 && upd({ price: Number(e.target.value.replace(",", ".")) || 0 })} />
-            <span>€</span>
+            <span className="input">
+              <input inputMode="decimal" defaultValue={p.price} style={{ fontWeight: 600 }} onChange={(e) => Number(e.target.value.replace(",", ".")) >= 0 && upd({ price: Number(e.target.value.replace(",", ".")) || 0 })} />
+              <span className="u">€</span>
+            </span>
           </label>
-          <Toggle on={!!p.hasFormat} onClick={() => upd({ hasFormat: !p.hasFormat })}>
+          <Switch on={!!p.hasFormat} onClick={() => upd({ hasFormat: !p.hasFormat })}>
             Cours seul ou en groupe (prix par cavalier)
-          </Toggle>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 4 }}>
+          </Switch>
+          <div className="acts">
             {p.active && (
-              <button type="button" className="bs-link" onClick={onPlan}>
+              <button type="button" className="lnk" onClick={onPlan}>
                 Planifier une séance
               </button>
             )}
-            <button type="button" className="bs-link" style={{ color: "var(--ink-2)" }} onClick={() => upd({ active: !p.active })}>
+            <button type="button" className="lnk mute" onClick={() => upd({ active: !p.active })}>
               {p.active ? "Mettre en pause" : "Reprendre"}
             </button>
             <button
               type="button"
-              className="bs-link"
-              style={{ color: "var(--rose-ink)" }}
+              className="lnk mute"
               onClick={() => {
                 const snap = st().prestations;
                 const r = st().removePrestation(p.id);
@@ -252,22 +256,31 @@ function AddForm() {
     setFmt(false);
   }
   return (
-    <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
-      <label className="bs-field">
-        <span>Nom</span>
-        <input placeholder="Ex. Stage poney, Longe, Transport concours" value={label} onChange={(e) => setLabel(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
-      </label>
-      <label className="bs-field">
-        <span>Prix</span>
-        <input inputMode="decimal" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} style={{ textAlign: "right", fontWeight: 600 }} />
-        <span>€</span>
-      </label>
-      <Toggle on={fmt} onClick={() => setFmt(!fmt)}>
-        Cours seul ou en groupe (prix par cavalier)
-      </Toggle>
-      <button type="button" className="bs-btn" onClick={add} disabled={!ok}>
+    <>
+      <div className="ec-stk">
+        <label className="field">
+          <span>Nom</span>
+          <span className="input">
+            <input placeholder="Ex. Longe, transport concours" value={label} onChange={(e) => setLabel(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
+          </span>
+        </label>
+        <label className="field">
+          <span>Prix</span>
+          <span className="input">
+            <input inputMode="decimal" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} style={{ fontWeight: 600 }} />
+            <span className="u">€</span>
+          </span>
+        </label>
+      </div>
+      <div className="ec-sw">
+        <Switch on={fmt} onClick={() => setFmt(!fmt)}>
+          Cours seul ou en groupe (prix par cavalier)
+        </Switch>
+      </div>
+      <button type="button" className="btn full" style={{ marginTop: 12 }} onClick={add} disabled={!ok}>
+        <Ic n="plus" className="" />
         Ajouter
       </button>
-    </div>
+    </>
   );
 }

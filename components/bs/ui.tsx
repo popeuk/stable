@@ -5,7 +5,9 @@ import type { ReactNode } from "react";
 import { Picto, type PictoName } from "@/components/bs/picto";
 
 /* ---------- Format ---------- */
-const nf = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+/* Espace insécable ordinaire : la fine (U+202F) ne s’affiche pas dans nos polices. */
+const nf0 = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+const nf = { format: (n: number) => nf0.format(n).replace(/\u202f/g, "\u00a0") };
 export const eur = (n: number) => `${nf.format(Math.round(n))} €`;
 export const signed = (n: number) => {
   const r = Math.round(n);
@@ -25,7 +27,7 @@ export const withBase = (path: string) => `${process.env.NEXT_PUBLIC_BASE_PATH ?
  * (cockpit, planning, tableaux) ; sinon une colonne de lecture.
  */
 export function Screen({ children, wide }: { children: ReactNode; wide?: boolean }) {
-  return <div className={`bs-screen${wide ? " wide" : ""}`}>{children}</div>;
+  return <div className={`cn-page bs-screen${wide ? " wide" : ""}`}>{children}</div>;
 }
 
 export function Over({ left, right }: { left: ReactNode; right?: ReactNode }) {
@@ -37,13 +39,9 @@ export function Over({ left, right }: { left: ReactNode; right?: ReactNode }) {
   );
 }
 
-export function Back({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <Link href={href} className="bs-back">
-      <Picto name="back" />
-      {children}
-    </Link>
-  );
+/** Le retour est dans l'en-tête (téléphone) ou au-dessus de l'écran (ordinateur). */
+export function Back(_: { href: string; children: ReactNode }) {
+  return null;
 }
 
 export function Title({ children, as = "h1" }: { children: ReactNode; as?: "h1" | "h2" }) {

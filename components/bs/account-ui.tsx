@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { Picto } from "@/components/bs/picto";
+import { Ic } from "@/components/carnet/ui";
 import { api, PW_MIN, type Fiche, type StableHit } from "@/lib/account/api";
 
 /** Le haut des écrans de compte : be stable, avec mon-ecurie.fr. */
@@ -104,7 +105,7 @@ export function useAnnuaire() {
   return c;
 }
 
-export const nf = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
+export const nf = (n: number) => new Intl.NumberFormat("fr-FR").format(n).replace(/\u202f/g, "\u00a0");
 
 /** Une ligne de résultat de recherche. */
 export function HitRow({ h, onPick }: { h: StableHit; onPick: () => void }) {
@@ -174,14 +175,7 @@ export function FichePreview({ f, claimed, pending }: { f: Partial<Fiche>; claim
 
 /** La feuille de résultats : ce qui est en place, ce qui manque encore. */
 export function ResultSheet({ f, claimed }: { f: Partial<Fiche>; claimed?: boolean }) {
-  const rows: [string, boolean, string, string][] = [
-    ["Sur la carte de l’annuaire", true, "en ligne", ""],
-    ["Fiche reprise par l’écurie", !!claimed, "reprise", "à reprendre"],
-    ["Tarifs affichés", Number(f.prix_min) > 0 || !!f.formules?.some((x) => Number(x.prix) > 0), "affichés", "à renseigner"],
-    ["Places libres", f.places_libres !== "" && f.places_libres !== undefined, "à jour", "à préciser"],
-    ["Photos", !!f.photos?.length, `${f.photos?.length ?? 0} photo${(f.photos?.length ?? 0) > 1 ? "s" : ""}`, "à ajouter"],
-    ["Téléphone ou e-mail", !!(f.telephone || f.email), "affiché", "à ajouter"],
-  ];
+  const rows = ficheRows(f, claimed);
   const ok = rows.filter((r) => r[1]).length;
   return (
     <div className="bs-sheet-res">
@@ -198,6 +192,93 @@ export function ResultSheet({ f, claimed }: { f: Partial<Fiche>; claimed?: boole
           <span className="st">{done ? yes : no}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Ce qui est en place et ce qui manque sur une fiche : [libellé, fait, si oui, si non]. */
+export function ficheRows(f: Partial<Fiche>, claimed?: boolean): [string, boolean, string, string][] {
+  return [
+    ["Sur la carte de l’annuaire", true, "en ligne", ""],
+    ["Fiche reprise par l’écurie", !!claimed, "reprise", "à reprendre"],
+    ["Tarifs affichés", Number(f.prix_min) > 0 || !!f.formules?.some((x) => Number(x.prix) > 0), "affichés", "à renseigner"],
+    ["Places libres", f.places_libres !== "" && f.places_libres !== undefined, "à jour", "à préciser"],
+    ["Photos", !!f.photos?.length, `${f.photos?.length ?? 0} photo${(f.photos?.length ?? 0) > 1 ? "s" : ""}`, "à ajouter"],
+    ["Téléphone ou e-mail", !!(f.telephone || f.email), "affiché", "à ajouter"],
+  ];
+}
+
+/* ---------- Le carnet (classes de app/carnet/ecurie.css, sous .carnet) ---------- */
+
+/** La fiche telle que les cavaliers la voient sur mon-ecurie.fr, dans le carnet. */
+export function FicheApercu({ f, claimed, pending }: { f: Partial<Fiche>; claimed?: boolean; pending?: boolean }) {
+  const photo = f.photos?.[0]?.url;
+  const price = Number(f.prix_min);
+  const places = f.places_libres;
+  return (
+    <div className="ec-fp" aria-label="Aperçu de la fiche sur mon-ecurie.fr">
+      <div className="ph" style={photo ? { backgroundImage: `url(${photo})` } : undefined}>
+        {!photo && (
+          <>
+            <Ic n="camera" className="" />
+            Pas encore de photo
+          </>
+        )}
+      </div>
+      <div className="bd">
+        <h5>{f.title || "Le nom de ton écurie"}</h5>
+        <p className="loc">{[f.commune, f.code_postal].filter(Boolean).join(" · ") || "Commune"}</p>
+        {pending ? (
+          <span className="pill">En vérification</span>
+        ) : claimed ? (
+          <span className="pill">
+            <Ic n="ck" className="" />
+            Revendiquée
+          </span>
+        ) : (
+          <span className="pill">Fiche non revendiquée</span>
+        )}
+        {price > 0 ? (
+          <div className="pr0">
+            <span>à partir de</span>
+            <b>{nf(price)} €</b>
+            <span>/ mois</span>
+          </div>
+        ) : (
+          <div className="pr0">Tarifs non communiqués</div>
+        )}
+        <p className="pl">{places === "" || places === undefined ? "Places libres : non précisé" : Number(places) > 0 ? `${places} place${Number(places) > 1 ? "s" : ""} libre${Number(places) > 1 ? "s" : ""}` : "Complet pour le moment"}</p>
+      </div>
+    </div>
+  );
+}
+
+/** Ce qui est en place, ce qui manque : la barre et les coches disent quoi faire ensuite. */
+export function FicheResultat({ f, claimed, action }: { f: Partial<Fiche>; claimed?: boolean; action?: ReactNode }) {
+  const rows = ficheRows(f, claimed);
+  const ok = rows.filter((r) => r[1]).length;
+  const pc = Math.round((ok / rows.length) * 100);
+  const manque = rows.filter((r) => !r[1]).map((r) => r[0].toLowerCase());
+  return (
+    <div className="card">
+      <p className="k">Ta fiche est complète à</p>
+      <div className="ec-sc" aria-label={`Fiche complète à ${pc} %`}>
+        <b>{pc} %</b>
+        <div className="bar">
+          <i style={{ width: `${pc}%` }} />
+        </div>
+      </div>
+      <div style={{ marginTop: 6 }}>
+        {rows.map(([label, done, yes, no], i) => (
+          <div key={label} className={`ec-rl${done ? " ok" : ""}`}>
+            <span className="n">{done ? <Ic n="ck" className="" /> : i + 1}</span>
+            <span>{label}</span>
+            <em>{done ? yes : no}</em>
+          </div>
+        ))}
+      </div>
+      <p className="note">{manque.length ? `Ce qui manque encore : ${manque.join(", ")}.` : "Tout est en place. Pense juste à remettre tes places libres à jour chaque mois."}</p>
+      {action}
     </div>
   );
 }

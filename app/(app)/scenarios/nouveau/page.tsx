@@ -1,16 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { KeyNumber } from "@/components/ui/key-number";
 import { LessonTerm } from "@/components/pedagogy/lesson-term";
+import { CountUp, Hello, Ic, Money, Page, eur } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
+import { useUiStore } from "@/stores/ui-store";
 import { horsePnl, stablePnl } from "@/lib/domain/calculations";
 import { simulateScenario, type ScenarioHorse } from "@/lib/domain/scenario";
-import { formatEur, formatPct } from "@/lib/utils/format-currency";
+import { formatPct } from "@/lib/utils/format-currency";
 
 export default function NouveauScenarioPage() {
   return (
@@ -23,6 +22,7 @@ export default function NouveauScenarioPage() {
 function Simulator() {
   const data = useDataStore();
   const period = usePeriodStore((s) => s.active);
+  const say = useUiStore((s) => s.say);
 
   // Derive each horse's base pension & variable cost from the active month.
   const baseHorses: ScenarioHorse[] = useMemo(
@@ -35,7 +35,8 @@ function Simulator() {
             id: h.id,
             name: h.name,
             pension: p.revenue,
-            variableCost: p.directCosts + p.sharedCosts,
+            // Les frais communs sont simulés à part (curseur) : ne pas les compter deux fois.
+            variableCost: p.directCosts,
           };
         }),
     [data, period],
@@ -47,54 +48,41 @@ function Simulator() {
   const [pensionAdjustment, setPensionAdjustment] = useState(0);
   const [fixedCosts, setFixedCosts] = useState(baseFixed);
 
-  const results = simulateScenario(
-    { pensionAdjustment, fixedCosts, useGlobalVariableCost: false },
-    baseHorses,
-  );
+  const results = simulateScenario({ pensionAdjustment, fixedCosts, useGlobalVariableCost: false }, baseHorses);
 
   const delta = results.monthlyResult - baseStable.netResult;
+  const maxFixed = Math.max(10000, baseFixed * 2);
 
   return (
-    <div className="space-y-6">
-      <Link href="/accueil" className="inline-flex items-center gap-1 text-sm text-tertiary">
-        <ChevronLeft size={16} /> Retour
-      </Link>
+    <Page>
+      <h1 className="ar-sr">Et si… ?</h1>
+      <Hello title="Et si… ?" sub="Bouge les curseurs pour voir ce qu’il te resterait chaque mois. C’est un essai : tes vrais chiffres ne changent pas." />
 
-      <header>
-        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-          Et si… ?
-        </h1>
-        <p className="text-sm text-tertiary">
-          Bouge les curseurs pour voir ce qu’il te resterait chaque mois. C’est un essai : tes vrais chiffres ne changent pas.
+      <div className="card ar-res rise" style={{ animationDelay: ".12s", margin: "14px 14px 0" }} aria-live="polite">
+        <p className="k">Ce qu’il te resterait par mois</p>
+        <p className={`big ${results.monthlyResult > 0 ? "in" : results.monthlyResult < 0 ? "out" : ""}`}>
+          <CountUp value={results.monthlyResult} ms={500} />
         </p>
-      </header>
-
-      {/* Live projection */}
-      <section className="rounded-[var(--radius-lg)] border bg-elevated p-5">
-        <p className="text-2xs uppercase tracking-wide text-tertiary">Ce qu’il te resterait par mois</p>
-        <KeyNumber value={results.monthlyResult} colorBySign className="text-4xl" animateOnMount={false} />
-        <p className="mt-1 text-sm" style={{ color: delta >= 0 ? "var(--c-success)" : "var(--c-danger)" }}>
-          {delta >= 0 ? "+" : ""}
-          {formatEur(delta)} par rapport à aujourd’hui ({formatEur(baseStable.netResult)})
+        <p className="ar-ecart">
+          <Money v={delta} /> par rapport à aujourd’hui ({eur(baseStable.netResult)})
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-4 text-center">
+        <div className="ar-two">
           <div>
-            <LessonTerm lessonKey="seuil_rentabilite" className="text-2xs uppercase text-tertiary">
-              Minimum par box pour ne pas perdre
-            </LessonTerm>
-            <p className="tabnums mt-1 text-lg text-primary">{formatEur(results.breakEvenPerSlot)}</p>
+            <small>
+              <LessonTerm lessonKey="seuil_rentabilite">Minimum par box pour ne pas perdre</LessonTerm>
+            </small>
+            <b>{eur(results.breakEvenPerSlot)}</b>
           </div>
           <div>
-            <p className="text-2xs uppercase text-tertiary">Chevaux qui coûtent plus qu’ils ne rapportent</p>
-            <p className="tabnums mt-1 text-lg" style={{ color: results.horsesUnderThreshold > 0 ? "var(--c-danger)" : "var(--c-success)" }}>
-              {results.horsesUnderThreshold} / {baseHorses.length}
-            </p>
+            <small>Chevaux qui coûtent plus qu’ils ne rapportent</small>
+            <b>
+              {results.horsesUnderThreshold} sur {baseHorses.length}
+            </b>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Sliders */}
-      <section className="space-y-6 rounded-[var(--radius-lg)] border bg-elevated p-5">
+      <div className="card rise" style={{ animationDelay: ".2s", margin: "10px 14px 0" }}>
         <Slider
           label="Changer toutes les pensions de"
           value={pensionAdjustment}
@@ -102,62 +90,79 @@ function Simulator() {
           max={30}
           step={1}
           display={`${pensionAdjustment > 0 ? "+" : ""}${formatPct(pensionAdjustment)}`}
+          ends={["−20 %", "0", "+30 %"]}
           onChange={setPensionAdjustment}
         />
         <Slider
-          label="Frais communs par mois (foin, paille, loyer, salaires…)"
+          label="Frais communs par mois"
+          hint="foin, paille, loyer, salaires…"
           value={fixedCosts}
           min={500}
-          max={Math.max(10000, baseFixed * 2)}
+          max={maxFixed}
           step={50}
-          display={formatEur(fixedCosts)}
+          display={eur(fixedCosts)}
+          ends={[eur(500), eur(maxFixed)]}
           onChange={setFixedCosts}
         />
-      </section>
+      </div>
 
-      <button
-        onClick={() => alert("Essai gardé sur cet appareil.")}
-        className="w-full btn-primary py-3.5 text-[15px] font-bold text-[var(--on-accent)]"
-      >
-        Garder cet essai
-      </button>
-    </div>
+      <div className="pad rise" style={{ animationDelay: ".28s", marginTop: 12 }}>
+        <button type="button" onClick={() => say("Essai gardé sur cet appareil.")} className="btn full">
+          <Ic n="ck" className="" />
+          Garder cet essai
+        </button>
+      </div>
+      <div className="end" />
+    </Page>
   );
 }
 
 function Slider({
   label,
+  hint,
   value,
   min,
   max,
   step,
   display,
+  ends,
   onChange,
 }: {
   label: string;
+  hint?: string;
   value: number;
   min: number;
   max: number;
   step: number;
   display: string;
+  ends: string[];
   onChange: (v: number) => void;
 }) {
+  const p = ((value - min) / (max - min)) * 100;
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm text-secondary">{label}</span>
-        <span className="tabnums text-sm font-medium text-[var(--accent-primary)]">{display}</span>
-      </div>
+    <label className="ar-sld">
+      <span className="ar-t">
+        <span>
+          {label}
+          {hint && <small>{hint}</small>}
+        </span>
+        <b>{display}</b>
+      </span>
       <input
         type="range"
+        className="ar-range"
         min={min}
         max={max}
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-[var(--accent-primary)]"
-        style={{ height: 28 }}
+        style={{ "--p": `${p}%` } as CSSProperties}
       />
-    </div>
+      <span className="ar-ends">
+        {ends.map((e) => (
+          <span key={e}>{e}</span>
+        ))}
+      </span>
+    </label>
   );
 }

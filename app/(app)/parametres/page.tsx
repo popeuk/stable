@@ -1,13 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Moon, Sun, RotateCcw, Bell, Tags, ChevronRight, Eraser, Landmark, PlayCircle, BadgeEuro, UsersRound } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
+import { Screen } from "@/components/bs/ui";
+import { useDesk } from "@/components/bs/desk";
+import { Hello, Ic, Sec, Seg, Stepper, Switch, ini } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
-import { useSettingsStore } from "@/stores/settings-store";
+import { useSettingsStore, type NotificationPrefs } from "@/stores/settings-store";
+import type { Tariffs, TeamRole } from "@/lib/domain/types";
+import { localToday } from "@/lib/utils/local-date";
 
+/**
+ * Tous les réglages, sur un seul écran : les prix, l'équipe, les catégories,
+ * les notifications, l'apparence, puis le reste (boxes, assistant vocal,
+ * données). Les anciennes adresses /parametres/tarifs, /equipe, /categories
+ * et /notifications ouvrent cet écran directement sur leur partie.
+ */
 export default function ParametresPage() {
   return (
     <ClientGate>
@@ -17,194 +26,407 @@ export default function ParametresPage() {
 }
 
 function Parametres() {
-  const router = useRouter();
-  const resetToDemo = useDataStore((s) => s.resetToDemo);
-  const startEmpty = useDataStore((s) => s.startEmpty);
-  const resetOnboarding = useSettingsStore((s) => s.resetOnboarding);
-  const activeHorses = useDataStore(
-    (s) => s.horses.filter((h) => !h.isArchived).length,
+  const desk = useDesk();
+  const left = (
+    <>
+      <Tarifs />
+      <Equipe />
+    </>
   );
-  const capacity = useSettingsStore((s) => s.capacity);
-  const openRouterKey = useSettingsStore((s) => s.openRouterKey);
-  const setOpenRouterKey = useSettingsStore((s) => s.setOpenRouterKey);
-  const setCapacity = useSettingsStore((s) => s.setCapacity);
+  const right = (
+    <>
+      <Categories />
+      <Notifications />
+      <Apparence />
+      <Reste />
+    </>
+  );
+  return (
+    <Screen wide={desk}>
+      <div className="ec-pg">
+        <Hello title="Tous les réglages" sub="Les prix, l’équipe, les catégories, les notifications. Les tarifs se remplissent ensuite tout seuls partout dans l’app." />
+        {desk ? (
+          <div className="cols2 ec-cols">
+            <div>{left}</div>
+            <div>{right}</div>
+          </div>
+        ) : (
+          <>
+            {left}
+            {right}
+          </>
+        )}
+        <div className="end" />
+      </div>
+    </Screen>
+  );
+}
+
+/* ---------- Tes tarifs ---------- */
+const ROWS: { key: keyof Tariffs; label: string; unit: string; hint: string }[] = [
+  { key: "pension", label: "Pension", unit: "€ / mois", hint: "proposée pour chaque nouveau cheval, puis comptée toute seule chaque mois" },
+  { key: "cours_collectif", label: "Cours collectif", unit: "€ / cav.", hint: "compté pour chaque cavalier présent, une fois le cours confirmé" },
+  { key: "cours_individuel", label: "Cours individuel", unit: "€", hint: "" },
+  { key: "entrainement", label: "Séance de travail", unit: "€", hint: "quand tu travailles un cheval pour son propriétaire" },
+];
+
+function Tarifs() {
+  const tariffs = useDataStore((s) => s.tariffs) ?? {};
+  const setTariff = useDataStore((s) => s.setTariff);
+  const services = useDataStore((s) => s.services) ?? [];
+  const addService = useDataStore((s) => s.addService);
+  const deleteService = useDataStore((s) => s.deleteService);
+  const [newName, setNewName] = useState("");
+  const [newPrice, setNewPrice] = useState("");
+
+  function saveService() {
+    if (!newName.trim()) return;
+    const p = Number(newPrice.replace(",", "."));
+    addService({ name: newName, price: Number.isFinite(p) && p > 0 ? p : undefined });
+    setNewName("");
+    setNewPrice("");
+  }
+
+  return (
+    <Sec ill="sacoche" title="Tes tarifs" delay={0.05} id="tarifs">
+      <p className="note">Note tes prix une fois. Ils se remplissent tout seuls quand tu notes quelque chose, et tu peux les changer juste pour une fois.</p>
+      {ROWS.map((row) => (
+        <div key={row.key} className="ec-tr">
+          <label htmlFor={`tarif-${row.key}`}>
+            <b>{row.label}</b>
+            {row.hint && <small>{row.hint}</small>}
+          </label>
+          <span className="input xs">
+            <input
+              id={`tarif-${row.key}`}
+              type="text"
+              inputMode="decimal"
+              value={tariffs[row.key] ? String(tariffs[row.key]) : ""}
+              onChange={(e) => {
+                const v = Number(e.target.value.replace(",", ".").replace(/[^0-9.]/g, ""));
+                setTariff(row.key, Number.isFinite(v) && v > 0 ? v : undefined);
+              }}
+              placeholder="…"
+            />
+            <span className="u">{row.unit}</span>
+          </span>
+        </div>
+      ))}
+      <p className="ec-help">Si tu laisses une case vide, tu taperas le prix toi-même à chaque fois.</p>
+
+      <div className="ec-lab" style={{ marginTop: 18 }}>
+        <span>Tes prestations</span>
+        <em>Balade, transport, débourrage, douche… Tu les retrouves dans « Quoi ? » quand tu ajoutes quelque chose au planning.</em>
+      </div>
+      {services.map((svc) => (
+        <div key={svc.id} className="ec-cat">
+          <span>{svc.name}</span>
+          <span className="num">{svc.price ? `${svc.price.toLocaleString("fr-FR")} €` : "prix libre"}</span>
+          <button type="button" className="x" onClick={() => confirm(`Retirer « ${svc.name} » de ta liste ?`) && deleteService(svc.id)} aria-label={`Retirer ${svc.name}`}>
+            <Ic n="x" className="" />
+          </button>
+        </div>
+      ))}
+      <div className="ec-cadd three">
+        <span className="input">
+          <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveService()} placeholder="Balade, transport…" aria-label="Nom de la prestation" />
+        </span>
+        <span className="input">
+          <input value={newPrice} onChange={(e) => setNewPrice(e.target.value.replace(/[^0-9,\.]/g, ""))} onKeyDown={(e) => e.key === "Enter" && saveService()} inputMode="decimal" placeholder="…" aria-label="Prix de la prestation" />
+          <span className="u">€</span>
+        </span>
+        <button type="button" className="btn" onClick={saveService} disabled={!newName.trim()} aria-label="Ajouter la prestation">
+          <Ic n="plus" className="" />
+        </button>
+      </div>
+    </Sec>
+  );
+}
+
+/* ---------- L'équipe ---------- */
+/**
+ * Employés et prestataires réguliers. On les retrouve en un tap dans
+ * « Qui s'en occupe ? » quand on ajoute quelque chose au planning.
+ */
+function Equipe() {
+  const team = useDataStore((s) => s.team) ?? [];
+  const careEvents = useDataStore((s) => s.careEvents) ?? [];
+  const addTeamMember = useDataStore((s) => s.addTeamMember);
+  const deleteTeamMember = useDataStore((s) => s.deleteTeamMember);
+  const [name, setName] = useState("");
+  const [job, setJob] = useState("");
+  const [role, setRole] = useState<TeamRole>("employe");
+  const today = localToday();
+
+  // Les tâches à venir de chacun, dérivées du planning : rien à ressaisir.
+  const upcoming = (memberName: string) => careEvents.filter((e) => e.provider === memberName && (e.pending || e.date >= today)).length;
+
+  function save() {
+    if (!name.trim()) return;
+    addTeamMember({ name, job: job.trim() || undefined, role });
+    setName("");
+    setJob("");
+  }
+
+  return (
+    <Sec ill="brouette" title="L’équipe" delay={0.12} id="equipe">
+      {team.length === 0 && <p className="note">Les gens qui travaillent avec toi : salariés, maréchal, véto…</p>}
+      {team.map((m) => {
+        const n = upcoming(m.name);
+        return (
+          <div key={m.id} className="li">
+            <span className="ini">{ini(m.name)}</span>
+            <span>
+              <b>
+                {m.name}
+                {m.job ? ` · ${m.job}` : ""}
+              </b>
+              <small>
+                {m.role === "employe" ? "Salarié" : "Pro extérieur"}
+                {n > 0 ? ` · ${n} tâche${n > 1 ? "s" : ""} à venir` : ""}
+              </small>
+            </span>
+            <button type="button" className="x" onClick={() => confirm(`Retirer ${m.name} de l’équipe ? Ce qu’il a fait reste noté dans le carnet des chevaux.`) && deleteTeamMember(m.id)} aria-label={`Retirer ${m.name}`}>
+              <Ic n="x" className="" />
+            </button>
+          </div>
+        );
+      })}
+      <div className="ec-addp">
+        <p className="k">Ajouter quelqu’un</p>
+        <Seg<TeamRole>
+          value={role}
+          onChange={setRole}
+          label="Son rôle"
+          options={[
+            ["employe", "Salarié"],
+            ["prestataire", "Pro extérieur"],
+          ]}
+        />
+        <span className="input">
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={role === "employe" ? "Son nom, ex. Julie" : "Son nom, ex. M. Roche"} aria-label="Son nom" />
+        </span>
+        <span className="input">
+          <input value={job} onChange={(e) => setJob(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder={role === "employe" ? "Son métier (facultatif)" : "Maréchal, vétérinaire… (facultatif)"} aria-label="Son métier (facultatif)" />
+        </span>
+        <button type="button" className="btn full" onClick={save} disabled={!name.trim()}>
+          <Ic n="plus" className="" />
+          Ajouter à l’équipe
+        </button>
+      </div>
+      <p className="ec-help">Quand tu ajoutes une séance ou un rendez-vous, tu choisis qui s’en occupe en un geste.</p>
+    </Sec>
+  );
+}
+
+/* ---------- Catégories ---------- */
+type Tab = "revenus" | "directes" | "mutualisees";
+
+function Categories() {
+  const data = useDataStore();
+  const addRevenueCategory = useDataStore((s) => s.addRevenueCategory);
+  const addExpenseCategory = useDataStore((s) => s.addExpenseCategory);
+  const deleteRevenueCategory = useDataStore((s) => s.deleteRevenueCategory);
+  const deleteExpenseCategory = useDataStore((s) => s.deleteExpenseCategory);
+  const [tab, setTab] = useState<Tab>("revenus");
+  const [draft, setDraft] = useState("");
+
+  const list = tab === "revenus" ? data.revenueCategories : data.expenseCategories.filter((c) => (tab === "directes" ? c.isDirect : !c.isDirect));
+
+  function add() {
+    const name = draft.trim();
+    if (!name) return;
+    if (tab === "revenus") addRevenueCategory(name);
+    else addExpenseCategory(name, tab === "directes");
+    setDraft("");
+  }
+
+  function remove(catId: string) {
+    if (tab === "revenus") deleteRevenueCategory(catId);
+    else deleteExpenseCategory(catId);
+  }
+
+  return (
+    <Sec ill="confirmer" title="Catégories" delay={0.2} id="categories">
+      <p className="note">Les étiquettes que tu choisis quand tu notes de l’argent. Ajoute les tiennes, retire celles qui ne te servent pas.</p>
+      <div className="ec-segw">
+        <Seg<Tab>
+          value={tab}
+          onChange={setTab}
+          label="Type de catégorie"
+          options={[
+            ["revenus", "Ce qui rentre"],
+            ["directes", "Pour un cheval"],
+            ["mutualisees", "Frais communs"],
+          ]}
+        />
+      </div>
+      <div className="ec-cadd">
+        <span className="input">
+          <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Nouvelle catégorie" aria-label="Nom de la nouvelle catégorie" />
+        </span>
+        <button type="button" className="btn" onClick={add} aria-label="Ajouter cette catégorie">
+          <Ic n="plus" className="" />
+        </button>
+      </div>
+      <div style={{ marginTop: 6 }}>
+        {list.map((c) => (
+          <div key={c.id} className="ec-cat">
+            <span>{c.name}</span>
+            <button type="button" className="x" onClick={() => remove(c.id)} aria-label={`Retirer ${c.name}`}>
+              <Ic n="x" className="" />
+            </button>
+          </div>
+        ))}
+        {list.length === 0 && <p className="note">Aucune catégorie ici. Tape un nom au-dessus pour en ajouter une.</p>}
+      </div>
+    </Sec>
+  );
+}
+
+/* ---------- Notifications ---------- */
+const ITEMS: { key: keyof NotificationPrefs; title: string; desc: string }[] = [
+  { key: "weeklyInsight", title: "Le point de la semaine", desc: "Le dimanche soir, ce qu’il faut retenir de ta semaine." },
+  { key: "monthlyAudit", title: "Le bilan du mois", desc: "Le 1er du mois, ce que le mois passé t’a laissé." },
+  { key: "horseAlerts", title: "Un cheval qui coûte", desc: "Quand un cheval commence à te coûter plus qu’il ne rapporte." },
+];
+
+function Notifications() {
+  const prefs = useSettingsStore((s) => s.notifications);
+  const toggle = useSettingsStore((s) => s.toggle);
+  return (
+    <Sec ill="carnet-buste" title="Notifications" delay={0.28} id="notifications">
+      <p className="note">Tu choisis ce que tu veux recevoir. Pas de rappel pour te culpabiliser.</p>
+      {ITEMS.map((item) => (
+        <div key={item.key} className="ec-sw2">
+          <Switch on={prefs[item.key]} onClick={() => toggle(item.key)}>
+            <b>{item.title}</b>
+            <small>{item.desc}</small>
+          </Switch>
+        </div>
+      ))}
+    </Sec>
+  );
+}
+
+/* ---------- Apparence ---------- */
+function applyTheme(t: "dark" | "light") {
+  if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
+  else document.documentElement.removeAttribute("data-theme");
+}
+
+function Apparence() {
   const [theme, setTheme] = useState<"dark" | "light">("light");
 
   useEffect(() => {
-    // Warm light is the default theme; dark is opt-in (data-theme="dark").
+    // Le thème clair est celui par défaut ; le sombre se choisit (data-theme="dark").
     const stored = (localStorage.getItem("be-stable-theme") as "dark" | "light") || "light";
-    // Intentional: sync UI state from the persisted theme on mount.
+    // Voulu : l'état suit le thème enregistré à l'ouverture.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(stored);
     applyTheme(stored);
   }, []);
 
-  function applyTheme(t: "dark" | "light") {
-    if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
-    else document.documentElement.removeAttribute("data-theme");
-  }
-
-  function toggleTheme() {
-    const next = theme === "dark" ? "light" : "dark";
+  function choose(next: "dark" | "light") {
     setTheme(next);
     applyTheme(next);
     localStorage.setItem("be-stable-theme", next);
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-        Paramètres
-      </h1>
+    <Sec ill="dodo" title="Apparence" delay={0.34} id="apparence">
+      <div className="ec-segw">
+        <Seg<"light" | "dark">
+          value={theme}
+          onChange={choose}
+          label="Thème"
+          options={[
+            ["light", "Clair"],
+            ["dark", "Sombre"],
+          ]}
+        />
+      </div>
+      <p className="ec-help">Le thème sombre repose les yeux le soir, à l’écurie comme à la maison.</p>
+    </Sec>
+  );
+}
 
-      <Section title="Ton écurie">
-        <Row label="Nom de l'écurie" value="Écurie démo" />
-        <Row label="Type" value="Pension simple" />
-        <Row label="Chevaux chez toi" value={`${activeHorses}`} />
-        <div className="flex items-center justify-between py-3">
-          <span className="text-sm text-secondary">Nombre de boxes</span>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setCapacity(capacity - 1)}
-              aria-label="Un box de moins"
-              className="flex size-7 items-center justify-center border border-[var(--border-strong)] text-primary"
-            >
-              −
-            </button>
-            <span className="w-8 text-center text-sm font-bold tabular-nums text-primary">
-              {capacity}
-            </span>
-            <button
-              onClick={() => setCapacity(capacity + 1)}
-              aria-label="Un box de plus"
-              className="flex size-7 items-center justify-center border border-[var(--border-strong)] text-primary"
-            >
-              +
-            </button>
-          </div>
-        </div>
-      </Section>
+/* ---------- Le reste : boxes, assistant vocal, données ---------- */
+function Reste() {
+  const router = useRouter();
+  const resetToDemo = useDataStore((s) => s.resetToDemo);
+  const startEmpty = useDataStore((s) => s.startEmpty);
+  const resetOnboarding = useSettingsStore((s) => s.resetOnboarding);
+  const activeHorses = useDataStore((s) => s.horses.filter((h) => !h.isArchived).length);
+  const capacity = useSettingsStore((s) => s.capacity);
+  const setCapacity = useSettingsStore((s) => s.setCapacity);
+  const openRouterKey = useSettingsStore((s) => s.openRouterKey);
+  const setOpenRouterKey = useSettingsStore((s) => s.setOpenRouterKey);
 
-      <Section title="Apparence">
-        <button onClick={toggleTheme} className="flex w-full items-center justify-between py-3">
-          <span className="flex items-center gap-2 text-sm text-primary">
-            {theme === "dark" ? <Moon size={16} /> : <Sun size={16} />}
-            Thème {theme === "dark" ? "sombre" : "clair"}
+  return (
+    <Sec ill="carnet" title="Le reste" delay={0.4} id="reste">
+      <div className="ec-tr">
+        <span>
+          <b>Nombre de boxes</b>
+          <small>
+            {activeHorses} cheva{activeHorses > 1 ? "ux" : "l"} chez toi
+          </small>
+        </span>
+        <span className="ec-stp">
+          <Stepper value={capacity} onChange={setCapacity} min={1} max={60} />
+        </span>
+      </div>
+
+      <label className="field" style={{ marginTop: 14 }}>
+        <span>
+          Assistant vocal : clé OpenRouter <em>facultatif</em>
+        </span>
+        <span className="input">
+          <input type="password" value={openRouterKey} onChange={(e) => setOpenRouterKey(e.target.value)} placeholder="sk-or-…" autoComplete="off" />
+        </span>
+        <em>{openRouterKey ? "Clé enregistrée · l’assistant passe par OpenRouter." : "Sans clé, l’assistant marche quand même et comprend les phrases simples. Avec une clé OpenRouter, il comprend mieux. Ta clé reste sur ce téléphone et n’est envoyée qu’à OpenRouter."}</em>
+      </label>
+
+      <div style={{ marginTop: 10 }}>
+        <button type="button" className="li np" onClick={() => confirm("Remettre l’écurie d’exemple ? Ce que tu as noté sera remplacé.") && resetToDemo()}>
+          <span>
+            <b>Remettre l’écurie d’exemple</b>
+            <small>ce que tu as noté sera remplacé</small>
           </span>
-          <span className="text-2xs text-[var(--accent-primary)]">Changer</span>
+          <span />
         </button>
-      </Section>
-
-      <Section title="Assistant vocal">
-        <div className="py-3">
-          <p className="text-sm text-primary">Clé OpenRouter (facultatif)</p>
-          <p className="mt-0.5 text-2xs text-tertiary">
-            Sans clé, l&apos;assistant marche quand même et comprend les phrases simples. Avec une clé
-            OpenRouter, il comprend mieux. Ta clé reste sur ce téléphone et n&apos;est envoyée qu&apos;à OpenRouter.
-          </p>
-          <input
-            type="password"
-            value={openRouterKey}
-            onChange={(e) => setOpenRouterKey(e.target.value)}
-            placeholder="sk-or-…"
-            autoComplete="off"
-            className="mt-2 w-full rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-base px-3 py-2.5 text-sm text-primary outline-none"
-          />
-          {openRouterKey && (
-            <p className="mt-1.5 text-2xs font-semibold" style={{ color: "var(--c-success)" }}>
-              Clé enregistrée · l’assistant passe par OpenRouter
-            </p>
-          )}
-        </div>
-      </Section>
-
-      <Section title="Réglages">
-        <NavRow href="/parametres/tarifs" icon={<BadgeEuro size={16} />} label="Tarifs et prestations" />
-        <NavRow href="/parametres/equipe" icon={<UsersRound size={16} />} label="L'équipe" />
-        <NavRow href="/parametres/categories" icon={<Tags size={16} />} label="Catégories" />
-        <NavRow href="/parametres/notifications" icon={<Bell size={16} />} label="Notifications" />
-      </Section>
-
-      <Section title="Tes données">
-        <button
-          onClick={() => {
-            if (confirm("Remettre l’écurie d’exemple ? Ce que tu as noté sera remplacé.")) resetToDemo();
-          }}
-          className="flex w-full items-center gap-2 py-3 text-sm text-[var(--c-danger)]"
-        >
-          <RotateCcw size={16} /> Remettre l&apos;écurie d&apos;exemple
+        <button type="button" className="li np" onClick={() => confirm("Repartir de zéro ? Tout sera effacé : chevaux, ce qui rentre, ce qui sort.") && startEmpty()}>
+          <span>
+            <b>Repartir de zéro</b>
+            <small>une écurie vide, sans exemple</small>
+          </span>
+          <span />
         </button>
         <button
-          onClick={() => {
-            if (confirm("Repartir de zéro ? Tout sera effacé : chevaux, ce qui rentre, ce qui sort.")) startEmpty();
-          }}
-          className="flex w-full items-center gap-2 py-3 text-sm text-primary"
-        >
-          <Eraser size={16} /> Repartir de zéro (écurie vide)
-        </button>
-        <button
+          type="button"
+          className="li np"
           onClick={() => {
             resetOnboarding();
             router.push("/onboarding");
           }}
-          className="flex w-full items-center gap-2 py-3 text-sm text-primary"
         >
-          <PlayCircle size={16} /> Revoir la présentation
-        </button>
-      </Section>
-
-      <Section title="Pas encore là">
-        <div className="flex items-center justify-between py-3">
-          <span className="flex items-center gap-2 text-sm text-secondary">
-            <Landmark size={16} /> Connexion bancaire
+          <span>
+            <b>Revoir la présentation</b>
+            <small>les premiers écrans de l’app</small>
           </span>
-          <span className="text-2xs font-bold uppercase text-tertiary">Pas encore</span>
+          <Ic n="chev" className="chev" />
+        </button>
+        <div className="li np">
+          <span>
+            <b>Connexion bancaire</b>
+            <small>Récupérer tout seul ce qui rentre et ce qui sort de ton compte en banque. Pour l’instant, tu le notes dans l’app.</small>
+          </span>
+          <span className="pill">pas encore</span>
         </div>
-        <p className="pb-3 text-2xs text-tertiary">
-          Récupérer tout seul ce qui rentre et ce qui sort de ton compte en banque. Ce n&apos;est pas encore
-          possible : pour l&apos;instant, tu le notes dans l&apos;app.
-        </p>
-      </Section>
-
-      <p className="pt-4 text-center text-2xs text-tertiary">Be Stable · v4 « Grand Ouvert »</p>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section>
-      <h2 className="mb-1 text-2xs uppercase tracking-wide text-tertiary">{title}</h2>
-      <div className="divide-y rounded-[var(--radius-lg)] border bg-elevated px-4">{children}</div>
-    </section>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between py-3 text-sm">
-      <span className="text-secondary">{label}</span>
-      <span className="text-primary">{value}</span>
-    </div>
-  );
-}
-
-function NavRow({
-  href,
-  icon,
-  label,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <Link href={href} className="flex w-full items-center justify-between py-3.5">
-      <span className="flex items-center gap-2 text-sm text-primary">
-        <span className="text-tertiary">{icon}</span>
-        {label}
-      </span>
-      <ChevronRight size={16} className="text-tertiary" />
-    </Link>
+      </div>
+      <p className="ec-help" style={{ textAlign: "center", marginTop: 16 }}>
+        Be Stable · v4 « Grand Ouvert »
+      </p>
+    </Sec>
   );
 }

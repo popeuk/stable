@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Over, Screen, Sec, Toggle, cap } from "@/components/bs/ui";
-import { Picto } from "@/components/bs/picto";
-import { InstallCard } from "@/components/bs/desk";
+import { Screen, cap } from "@/components/bs/ui";
+import { useDesk } from "@/components/bs/desk";
+import { Hello, Ic, Sec, Switch, ini } from "@/components/carnet/ui";
 import { api } from "@/lib/account/api";
 import { getSession, leave } from "@/lib/account/session";
+import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -52,107 +54,91 @@ async function importData(file: File) {
   }
 }
 
+/** « 7:45 » devient « 7 h 45 », « 7:00 » devient « 7 h ». */
+const heure = (t: string) => {
+  const [h, m] = t.split(":");
+  return `${Number(h)} h${m && m !== "00" ? ` ${m}` : ""}`;
+};
+
+/** Une ligne du carnet : le titre, sa précision, et à droite un champ, une flèche ou rien. */
+function Li({ title, sub, right, children }: { title: ReactNode; sub?: ReactNode; right?: ReactNode; children?: ReactNode }) {
+  return (
+    <>
+      <span>
+        <b>{title}</b>
+        {sub && <small>{sub}</small>}
+        {children}
+      </span>
+      {right ?? <span />}
+    </>
+  );
+}
+const chev = <Ic n="chev" className="chev" />;
+
 function Moi() {
   const router = useRouter();
   const s = useSettingsStore();
   const data = useDataStore();
   const say = useUiStore((x) => x.say);
+  const desk = useDesk();
   const { n } = useParcours();
   const [perm, setPerm] = useState<string>(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   const today = localToday();
   const todays = agendaSessions(data, today).filter((x) => x.daysUntil <= 0);
   const horses = data.horses.filter((h) => !h.isArchived);
+  const libres = Math.max(0, s.capacity - horses.length);
   const won = n === 6;
   const nameOf = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "";
+  const soon = () => say("Bientôt : ce lien ouvrira Be Stable.");
 
-  const row = (href: string, picto: string, title: string, sub: string) => (
-    <Link href={href} className="bs-li tap">
-      <span className="bs-pic">
-        <Picto name={picto} />
-      </span>
-      <span className="tx">
-        <b>{title}</b>
-        <span>{sub}</span>
-      </span>
-      <Picto name="chev" />
-    </Link>
+  const ecurie = (
+    <Sec ill="brouette" title="Ton écurie" delay={0.18}>
+      <div className="li np">
+        <Li title={<label htmlFor="st-name">Nom</label>} sub="en haut de l’app" right={<input id="st-name" className="input sm" defaultValue={s.stableName} onChange={(e) => s.setIdentity({ stableName: e.target.value })} />} />
+      </div>
+      <div className="li np">
+        <Li title={<label htmlFor="st-gerant">Ton prénom</label>} sub="pour le bonjour" right={<input id="st-gerant" className="input sm" defaultValue={s.gerant} onChange={(e) => s.setIdentity({ gerant: e.target.value })} />} />
+      </div>
+      <div className="li np">
+        <Li
+          title={<label htmlFor="st-cap">Nombre de boxes</label>}
+          sub={`${horses.length} occupé${horses.length > 1 ? "s" : ""}, ${libres} libre${libres > 1 ? "s" : ""}`}
+          right={<input id="st-cap" className="input xs" inputMode="numeric" defaultValue={s.capacity} onChange={(e) => Number(e.target.value) > 0 && s.setCapacity(Number(e.target.value))} />}
+        />
+      </div>
+      <Link href="/parcours/tarifs?retour=moi" className="li np">
+        <Li title="Tes tarifs" sub="pension, cours, travail" right={chev} />
+      </Link>
+      <Link href="/parcours/factures?retour=moi" className="li np">
+        <Li title="Tes frais communs" sub="foin, litière, loyer, salaires" right={chev} />
+      </Link>
+      <Link href="/parametres" className="li np">
+        <Li title="Tous les réglages" sub="tarifs, équipe, catégories, notifications" right={chev} />
+      </Link>
+    </Sec>
   );
-  const soon = (title: string, sub: string, picto: string) => (
-    <button type="button" className="bs-li tap" onClick={() => say("Bientôt : ce lien ouvrira Be Stable.")}>
-      <span className="bs-pic">
-        <Picto name={picto} />
-      </span>
-      <span className="tx">
-        <b>{title}</b>
-        <span>{sub}</span>
-      </span>
-      <Picto name="chev" />
-    </button>
-  );
 
-  return (
-    <Screen>
-      <Over left={s.stableName} />
-      <h1 className="bs-d bs-t1">Moi</h1>
-
-      <Compte />
-
-      <Sec>Ton écurie</Sec>
-      <div className="bs-li">
-        <span className="bs-pic">
-          <Picto name="box" />
-        </span>
-        <label className="tx" htmlFor="st-name">
-          <b>Nom de l’écurie</b>
-          <span>affiché en haut de l’app</span>
-        </label>
-        <input id="st-name" className="bs-inline" style={{ width: 150, textAlign: "left" }} defaultValue={s.stableName} onChange={(e) => s.setIdentity({ stableName: e.target.value })} />
-      </div>
-      <div className="bs-li">
-        <span className="bs-pic">
-          <Picto name="personne" />
-        </span>
-        <label className="tx" htmlFor="st-gerant">
-          <b>Ton prénom</b>
-          <span>pour le bonjour du matin</span>
-        </label>
-        <input id="st-gerant" className="bs-inline" style={{ width: 150, textAlign: "left" }} defaultValue={s.gerant} onChange={(e) => s.setIdentity({ gerant: e.target.value })} />
-      </div>
-      <div className="bs-li">
-        <span className="bs-pic">
-          <Picto name="horse" />
-        </span>
-        <label className="tx" htmlFor="st-cap">
-          <b>Nombre de boxes</b>
-          <span>
-            {horses.length} occupés, {Math.max(0, s.capacity - horses.length)} libres
-          </span>
-        </label>
-        <input id="st-cap" className="bs-inline" inputMode="numeric" defaultValue={s.capacity} onChange={(e) => Number(e.target.value) > 0 && s.setCapacity(Number(e.target.value))} />
-      </div>
-      {row("/parcours/tarifs?retour=moi", "euro", "Tes tarifs", "ce que tu fais payer : pension, cours, travail")}
-      {row("/parcours/factures?retour=moi", "foin", "Tes frais communs", "foin, paille, loyer, salaires… chaque mois")}
-      {row("/parametres", "reglages", "Tous les réglages", "équipe, prestations, catégories")}
-
-      <Sec>Le rappel du matin</Sec>
-      <div className="bs-chips">
+  const rappel = (
+    <Sec ill="assise" title="Le rappel du matin" blk delay={0.26}>
+      <div className="chips ec-bells" style={{ marginTop: 10 }}>
         {["6:30", "7:00", "7:45", "8:30"].map((t) => (
-          <button key={t} type="button" className="bs-chip" aria-pressed={s.reminder === t} onClick={() => s.setReminder(t)}>
-            <Picto name="bell" />
-            {t.replace(":", " h ")}
+          <button key={t} type="button" className="chip" aria-pressed={s.reminder === t} onClick={() => s.setReminder(t)}>
+            <Ic n="bell" className="" />
+            {heure(t)}
           </button>
         ))}
       </div>
-      <Toggle on={s.evening} onClick={s.toggleEvening}>
-        Un rappel le soir s’il reste quelque chose
-      </Toggle>
-      <div className="bs-lock" role="img" aria-label="Aperçu de la notification du matin">
-        <div style={{ fontSize: 12.5, opacity: 0.85 }}>{cap(new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }))}</div>
+      <div style={{ marginTop: 4 }}>
+        <Switch on={s.evening} onClick={s.toggleEvening}>
+          Un rappel le soir s’il reste quelque chose
+        </Switch>
+      </div>
+      <div className="ec-lock" role="img" aria-label="Aperçu de la notification du matin">
+        <div className="dt">{cap(new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }))}</div>
         <div className="tm">{s.reminder}</div>
-        <div className="bs-notif">
+        <div className="nt">
           <div className="nh">
-            <i />
-            Be Stable<span>maintenant</span>
+            <i>bs</i>Be Stable<span>maintenant</span>
           </div>
           <b>
             Ta journée : {todays.length} chose{todays.length > 1 ? "s" : ""}
@@ -163,7 +149,7 @@ function Moi() {
       {perm !== "granted" && perm !== "unsupported" && (
         <button
           type="button"
-          className="bs-btn line"
+          className="btn line full"
           style={{ marginTop: 10 }}
           onClick={async () => {
             const r = await Notification.requestPermission();
@@ -171,90 +157,133 @@ function Moi() {
             if (r === "granted") say("Notifications autorisées. Le rappel arrive au premier lancement de la journée.");
           }}
         >
-          <Picto name="bell" />
+          <Ic n="bell" className="" />
           Autoriser les notifications
         </button>
       )}
-      <p className="bs-p" style={{ fontSize: 12.5 }}>
+      <p className="note" style={{ fontSize: 12.5 }}>
         {perm === "unsupported"
           ? "Ce navigateur ne gère pas les notifications. Installe l’app sur ton écran d’accueil pour les recevoir."
           : "Le rappel s’affiche à l’heure choisie, dès que l’app est ouverte ou installée sur ton écran d’accueil."}
       </p>
+    </Sec>
+  );
 
-      <Sec>Tes premiers pas</Sec>
-      {row("/parcours", "flag", won ? "Flot « Écurie prête » gagné" : `${n} étapes sur 6 franchies`, won ? "toutes les étapes sont faites" : "passer à l’étape suivante")}
+  const premiers = (
+    <Sec ill="rosette" title="Tes premiers pas" delay={desk ? 0.1 : 0.32}>
+      <Link href="/parcours" className="li np">
+        <Li title={won ? "Flot « Écurie prête » gagné" : `${n} étape${n > 1 ? "s" : ""} sur 6 franchie${n > 1 ? "s" : ""}`} sub={won ? "toutes les étapes sont faites" : "passer à l’étape suivante"} right={chev}>
+          <span className="ec-steps" aria-hidden="true">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <i key={i} className={i < n ? "on" : ""} />
+            ))}
+          </span>
+        </Li>
+      </Link>
+    </Sec>
+  );
 
-      <Sec>Aller plus loin avec Be Stable</Sec>
-      {soon("Le guide de l’écurie active", "gratuit, 34 pages", "book")}
-      {soon(`Publier mes ${Math.max(0, s.capacity - horses.length)} boxes libres`, "sur mon-ecurie.fr, gratuit, sans commission", "box")}
-      {soon("Gérer, la communauté des gérants", won ? "40 € par mois, tarif fondateur −20 % la première année" : "s’ouvre avec ton flot « Écurie prête »", "equipe")}
-
-      <Sec>L’app sur ton ordinateur et ton téléphone</Sec>
-      <InstallCard />
-
-      <Sec>Tes données</Sec>
-      <p className="bs-p" style={{ marginTop: 6 }}>
-        Tout est enregistré dans cet appareil. Pour passer du téléphone à l’ordinateur : exporte ici, puis importe le fichier sur l’autre appareil.
-      </p>
-      <button type="button" className="bs-li tap" onClick={exportData}>
-        <span className="bs-pic">
-          <Picto name="down" />
-        </span>
-        <span className="tx">
-          <b>Exporter mes données</b>
-          <span>un fichier de sauvegarde avec toute ton écurie</span>
-        </span>
+  const donnees = (
+    <Sec ill="carnet" title="Tes données" delay={desk ? 0.26 : 0.44}>
+      <p className="note">Tout est enregistré sur cet appareil. Pour passer du téléphone à l’ordinateur, exporte ici puis reprends le fichier sur l’autre appareil.</p>
+      <button type="button" className="li np" onClick={exportData}>
+        <Li title="Exporter mes données" sub="un fichier de sauvegarde avec toute ton écurie" right={<Ic n="download" className="ec-ico" />} />
       </button>
-      <label className="bs-li tap" style={{ cursor: "pointer" }}>
-        <span className="bs-pic">
-          <Picto name="up" />
-        </span>
-        <span className="tx">
-          <b>Reprendre une sauvegarde</b>
-          <span>remplace ce qui est sur cet appareil</span>
-        </span>
+      <label className="li np">
+        <Li title="Reprendre une sauvegarde" sub="remplace ce qui est sur cet appareil" right={<Ic n="upload" className="ec-ico" />} />
         <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
       </label>
       {getSession()?.kind === "demo" && (
-      <button
-        type="button"
-        className="bs-li tap"
-        onClick={() => {
-          if (window.confirm("Repartir de l’écurie d’exemple ? Ce que tu as noté sera remplacé.")) {
-            data.resetToDemo();
-            s.setIdentity({ stableName: "Les Trois Pommiers" });
-            say("L’écurie d’exemple est de retour.");
-          }
-        }}
-      >
-        <span className="bs-pic">
-          <Picto name="repeat" />
-        </span>
-        <span className="tx">
-          <b>Remettre l’écurie d’exemple</b>
-          <span>pour essayer sans risque</span>
-        </span>
-      </button>
+        <button
+          type="button"
+          className="li np"
+          onClick={() => {
+            if (window.confirm("Repartir de l’écurie d’exemple ? Ce que tu as noté sera remplacé.")) {
+              data.resetToDemo();
+              s.setIdentity({ stableName: "Les Trois Pommiers" });
+              say("L’écurie d’exemple est de retour.");
+            }
+          }}
+        >
+          <Li title="Remettre l’écurie d’exemple" sub="pour essayer sans risque" />
+        </button>
       )}
-      <button
-        type="button"
-        className="bs-li tap"
-        onClick={() => {
-          if (window.confirm("Tout effacer et refaire le parcours depuis le début ?")) {
-            data.startEmpty();
-            s.resetParcours();
-            router.push("/bienvenue");
-          }
-        }}
-      >
-        <span className="bs-pic rose">
-          <Picto name="trash" />
-        </span>
-        <span className="tx">
-          <b>Tout effacer et recommencer</b>
-          <span>le parcours repart de zéro</span>
-        </span>
+      <div className="ec-danger">
+        <button
+          type="button"
+          className="btn danger"
+          onClick={() => {
+            if (window.confirm("Tout effacer et refaire le parcours depuis le début ?")) {
+              data.startEmpty();
+              s.resetParcours();
+              router.push("/bienvenue");
+            }
+          }}
+        >
+          <Ic n="trash" className="" />
+          Tout effacer et recommencer
+        </button>
+        <small>Le parcours repart de zéro. On te demande de confirmer avant.</small>
+      </div>
+    </Sec>
+  );
+
+  const plusLoin = (
+    <Sec ill="piste" title="Aller plus loin avec Be Stable" delay={desk ? 0.34 : 0.5} id="bestable">
+      <button type="button" className="li np" onClick={soon}>
+        <Li title="Le guide de l’écurie active" sub="fixer tes prix, partager les frais, remplir tes boxes" right={<span className="pill">bientôt</span>} />
       </button>
+      <button type="button" className="li np" onClick={soon}>
+        <Li title={`Publier mes ${libres} boxes libres`} sub="sur mon-ecurie.fr, gratuit, sans commission" right={<span className="pill">bientôt</span>} />
+      </button>
+      <button type="button" className="li np" onClick={soon}>
+        <Li title="Gérer · la communauté des gérants" sub={won ? "40 € par mois, tarif fondateur −20 % la première année" : "s’ouvre avec ton flot « Écurie prête »"} right={<span className="pill">bientôt</span>} />
+      </button>
+    </Sec>
+  );
+
+  const compte = (
+    <Sec ill="carnet-buste" title="Ton compte" delay={0.1}>
+      <Compte />
+    </Sec>
+  );
+  const app = (
+    <Sec ill="foin" title="L’app sur ton téléphone" delay={desk ? 0.18 : 0.38}>
+      <Install />
+    </Sec>
+  );
+
+  return (
+    <Screen wide={desk}>
+      <div className="ec-pg">
+        <Hello title="Mon écurie" sub="Ce qui se règle une fois, et qu’on retrouve ici quand ça change." />
+        {desk ? (
+          <div className="cols2 ec-cols">
+            <div>
+              {compte}
+              {ecurie}
+              {rappel}
+            </div>
+            <div>
+              {premiers}
+              {app}
+              {donnees}
+              {plusLoin}
+            </div>
+          </div>
+        ) : (
+          <>
+            {compte}
+            {ecurie}
+            {rappel}
+            {premiers}
+            {app}
+            {donnees}
+            {plusLoin}
+          </>
+        )}
+        <div className="end" />
+      </div>
     </Screen>
   );
 }
@@ -265,40 +294,34 @@ function Compte() {
   if (s?.kind !== "compte")
     return (
       <>
-        <Sec>Ton compte</Sec>
-        <p className="bs-p" style={{ marginTop: 6 }}>Tu visites une écurie d’exemple : rien n’est enregistré à ton nom.</p>
-        <Link href="/bienvenue" className="bs-btn" style={{ marginTop: 12 }}>
+        <p className="note">Tu visites une écurie d’exemple : rien n’est enregistré à ton nom.</p>
+        <Link href="/bienvenue" className="btn full" style={{ marginTop: 12 }}>
           Créer mon compte avec mon écurie
         </Link>
-        <button type="button" className="bs-link" style={{ marginTop: 10 }} onClick={() => leave("/bienvenue")}>
+        <button type="button" className="lnk" style={{ marginTop: 10 }} onClick={() => leave("/bienvenue")}>
           Quitter l’exemple
         </button>
       </>
     );
   const etat = { validee: "validée", revendication_en_attente: "en vérification", creation_en_attente: "en vérification", refusee: "demande refusée", aucune: "" }[s.listing?.status ?? "aucune"];
+  const qui = `${s.prenom ?? ""} ${s.nom ?? ""}`.trim();
   return (
     <>
-      <Sec>Ton compte</Sec>
-      <div className="bs-li">
-        <span className="bs-ini">{(s.prenom || s.email).slice(0, 2).toUpperCase()}</span>
-        <span className="tx">
-          <b>{s.prenom} {s.nom}</b>
-          <span>{s.email} · le même compte que sur mon-ecurie.fr</span>
+      <div className="li">
+        <span className="ini">{qui ? ini(qui) : s.email.slice(0, 2).toUpperCase()}</span>
+        <span>
+          <b>{qui || s.email}</b>
+          <small className="tw">{s.email}</small>
+          <small className="tw">le même compte que sur mon-ecurie.fr</small>
         </span>
+        <span />
       </div>
-      <Link href="/ma-fiche" className="bs-li tap">
-        <span className="bs-pic soft">
-          <Picto name="flag" />
-        </span>
-        <span className="tx">
-          <b>{s.listing ? s.listing.title : "Reprendre la fiche de mon écurie"}</b>
-          <span>{s.listing ? `fiche mon-ecurie.fr · ${etat}` : "gratuit, 0 % de commission"}</span>
-        </span>
-        <Picto name="chev" />
+      <Link href="/ma-fiche" className="li np">
+        <Li title={s.listing ? s.listing.title : "Reprendre la fiche de mon écurie"} sub={s.listing ? `fiche mon-ecurie.fr · ${etat}` : "gratuit, 0 % de commission"} right={chev} />
       </Link>
       <button
         type="button"
-        className="bs-li tap"
+        className="li np"
         onClick={async () => {
           if (!window.confirm("Te déconnecter de cet appareil ? Tes données y restent, protégées. Tu les retrouves à ta prochaine connexion.")) return;
           try {
@@ -307,14 +330,72 @@ function Compte() {
           leave("/compte/connexion");
         }}
       >
-        <span className="bs-pic">
-          <Picto name="back" />
-        </span>
-        <span className="tx">
-          <b>Me déconnecter</b>
-          <span>tes données restent protégées sur cet appareil</span>
-        </span>
+        <Li title="Me déconnecter" sub="tes données restent protégées sur cet appareil" />
       </button>
     </>
+  );
+}
+
+/** L'app installée, ou comment l'installer. */
+function Install() {
+  const install = useInstall();
+  const [how, setHow] = useState(false);
+  if (install.installed)
+    return (
+      <div className="li np">
+        <Li title="Be Stable est installée" sub="elle s’ouvre comme une app sur cet appareil" right={<span className="pill ink">Installée</span>} />
+      </div>
+    );
+  return (
+    <>
+      <button type="button" className="li np" onClick={async () => (install.way === "bouton" ? install.prompt() : setHow(true))}>
+        <Li title="Installer Be Stable comme une app" sub="une icône sur ton écran d’accueil, même sans réseau" right={chev} />
+      </button>
+      {how && <InstallSheet onClose={() => setHow(false)} />}
+    </>
+  );
+}
+
+function InstallSheet({ onClose }: { onClose: () => void }) {
+  const install = useInstall();
+  const steps = INSTALL_HOWTO[install.way === "bouton" ? "autre" : install.way];
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", k);
+    const o = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", k);
+      document.body.style.overflow = o;
+    };
+  }, [onClose]);
+  return createPortal(
+    <div className="carnet carnet-portal">
+      <div className="sheet-wrap open">
+        <div className="scrim" onClick={onClose} />
+        <div className="sheet" role="dialog" aria-modal="true" aria-label="Installer Be Stable">
+          <div className="grab" />
+          <div className="shd">
+            <b>Installer Be Stable</b>
+            <button type="button" className="x" onClick={onClose} aria-label="Fermer">
+              <Ic n="x" className="" />
+            </button>
+          </div>
+          <p className="note">Une icône sur ton bureau ou ton écran d’accueil, une fenêtre à part, et l’app s’ouvre même sans réseau.</p>
+          <ol className="ec-howto">
+            {steps.map((x, i) => (
+              <li key={i}>
+                <span>{i + 1}</span>
+                {x}
+              </li>
+            ))}
+          </ol>
+          <p className="note" style={{ fontSize: 12.5 }}>
+            Tes données restent dans cet appareil : l’app installée sur l’ordinateur et celle du téléphone ne se partagent pas encore leurs saisies.
+          </p>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }

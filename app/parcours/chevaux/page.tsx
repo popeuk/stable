@@ -3,22 +3,15 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Screen, Sec } from "@/components/bs/ui";
-import { Picto } from "@/components/bs/picto";
+import { Chips, Face, Ic, Portrait } from "@/components/carnet/ui";
 import { ObHead } from "@/components/bs/ob-head";
-import { HorseFace, COATS, COAT_KEYS, type Coat } from "@/components/bs/horse-face";
+import { COATS, COAT_KEYS, type Coat } from "@/components/bs/horse-face";
 import { useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { localToday } from "@/lib/utils/local-date";
 
-const FORMULES: { name: string; picto: string }[] = [
-  { name: "Box seul", picto: "box" },
-  { name: "Box + paddock", picto: "box" },
-  { name: "Pension travail", picto: "cours" },
-  { name: "Retraite", picto: "foin" },
-  { name: "Pré", picto: "foin" },
-];
+const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"] as const;
 
 export default function Page() {
   return (
@@ -43,7 +36,7 @@ function Chevaux() {
   const [owner, setOwner] = useState("");
   const [coat, setCoat] = useState<Coat>("alezan");
   const [blaze, setBlaze] = useState(true);
-  const [formule, setFormule] = useState("Box + paddock");
+  const [formule, setFormule] = useState<string>("Box + paddock");
 
   function add() {
     const n = name.trim();
@@ -55,66 +48,61 @@ function Chevaux() {
   }
 
   return (
-    <Screen>
+    <>
       <ObHead retour={retour} n={1} title={retour ? "Ajouter un cheval" : "Tes chevaux"} sub="Commence par les chevaux en pension chez toi. Tu pourras ajouter les tiens plus tard." />
-      <div style={{ display: "flex", justifyContent: "center", marginTop: 14 }}>
-        <HorseFace coat={coat} blaze={blaze} size={76} />
-      </div>
-      <label className="bs-sec" htmlFor="h-name" style={{ display: "flex" }}>
-        Son nom
-      </label>
-      <div className="bs-field">
-        <input id="h-name" placeholder="Ex. Pacha" value={name} autoComplete="off" onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
-      </div>
-      <label className="bs-sec" htmlFor="h-owner" style={{ display: "flex" }}>
-        Son propriétaire <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>facultatif</span>
-      </label>
-      <div className="bs-field">
-        <input id="h-owner" placeholder="Ex. Julie P." value={owner} autoComplete="off" onChange={(e) => setOwner(e.target.value)} />
-      </div>
-      <Sec>Sa robe</Sec>
-      <div className="bs-swatches">
-        {COAT_KEYS.map((c) => (
-          <button key={c} type="button" className="bs-sw" aria-pressed={coat === c} aria-label={`Robe ${COATS[c].label}`} onClick={() => setCoat(c)}>
-            <i style={{ background: COATS[c].swatch }} />
-          </button>
-        ))}
-        <button type="button" className="bs-chip" aria-pressed={blaze} onClick={() => setBlaze(!blaze)} style={{ marginLeft: 4 }}>
-          Liste en tête
+      <Portrait horse={{ id: "apercu", name: name.trim() || "Ton cheval", coat }} />
+      <div className="ar-form">
+        <label className="field" htmlFor="h-name">
+          <span>Son nom</span>
+          <input id="h-name" className="input" placeholder="Ex. Pacha" value={name} autoComplete="off" onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
+        </label>
+        <label className="field" htmlFor="h-owner">
+          <span>Son propriétaire</span>
+          <input id="h-owner" className="input" placeholder="Ex. Julie P." value={owner} autoComplete="off" onChange={(e) => setOwner(e.target.value)} />
+          <em>Facultatif.</em>
+        </label>
+        <div className="field">
+          <span>Sa robe</span>
+          <div className="ar-robes">
+            {COAT_KEYS.map((c) => (
+              <button key={c} type="button" className="ar-robe" aria-pressed={coat === c} aria-label={`Robe ${COATS[c].label}`} onClick={() => setCoat(c)}>
+                <Face horse={{ id: c, name: "", coat: c }} />
+                {COATS[c].label}
+              </button>
+            ))}
+            <button type="button" className="chip" aria-pressed={blaze} onClick={() => setBlaze(!blaze)}>
+              Liste en tête
+            </button>
+          </div>
+        </div>
+        <div className="field">
+          <span>Sa formule de pension</span>
+          <Chips value={formule} onChange={setFormule} options={FORMULES.map((f) => [f, f] as [string, string])} />
+        </div>
+        <button type="button" className="btn line full" disabled={!name.trim()} onClick={add}>
+          <Ic n="plus" className="" />
+          Ajouter {name.trim() || "ce cheval"}
         </button>
       </div>
-      <Sec>Sa formule de pension</Sec>
-      <div className="bs-chips">
-        {FORMULES.map((f) => (
-          <button key={f.name} type="button" className="bs-chip" aria-pressed={formule === f.name} onClick={() => setFormule(f.name)}>
-            <Picto name={f.picto} />
-            {f.name}
-          </button>
-        ))}
-      </div>
-      <button type="button" className="bs-btn line" style={{ marginTop: 14 }} disabled={!name.trim()} onClick={add}>
-        <Picto name="plus" />
-        Ajouter {name.trim() || "ce cheval"}
-      </button>
 
-      <Sec>Dans ton écurie · {horses.length}</Sec>
+      <p className="ar-h5">
+        Dans ton écurie <em>{horses.length}</em>
+      </p>
       {horses.length ? (
-        <div className="bs-faces">
+        <div className="ar-herd">
           {horses.map((h) => (
-            <div key={h.id} className="bs-fpick">
-              <span className="ring">
-                <HorseFace horse={h} size={40} />
-              </span>
+            <span key={h.id}>
+              <Face horse={h} />
               {h.name}
-            </div>
+            </span>
           ))}
         </div>
       ) : (
-        <p className="bs-p">Aucun cheval pour l’instant. Ajoute le premier au-dessus.</p>
+        <p className="ar-sub">Aucun cheval pour l’instant. Ajoute le premier au-dessus.</p>
       )}
       <button
         type="button"
-        className="bs-btn"
+        className="btn ar-go"
         style={{ marginTop: 22 }}
         disabled={horses.length === 0}
         onClick={() => {
@@ -122,8 +110,9 @@ function Chevaux() {
           router.push(retour ? `/${retour}` : "/parcours/tarifs");
         }}
       >
-        {retour ? "Terminé" : "Passer à l’étape suivante"} <Picto name="check" />
+        {retour ? "Terminé" : "Passer à l’étape suivante"}
+        <Ic n="ck" className="" />
       </button>
-    </Screen>
+    </>
   );
 }

@@ -1,13 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
+import { Bricolage_Grotesque, IBM_Plex_Mono } from "next/font/google";
 import { EARLY_INSTALL_SCRIPT, PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 import "./bs.css";
+import "./carnet.css";
+import "./carnet/matin.css";
+import "./carnet/journee.css";
+import "./carnet/chevaux.css";
+import "./carnet/argent.css";
+import "./carnet/ecurie.css";
+import "./carnet/arrivee.css";
+import "./carnet/noter.css";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
   axes: ["wdth", "opsz"],
+  display: "swap",
+});
+
+const plex = IBM_Plex_Mono({
+  variable: "--font-plex",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 
@@ -28,7 +43,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(min-width: 1024px)", color: "#0B3325" },
+    { media: "(min-width: 1024px)", color: "#FFFFFF" },
     { color: "#FCFBF9" },
   ],
   width: "device-width",
@@ -44,7 +59,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${bricolage.variable} antialiased`}
+      className={`${bricolage.variable} ${plex.variable} antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: EARLY_INSTALL_SCRIPT }} />

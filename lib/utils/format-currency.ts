@@ -12,7 +12,7 @@ export function formatEur(value: number, opts?: { sign?: boolean }): string {
   const formatted = new Intl.NumberFormat("fr-FR", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  }).format(value);
+  }).format(value).replace(/\u202f/g, "\u00a0");
   const withSign =
     opts?.sign && value > 0 ? `+${formatted}` : formatted;
   return `${withSign}${NBSP}€`;

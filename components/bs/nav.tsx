@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { create } from "zustand";
-import { Picto } from "@/components/bs/picto";
+import { Ic } from "@/components/carnet/ui";
 import { aidePour } from "@/lib/aide";
 import { useSettingsStore } from "@/stores/settings-store";
 
@@ -60,14 +60,14 @@ const useAideOuverte = create<{ ouverte: string | null; ouvrir: (id: string) => 
 }));
 
 /** Le « ? » de l'en-tête : rouvre l'aide de l'écran, s'il en a une. */
-export function AideBouton({ className = "bs-icon" }: { className?: string }) {
+export function AideBouton({ className = "help" }: { className?: string }) {
   const path = usePathname() ?? "";
   const aide = aidePour(path);
   const ouvrir = useAideOuverte((s) => s.ouvrir);
   if (!aide) return null;
   return (
     <button type="button" className={className} aria-label="Comment ça marche ici ?" onClick={() => ouvrir(aide.id)}>
-      <Picto name="aide" />
+      <Ic n="help" />
     </button>
   );
 }
@@ -87,17 +87,19 @@ export function AideCarte() {
     fermer();
   };
   return (
-    <section className="bs-aide" aria-label="Comment ça marche ici">
-      <button type="button" className="bs-aide-x" onClick={ok} aria-label="Fermer l’aide">
-        <Picto name="x" />
+    <section className="aide" aria-label="Comment ça marche ici">
+      <button type="button" className="x" onClick={ok} aria-label="Fermer l’aide">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 6l12 12M18 6 6 18" />
+        </svg>
       </button>
-      <h2>{aide.titre}</h2>
+      <h5>{aide.titre}</h5>
       <ol>
         {aide.points.map((p) => (
           <li key={p}>{p}</li>
         ))}
       </ol>
-      <button type="button" className="bs-aide-ok" onClick={ok}>
+      <button type="button" className="ok" onClick={ok}>
         J’ai compris
       </button>
     </section>
@@ -111,14 +113,41 @@ export function RetourOrdinateur() {
   const racine = isRoot(path);
   if (racine && !aidePour(path)) return null;
   return (
-    <div className="bs-retour-desk">
+    <div className="cn-back-desk">
       {!racine && (
         <button type="button" onClick={retour}>
-          <Picto name="back" />
+          <Ic n="back" />
           Retour
         </button>
       )}
-      <AideBouton className="bs-retour-aide" />
+      <AideBouton className="help" />
     </div>
   );
 }
+
+/** Le titre court d'un écran, pour l'en-tête hors des onglets. */
+const TITRES: [string, string][] = [
+  ["/valider", "À confirmer"],
+  ["/ticket", "Fiche du cheval"],
+  ["/part", "Le pot commun"],
+  ["/argent", "Bilan du mois"],
+  ["/pilotage", "Sur plusieurs mois"],
+  ["/seuil", "Combien de chevaux"],
+  ["/scenarios", "Et si… ?"],
+  ["/depenses", "Entrées et sorties"],
+  ["/clients", "Mes clients"],
+  ["/contacts", "Les pros"],
+  ["/equipe", "Tâches de l’équipe"],
+  ["/prestations", "Cours et services"],
+  ["/ma-fiche", "Ma fiche"],
+  ["/moi", "Mon écurie"],
+  ["/parametres", "Réglages"],
+  ["/recherche", "Chercher"],
+  ["/saisie/cheval", "Ajouter un cheval"],
+  ["/saisie", "Noter"],
+  ["/decouvertes", "Ce qu’on a remarqué"],
+  ["/plan", "Mon plan"],
+  ["/audit", "Audit du mois"],
+  ["/conseiller", "Pose une question"],
+];
+export const titreDe = (p: string) => TITRES.find(([m]) => p.replace(/(.)\/$/, "$1").startsWith(m))?.[1] ?? "";

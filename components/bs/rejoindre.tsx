@@ -1,23 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { Picto } from "@/components/bs/picto";
-import { Rosette, withBase } from "@/components/bs/ui";
-import { FichePreview, nf, useAnnuaire } from "@/components/bs/account-ui";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { withBase } from "@/components/bs/ui";
+import { nf, pwScore, useAnnuaire } from "@/components/bs/account-ui";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
-import { api, ApiError, type Fiche, type StableHit } from "@/lib/account/api";
+import { Ic, Ill } from "@/components/carnet/ui";
+import { api, ApiError, PW_MIN, type Fiche, type StableHit } from "@/lib/account/api";
 import { enter, getSession, hasAccountData, hasLegacyData, sessionFrom, setSession, updateAccount, type AccountSession, type Listing } from "@/lib/account/session";
 
 /**
  * Rejoindre Be Stable : une question par écran.
- *   0. ce qu'est Be Stable, puis pourquoi on cherche l'écurie (mon-ecurie.fr) ;
+ *   0. trois scènes (les stories), puis pourquoi on cherche l'écurie (mon-ecurie.fr) ;
  *   1. le nom de l'écurie (ou l'ajouter si elle n'est pas dans l'annuaire) ;
  *   2. « C'est elle ? », puis sa fiche aujourd'hui / reprise, à faire glisser ;
  *   3. les places libres ;
  *   4. le prix « à partir de » ;
  *   5. l'e-mail, puis le code reçu (pas de mot de passe).
- * La demande part toute seule après le code, et le flot se tamponne.
+ * La demande part toute seule après le code, puis la rosette.
  * Sur ordinateur, la fiche se construit à côté de la question.
  */
 type Etape = "accueil" | "pourquoi" | "nom" | "creer" | "elle" | "gain" | "places" | "prix" | "email" | "code" | "envoi" | "fait";
@@ -35,6 +35,7 @@ const TU: Record<string, string> = {
   deja_revendiquee: "Cette fiche a déjà un gérant. Si c’est une erreur, écris à bonjour@mon-ecurie.fr.",
 };
 const dire = (x: unknown, defaut: string) => (x instanceof ApiError ? TU[x.code] ?? x.message : defaut);
+const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; creer?: boolean }) {
   const chiffres = useAnnuaire();
@@ -183,382 +184,533 @@ export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; cr
   const prixN = Number(prix);
   const apercu: Partial<Fiche> = { ...fiche, places_libres: places, prix_min: prix || fiche.prix_min };
   const statut = fiche.statut;
+  const demo = () => enter({ kind: "demo" }, "/accueil");
+  const erreur = err ? (
+    <p className="ar-err" role="alert">
+      {err}
+    </p>
+  ) : null;
 
+  /** Sur ordinateur : la fiche telle qu'elle se construit. */
   const panneau =
     etape === "gain" ? null : (
-      <div className="rj-side-in">
+      <aside className="ar-side" aria-hidden="true">
         {fiche.title ? (
           <>
-            <p className="rj-side-t">{etape === "fait" ? "Ta fiche, en vérification" : "Ta fiche, en direct"}</p>
-            <FichePreview f={apercu} pending={etape === "fait"} />
+            <p className="k">{etape === "fait" ? "Ta fiche, en vérification" : "Ta fiche, en direct"}</p>
+            <div className="ar-apercu">
+              <FicheCarte f={apercu} etat={etape === "fait" ? "verif" : "avant"} />
+            </div>
           </>
         ) : (
           <>
-            <p className="rj-side-t">Ce qu’une fiche reprise montre aux cavaliers</p>
-            <FichePreview f={{ title: "Ton écurie", commune: "Ta commune", photos: [{ id: 0, url: PHOTO }], prix_min: "420", places_libres: "2" }} claimed />
-            <p className="rj-side-ex">Exemple. 0 % de commission, gratuit.</p>
+            <p className="k">Ce qu’une fiche reprise montre aux cavaliers</p>
+            <div className="ar-apercu">
+              <FicheCarte f={{ title: "Ton écurie", commune: "Ta commune", photos: [{ id: 0, url: PHOTO }], prix_min: "420", places_libres: "2" }} etat="reprise" />
+            </div>
+            <p className="ar-ex">Exemple. 0 % de commission, gratuit.</p>
           </>
         )}
+      </aside>
+    );
+
+  // Les trois scènes : plein écran, sans en-tête.
+  if (etape === "accueil")
+    return (
+      <div className="ar ar-duo">
+        <Stories onStart={() => aller("pourquoi")} onDemo={demo} login={!compte} />
+        {panneau}
       </div>
     );
 
+  const top = (
+    <header className="ar-top">
+      {hist.length > 0 && etape !== "fait" && etape !== "envoi" ? (
+        <button type="button" className="ar-back" onClick={retour} aria-label="Revenir">
+          <Ic n="back" className="" />
+        </button>
+      ) : (
+        <span className="ar-wm">be stable</span>
+      )}
+      {etape !== "fait" && n > 0 ? (
+        <span className="dots" role="img" aria-label={`Étape ${n} sur 5`}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <i key={i} className={i <= n ? "on" : ""} />
+          ))}
+        </span>
+      ) : (
+        <span />
+      )}
+      {!compte && (etape === "nom" || etape === "pourquoi") ? (
+        <Link href="/compte/connexion" className="ar-link">
+          Me connecter
+        </Link>
+      ) : (
+        <span />
+      )}
+    </header>
+  );
+
   return (
-    <main className={`rj${etape === "gain" ? " gain" : ""}`}>
-      <div className="rj-main">
-        <header className="rj-top">
-          {hist.length > 0 && etape !== "fait" && etape !== "envoi" ? (
-            <button type="button" className="rj-back" onClick={retour} aria-label="Revenir">
-              <Picto name="chevL" />
-            </button>
-          ) : (
-            <span className="bs-wm">be stable</span>
-          )}
-          {etape !== "fait" && n > 0 && (
-            <div className="rj-dots" aria-label={`Étape ${n} sur 5`}>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <i key={i} className={i <= n ? "on" : ""} />
-              ))}
-            </div>
-          )}
-          {!compte && (etape === "nom" || etape === "accueil" || etape === "pourquoi") ? (
-            <Link href="/compte/connexion" className="bs-link">
-              Me connecter
-            </Link>
-          ) : (
-            <span style={{ width: 24 }} />
-          )}
-        </header>
-
-        {/* 0. Ce qu'est Be Stable */}
-        {etape === "accueil" && (
-          <div className="rj-step rj-intro">
-            <h1 className="rj-q">
-              Ton écurie tourne. <span className="hl">Be Stable te dit ce qu’elle te rapporte.</span>
-            </h1>
-            <ul className="rj-pts">
-              <li>
-                <Picto name="cal" />
-                <span>
-                  <b>Tes chevaux, leurs soins, ton planning</b>
-                  Au même endroit, notés en deux gestes depuis la cour.
-                </span>
-              </li>
-              <li>
-                <Picto name="euro" />
-                <span>
-                  <b>Ce que chaque cheval te laisse</b>
-                  Pensions, soins, foin : l’app fait les comptes pour toi. Pas de tableur.
-                </span>
-              </li>
-              <li>
-                <Picto name="flag" />
-                <span>
-                  <b>Ta fiche sur mon-ecurie.fr</b>
-                  L’annuaire où les cavaliers cherchent une pension pour leur cheval.
-                </span>
-              </li>
-            </ul>
-            <div className="rj-foot">
-              <button type="button" className="bs-btn rj-go" onClick={() => aller("pourquoi")}>
-                Commencer
-              </button>
-              <button type="button" className="bs-link rj-demo" onClick={() => enter({ kind: "demo" }, "/accueil")}>
-                Juste regarder ? Ouvre l’écurie de démonstration
-              </button>
-            </div>
+    <div className={`ar${etape === "gain" ? "" : " ar-duo"}`}>
+      {/* 0 bis. Pourquoi on cherche l'écurie */}
+      {etape === "pourquoi" && (
+        <div className="ar-v">
+          {top}
+          <div className="ar-hero rise">
+            <Ill n="cavaliere" alt="Une cavalière cherche une pension sur son téléphone, appuyée à la barrière du paddock." />
           </div>
-        )}
-
-        {/* 0 bis. Pourquoi on cherche l'écurie */}
-        {etape === "pourquoi" && (
-          <div className="rj-step rj-intro">
-            <h1 className="rj-q">D’abord, retrouvons ton écurie.</h1>
-            <p className="rj-sub">
-              Elle a sans doute déjà sa fiche sur <b>mon-ecurie.fr</b>, l’annuaire des pensions pour chevaux : <b className="num">{chiffres ? nf(chiffres.ecuries) : "7 681"}</b> écuries y sont, partout en France. En la reprenant :
+          <div className="q rise" style={{ animationDelay: ".08s" }}>
+            <h3>D’abord, retrouvons ton écurie.</h3>
+            <p>
+              Elle a sans doute déjà sa fiche sur <b>mon-ecurie.fr</b>, l’annuaire des pensions pour chevaux : <b className="num">{chiffres ? nf(chiffres.ecuries) : "7 681"} écuries</b> y sont, partout en France. En la reprenant :
             </p>
-            <ul className="rj-pts">
-              <li>
-                <Picto name="check" />
-                <span>
-                  <b>Elle passe à ton nom</b>
-                  Tes places libres, tes prix, tes photos : c’est toi qui les donnes, plus personne d’autre.
-                </span>
-              </li>
-              <li>
-                <Picto name="check" />
-                <span>
-                  <b>Les cavaliers la voient à jour</b>
-                  Ceux qui cherchent une pension près de chez toi tombent sur les bonnes informations.
-                </span>
-              </li>
-              <li>
-                <Picto name="check" />
-                <span>
-                  <b>Gratuit, sans commission</b>
-                  Rien n’est pris sur tes pensions. On vérifie chaque demande à la main, en général sous deux jours ouvrés.
-                </span>
-              </li>
-            </ul>
-            <div className="rj-foot">
-              <button type="button" className="bs-btn rj-go" onClick={() => aller("nom")}>
-                Trouver mon écurie
-              </button>
-              <button type="button" className="bs-link rj-demo" onClick={() => aller("creer")}>
-                Elle n’est pas sur l’annuaire ? L’ajouter
-              </button>
-            </div>
           </div>
-        )}
+          <ul className="ar-pts rise" style={{ animationDelay: ".16s" }}>
+            {["Elle passe à ton nom", "Les cavaliers la voient à jour", "Gratuit, sans commission"].map((t) => (
+              <li key={t}>
+                <span className="pk">
+                  <Ic n="ck" className="" />
+                </span>
+                {t}
+              </li>
+            ))}
+          </ul>
+          <div className="foot">
+            <button type="button" className="btn full" onClick={() => aller("nom")}>
+              Trouver mon écurie
+            </button>
+            <button type="button" className="lnk" onClick={() => aller("creer")}>
+              Elle n’est pas sur l’annuaire ? L’ajouter
+            </button>
+          </div>
+        </div>
+      )}
 
-        {/* 1. Le nom */}
-        {etape === "nom" && (
-          <form className="rj-step" onSubmit={(e) => (e.preventDefault(), hits?.[0] && choisir(hits[0]))}>
-            <h1 className="rj-q">Comment s’appelle ton écurie ?</h1>
-            <label className="rj-in">
-              <Picto name="search" />
-              <input autoFocus value={q} onChange={(e) => chercher(e.target.value)} placeholder="Nom ou commune" aria-label="Nom de ton écurie ou commune" autoComplete="off" enterKeyHint="search" />
-              {cherche && <span className="rj-spin" aria-hidden />}
-            </label>
-            {hits && (
-              <ul className="rj-hits" aria-live="polite">
-                {hits.map((h) => (
-                  <li key={h.id}>
-                    <button type="button" onClick={() => choisir(h)} disabled={busy}>
-                      <b>{h.title}</b>
-                      <span>{[h.commune, h.departement && `(${h.departement})`].filter(Boolean).join(" ")}</span>
-                    </button>
-                  </li>
-                ))}
-                <li>
-                  <button
-                    type="button"
-                    className="add"
-                    onClick={() => {
-                      setFiche({ ...fiche, id: undefined, title: q.trim(), statut: undefined });
-                      aller("creer");
-                    }}
-                  >
-                    <b>{hits.length ? "Elle n’est pas dans la liste" : "Aucune écurie à ce nom"}</b>
-                    <span>l’ajouter à l’annuaire</span>
+      {/* 1. Le nom */}
+      {etape === "nom" && (
+        <form className="ar-v" onSubmit={(e) => (e.preventDefault(), hits?.[0] && choisir(hits[0]))}>
+          {top}
+          <div className="q">
+            <h3>Comment s’appelle ton écurie ?</h3>
+          </div>
+          <label className="input ar-in">
+            <Ic n="search" className="ar-ico" />
+            <input autoFocus value={q} onChange={(e) => chercher(e.target.value)} placeholder="Nom ou commune" aria-label="Nom de ton écurie ou commune" autoComplete="off" enterKeyHint="search" />
+            {cherche && <span className="ar-spin" aria-hidden />}
+          </label>
+          {erreur}
+          {hits && (
+            <ul className="ar-hits" aria-live="polite">
+              {hits.map((h) => (
+                <li key={h.id}>
+                  <button type="button" onClick={() => choisir(h)} disabled={busy}>
+                    <b>
+                      <Marque t={h.title} q={q} />
+                    </b>
+                    <span>{[h.commune, h.departement && `(${h.departement})`].filter(Boolean).join(" ")}</span>
+                    <Ic n="chev" className="chev" />
                   </button>
                 </li>
-              </ul>
-            )}
-            <div className="rj-foot rj-foot-libre">
-              <p className="rj-proof">
-                <b className="num">{chiffres ? nf(chiffres.ecuries) : "7 681"}</b> écuries · gratuit · 0 % de commission
-              </p>
-              <button type="button" className="bs-link" style={{ color: "var(--ink-3)", fontWeight: 500 }} onClick={() => enter({ kind: "demo" }, "/accueil")}>
-                Juste regarder ? La démo
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* 1 bis. L'ajouter */}
-        {etape === "creer" && (
-          <form
-            className="rj-step"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!fiche.title?.trim() || !/^\d{5}$/.test(fiche.code_postal ?? "") || !fiche.commune?.trim()) return setErr("Le nom, le code postal et la commune suffisent.");
-              aller("gain");
-            }}
-          >
-            <h1 className="rj-q">Ajoutons-la.</h1>
-            <label className="rj-in">
-              <input autoFocus value={fiche.title ?? ""} onChange={(e) => setFiche({ ...fiche, title: e.target.value })} placeholder="Nom de l’écurie" aria-label="Nom de l’écurie" autoComplete="organization" />
-            </label>
-            <div className="rj-two">
-              <label className="rj-in">
-                <input value={fiche.code_postal ?? ""} onChange={(e) => setFiche({ ...fiche, code_postal: e.target.value.replace(/\D/g, "").slice(0, 5) })} placeholder="Code postal" aria-label="Code postal" inputMode="numeric" autoComplete="postal-code" />
-              </label>
-              <label className="rj-in">
-                <input value={fiche.commune ?? ""} onChange={(e) => setFiche({ ...fiche, commune: e.target.value })} placeholder="Commune" aria-label="Commune" autoComplete="address-level2" />
-              </label>
-            </div>
-            {err && <p className="rj-err">{err}</p>}
-            <div className="rj-foot">
-              <button className="bs-btn rj-go">Continuer</button>
-            </div>
-          </form>
-        )}
-
-        {/* 2. C'est elle ? */}
-        {etape === "elle" && (
-          <div className="rj-step">
-            <h1 className="rj-q">{statut === "revendiquee" ? "Elle a déjà son gérant." : statut === "en_verification" ? "Une demande est déjà en cours." : "C’est elle ?"}</h1>
-            <div className="bs-mob">
-              <FichePreview f={fiche} />
-            </div>
-            {err && <p className="rj-err">{err}</p>}
-            <div className="rj-foot">
-              {statut === "revendiquee" ? (
-                <>
-                  <p className="rj-proof">C’est toi ? Entre avec ton e-mail.</p>
-                  <Link href="/compte/connexion" className="bs-btn rj-go">
-                    Me connecter
-                  </Link>
-                </>
-              ) : statut === "en_verification" ? (
-                <>
-                  <p className="rj-proof">Si c’est la tienne, ton e-mail suffit pour la retrouver.</p>
-                  <button type="button" className="bs-btn rj-go" onClick={() => aller(compte ? "places" : "email")}>
-                    C’est ma demande
-                  </button>
-                </>
-              ) : (
-                <div className="rj-two">
-                  <button type="button" className="bs-btn line rj-go" onClick={() => (setEtape("nom"), setHist([]))}>
-                    Non
-                  </button>
-                  <button type="button" className="bs-btn rj-go" onClick={() => aller("gain")} autoFocus>
-                    Oui, c’est elle
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* 2 bis. Aujourd'hui / reprise */}
-        {etape === "gain" && (
-          <div className="rj-step">
-            <h1 className="rj-q">Glisse.</h1>
-            <AvantApres f={fiche} />
-            <div className="rj-foot">
-              <button type="button" className="bs-btn rj-go" onClick={() => aller("places")}>
-                Je veux celle de droite
-              </button>
-              <p className="rj-proof">Gratuit · 0 % de commission · vérifiée à la main</p>
-            </div>
-          </div>
-        )}
-
-        {/* 3. Places */}
-        {etape === "places" && (
-          <form className="rj-step" onSubmit={(e) => (e.preventDefault(), aller("prix"))}>
-            <h1 className="rj-q">Des places libres en ce moment ?</h1>
-            <div className="rj-stepper">
-              <button type="button" aria-label="Une place de moins" onClick={() => setPlaces(String(Math.max(0, Number(places || 1) - 1)))}>
-                −
-              </button>
-              <input className="num" inputMode="numeric" value={places} placeholder="?" aria-label="Places libres" onChange={(e) => setPlaces(e.target.value.replace(/\D/g, "").slice(0, 2))} autoFocus />
-              <button type="button" aria-label="Une place de plus" onClick={() => setPlaces(String(Number(places || 0) + 1))}>
-                +
-              </button>
-            </div>
-            <div className="rj-chips">
-              <button type="button" className="bs-chip" aria-pressed={places === "0"} onClick={() => setPlaces("0")}>
-                Complet
-              </button>
-              <button type="button" className="bs-chip" aria-pressed={places === ""} onClick={() => setPlaces("")}>
-                Je ne dis pas
-              </button>
-            </div>
-            <div className="rj-foot">
-              <button className="bs-btn rj-go">Suivant</button>
-            </div>
-          </form>
-        )}
-
-        {/* 4. Prix */}
-        {etape === "prix" && (
-          <form className="rj-step" onSubmit={(e) => (e.preventDefault(), compte ? envoyer(compte) : aller("email"))}>
-            <h1 className="rj-q">Ta pension, à partir de combien ?</h1>
-            <label className="rj-big">
-              <input className="num" inputMode="numeric" value={prix} placeholder="0" aria-label="Prix à partir de, par mois" onChange={(e) => setPrix(e.target.value.replace(/\D/g, "").slice(0, 5))} autoFocus />
-              <span>€ / mois</span>
-            </label>
-            {err && <p className="rj-err">{err}</p>}
-            <div className="rj-foot">
-              <button className="bs-btn rj-go">{prixN > 0 ? "Suivant" : "Passer"}</button>
-            </div>
-          </form>
-        )}
-
-        {/* 5. E-mail */}
-        {etape === "email" && (
-          <form className="rj-step" onSubmit={demanderCode} noValidate>
-            <h1 className="rj-q">Où t’envoyer ton code ?</h1>
-            <label className="rj-in">
-              <input autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.fr" aria-label="Ton e-mail" />
-            </label>
-            {err && <p className="rj-err">{err}</p>}
-            <div className="rj-foot">
-              <button className="bs-btn rj-go" disabled={busy}>
-                {busy ? "Envoi…" : "Recevoir le code"}
-              </button>
-              <p className="rj-proof">
-                Pas de mot de passe. En continuant, tu acceptes les{" "}
-                <a href="https://www.mon-ecurie.fr/cgu/" target="_blank" rel="noreferrer">
-                  conditions
-                </a>{" "}
-                de mon-ecurie.fr.
-              </p>
-            </div>
-          </form>
-        )}
-
-        {/* 5 bis. Le code */}
-        {etape === "code" && (
-          <form className="rj-step" onSubmit={(e) => (e.preventDefault(), verifier(code))}>
-            <h1 className="rj-q">Le code reçu.</h1>
-            <p className="rj-sub">Envoyé à {email.trim()}.</p>
-            <CodeInput value={code} onChange={(v) => (setCode(v), v.length === 6 && verifier(v))} disabled={busy} />
-            {err && <p className="rj-err">{err}</p>}
-            <div className="rj-foot">
-              <button className="bs-btn rj-go" disabled={busy || code.length !== 6}>
-                {busy ? "Vérification…" : "Valider"}
-              </button>
-              <p className="rj-proof">
-                Rien reçu ? Regarde les indésirables, ou{" "}
-                <button type="button" className="bs-link" onClick={() => demanderCode()}>
-                  renvoie le code
+              ))}
+              <li>
+                <button
+                  type="button"
+                  className="add"
+                  onClick={() => {
+                    setFiche({ ...fiche, id: undefined, title: q.trim(), statut: undefined });
+                    aller("creer");
+                  }}
+                >
+                  <b>{hits.length ? "Elle n’est pas dans la liste" : "Aucune écurie à ce nom"}</b>
+                  <span>l’ajouter à l’annuaire</span>
+                  <Ic n="plus" className="chev" />
                 </button>
-                .
-              </p>
-            </div>
-          </form>
-        )}
-
-        {etape === "envoi" && (
-          <div className="rj-step">
-            <h1 className="rj-q">Un instant…</h1>
+              </li>
+            </ul>
+          )}
+          <div className="foot">
+            <p className="ar-proof">
+              <b className="num">{chiffres ? nf(chiffres.ecuries) : "7 681"}</b> écuries · gratuit · 0 % de commission
+            </p>
+            <button type="button" className="lnk" onClick={demo}>
+              Juste regarder ? La démo
+            </button>
           </div>
-        )}
+        </form>
+      )}
 
-        {/* Le flot */}
-        {etape === "fait" && (
-          <div className="rj-step rj-fait">
-            <div className="rj-stamp">
-              <Rosette lines={["En", "piste"]} size={128} />
+      {/* 1 bis. L'ajouter */}
+      {etape === "creer" && (
+        <form
+          className="ar-v"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!fiche.title?.trim() || !/^\d{5}$/.test(fiche.code_postal ?? "") || !fiche.commune?.trim()) return setErr("Le nom, le code postal et la commune suffisent.");
+            aller("gain");
+          }}
+        >
+          {top}
+          <div className="q">
+            <h3>Ajoutons-la.</h3>
+            <p>Le nom, le code postal et la commune suffisent.</p>
+          </div>
+          <div className="ar-form">
+            <label className="field">
+              <span>Nom de l’écurie</span>
+              <input className="input" autoFocus value={fiche.title ?? ""} onChange={(e) => setFiche({ ...fiche, title: e.target.value })} placeholder="Ex. Les Trois Pommiers" autoComplete="organization" />
+            </label>
+            <div className="ar-two">
+              <label className="field">
+                <span>Code postal</span>
+                <input className="input num" value={fiche.code_postal ?? ""} onChange={(e) => setFiche({ ...fiche, code_postal: e.target.value.replace(/\D/g, "").slice(0, 5) })} placeholder="Code postal" inputMode="numeric" autoComplete="postal-code" />
+              </label>
+              <label className="field">
+                <span>Commune</span>
+                <input className="input" value={fiche.commune ?? ""} onChange={(e) => setFiche({ ...fiche, commune: e.target.value })} placeholder="Commune" autoComplete="address-level2" />
+              </label>
             </div>
-            <h1 className="rj-q">{listing?.status === "validee" ? "Ta fiche est à toi." : "Demande envoyée."}</h1>
-            <p className="rj-sub">{listing?.status === "validee" ? "Tout est prêt dans Be Stable." : "On vérifie à la main, en général sous deux jours ouvrés. Tu reçois un e-mail dès que la fiche est à toi."}</p>
-            <div className="rj-foot">
-              <button type="button" className="bs-btn rj-go" onClick={() => compte && entrer(compte, "/parcours")}>
-                Ouvrir Be Stable <Picto name="arrowR" />
+          </div>
+          {erreur}
+          <div className="foot">
+            <button className="btn full">Continuer</button>
+          </div>
+        </form>
+      )}
+
+      {/* 2. C'est elle ? */}
+      {etape === "elle" && (
+        <div className="ar-v">
+          {top}
+          <div className="q">
+            <h3>{statut === "revendiquee" ? "Elle a déjà son gérant." : statut === "en_verification" ? "Une demande est déjà en cours." : "C’est elle ?"}</h3>
+          </div>
+          <div className="ar-apercu" aria-label="Aperçu de la fiche sur mon-ecurie.fr">
+            <FicheCarte f={fiche} etat="avant" />
+          </div>
+          {erreur}
+          <div className="foot">
+            {statut === "revendiquee" ? (
+              <>
+                <p className="ar-proof">C’est toi ? Entre avec ton e-mail.</p>
+                <Link href="/compte/connexion" className="btn full">
+                  Me connecter
+                </Link>
+              </>
+            ) : statut === "en_verification" ? (
+              <>
+                <p className="ar-proof">Si c’est la tienne, ton e-mail suffit pour la retrouver.</p>
+                <button type="button" className="btn full" onClick={() => aller(compte ? "places" : "email")}>
+                  C’est ma demande
+                </button>
+              </>
+            ) : (
+              <div className="ar-two">
+                <button type="button" className="btn line" onClick={() => (setEtape("nom"), setHist([]))}>
+                  Non
+                </button>
+                <button type="button" className="btn" onClick={() => aller("gain")} autoFocus>
+                  Oui, c’est elle
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 2 bis. Aujourd'hui / reprise */}
+      {etape === "gain" && (
+        <div className="ar-v">
+          {top}
+          <div className="q">
+            <h3>Glisse.</h3>
+          </div>
+          <AvantApres f={fiche} />
+          <div className="foot">
+            <button type="button" className="btn full" onClick={() => aller("places")}>
+              Je veux celle de droite
+            </button>
+            <p className="ar-proof">Gratuit · 0 % de commission · vérifiée à la main</p>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Places */}
+      {etape === "places" && (
+        <form className="ar-v" onSubmit={(e) => (e.preventDefault(), aller("prix"))}>
+          {top}
+          <div className="q">
+            <h3>Des places libres en ce moment ?</h3>
+          </div>
+          <div className="ar-grand">
+            <button type="button" aria-label="Une place de moins" onClick={() => setPlaces(String(Math.max(0, Number(places || 1) - 1)))}>
+              −
+            </button>
+            <input inputMode="numeric" value={places} placeholder="?" aria-label="Places libres" onChange={(e) => setPlaces(e.target.value.replace(/\D/g, "").slice(0, 2))} autoFocus />
+            <button type="button" aria-label="Une place de plus" onClick={() => setPlaces(String(Number(places || 0) + 1))}>
+              +
+            </button>
+          </div>
+          <div className="chips ar-chips">
+            <button type="button" className="chip" aria-pressed={places === "0"} onClick={() => setPlaces("0")}>
+              Complet
+            </button>
+            <button type="button" className="chip" aria-pressed={places === ""} onClick={() => setPlaces("")}>
+              Je ne dis pas
+            </button>
+          </div>
+          <div className="foot">
+            <button className="btn full">Suivant</button>
+          </div>
+        </form>
+      )}
+
+      {/* 4. Prix */}
+      {etape === "prix" && (
+        <form className="ar-v" onSubmit={(e) => (e.preventDefault(), compte ? envoyer(compte) : aller("email"))}>
+          {top}
+          <div className="q">
+            <h3>Ta pension, à partir de combien ?</h3>
+          </div>
+          <label className="ar-prix">
+            <input inputMode="numeric" value={prix} placeholder="0" aria-label="Prix à partir de, par mois" onChange={(e) => setPrix(e.target.value.replace(/\D/g, "").slice(0, 5))} autoFocus />
+            <span>€ / mois</span>
+          </label>
+          <p className="ar-ex" style={{ textAlign: "center" }}>
+            Le prix le plus bas de tes formules. Il s’affiche « à partir de ».
+          </p>
+          {erreur}
+          <div className="foot">
+            <button className="btn full">{prixN > 0 ? "Suivant" : "Passer"}</button>
+          </div>
+        </form>
+      )}
+
+      {/* 5. E-mail */}
+      {etape === "email" && (
+        <form className="ar-v" onSubmit={demanderCode} noValidate>
+          {top}
+          <div className="q">
+            <h3>Où t’envoyer ton code ?</h3>
+          </div>
+          <label className="input ar-in">
+            <input autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.fr" aria-label="Ton e-mail" />
+          </label>
+          {erreur}
+          <div className="foot">
+            <button className="btn full" disabled={busy}>
+              {busy ? "Envoi…" : "Recevoir le code"}
+            </button>
+            <p className="ar-proof">
+              Pas de mot de passe. En continuant, tu acceptes les{" "}
+              <a className="lnk" href="https://www.mon-ecurie.fr/cgu/" target="_blank" rel="noreferrer">
+                conditions
+              </a>{" "}
+              de mon-ecurie.fr.
+            </p>
+          </div>
+        </form>
+      )}
+
+      {/* 5 bis. Le code */}
+      {etape === "code" && (
+        <form className="ar-v" onSubmit={(e) => (e.preventDefault(), verifier(code))}>
+          {top}
+          <div className="q">
+            <h3>Le code reçu.</h3>
+            <p>Envoyé à {email.trim()}.</p>
+          </div>
+          <CodeInput value={code} onChange={(v) => (setCode(v), v.length === 6 && verifier(v))} disabled={busy} />
+          {erreur}
+          <div className="foot">
+            <button className="btn full" disabled={busy || code.length !== 6}>
+              {busy ? "Vérification…" : "Valider"}
+            </button>
+            <p className="ar-proof">
+              Rien reçu ? Regarde les indésirables, ou{" "}
+              <button type="button" className="lnk" onClick={() => demanderCode()}>
+                renvoie le code
               </button>
-            </div>
+              .
+            </p>
           </div>
-        )}
-      </div>
+        </form>
+      )}
 
-      <aside className="rj-side" aria-hidden="true">
-        {etape === "gain" ? null : panneau}
-      </aside>
-    </main>
+      {etape === "envoi" && (
+        <div className="ar-v" aria-busy="true">
+          {top}
+          <div className="q">
+            <h3>Un instant…</h3>
+          </div>
+        </div>
+      )}
+
+      {/* La rosette */}
+      {etape === "fait" && (
+        <div className="ar-v ar-fait">
+          {top}
+          <div className="hero-ill rise">
+            <Ill n="rosette" alt="La gérante brandit une rosette." />
+          </div>
+          <div className="q rise" style={{ animationDelay: ".08s" }}>
+            <h3>{listing?.status === "validee" ? "Ta fiche est à toi." : "Demande envoyée."}</h3>
+            <p>{listing?.status === "validee" ? "Tout est prêt dans Be Stable." : "On vérifie à la main, en général sous deux jours ouvrés. Tu reçois un e-mail dès que la fiche est à toi."}</p>
+          </div>
+          <div className="foot">
+            <button type="button" className="btn full" onClick={() => compte && entrer(compte, "/parcours")}>
+              Ouvrir Be Stable
+              <Ic n="arrow" className="" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {panneau}
+    </div>
+  );
+}
+
+/* ---------- Les trois scènes ---------- */
+const SCENES: { ill: "matin" | "soir" | "sereine"; alt: string; t: string; s: string; fx?: "rays" | "lamp" }[] = [
+  { ill: "matin", alt: "La gérante porte une botte de foin devant les boxes, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, les boxes, les sabots. Tu assures, même les yeux fermés.", fx: "rays" },
+  { ill: "soir", alt: "La gérante, fatiguée, devant des tickets et une calculette.", t: "Le soir, les comptes te rattrapent.", s: "Les tickets s’empilent. Et une question revient : ton écurie te fait-elle vivre ?", fx: "lamp" },
+  { ill: "sereine", alt: "La gérante sourit à son téléphone, un cheval pose la tête sur son épaule.", t: "Avec Be Stable, tu tiens les rênes.", s: "Deux gestes pour noter ta journée. Un chiffre clair pour chaque cheval." },
+];
+const DUREE = 5000;
+
+/** Trois scènes qui défilent seules (5 s), toucher avance, la dernière attend. */
+function Stories({ onStart, onDemo, login }: { onStart: () => void; onDemo: () => void; login: boolean }) {
+  const [i, setI] = useState(0);
+  const bars = useRef<(HTMLElement | null)[]>([]);
+  useEffect(() => {
+    const fill = (k: number) => bars.current.forEach((b, j) => b && (b.style.width = j < i ? "100%" : j === i ? `${k * 100}%` : "0"));
+    if (calme()) return fill(1);
+    const t0 = performance.now();
+    let raf = 0;
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - t0) / DUREE);
+      fill(k);
+      if (k >= 1 && i < SCENES.length - 1) return setI(i + 1);
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [i]);
+  const dernier = i === SCENES.length - 1;
+  return (
+    <div className="ar-stwrap">
+      <div className="stories">
+        <div className="bars" aria-hidden="true">
+          {SCENES.map((s, j) => (
+            <i key={s.ill}>
+              <b ref={(el) => void (bars.current[j] = el)} />
+            </i>
+          ))}
+        </div>
+        {login && (
+          <Link href="/compte/connexion" className="ar-link ar-login">
+            Me connecter
+          </Link>
+        )}
+        <button type="button" className="stage" aria-label={dernier ? `Scène ${i + 1} sur 3` : "Écran suivant"} onClick={() => setI((x) => Math.min(x + 1, SCENES.length - 1))}>
+          {SCENES.map((s, j) => (
+            <span key={s.ill} className={`slide${j === i ? " on" : ""}`} aria-hidden={j !== i}>
+              <span className="art">
+                {s.fx === "rays" && <span className="ar-rays" />}
+                {s.fx === "lamp" && <span className="ar-lamp" />}
+                <Ill n={s.ill} alt={s.alt} className="mul" />
+              </span>
+              <span className="tx" aria-live={j === i ? "polite" : undefined}>
+                <strong>{s.t}</strong>
+                <span>{s.s}</span>
+              </span>
+            </span>
+          ))}
+        </button>
+        <div className="cta">
+          <button type="button" className="btn" onClick={onStart}>
+            Commencer
+          </button>
+          <button type="button" className="lnk" onClick={onDemo}>
+            Juste regarder ? Ouvre l’écurie de démonstration
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- La fiche, telle que les cavaliers la voient ---------- */
+const plie = (s: string) =>
+  [...s]
+    .map((c) => {
+      const f = c.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      return f.length === 1 ? f : c;
+    })
+    .join("");
+/** Le nom trouvé, avec la partie tapée soulignée. */
+function Marque({ t, q }: { t: string; q: string }) {
+  const k = plie(q.trim());
+  const i = k.length >= 2 ? plie(t).indexOf(k) : -1;
+  if (i < 0) return <>{t}</>;
+  return (
+    <>
+      {t.slice(0, i)}
+      <mark>{t.slice(i, i + k.length)}</mark>
+      {t.slice(i + k.length)}
+    </>
+  );
+}
+
+/** avant : la fiche telle qu'elle est ; reprise : la version à jour ; verif : demande partie. */
+function FicheCarte({ f, etat, exemple }: { f: Partial<Fiche>; etat: "avant" | "reprise" | "verif"; exemple?: ReactNode }) {
+  const photo = f.photos?.[0]?.url;
+  const price = Number(f.prix_min);
+  const places = f.places_libres;
+  const pill =
+    etat === "reprise" ? (
+      <span className="pill ink">✓ Revendiquée</span>
+    ) : etat === "verif" ? (
+      <span className="pill">En vérification</span>
+    ) : f.statut === "revendiquee" ? (
+      <span className="pill">Déjà reprise</span>
+    ) : f.statut === "en_verification" ? (
+      <span className="pill">En vérification</span>
+    ) : (
+      <span className="pill">Non revendiquée</span>
+    );
+  return (
+    <div className="ar-fc">
+      <div className="ph" style={photo ? { backgroundImage: `url(${photo})` } : undefined}>
+        {!photo && (exemple ?? "Pas de photo")}
+      </div>
+      <div className="bd">
+        <b>{f.title || "Le nom de ton écurie"}</b>
+        <span className="loc">{[f.commune, f.code_postal].filter(Boolean).join(" · ") || "Commune"}</span>
+        {pill}
+        {price > 0 ? (
+          <span className="px">
+            à partir de<strong>{nf(price)} €</strong>/ mois
+          </span>
+        ) : (
+          <span className="px">Tarifs non communiqués</span>
+        )}
+        <span className={`pl${Number(places) > 0 ? " ok" : ""}`}>
+          {places === "" || places === undefined ? "Places : non précisé" : Number(places) > 0 ? `${places} place${Number(places) > 1 ? "s" : ""} libre${Number(places) > 1 ? "s" : ""}` : "Complet pour le moment"}
+        </span>
+      </div>
+    </div>
   );
 }
 
 /** Sa fiche aujourd'hui à gauche, reprise à droite ; la poignée se tire au doigt ou à la souris. */
 function AvantApres({ f }: { f: Partial<Fiche> }) {
-  const calme = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const [x, setX] = useState(calme ? 34 : 88);
+  const doux = calme();
+  const [x, setX] = useState(doux ? 34 : 88);
   // À l'arrivée, la poignée balaie la fiche une fois et montre surtout la version reprise.
   useEffect(() => {
-    if (calme) return;
+    if (doux) return;
     let raf = 0;
     const t0 = performance.now();
     const step = (t: number) => {
@@ -569,52 +721,30 @@ function AvantApres({ f }: { f: Partial<Fiche> }) {
     };
     const go = setTimeout(() => (raf = requestAnimationFrame(step)), 350);
     return () => (clearTimeout(go), cancelAnimationFrame(raf));
-  }, [calme]);
-  const photo = f.photos?.[0]?.url || PHOTO;
-  const prix = Number(f.prix_min) > 0 ? Number(f.prix_min) : 420;
-  const face = (apres: boolean) => (
-    <div className={`face ${apres ? "apres" : "avant"}`}>
-      <div className="ph" style={apres ? { backgroundImage: `url(${photo})` } : undefined}>{!apres && "Pas de photo"}</div>
-      <div className="bd">
-        <b>{f.title}</b>
-        <span className="loc">{[f.commune, f.code_postal].filter(Boolean).join(" · ")}</span>
-        <span className={apres ? "badge rev" : "badge non"}>{apres ? "✓ Revendiquée" : "Non revendiquée"}</span>
-        <span className={apres ? "px" : "px vide"}>
-          {apres ? (
-            <>
-              <small>à partir de</small>
-              <strong className="num">{nf(prix)} €</strong>
-              <small>/ mois</small>
-            </>
-          ) : (
-            "Tarifs non communiqués"
-          )}
-        </span>
-        <span className={apres ? "pl ok" : "pl"}>{apres ? "2 places libres" : "Places : non précisé"}</span>
-      </div>
-    </div>
-  );
+  }, [doux]);
+  const reprise: Partial<Fiche> = { ...f, prix_min: String(Number(f.prix_min) > 0 ? Number(f.prix_min) : 420), places_libres: "2" };
   return (
-    <div className="rj-ba" style={{ ["--x" as string]: `${x}%` }}>
-      <div className="cadre">
-        {face(false)}
+    <>
+      <div className="ar-ba" style={{ ["--x" as string]: `${x}%` }}>
+        <FicheCarte f={{ ...f, photos: [] }} etat="avant" />
         <div className="calque" aria-hidden>
-          {face(true)}
+          <FicheCarte f={reprise} etat="reprise" exemple={<Ill n="matin" />} />
         </div>
         <span className="tag a">Aujourd’hui</span>
         <span className="tag b">Reprise</span>
         <i className="knob" aria-hidden />
         <input type="range" min={0} max={100} value={x} onChange={(e) => setX(Number(e.target.value))} aria-label="Comparer ta fiche aujourd’hui et reprise" />
       </div>
-      <p className="ex">À droite : photo, prix et places d’exemple. Les tiens les remplacent.</p>
-    </div>
+      <p className="ar-ex">À droite : photo, prix et places d’exemple. Les tiens les remplacent.</p>
+    </>
   );
 }
 
+/* ---------- Pièces partagées avec la connexion et le mot de passe ---------- */
 /** Six chiffres ; le code collé depuis l'e-mail se remplit d'un coup. */
-function CodeInput({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
+export function CodeInput({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (
-    <label className="rj-code">
+    <label className="ar-code">
       <input
         autoFocus
         inputMode="numeric"
@@ -626,10 +756,61 @@ function CodeInput({ value, onChange, disabled }: { value: string; onChange: (v:
         aria-label="Code à six chiffres"
       />
       {Array.from({ length: 6 }, (_, i) => (
-        <span key={i} className={i === value.length ? "on" : value[i] ? "full" : ""}>
-          {value[i] ?? ""}
+        <span key={i} className={i === value.length ? "on" : value[i] ? "full" : ""} aria-hidden>
+          {value[i] ?? (i === value.length ? <i className="ar-caret" /> : "")}
         </span>
       ))}
     </label>
+  );
+}
+
+/** Le mot de passe, avec « Afficher » et, si on le crée, sa solidité en quatre crans d'encre. */
+export function PwInput({ label = "Mot de passe", value, onChange, error, autoComplete = "new-password", meter = true }: { label?: string; value: string; onChange: (v: string) => void; error?: ReactNode; autoComplete?: string; meter?: boolean }) {
+  const [show, setShow] = useState(false);
+  const sc = pwScore(value);
+  const words = ["Trop court", "Correct", "Bien", "Solide", "Très solide"];
+  return (
+    <div className="field">
+      <label htmlFor="ar-pw" style={{ fontSize: 13, fontWeight: 650 }}>
+        {label}
+      </label>
+      <span className="ar-pw">
+        <input id="ar-pw" className="input" type={show ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete} minLength={PW_MIN} required aria-invalid={!!error} aria-describedby="ar-pw-h" />
+        <button type="button" className="u" onClick={() => setShow(!show)} aria-label={show ? "Masquer le mot de passe" : "Afficher le mot de passe"} aria-pressed={show}>
+          {show ? "Masquer" : "Afficher"}
+        </button>
+      </span>
+      {meter && (
+        <span className="ar-meter" aria-hidden>
+          {[0, 1, 2, 3].map((i) => (
+            <i key={i} className={value && i < Math.max(1, sc) ? "on" : ""} />
+          ))}
+        </span>
+      )}
+      {error ? (
+        <em id="ar-pw-h" role="alert" style={{ color: "var(--ink)", fontWeight: 650 }}>
+          {error}
+        </em>
+      ) : (
+        <em id="ar-pw-h">{meter ? (value ? `${words[sc]}. ` : "") + `${PW_MIN} caractères minimum. Une petite phrase, c’est solide et facile à retenir.` : ""}</em>
+      )}
+    </div>
+  );
+}
+
+/** Le haut des écrans de compte : le retour ou be stable, et un lien à droite. */
+export function ArTop({ onBack, right }: { onBack?: () => void; right?: ReactNode }) {
+  return (
+    <header className="ar-top">
+      {onBack ? (
+        <button type="button" className="ar-back" onClick={onBack} aria-label="Revenir">
+          <Ic n="back" className="" />
+        </button>
+      ) : (
+        <span className="ar-wm">be stable</span>
+      )}
+      <span />
+      {right ?? <span />}
+    </header>
   );
 }

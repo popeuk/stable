@@ -8,7 +8,7 @@ import { monthBreakdown } from "@/lib/domain/ticket";
 import { seanceAmount } from "@/lib/domain/seances";
 import { currentPeriod, dateInPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
-import { eur, signed } from "@/components/bs/ui";
+import { CountUp, Ill, Money, Steam, eur } from "@/components/carnet/ui";
 
 /** Ce qui est encore prévu ce mois-ci : séances à venir, moins les soins prévus. */
 export function plannedRest(data: ReturnType<typeof useDataStore.getState>, today: string): number {
@@ -18,10 +18,18 @@ export function plannedRest(data: ReturnType<typeof useDataStore.getState>, toda
   return s + c;
 }
 
-/** L'objectif du mois : ce qui est validé, ce qui est encore prévu, ce qui manque. */
-export function GoalCard({ href = "/argent" }: { href?: string }) {
+/** « d’octobre », « de novembre ». */
+const deMois = (m: string) => (/^[aeiouyàâéè]/i.test(m) ? `d’${m}` : `de ${m}`);
+
+/**
+ * L'objectif du mois : ce qui compte déjà, ce qui est encore prévu, ce qui
+ * manque. perch : la gérante assise sur la carte, son café qui fume
+ * (accueil). desk : la version de l'accueil sur ordinateur.
+ */
+export function GoalCard({ href = "/argent", perch, desk }: { href?: string; perch?: boolean; desk?: boolean }) {
   const data = useDataStore();
   const objective = useSettingsStore((s) => s.objective);
+  const gerant = useSettingsStore((s) => s.gerant);
   const today = localToday();
   const m = useMemo(() => monthBreakdown(data, currentPeriod()), [data]);
   const rest = useMemo(() => plannedRest(data, today), [data, today]);
@@ -31,24 +39,83 @@ export function GoalCard({ href = "/argent" }: { href?: string }) {
   const now = new Date();
   const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
   const month = now.toLocaleDateString("fr-FR", { month: "long" });
-  return (
-    <Link href={href} className="bs-goal">
-      <span className="k">Ton objectif pour {month} : te verser {eur(objective)}</span>
-      <span className="row">
-        <span className={`bs-big${m.net < 0 ? " neg" : ""}`}>{signed(m.net)}</span>
-        <span style={{ fontSize: 12, color: "var(--on-vert)" }}>ce qui te reste au {now.getDate()} {month}</span>
-      </span>
-      <span className="trk" aria-hidden="true">
-        <i style={{ width: `${pct}%` }} />
-        <b style={{ left: `${pct}%`, width: `${restPct}%` }} />
-      </span>
-      <span className="lab">
-        <span>{Math.round(pct)} %</span>
-        <span>
-          {rest > 0 ? `${signed(rest)} encore prévus · ` : ""}
-          {left > 0 ? `il manque ${eur(left)}` : "objectif atteint"} · {daysLeft} j restants
-        </span>
-      </span>
+  const tone = Math.round(m.net) > 0 ? "in" : Math.round(m.net) < 0 ? "out" : "";
+  const jours = daysLeft > 1 ? `il reste ${daysLeft} jours` : daysLeft === 1 ? "il reste 1 jour" : "c’est le dernier jour du mois";
+
+  const card = desk ? (
+    <Link href={href} className="moncard card mt-goal">
+      <p className="k">Ce mois, il te reste</p>
+      <p className={`big ${tone}`}>
+        <CountUp value={m.net} />
+      </p>
+      <p className="note">{m.net >= 0 ? "Le foin, le maréchal et le loyer sont payés. Le reste est pour toi." : "Ce mois, tes frais dépassent encore ce qui est rentré."}</p>
+      {objective > 0 && (
+        <>
+          <div className="bar" aria-hidden="true">
+            <i style={{ width: `${pct}%` }} />
+          </div>
+          <div className="bar-lab">
+            <span>Tu as fait {Math.round(pct)} % du chemin</span>
+            <span>objectif : {eur(objective)}</span>
+          </div>
+        </>
+      )}
     </Link>
+  ) : (
+    <Link href={href} className="moncard mt-goal">
+      <p className="k">{objective > 0 ? `Ton objectif ${deMois(month)} : te verser ${eur(objective)}` : "Ce mois, il te reste"}</p>
+      <p className={`big ${tone}`}>
+        <CountUp value={m.net} />
+      </p>
+      <p className="sub">
+        ce qui te reste au {now.getDate()} {month}, tout payé
+      </p>
+      {objective > 0 && (
+        <>
+          <div className="bar" aria-hidden="true">
+            <i style={{ width: `${pct}%` }} />
+            {restPct > 0 && <i className="plan" style={{ left: `${pct}%`, width: `${restPct}%` }} />}
+          </div>
+          <div className="bar-lab">
+            <span>
+              <i className="sw" />
+              {Math.round(pct)} % qui compte
+            </span>
+            <span>
+              <i className="sw plan" />
+              prévu
+            </span>
+          </div>
+        </>
+      )}
+      <p className="note">
+        {objective > 0 && left > 0 ? (
+          <>
+            Il te manque <b>{eur(left)}</b> pour l’atteindre, et {jours}.
+          </>
+        ) : objective > 0 ? (
+          <>Objectif atteint, et {jours}.</>
+        ) : (
+          <>Fixe-toi un objectif dans le Bilan.</>
+        )}
+        {Math.round(rest) !== 0 && (
+          <>
+            {" "}
+            Encore <Money v={rest} /> {rest > 0 ? "sont prévus" : "de frais sont prévus"} au planning.
+          </>
+        )}
+      </p>
+    </Link>
+  );
+
+  if (!perch) return card;
+  return (
+    <div className="perch rise" style={{ animationDelay: "0.12s" }}>
+      <div className="sitw">
+        <Ill n="assise" alt={`${gerant || "La gérante"}, assise sur son chiffre du mois, une tasse de café à la main.`} />
+        <Steam />
+      </div>
+      {card}
+    </div>
   );
 }

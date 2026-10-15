@@ -1,20 +1,39 @@
 "use client";
 
 import { useCallback } from "react";
-import { Picto, CARE_PICTO } from "@/components/bs/picto";
 import { esc, signed } from "@/components/bs/ui";
+import { Check, Ic, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { useParcours } from "@/components/bs/parcours";
 import type { DayItem } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 
-const TONE_COLOR = { g: "var(--vert)", r: "var(--rose-pic)", o: "#8C6A35", n: "var(--ink-2)" } as const;
+/** Le pictogramme d'un élément de la journée (créneaux, semaine sur ordinateur). */
+export function iconOf(it: DayItem): string {
+  if (it.type === "seance") return (it.seance?.participants.length ?? 0) > 1 ? "user" : "horse";
+  if (it.type === "task") return it.task?.cost ? "flag" : "list";
+  const k = it.care?.[0].kind;
+  if (k === "ferrure") return "shoe";
+  if (k === "vaccin" || k === "vermifuge" || k === "veto" || k === "dentiste" || k === "osteo" || k === "soin") return "syringe";
+  if (k === "concours") return "flag";
+  if (k === "document") return "doc";
+  if (k === "prestation") return "hay";
+  return "horse";
+}
 
-function pictoOf(it: DayItem) {
-  if (it.type === "seance") return "cours";
-  if (it.type === "task") return it.task?.cost ? "foin" : "board";
-  return it.care ? CARE_PICTO[it.care[0].kind] : "cal";
+/** La classe de l'argent : vert ce qui rentre, rose ce qui sort. */
+export const moneyCls = (n?: number) => (!n ? "" : n > 0 ? "in" : "out");
+
+/** « en retard de 3 j » pour un soin passé, « à confirmer » pour le reste. */
+export function lateLabel(it: DayItem, today: string): string {
+  if (!it.late || it.done) return "";
+  const d = it.seance?.date ?? it.care?.[0].date;
+  if (it.care && d && d < today) {
+    const n = Math.round((Date.parse(today + "T12:00:00") - Date.parse(d + "T12:00:00")) / 864e5);
+    return `en retard de ${n} j`;
+  }
+  return "à confirmer";
 }
 
 /**
@@ -56,34 +75,50 @@ export function useCheck() {
   );
 }
 
+/**
+ * Une ligne de la journée, dans le carnet : l'heure, ce qui se passe, ce que
+ * ça rapporte ou coûte, et la coche. Une séance à plusieurs a une coche en
+ * pointillé : elle ouvre « qui était là ? ». À placer dans un `.rows`.
+ */
 export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: boolean }) {
   const check = useCheck();
   const openSeance = useUiStore((s) => s.openSeance);
   const open = () => {
     if (it.seance) openSeance(it.seance.id);
   };
-  const block = (
-    <div className={`bs-blk ${it.tone}${it.done ? " done" : ""}${it.late && !it.done ? " late" : ""}`}>
-      <span className="ico" style={{ color: TONE_COLOR[it.tone] }}>
-        <Picto name={pictoOf(it)} />
-      </span>
-      <button type="button" className="tx" onClick={open} style={{ textAlign: "left", cursor: it.seance ? "pointer" : "default" }}>
-        <b>{it.title}</b>
-        <span>{it.sub || (it.type === "task" ? "tâche d’équipe" : "")}</span>
-      </button>
-      {it.money ? <span className="money">{signed(it.money)}</span> : null}
-      <button type="button" className={`bs-ck${it.done ? " on" : ""}`} onClick={() => (it.done ? open() : check(it))} aria-label={it.done ? `${it.title} : fait` : `Confirmer que c’est fait : ${it.title}`} aria-pressed={it.done}>
-        <i>
-          <Picto name="check" />
-        </i>
-      </button>
-    </div>
+  const late = lateLabel(it, localToday());
+  const sub = it.sub || (it.type === "task" ? "tâche d’équipe" : "");
+  const body = (
+    <>
+      <b>{it.title}</b>
+      {(late || sub) && (
+        <small>
+          {late && <b className="jr-late">{late}</b>}
+          {late && sub ? " · " : ""}
+          {sub}
+        </small>
+      )}
+    </>
   );
-  if (!showTime) return block;
+  const multi = !!it.seance && it.seance.participants.length > 1 && !it.done;
   return (
-    <div className="bs-row">
-      <span className="h">{it.start ?? "·"}</span>
-      {block}
+    <div className={`row${it.done ? " done" : ""}${showTime ? "" : " jr-notime"}`}>
+      <time>{showTime ? (it.start ?? "·") : ""}</time>
+      {it.seance ? (
+        <button type="button" className="jr-open" onClick={open} title="Ouvrir la séance">
+          {body}
+        </button>
+      ) : (
+        <span>{body}</span>
+      )}
+      <span className={`amt ${moneyCls(it.money)}`}>{it.money ? sg(it.money) : ""}</span>
+      {multi ? (
+        <button type="button" className="jr-ckm" onClick={() => check(it)} aria-label={`Dire qui était là : ${it.title}`}>
+          <Ic n="ck" className="" />
+        </button>
+      ) : (
+        <Check on={it.done} onClick={() => (it.done ? open() : check(it))} label={it.done ? `${it.title} : fait` : `C’est fait : ${it.title}`} />
+      )}
     </div>
   );
 }

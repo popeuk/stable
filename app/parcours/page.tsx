@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSettingsStore } from "@/stores/settings-store";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Screen } from "@/components/bs/ui";
-import { Picto } from "@/components/bs/picto";
+import { Ic } from "@/components/carnet/ui";
 import { OBSTACLE_META, useParcours } from "@/components/bs/parcours";
 import { OBSTACLES } from "@/stores/settings-store";
+
+/** Les pictos du parcours, dans le jeu d'icônes du carnet. */
+const IC: Record<string, string> = { horse: "horse", euro: "euro", foin: "hay", cal: "cal", jump: "doc", flag: "flag" };
 
 export default function Page() {
   return (
@@ -26,21 +28,23 @@ function Parcours() {
     router.push("/accueil");
   };
   return (
-    <Screen>
-      <div className="bs-over" style={{ alignItems: "center" }}>
+    <>
+      <div className="ar-over">
         <span>Tes premiers pas</span>
-        <button type="button" className="bs-icon" onClick={sortir} aria-label={setupDone ? "Fermer et aller à l’accueil" : "Finir plus tard et découvrir l’app"} style={{ marginRight: -8 }}>
-          <Picto name="x" />
+        <button type="button" className="x" onClick={sortir} aria-label={setupDone ? "Fermer et aller à l’accueil" : "Finir plus tard et découvrir l’app"}>
+          <Ic n="x" className="" />
         </button>
       </div>
-      <h1 className="bs-d bs-t1">
+      <h4 className="ar-t1 rise">
         {n} obstacle{n > 1 ? "s" : ""} sur 6
-      </h1>
-      <p className="bs-p">Six étapes pour que l’app connaisse ton écurie. Les trois premières se font ici, en quelques minutes. Les trois autres viennent toutes seules, en utilisant l’app.</p>
-      <div className="bs-progress">
+      </h4>
+      <p className="ar-sub rise" style={{ animationDelay: ".05s" }}>
+        Six étapes pour que l’app connaisse ton écurie. Les trois premières se font ici, en quelques minutes. Les trois autres viennent toutes seules, en utilisant l’app.
+      </p>
+      <div className="bar ar-prog" role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n} aria-label={`${n} obstacles sur 6`}>
         <i style={{ width: `${(n / 6) * 100}%` }} />
       </div>
-      <div className="bs-course">
+      <div className="ar-course rise" style={{ animationDelay: ".12s" }}>
         {OBSTACLES.map((o) => {
           const m = OBSTACLE_META[o];
           const st = parcours[o] ? "done" : current === o ? "now" : "";
@@ -48,48 +52,48 @@ function Parcours() {
           const inner = (
             <>
               <span className="jn">
-                <Picto name={st === "done" ? "check" : m.picto} />
+                <Ic n={st === "done" ? "ck" : IC[m.picto] ?? "flag"} className="" />
               </span>
-              <div>
+              <span>
                 <b>{m.title}</b>
-                <span>{parcours[o] ? "barre passée" : m.todo}</span>
-              </div>
+                <small>{parcours[o] ? "barre passée" : m.todo}</small>
+              </span>
             </>
           );
           return reachable ? (
-            <Link key={o} href={m.href} className={`bs-ob ${st}`}>
+            <Link key={o} href={m.href} className={`ar-ob ${st}`}>
               {inner}
             </Link>
           ) : (
-            <div key={o} className={`bs-ob ${st}`}>
+            <div key={o} className={`ar-ob ${st || "next"}`}>
               {inner}
             </div>
           );
         })}
       </div>
       {current ? (
-        <Link href={OBSTACLE_META[current].href} className="bs-card">
-          <div style={{ flex: 1 }}>
-            <div className="k">Obstacle du moment</div>
+        <Link href={OBSTACLE_META[current].href} className="card ar-obc rise" style={{ animationDelay: ".2s" }}>
+          <span style={{ flex: 1 }}>
+            <span className="k">Obstacle du moment</span>
             <b>{OBSTACLE_META[current].todo}</b>
-          </div>
-          <Picto name="arrowR" />
+          </span>
+          <Ic n="arrow" className="ar-ico" />
         </Link>
       ) : (
-        <Link href="/parcours/arrivee" className="bs-card">
-          <div style={{ flex: 1 }}>
-            <div className="k">Parcours terminé</div>
+        <Link href="/parcours/arrivee" className="card ar-obc rise" style={{ animationDelay: ".2s" }}>
+          <span style={{ flex: 1 }}>
+            <span className="k">Parcours terminé</span>
             <b>Voir ton flot</b>
-          </div>
-          <Picto name="arrowR" />
+          </span>
+          <Ic n="arrow" className="ar-ico" />
         </Link>
       )}
-      {setupDone && current && <p className="bs-p" style={{ marginTop: 12 }}>Les dernières étapes se passent toutes seules, en utilisant l’app à ton rythme.</p>}
+      {setupDone && current && <p className="ar-sub" style={{ marginTop: 12 }}>Les dernières étapes se passent toutes seules, en utilisant l’app à ton rythme.</p>}
       {!setupDone && (
-        <button type="button" className="bs-btn line" style={{ marginTop: 14 }} onClick={sortir}>
+        <button type="button" className="btn line ar-later" onClick={sortir}>
           Découvrir l’app d’abord, finir plus tard
         </button>
       )}
-    </Screen>
+    </>
   );
 }

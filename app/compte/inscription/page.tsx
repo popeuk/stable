@@ -18,5 +18,9 @@ export default function Page() {
 
 function Inscription() {
   const q = useSearchParams();
-  return <Rejoindre ficheId={Number(q.get("fiche")) || 0} creer={!!q.get("creer")} />;
+  return (
+    <div className="carnet">
+      <Rejoindre ficheId={Number(q.get("fiche")) || 0} creer={!!q.get("creer")} />
+    </div>
+  );
 }

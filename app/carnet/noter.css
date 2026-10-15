@@ -1,0 +1,119 @@
+/* Carnet · chapitre noter : la feuille Noter (le +), « C’est noté », les
+   écrans de saisie, la palette, les raccourcis et l’installation.
+   Tout est sous .carnet, préfixe nt- pour les classes propres. */
+
+/* ---------- La feuille Noter ---------- */
+.carnet .nt-sheet .pad .seg { margin-bottom: 2px; }
+.carnet .nt-form .field > .chips, .carnet .nt-form .field > div { min-width: 0; }
+.carnet .nt-form .btn:disabled { opacity: .4; cursor: default; }
+.carnet .nt-faces { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: -18px; padding-right: 18px; }
+.carnet .nt-faces::-webkit-scrollbar { display: none; }
+.carnet .nt-faces.wrap { flex-wrap: wrap; overflow: visible; margin-right: 0; padding-right: 0; }
+.carnet .nt-fchip { display: inline-flex; align-items: center; gap: 7px; padding: 3px 12px 3px 3px; flex: none; }
+.carnet .nt-fchip .face { width: 28px; height: 28px; }
+.carnet .nt-fmt { display: flex; align-items: center; gap: 8px; }
+.carnet .nt-fmt .chips { flex-wrap: nowrap; }
+.carnet .nt-fmt .stepper { gap: 5px; margin-left: auto; }
+.carnet .nt-fmt .stepper button { width: 28px; height: 28px; font-size: 16px; line-height: 1; padding: 0; }
+.carnet .nt-fmt .stepper b { font-size: 15px; min-width: 0; }
+.carnet .nt-fmt .stepper small { font-size: 12.5px; color: var(--ink2); margin-left: -2px; }
+.carnet .nt-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.carnet .nt-two > * { min-width: 0; }
+.carnet .nt-until { margin-top: 10px; }
+.carnet .nt-until .u b { color: var(--ink); font-weight: 650; white-space: nowrap; }
+.carnet .nt-more { display: grid; gap: 12px; }
+.carnet .nt-more > .lnk { justify-self: start; }
+.carnet .nt-opt { font-weight: 400; color: var(--ink3); }
+.carnet a.chip { text-decoration: none; display: inline-flex; align-items: center; }
+.carnet .chip.nt-dash { background: none; box-shadow: none; border: 1px dashed var(--ink3); }
+
+/* Un champ avec son vrai <input> dedans, l’unité à droite. */
+.carnet .nt-in { padding-right: 10px; }
+.carnet .nt-in:focus-within { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .nt-in input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; padding: 0; font: inherit; font-size: 15px; color: var(--ink); }
+.carnet .nt-in input::placeholder { color: var(--ink3); }
+.carnet .nt-in .lnk { margin-left: auto; flex: none; }
+.carnet .nt-in .u { flex: none; }
+.carnet .nt-in.big input { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.carnet input.input[type="date"], .carnet input.input[type="time"] { -webkit-appearance: none; min-width: 0; }
+
+/* La dictée */
+.carnet .nt-dict { padding-right: 4px; font-size: 14px; }
+.carnet .nt-mic { margin-left: auto; width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: var(--mist); color: var(--ink); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.carnet .nt-mic .cn-ic { width: 18px; height: 18px; }
+.carnet .nt-mic[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.carnet .nt-say { margin: 0; font-size: 12.5px; color: var(--ink2); }
+.carnet .nt-say:empty { display: none; }
+.carnet .nt-say b, .carnet .nt-say strong { color: var(--ink); }
+
+/* C’est noté */
+.carnet .nt-okt { display: flex; align-items: center; gap: 10px; }
+.carnet .nt-okt .ck { cursor: default; flex: none; }
+.carnet .nt-tkh { display: flex; align-items: center; gap: 10px; margin: 4px 0 10px; }
+.carnet .nt-tkh .face { width: 34px; height: 34px; }
+.carnet .nt-tkh b { display: block; font-size: 14px; font-weight: 650; }
+.carnet .nt-tkh small { font-size: 12px; color: var(--ink3); }
+.carnet .nt-done .ticket .r.tot .out, .carnet .nt-done .ticket .r.tot .in { font-size: 15px; }
+.carnet .nt-done .btn { margin-top: 14px; }
+
+/* ---------- Les écrans de saisie ---------- */
+.carnet .nt-page .form { padding-top: 6px; }
+.carnet .nt-phrase { position: sticky; top: calc(env(safe-area-inset-top) + 52px); z-index: 20; margin: 10px 0 0; padding: 12px 18px; background: var(--paper); border-bottom: 1px solid var(--line2); font-size: 22px; font-weight: 650; letter-spacing: -.015em; line-height: 1.25; text-wrap: balance; }
+.carnet .nt-phrase .vide, .carnet .nt-phrase .faint { color: var(--ink3); font-weight: 500; }
+.carnet .nt-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; border-radius: 8px; overflow: hidden; background: var(--line); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .nt-keys button { height: 54px; border: 0; background: var(--sheet); font-size: 20px; font-weight: 650; color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+.carnet .nt-keys button:active { background: var(--mist); }
+.carnet .nt-keys .cn-ic { width: 20px; height: 20px; }
+.carnet .nt-alloc { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line2); font-size: 14px; }
+.carnet .nt-alloc:last-child { border-bottom: 0; }
+.carnet .nt-alloc small { color: var(--ink3); font-size: 12px; margin-left: 4px; }
+.carnet .nt-alloc .out { font-weight: 700; font-variant-numeric: tabular-nums; }
+.carnet .nt-noh .ini .cn-ic { width: 18px; height: 18px; color: var(--ink2); }
+.carnet .nt-sw-txt b { display: block; font-weight: 650; }
+.carnet .nt-sw-txt small { display: block; font-size: 12px; color: var(--ink3); }
+.carnet .nt-cancel { justify-self: center; }
+@media (min-width: 1024px) {
+  .carnet .nt-page { max-width: 640px; }
+  .carnet .nt-phrase { top: 0; }
+}
+
+/* ---------- Palette (chercher, aller à, faire) ---------- */
+.carnet .nt-pal-scrim { position: fixed; inset: 0; z-index: 62; background: rgba(27, 18, 37, .35); animation: cn-fade .2s both; }
+.carnet .nt-pal { position: fixed; z-index: 63; top: calc(env(safe-area-inset-top) + 12px); left: 12px; right: 12px; max-width: 640px; margin: 0 auto; border-radius: 12px; background: var(--paper); box-shadow: 0 30px 70px -10px rgba(27, 18, 37, .45), 0 0 0 1px rgba(27, 18, 37, .08); overflow: hidden; display: flex; flex-direction: column; max-height: calc(100dvh - 24px); animation: cn-up .3s var(--ease) both; }
+.carnet .nt-pin { display: flex; align-items: center; gap: 10px; height: 58px; padding: 0 14px 0 18px; border-bottom: 1px solid var(--line); background: var(--sheet); font-size: 16px; color: var(--ink3); flex: none; }
+.carnet .nt-pin .cn-ic { width: 19px; height: 19px; color: var(--ink2); }
+.carnet .nt-pin input { flex: 1; min-width: 0; border: 0; background: none; outline: none; font: inherit; font-size: 16px; color: var(--ink); }
+.carnet .nt-pin input::placeholder { color: var(--ink3); }
+.carnet .nt-pls { overflow: auto; padding: 6px 8px 8px; scrollbar-width: thin; flex: 1; min-height: 0; max-height: 560px; }
+.carnet .nt-pls .g { margin: 10px 10px 4px; font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
+.carnet .nt-pls .it { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 38px; padding: 4px 10px; border: 0; border-radius: 7px; background: none; font-size: 14px; color: var(--ink); text-align: left; cursor: pointer; }
+.carnet .nt-pls .it .cn-ic { width: 18px; height: 18px; color: var(--ink2); }
+.carnet .nt-pls .it .face { width: 26px; height: 26px; }
+.carnet .nt-pls .it .l { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 550; }
+.carnet .nt-pls .it small { margin-left: 8px; font-size: 12.5px; color: var(--ink3); font-weight: 400; }
+.carnet .nt-pls .it small .in, .carnet .nt-pls .it small .out { font-weight: 650; }
+.carnet .nt-pls .it[aria-selected="true"], .carnet .nt-pls .it:hover { background: var(--mist); }
+.carnet .nt-pls .none { margin: 14px 10px; color: var(--ink2); font-size: 14px; }
+.carnet .nt-pft { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; padding: 10px 18px; border-top: 1px solid var(--line); background: var(--sheet); font-size: 12px; color: var(--ink3); flex: none; }
+.carnet .nt-pal kbd, .carnet .nt-keyl kbd { font-family: var(--mono); font-size: 11px; padding: 1px 6px; border-radius: 4px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink3); white-space: nowrap; }
+.carnet .nt-pft kbd { color: var(--ink2); }
+@media (max-width: 1023px) { .carnet .nt-pft, .carnet .nt-pin kbd, .carnet .nt-pls .it kbd { display: none; } }
+@media (min-width: 1024px) {
+  .carnet .nt-pal { top: 70px; left: calc(50% + 116px); right: auto; width: 640px; margin: 0 0 0 -320px; max-height: calc(100dvh - 140px); }
+}
+
+/* ---------- Raccourcis clavier et installation (feuilles) ---------- */
+.carnet .nt-keyl { margin: 0; padding: 0 18px; display: grid; }
+.carnet .nt-keyl > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line2); }
+.carnet .nt-keyl > div:last-child { border-bottom: 0; }
+.carnet .nt-keyl dt { font-size: 14px; color: var(--ink); }
+.carnet .nt-keyl dd { margin: 0; display: flex; gap: 4px; flex: none; }
+.carnet .nt-keyl kbd { font-size: 12px; padding: 2px 7px; color: var(--ink2); }
+.carnet .nt-steps { list-style: none; counter-reset: s; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
+.carnet .nt-steps li { counter-increment: s; position: relative; padding-left: 32px; font-size: 14px; line-height: 1.45; color: var(--ink); }
+.carnet .nt-steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 12px; font-weight: 750; display: flex; align-items: center; justify-content: center; }
+.carnet .nt-lead { margin: 0 18px 4px; font-size: 14px; line-height: 1.45; color: var(--ink2); }
+.carnet .nt-noend { height: auto; min-height: 44px; padding: 6px 10px; font-size: 13px; line-height: 1.25; white-space: normal; text-align: center; }
+.carnet .nt-pin .x { flex: none; width: 30px; height: 30px; }
+@media (min-width: 1024px) { .carnet .nt-pin .x { display: none; } }
+.carnet .nt-two > * { min-width: 0; } .carnet .nt-two input { width: 100%; min-width: 0; }

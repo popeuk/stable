@@ -2,10 +2,14 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Check, ChevronLeft } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
+import { Face, Ic, Page as Ecran, Portrait, Sec } from "@/components/carnet/ui";
+import { COATS, COAT_KEYS, type Coat } from "@/components/bs/horse-face";
+import { useDesk } from "@/components/bs/desk";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
+
+const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"];
 
 export default function SaisieChevalPage() {
   return (
@@ -20,134 +24,151 @@ export default function SaisieChevalPage() {
 function SaisieCheval() {
   const router = useRouter();
   const search = useSearchParams();
+  const desk = useDesk();
   const horses = useDataStore((s) => s.horses);
   const addHorse = useDataStore((s) => s.addHorse);
   const updateHorse = useDataStore((s) => s.updateHorse);
   const tariffs = useDataStore((s) => s.tariffs);
 
-  // ?edit=<id> switches the form to edit mode, prefilled.
+  // ?edit=<id> passe le formulaire en modification, prérempli.
   const editId = search.get("edit");
   const editing = editId ? horses.find((h) => h.id === editId) : undefined;
 
   const [name, setName] = useState(editing?.name ?? "");
   const [breed, setBreed] = useState(editing?.breed ?? "");
   const [ownerName, setOwnerName] = useState(editing?.ownerName ?? "");
-  // Un nouveau cheval arrive avec le tarif de la grille — modifiable ici.
-  const [pension, setPension] = useState(
-    editing
-      ? editing.pension
-        ? String(editing.pension)
-        : ""
-      : (tariffs?.pension?.toString() ?? ""),
-  );
-  const [entryDate, setEntryDate] = useState(
-    editing?.entryDate ?? localToday(),
-  );
+  const [coat, setCoat] = useState<Coat | undefined>(editing ? (editing.coat && editing.coat in COATS ? (editing.coat as Coat) : undefined) : "alezan");
+  const [blaze, setBlaze] = useState<boolean | undefined>(editing?.blaze);
+  const [formule, setFormule] = useState<string | undefined>(editing?.pensionType);
+  // Un nouveau cheval arrive avec le tarif de la grille, modifiable ici.
+  const [pension, setPension] = useState(editing ? (editing.pension ? String(editing.pension) : "") : (tariffs?.pension?.toString() ?? ""));
+  const [entryDate, setEntryDate] = useState(editing?.entryDate ?? localToday());
   const pensionNum = Number(pension.replace(",", ".")) || 0;
+  const others = horses.filter((h) => !h.isArchived && h.id !== editing?.id);
 
   function save() {
     if (!name.trim()) return;
-    if (editing) {
-      updateHorse(editing.id, {
-        name: name.trim(),
-        breed: breed.trim() || undefined,
-        ownerName: ownerName.trim() || undefined,
-        pension: pensionNum > 0 ? pensionNum : undefined,
-        entryDate,
-      });
-      router.push(`/ticket?id=${editing.id}`);
-      return;
-    }
-    // First horse → back to the home so the guided first-run steps continue.
-    const isFirst = !horses.some((h) => !h.isArchived);
-    addHorse({
+    const common = {
       name: name.trim(),
       breed: breed.trim() || undefined,
       ownerName: ownerName.trim() || undefined,
       pension: pensionNum > 0 ? pensionNum : undefined,
+      pensionType: formule,
+      coat,
+      blaze,
       entryDate,
-      exitDate: null,
-    });
+    };
+    if (editing) {
+      updateHorse(editing.id, common);
+      router.push(`/ticket?id=${editing.id}`);
+      return;
+    }
+    // Le premier cheval ramène à l'accueil, pour que les premiers pas continuent.
+    const isFirst = !horses.some((h) => !h.isArchived);
+    addHorse({ ...common, exitDate: null });
     router.push(isFirst ? "/accueil" : "/chevaux");
   }
 
   return (
-    <div className="space-y-6">
-      <button onClick={() => router.back()} className="inline-flex items-center gap-1 text-sm text-tertiary">
-        <ChevronLeft size={16} /> Annuler
-      </button>
-      <h1 className="font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-        {editing ? `Modifier ${editing.name}` : "Ajouter un cheval"}
-      </h1>
-      {!editing && (
-        <p className="-mt-4 text-[13px] text-tertiary">Seul son nom est obligatoire. Tu pourras compléter plus tard.</p>
-      )}
-
-      <Field label="Nom">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Belle"
-          className="w-full rounded-[var(--radius-md)] border bg-elevated px-4 py-3 text-sm text-primary outline-none"
-        />
-      </Field>
-      <Field label="Race (optionnel)">
-        <input
-          value={breed}
-          onChange={(e) => setBreed(e.target.value)}
-          placeholder="Connemara"
-          className="w-full rounded-[var(--radius-md)] border bg-elevated px-4 py-3 text-sm text-primary outline-none"
-        />
-      </Field>
-      <Field label="Propriétaire (optionnel)">
-        <input
-          value={ownerName}
-          onChange={(e) => setOwnerName(e.target.value)}
-          className="w-full rounded-[var(--radius-md)] border bg-elevated px-4 py-3 text-sm text-primary outline-none"
-        />
-      </Field>
-      <Field label="Pension (€/mois, optionnel)">
-        <div className="flex items-center gap-1 rounded-[var(--radius-md)] border bg-elevated px-4 py-3">
-          <input
-            type="text"
-            inputMode="decimal"
-            value={pension}
-            onChange={(e) => setPension(e.target.value.replace(/[^0-9,\.]/g, ""))}
-            placeholder="450"
-            className="w-full bg-transparent text-sm tabular-nums text-primary outline-none"
-          />
-          <span className="text-sm text-tertiary">€ / mois</span>
+    <Ecran wide={desk} className={desk ? "ch-desk ch-narrow" : undefined}>
+      {editing && (
+        <div className="hello rise" style={{ animationDelay: ".02s" }}>
+          <h3>Modifier {editing.name}</h3>
         </div>
-        <p className="mt-1.5 text-[12px] text-tertiary">
-          Comptée toute seule chaque mois dans ce qui rentre. Tu la notes une fois,
-          et tu n&apos;as plus jamais à y penser.
-        </p>
-      </Field>
-      <Field label="Arrivé chez toi le">
-        <input
-          type="date"
-          value={entryDate}
-          onChange={(e) => setEntryDate(e.target.value)}
-          className="w-full rounded-[var(--radius-md)] border bg-elevated px-4 py-3 text-sm text-primary outline-none"
-        />
-      </Field>
-
-      <button
-        disabled={!name.trim()}
-        onClick={save}
-        className="flex w-full items-center justify-center gap-2 btn-primary py-3.5 text-[15px] font-bold text-[var(--on-accent)] disabled:opacity-40"
+      )}
+      <div className="ch-preview rise" style={{ animationDelay: ".04s" }}>
+        <Portrait horse={{ id: editing?.id ?? "nouveau", name: name ? `Aperçu : ${name}, dans la robe choisie.` : "Aperçu : la tête du cheval dans la robe choisie.", coat }} />
+      </div>
+      <form
+        className="form ch-form rise"
+        style={{ animationDelay: ".12s" }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          save();
+        }}
       >
-        <Check size={18} /> {editing ? "Enregistrer les modifications" : "Ajouter ce cheval"}
-      </button>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="mb-2 text-2xs uppercase tracking-wide text-tertiary">{label}</p>
-      {children}
-    </div>
+        <label className="field">
+          <span>Son nom</span>
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Pacha" autoComplete="off" />
+          {!editing && <em>Seul son nom est obligatoire. Tu pourras compléter plus tard.</em>}
+        </label>
+        <label className="field">
+          <span>
+            Son propriétaire <span className="ch-opt">facultatif</span>
+          </span>
+          <input className="input" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder="Ex. Julie P." autoComplete="off" />
+        </label>
+        <div className="field" role="group" aria-label="Sa robe">
+          <span>Sa robe</span>
+          <div className="ch-sws">
+            {COAT_KEYS.map((c) => (
+              <button key={c} type="button" className="ch-sw" style={{ background: COATS[c].swatch }} aria-label={`Robe ${COATS[c].label.toLowerCase()}`} aria-pressed={coat === c} onClick={() => setCoat(c)} />
+            ))}
+            <span className="chips">
+              <button type="button" className={`chip${blaze ? " on" : ""}`} aria-pressed={!!blaze} onClick={() => setBlaze(!blaze)}>
+                Liste en tête
+              </button>
+            </span>
+          </div>
+        </div>
+        <div className="field" role="group" aria-label="Sa formule de pension">
+          <span>Sa formule de pension</span>
+          <div className="chips">
+            {FORMULES.map((f) => (
+              <button key={f} type="button" className={`chip${formule === f ? " on" : ""}`} aria-pressed={formule === f} onClick={() => setFormule(formule === f ? undefined : f)}>
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+        <label className="field">
+          <span>Pension</span>
+          <span className="input">
+            <input
+              type="text"
+              inputMode="decimal"
+              value={pension}
+              onChange={(e) => setPension(e.target.value.replace(/[^0-9,.]/g, ""))}
+              placeholder="450"
+              style={{ border: 0, background: "none", outline: "none", font: "inherit", flex: 1, minWidth: 0, fontVariantNumeric: "tabular-nums" }}
+            />
+            <span className="u">€ / mois</span>
+          </span>
+          <em>Comptée toute seule chaque mois dans ce qui rentre. Tu la notes une fois.</em>
+        </label>
+        <label className="field">
+          <span>
+            Race <span className="ch-opt">facultatif</span>
+          </span>
+          <input className="input" value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="Ex. Connemara" autoComplete="off" />
+        </label>
+        <label className="field">
+          <span>Arrivé chez toi le</span>
+          <input className="input" type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
+        </label>
+        <button type="submit" className="btn full" disabled={!name.trim()}>
+          <Ic n="ck" className="" />
+          {editing ? "Enregistrer les modifications" : "Ajouter ce cheval"}
+        </button>
+      </form>
+      {!editing && others.length > 0 && (
+        <Sec nomarge title={`Dans ton écurie · ${others.length}`} delay={0.2}>
+          <div className="ch-fpick">
+            {others.map((h) => (
+              <span key={h.id}>
+                <Face horse={h} />
+                {h.name}
+              </span>
+            ))}
+          </div>
+        </Sec>
+      )}
+      <div className="ch-after">
+        <button type="button" className="btn line full" onClick={() => router.back()}>
+          Annuler
+        </button>
+      </div>
+      <div className="end" />
+    </Ecran>
   );
 }

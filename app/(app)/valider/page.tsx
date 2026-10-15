@@ -2,17 +2,19 @@
 
 import { useMemo } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Back, Screen, Sec, signed, esc } from "@/components/bs/ui";
+import { Back, Screen, signed, esc } from "@/components/bs/ui";
+import { CountUp, Hello, Ic, Ill, Sec, type IllName } from "@/components/carnet/ui";
 import { DayBlock } from "@/components/bs/day-block";
-import { Rosette } from "@/components/bs/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { toValidate } from "@/lib/domain/seances";
+import { addDays } from "@/components/bs/dates";
 import { localToday } from "@/lib/utils/local-date";
 
 /**
  * À valider : les séances et soins passés, pas encore validés, du plus
  * ancien au plus récent. Valider met l'argent sur les tickets.
+ * Style : app/carnet/journee.css.
  */
 export default function Page() {
   return (
@@ -26,6 +28,7 @@ const hhmm = () => {
   const d = new Date();
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
+const VIGNETTES: IllName[] = ["confirmer", "carnet-buste", "brouette", "foin"];
 
 function Valider() {
   const data = useDataStore();
@@ -39,6 +42,13 @@ function Valider() {
     const d = it.seance?.date ?? it.care?.[0].date ?? today;
     byDate.set(d, [...(byDate.get(d) ?? []), it]);
   }
+  const dayTitle = (d: string) => {
+    const long = new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" });
+    if (d === today) return `Aujourd’hui, ${long}`;
+    if (d === addDays(today, -1)) return `Hier, ${long}`;
+    const s = new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
 
   function validateSimple() {
     const st = useDataStore.getState();
@@ -55,37 +65,53 @@ function Valider() {
   return (
     <Screen>
       <Back href="/planning">Planning</Back>
-      <h1 className="bs-d bs-t1">À confirmer</h1>
-      <p className="bs-p">Les séances et les soins déjà passés. Coche ce qui a bien eu lieu. L’argent est alors compté sur le ticket de chaque cheval.</p>
-      <div className="bs-card" style={{ justifyContent: "space-between" }}>
-        <span>
-          <span className="k">En attente de ta coche</span>
-          <br />
-          <b className="bs-big" style={{ fontSize: 24, color: items.length ? "var(--vert)" : "var(--ink-3)" }}>
-            {signed(total)}
-          </b>
-        </span>
-        <span className={`bs-pill ${items.length ? "r" : "g"}`}>{items.length ? `${items.length} à confirmer` : "tout est à jour"}</span>
+      <div className="jr-valider">
+        <Hello title="À confirmer." sub="Les séances et les soins déjà passés. Coche ce qui a bien eu lieu, l’argent est alors compté sur le ticket de chaque cheval." />
+        <div className="pad rise" style={{ animationDelay: ".12s", marginTop: 16 }}>
+          <div className="card jr-wait">
+            <span>
+              <span className="k">En attente de ta coche</span>
+              <b className={`mid ${items.length && total ? (total > 0 ? "in" : "out") : "jr-zero"}`}>{items.length ? <CountUp value={total} /> : "0 €"}</b>
+            </span>
+            <span className={`pill${items.length ? " ink" : ""}`}>{items.length ? `${items.length} à confirmer` : "tout est à jour"}</span>
+          </div>
+        </div>
+        {items.length === 0 && (
+          <div className="empty rise" style={{ animationDelay: ".22s" }}>
+            <Ill n="rosette" className="jr-rosette" alt="La gérante brandit une rosette." />
+            <p style={{ margin: 0 }}>
+              <b className="jr-ok">Planning à jour.</b>
+              <br />
+              Tout ce qui a eu lieu est compté.
+            </p>
+          </div>
+        )}
+        {[...byDate.entries()].map(([d, its], i) => (
+          <Sec key={d} blk ill={VIGNETTES[i % VIGNETTES.length]} title={dayTitle(d)} delay={0.2 + i * 0.08}>
+            <div className="rows">
+              {its.map((it) => (
+                <DayBlock key={it.key} it={it} />
+              ))}
+            </div>
+          </Sec>
+        ))}
+        {items.length > 0 && (
+          <div className="pad rise" style={{ animationDelay: ".3s", marginTop: 14 }}>
+            {simple.length > 0 && (
+              <button type="button" className="btn full" onClick={validateSimple}>
+                <Ic n="ck" className="" />
+                {simple.length === items.length ? `Tout confirmer (${simple.length})` : `Confirmer les ${simple.length} autres d’un coup`}
+              </button>
+            )}
+            {items.length > simple.length && (
+              <p className="note" style={{ textAlign: "center" }}>
+                Pour les cours à plusieurs, touche leur coche pour dire qui était là.
+              </p>
+            )}
+          </div>
+        )}
+        <div className="end" />
       </div>
-      {items.length === 0 && (
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 26 }}>
-          <Rosette lines={["Planning", "à jour"]} size={96} />
-        </div>
-      )}
-      {[...byDate.entries()].map(([d, its]) => (
-        <div key={d}>
-          <Sec>{new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</Sec>
-          {its.map((it) => (
-            <DayBlock key={it.key} it={it} />
-          ))}
-        </div>
-      ))}
-      {simple.length > 0 && (
-        <button type="button" className="bs-btn" style={{ marginTop: 16 }} onClick={validateSimple}>
-          {simple.length === items.length ? `Tout confirmer (${simple.length})` : `Confirmer les ${simple.length} autres d’un coup`}
-        </button>
-      )}
-      {items.length > simple.length && <p className="bs-p" style={{ textAlign: "center", marginTop: 8 }}>Pour les cours à plusieurs, touche leur coche pour dire qui était là.</p>}
     </Screen>
   );
 }

@@ -12,14 +12,14 @@ import { SessionSync } from "@/components/bs/session-sync";
 import { AideCarte, RetourOrdinateur } from "@/components/bs/nav";
 
 /**
- * La coque de l'app. Au téléphone : une colonne au pouce, l'en-tête et la
- * barre d'onglets. Sur ordinateur (1024 px et plus) : la barre latérale
- * vert profond, la palette (Ctrl K) et les raccourcis clavier ; les
- * feuilles s'ouvrent en panneau à droite.
+ * La coque de l'app, dans le carnet illustré. Au téléphone : une colonne au
+ * pouce, l'en-tête et la barre d'onglets. Sur ordinateur (1024 px et plus) :
+ * la barre latérale blanche, la palette (Ctrl K) et les raccourcis clavier ;
+ * les feuilles s'ouvrent en panneau à droite.
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bs-app min-h-dvh bg-base text-primary">
+    <div className="carnet">
       <OnboardingGate />
       <Autopilot />
       <MorningNudge />
@@ -30,11 +30,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Shortcuts />
         </Suspense>
       </ClientGate>
-      <main className="bs-main">
+      <main className="cn-main">
         <ClientGate>
           <Header />
-          <RetourOrdinateur />
-          <AideCarte />
+          <div className="cn-page" style={{ paddingBottom: 0, paddingTop: 0 }}>
+            <RetourOrdinateur />
+            <AideCarte />
+          </div>
         </ClientGate>
         {children}
       </main>

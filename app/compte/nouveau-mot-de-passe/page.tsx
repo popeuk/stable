@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { AccTop, PasswordField } from "@/components/bs/account-ui";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
-import { Picto } from "@/components/bs/picto";
+import { ArTop, PwInput } from "@/components/bs/rejoindre";
+import { Ic } from "@/components/carnet/ui";
 import { api, ApiError, PW_MIN } from "@/lib/account/api";
 import { enter, hasAccountData, hasLegacyData, sessionFrom, setSession } from "@/lib/account/session";
 
@@ -45,38 +45,64 @@ function Nouveau() {
     }
   }
 
-  if (adopt) return <AdoptChoice />;
+  if (adopt)
+    return (
+      <div className="carnet">
+        <AdoptChoice />
+      </div>
+    );
   const broken = !login || !key || err?.code === "lien_invalide";
+  const top = (
+    <ArTop
+      right={
+        <Link href="/compte/connexion" className="ar-link">
+          Me connecter
+        </Link>
+      }
+    />
+  );
 
   return (
-    <main className="bs-acc">
-      <AccTop right={<Link href="/compte/connexion" className="bs-link">Me connecter</Link>} />
-      <div style={{ marginTop: "min(12vh, 72px)", maxWidth: 420, width: "100%", alignSelf: "center" }}>
+    <div className="carnet">
+      <div className="ar">
         {broken ? (
-          <>
-            <h1 className="bs-d bs-t1">Ce lien n’est plus valable.</h1>
-            <p className="bs-p">Il a peut-être déjà servi, ou il date de plus de 24 heures. Demande-en un nouveau : c’est immédiat.</p>
-            <Link href="/compte/oubli" className="bs-btn" style={{ marginTop: 18 }}>
-              Recevoir un nouveau lien
-            </Link>
-          </>
+          <div className="ar-v">
+            {top}
+            <div className="q">
+              <h3>Ce lien n’est plus valable.</h3>
+              <p>Il a peut-être déjà servi, ou il date de plus de 24 heures. Demande-en un nouveau : c’est immédiat.</p>
+            </div>
+            <div className="foot">
+              <Link href="/compte/oubli" className="btn full">
+                Recevoir un nouveau lien
+              </Link>
+            </div>
+          </div>
         ) : (
-          <>
-            <h1 className="bs-d bs-t1">Choisis ton nouveau mot de passe</h1>
-            <p className="bs-p">Il remplace l’ancien sur Be Stable et sur mon-ecurie.fr. Tu seras connecté juste après.</p>
-            <form onSubmit={submit} noValidate>
-              <PasswordField label="Nouveau mot de passe" value={password} onChange={setPassword} error={err && err.code !== "lien_invalide" ? err.message : undefined} />
-              <button type="submit" className="bs-btn" style={{ marginTop: 18 }} disabled={busy || password.length < PW_MIN}>
-                {busy ? "Enregistrement…" : (
+          <form className="ar-v" onSubmit={submit} noValidate>
+            {top}
+            <div className="q">
+              <h3>Choisis ton nouveau mot de passe</h3>
+              <p>Il remplace l’ancien sur Be Stable et sur mon-ecurie.fr. Tu seras connecté juste après.</p>
+            </div>
+            <div className="ar-form">
+              <PwInput label="Nouveau mot de passe" value={password} onChange={setPassword} error={err && err.code !== "lien_invalide" ? err.message : undefined} />
+            </div>
+            <div className="foot">
+              <button type="submit" className="btn full" disabled={busy || password.length < PW_MIN}>
+                {busy ? (
+                  "Enregistrement…"
+                ) : (
                   <>
-                    Enregistrer et me connecter <Picto name="arrowR" />
+                    Enregistrer et me connecter
+                    <Ic n="arrow" className="" />
                   </>
                 )}
               </button>
-            </form>
-          </>
+            </div>
+          </form>
         )}
       </div>
-    </main>
+    </div>
   );
 }

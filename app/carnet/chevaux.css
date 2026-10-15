@@ -1,0 +1,121 @@
+/* Carnet · chapitre chevaux : styles propres à ses écrans, tous sous .carnet */
+
+/* ---------- Mes chevaux ---------- */
+.carnet .ch-herd { display: flex; justify-content: center; align-items: flex-end; height: 112px; padding-top: 14px; }
+.carnet .ch-herd .face { width: 84px; height: 84px; box-shadow: 0 0 0 4px var(--paper); }
+.carnet .ch-herd .face + .face { margin-left: -22px; }
+.carnet .ch-herd .face:nth-child(2) { width: 96px; height: 96px; z-index: 2; }
+.carnet .ch-herd .face img { transform-origin: 60% 100%; animation: cn-breathe2 4.6s var(--slow) infinite; }
+.carnet .ch-herd .face:nth-child(2) img { animation-delay: -1.5s; }
+.carnet .ch-herd .face:nth-child(3) img { animation-delay: -3s; }
+.carnet .hello p.ch-over0 { margin: 0 0 6px; font-size: 12.5px; font-weight: 600; color: var(--ink3); }
+.carnet .hello h3 .in, .carnet .hello h3 .out { font-weight: 780; }
+.carnet .ch-bar { padding: 14px 18px 0; display: grid; gap: 12px; }
+.carnet .li small.ch-late, .carnet .ch-late { color: var(--ink); font-weight: 750; }
+.carnet .ch-ico { width: 40px; height: 40px; border-radius: 50%; background: var(--mist); display: flex; align-items: center; justify-content: center; flex: none; color: var(--ink); }
+.carnet .ch-ico svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.carnet button.li { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--line2); text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.carnet button.li:last-child { border-bottom: 0; }
+.carnet .ch-cli small, .carnet .ch-people small { display: block; }
+.carnet .ch-cli small.pt { font-size: 11.5px; color: var(--ink2); margin-top: 2px; }
+.carnet .ch-cli .bar { display: block; height: 4px; margin-top: 7px; }
+.carnet .ch-after { display: grid; gap: 10px; padding: 14px 18px 0; }
+.carnet .ch-after .btn { justify-self: stretch; }
+.carnet .btn.ch-tall { height: auto; min-height: 44px; padding: 11px 16px; text-align: center; line-height: 1.3; }
+
+/* ---------- Fiche d'un cheval ---------- */
+.carnet .ch-mnav { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px 0; }
+.carnet .ch-mnav b { font-size: 14px; font-weight: 650; }
+.carnet .ch-mnav button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--mist); display: flex; align-items: center; justify-content: center; color: var(--ink); cursor: pointer; padding: 0; }
+.carnet .ch-mnav button svg { width: 18px; height: 18px; }
+.carnet .ch-mnav button[disabled] { opacity: .3; cursor: default; }
+.carnet .ch-tabs { padding: 12px 18px 0; }
+.carnet .note.ch-lead { font-size: 15px; color: var(--ink); margin: 8px 0 12px; }
+.carnet .ticket .r a.lnk { font-size: 12.5px; font-family: var(--mono); }
+.carnet .ticket .r span:last-child { white-space: nowrap; }
+.carnet .ch-leave { display: flex; justify-content: center; padding: 22px 18px 0; }
+.carnet .ch-leave .btn.ghost { color: var(--ink3); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.carnet .hello .ch-edit { display: inline-block; margin-top: 8px; }
+.carnet .ch-strip { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 8px; scrollbar-width: thin; }
+.carnet .ch-strip a { display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 24px; box-shadow: inset 0 0 0 1px var(--line); background: var(--sheet); text-decoration: none; font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+.carnet .ch-strip a .face { width: 30px; height: 30px; }
+.carnet .ch-strip a[aria-current="page"] { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .ch-strip a .pill { font-size: 11px; padding: 2px 7px; }
+
+/* ---------- Le pot commun ---------- */
+.carnet .ch-sum { text-align: center; font-variant-numeric: tabular-nums; }
+.carnet .ch-down { display: flex; justify-content: center; color: var(--ink3); margin: 2px 0 6px; }
+.carnet .ch-down svg { transform: rotate(90deg); width: 22px; height: 22px; }
+.carnet .ch-heads { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+.carnet .ch-heads .face { width: 30px; height: 30px; }
+.carnet .ch-heads .free { width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line); background: repeating-linear-gradient(135deg, var(--line2) 0 3px, transparent 3px 6px); }
+.carnet .ch-div { margin: 12px 0 0; font-size: 16.5px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.carnet .ch-div small { display: block; font-family: var(--f); font-size: 13.5px; font-weight: 400; color: var(--ink2); margin-top: 6px; }
+.carnet .ticket.ch-mini .r { padding: 3px 0; }
+
+/* ---------- Mes clients ---------- */
+.carnet .ch-search { color: var(--ink3); }
+.carnet .ch-search svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.carnet .ch-search input { border: 0; background: none; outline: none; font: inherit; font-size: 15px; color: var(--ink); flex: 1; min-width: 0; height: 100%; padding: 0; }
+.carnet .ch-search:focus-within { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .ch-search input::placeholder, .carnet .ch-tel::placeholder { color: var(--ink3); }
+.carnet .ch-who-r { text-align: right; display: grid; justify-items: end; gap: 4px; }
+.carnet .ch-who-r b { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.carnet .ch-who-r small { font-size: 12px; color: var(--ink3); }
+.carnet .ch-mini-heads { display: flex; gap: 4px; margin-top: 6px; }
+.carnet .ch-mini-heads .face { width: 26px; height: 26px; }
+.carnet .ch-addrow { display: grid; grid-template-columns: 1fr 44px; gap: 8px; margin-top: 10px; }
+.carnet .ch-addrow .btn { padding: 0; }
+.carnet .ch-tel { display: block; border: 0; background: none; padding: 0; font: inherit; font-size: 12px; color: var(--ink3); width: 100%; max-width: 160px; outline: none; }
+.carnet .ch-tel:focus { color: var(--ink); box-shadow: 0 1px 0 var(--ink); }
+.carnet .ch-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.carnet .ch-tags > * { font-size: 11.5px; font-weight: 600; color: var(--ink2); padding: 2px 8px; border-radius: 20px; box-shadow: inset 0 0 0 1px var(--line); text-decoration: none; }
+
+/* ---------- Ajouter un cheval ---------- */
+.carnet .ch-preview { display: flex; justify-content: center; padding-top: 12px; }
+.carnet .ch-preview .portrait { height: 132px; }
+.carnet .ch-preview .portrait .disc { width: 124px; height: 124px; }
+.carnet .ch-sws { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.carnet .ch-sw { width: 34px; height: 34px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(27, 18, 37, .12); }
+.carnet .ch-sw[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+.carnet .ch-opt { font-weight: 400; color: var(--ink3); }
+.carnet .ch-fpick { display: flex; flex-wrap: wrap; gap: 10px 8px; margin-top: 12px; }
+.carnet .ch-fpick > span { display: grid; justify-items: center; gap: 3px; font-size: 11px; color: var(--ink2); width: 52px; text-align: center; overflow-wrap: anywhere; }
+.carnet .ch-fpick .face { width: 40px; height: 40px; }
+.carnet .ch-form .btn[disabled], .carnet .ch-addrow .btn[disabled] { opacity: .4; cursor: default; }
+
+/* ---------- Ordinateur ---------- */
+.carnet .ch-desk .dhead .k { margin: 0 0 4px; }
+.carnet .ch-bar2 { display: flex; align-items: center; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
+.carnet .ch-bar2 .seg { width: 220px; flex: none; }
+.carnet .ch-bar2 .ch-search { width: 280px; }
+.carnet .ch-desk .tbl { margin-top: 12px; }
+.carnet .ch-desk .tbl td { padding: 7px 10px; }
+.carnet .ch-desk .tbl .m { color: var(--ink2); white-space: nowrap; }
+.carnet .ch-desk .tbl tbody tr.go { cursor: pointer; }
+.carnet .ch-desk .tbl tbody tr:hover td { background: var(--mist); }
+.carnet .ch-desk .tbl .due { font-size: 12.5px; color: var(--ink2); }
+.carnet .ch-desk .tbl .due b { color: var(--ink); font-weight: 700; }
+.carnet .ch-desk .tbl .who { text-decoration: none; }
+.carnet .ch-desk .tbl .who .ini { width: 30px; height: 30px; font-size: 11.5px; }
+.carnet .ch-desk .tbl .ch-tel { max-width: 140px; font-size: 13.5px; color: var(--ink2); }
+.carnet .ch-desk .tbl .ch-mini-heads { margin-top: 0; flex-wrap: wrap; }
+.carnet .ch-desk .tbl .ch-mini-heads a { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; text-decoration: none; margin-right: 6px; }
+.carnet .ch-fn { margin: 10px 0 0; font-size: 12.5px; color: var(--ink3); }
+@media (min-width: 1024px) {
+  .carnet .ch-desk .sec { padding-left: 0; padding-right: 0; }
+  .carnet .ch-desk .sec.blk { margin-left: 0; margin-right: 0; padding: 14px 14px 14px 10px; }
+  .carnet .ch-desk .ch-after, .carnet .ch-desk .ch-mnav, .carnet .ch-desk .ch-tabs, .carnet .ch-desk .hello, .carnet .ch-desk .ch-bar, .carnet .ch-desk .form, .carnet .ch-desk .ch-sum, .carnet .ch-desk .pad { padding-left: 0; padding-right: 0; }
+  .carnet .ch-desk .ch-leave { justify-content: flex-start; padding-left: 0; }
+  .carnet .ch-fiche-top { display: flex; align-items: center; gap: 24px; }
+  .carnet .ch-fiche-top .portrait { height: 150px; }
+  .carnet .ch-fiche-top .portrait .disc { width: 140px; height: 140px; }
+  .carnet .ch-fiche-top .hello { padding-top: 0; }
+  .carnet .ch-fiche-top .ch-mnav { margin-left: auto; gap: 14px; }
+  .carnet .cols2.ch-cols { align-items: start; margin-top: 8px; }
+  .carnet .ch-stick { position: sticky; top: 22px; }
+  .carnet .ch-narrow { max-width: 640px; }
+}
+
+/* Les icônes sans classe du sprite : trait, pas de remplissage. */
+.carnet .li .chev, .carnet .ch-mnav svg, .carnet .ch-down svg, .carnet .ch-ico svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }

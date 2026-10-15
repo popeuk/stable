@@ -3,13 +3,11 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, TrendingUp, TrendingDown, Minus, Trash2, Pencil, Archive, Plus } from "lucide-react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Sparkline } from "@/components/ui/sparkline";
 import { Explain } from "@/components/ed/explain";
-import { CopiloteNote } from "@/components/ed/copilote";
-import { HorseLine, Tag } from "@/components/ed/atoms";
-import { CareIcon, DeadlineRow, AgendaRow } from "@/components/ed/care-bits";
+import { DeadlineRow, AgendaRow } from "@/components/ed/care-bits";
+import { Ic, Money, Page as Ecran, Pill, Portrait, Sec, Tip, eur as eurC } from "@/components/carnet/ui";
 import { upcomingDeadlines, plannedEvents, horseCareLog, CARE_META } from "@/lib/domain/care";
 import { useHorses } from "@/lib/hooks/use-horses";
 import { useDataStore } from "@/stores/data-store";
@@ -19,13 +17,16 @@ import { dateInPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 
 function eur(n: number) {
-  const v = new Intl.NumberFormat("fr-FR").format(Math.round(Math.abs(n)));
+  const v = new Intl.NumberFormat("fr-FR").format(Math.round(Math.abs(n))).replace(/\u202f/g, "\u00a0");
   return `${n < 0 ? "−" : ""}${v} €`;
 }
 
 function freqLabel(f: string) {
   return f === "monthly" ? "mensuel" : f === "quarterly" ? "trimestriel" : "annuel";
 }
+
+const ulReset = { listStyle: "none", margin: 0, padding: 0 } as const;
+const trashBtn = { border: 0, background: "none", padding: 4, cursor: "pointer", color: "var(--ink3)" } as const;
 
 export function ChevalView({ id }: { id: string }) {
   return (
@@ -47,7 +48,12 @@ function Cheval({ id }: { id: string }) {
   const archiveHorse = useDataStore((s) => s.archiveHorse);
 
   const idx = horses.findIndex((h) => h.horse.id === id);
-  if (idx === -1) return <p className="text-secondary">Cheval introuvable.</p>;
+  if (idx === -1)
+    return (
+      <Ecran>
+        <p className="note pad">Cheval introuvable.</p>
+      </Ecran>
+    );
 
   const recRevenues = (data.recurringRevenues ?? []).filter((r) => r.horseId === id);
   const recExpenses = (data.recurringExpenses ?? []).filter((r) => !r.isShared && r.horseId === id);
@@ -59,13 +65,6 @@ function Cheval({ id }: { id: string }) {
   const prev = horses[(idx - 1 + horses.length) % horses.length];
   const cover = pnl.threshold > 0 ? Math.min(1, pnl.revenue / pnl.threshold) : 1;
 
-  // Breakdowns.
-  const revByCat = new Map<string, number>();
-  for (const r of data.revenues) {
-    if (r.horseId !== horse.id || !dateInPeriod(r.date, period)) continue;
-    const name = data.revenueCategories.find((c) => c.id === r.categoryId)?.name ?? "Autre";
-    revByCat.set(name, (revByCat.get(name) ?? 0) + r.amount);
-  }
   const movements = [
     ...data.revenues
       .filter((r) => r.horseId === horse.id && dateInPeriod(r.date, period))
@@ -91,9 +90,6 @@ function Cheval({ id }: { id: string }) {
   const horseAgenda = plannedEvents(data, todayIso).filter((a) => a.event.horseId === horse.id);
   const careLog = horseCareLog(data, horse.id, todayIso).slice(0, 6);
 
-  const trendIcon =
-    trend === "hausse" ? <TrendingUp size={15} /> : trend === "baisse" ? <TrendingDown size={15} /> : <Minus size={15} />;
-
   return (
     <motion.div
       key={horse.id}
@@ -106,328 +102,225 @@ function Cheval({ id }: { id: string }) {
       }}
       initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0 }}
-      className="space-y-5"
     >
-      <Link href="/ecurie" className="inline-flex items-center gap-1 text-sm text-tertiary">
-        <ChevronLeft size={16} /> Mon écurie
-      </Link>
-
-      {/* Le pouls du cheval : la teinte de l'en-tête EST sa santé. */}
-      <div className="grain relative overflow-hidden">
-        <div
-          aria-hidden
-          className="pulse-field absolute inset-0"
-          style={
-            {
-              "--pulse-a": ok ? "rgba(189, 96, 23, 0.28)" : "rgba(189, 63, 44, 0.20)",
-              "--pulse-b": ok ? "rgba(124, 144, 112, 0.24)" : "rgba(168, 119, 15, 0.16)",
-            } as React.CSSProperties
-          }
-        />
-        <div className="relative flex aspect-[16/9] items-center justify-center">
-          <HorseLine size={140} stroke={0.9} color="var(--text-primary)" />
-          <div className="absolute bottom-3 right-3">
-            <Tag tone={ok ? "green" : "red"}>{ok ? "Il rapporte" : "Il coûte"}</Tag>
-          </div>
-        </div>
-      </div>
-
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="font-[family-name:var(--font-bricolage)] text-3xl text-primary">{horse.name}</h1>
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-tertiary">
-            {horse.breed}
-            {horse.birthYear ? ` · ${new Date().getFullYear() - horse.birthYear} ans` : ""}
-            {horse.ownerName ? ` · ${horse.ownerName}` : ""}
-          </p>
-          {horse.pension ? (
-            <p className="mt-0.5 text-[12px] text-tertiary">
-              Pension {new Intl.NumberFormat("fr-FR").format(horse.pension)} €/mois · postée
-              toute seule chaque mois
-            </p>
-          ) : null}
-        </div>
-        <Link
-          href={`/saisie/cheval?edit=${horse.id}`}
-          aria-label="Modifier"
-          className="flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--border-strong)] px-2.5 py-1.5 text-[12px] font-bold text-primary"
-        >
-          <Pencil size={13} /> Modifier
-        </Link>
-      </header>
-
-      {/* Hero */}
-      <div>
-        <Explain k="marge_nette" className="text-[11px] font-bold uppercase tracking-[0.08em] text-tertiary">
-          Ce qu&apos;il te laisse ce mois
-        </Explain>
-        <p
-          className="font-[family-name:var(--font-bricolage)] text-5xl tabular-nums"
-          style={{ color: ok ? "var(--c-success)" : "var(--c-danger)" }}
-        >
-          {eur(pnl.netResult)}
-        </p>
-        <span
-          className="mt-1 inline-flex items-center gap-1 text-[13px] font-semibold capitalize"
-          style={{ color: trend === "hausse" ? "var(--c-success)" : trend === "baisse" ? "var(--c-danger)" : "var(--text-tertiary)" }}
-        >
-          {trendIcon}{" "}
-          <Explain k="tendance" className="capitalize">
-            {trend}
-          </Explain>
-        </span>
-      </div>
-
-      {/* Entre / sort */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="border border-[var(--border-strong)] p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-tertiary">Il fait rentrer</p>
-          <p className="mt-1 text-[22px] font-extrabold tabular-nums text-primary">{eur(pnl.revenue)}</p>
-        </div>
-        <div className="border border-[var(--border-strong)] p-4">
-          <Explain k="cout_direct" className="text-[11px] font-bold uppercase tracking-wide text-tertiary">
-            Il te coûte
-          </Explain>
-          <p className="mt-1 text-[22px] font-extrabold tabular-nums text-primary">{eur(pnl.threshold)}</p>
-        </div>
-      </div>
-
-      {/* Seuil */}
-      <div className="border border-[var(--border-strong)] p-4">
-        <Explain k="seuil_rentabilite" className="text-[13px] font-bold text-primary">
-          Son seuil de rentabilité
-        </Explain>
-        <p className="mt-1 text-[13px] text-secondary">
-          Pour être à l&apos;équilibre, il doit rapporter au moins {eur(pnl.threshold)}. Là :{" "}
-          {eur(pnl.revenue)}.
-        </p>
-        <div className="mt-3 h-2 w-full border border-[var(--border-strong)] bg-base">
-          <div className="h-full" style={{ width: `${cover * 100}%`, background: ok ? "var(--c-success)" : "var(--c-danger)" }} />
-        </div>
-      </div>
-
-      {/* 12 mois */}
-      <div className="border border-[var(--border-strong)] p-4">
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-tertiary">12 derniers mois</p>
-        <Sparkline data={series} area width={380} height={72} className="w-full" />
-      </div>
-
-      {/* Copilote */}
-      <CopiloteNote>
-        {ok
-          ? `${horse.name} dégage ${eur(pnl.netResult)} ce mois. Solide, garde le cap.`
-          : `${horse.name} te coûte ${eur(Math.abs(pnl.netResult))} de plus qu'il ne rapporte. Le bon réflexe : alléger ses postes les plus lourds, puis réaligner sa pension à la prochaine échéance, sans geste brusque.`}
-      </CopiloteNote>
-
-      {/* Sa santé, anticipée : les échéances de CE cheval */}
-      {(horseDeadlines.length > 0 || horseAgenda.length > 0) && (
-        <div>
-          <div className="mb-1 flex items-baseline justify-between">
-            <h2 className="title-serif text-[19px] text-primary">À venir pour {horse.name}</h2>
-            <Link href={`/saisie/soin?horse=${horse.id}`} className="text-[12px] font-semibold text-tertiary">
-              + Ajouter
-            </Link>
-          </div>
-          <ul>
-            <AnimatePresence initial={false}>
-              {horseAgenda.map((a) => (
-                <AgendaRow key={a.event.id} p={a} horseName={horse.name} showHorse={false} />
-              ))}
-              {horseDeadlines.map((d) => (
-                <DeadlineRow key={d.kind} d={d} horseName={horse.name} showHorse={false} />
-              ))}
-            </AnimatePresence>
-          </ul>
-        </div>
-      )}
-
-      {/* Le carnet : sa vie, en fil chronologique */}
-      <div>
-        <div className="mb-2 flex items-baseline justify-between">
-          <h2 className="title-serif text-[19px] text-primary">Son carnet</h2>
-          {careLog.length > 0 && (
-            <Link href="/planning" className="text-[12px] font-semibold text-tertiary">
-              Tout le carnet ›
-            </Link>
-          )}
-        </div>
-        {careLog.length === 0 ? (
-          <Link
-            href={`/saisie/soin?horse=${horse.id}`}
-            className="flex items-center justify-between rounded-[var(--radius-md)] border border-dashed border-[var(--border-strong)] px-4 py-3.5"
-          >
-            <span className="pr-3 text-[13px] text-secondary">
-              Note son premier soin (vaccin, ferrure…) : les rappels se calculeront tout seuls.
-            </span>
-            <Plus size={16} className="shrink-0 text-[var(--accent-primary)]" />
+      <Ecran>
+        <div className="pad" style={{ paddingTop: 12 }}>
+          <Link href="/ecurie" className="lnk">
+            Mon écurie
           </Link>
-        ) : (
-          <ul className="relative ml-2 border-l border-[var(--border-strong)] pl-4">
-            {careLog.map((e, i) => (
-              <motion.li
-                key={e.id}
-                initial={{ opacity: 0, x: -6 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                className="relative pb-4 last:pb-0"
-              >
-                <span
-                  className="absolute -left-[23px] top-1 flex size-3.5 items-center justify-center rounded-full border-2 border-[var(--bg-base)]"
-                  style={{ background: "var(--accent-secondary)" }}
-                />
-                <p className="flex items-center gap-1.5 text-[13px] font-bold text-primary">
-                  <CareIcon kind={e.kind} size={13} /> {CARE_META[e.kind].label}
-                  <span className="font-semibold text-tertiary">
-                    · {e.date.slice(8, 10)}/{e.date.slice(5, 7)}/{e.date.slice(2, 4)}
-                  </span>
-                </p>
-                {(e.label || e.provider || e.cost) && (
-                  <p className="text-[12px] text-secondary">
-                    {e.label}
-                    {e.provider ? `${e.label ? " · " : ""}${e.provider}` : ""}
-                    {e.cost ? `${e.label || e.provider ? " · " : ""}${Math.round(e.cost)} €` : ""}
-                  </p>
-                )}
-              </motion.li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* Récurrents de ce cheval (pension, charges) */}
-      {(recRevenues.length > 0 || recExpenses.length > 0) && (
-        <div>
-          <p className="text-[13px] font-bold uppercase tracking-wide text-tertiary">Récurrents</p>
-          <ul className="mt-2 border-t border-[var(--border-default)]">
-            {recRevenues.map((r) => (
-              <li key={r.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-2.5">
-                <span className="flex-1 text-[14px] text-primary">
-                  {r.label ?? "Pension"}{" "}
-                  <span className="text-[12px] text-tertiary">
-                    · {freqLabel(r.frequency)} · revenu
-                  </span>
-                </span>
-                <span className="text-[14px] font-bold tabular-nums" style={{ color: "var(--c-success)" }}>
-                  +{formatEur(r.amount)}
-                </span>
-                <button
-                  onClick={() => confirm("Arrêter ce revenu récurrent ?") && delRecRevenue(r.id)}
-                  aria-label="Arrêter"
-                  className="text-tertiary hover:text-[var(--c-danger)]"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </li>
-            ))}
-            {recExpenses.map((r) => (
-              <li key={r.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-2.5">
-                <span className="flex-1 text-[14px] text-primary">
-                  {r.label}{" "}
-                  <span className="text-[12px] text-tertiary">· {freqLabel(r.frequency)} · charge</span>
-                </span>
-                <span className="text-[14px] font-bold tabular-nums text-primary">
-                  −{formatEur(r.amount)}
-                </span>
-                <button
-                  onClick={() => confirm("Arrêter cette charge récurrente ?") && delRecExpense(r.id)}
-                  aria-label="Arrêter"
-                  className="text-tertiary hover:text-[var(--c-danger)]"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </li>
-            ))}
-          </ul>
         </div>
-      )}
 
-      {/* Mouvements ponctuels du mois, corrigeables sur place */}
-      {movements.length > 0 && (
-        <div>
-          <p className="text-[13px] font-bold uppercase tracking-wide text-tertiary">
-            Ses mouvements ce mois
+        <Portrait horse={horse} />
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <Pill tone="ink">{ok ? "Il rapporte" : "Il coûte"}</Pill>
+        </div>
+
+        <div className="hello rise" style={{ animationDelay: ".1s" }}>
+          <h3>{horse.name}</h3>
+          <p>
+            {[horse.breed, horse.birthYear ? `${new Date().getFullYear() - horse.birthYear} ans` : "", horse.ownerName].filter(Boolean).join(" · ")}
+            {horse.pension ? (
+              <>
+                <br />
+                Pension {new Intl.NumberFormat("fr-FR").format(horse.pension)} €/mois · postée toute seule chaque mois
+              </>
+            ) : null}
           </p>
-          <ul className="mt-2 border-t border-[var(--border-default)]">
-            {movements.map((m) => (
-              <li key={m.id} className="flex items-center gap-3 border-b border-[var(--border-default)] py-2.5">
-                <span className="w-11 shrink-0 text-[11px] font-semibold text-tertiary">
-                  {m.date.slice(8, 10)}/{m.date.slice(5, 7)}
-                </span>
-                <span className="min-w-0 flex-1 truncate text-[14px] text-primary">{m.label}</span>
-                <span
-                  className="text-[14px] font-bold tabular-nums"
-                  style={{ color: m.isIn ? "var(--c-success)" : "var(--text-primary)" }}
-                >
-                  {m.isIn ? "+" : "−"}
-                  {formatEur(m.amount)}
-                </span>
-                <button
-                  onClick={() =>
-                    confirm(`Supprimer « ${m.label} » (${formatEur(m.amount)}) ?`) &&
-                    (m.isIn ? delRevenue(m.id) : delDirect(m.id))
-                  }
-                  aria-label="Supprimer"
-                  className="text-tertiary hover:text-[var(--c-danger)]"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </li>
-            ))}
-          </ul>
+          <Link href={`/saisie/cheval?edit=${horse.id}`} aria-label="Modifier" className="lnk ch-edit">
+            Modifier
+          </Link>
         </div>
-      )}
 
-      {/* Part mutualisée */}
-      {sharedContrib.length > 0 && (
-        <div>
-          <Explain k="charges_mutualisees" className="text-[13px] font-bold uppercase tracking-wide text-tertiary">
-            Sa part des charges partagées
-          </Explain>
-          <ul className="mt-2 border-t border-[var(--border-default)]">
-            {sharedContrib.map((c) => (
-              <li key={c.label} className="flex justify-between border-b border-[var(--border-default)] py-2.5 text-[14px]">
-                <span className="text-secondary">{c.label}</span>
-                <span className="font-bold tabular-nums text-primary">{formatEur(c.amount)}</span>
-              </li>
-            ))}
-          </ul>
+        <div className="pad rise" style={{ animationDelay: ".16s", paddingTop: 16, display: "grid", gap: 10 }}>
+          <div className="card">
+            <Explain k="marge_nette" className="k">
+              Ce qu&apos;il te laisse ce mois
+            </Explain>
+            <p className="big">
+              <Money v={pnl.netResult} />
+            </p>
+            <p className="note">
+              <Explain k="tendance">{trend}</Explain>
+            </p>
+          </div>
+          <div className="trio" style={{ gridTemplateColumns: "1fr 1fr" }}>
+            <div>
+              <small>Il fait rentrer</small>
+              <b>{eur(pnl.revenue)}</b>
+            </div>
+            <div>
+              <Explain k="cout_direct">
+                <small>Il te coûte</small>
+              </Explain>
+              <b>{eur(pnl.threshold)}</b>
+            </div>
+          </div>
+          <div className="card">
+            <Explain k="seuil_rentabilite" className="k">
+              Son seuil de rentabilité
+            </Explain>
+            <p className="note">
+              Pour être à l&apos;équilibre, il doit rapporter au moins {eur(pnl.threshold)}. Là : {eur(pnl.revenue)}.
+            </p>
+            <div className="bar">
+              <i style={{ width: `${cover * 100}%` }} />
+            </div>
+          </div>
+          <div className="card">
+            <p className="k" style={{ marginBottom: 8 }}>
+              12 derniers mois
+            </p>
+            <Sparkline data={series} area width={380} height={72} className="w-full" />
+          </div>
+          <Tip>
+            {ok
+              ? `${horse.name} dégage ${eurC(pnl.netResult)} ce mois. Solide, garde le cap.`
+              : `${horse.name} te coûte ${eurC(Math.abs(pnl.netResult))} de plus qu’il ne rapporte. Le bon réflexe : alléger ses postes les plus lourds, puis réaligner sa pension à la prochaine échéance, sans geste brusque.`}
+          </Tip>
         </div>
-      )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link
-          href={`/saisie?kind=revenu&horse=${horse.id}`}
-          className="flex items-center justify-center border border-[var(--border-strong)] py-3 text-[14px] font-bold text-primary"
-        >
-          Ajouter un revenu
-        </Link>
-        <Link
-          href={`/saisie?kind=charge&horse=${horse.id}`}
-          className="flex items-center justify-center btn-primary py-3 text-[14px] font-bold text-[var(--on-accent)]"
-        >
-          Ajouter une charge
-        </Link>
-      </div>
+        {(horseDeadlines.length > 0 || horseAgenda.length > 0) && (
+          <Sec ill="confirmer" title={`À venir pour ${horse.name}`} action={<Link href={`/saisie/soin?horse=${horse.id}`}>Ajouter</Link>}>
+            <ul style={ulReset}>
+              <AnimatePresence initial={false}>
+                {horseAgenda.map((a) => (
+                  <AgendaRow key={a.event.id} p={a} horseName={horse.name} showHorse={false} />
+                ))}
+                {horseDeadlines.map((d) => (
+                  <DeadlineRow key={d.kind} d={d} horseName={horse.name} showHorse={false} />
+                ))}
+              </AnimatePresence>
+            </ul>
+          </Sec>
+        )}
 
-      {!horse.isArchived && (
-        <button
-          onClick={() => {
-            if (
-              confirm(
-                `${horse.name} quitte l'écurie ? Il sera archivé : ses chiffres restent dans ton historique.`,
-              )
-            ) {
-              archiveHorse(horse.id);
-              router.push("/ecurie");
-            }
-          }}
-          className="flex w-full items-center justify-center gap-2 border border-[var(--border-strong)] py-3 text-[13px] font-semibold text-tertiary"
-        >
-          <Archive size={15} /> Archiver {horse.name} (il quitte l&apos;écurie)
-        </button>
-      )}
+        <Sec ill="carnet-buste" title="Son carnet" action={careLog.length > 0 ? <Link href="/planning">Tout le carnet</Link> : undefined}>
+          {careLog.length === 0 ? (
+            <Link href={`/saisie/soin?horse=${horse.id}`} className="li">
+              <span className="ch-ico">
+                <Ic n="plus" className="" />
+              </span>
+              <span>
+                <small>Note son premier soin (vaccin, ferrure…) : les rappels se calculeront tout seuls.</small>
+              </span>
+              <Ic n="chev" className="chev" />
+            </Link>
+          ) : (
+            <div className="rows">
+              {careLog.map((e) => (
+                <div key={e.id} className="li">
+                  <span className="ch-ico">
+                    <Ic n={e.kind === "ferrure" ? "shoe" : "syringe"} className="" />
+                  </span>
+                  <span>
+                    <b>{CARE_META[e.kind].label}</b>
+                    <small>
+                      {e.date.slice(8, 10)}/{e.date.slice(5, 7)}/{e.date.slice(2, 4)}
+                      {e.label ? ` · ${e.label}` : ""}
+                      {e.provider ? ` · ${e.provider}` : ""}
+                    </small>
+                  </span>
+                  {e.cost ? <Money v={-e.cost} /> : <span />}
+                </div>
+              ))}
+            </div>
+          )}
+        </Sec>
 
-      <p className="text-center text-[12px] text-tertiary">Glisse pour passer à {next.horse.name} →</p>
+        {(recRevenues.length > 0 || recExpenses.length > 0) && (
+          <Sec nomarge title="Récurrents">
+            <div className="rows">
+              {recRevenues.map((r) => (
+                <div key={r.id} className="li" style={{ gridTemplateColumns: "1fr auto auto" }}>
+                  <span>
+                    <b>{r.label ?? "Pension"}</b>
+                    <small>{freqLabel(r.frequency)} · revenu</small>
+                  </span>
+                  <span className="in">+{formatEur(r.amount)}</span>
+                  <button type="button" style={trashBtn} onClick={() => confirm("Arrêter ce revenu récurrent ?") && delRecRevenue(r.id)} aria-label="Arrêter">
+                    <Ic n="trash" className="cn-ic sm" />
+                  </button>
+                </div>
+              ))}
+              {recExpenses.map((r) => (
+                <div key={r.id} className="li" style={{ gridTemplateColumns: "1fr auto auto" }}>
+                  <span>
+                    <b>{r.label}</b>
+                    <small>{freqLabel(r.frequency)} · charge</small>
+                  </span>
+                  <span className="out">−{formatEur(r.amount)}</span>
+                  <button type="button" style={trashBtn} onClick={() => confirm("Arrêter cette charge récurrente ?") && delRecExpense(r.id)} aria-label="Arrêter">
+                    <Ic n="trash" className="cn-ic sm" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </Sec>
+        )}
+
+        {movements.length > 0 && (
+          <Sec nomarge title="Ses mouvements ce mois">
+            <div className="rows">
+              {movements.map((m) => (
+                <div key={m.id} className="li" style={{ gridTemplateColumns: "44px 1fr auto auto" }}>
+                  <small className="mono">
+                    {m.date.slice(8, 10)}/{m.date.slice(5, 7)}
+                  </small>
+                  <b style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.label}</b>
+                  <Money v={m.isIn ? m.amount : -m.amount} />
+                  <button type="button" style={trashBtn} onClick={() => confirm(`Supprimer « ${m.label} » (${formatEur(m.amount)}) ?`) && (m.isIn ? delRevenue(m.id) : delDirect(m.id))} aria-label="Supprimer">
+                    <Ic n="trash" className="cn-ic sm" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </Sec>
+        )}
+
+        {sharedContrib.length > 0 && (
+          <Sec nomarge title={<Explain k="charges_mutualisees">Sa part des charges partagées</Explain>}>
+            <div className="rows">
+              {sharedContrib.map((c) => (
+                <div key={c.label} className="li" style={{ gridTemplateColumns: "1fr auto" }}>
+                  <span>{c.label}</span>
+                  <Money v={-c.amount} />
+                </div>
+              ))}
+            </div>
+          </Sec>
+        )}
+
+        <div className="ch-after" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <Link href={`/saisie?kind=revenu&horse=${horse.id}`} className="btn line">
+            Ajouter un revenu
+          </Link>
+          <Link href={`/saisie?kind=charge&horse=${horse.id}`} className="btn">
+            Ajouter une charge
+          </Link>
+        </div>
+
+        {!horse.isArchived && (
+          <div className="ch-leave">
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => {
+                if (confirm(`${horse.name} quitte l’écurie ? Il sera archivé : ses chiffres restent dans ton historique.`)) {
+                  archiveHorse(horse.id);
+                  router.push("/ecurie");
+                }
+              }}
+            >
+              Archiver {horse.name} (il quitte l’écurie)
+            </button>
+          </div>
+        )}
+
+        <p className="note" style={{ textAlign: "center" }}>
+          Glisse pour passer à {next.horse.name}
+        </p>
+        <div className="end" />
+      </Ecran>
     </motion.div>
   );
 }

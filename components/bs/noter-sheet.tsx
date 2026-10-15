@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore, type AddMode, type NoteKindId } from "@/stores/ui-store";
-import { SeanceForm } from "@/components/bs/seance-form";
+import { HorseChips, InField, SeanceForm } from "@/components/bs/seance-form";
 import { TaskForm } from "@/components/bs/task-form";
-import { Picto, pictoForLabel, type PictoName } from "@/components/bs/picto";
-import { HorseFace } from "@/components/bs/horse-face";
-import { eur, signed, esc } from "@/components/bs/ui";
+import { Chips, Face, Ic, Money, Seg, eur, sg } from "@/components/carnet/ui";
+import { esc } from "@/components/bs/ui";
 import { horseTicket } from "@/lib/domain/ticket";
 import { interpretLocal } from "@/lib/domain/interpret";
 import { distribute } from "@/lib/domain/distribution";
@@ -21,34 +21,40 @@ import { currentPeriod } from "@/lib/utils/period";
  * un acte du carnet (et la dépense ou la recette liée) ; une recette ou une
  * dépense va au ticket du cheval ; une facture commune se partage entre
  * tous. Une date future planifie : l'acte attend sa confirmation.
+ * Rendu en feuille du carnet, portée hors de la coque (iPhone).
  */
 interface Kind {
   id: NoteKindId;
   label: string;
-  picto: PictoName;
   money: "cost" | "revenue";
   scope: "horse" | "stable";
 }
 const KINDS: Kind[] = [
-  { id: "ferrure", label: "Maréchal", picto: "fer", money: "cost", scope: "horse" },
-  { id: "veto", label: "Véto", picto: "veto", money: "cost", scope: "horse" },
-  { id: "vaccin", label: "Vaccin", picto: "veto", money: "cost", scope: "horse" },
-  { id: "vermifuge", label: "Vermifuge", picto: "pot", money: "cost", scope: "horse" },
-  { id: "osteo", label: "Ostéo", picto: "main", money: "cost", scope: "horse" },
-  { id: "dentiste", label: "Dentiste", picto: "dent", money: "cost", scope: "horse" },
-  { id: "cours_individuel", label: "Cours", picto: "cours", money: "revenue", scope: "horse" },
-  { id: "concours", label: "Concours", picto: "trophee", money: "cost", scope: "horse" },
-  { id: "recette", label: "Autre entrée d’argent", picto: "euro", money: "revenue", scope: "horse" },
-  { id: "depense", label: "Autre dépense", picto: "tag", money: "cost", scope: "horse" },
-  { id: "commune", label: "Frais communs", picto: "foin", money: "cost", scope: "stable" },
+  { id: "ferrure", label: "Maréchal", money: "cost", scope: "horse" },
+  { id: "veto", label: "Véto", money: "cost", scope: "horse" },
+  { id: "vaccin", label: "Vaccin", money: "cost", scope: "horse" },
+  { id: "vermifuge", label: "Vermifuge", money: "cost", scope: "horse" },
+  { id: "osteo", label: "Ostéo", money: "cost", scope: "horse" },
+  { id: "dentiste", label: "Dentiste", money: "cost", scope: "horse" },
+  { id: "cours_individuel", label: "Cours", money: "revenue", scope: "horse" },
+  { id: "concours", label: "Concours", money: "cost", scope: "horse" },
+  { id: "recette", label: "Autre entrée d’argent", money: "revenue", scope: "horse" },
+  { id: "depense", label: "Autre dépense", money: "cost", scope: "horse" },
+  { id: "commune", label: "Frais communs", money: "cost", scope: "stable" },
 ];
 
 type When = "today" | "yesterday" | "tomorrow" | "other";
+type Done = { horseId?: string; sourceId?: string; text: string };
 
 export function NoterSheet() {
   const open = useUiStore((s) => s.noterOpen);
   if (!open) return null;
-  return <NoterInner />;
+  return createPortal(
+    <div className="carnet carnet-portal">
+      <NoterInner />
+    </div>,
+    document.body,
+  );
 }
 
 function NoterInner() {
@@ -74,7 +80,7 @@ function NoterInner() {
   const [catId, setCatId] = useState<string | undefined>();
   const [heard, setHeard] = useState("");
   const [listening, setListening] = useState(false);
-  const [done, setDone] = useState<null | { horseId?: string; sourceId?: string; text: string }>(null);
+  const [done, setDone] = useState<null | Done>(null);
   const textRef = useRef<HTMLInputElement>(null);
 
   const K = KINDS.find((k) => k.id === kind) ?? KINDS[0];
@@ -93,7 +99,13 @@ function NoterInner() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // La page derrière ne défile pas tant que la feuille est ouverte.
+    const avant = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = avant;
+    };
   }, [close]);
 
   const who = horseIds.length === 1 ? horses.find((h) => h.id === horseIds[0])?.name : horseIds.length > 1 ? `${horseIds.length} chevaux` : "";
@@ -101,7 +113,7 @@ function NoterInner() {
     ? needHorse && horseIds.length === 0
       ? "Choisis un cheval"
       : "Indique un montant"
-    : `${future ? "Prévoir" : "Noter"}${needHorse ? ` pour ${who}` : ""}${value ? ` · ${K.money === "revenue" ? "+" : ""}${eur(value)}` : ""}`;
+    : `${future ? "Prévoir" : "Noter"}${needHorse ? ` pour ${who}` : ""}${value ? ` · ${sg(K.money === "revenue" ? value : -value)}` : ""}`;
 
   function applyHeard(text: string) {
     const r = interpretLocal(text, { horses: horses.map((h) => ({ id: h.id, name: h.name })), today });
@@ -153,6 +165,16 @@ function NoterInner() {
     rec.start();
   }
 
+  /** Le toast « c'est noté » avec son Annuler (supprime ce qui vient d'être ajouté). */
+  function toastNoted(what: string, signedValue: number, undo: () => void) {
+    const pour = who ? ` pour ${esc(who)}` : "";
+    const tail = signedValue ? `, ${sg(signedValue)} sur ${horseIds.length > 1 ? "leurs tickets" : "son ticket"}` : "";
+    say(`<strong>${esc(what)}${pour}</strong> : noté${tail}.`, () => {
+      undo();
+      close();
+    });
+  }
+
   function save() {
     if (!ready) return;
     const st = useDataStore.getState();
@@ -176,19 +198,29 @@ function NoterInner() {
     }
     if (kind === "recette" || kind === "depense") {
       const before = new Set([...st.revenues.map((r) => r.id), ...st.directExpenses.map((d) => d.id)]);
+      let what = K.label;
       for (const hid of horseIds) {
         if (kind === "recette") {
           const cat = revCats.find((c) => c.id === catId) ?? revCats[0];
+          what = label.trim() || cat?.name || what;
           st.addRevenue({ horseId: hid, categoryId: cat?.id, amount: value, date, note: label.trim() || undefined, source: "manual" });
         } else {
           const cat = directCats.find((c) => c.id === catId) ?? directCats[0];
+          what = label.trim() || cat?.name || "Dépense";
           st.addDirectExpense({ horseId: hid, categoryId: cat?.id, label: label.trim() || cat?.name || "Dépense", amount: value, date, source: "manual" });
         }
       }
       const after = useDataStore.getState();
+      const newRev = after.revenues.filter((x) => !before.has(x.id)).map((x) => x.id);
+      const newDep = after.directExpenses.filter((x) => !before.has(x.id)).map((x) => x.id);
       const added = [...after.revenues, ...after.directExpenses].find((x) => !before.has(x.id) && x.horseId === horseIds[0]);
       if (added) markLine(horseIds[0], added.id);
       setDone({ horseId: horseIds[0], sourceId: added?.id, text: "" });
+      toastNoted(what, kind === "recette" ? value : -value, () => {
+        const s = useDataStore.getState();
+        newRev.forEach((rid) => s.deleteRevenue(rid));
+        newDep.forEach((eid) => s.deleteDirectExpense(eid));
+      });
       return;
     }
     // Un acte du carnet : soin, cours, concours.
@@ -211,202 +243,191 @@ function NoterInner() {
     const src = first?.expenseId ?? first?.revenueId;
     if (src) markLine(horseIds[0], src);
     setDone({ horseId: horseIds[0], sourceId: src, text: "" });
+    toastNoted(CARE_META[kind as CareKind].label, value ? (K.money === "revenue" ? value : -value) : 0, () => {
+      const s = useDataStore.getState();
+      created.forEach((e) => s.deleteCareEvent(e.id));
+    });
   }
 
+  const doneHorse = done?.horseId ? horses.find((h) => h.id === done.horseId) ?? data.horses.find((h) => h.id === done.horseId) : undefined;
+  const whens: When[] = kind === "commune" ? ["today"] : isCare ? ["yesterday", "today", "tomorrow", "other"] : ["yesterday", "today", "other"];
+  const whenLabel: Record<When, string> = { today: kind === "commune" ? "Ce mois" : "Aujourd’hui", yesterday: "Hier", tomorrow: "Demain", other: "Autre jour" };
+
   return (
-    <>
-      <div className="bs-scrim" onClick={close} />
-      <div className="bs-sheet" role="dialog" aria-modal="true" aria-label="Ajouter">
-        <div className="bs-grab" />
-        <button type="button" className="bs-x" onClick={close} aria-label="Fermer">
-          <Picto name="x" size={20} />
-        </button>
+    <div className="sheet-wrap open">
+      <div className="scrim" onClick={close} />
+      <div className="sheet nt-sheet" role="dialog" aria-modal="true" aria-label={done ? "C’est noté" : "Noter"}>
+        <div className="grab" />
+        <div className="shd">
+          {done ? (
+            <b className="nt-okt">
+              <span className="ck on" aria-hidden="true">
+                <Ic n="ck" className="" />
+              </span>
+              {doneHorse ? `Noté pour ${horseIds.length > 1 ? `${horseIds.length} chevaux` : doneHorse.name}` : "C’est noté"}
+            </b>
+          ) : (
+            <b>Noter</b>
+          )}
+          <button type="button" className="x" onClick={close} aria-label="Fermer">
+            <Ic n="x" className="" />
+          </button>
+        </div>
         {!done && (
-          <div className="bs-seg" aria-label="Ajouter" style={{ marginTop: 2, marginRight: 40 }}>
-            {(
-              [
+          <div className="pad">
+            <Seg
+              label="Ajouter"
+              value={mode}
+              onChange={(m) => {
+                setMode(m);
+                if (m === "soin") setKind("ferrure");
+                if (m === "depense") setKind("depense");
+                setCatId(undefined);
+              }}
+              options={[
                 ["seance", "Séance"],
                 ["soin", "Soin"],
                 ["tache", "Tâche"],
                 ["depense", "Argent"],
-              ] as [AddMode, string][]
-            ).map(([m, l]) => (
-              <button
-                key={m}
-                type="button"
-                aria-pressed={mode === m}
-                onClick={() => {
-                  setMode(m);
-                  if (m === "soin") setKind("ferrure");
-                  if (m === "depense") setKind("depense");
-                  setCatId(undefined);
-                }}
-              >
-                {l}
-              </button>
-            ))}
+              ]}
+            />
           </div>
         )}
         {done ? (
-          <Done done={done} count={horseIds.length} onClose={close} />
+          <DoneView done={done} count={horseIds.length} onClose={close} />
         ) : mode === "seance" ? (
           <SeanceForm onDone={close} date={prefill.date} start={prefill.start} prestationId={prefill.prestationId} />
         ) : mode === "tache" ? (
           <TaskForm onDone={close} />
         ) : (
-          <>
-            <h2 className="bs-d bs-t2" style={{ marginTop: 14 }}>
-              {mode === "soin" ? "Quel soin ?" : "De l’argent qui rentre ou qui sort ?"}
-            </h2>
-            <div className="bs-chips">
-              {KINDS.filter((k) => (mode === "depense") === MONEY_KINDS.includes(k.id)).map((k) => (
-                <button key={k.id} type="button" className="bs-chip" aria-pressed={kind === k.id} onClick={() => { setKind(k.id); setCatId(undefined); }}>
-                  <Picto name={k.picto} />
-                  {k.label}
-                </button>
-              ))}
+          <div className="form nt-form">
+            <div className="field">
+              <span>{mode === "soin" ? "Quel soin ?" : "De l’argent qui rentre ou qui sort ?"}</span>
+              <Chips
+                value={kind}
+                onChange={(k) => {
+                  setKind(k);
+                  setCatId(undefined);
+                }}
+                options={KINDS.filter((k) => (mode === "depense") === MONEY_KINDS.includes(k.id)).map((k) => [k.id, k.label] as [NoteKindId, string])}
+              />
             </div>
 
-            {(kind === "recette" || kind === "depense" || kind === "commune") && (
-              <>
-                <p className="bs-sec">{kind === "commune" ? "Quels frais ?" : "Quel genre ?"}</p>
-                <div className="bs-chips">
-                  {catList.map((c) => (
-                    <button key={c.id} type="button" className="bs-chip" aria-pressed={(catId ?? catList[0]?.id) === c.id} onClick={() => setCatId(c.id)}>
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
-              </>
+            {(kind === "recette" || kind === "depense" || kind === "commune") && catList.length > 0 && (
+              <div className="field">
+                <span>{kind === "commune" ? "Quels frais ?" : "Quel genre ?"}</span>
+                <Chips value={catId ?? catList[0]?.id ?? ""} onChange={setCatId} options={catList.map((c) => [c.id, c.name] as [string, string])} />
+              </div>
             )}
 
             {needHorse ? (
-              <>
-                <p className="bs-sec">Pour quel cheval&nbsp;?</p>
-                <div className="bs-faces">
-                  {horses.map((h) => {
-                    const on = horseIds.includes(h.id);
-                    return (
-                      <button key={h.id} type="button" className="bs-fpick" aria-pressed={on} onClick={() => setHorseIds(on ? horseIds.filter((x) => x !== h.id) : [...horseIds, h.id])}>
-                        <span className="ring">
-                          <HorseFace horse={h} size={40} />
-                        </span>
-                        {h.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
-            ) : (
-              <p className="bs-p" style={{ marginTop: 12 }}>
-                Les frais communs (foin, paille, loyer…) sont partagés entre tes {horses.length} chevaux. Chacun en prend sa part sur son ticket.
-              </p>
-            )}
-
-            <label className="bs-sec" htmlFor="bs-amt" style={{ display: "flex" }}>
-              {K.money === "revenue" ? "Combien ça rapporte ?" : "Combien ça coûte ?"}
-            </label>
-            <div className="bs-field money">
-              <input id="bs-amt" inputMode="decimal" placeholder={isCare && future ? "facultatif" : "0"} value={amount} autoComplete="off" onChange={(e) => setAmount(e.target.value.replace(/[^\d.,]/g, ""))} onKeyDown={(e) => e.key === "Enter" && save()} />
-              <span>€</span>
-            </div>
-
-            <p className="bs-sec">Quand&nbsp;?</p>
-            <div className="bs-seg" role="group" aria-label="Date">
-              {(kind === "commune" ? (["today"] as When[]) : isCare ? (["yesterday", "today", "tomorrow", "other"] as When[]) : (["yesterday", "today", "other"] as When[])).map((w) => (
-                <button key={w} type="button" aria-pressed={when === w} onClick={() => setWhen(w)}>
-                  {{ today: kind === "commune" ? "Ce mois" : "Aujourd’hui", yesterday: "Hier", tomorrow: "Demain", other: "Autre jour" }[w]}
-                </button>
-              ))}
-            </div>
-            {when === "other" && (
-              <div className="bs-field">
-                <input type="date" value={otherDate} onChange={(e) => setOtherDate(e.target.value)} aria-label="Choisir la date" />
+              <div className="field">
+                <span>Pour quel cheval ?</span>
+                {horses.length > 0 ? (
+                  <HorseChips horses={horses} value={horseIds} onChange={setHorseIds} />
+                ) : (
+                  <Link href="/saisie/cheval" className="lnk" onClick={close}>
+                    Ajoute d’abord un cheval
+                  </Link>
+                )}
               </div>
+            ) : (
+              <p className="note">Les frais communs (foin, paille, loyer…) sont partagés entre tes {horses.length} chevaux. Chacun en prend sa part sur son ticket.</p>
             )}
+
+            <label className="field">
+              <span>{K.money === "revenue" ? "Combien ça rapporte ?" : "Combien ça coûte ?"}</span>
+              <InField unit="€">
+                <input id="bs-amt" inputMode="decimal" placeholder={isCare && future ? "facultatif" : "0"} value={amount} autoComplete="off" onChange={(e) => setAmount(e.target.value.replace(/[^\d.,]/g, ""))} onKeyDown={(e) => e.key === "Enter" && save()} />
+              </InField>
+            </label>
+
+            <div className="field">
+              <span>Quand ?</span>
+              <Seg label="Date" value={when} onChange={setWhen} options={whens.map((w) => [w, whenLabel[w]] as [When, string])} />
+              {when === "other" && <input className="input" type="date" value={otherDate} onChange={(e) => setOtherDate(e.target.value)} aria-label="Choisir la date" />}
+            </div>
             {isCare && (
-              <label className="bs-field">
+              <label className="field">
                 <span>Heure</span>
-                <input type="time" value={time} style={{ textAlign: "right" }} onChange={(e) => setTime(e.target.value)} />
+                <input className="input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
               </label>
             )}
 
-            {(kind === "recette" || kind === "depense" || kind === "commune" || isCare) && (
-              <div className="bs-field" style={{ marginTop: 10 }}>
-                <input placeholder={isCare ? "Un détail (facultatif) : « rappel grippe »" : "Un nom pour t’y retrouver (facultatif)"} value={label} onChange={(e) => setLabel(e.target.value)} aria-label="Détail" />
-              </div>
-            )}
+            <input className="input" placeholder={kind === "commune" ? "Ex. Foin d’octobre" : isCare ? "Un détail (facultatif) : « rappel grippe »" : "Un nom pour t’y retrouver (facultatif)"} value={label} onChange={(e) => setLabel(e.target.value)} aria-label="Détail" />
 
-            <button type="button" className="bs-btn" style={{ marginTop: 14 }} disabled={!ready} onClick={save}>
+            <button type="button" className="btn full" disabled={!ready} onClick={save}>
               {cta}
             </button>
 
-            <div className="bs-field" style={{ marginTop: 10, paddingRight: 6 }}>
-              <input ref={textRef} placeholder="Ou dis-le : « ferrure Pacha 85 euros »" aria-label="Dis-le en une phrase" onKeyDown={(e) => e.key === "Enter" && applyHeard((e.target as HTMLInputElement).value)} onBlur={(e) => e.target.value && applyHeard(e.target.value)} />
-              <button type="button" onClick={listen} aria-label="Dicter" className="bs-pic soft" style={{ width: 38, height: 38, ...(listening ? { background: "var(--rose)", color: "var(--vert-deep)" } : {}) }}>
-                <Picto name="mic" />
-              </button>
+            <div className="field">
+              <InField className="nt-dict">
+                <input ref={textRef} placeholder={mode === "soin" ? "Ou dis-le : « ferrure Pacha 85 euros »" : "Ou dis-le : « compléments Sirius 105 euros »"} aria-label="Dis-le en une phrase" onKeyDown={(e) => e.key === "Enter" && applyHeard((e.target as HTMLInputElement).value)} onBlur={(e) => e.target.value && applyHeard(e.target.value)} />
+                <button type="button" onClick={listen} aria-label="Dicter" aria-pressed={listening} className="nt-mic">
+                  <Ic n="mic" />
+                </button>
+              </InField>
+              <p className="nt-say" aria-live="polite" dangerouslySetInnerHTML={{ __html: listening ? "J’écoute…" : heard }} />
             </div>
-            <p className="bs-say" dangerouslySetInnerHTML={{ __html: listening ? "J’écoute…" : heard }} />
-          </>
+          </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 
-function Done({ done, count, onClose }: { done: { horseId?: string; sourceId?: string; text: string }; count: number; onClose: () => void }) {
+const shortDate = (d?: string) => {
+  if (!d) return undefined;
+  if (d === localToday()) return "aujourd’hui";
+  return new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+};
+
+function DoneView({ done, count, onClose }: { done: Done; count: number; onClose: () => void }) {
   const data = useDataStore();
   const horse = done.horseId ? data.horses.find((h) => h.id === done.horseId) : undefined;
   if (!horse) {
     return (
-      <>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
-          <span className="bs-ck on" style={{ margin: 0, width: "auto", height: "auto" }}>
-            <i>
-              <Picto name="check" />
-            </i>
-          </span>
-          <h2 className="bs-d bs-t2">C’est noté</h2>
-        </div>
-        <p className="bs-p" style={{ marginTop: 10 }} dangerouslySetInnerHTML={{ __html: done.text }} />
-        <button type="button" className="bs-btn" style={{ marginTop: 16 }} onClick={onClose}>
+      <div className="pad nt-done">
+        <p className="note" style={{ marginTop: 0 }} dangerouslySetInnerHTML={{ __html: done.text }} />
+        <button type="button" className="btn full" onClick={onClose}>
           Fermer
         </button>
-      </>
+      </div>
     );
   }
   const t = horseTicket(data, horse.id, currentPeriod());
+  const nouvelle = t.lines.find((l) => l.sourceId && l.sourceId === done.sourceId);
   return (
-    <>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
-        <span className="bs-ck on" style={{ margin: 0, width: "auto", height: "auto" }}>
-          <i>
-            <Picto name="check" />
-          </i>
+    <div className="pad nt-done">
+      <div className="nt-tkh">
+        <Face horse={horse} />
+        <span>
+          <b>Ticket de {horse.name} ce mois-ci</b>
+          <small>ce qu’il rapporte et ce qu’il coûte</small>
         </span>
-        <h2 className="bs-d bs-t2">Noté pour {count > 1 ? `${count} chevaux` : horse.name}</h2>
       </div>
-      <div className="bs-ticket">
-        <div className="th">
-          <HorseFace horse={horse} size={30} />
-          Ticket de {horse.name} ce mois-ci · ce qu’il rapporte et ce qu’il coûte
-        </div>
+      <div className="ticket">
         {t.lines.map((l) => (
-          <div key={l.key} className={`bs-tl${l.sourceId && l.sourceId === done.sourceId ? " new" : ""}`}>
-            <Picto name={pictoForLabel(l.label)} />
-            <span>{l.label}</span>
-            <b>{signed(l.amount)}</b>
+          <div key={l.key} className={`r${l.sourceId && l.sourceId === done.sourceId ? " new" : ""}`}>
+            <span>
+              {l.label}
+              {shortDate(l.date) && <small>{shortDate(l.date)}</small>}
+            </span>
+            <Money v={l.amount} />
           </div>
         ))}
-        <div className="bs-tot">
+        <div className="r tot">
           <span>{t.net >= 0 ? "Il te laisse" : "Il te coûte"}</span>
-          <span className="bs-big">{signed(t.net)}</span>
+          <Money v={t.net} />
         </div>
       </div>
-      <Link href={`/ticket?id=${horse.id}`} className="bs-btn" style={{ marginTop: 20 }} onClick={onClose}>
+      <p className="note">
+        {nouvelle ? `${nouvelle.label} est sur le ticket de ${horse.name}, et dans ton mois.` : `C’est sur le ticket de ${horse.name}, et dans ton mois.`}
+        {count > 1 ? ` Pareil pour les ${count - 1} autres chevaux.` : ""}
+      </p>
+      <Link href={`/ticket?id=${horse.id}`} className="btn full" onClick={onClose}>
         Voir le ticket de {horse.name}
       </Link>
-    </>
+    </div>
   );
 }
