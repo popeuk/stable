@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { dec1 } from "@/components/bs/ui";
-import { Face, Ic, Ill, Money } from "@/components/carnet/ui";
+import { CountUp, Face, Ic, Ill, Money, Steam, sg } from "@/components/carnet/ui";
+import { usePerso } from "@/components/bs/essayer";
 import { useDataStore } from "@/stores/data-store";
-import { useSettingsStore } from "@/stores/settings-store";
+import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Horse } from "@/lib/domain/types";
@@ -20,6 +21,79 @@ export default function Page() {
 }
 
 function Arrivee() {
+  const parcours = useSettingsStore((s) => s.parcours);
+  return OBSTACLES.every((o) => parcours[o]) ? <Fin /> : <Reste />;
+}
+
+/**
+ * Après les trois premiers obstacles : ce qui reste ce mois, avec les
+ * chiffres qu'on vient de donner. Les trois derniers obstacles se passent
+ * ensuite en utilisant l'app.
+ */
+function Reste() {
+  const data = useDataStore();
+  const perso = usePerso();
+  const m = useMemo(() => monthBreakdown(data, currentPeriod()), [data]);
+  const net = Math.round(m.net);
+  const n = data.horses.filter((h) => !h.isArchived).length;
+  return (
+    <div className="ar-fin ar-reste">
+      <h4 className="ar-t1 rise">Trois obstacles sur six.</h4>
+      <div className="perch es-perch rise" style={{ animationDelay: ".08s" }}>
+        {net < 0 ? (
+          <div className="es-bag">
+            <Ill n="sacoche" alt="Une sacoche presque vide." />
+          </div>
+        ) : perso === "m" ? (
+          <div className="sitw m">
+            <Ill n="gerant-assise" alt="Le gérant, assis sur son chiffre, une tasse de café à la main." />
+            <Steam />
+          </div>
+        ) : (
+          <div className="sitw">
+            <Ill n="assise" alt="La gérante, assise sur son chiffre, une tasse de café à la main." />
+            <Steam />
+          </div>
+        )}
+        <div className="moncard">
+          <p className="es-say">{net >= 0 ? "Il te reste" : "Il te manque"}</p>
+          <p className={`big ${net > 0 ? "in" : net < 0 ? "out" : "num"}`}>
+            <CountUp value={net} ms={1200} />
+          </p>
+          <p className="es-say">par mois.</p>
+          <div className="es-calc">
+            <div>
+              <span>{n > 1 ? `${n} chevaux, ce qui rentre` : "Ce qui rentre"}</span>
+              <span className={m.revenue ? "in" : "num"}>{sg(m.revenue)}</span>
+            </div>
+            {m.direct > 0 && (
+              <div>
+                <span>Soins des chevaux</span>
+                <span className="out">{sg(-m.direct)}</span>
+              </div>
+            )}
+            <div>
+              <span>Foin, loyer, salaires</span>
+              <span className={m.sharedTotal ? "out" : "num"}>{sg(-m.sharedTotal)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p className="note rise" style={{ animationDelay: ".12s" }}>
+        C’est une estimation. Plus tu notes, plus c’est juste. Les trois derniers obstacles se passent en utilisant l’app.
+      </p>
+      <div className="foot rise" style={{ animationDelay: ".2s" }}>
+        <Link href="/accueil" className="btn full">
+          Voir mon écurie
+          <Ic n="arrow" className="" />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/** Les six obstacles passés : le seuil en têtes de chevaux. */
+function Fin() {
   const data = useDataStore();
   const capacity = useSettingsStore((s) => s.capacity);
   const m = useMemo(() => monthBreakdown(data, currentPeriod()), [data]);

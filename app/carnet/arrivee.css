@@ -209,3 +209,22 @@
   .carnet .ar-stwrap { height: min(100dvh, 860px); }
   .carnet .ar-pc { max-width: 560px; padding-top: 32px; }
 }
+
+/* ---------- Premiers pas en plus simple : un montant, un choix, un rappel ---------- */
+.carnet .ar-mm { margin: 22px 22px 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.carnet .ar-mm > label { font-size: 15px; font-weight: 680; color: var(--ink); }
+.carnet .ar-mm .es-help { margin: 0; }
+.carnet .ar-mm-f { height: 60px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: flex; align-items: center; gap: 8px; padding: 0 16px; transition: box-shadow .2s; }
+.carnet .ar-mm-f:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
+.carnet .ar-mm-f input { flex: 1; min-width: 0; width: 0; border: 0; background: none; padding: 0; outline: none; font: inherit; font-size: 28px; font-weight: 760; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
+.carnet .ar-mm-f input::placeholder { color: var(--ink3); }
+.carnet .ar-mm-f .u { flex: none; font-size: 13.5px; font-weight: 600; color: var(--ink3); }
+.carnet .ar-alt { display: flex; align-items: center; width: fit-content; margin: 10px auto 0; min-height: 44px; padding: 0 12px; border: 0; background: none; font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
+.carnet .ar-pc .ar-seg { margin: 16px 22px 0; }
+.carnet .ar-pc .ar-seg .seg button { min-height: 40px; }
+.carnet .ar-warn { margin: 14px 22px 0; padding: 12px 14px; border-radius: 8px; background: var(--mist); display: grid; gap: 8px; font-size: 13.5px; line-height: 1.45; color: var(--ink2); }
+.carnet .ar-warn b { color: var(--ink); }
+.carnet .ar-warn .btn { justify-self: start; height: 40px; min-height: 40px; padding: 0 14px; font-size: 13.5px; }
+.carnet .ar-ln .ar-set { font-size: 12px; font-weight: 650; color: var(--ink2); }
+.carnet .ar-reste .es-perch { margin-top: 10px; padding: 0 22px; }
+.carnet .ar-reste .note { margin: 12px 22px 0; }

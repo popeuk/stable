@@ -349,6 +349,16 @@ function Mois() {
           </span>
           <Ic n="chev" className="chev" />
         </Link>
+        <Link href="/pilotage" className="card ar-lcard rise" style={{ animationDelay: ".62s" }}>
+          <span className="ar-pic">
+            <Ic n="chart" className="ar-ic" />
+          </span>
+          <span>
+            <span className="k">Sur plusieurs mois</span>
+            <b>Ton bilan sur 3, 6 ou 12 mois</b>
+          </span>
+          <Ic n="chev" className="chev" />
+        </Link>
       </div>
     </div>
   );

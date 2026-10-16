@@ -56,23 +56,21 @@
 .carnet .hd .ac-me { margin-left: auto; }
 .carnet .hd .help + .ac-me { margin-left: 4px; }
 .carnet .hd .help { margin-left: auto; }
+.carnet .hd .ac-srch { position: relative; width: 34px; height: 34px; margin-left: auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; color: var(--ink2); }
+.carnet .hd .ac-srch::after { content: ""; position: absolute; inset: -5px; }
+.carnet .hd .ac-srch svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .hd .ac-srch + .help { margin-left: 0; }
+.carnet .hd .ac-srch + .ac-me { margin-left: 4px; }
 
 /* La feuille du rond */
+.carnet .ac-list { padding-top: 4px; }
+.carnet .ac-list .ac-it:last-child { border-bottom: 0; }
 .carnet .ac-rond { outline: none; }
 .carnet .ac-mehd { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .carnet .ac-mehd .ac-me { cursor: default; }
 .carnet .ac-mehd .ac-me::after { content: none; }
 .carnet .ac-mehd b { display: block; }
 .carnet .ac-mehd small { display: block; font-size: 12px; color: var(--ink3); font-weight: 500; }
-.carnet .ac-find { margin-top: 4px; color: var(--ink3); text-decoration: none; }
-.carnet .ac-pas { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; margin-top: 12px; padding: 12px 14px; color: inherit; text-decoration: none; }
-.carnet .ac-pas .ill { width: 44px; height: 44px; object-fit: contain; }
-.carnet .ac-pas b { display: block; font-size: 14.5px; font-weight: 640; margin-top: 3px; }
-.carnet .ac-pas .dots { margin-top: 8px; }
-.carnet .ac-pas .dots i { width: 18px; }
-.carnet .ac-pas .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.carnet .ac-grp { margin-top: 18px; }
-.carnet .ac-grp > .k { padding-bottom: 4px; }
 .carnet .ac-it { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; min-height: 50px; padding: 8px 0; border: 0; border-bottom: 1px solid var(--line2); background: none; color: var(--ink); text-align: left; text-decoration: none; cursor: pointer; font-size: 15px; }
 .carnet .ac-it > svg:first-child { width: 20px; height: 20px; fill: none; stroke: var(--ink2); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ac-itx { min-width: 0; }

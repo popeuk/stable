@@ -87,6 +87,25 @@ function Planning() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, rangeKey, view]);
   const pending = useMemo(() => toValidate(data, today, now).length, [data, today, now]);
+  const tasks = useMemo(() => {
+    const done = data.taskLists?.find((l) => l.isDone)?.id;
+    return (data.tasks ?? []).filter((t) => t.listId !== done).length;
+  }, [data]);
+  // Séances à confirmer et tâches de l'équipe : toujours à portée, en bas du planning.
+  const liens = (
+    <nav className="jr-liens" aria-label="Aussi dans le planning">
+      <Link href="/valider">
+        <Ic n="ck" />
+        <span>Séances à confirmer</span>
+        {pending > 0 ? <em>{pending}</em> : <Ic n="chev" className="chev" />}
+      </Link>
+      <Link href="/equipe">
+        <Ic n="board" />
+        <span>Tâches de l’équipe</span>
+        {tasks > 0 ? <em>{tasks}</em> : <Ic n="chev" className="chev" />}
+      </Link>
+    </nav>
+  );
   const items = useMemo(() => dayItems(data, sel, today, now), [data, sel, today, now]);
 
   // Glisser à gauche ou à droite : la période suivante ou précédente.
@@ -239,6 +258,7 @@ function Planning() {
             </span>
             <span className="hint">Clique sur une heure libre pour ajouter quelque chose · Flèches ← → pour changer de {view === "semaine" ? "semaine" : "mois"} · T pour aujourd’hui</span>
           </p>
+          {liens}
         </div>
       </Screen>
     );
@@ -449,6 +469,7 @@ function Planning() {
           )}
         </>
       )}
+      {liens}
       <div className="end" />
     </Screen>
   );

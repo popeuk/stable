@@ -5,15 +5,14 @@ import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
-import { CountUp, Ic, Ill, sg } from "@/components/carnet/ui";
+import { CountUp, Ic, sg } from "@/components/carnet/ui";
 import { useUiStore } from "@/stores/ui-store";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { usePaniers } from "@/components/bs/paniers";
-import { OBSTACLE_META, useParcours } from "@/components/bs/parcours";
-import { AideBouton, BILAN, CLIENTS_CHEVAUX, isRoot, titreDe, under, usePlusGroups, useRetour, useSuiviNavigation, type PlusItem } from "@/components/bs/nav";
+import { AideBouton, BILAN, CLIENTS_CHEVAUX, isRoot, titreDe, under, usePlusItems, useRetour, useSuiviNavigation, type PlusItem } from "@/components/bs/nav";
 
 /** L'initiale du gérant, pour le rond en haut à droite. */
 export function useInitiale() {
@@ -53,8 +52,13 @@ export function Header() {
           <span className="ttl">{path.startsWith("/ticket") ? <Suspense fallback={titreDe(path)}><TitreCheval /></Suspense> : titreDe(path)}</span>
         </>
       )}
+      {!path.startsWith("/recherche") && (
+        <Link href="/recherche" className="ac-srch" aria-label="Chercher un cheval, un client">
+          <Ic n="search" />
+        </Link>
+      )}
       <AideBouton className="help" />
-      <button type="button" className="ac-me" onClick={() => setRond(true)} aria-haspopup="dialog" aria-expanded={rond} aria-label="Ta fiche, tes tarifs, tes réglages et tout le reste">
+      <button type="button" className="ac-me" onClick={() => setRond(true)} aria-haspopup="dialog" aria-expanded={rond} aria-label="Ta fiche, tes tarifs, ton équipe, tes réglages">
         <span aria-hidden="true">{ini}</span>
       </button>
       {/* La feuille sort de l'en-tête : sur iPhone, une barre floutée l'enfermerait dedans. */}
@@ -96,15 +100,13 @@ export function PlusLigne({ it, onDone, sub = true }: { it: PlusItem; onDone?: (
 }
 
 /**
- * La feuille du rond : tout ce que contenait le Menu, rangé en quatre
- * groupes, avec la recherche en tête et les premiers pas tant qu'ils ne sont
- * pas finis.
+ * La feuille du rond : le prénom et l'écurie, puis une liste courte (fiche,
+ * tarifs, équipe, réglages, premiers pas tant qu'ils ne sont pas finis).
  */
 export function RondSheet({ onClose }: { onClose: () => void }) {
   const s = useSettingsStore();
   const ini = useInitiale();
-  const groups = usePlusGroups();
-  const { current, n } = useParcours();
+  const items = usePlusItems();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -131,42 +133,16 @@ export function RondSheet({ onClose }: { onClose: () => void }) {
               </span>
               <span>
                 <b id="ac-rond-t">{s.gerant || "Ton écurie"}</b>
-                <small>{s.stableName}</small>
+                {s.stableName && <small>{s.stableName}</small>}
               </span>
             </span>
             <button type="button" className="x" onClick={onClose} aria-label="Fermer">
               <Ic n="x" className="" />
             </button>
           </div>
-          <div className="pad">
-            <Link href="/recherche" className="input ac-find" onClick={onClose}>
-              <Ic n="search" className="cn-ic sm" />
-              Chercher un cheval, un client…
-            </Link>
-            {current && (
-              <Link href="/parcours" className="card ac-pas" onClick={onClose}>
-                <Ill n="rosette" />
-                <span>
-                  <span className="k">
-                    Tes premiers pas · {n} sur 6
-                  </span>
-                  <b>Prochaine étape : {OBSTACLE_META[current].title.toLowerCase()}</b>
-                  <span className="dots" aria-hidden="true">
-                    {Array.from({ length: 6 }, (_, i) => (
-                      <i key={i} className={i < n ? "on" : ""} />
-                    ))}
-                  </span>
-                </span>
-                <Ic n="chev" className="chev" />
-              </Link>
-            )}
-            {groups.map((g) => (
-              <div key={g.title} className="ac-grp">
-                <p className="k">{g.title}</p>
-                {g.items.map((it) => (
-                  <PlusLigne key={it.id} it={it} onDone={onClose} />
-                ))}
-              </div>
+          <div className="pad ac-list">
+            {items.map((it) => (
+              <PlusLigne key={it.id} it={it} onDone={onClose} />
             ))}
           </div>
         </div>

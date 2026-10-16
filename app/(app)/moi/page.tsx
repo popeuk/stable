@@ -18,7 +18,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { agendaSessions, CARE_META } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
 
-/** Moi : l'écurie, le rappel du matin, les réglages, et la porte de Be Stable. */
+/** Réglages : l'écurie, le rappel du matin, revoir les explications et la tournée, et la porte de Be Stable (guide, communauté). */
 export default function Page() {
   return (
     <ClientGate>
@@ -80,6 +80,7 @@ function Moi() {
   const s = useSettingsStore();
   const data = useDataStore();
   const say = useUiStore((x) => x.say);
+  const openTournee = useUiStore((x) => x.openTournee);
   const desk = useDesk();
   const { n } = useParcours();
   const [perm, setPerm] = useState<string>(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
@@ -228,6 +229,31 @@ function Moi() {
     </Sec>
   );
 
+  const revoir = (
+    <Sec ill="guide" title="Revoir" delay={desk ? 0.3 : 0.47} id="revoir">
+      <button
+        type="button"
+        className="li np"
+        onClick={() => {
+          s.revoirAides();
+          say("Les explications reviennent en tête de chaque écran.");
+        }}
+      >
+        <Li title="Les explications de chaque écran" sub="la carte « Comment ça marche ici » revient partout" right={chev} />
+      </button>
+      <button
+        type="button"
+        className="li np"
+        onClick={() => {
+          router.push("/accueil");
+          openTournee();
+        }}
+      >
+        <Li title="La tournée du matin" sub="hier, aujourd’hui, ton mois : 30 secondes" right={chev} />
+      </button>
+    </Sec>
+  );
+
   const plusLoin = (
     <Sec ill="piste" title="Aller plus loin avec Be Stable" delay={desk ? 0.34 : 0.5} id="bestable">
       <button type="button" className="li np" onClick={soon}>
@@ -256,7 +282,7 @@ function Moi() {
   return (
     <Screen wide={desk}>
       <div className="ec-pg">
-        <Hello title="Mon écurie" sub="Ce qui se règle une fois, et qu’on retrouve ici quand ça change." />
+        <Hello title="Réglages" sub="Ce qui se règle une fois, et qu’on retrouve ici quand ça change." />
         {desk ? (
           <div className="cols2 ec-cols">
             <div>
@@ -267,6 +293,7 @@ function Moi() {
             <div>
               {premiers}
               {app}
+              {revoir}
               {donnees}
               {plusLoin}
             </div>
@@ -278,6 +305,7 @@ function Moi() {
             {rappel}
             {premiers}
             {app}
+            {revoir}
             {donnees}
             {plusLoin}
           </>

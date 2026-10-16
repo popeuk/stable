@@ -7,19 +7,18 @@ import { Ic, Ill, eur } from "@/components/carnet/ui";
 import { usePerso } from "@/components/bs/essayer";
 import { getSession } from "@/lib/account/session";
 import type { ResumeEssai } from "@/lib/account/vault";
-import { useDataStore } from "@/stores/data-store";
+import { useSettingsStore } from "@/stores/settings-store";
 import { localToday } from "@/lib/utils/local-date";
 
 /**
  * « Tes chiffres sont là. Garde-les. » : le bandeau discret de l'écurie
- * essayée sans compte. Il se montre après une première action (une donnée
- * qui change) ou à partir de la deuxième visite, au-dessus de la barre du
- * bas. Fermé, il revient le lendemain. Rien hors de la session locale.
+ * essayée sans compte, au-dessus de la barre du bas. Il se montre une fois
+ * les trois premiers obstacles passés (chevaux, tarifs, frais), pas avant.
+ * Fermé, il revient le lendemain. Rien hors de la session locale.
  * À poser une fois dans app/(app)/layout.tsx.
  */
 const MEM = "be-stable-garder";
 interface Mem {
-  premiere?: string;
   ferme?: string;
 }
 const lire = (): Mem => {
@@ -34,33 +33,19 @@ const ecrire = (m: Mem) => {
     localStorage.setItem(MEM, JSON.stringify(m));
   } catch {}
 };
-/** Une visite plus vieille que ça compte comme « la première visite » passée. */
-const VISITE_MS = 10 * 60 * 1000;
 
 export function GarderBandeau() {
   const path = usePathname() ?? "";
+  const parcours = useSettingsStore((s) => s.parcours);
   const [local, setLocal] = useState(false);
-  const [voir, setVoir] = useState(false);
   const [ferme, setFerme] = useState(false);
+  const voir = parcours.chevaux && parcours.tarifs && parcours.factures;
 
   useEffect(() => {
     if (getSession()?.kind !== "locale") return;
-    const m = lire();
-    const today = localToday();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocal(true);
-    if (m.ferme === today) setFerme(true);
-    if (!m.premiere) ecrire({ ...m, premiere: new Date().toISOString() });
-    else if (Date.now() - Date.parse(m.premiere) > VISITE_MS) setVoir(true);
-    // Une première action : une donnée qui change après l'ouverture
-    // (l'autopilote de l'ouverture ne compte pas).
-    let armed = false;
-    const t = setTimeout(() => (armed = true), 2500);
-    const off = useDataStore.subscribe(() => armed && setVoir(true));
-    return () => {
-      clearTimeout(t);
-      off();
-    };
+    if (lire().ferme === localToday()) setFerme(true);
   }, []);
 
   if (!local || !voir || ferme || path.startsWith("/compte")) return null;

@@ -10,8 +10,8 @@ import { getSession } from "@/lib/account/session";
  * Le portier de l'app : sans session (ni compte, ni démo, ni écurie essayée
  * sur cet appareil), retour à l'accueil « Essayer avant le compte » ; avec
  * une écurie pas encore installée, direction le parcours, sauf s'il a
- * choisi de le finir plus tard. L'essai passe lui-même les trois premières
- * étapes (chevaux, tarifs, frais) : il entre directement dans l'app.
+ * choisi de le finir plus tard. L'écurie essayée sans compte suit le même
+ * chemin qu'un compte : tant que son parcours n'est pas fini, /parcours.
  * Il attend que les données du compte soient chargées avant de décider.
  */
 export function OnboardingGate() {

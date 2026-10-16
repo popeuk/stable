@@ -4,6 +4,10 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { OBSTACLES, useSettingsStore, type ObstacleId } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
+import { useDataStore } from "@/stores/data-store";
+import { localToday } from "@/lib/utils/local-date";
+import { currentPeriod } from "@/lib/utils/period";
+import { recurringDue } from "@/lib/domain/recurring";
 
 /**
  * Le parcours de démarrage : six obstacles. Les trois premiers installent
@@ -12,8 +16,8 @@ import { useUiStore } from "@/stores/ui-store";
  * comprendre son seuil). Un obstacle passé ne se perd jamais.
  */
 export const OBSTACLE_META: Record<ObstacleId, { title: string; todo: string; href: string; picto: string }> = {
-  chevaux: { title: "Tes chevaux", todo: "Ajoute les chevaux que tu as en pension", href: "/parcours/chevaux", picto: "horse" },
-  tarifs: { title: "Tes tarifs", todo: "Indique le prix de pension de chaque cheval", href: "/parcours/tarifs", picto: "euro" },
+  chevaux: { title: "Tes chevaux", todo: "Combien de chevaux sont chez toi", href: "/parcours/chevaux", picto: "horse" },
+  tarifs: { title: "Tes tarifs", todo: "Le prix de la pension et de tes cours", href: "/parcours/tarifs", picto: "euro" },
   factures: { title: "Tes frais communs", todo: "Foin, paille, loyer, salaires… à peu près, ça suffit", href: "/parcours/factures", picto: "foin" },
   journee: { title: "Ta première journée", todo: "Confirme 3 choses que tu as faites dans ta journée", href: "/planning", picto: "cal" },
   ticket: { title: "Ton premier ticket", todo: "Ouvre le ticket d’un cheval : ce qu’il rapporte et ce qu’il coûte", href: "/chevaux", picto: "jump" },
@@ -42,11 +46,93 @@ export function useParcours() {
         setTimeout(() => router.push("/parcours/arrivee"), 1100);
         return true;
       }
-      say(`Obstacle franchi : <strong>${OBSTACLE_META[id].title}</strong>. ${after} étapes sur 6.`);
+      say(`Obstacle franchi : <strong>${OBSTACLE_META[id].title}</strong>. ${after} ${after > 1 ? "étapes" : "étape"} sur 6.`);
       return false;
     },
     [passObstacle, arrived, setArrived, say, router],
   );
 
   return { parcours, n, current, setupDone, pass };
+}
+
+/* ---------- Installer vite : un nombre de chevaux, un total de frais ---------- */
+
+/** La charge commune « en un total » : une seule catégorie, un seul libellé. */
+export const FRAIS_CAT = "Frais fixes";
+export const FRAIS_LABEL = "Frais fixes (foin, loyer, salaires)";
+
+type Data = ReturnType<typeof useDataStore.getState>;
+type Per = { year: number; month: number };
+const NUMERO = /^Cheval (\d+)$/;
+
+/**
+ * Le nombre de chevaux, plutôt que leurs noms : « Cheval 1 » … « Cheval N »
+ * à la pension moyenne donnée, présents depuis le début du mois (la pension
+ * du mois est comptée), à la suite des chevaux déjà numérotés. La pension
+ * devient aussi le tarif de pension. Rend le nombre de chevaux ajoutés.
+ */
+export function ajouterChevaux(nombre: number, pension: number, today = localToday()): number {
+  const d = useDataStore.getState();
+  const month = today.slice(0, 7);
+  const n = Math.max(1, Math.min(60, Math.round(nombre)));
+  const p = Math.max(0, Math.round(pension));
+  const deja = d.horses.reduce((m, h) => Math.max(m, Number(NUMERO.exec(h.name.trim())?.[1] ?? 0)), 0);
+  for (let i = 1; i <= n; i++) d.addHorse({ name: `Cheval ${deja + i}`, pension: p || undefined, entryDate: `${month}-01` });
+  if (p) d.setTariff("pension", p);
+  useDataStore.getState().runAutopilot(today);
+  return n;
+}
+
+/** La pension commune : tous les chevaux présents paient le tarif de pension. Sinon null. */
+export function pensionCommune(data: Pick<Data, "horses" | "tariffs">): number | null {
+  const act = data.horses.filter((h) => !h.isArchived);
+  const p = data.tariffs?.pension;
+  if (!act.length || !p) return null;
+  return act.every((h) => h.pension === p) ? p : null;
+}
+
+/** Change la pension commune : le tarif et chaque cheval présent, pension du mois comprise. */
+export function changerPensionCommune(pension: number, today = localToday()) {
+  const d = useDataStore.getState();
+  const p = Math.max(0, Math.round(pension));
+  d.setTariff("pension", p || undefined);
+  for (const h of d.horses) if (!h.isArchived) d.setPension(h.id, p, today.slice(0, 7));
+}
+
+/** Ce qu'une catégorie de frais communs pèse sur le mois : saisies du mois et charges récurrentes. */
+export function chargeDuMois(data: Pick<Data, "sharedExpenses" | "recurringExpenses">, catId: string, period: Per): number {
+  return (
+    data.sharedExpenses.filter((e) => e.categoryId === catId && e.periodYear === period.year && e.periodMonth === period.month).reduce((t, e) => t + e.totalAmount, 0) +
+    (data.recurringExpenses ?? []).filter((r) => r.isShared && r.categoryId === catId && recurringDue(r, period)).reduce((t, r) => t + r.amount, 0)
+  );
+}
+
+/** Les frais communs du mois : le total « en un chiffre » et la somme des autres postes. */
+export function fraisDuMois(data: Pick<Data, "expenseCategories" | "sharedExpenses" | "recurringExpenses">, period: Per = currentPeriod()) {
+  const cats = data.expenseCategories.filter((c) => !c.isDirect);
+  const fixe = cats.find((c) => c.name === FRAIS_CAT);
+  const total = fixe ? chargeDuMois(data, fixe.id, period) : 0;
+  const postes = cats.filter((c) => c !== fixe).reduce((t, c) => t + chargeDuMois(data, c.id, period), 0);
+  return { total, postes, cats: cats.filter((c) => c !== fixe) };
+}
+
+/** « Un total » : foin, loyer, salaires en une seule charge commune mensuelle. 0 la retire. */
+export function fraisEnUnTotal(montant: number, period: Per = currentPeriod()) {
+  const d = useDataStore.getState();
+  let cat = d.expenseCategories.find((c) => c.name === FRAIS_CAT && !c.isDirect);
+  if (!cat && montant <= 0) return;
+  if (!cat) {
+    d.addExpenseCategory(FRAIS_CAT, false);
+    cat = useDataStore.getState().expenseCategories.find((c) => c.name === FRAIS_CAT && !c.isDirect);
+  }
+  if (cat) useDataStore.getState().setMonthlyCharge(cat.id, FRAIS_LABEL, montant, period);
+}
+
+/** Passer poste par poste après un total : le total ne compte plus. */
+export const retirerTotal = (period: Per = currentPeriod()) => fraisEnUnTotal(0, period);
+
+/** Revenir à un total après des postes : les postes du mois ne comptent plus. */
+export function retirerPostes(period: Per = currentPeriod()) {
+  const d = useDataStore.getState();
+  for (const c of fraisDuMois(d, period).cats) if (chargeDuMois(useDataStore.getState(), c.id, period) > 0) useDataStore.getState().setMonthlyCharge(c.id, c.name, 0, period);
 }

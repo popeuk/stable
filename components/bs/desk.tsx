@@ -19,7 +19,7 @@ import { currentPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { usePaniers } from "@/components/bs/paniers";
-import { BILAN, CLIENTS_CHEVAUX, under, usePlusGroups } from "@/components/bs/nav";
+import { BILAN, CLIENTS_CHEVAUX, under, usePlusItems } from "@/components/bs/nav";
 
 /* ------------------------------------------------------------------ */
 /* L'écran large                                                        */
@@ -76,37 +76,21 @@ export function useNavCounts() {
 
 /**
  * La barre latérale : la même structure que le téléphone. Accueil,
- * Planning, Clients et chevaux, Mon mois, puis « Plus » : le contenu du rond.
+ * Planning, Clients et chevaux, Mon mois, puis « Ton écurie » : les mêmes
+ * lignes que le rond.
  */
 export function Sidebar() {
   const path = (usePathname() ?? "").replace(/(.)\/$/, "$1");
   const vue = useSearchParams().get("vue");
   const c = useNavCounts();
   const { count } = usePaniers();
-  const groups = usePlusGroups();
+  const plus = usePlusItems();
   const stableName = useSettingsStore((s) => s.stableName);
   const gerant = useSettingsStore((s) => s.gerant);
   const openNoter = useUiStore((s) => s.openNoter);
   const openPalette = useUiStore((s) => s.openPalette);
   const install = useInstall();
   const [how, setHow] = useState(false);
-  // « Plus » se souvient d'être ouvert ; il s'ouvre seul sur un de ses écrans.
-  const dansPlus = groups.some((g) => g.items.some((it) => it.href && it.href !== "/argent" && !it.href.startsWith("/argent?") && path.startsWith(it.href.split(/[?#]/)[0])));
-  const [plus, setPlus] = useState(() => {
-    try {
-      return localStorage.getItem("be-stable-side-plus") === "1";
-    } catch {
-      return false;
-    }
-  });
-  const ouvert = plus || dansPlus;
-  const basculer = (v: boolean) => {
-    setPlus(v);
-    try {
-      localStorage.setItem("be-stable-side-plus", v ? "1" : "0");
-    } catch {}
-  };
-
   const main: { href: string; ic: string; label: string; key: string; on: boolean; badge?: string; cls?: string }[] = [
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
     { href: "/planning", ic: "cal", label: "Planning", key: "P", on: under(path, ["/planning", "/valider", "/equipe"]) },
@@ -138,36 +122,20 @@ export function Sidebar() {
           </Link>
         ))}
       </div>
-      <details className="ac-splus" open={ouvert} onToggle={(e) => basculer((e.currentTarget as HTMLDetailsElement).open)}>
-        <summary className="grp">
-          Plus
-          <Ic n="chev" className="chev" />
-        </summary>
-        {groups.map((g) => (
-          <div key={g.title} className="ac-sgrp">
-            <p className="ac-sk">{g.title}</p>
-            {g.items.map((it) => {
-              const base = it.href?.split(/[?#]/)[0];
-              const q = it.href?.includes("?vue=") ? it.href.split("?vue=")[1] : null;
-              const on = !!base && (q ? path.startsWith(base) && vue === q : base !== "/argent" && path.startsWith(base));
-              const em = it.badge && <em className={it.tone ?? ""}>{it.badge}</em>;
-              return it.href ? (
-                <Link key={it.id} href={it.href} className="it" aria-current={on ? "page" : undefined}>
-                  <Ic n={it.ic} />
-                  <span style={{ flex: 1, minWidth: 0 }}>{it.label}</span>
-                  {em}
-                </Link>
-              ) : (
-                <button key={it.id} type="button" className="it" style={{ background: "none", border: 0, cursor: "pointer", textAlign: "left", width: "100%" }} onClick={it.run}>
-                  <Ic n={it.ic} />
-                  <span style={{ flex: 1, minWidth: 0 }}>{it.label}</span>
-                  {em}
-                </button>
-              );
-            })}
-          </div>
-        ))}
-      </details>
+      <div className="ac-sgrp">
+        <p className="ac-sk">Ton écurie</p>
+        {plus.map((it) => {
+          const base = it.href?.split(/[?#]/)[0];
+          const on = !!base && under(path, [base]);
+          return (
+            <Link key={it.id} href={it.href ?? "/moi"} className="it" aria-current={on ? "page" : undefined}>
+              <Ic n={it.ic} />
+              <span style={{ flex: 1, minWidth: 0 }}>{it.label}</span>
+              {it.badge && <em className={it.tone ?? ""}>{it.badge}</em>}
+            </Link>
+          );
+        })}
+      </div>
       <div className="ft">
         {!install.installed && (
           <button
@@ -305,6 +273,7 @@ function PaletteInner() {
   const router = useRouter();
   const data = useDataStore();
   const c = useNavCounts();
+  const plus = usePlusItems();
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
   const list = useRef<HTMLDivElement>(null);
@@ -329,17 +298,17 @@ function PaletteInner() {
       { id: "a-facturer", group: "Faire", label: "Préparer les factures du mois", sub: c.due ? `${eur(c.due)} en attente` : undefined, ic: "doc", run: go("/argent?vue=facturer") },
       { id: "g-accueil", group: "Aller à", label: "Accueil", ic: "home", hint: "G A", run: go("/accueil") },
       { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
-      { id: "g-chevaux", group: "Aller à", label: "Chevaux", ic: "horse", hint: "G C", run: go("/chevaux") },
-      { id: "g-equipe", group: "Aller à", label: "Tâches d’équipe", ic: "board", hint: "G E", run: go("/equipe") },
-      { id: "g-mois", group: "Aller à", label: "Bilan du mois", sub: signed(c.net), money: c.net, ic: "euro", hint: "G M", run: go("/argent") },
-      { id: "g-leviers", group: "Aller à", label: "Pistes pour gagner plus", ic: "bulb", hint: "G L", run: go("/argent?vue=leviers") },
-      { id: "g-mouv", group: "Aller à", label: "Entrées et sorties d’argent", ic: "list", run: go("/argent?vue=mouvements") },
-      { id: "g-bilans", group: "Aller à", label: "Bilans", sub: "3, 6 ou 12 mois", ic: "chart", run: go("/pilotage") },
-      { id: "g-seuil", group: "Aller à", label: "Mon seuil de rentabilité", ic: "flag", run: go("/seuil") },
-      { id: "g-fiche", group: "Aller à", label: "Ma fiche mon-ecurie.fr", sub: "places, tarifs, photos", ic: "flag", run: go("/ma-fiche") },
-      { id: "g-prest", group: "Aller à", label: "Prestations et tarifs", sub: "cours, travail, balades", ic: "euro", run: go("/prestations") },
-      { id: "g-clients", group: "Aller à", label: "Clients", ic: "people", hint: "G K", run: go("/clients") },
-      { id: "g-moi", group: "Aller à", label: "Mon écurie et réglages", ic: "gear", run: go("/moi") },
+      { id: "g-chevaux", group: "Aller à", label: "Clients et chevaux", ic: "people", hint: "G C", run: go("/chevaux") },
+      { id: "g-mois", group: "Aller à", label: "Mon mois", sub: signed(c.net), money: c.net, ic: "chart", hint: "G M", run: go("/argent") },
+      ...plus.map((it) => ({ id: `r-${it.id}`, group: "Aller à", label: it.label, sub: it.sub, ic: it.ic, hint: HINTS[it.id], run: go(it.href ?? "/moi") })),
+      { id: "g-recherche", group: "Aller à", label: "Chercher", sub: "un cheval, un client", ic: "search", run: go("/recherche") },
+      { id: "g-valider", group: "Aller à", label: "Séances à confirmer", sub: "dans Planning", ic: "ck", hint: "G V", run: go("/valider") },
+      { id: "g-equipe", group: "Aller à", label: "Tâches de l’équipe", sub: "dans Planning", ic: "board", hint: "G E", run: go("/equipe") },
+      { id: "g-clients", group: "Aller à", label: "Mes clients", sub: "dans Clients et chevaux", ic: "people", hint: "G K", run: go("/clients") },
+      { id: "g-leviers", group: "Aller à", label: "Pistes pour gagner plus", sub: "dans Mon mois", ic: "bulb", hint: "G L", run: go("/argent?vue=leviers") },
+      { id: "g-mouv", group: "Aller à", label: "Entrées et sorties d’argent", sub: "dans Mon mois", ic: "list", run: go("/argent?vue=mouvements") },
+      { id: "g-bilans", group: "Aller à", label: "Sur plusieurs mois", sub: "bilan sur 3, 6 ou 12 mois", ic: "chart", hint: "G B", run: go("/pilotage") },
+      { id: "g-seuil", group: "Aller à", label: "Combien de chevaux pour ne pas perdre d’argent", ic: "flag", run: go("/seuil") },
       ...data.horses
         .filter((h) => !h.isArchived)
         .map((h) => ({ id: `h-${h.id}`, group: "Chevaux", label: h.name, sub: [h.pensionType, h.ownerName].filter(Boolean).join(" · "), face: h.id, run: go(`/ticket?id=${h.id}`) })),
@@ -348,7 +317,7 @@ function PaletteInner() {
         .map((p) => ({ id: `p-${p.id}`, group: "Clients", label: p.name, sub: p.role === "proprietaire" ? "propriétaire" : "cavalier", ic: "user", run: go(`/clients?q=${encodeURIComponent(p.name)}`) })),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, c],
+    [data, c, plus],
   );
 
   const shown = useMemo(() => {
@@ -470,7 +439,11 @@ const GOTO: Record<string, string> = {
   r: "/moi",
   b: "/pilotage",
   s: "/prestations",
+  o: "/ma-fiche",
 };
+
+/** Les raccourcis des lignes du rond, dans la palette. */
+const HINTS: Record<string, string> = { fiche: "G O", tarifs: "G S", reglages: "G R" };
 
 const typing = (t: EventTarget | null) => {
   const el = t as HTMLElement | null;
@@ -540,15 +513,17 @@ function HelpInner({ close }: { close: () => void }) {
     ["Noter (séance, soin, tâche, dépense)", ["N"]],
     ["Accueil", ["G", "A"]],
     ["Planning", ["G", "P"]],
-    ["À valider", ["G", "V"]],
-    ["Chevaux", ["G", "C"]],
-    ["Tâches d’équipe", ["G", "E"]],
-    ["Le mois", ["G", "M"]],
-    ["Leviers", ["G", "L"]],
+    ["Clients et chevaux", ["G", "C"]],
+    ["Mon mois", ["G", "M"]],
+    ["Séances à confirmer", ["G", "V"]],
+    ["Tâches de l’équipe", ["G", "E"]],
+    ["Mes clients", ["G", "K"]],
+    ["Pistes pour gagner plus", ["G", "L"]],
     ["À facturer", ["G", "F"]],
-    ["Bilans", ["G", "B"]],
-    ["Prestations", ["G", "S"]],
-    ["Clients", ["G", "K"]],
+    ["Sur plusieurs mois", ["G", "B"]],
+    ["Ma fiche mon-ecurie.fr", ["G", "O"]],
+    ["Mes tarifs", ["G", "S"]],
+    ["Réglages", ["G", "R"]],
     ["Planning : semaine précédente, suivante", ["←", "→"]],
     ["Planning : revenir à aujourd’hui", ["T"]],
     ["Fermer une fenêtre", ["Échap"]],

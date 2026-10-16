@@ -4,9 +4,9 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Chips, Face, Ic, Portrait } from "@/components/carnet/ui";
-import { ObHead } from "@/components/bs/ob-head";
+import { MontantMois, ObHead } from "@/components/bs/ob-head";
 import { COATS, COAT_KEYS, type Coat } from "@/components/bs/horse-face";
-import { useParcours } from "@/components/bs/parcours";
+import { ajouterChevaux, useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { localToday } from "@/lib/utils/local-date";
@@ -23,6 +23,12 @@ export default function Page() {
   );
 }
 
+/**
+ * L'obstacle « chevaux ». Par défaut, un nombre et une pension moyenne :
+ * « Cheval 1 » … « Cheval N » sont créés d'un coup (les noms viendront plus
+ * tard, l'accueil le rappelle). Le formulaire cheval par cheval reste là
+ * pour qui préfère les nommer tout de suite.
+ */
 function Chevaux() {
   const router = useRouter();
   const retour = useSearchParams().get("retour");
@@ -37,6 +43,17 @@ function Chevaux() {
   const [coat, setCoat] = useState<Coat>("alezan");
   const [blaze, setBlaze] = useState(true);
   const [formule, setFormule] = useState<string>("Box + paddock");
+  // Ouvert depuis l'app (« Ajouter un cheval »), on garde le formulaire nommé.
+  const [noms, setNoms] = useState(!!retour);
+  const [nombre, setNombre] = useState(horses.length ? 1 : 9);
+  const [tick, setTick] = useState(0);
+  const [pension, setPension] = useState(tariffs?.pension ? String(tariffs.pension) : "");
+  const p = Number(pension) || 0;
+
+  const suite = () => {
+    if (!retour) pass("chevaux");
+    router.push(retour ? `/${retour}` : "/parcours/tarifs");
+  };
 
   function add() {
     const n = name.trim();
@@ -45,6 +62,84 @@ function Chevaux() {
     say(`<strong>${n.replace(/</g, "")}</strong> rejoint l’écurie.`);
     setName("");
     setOwner("");
+  }
+
+  function parNombre() {
+    if (!p) return;
+    const vide = horses.length === 0;
+    const n = ajouterChevaux(nombre, p);
+    if (vide) return suite();
+    say(n > 1 ? `<strong>${n} chevaux</strong> rejoignent l’écurie.` : "<strong>Un cheval</strong> rejoint l’écurie.");
+    setNombre(1);
+  }
+
+  const troupeau = (
+    <>
+      <p className="ar-h5">
+        Dans ton écurie <em>{horses.length}</em>
+      </p>
+      {horses.length ? (
+        <div className="ar-herd">
+          {horses.map((h) => (
+            <span key={h.id}>
+              <Face horse={h} />
+              {h.name}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="ar-sub">Aucun cheval pour l’instant. Ajoute le premier au-dessus.</p>
+      )}
+    </>
+  );
+
+  if (!noms) {
+    const deja = horses.length;
+    return (
+      <>
+        <ObHead
+          retour={retour}
+          n={1}
+          title={deja ? "Tes chevaux" : "Combien de chevaux chez toi ?"}
+          sub={deja ? `${deja > 1 ? `${deja} chevaux sont` : "Un cheval est"} déjà dans ton écurie. Tu peux en ajouter, ou passer.` : "Ceux qui sont dans ton écurie aujourd’hui. Tu leur donneras un nom plus tard."}
+        />
+        {deja > 0 && troupeau}
+        {deja > 0 && <p className="ar-h5">En ajouter</p>}
+        <div className="es-count">
+          <button type="button" aria-label="Un cheval de moins" disabled={nombre <= 1} onClick={() => (setNombre((v) => Math.max(1, v - 1)), setTick((t) => t + 1))}>
+            −
+          </button>
+          <b key={tick} className={tick ? "tick" : ""} aria-live="polite">
+            {nombre}
+          </b>
+          <button type="button" aria-label="Un cheval de plus" disabled={nombre >= 60} onClick={() => (setNombre((v) => Math.min(60, v + 1)), setTick((t) => t + 1))}>
+            +
+          </button>
+        </div>
+        <p className="es-count-lab">{deja ? (nombre > 1 ? "chevaux de plus" : "cheval de plus") : nombre > 1 ? "chevaux" : "cheval"}</p>
+        <MontantMois id="h-pension" label="Une pension, c’est combien par mois ?" value={pension} onChange={setPension} help="En moyenne, toutes formules confondues." />
+        {deja ? (
+          <>
+            <button type="button" className="btn line ar-go" disabled={!p} onClick={parNombre}>
+              <Ic n="plus" className="" />
+              Ajouter {nombre > 1 ? `${nombre} chevaux` : "un cheval"}
+            </button>
+            <button type="button" className="btn ar-go" onClick={suite}>
+              Passer à l’étape suivante
+              <Ic n="ck" className="" />
+            </button>
+          </>
+        ) : (
+          <button type="button" className="btn ar-go" style={{ marginTop: 22 }} disabled={!p} onClick={parNombre}>
+            Continuer
+            <Ic n="ck" className="" />
+          </button>
+        )}
+        <button type="button" className="ar-alt" onClick={() => setNoms(true)}>
+          Je préfère les nommer un par un
+        </button>
+      </>
+    );
   }
 
   return (
@@ -85,34 +180,16 @@ function Chevaux() {
         </button>
       </div>
 
-      <p className="ar-h5">
-        Dans ton écurie <em>{horses.length}</em>
-      </p>
-      {horses.length ? (
-        <div className="ar-herd">
-          {horses.map((h) => (
-            <span key={h.id}>
-              <Face horse={h} />
-              {h.name}
-            </span>
-          ))}
-        </div>
-      ) : (
-        <p className="ar-sub">Aucun cheval pour l’instant. Ajoute le premier au-dessus.</p>
-      )}
-      <button
-        type="button"
-        className="btn ar-go"
-        style={{ marginTop: 22 }}
-        disabled={horses.length === 0}
-        onClick={() => {
-          if (!retour) pass("chevaux");
-          router.push(retour ? `/${retour}` : "/parcours/tarifs");
-        }}
-      >
+      {troupeau}
+      <button type="button" className="btn ar-go" style={{ marginTop: 22 }} disabled={horses.length === 0} onClick={suite}>
         {retour ? "Terminé" : "Passer à l’étape suivante"}
         <Ic n="ck" className="" />
       </button>
+      {!retour && (
+        <button type="button" className="ar-alt" onClick={() => setNoms(false)}>
+          Donner juste un nombre
+        </button>
+      )}
     </>
   );
 }

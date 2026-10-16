@@ -88,7 +88,14 @@ function Parcours() {
           <Ic n="arrow" className="ar-ico" />
         </Link>
       )}
-      {setupDone && current && <p className="ar-sub" style={{ marginTop: 12 }}>Les dernières étapes se passent toutes seules, en utilisant l’app à ton rythme.</p>}
+      {setupDone && current && (
+        <>
+          <p className="ar-sub" style={{ marginTop: 12 }}>Les dernières étapes se passent toutes seules, en utilisant l’app à ton rythme.</p>
+          <Link href="/parcours/arrivee" className="ar-alt">
+            Revoir ce qu’il te reste ce mois
+          </Link>
+        </>
+      )}
       {!setupDone && (
         <button type="button" className="btn line ar-later" onClick={sortir}>
           Découvrir l’app d’abord, finir plus tard

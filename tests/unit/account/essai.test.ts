@@ -18,38 +18,103 @@ const allee: string[] = [];
 (globalThis as unknown as { localStorage: Mem }).localStorage = store;
 (globalThis as unknown as { window: object }).window = Object.assign(globalThis, { location: { assign: (u: string) => allee.push(u), search: "" } });
 
-const { ouvrirEcurieLocale, chevauxSansNom } = await import("@/components/bs/essayer");
+const { ouvrirEssai, chevauxSansNom } = await import("@/components/bs/essayer");
+const { ajouterChevaux, pensionCommune, changerPensionCommune, fraisEnUnTotal, fraisDuMois, retirerTotal, retirerPostes, FRAIS_LABEL } = await import("@/components/bs/parcours");
 const { useDataStore } = await import("@/stores/data-store");
 const { useSettingsStore } = await import("@/stores/settings-store");
 const { getSession } = await import("@/lib/account/session");
 const { resumeLocale } = await import("@/lib/account/vault");
 const { localToday } = await import("@/lib/utils/local-date");
+const { currentPeriod } = await import("@/lib/utils/period");
+const { monthBreakdown } = await import("@/lib/domain/ticket");
 
-describe("voir mon écurie après l'essai", () => {
-  it("ouvre l'écurie locale, remplie avec les réponses, sans renvoyer au parcours", async () => {
-    await ouvrirEcurieLocale({ chevaux: 4, pension: 420, frais: 1300 });
+const mois = localToday().slice(0, 7);
+const pensionsDuMois = () =>
+  useDataStore
+    .getState()
+    .revenues.filter((r) => r.date.startsWith(mois))
+    .reduce((t, r) => t + r.amount, 0);
+
+describe("commencer l'essai", () => {
+  it("ouvre une écurie locale vide et mène aux premiers pas", async () => {
+    useSettingsStore.setState((s) => ({ parcours: { ...s.parcours, chevaux: true, tarifs: true } }));
+    await ouvrirEssai();
     expect(getSession()?.kind).toBe("locale");
-    expect(allee.at(-1)).toMatch(/\/accueil$/);
+    expect(allee.at(-1)).toMatch(/\/parcours$/);
+    const d = useDataStore.getState();
+    expect(d.horses).toHaveLength(0);
+    expect(d.seances ?? []).toHaveLength(0);
+    expect(Object.values(useSettingsStore.getState().parcours).some(Boolean)).toBe(false);
+  });
+});
 
+describe("le nombre de chevaux", () => {
+  it("crée Cheval 1 à Cheval N à la pension moyenne, pension du mois comptée", () => {
+    expect(ajouterChevaux(4, 420)).toBe(4);
     const d = useDataStore.getState();
     expect(d.horses.map((h) => h.name)).toEqual(["Cheval 1", "Cheval 2", "Cheval 3", "Cheval 4"]);
     expect(d.horses.every((h) => h.pension === 420)).toBe(true);
+    expect(d.tariffs?.pension).toBe(420);
     expect(chevauxSansNom(d.horses)).toBe(4);
-    // Les pensions du mois sont postées, les frais fixes sont une charge commune.
-    const mois = localToday().slice(0, 7);
-    expect(d.revenues.filter((r) => r.date.startsWith(mois)).reduce((t, r) => t + r.amount, 0)).toBe(1680);
-    const frais = (d.recurringExpenses ?? []).filter((r) => r.isShared);
+    expect(pensionsDuMois()).toBe(1680);
+    expect(pensionCommune(d)).toBe(420);
+  });
+
+  it("en ajoute à la suite, sans reprendre un numéro", () => {
+    ajouterChevaux(2, 420);
+    expect(useDataStore.getState().horses.map((h) => h.name).slice(-2)).toEqual(["Cheval 5", "Cheval 6"]);
+    expect(pensionsDuMois()).toBe(6 * 420);
+  });
+
+  it("change la pension commune pour tous, pension du mois comprise", () => {
+    changerPensionCommune(450);
+    const d = useDataStore.getState();
+    expect(d.horses.every((h) => h.pension === 450)).toBe(true);
+    expect(pensionCommune(d)).toBe(450);
+    expect(pensionsDuMois()).toBe(6 * 450);
+  });
+
+  it("n'est plus commune quand un cheval a sa propre pension", () => {
+    const d = useDataStore.getState();
+    d.setPension(d.horses[0].id, 600, mois);
+    expect(pensionCommune(useDataStore.getState())).toBeNull();
+    changerPensionCommune(450);
+  });
+});
+
+describe("le total des frais", () => {
+  const period = currentPeriod();
+
+  it("crée une seule charge commune mensuelle « Frais fixes »", async () => {
+    fraisEnUnTotal(1300, period);
+    fraisEnUnTotal(1400, period); // corriger ne double pas
+    const frais = (useDataStore.getState().recurringExpenses ?? []).filter((r) => r.isShared);
     expect(frais).toHaveLength(1);
-    expect(frais[0].label).toBe("Frais fixes (foin, loyer, salaires)");
-    expect(frais[0].amount).toBe(1300);
-    // Rien de la démo.
-    expect(d.seances ?? []).toHaveLength(0);
+    expect(frais[0].label).toBe(FRAIS_LABEL);
+    expect(frais[0].amount).toBe(1400);
+    expect(useDataStore.getState().expenseCategories.find((c) => c.id === frais[0].categoryId)?.name).toBe("Frais fixes");
+    expect(fraisDuMois(useDataStore.getState(), period)).toMatchObject({ total: 1400, postes: 0 });
+    // Ce qui reste ce mois : 6 pensions à 450 moins 1 400 de frais.
+    expect(Math.round(monthBreakdown(useDataStore.getState(), period).net)).toBe(6 * 450 - 1400);
+    // Le coffre écrit l'un après l'autre : on le laisse finir.
+    await new Promise((r) => setTimeout(r, 80));
+    expect(resumeLocale()).toEqual({ chevaux: 6, pension: 450, frais: 1400, seances: 0 });
+  });
 
-    const p = useSettingsStore.getState().parcours;
-    expect(p.chevaux && p.tarifs && p.factures).toBe(true);
-    expect(p.journee || p.ticket || p.seuil).toBe(false);
+  it("poste par poste après un total : retirer le total ne compte rien deux fois", () => {
+    const d = useDataStore.getState();
+    const foin = d.expenseCategories.find((c) => !c.isDirect && c.name !== "Frais fixes")!;
+    d.setMonthlyCharge(foin.id, foin.name, 800, period);
+    expect(fraisDuMois(useDataStore.getState(), period)).toMatchObject({ total: 1400, postes: 800 });
+    retirerTotal(period);
+    expect(fraisDuMois(useDataStore.getState(), period)).toMatchObject({ total: 0, postes: 800 });
+    expect((useDataStore.getState().recurringExpenses ?? []).filter((r) => r.isShared)).toHaveLength(1);
+  });
 
-    // Écrit en clair dans le tiroir de l'essai.
-    expect(resumeLocale()).toEqual({ chevaux: 4, pension: 420, frais: 1300, seances: 0 });
+  it("un total après des postes : ne garder que le total", () => {
+    fraisEnUnTotal(2000, period);
+    retirerPostes(period);
+    expect(fraisDuMois(useDataStore.getState(), period)).toMatchObject({ total: 2000, postes: 0 });
+    expect(Math.round(monthBreakdown(useDataStore.getState(), period).sharedTotal)).toBe(2000);
   });
 });

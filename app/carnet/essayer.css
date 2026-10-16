@@ -1,31 +1,19 @@
-/* Carnet · essayer avant le compte : le premier écran, les trois questions,
-   le résultat, puis « Garder mes chiffres » (bandeau, écran du compte).
+/* Carnet · essayer avant le compte : le premier écran, le compteur de
+   chevaux et le résultat (repris par le parcours), puis « Garder mes
+   chiffres » (bandeau, écran du compte).
    Tout sous .carnet, classes locales préfixées es-, portées depuis
    parts/1-essayer.html. S'appuie sur la coque .ar d'arrivee.css. */
 
 /* ---------- Les étapes ---------- */
 .carnet .es-st { flex: 1 0 auto; display: flex; flex-direction: column; }
-.carnet .es-st.go { animation: es-in .42s var(--ease) both; }
-.carnet .es-st.bk { animation: es-bk .42s var(--ease) both; }
-@keyframes es-in { from { opacity: 0; transform: translateX(22px); } }
-@keyframes es-bk { from { opacity: 0; transform: translateX(-22px); } }
 .carnet .es-top { flex: none; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; min-height: 46px; padding: 0 12px; }
-.carnet .es-top .dots { justify-self: center; }
-.carnet .es-top .dots i { width: 22px; transition: background .3s; }
 .carnet .es-top-w { grid-template-columns: 1fr auto; padding: 0 10px 0 22px; }
 .carnet .es-have { min-height: 44px; display: inline-flex; align-items: center; padding: 0 10px; font-size: 13px; font-weight: 600; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-.carnet .es-back { width: 44px; height: 44px; margin-left: -6px; border: 0; background: none; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--ink); cursor: pointer; }
-.carnet .es-back svg { width: 22px; height: 22px; }
-.carnet .es-av { justify-self: end; width: 40px; height: 40px; border-radius: 50%; background: var(--mist); overflow: hidden; position: relative; }
-.carnet .es-av .ill { position: absolute; max-width: none; }
-.carnet .es-av.f .ill { width: 128px; left: -48px; top: -14px; }
-.carnet .es-av.m .ill { width: 46px; left: -3px; top: 3px; }
 .carnet .es-st .foot .lnk { justify-self: center; min-height: 44px; color: var(--ink2); font-weight: 600; font-size: 13.5px; }
 
 /* ---------- Premier écran ---------- */
 .carnet .es-hero { height: 230px; margin-top: 18px; }
 .carnet .es-hero .disc { width: 200px; height: 200px; }
-.carnet .es-reprise { margin: 0; text-align: center; font-size: 13px; color: var(--ink3); }
 
 /* ---------- Les chevaux ---------- */
 .carnet .es-count { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 46px; }
@@ -37,17 +25,8 @@
 @keyframes es-pop { 40% { transform: scale(1.08); } }
 .carnet .es-count-lab { margin: 6px 0 0; text-align: center; font-size: 13px; color: var(--ink3); }
 
-/* ---------- Montants et clavier ---------- */
-.carnet .es-amt { margin: 18px 22px 0; height: 64px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--ink); display: flex; align-items: center; padding: 0 16px; font-size: 30px; font-weight: 760; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.carnet .es-amt .ph { color: var(--ink3); }
-.carnet .es-amt .caret { width: 2px; height: 30px; margin-left: 3px; background: var(--ink); animation: es-blink 1.1s steps(2) infinite; }
-@keyframes es-blink { 50% { opacity: 0; } }
-.carnet .es-amt .u { margin-left: auto; font-size: 13.5px; font-weight: 600; letter-spacing: 0; color: var(--ink3); }
+/* ---------- Montants ---------- */
 .carnet .es-help { margin: 8px 22px 0; font-size: 13px; line-height: 1.4; color: var(--ink2); }
-.carnet .es-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 14px 18px 0; }
-.carnet .es-pad button { height: 48px; border: 0; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line2); font: inherit; font-size: 21px; font-weight: 600; color: var(--ink); cursor: pointer; font-variant-numeric: tabular-nums; display: flex; align-items: center; justify-content: center; }
-.carnet .es-pad button:active { background: var(--mist); }
-.carnet .es-pad svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------- Le résultat ---------- */
 .carnet .es-perch { margin-top: 6px; }
@@ -81,15 +60,8 @@
 .carnet .es-keep .es-x svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 @keyframes es-up { from { opacity: 0; transform: translateY(100%); } }
 
-/* ---------- « Donne un nom à tes chevaux » ---------- */
-.carnet .es-nom { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); text-decoration: none; min-height: 44px; }
-.carnet .es-nom .face { flex: none; }
-.carnet .es-nom b { display: block; font-size: 15px; font-weight: 680; }
-.carnet .es-nom small { display: block; font-size: 12.5px; color: var(--ink3); }
-.carnet .es-nom svg { margin-left: auto; color: var(--ink3); }
-
 @media (prefers-reduced-motion: reduce) {
-  .carnet .es-st.go, .carnet .es-st.bk, .carnet .es-count b.tick, .carnet .es-amt .caret, .carnet .es-keep { animation: none; }
+  .carnet .es-count b.tick, .carnet .es-keep { animation: none; }
 }
 
 @media (min-width: 1024px) {

@@ -33,3 +33,24 @@ export function ObHead({ n, title, sub, retour }: { n: number; title: string; su
     </>
   );
 }
+
+/**
+ * Un montant par mois, en grand : un seul champ, chiffres seulement
+ * (clavier numérique sur téléphone), « € / mois » au bout.
+ */
+export function MontantMois({ id, label, value, onChange, help }: { id: string; label: string; value: string; onChange: (v: string) => void; help?: string }) {
+  return (
+    <div className="ar-mm">
+      <label htmlFor={id}>{label}</label>
+      <span className="ar-mm-f">
+        <input id={id} inputMode="numeric" autoComplete="off" placeholder="0" value={value} onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))} aria-describedby={help ? `${id}-aide` : undefined} />
+        <span className="u">€ / mois</span>
+      </span>
+      {help && (
+        <p id={`${id}-aide`} className="es-help">
+          {help}
+        </p>
+      )}
+    </div>
+  );
+}

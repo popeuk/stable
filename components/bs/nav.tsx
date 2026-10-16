@@ -1,19 +1,12 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { create } from "zustand";
-import { Ic, eur, sg } from "@/components/carnet/ui";
+import { Ic } from "@/components/carnet/ui";
+import { getSession } from "@/lib/account/session";
 import { aidePour } from "@/lib/aide";
 import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
-import { useDataStore } from "@/stores/data-store";
-import { useUiStore } from "@/stores/ui-store";
-import { monthBreakdown } from "@/lib/domain/ticket";
-import { toValidate } from "@/lib/domain/seances";
-import { billsFor } from "@/lib/domain/billing";
-import { suggestions } from "@/lib/domain/leviers";
-import { currentPeriod } from "@/lib/utils/period";
-import { localToday } from "@/lib/utils/local-date";
 
 /**
  * Ne jamais rester coincé : chaque écran qui n'est pas un onglet a son
@@ -152,10 +145,11 @@ const TITRES: [string, string][] = [
   ["/clients", "Mes clients"],
   ["/contacts", "Les pros"],
   ["/equipe", "Tâches de l’équipe"],
-  ["/prestations", "Cours et services"],
+  ["/prestations", "Mes tarifs"],
   ["/ma-fiche", "Ma fiche"],
-  ["/moi", "Mon écurie"],
-  ["/parametres", "Réglages"],
+  ["/moi", "Réglages"],
+  ["/parametres/equipe", "Mon équipe"],
+  ["/parametres", "Tous les réglages"],
   ["/recherche", "Chercher"],
   ["/saisie/cheval", "Ajouter un cheval"],
   ["/saisie", "Noter"],
@@ -166,7 +160,7 @@ const TITRES: [string, string][] = [
 ];
 export const titreDe = (p: string) => TITRES.find(([m]) => p.replace(/(.)\/$/, "$1").startsWith(m))?.[1] ?? "";
 
-/* ---------- Le rond : tout ce que contenait le Menu ---------- */
+/* ---------- Le rond : ce qu'on règle rarement ---------- */
 
 export interface PlusItem {
   id: string;
@@ -178,73 +172,34 @@ export interface PlusItem {
   badge?: string;
   tone?: "in" | "out" | "attn";
 }
-export interface PlusGroup {
-  title: string;
-  items: PlusItem[];
+
+/** Le type de session, lu après le montage (le stockage n'existe pas au rendu serveur). */
+function useSessionKind() {
+  const [kind, setKind] = useState<string | null>(null);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setKind(getSession()?.kind ?? null), []);
+  return kind;
 }
 
-const nowHHMM = () => {
-  const d = new Date();
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-};
-
 /**
- * Ce qu'on règle rarement, rangé en quatre groupes : le rond en haut à
- * droite au téléphone, « Plus » dans la barre latérale sur ordinateur.
- * Aucune entrée de l'ancien Menu ne disparaît.
+ * La liste courte du rond en haut à droite au téléphone, et de « Ton
+ * écurie » dans la barre latérale sur ordinateur : la fiche, les tarifs,
+ * l'équipe, les réglages, et les premiers pas tant qu'ils ne sont pas finis
+ * (en tête, « Garder mes chiffres » sans compte). Le reste de l'ancien Menu
+ * a trouvé sa place : la loupe de l'en-tête pour chercher, séances à
+ * confirmer et tâches en bas du Planning, bilans dans Mon mois,
+ * explications, tournée et guide dans Réglages.
  */
-export function usePlusGroups(): PlusGroup[] {
-  const data = useDataStore();
-  const s = useSettingsStore();
-  const router = useRouter();
-  const openTournee = useUiStore((u) => u.openTournee);
-  const c = useMemo(() => {
-    const period = currentPeriod();
-    const done = data.taskLists?.find((l) => l.isDone)?.id;
-    return {
-      pending: toValidate(data, localToday(), nowHHMM()).length,
-      due: billsFor(data, period).reduce((t, b) => t + Math.max(0, b.due), 0),
-      acts: suggestions(data, period, s.capacity).filter((x) => x.status !== "faite" && x.status !== "ecartee").length,
-      net: monthBreakdown(data, period).net,
-      tasks: (data.tasks ?? []).filter((t) => t.listId !== done).length,
-    };
-  }, [data, s.capacity]);
-  const pas = OBSTACLES.filter((o) => s.parcours[o]).length;
-  return [
-    {
-      title: "Au quotidien",
-      items: [
-        { id: "valider", ic: "ck", label: "Séances à confirmer", href: "/valider", badge: c.pending ? String(c.pending) : undefined, tone: "attn" },
-        { id: "equipe", ic: "board", label: "Tâches de l’équipe", href: "/equipe", badge: c.tasks ? String(c.tasks) : undefined },
-        { id: "clients", ic: "people", label: "Mes clients", href: "/clients" },
-      ],
-    },
-    {
-      title: "Ton argent",
-      items: [
-        { id: "bilan", ic: "euro", label: "Bilan du mois", href: "/argent", badge: sg(c.net), tone: c.net >= 0 ? "in" : "out" },
-        { id: "leviers", ic: "bulb", label: "Pistes pour gagner plus", href: "/argent?vue=leviers", badge: c.acts ? String(c.acts) : undefined },
-        { id: "facturer", ic: "doc", label: "À facturer", href: "/argent?vue=facturer", badge: c.due ? eur(c.due) : undefined },
-        { id: "mouvements", ic: "list", label: "Entrées et sorties d’argent", href: "/argent?vue=mouvements" },
-        { id: "pilotage", ic: "chart", label: "Sur plusieurs mois", href: "/pilotage" },
-      ],
-    },
-    {
-      title: "Ton écurie",
-      items: [
-        { id: "fiche", ic: "flag", label: "Ma fiche mon-ecurie.fr", sub: "Les cavaliers cherchent leur pension. Une photo et tes places libres : c’est ce qu’ils regardent en premier.", href: "/ma-fiche" },
-        { id: "prestations", ic: "hay", label: "Mes cours, services et prix", href: "/prestations" },
-        { id: "moi", ic: "gear", label: "Mon écurie et mes réglages", href: "/moi" },
-      ],
-    },
-    {
-      title: "Besoin d’aide ?",
-      items: [
-        { id: "tournee", ic: "clock", label: "Revoir la tournée du matin", run: () => (router.push("/accueil"), openTournee()) },
-        ...(pas < 6 ? [{ id: "parcours", ic: "flag", label: "Mes premiers pas", href: "/parcours", badge: `${pas}/6`, tone: "attn" as const }] : [{ id: "parcours", ic: "flag", label: "Mes premiers pas", href: "/parcours" }]),
-        { id: "aides", ic: "help", label: "Revoir les explications de chaque écran", run: () => s.revoirAides() },
-        { id: "guide", ic: "doc", label: "Le guide, la communauté, l’annuaire", href: "/moi#bestable" },
-      ],
-    },
-  ];
+export function usePlusItems(): PlusItem[] {
+  const parcours = useSettingsStore((s) => s.parcours);
+  const kind = useSessionKind();
+  const pas = OBSTACLES.filter((o) => parcours[o]).length;
+  return useMemo(() => [
+    ...(kind === "locale" ? [{ id: "garder", ic: "user", label: "Garder mes chiffres", sub: "Ton e-mail, un code, et tout passe dans ton compte", href: "/compte/connexion?garder=1", tone: "attn" as const }] : []),
+    { id: "fiche", ic: "flag", label: "Ma fiche mon-ecurie.fr", sub: "Ce que voient les cavaliers qui cherchent", href: "/ma-fiche" },
+    { id: "tarifs", ic: "euro", label: "Mes tarifs", sub: "Pensions, cours, balades, soins refacturés", href: "/prestations" },
+    { id: "equipe", ic: "people", label: "Mon équipe", sub: "Qui fait quoi", href: "/parametres/equipe" },
+    { id: "reglages", ic: "gear", label: "Réglages", sub: "Écurie, rappel du matin, explications, guide", href: "/moi" },
+    ...(pas < 6 ? [{ id: "parcours", ic: "bulb", label: "Mes premiers pas", sub: `${pas} étape${pas > 1 ? "s" : ""} sur 6`, href: "/parcours", badge: `${pas}/6`, tone: "attn" as const }] : []),
+  ], [kind, pas]);
 }
