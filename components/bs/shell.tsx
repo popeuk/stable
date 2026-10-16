@@ -259,10 +259,13 @@ export function ToastHost() {
       setBas(haut < h ? h - haut + 10 : null);
     };
     const raf = requestAnimationFrame(placer);
+    // L'écran peut changer sous le message (un écran suivant, une feuille qui s'ouvre) : on replace.
+    const t = setInterval(placer, 200);
     window.addEventListener("scroll", placer, { passive: true });
     window.addEventListener("resize", placer);
     return () => {
       cancelAnimationFrame(raf);
+      clearInterval(t);
       window.removeEventListener("scroll", placer);
       window.removeEventListener("resize", placer);
     };
