@@ -10,7 +10,7 @@
 
 /* ---------- Planning, téléphone ---------- */
 .carnet .jr-per { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px 0 10px; }
-.carnet .jr-per .nav { display: flex; align-items: center; gap: 2px; font-size: 14px; font-weight: 650; }
+.carnet .jr-per .nav { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 650; }
 .carnet .jr-per .nav button { width: 28px; height: 28px; border: 0; background: none; display: flex; align-items: center; justify-content: center; color: var(--ink2); padding: 0; cursor: pointer; }
 .carnet .jr-per .nav button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .jr-ttl { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 4px 18px 0; }

@@ -87,7 +87,7 @@
 .carnet .ec-save small { display: block; text-align: center; font-size: 12px; color: var(--ink3); margin-top: 6px; }
 
 /* ---------- Cours et services ---------- */
-.carnet .ec-mnav { display: flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 650; color: var(--ink); }
+.carnet .ec-mnav { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 650; color: var(--ink); }
 .carnet .ec-mnav button { width: 28px; height: 28px; border: 0; background: none; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--ink2); cursor: pointer; }
 .carnet .ec-mnav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ec-mnav .dis { opacity: .3; cursor: default; }
@@ -159,7 +159,7 @@
 .carnet .ec-cadd.three { grid-template-columns: 1fr 76px 44px; }
 .carnet .ec-cadd .input { height: 44px; font-size: 14px; }
 .carnet .ec-cadd .btn { height: 44px; padding: 0; }
-.carnet .ec-cat { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line2); font-size: 14px; }
+.carnet .ec-cat { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line2); font-size: 14px; }
 .carnet .ec-cat > span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .carnet .ec-cat .num { font-size: 13px; color: var(--ink2); }
 .carnet .ec-cat:last-child { border-bottom: 0; }

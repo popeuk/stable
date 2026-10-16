@@ -12,7 +12,7 @@
   --mono: var(--font-plex), "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --ease: cubic-bezier(.22, 1, .36, 1); --slow: cubic-bezier(.45, 0, .55, 1);
 }
-.carnet .hd { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 14px 10px 18px; background: var(--sheet); border-bottom: 1px solid var(--line2); }
+.carnet .hd { flex: none; display: flex; align-items: center; gap: 12px; padding: 4px 14px 10px 18px; background: var(--sheet); border-bottom: 1px solid var(--line2); }
 .carnet .hd .wm { font-weight: 800; font-size: 18px; letter-spacing: -.035em; font-variation-settings: "wdth" 90; }
 .carnet .hd .stb { flex: 1; min-width: 0; font-size: 12px; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .carnet .hd .ttl { flex: 1; min-width: 0; font-size: 14px; font-weight: 650; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
