@@ -40,7 +40,7 @@
 .carnet .ac-jour { padding-top: 14px; }
 /* L'encart mon-ecurie.fr (components/bs/promo-mon-ecurie.tsx) : « Plus tard » posé sur l'image. */
 .carnet .ac-promo { position: relative; }
-.carnet .ac-promo-x { position: absolute; top: 10px; right: 24px; z-index: 1; height: 30px; padding: 0 12px; border: 0; border-radius: 15px; background: color-mix(in srgb, var(--on-ink) 86%, transparent); color: var(--ink2); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.carnet .ac-promo-x { position: absolute; top: 10px; right: 24px; z-index: 1; height: 36px; padding: 0 12px; border: 0; border-radius: 15px; background: color-mix(in srgb, var(--on-ink) 86%, transparent); color: var(--ink2); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .carnet .ac-promo-x:hover { color: var(--ink); }
 /* La marque mon-ecurie.fr, comme l'en-tête du site (pc-logo). */
 .carnet .ac-promo .tag { font-family: inherit; letter-spacing: 0; }
@@ -48,8 +48,8 @@
 .carnet .me-signe { width: 30px; height: 30px; flex: none; }
 .carnet .me-txt { display: flex; flex-direction: column; }
 .carnet .me-nom { font-size: 20px; font-weight: 800; line-height: .88; font-variation-settings: "wdth" 88; letter-spacing: -.012em; color: var(--ink); white-space: nowrap; }
-.carnet .me-par { margin-top: 3px; font-size: 10.5px; font-weight: 600; line-height: 1; letter-spacing: .03em; color: var(--ink2); white-space: nowrap; }
-.carnet .me-etat { margin-left: auto; padding: 4px 9px; border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); border-radius: 12px; font-size: 11.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
+.carnet .me-par { margin-top: 3px; font-size: 12px; font-weight: 600; line-height: 1; letter-spacing: .03em; color: var(--ink2); white-space: nowrap; }
+.carnet .me-etat { margin-left: auto; padding: 4px 9px; border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); border-radius: 12px; font-size: 12px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
 
 @media (min-width: 1024px) {
   .carnet .ac-desk .ac-dtop { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; align-items: start; }
@@ -121,7 +121,7 @@
 /* ---------- La barre du bas ---------- */
 .carnet .ac-tb a, .carnet .ac-tb button:not(.plus) { position: relative; align-content: start; min-height: 46px; line-height: 1.1; white-space: nowrap; }
 .carnet .ac-tb .ac-ic { position: relative; display: block; width: 21px; height: 21px; }
-.carnet .ac-badge { position: absolute; top: -5px; right: -12px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--ink); color: var(--on-ink); font-size: 10.5px; font-style: normal; font-weight: 750; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--sheet); }
+.carnet .ac-badge { position: absolute; top: -5px; right: -12px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--ink); color: var(--on-ink); font-size: 12px; font-style: normal; font-weight: 750; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--sheet); }
 .carnet .ac-two { text-align: center; }
 /* Le kit grise toutes les span de la barre : l'onglet allumé doit les reprendre (« Clients et chevaux »). */
 .carnet .ac-tb a span { color: inherit; }
@@ -134,7 +134,7 @@
 /* ---------- La barre latérale : « Plus » ---------- */
 
 .carnet .ac-sgrp { display: grid; gap: 2px; }
-.carnet .ac-sk { margin: 10px 10px 2px; font-size: 11.5px; font-weight: 600; color: var(--ink3); }
+.carnet .ac-sk { margin: 10px 10px 2px; font-size: 12px; font-weight: 600; color: var(--ink3); }
 .carnet .cn-side .it em.out { color: var(--out); font-weight: 700; }
 
 /* ---------- La tournée du matin ---------- */

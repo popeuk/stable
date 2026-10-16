@@ -71,7 +71,7 @@ export function Compass() {
           {icon}
         </span>
         <span
-          className="text-[10px]"
+          className="text-[12px]"
           style={{ color: isActive ? "var(--ink)" : "var(--ink3)" }}
         >
           {label}
@@ -120,7 +120,7 @@ export function Compass() {
                         <span className="flex size-12 items-center justify-center rounded-full border bg-elevated text-[var(--ink)] shadow-[var(--shadow-floating)]">
                           {action.icon}
                         </span>
-                        <span className="text-[10px] text-secondary">{action.label}</span>
+                        <span className="text-[12px] text-secondary">{action.label}</span>
                       </button>
                     </motion.div>
                   );

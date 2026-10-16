@@ -59,7 +59,7 @@ export function EquilibriumBlock() {
           style={{ background: barColor }}
         />
       </div>
-      <div className="mt-1 flex justify-between text-[11px] text-tertiary">
+      <div className="mt-1 flex justify-between text-[12px] text-tertiary">
         <span>0 €</span>
         <span>tes dépenses : {formatEur(eq.monthlyCharges)} par mois</span>
       </div>

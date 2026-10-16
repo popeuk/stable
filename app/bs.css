@@ -16,7 +16,7 @@
 
 .bs-t1 { font-size: 24px; margin-top: 2px; color: var(--ink); }
 
-.bs-sec { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink3); margin: 22px 0 2px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.bs-sec { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink3); margin: 22px 0 2px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .bs-sec a { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 12.5px; color: var(--ink); }
 
 /* ---------- Atomes ---------- */
@@ -91,14 +91,14 @@ a.bs-card:hover, button.bs-card:hover { box-shadow: inset 0 0 0 1px var(--ink3);
    panneau flottant à droite, la palette (Ctrl K) et les raccourcis.
    ============================================================ */
 
-kbd { font: 600 10.5px/1 var(--font-bricolage), sans-serif; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 4px; background: var(--mist); color: var(--ink2); box-shadow: inset 0 -1px 0 var(--line); white-space: nowrap; }
+kbd { font: 600 12px/1 var(--font-bricolage), sans-serif; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 4px; background: var(--mist); color: var(--ink2); box-shadow: inset 0 -1px 0 var(--line); white-space: nowrap; }
 
 /* La proposition d'installer */
 .bs-install { position: fixed; z-index: 45; left: 12px; right: 12px; bottom: calc(80px + env(safe-area-inset-bottom)); max-width: 456px; margin: 0 auto; display: flex; align-items: center; gap: 12px; padding: 10px 6px 10px 12px; background: var(--sheet); border-radius: 6px; box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 10px 30px color-mix(in srgb, var(--ink) 14%, transparent), inset 0 0 0 1px var(--line); animation: bs-up .3s var(--ease) both; }
 .bs-install .tx { flex: 1; min-width: 0; }
 .bs-install .tx b { display: block; font-size: 14px; font-weight: 600; color: var(--ink); }
 .bs-install .tx span { font-size: 12.5px; color: var(--ink2); line-height: 1.35; }
-.bs-install .go { height: 36px; padding: 0 14px; border-radius: 6px; background: var(--ink); color: var(--on-ink); font-size: 13.5px; font-weight: 600; }
+.bs-install .go { height: 44px; padding: 0 14px; border-radius: 6px; background: var(--ink); color: var(--on-ink); font-size: 13.5px; font-weight: 600; }
 .bs-install .go:hover { background: var(--ink2); }
 
 @media (min-width: 1024px) {

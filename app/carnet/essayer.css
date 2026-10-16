@@ -43,7 +43,7 @@
 
 /* ---------- Garder : ce qu'on garde, puis c'est gardé ---------- */
 .carnet .es-kept { list-style: none; margin: 16px 22px 0; padding: 12px 14px; border-radius: 8px; background: var(--mist); display: grid; gap: 7px; font-size: 13.5px; color: var(--ink2); }
-.carnet .es-kept::before { content: "On garde"; font-size: 11.5px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
+.carnet .es-kept::before { content: "On garde"; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
 .carnet .es-kept li { display: flex; align-items: center; gap: 8px; }
 .carnet .es-kept svg { width: 15px; height: 15px; flex: none; fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .es-done .q { text-align: center; padding-top: 18px; }

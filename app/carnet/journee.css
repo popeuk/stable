@@ -17,7 +17,7 @@
 .carnet .jr-ttl :is(h2, h3) { margin: 0; font-size: 30px; font-weight: 760; letter-spacing: -.03em; line-height: 1.05; font-variation-settings: "wdth" 86; }
 .carnet .jr-ttl .seg { width: 150px; flex: none; }
 .carnet .jr-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; padding: 12px 12px 0; }
-.carnet .jr-days button { border: 0; background: none; border-radius: 8px; padding: 6px 0 6px; display: grid; justify-items: center; gap: 1px; font-size: 10.5px; font-weight: 600; color: var(--ink3); cursor: pointer; }
+.carnet .jr-days button { border: 0; background: none; border-radius: 8px; padding: 6px 0 6px; display: grid; justify-items: center; gap: 1px; font-size: 12px; font-weight: 600; color: var(--ink3); cursor: pointer; }
 .carnet .jr-days b { font-size: 16px; color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
 .carnet .jr-days .td:not([aria-pressed="true"]) b { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
 .carnet .jr-days [aria-pressed="true"] { background: var(--ink); color: color-mix(in srgb, var(--on-ink) 70%, transparent); }
@@ -47,14 +47,14 @@
 /* Créneaux */
 .carnet .jr-grid { position: relative; margin: 14px 14px 0 12px; }
 .carnet .jr-h { position: absolute; left: 0; right: 0; height: 44px; border-top: 1px solid var(--line2); }
-.carnet .jr-h > span { position: absolute; left: 0; top: -8px; padding-right: 4px; font-family: var(--mono); font-size: 10.5px; color: var(--ink3); background: var(--paper); }
+.carnet .jr-h > span { position: absolute; left: 0; top: -8px; padding-right: 4px; font-family: var(--mono); font-size: 12px; color: var(--ink3); background: var(--paper); }
 .carnet .jr-h button { position: absolute; left: 34px; right: 0; top: 0; bottom: 0; border: 0; background: none; border-radius: 6px; cursor: pointer; }
 .carnet .jr-h button:hover { background: var(--mist); }
 .carnet .jr-ev { position: absolute; z-index: 1; display: grid; grid-template-columns: 15px 1fr auto; gap: 6px; align-items: start; padding: 6px 8px; border: 0; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink2); text-align: left; font: inherit; cursor: pointer; overflow: hidden; }
 .carnet .jr-ev > svg { width: 15px; height: 15px; margin-top: 1px; }
 .carnet .jr-ev > span { min-width: 0; }
 .carnet .jr-ev b { display: block; font-size: 12.5px; font-weight: 650; color: var(--ink); line-height: 1.2; }
-.carnet .jr-ev small { display: block; font-size: 11px; color: var(--ink3); line-height: 1.25; }
+.carnet .jr-ev small { display: block; font-size: 12px; color: var(--ink3); line-height: 1.25; }
 .carnet .jr-ev > .in, .carnet .jr-ev > .out { font-size: 12px; }
 .carnet .jr-ev.short { padding-top: 4px; padding-bottom: 4px; }
 .carnet .jr-ev.short b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -67,16 +67,16 @@
 .carnet .jr-ev.half b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .carnet .jr-now { position: absolute; left: 30px; right: 0; z-index: 2; border-top: 1.5px solid var(--ink); pointer-events: none; }
 .carnet .jr-now::before { content: ""; position: absolute; left: -4px; top: -4.5px; width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
-.carnet .jr-now em { position: absolute; right: 0; top: -17px; font-style: normal; font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--ink); background: var(--paper); padding: 0 3px; }
+.carnet .jr-now em { position: absolute; right: 0; top: -17px; font-style: normal; font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink); background: var(--paper); padding: 0 3px; }
 
 /* Mois */
 .carnet .jr-mhead, .carnet .jr-mgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
 .carnet .jr-mhead { margin-top: 14px; }
-.carnet .jr-mhead span { text-align: center; font-size: 11px; font-weight: 650; color: var(--ink3); }
+.carnet .jr-mhead span { text-align: center; font-size: 12px; font-weight: 650; color: var(--ink3); }
 .carnet .jr-mgrid { margin-top: 6px; }
 .carnet .jr-m { height: 54px; min-width: 0; border: 0; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line2); display: grid; grid-template-rows: auto 1fr auto; justify-items: center; align-items: center; padding: 5px 0 6px; font: inherit; color: var(--ink); cursor: pointer; overflow: hidden; }
 .carnet .jr-m i { font-style: normal; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1; }
-.carnet .jr-m em { font-style: normal; font-size: 10.5px; line-height: 1; }
+.carnet .jr-m em { font-style: normal; font-size: 12px; line-height: 1; }
 .carnet .jr-m .jr-dots { margin-top: 0; }
 .carnet .jr-m.out { background: none; box-shadow: none; color: var(--ink3); }
 .carnet .jr-m.td { box-shadow: inset 0 0 0 1.5px var(--ink); }
@@ -126,17 +126,17 @@
 .carnet .jr-t.jr-done > b { color: var(--ink2); }
 .carnet .jr-t.drag { opacity: .45; }
 .carnet .jr-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-.carnet .jr-tag { padding: 1px 7px; border-radius: 10px; background: var(--mist); font-size: 10.5px; font-weight: 650; color: var(--ink2); }
-.carnet .jr-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 9px; font-size: 11.5px; color: var(--ink3); }
+.carnet .jr-tag { padding: 1px 7px; border-radius: 10px; background: var(--mist); font-size: 12px; font-weight: 650; color: var(--ink2); }
+.carnet .jr-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 9px; font-size: 12px; color: var(--ink3); }
 .carnet .jr-meta > span { display: inline-flex; align-items: center; gap: 3px; }
 .carnet .jr-meta svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .jr-meta .out { font-size: 12px; }
-.carnet .jr-meta .jr-late { font-size: 11.5px; }
+.carnet .jr-meta .jr-late { font-size: 12px; }
 .carnet .jr-ws { margin-left: auto; }
-.carnet .jr-who { width: 24px; height: 24px; margin-left: -4px; border-radius: 50%; background: var(--mist); box-shadow: 0 0 0 2px var(--sheet); display: inline-flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 700; color: var(--ink); }
+.carnet .jr-who { width: 24px; height: 24px; margin-left: -4px; border-radius: 50%; background: var(--mist); box-shadow: 0 0 0 2px var(--sheet); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--ink); }
 .carnet .jr-quick { display: flex; gap: 6px; }
-.carnet .jr-quick .input { height: 38px; font-size: 13.5px; min-width: 0; }
-.carnet .jr-quick button { width: 38px; height: 38px; flex: none; border: 0; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: flex; align-items: center; justify-content: center; color: var(--ink); cursor: pointer; }
+.carnet .jr-quick .input { height: 44px; font-size: 13.5px; min-width: 0; }
+.carnet .jr-quick button { width: 44px; height: 44px; flex: none; border: 0; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: flex; align-items: center; justify-content: center; color: var(--ink); cursor: pointer; }
 .carnet .jr-quick button svg { width: 16px; height: 16px; }
 .carnet .jr-small { font-size: 12px; color: var(--ink3); }
 .carnet .jr-li { width: 100%; border: 0; border-bottom: 1px solid var(--line2); background: none; text-align: left; font: inherit; color: inherit; cursor: pointer; }
@@ -164,18 +164,18 @@
 .carnet .jr-desk .wg-head button:hover { background: var(--mist); }
 .carnet .jr-desk .wg-head b { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; margin-left: 2px; border-radius: 13px; font-size: 14px; color: var(--ink); font-weight: 700; }
 .carnet .jr-desk .wg-head .td b { background: var(--ink); color: var(--on-ink); }
-.carnet .jr-desk .wg-head em { flex-basis: 100%; font-style: normal; font-size: 11px; line-height: 1.2; }
+.carnet .jr-desk .wg-head em { flex-basis: 100%; font-style: normal; font-size: 12px; line-height: 1.2; }
 .carnet .jr-desk .wg-day { border-bottom: 1px solid var(--line); }
-.carnet .jr-desk .wg-day .gut { font-family: var(--mono); font-size: 10.5px; color: var(--ink3); display: flex; align-items: center; justify-content: center; }
+.carnet .jr-desk .wg-day .gut { font-family: var(--mono); font-size: 12px; color: var(--ink3); display: flex; align-items: center; justify-content: center; }
 .carnet .jr-desk .wg-day .jc { display: grid; align-content: start; gap: 3px; padding: 5px 3px; min-height: 32px; min-width: 0; border-left: 1px solid var(--line2); }
-.carnet .jr-desk .wg-day .jci { display: flex; align-items: center; gap: 4px; min-width: 0; border: 0; text-align: left; font: inherit; font-size: 11.5px; line-height: 1.25; padding: 3px 6px; border-radius: 4px; background: var(--mist); color: var(--ink2); cursor: pointer; }
+.carnet .jr-desk .wg-day .jci { display: flex; align-items: center; gap: 4px; min-width: 0; border: 0; text-align: left; font: inherit; font-size: 12px; line-height: 1.25; padding: 3px 6px; border-radius: 4px; background: var(--mist); color: var(--ink2); cursor: pointer; }
 .carnet .jr-desk .wg-day .jci > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .carnet .jr-desk .wg-day .jci b { color: var(--ink); font-weight: 650; }
 .carnet .jr-desk .wg-day .jci.done { opacity: .58; }
 .carnet .jr-desk .wg-day .jci.done b { text-decoration: line-through; }
 .carnet .jr-desk .wg-body { position: relative; background: repeating-linear-gradient(to bottom, var(--line2) 0 1px, transparent 1px 36px); }
 .carnet .jr-desk .wg-body .hrs { position: relative; background: var(--sheet); }
-.carnet .jr-desk .wg-body .hrs span { position: absolute; right: 8px; margin-top: -1px; font-family: var(--mono); font-size: 10.5px; color: var(--ink3); background: var(--sheet); }
+.carnet .jr-desk .wg-body .hrs span { position: absolute; right: 8px; margin-top: -1px; font-family: var(--mono); font-size: 12px; color: var(--ink3); background: var(--sheet); }
 .carnet .jr-desk .wg-body .hrs span:first-child { margin-top: 3px; }
 .carnet .jr-desk .wg-body .col { position: relative; min-width: 0; border-left: 1px solid var(--line2); }
 .carnet .jr-desk .wg-body .col.td { background: color-mix(in srgb, var(--mist) 55%, transparent); }
@@ -199,14 +199,14 @@
 .carnet .jr-desk .now::before { content: ""; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
 .carnet .jr-desk .legend2 { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; font-size: 12.5px; color: var(--ink2); }
 .carnet .jr-desk .legend2 .hint { margin-left: auto; color: var(--ink3); }
-.carnet .jr-desk .mhead { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); padding: 0 4px; }
+.carnet .jr-desk .mhead { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); padding: 0 4px; }
 .carnet .jr-desk .mgrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: 98px; gap: 6px; margin-top: 6px; }
 .carnet .jr-desk .mc { display: grid; align-content: start; gap: 3px; padding: 7px 8px; border: 0; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; font: inherit; color: var(--ink); text-align: left; cursor: pointer; min-width: 0; }
 .carnet .jr-desk .mc:hover { box-shadow: inset 0 0 0 1.5px var(--ink3); }
 .carnet .jr-desk .mc .mn { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 650; }
 .carnet .jr-desk .mc .mn .in, .carnet .jr-desk .mc .mn .out { font-size: 12px; }
-.carnet .jr-desk .mc i { font-style: normal; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: var(--mist); color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.carnet .jr-desk .mc .more { font-size: 11px; color: var(--ink3); padding: 0 6px; }
+.carnet .jr-desk .mc i { font-style: normal; font-size: 12px; padding: 2px 6px; border-radius: 4px; background: var(--mist); color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.carnet .jr-desk .mc .more { font-size: 12px; color: var(--ink3); padding: 0 6px; }
 .carnet .jr-desk .mc.past i { opacity: .6; }
 .carnet .jr-desk .mc.td { box-shadow: inset 0 0 0 2px var(--ink); }
 .carnet .jr-desk .mc.out { background: transparent; box-shadow: inset 0 0 0 1px var(--line2); color: var(--ink3); }

@@ -251,7 +251,7 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-4 rounded-[var(--radius-lg)] border border-[var(--line)] bg-base p-4"
               >
-                <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
+                <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
                   {usedLLM ? "Compris (IA)" : "Compris"}
                 </p>
                 <p className="mt-1.5 flex items-start gap-2 text-[16px] font-bold leading-snug text-primary">

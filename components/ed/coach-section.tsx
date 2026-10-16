@@ -58,7 +58,7 @@ export function CoachSection() {
             exit={{ opacity: 0, height: 0 }}
             className="mb-2 overflow-hidden ink-panel p-4 text-[var(--on-ink)]"
           >
-            <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
+            <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
               Tu t&apos;étais engagé
             </p>
             <p className="mt-1 text-[15px] font-bold">{a.title}</p>

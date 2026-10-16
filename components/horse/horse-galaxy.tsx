@@ -95,7 +95,7 @@ export function HorseGalaxy({ items }: { items: HorseWithPnl[] }) {
           );
         })}
       </svg>
-      <p className="mt-2 text-center text-2xs text-tertiary">
+      <p className="mt-2 text-center text-xs text-tertiary">
         Taille = chiffre d&apos;affaires · couleur = marge nette
       </p>
     </div>

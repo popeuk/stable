@@ -78,7 +78,7 @@ export function FirstRun() {
           color="var(--line)"
           className="pointer-events-none absolute -right-3 -top-3"
         />
-        <p className="relative text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
+        <p className="relative text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
           Bienvenue
         </p>
         <h1 className="relative mt-1 max-w-[18rem] font-[family-name:var(--font-bricolage)] text-2xl leading-tight text-primary">

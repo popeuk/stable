@@ -73,7 +73,7 @@ function Tab({
       style={{ color: "var(--on-ink)", opacity: active ? 1 : 0.55 }}
     >
       {tab.icon}
-      <span className="text-[9px] font-semibold">{tab.label}</span>
+      <span className="text-[12px] font-semibold">{tab.label}</span>
     </Link>
   );
 }

@@ -35,14 +35,14 @@ export function HorseCard({ item, index }: { item: HorseWithPnl; index: number }
               <p className="font-[family-name:var(--font-bricolage)] text-lg leading-tight text-primary">
                 {horse.name}
               </p>
-              <p className="text-2xs text-tertiary">
+              <p className="text-xs text-tertiary">
                 {horse.breed}
                 {horse.birthYear ? ` · ${new Date().getFullYear() - horse.birthYear} ans` : ""}
               </p>
             </div>
           </div>
           <span
-            className="flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs"
+            className="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
             style={{
               color:
                 trend === "hausse"
@@ -67,7 +67,7 @@ export function HorseCard({ item, index }: { item: HorseWithPnl; index: number }
               animateOnMount={false}
             />
             {underThreshold && (
-              <span className="ml-2 rounded-full bg-[var(--mist)] px-2 py-0.5 text-[10px] text-[var(--out)]">
+              <span className="ml-2 rounded-full bg-[var(--mist)] px-2 py-0.5 text-[12px] text-[var(--out)]">
                 sous le seuil
               </span>
             )}

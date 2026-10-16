@@ -25,7 +25,7 @@ export function SyncIndicator() {
 
   return (
     <div
-      className="flex items-center gap-1.5 text-2xs text-tertiary"
+      className="flex items-center gap-1.5 text-xs text-tertiary"
       title={label}
       aria-label={label}
     >

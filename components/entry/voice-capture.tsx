@@ -67,7 +67,7 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
           animate={{ y: 0, opacity: 1 }}
           className="w-full max-w-sm rounded-[var(--radius-xl)] border bg-elevated p-6 text-center"
         >
-          <p className="text-2xs uppercase tracking-wide text-tertiary">J&apos;ai compris</p>
+          <p className="text-xs uppercase tracking-wide text-tertiary">J&apos;ai compris</p>
           <p className="mt-2 font-[family-name:var(--font-bricolage)] text-2xl text-primary">
             {parsed.summary}
           </p>
@@ -90,7 +90,7 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
               <Check size={16} /> C’est bon
             </button>
           </div>
-          <p className="mt-4 text-[10px] text-tertiary">
+          <p className="mt-4 text-[12px] text-tertiary">
             Démo : transcription simulée. La saisie vocale réelle passe par
             Whisper + Claude.
           </p>

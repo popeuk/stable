@@ -65,7 +65,7 @@ export function TimeRibbon() {
                 />
               </div>
               <span
-                className="text-[9px] uppercase leading-none"
+                className="text-[12px] uppercase leading-none"
                 style={{
                   color: isActive ? "var(--ink)" : "var(--ink3)",
                 }}
@@ -77,7 +77,7 @@ export function TimeRibbon() {
         })}
       </div>
       <div className="mx-auto flex max-w-[480px] items-center justify-between px-4 pb-2">
-        <span className="text-2xs capitalize text-tertiary">
+        <span className="text-xs capitalize text-tertiary">
           {formatShortMonth(active)} {active.year} ·{" "}
           <span className="tabnums" style={{ color: (activeBar?.value ?? 0) >= 0 ? "var(--in)" : "var(--out)" }}>
             {formatEurCompact(activeBar?.value ?? 0)}

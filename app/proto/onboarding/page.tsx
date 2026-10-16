@@ -76,7 +76,7 @@ export default function ProtoOnboarding() {
       {/* Déclic */}
       <div className="mx-5 mt-5 border border-[var(--o-ink)]">
         <div className="flex items-center justify-between border-b border-[var(--o-line)] bg-[var(--o-ink)] px-5 py-2.5">
-          <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--o-bg)]">
+          <span className="text-[12px] font-bold uppercase tracking-wide text-[var(--o-bg)]">
             {"Ton résultat estimé / mois"}
           </span>
           <Tag tone={positive ? "green" : "red"}>{positive ? "Dans le vert" : "Dans le rouge"}</Tag>

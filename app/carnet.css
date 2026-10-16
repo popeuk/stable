@@ -14,17 +14,17 @@
 }
 .carnet .hd { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 14px 10px 18px; background: var(--sheet); border-bottom: 1px solid var(--line2); }
 .carnet .hd .wm { font-weight: 800; font-size: 18px; letter-spacing: -.035em; font-variation-settings: "wdth" 90; }
-.carnet .hd .stb { flex: 1; min-width: 0; font-size: 11.5px; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.carnet .hd .stb { flex: 1; min-width: 0; font-size: 12px; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .carnet .hd .ttl { flex: 1; min-width: 0; font-size: 14px; font-weight: 650; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .carnet .hd .back { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; margin-left: -8px; flex: none; }
 .carnet .hd .help { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ink3); flex: none; }
 .carnet .chip-fly { position: absolute; z-index: 70; pointer-events: none; font-size: 13px; font-weight: 750; color: var(--in); background: var(--sheet); padding: 3px 9px; border-radius: 20px; box-shadow: 0 8px 20px color-mix(in srgb, var(--ink) 18%, transparent); font-variant-numeric: tabular-nums; }
 .carnet .tb { flex: none; display: grid; grid-template-columns: 1fr 1fr 58px 1fr 1fr; align-items: center; padding: 6px 6px 22px; background: var(--sheet); border-top: 1px solid var(--line2); position: relative; z-index: 5; }
-.carnet .tb span { display: grid; justify-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--ink3); }
+.carnet .tb span { display: grid; justify-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--ink3); }
 .carnet .tb svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .tb .on { color: var(--ink); }
-.carnet .tb .plus { width: 46px; height: 46px; border-radius: 50%; background: var(--ink); color: var(--on-ink); display: flex; align-items: center; justify-content: center; margin: -18px auto 0; box-shadow: 0 8px 18px color-mix(in srgb, var(--ink) 25%, transparent); }
-.carnet .tb .plus svg { width: 22px; height: 22px; stroke-width: 2; }
+.carnet .tb .plus { width: 56px; height: 56px; border-radius: 50%; background: var(--ink); color: var(--on-ink); display: flex; align-items: center; justify-content: center; margin: -24px auto 0; box-shadow: 0 8px 18px color-mix(in srgb, var(--ink) 25%, transparent); }
+.carnet .tb .plus svg { width: 24px; height: 24px; stroke-width: 2; }
 .carnet .ill { display: block; user-select: none; -webkit-user-drag: none; }
 .carnet .mul { mix-blend-mode: multiply; }
 .carnet .in { color: var(--in); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -49,7 +49,7 @@
 .carnet .sec.blk { margin: 14px 14px 0; padding: 14px 14px 14px 10px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent); }
 .carnet .sec.blk :is(h2, h4) { border-bottom-color: var(--line2); }
 .carnet .card { border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent); padding: 16px; }
-.carnet .card .k, .carnet .k { margin: 0; font-size: 11.5px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
+.carnet .card .k, .carnet .k { margin: 0; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
 .carnet .big { font-size: 44px; font-weight: 780; letter-spacing: -.03em; line-height: 1; margin: 8px 0 0; font-variation-settings: "wdth" 86; }
 .carnet .mid { font-size: 26px; font-weight: 760; letter-spacing: -.02em; line-height: 1.05; font-variation-settings: "wdth" 88; }
 .carnet .bar { position: relative; height: 6px; border-radius: 3px; background: var(--mist); margin-top: 12px; overflow: hidden; }
@@ -60,7 +60,7 @@
 .carnet .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .carnet .trio div { padding: 10px 10px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .trio b { display: block; font-size: 17px; font-weight: 750; font-variant-numeric: tabular-nums; }
-.carnet .trio small { font-size: 11.5px; color: var(--ink3); line-height: 1.25; display: block; margin-top: 2px; }
+.carnet .trio small { font-size: 12px; color: var(--ink3); line-height: 1.25; display: block; margin-top: 2px; }
 .carnet .rows { display: grid; }
 .carnet .row { display: grid; grid-template-columns: 40px 1fr auto 28px; align-items: center; gap: 8px; padding: 11px 0; border-bottom: 1px solid var(--line2); }
 .carnet .row:last-child { border-bottom: 0; }
@@ -89,17 +89,17 @@
 .carnet .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border: 0; border-radius: 6px; background: var(--ink); color: var(--on-ink); font-weight: 650; font-size: 14px; padding: 0 16px; cursor: pointer; text-decoration: none; }
 .carnet .btn.full { width: 100%; }
 .carnet .btn.line { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
-.carnet .btn.ghost { background: transparent; color: var(--ink2); height: 36px; padding: 0 6px; }
+.carnet .btn.ghost { background: transparent; color: var(--ink2); height: 44px; padding: 0 8px; }
 /* Supprimer n'est pas de l'argent qui sort : encre et poubelle, la gravité passe par le texte et la confirmation. */
 .carnet .btn.danger { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
 .carnet .btn.danger:not(:has(svg))::before { content: ""; width: 16px; height: 16px; flex: none; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6'/%3E%3C/svg%3E") center / contain no-repeat; }
 .carnet .btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .lnk { color: var(--ink); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; background: none; border: 0; padding: 0; cursor: pointer; font-size: 13.5px; }
 .carnet .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 3px; border-radius: 8px; background: var(--mist); }
-.carnet .seg button { border: 0; background: none; padding: 8px 6px; border-radius: 6px; font-size: 13px; font-weight: 600; color: var(--ink2); cursor: pointer; white-space: nowrap; }
+.carnet .seg button { position: relative; min-height: 38px; border: 0; background: none; padding: 8px 6px; border-radius: 6px; font-size: 13px; font-weight: 600; color: var(--ink2); cursor: pointer; white-space: nowrap; }
 .carnet .seg button[aria-selected="true"], .carnet .seg button.on { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 3px color-mix(in srgb, var(--ink) 10%, transparent); }
-.carnet .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.carnet .chip { border: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); border-radius: 20px; padding: 7px 12px; font-size: 13px; font-weight: 600; color: var(--ink2); cursor: pointer; white-space: nowrap; }
+.carnet .chips { display: flex; flex-wrap: wrap; gap: 8px 6px; }
+.carnet .chip { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); border-radius: 20px; padding: 7px 12px; font-size: 13px; font-weight: 600; color: var(--ink2); cursor: pointer; white-space: nowrap; }
 .carnet .chip.on, .carnet .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); box-shadow: none; }
 .carnet .field { display: grid; gap: 6px; }
 .carnet .field > span:not(.input) { font-size: 13px; font-weight: 650; color: var(--ink); }
@@ -109,7 +109,7 @@
 .carnet .input .u { margin-left: auto; color: var(--ink3); font-size: 13px; }
 .carnet .input.ph { color: var(--ink3); }
 .carnet .stepper { display: inline-flex; align-items: center; gap: 14px; }
-.carnet .stepper button { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font-size: 20px; cursor: pointer; }
+.carnet .stepper button { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font-size: 20px; cursor: pointer; }
 .carnet .stepper b { font-size: 28px; font-weight: 760; min-width: 28px; text-align: center; font-variant-numeric: tabular-nums; }
 .carnet .switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line2); font-size: 14px; }
 .carnet .switch i { width: 44px; height: 26px; border-radius: 13px; background: var(--line); position: relative; flex: none; transition: background .2s; }
@@ -124,7 +124,7 @@
 .carnet .ticket::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 8px; background: linear-gradient(-45deg, transparent 6px, var(--sheet) 0) 0 0 / 12px 8px repeat-x, linear-gradient(45deg, transparent 6px, var(--sheet) 0) 0 0 / 12px 8px repeat-x; filter: drop-shadow(0 1px 0 var(--line)); }
 .carnet .ticket .r { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; }
 .carnet .ticket .r span:first-child { color: var(--ink2); }
-.carnet .ticket .r small { display: block; font-size: 10.5px; color: var(--ink3); }
+.carnet .ticket .r small { display: block; font-size: 12px; color: var(--ink3); }
 .carnet .ticket .r.new { background: color-mix(in srgb, var(--hay) 18%, transparent); margin: 0 -8px; padding: 4px 8px; border-radius: 3px; }
 .carnet .ticket .tot { border-top: 1px dashed var(--ink3); margin-top: 8px; padding-top: 10px; font-weight: 600; font-size: 14px; }
 .carnet .ticket .tot span:first-child { color: var(--ink); }
@@ -142,10 +142,10 @@
 .carnet .promo .ping { position: absolute; left: 56%; top: 10%; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; border: 2px solid var(--sheet); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 25%, transparent); animation: cn-promo-ping 2.4s var(--ease) infinite; }
 @keyframes cn-promo-ping { 0% { transform: scale(.35); opacity: .9; } 70%, 100% { transform: scale(1.5); opacity: 0; } }
 .carnet .promo .bd { display: grid; gap: 8px; padding: 14px 18px 18px; border-top: 1px solid color-mix(in srgb, var(--ink) 6%, transparent); }
-.carnet .promo .tag { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--ink2); }
+.carnet .promo .tag { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--ink2); }
 .carnet .promo strong { font-size: 21px; font-weight: 760; line-height: 1.12; letter-spacing: -.02em; font-variation-settings: "wdth" 88; text-wrap: balance; }
 .carnet .promo .tx { font-size: 14px; line-height: 1.45; color: var(--ink2); }
-.carnet .promo .cta { justify-self: start; display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; height: 42px; padding: 0 16px; border-radius: 6px; background: var(--ink); color: var(--on-ink); font-size: 14px; font-weight: 650; }
+.carnet .promo .cta { justify-self: start; display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; height: 44px; padding: 0 16px; border-radius: 6px; background: var(--ink); color: var(--on-ink); font-size: 14px; font-weight: 650; }
 .carnet .promo .cta svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s var(--ease); }
 .carnet .promo:hover .cta svg { transform: translateX(3px); }
 .carnet .promo.small .art { height: 130px; }
@@ -193,8 +193,8 @@
 .carnet .aide .aide-t { margin: 0; font-size: 18px; font-weight: 740; padding-right: 36px; letter-spacing: -.01em; }
 .carnet .aide ol { list-style: none; counter-reset: a; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
 .carnet .aide li { counter-increment: a; position: relative; padding-left: 28px; font-size: 14px; line-height: 1.45; color: var(--line); }
-.carnet .aide li::before { content: counter(a); position: absolute; left: 0; top: 1px; width: 20px; height: 20px; border-radius: 50%; background: var(--sheet); color: var(--ink); font-size: 11.5px; font-weight: 750; display: flex; align-items: center; justify-content: center; }
-.carnet .aide .ok { margin-top: 12px; height: 40px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--sheet); color: var(--ink); font-weight: 650; font-size: 14px; }
+.carnet .aide li::before { content: counter(a); position: absolute; left: 0; top: 1px; width: 20px; height: 20px; border-radius: 50%; background: var(--sheet); color: var(--ink); font-size: 12px; font-weight: 750; display: flex; align-items: center; justify-content: center; }
+.carnet .aide .ok { margin-top: 12px; height: 44px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--sheet); color: var(--ink); font-weight: 650; font-size: 14px; }
 .carnet .aide .x { position: absolute; right: 8px; top: 8px; background: color-mix(in srgb, var(--on-ink) 12%, transparent); }
 .carnet .aide .x svg { stroke: var(--sheet); }
 .carnet .toast { position: absolute; left: 12px; right: 12px; bottom: 92px; z-index: 30; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; background: var(--ink); color: var(--on-ink); font-size: 13.5px; box-shadow: 0 10px 26px color-mix(in srgb, var(--ink) 25%, transparent); }
@@ -226,7 +226,7 @@
 .carnet .dhead p { margin: 8px 0 0; color: var(--ink2); font-size: 15px; }
 .carnet .cols2 { display: grid; grid-template-columns: 1.25fr 1fr; gap: 10px 32px; }
 .carnet .tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 16px; }
-.carnet .tbl th { text-align: left; font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.carnet .tbl th { text-align: left; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); padding: 8px 10px; border-bottom: 1px solid var(--line); }
 .carnet .tbl td { padding: 10px; border-bottom: 1px solid var(--line2); vertical-align: middle; }
 .carnet .tbl .n { text-align: right; font-variant-numeric: tabular-nums; }
 .carnet .tbl tfoot td { font-weight: 700; border-bottom: 0; border-top: 1px solid var(--line); }
@@ -250,12 +250,12 @@
 .carnet .hd .help, .carnet .hd .back { border: 0; background: none; padding: 0; cursor: pointer; }
 .carnet .tb { position: fixed; display: block; left: 0; right: 0; bottom: 0; z-index: 35; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
 .carnet .tb > div { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 58px 1fr 1fr; align-items: center; }
-.carnet .tb a, .carnet .tb button { display: grid; justify-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--ink3); text-decoration: none; background: none; border: 0; padding: 4px 0; cursor: pointer; }
+.carnet .tb a, .carnet .tb button { display: grid; justify-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--ink3); text-decoration: none; background: none; border: 0; padding: 4px 0; cursor: pointer; }
 .carnet .tb [aria-current="page"] { color: var(--ink); }
-.carnet .tb .plus { width: 46px; height: 46px; padding: 0; border-radius: 50%; background: var(--ink); color: var(--on-ink); display: flex; align-items: center; justify-content: center; margin: -18px auto 0; box-shadow: 0 8px 18px color-mix(in srgb, var(--ink) 25%, transparent); }
+.carnet .tb .plus { width: 56px; height: 56px; padding: 0; border-radius: 50%; background: var(--ink); color: var(--on-ink); display: flex; align-items: center; justify-content: center; margin: -24px auto 0; box-shadow: 0 8px 18px color-mix(in srgb, var(--ink) 25%, transparent); }
 .carnet .tb svg, .carnet .hd svg, .carnet .cn-ic { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .carnet .cn-ic.sm { width: 16px; height: 16px; }
-.carnet .tb .plus svg { width: 22px; height: 22px; stroke-width: 2; }
+.carnet .tb .plus svg { width: 24px; height: 24px; stroke-width: 2; }
 .carnet .input { font: inherit; font-size: 15px; outline: none; }
 .carnet input.input::placeholder, .carnet textarea.input::placeholder { color: var(--ink3); }
 .carnet textarea.input { resize: vertical; }
@@ -273,8 +273,8 @@
   .carnet .cn-side .stb { margin: 0 8px 14px; font-size: 12px; color: var(--ink3); }
   .carnet .cn-side .add { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border-radius: 6px; background: var(--ink); color: var(--on-ink); font-weight: 650; margin-bottom: 6px; border: 0; cursor: pointer; }
   .carnet .cn-side .find { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 6px; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink3); margin-bottom: 4px; border: 0; background: none; cursor: pointer; }
-  .carnet .cn-side kbd { margin-left: auto; font-family: var(--mono); font-size: 11px; opacity: .7; }
-  .carnet .cn-side .grp { font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); margin: 14px 10px 4px; }
+  .carnet .cn-side kbd { margin-left: auto; font-family: var(--mono); font-size: 12px; opacity: .7; }
+  .carnet .cn-side .grp { font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); margin: 14px 10px 4px; }
   .carnet .cn-side .it { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px; color: var(--ink2); text-decoration: none; font-size: 14px; }
   .carnet .cn-side .it svg { width: 17px; height: 17px; }
   .carnet .cn-side .it em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--ink3); font-variant-numeric: tabular-nums; }
@@ -282,7 +282,7 @@
   .carnet .cn-side .it em.attn { color: var(--on-ink); background: var(--ink); padding: 0 7px; border-radius: 10px; font-weight: 700; }
   .carnet .cn-side .it[aria-current="page"] { background: var(--mist); color: var(--ink); font-weight: 600; }
   .carnet .cn-side .goal { margin-top: 16px; padding: 12px; border-radius: 8px; background: var(--mist); text-decoration: none; color: var(--ink); display: grid; gap: 4px; }
-  .carnet .cn-side .goal .k { font-size: 10.5px; }
+  .carnet .cn-side .goal .k { font-size: 12px; }
   .carnet .cn-side .goal b { font-size: 18px; font-weight: 760; color: var(--in); }
   .carnet .cn-side .ft { margin-top: 10px; display: grid; gap: 2px; }
   .carnet .cn-main { max-width: none; margin: 0 0 0 232px; padding: 0 0 60px; }
@@ -311,3 +311,18 @@ html { touch-action: manipulation; }
 @media (max-width: 1023px) {
   input, select, textarea { font-size: max(16px, 1em); }
 }
+
+/* =====================================================================
+   Cibles tactiles de 44 px (gants, pouce, plein jour). Quand le dessin
+   doit rester petit, la zone s'étend autour par un ::after centré, comme
+   la loupe de l'en-tête (.ac-srch). Les champs remplissent leur boîte :
+   un appui n'importe où dans le cadre met le curseur dedans.
+   ===================================================================== */
+.carnet :where(.ck, .ar-bin, .hd .back, .hd .help, .hd .wm, .x, .jr-per .nav button, .ar-mnav button, .ec-mnav button, .ch-mnav button, .ch-sw, .ar-dots button, .lnk, .ar-link, .ar-obh, .cl-add, .pp-add, .sec :is(h2, h4) a, .sec :is(h2, h4) .act, .ch-tags a, .jr-open, .cl-key a) { position: relative; }
+.carnet :is(.ck, .ar-bin, .hd .back, .hd .help, .hd .wm, .x, .jr-per .nav button, .ar-mnav button, .ec-mnav button, .ch-mnav button, .ch-sw, .ar-dots button, .lnk, .ar-link, .ar-obh, .cl-add, .pp-add, .sec :is(h2, h4) a, .sec :is(h2, h4) .act, .ch-tags a, .jr-open, .cl-key a)::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
+.carnet .seg button::after { content: ""; position: absolute; inset: -3px 0; }
+.carnet .input > input, .carnet .input > select, .carnet .input > textarea { align-self: stretch; flex: 1 1 auto; width: 100%; min-width: 0; height: auto; min-height: 0; }
+.carnet .ac-promo-x::after, .carnet .cn-term::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
+.carnet .cn-term { position: relative; }
+.carnet .tb a, .carnet .tb button:not(.plus) { min-height: 48px; }
+
