@@ -324,7 +324,35 @@ export function buildDemoData(now = new Date()): StableData {
     { id: "task-foin", title: "Deux devis de foin à l’année", listId: "list-doing", labels: ["Écurie"], forWho: [], checklist: [], comments: [], sort: 2 },
   ];
   const monthKeyNow = today.slice(0, 7);
-  const payments: Payment[] = [0, 3].map((i) => ({ id: `pay-${i}`, payer: DEMO_HORSES[i].owner, month: monthKeyNow, amount: DEMO_HORSES[i].pension, at: now.toISOString() }));
+  // Paiements réalistes : les mois d'avant sont réglés. Ce mois-ci, la plupart
+  // des propriétaires ont payé leur pension, trois doivent encore la leur, et
+  // les extras (cours, soins refacturés) restent dus.
+  const owner = new Map(horses.map((h) => [h.id, h.ownerName ?? ""]));
+  const dues = new Map<string, number>();
+  for (const r of revenues) {
+    const m = r.date.slice(0, 7);
+    if (m >= monthKeyNow) continue;
+    const who = r.payer ?? owner.get(r.horseId) ?? "";
+    if (!who) continue;
+    const k = `${who}|${m}`;
+    dues.set(k, (dues.get(k) ?? 0) + r.amount);
+  }
+  const payments: Payment[] = [...dues].map(([k, amount], i) => {
+    const [payer, month] = k.split("|");
+    return { id: `pay-old-${i}`, payer, month, amount: Math.round(amount * 100) / 100, at: `${month}-05T09:00:00.000Z` };
+  });
+  // Ce mois : la pension réellement comptée, payée par tous sauf trois.
+  const pensionDuMois = new Map<string, number>();
+  for (const r of revenues) {
+    if (r.date.slice(0, 7) !== monthKeyNow || r.categoryId !== pensionCat || r.payer) continue;
+    const who = owner.get(r.horseId) ?? "";
+    if (who) pensionDuMois.set(who, (pensionDuMois.get(who) ?? 0) + r.amount);
+  }
+  const doiventEncore = new Set([1, 4, 6].map((i) => DEMO_HORSES[i].owner));
+  [...pensionDuMois].forEach(([payer, amount], i) => {
+    if (doiventEncore.has(payer)) return;
+    payments.push({ id: `pay-${i}`, payer, month: monthKeyNow, amount: Math.round(amount * 100) / 100, at: now.toISOString() });
+  });
 
   return {
     horses,

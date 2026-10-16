@@ -1,29 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useMemo, useState } from "react";
+import { Fragment, Suspense, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { cap } from "@/components/bs/ui";
-import { Chips, CountUp, Empty, Face, Ic, Money, Page as Ecran, Pill, Sec, Seg, coatFilter, eur, ini, sg } from "@/components/carnet/ui";
-import { AEncaisser, ListePaniers, usePaniers } from "@/components/bs/paniers";
+import { Chips, CountUp, Empty, Face, Ic, Ill, Money, Page as Ecran, Pill, Sec, Seg, coatFilter, eur, ini, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { reconciledNets, monthBreakdown, horseTicket } from "@/lib/domain/ticket";
 import { suggestions } from "@/lib/domain/leviers";
 import { useDesk } from "@/components/bs/desk";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BUCKET_LABEL, clientRevenues, type ClientBucket, type ClientRevenue } from "@/lib/domain/clients";
-import { currentPeriod } from "@/lib/utils/period";
+import { accord, clientDues, prenomDe, type ClientDue } from "@/lib/domain/clients";
+import { monthKey } from "@/lib/domain/billing";
+import { clientsAFairePayer } from "@/lib/domain/compte-auto";
+import { addMonths, currentPeriod, daysInMonth } from "@/lib/utils/period";
 import { CARE_META, upcomingDeadlines, type Deadline } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
-import type { Horse } from "@/lib/domain/types";
+import type { Horse, Period, PersonRole } from "@/lib/domain/types";
 
 /**
  * Clients et chevaux : un onglet, deux vues.
- * Clients : les paniers à valider, ce qui reste à encaisser, puis tout le monde.
- * Chevaux : le cheval à surveiller en tête, puis ce que chacun te laisse.
- * Vue par défaut : Clients quand des paniers attendent (l'onglet de la barre
- * porte leur badge), sinon Chevaux. `?vue=clients` ou `?vue=chevaux` force la vue.
+ * Clients (en premier) : qui te doit quoi, trié par ce qu'ils doivent, et
+ * le bandeau de fin de mois. Chevaux : le cheval à surveiller en tête,
+ * puis ce que chacun te laisse. `?vue=chevaux` ouvre les chevaux.
  */
 export default function Page() {
   return (
@@ -40,8 +41,7 @@ type Vue = "chevaux" | "clients";
 function Vues() {
   const router = useRouter();
   const brut = useSearchParams().get("vue");
-  const { count } = usePaniers();
-  const [vue, setVue] = useState<Vue>(brut === "clients" || brut === "chevaux" ? brut : count > 0 ? "clients" : "chevaux");
+  const [vue, setVue] = useState<Vue>(brut === "chevaux" ? "chevaux" : "clients");
   const choisir = (v: Vue) => {
     setVue(v);
     router.replace(`/chevaux?vue=${v}`, { scroll: false });
@@ -52,7 +52,7 @@ function Vues() {
       onChange={choisir}
       label="Voir"
       options={[
-        ["clients", count > 0 ? `Clients · ${count}` : "Clients"],
+        ["clients", "Clients"],
         ["chevaux", "Chevaux"],
       ]}
     />
@@ -60,7 +60,6 @@ function Vues() {
   return vue === "clients" ? <Clients bascule={bascule} /> : <Chevaux bascule={bascule} />;
 }
 
-const BUCKETS: ClientBucket[] = ["pension", "seances", "soins", "autres"];
 const moisDe = () => cap(new Date().toLocaleDateString("fr-FR", { month: "long" }));
 const formule = (h: Horse) => (h.pensionType ?? "pension").toLowerCase();
 const quand = (d: Deadline) => (d.daysLeft < 0 ? `en retard de ${-d.daysLeft} j` : d.daysLeft === 0 ? "aujourd’hui" : `dans ${d.daysLeft} j`);
@@ -83,39 +82,159 @@ function Haut({ bascule }: { bascule: React.ReactNode }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Clients : à valider, à encaisser, puis tout le monde                */
+/* Tes clients : qui te doit quoi, du plus gros au plus petit           */
 /* ------------------------------------------------------------------ */
-type Ligne = ClientRevenue & { phone?: string };
+
+const MOIS_COURT = (p: Period) => cap(new Date(p.year, p.month - 1, 15).toLocaleDateString("fr-FR", { month: "long" }));
+const ficheDe = (name: string, mois?: string) => `/client?nom=${encodeURIComponent(name)}${mois ? `&mois=${mois}` : ""}`;
+
+/** Le bandeau de fin de mois : les 3 derniers jours, puis les 5 premiers du mois suivant. */
+function FinDuMois({ today }: { today: string }) {
+  const data = useDataStore();
+  const fin = useMemo(() => clientsAFairePayer(data, today), [data, today]);
+  if (!fin) return null;
+  const { period, bills } = fin;
+  const n = bills.length;
+  const mois = MOIS_COURT(period);
+  const enCours = today.slice(0, 7) === monthKey(period);
+  const reste = daysInMonth(period) - Number(today.slice(8, 10));
+  const quand = !enCours ? `${mois} est fini.` : reste === 0 ? `${mois} se termine aujourd’hui.` : reste === 1 ? `${mois} se termine demain.` : `${mois} se termine dans ${reste} jours.`;
+  const suivant = MOIS_COURT(addMonths(period, 1)).toLowerCase();
+  if (!n)
+    return (
+      <div className="cl-ban rise">
+        <Ill n="gerant-rosette" />
+        <div>
+          <b>Tout le monde a payé.</b>
+          <span>
+            {mois} est bouclé. Rien à faire avant fin {suivant}.
+          </span>
+        </div>
+      </div>
+    );
+  return (
+    <div className="cl-ban rise">
+      <Ill n="gerant-buste" />
+      <div>
+        <b>
+          Fin du mois : {n} client{n > 1 ? "s" : ""} à faire payer
+        </b>
+        <span>
+          {quand} Envoie à chacun ce qu’il te doit, puis touche «&nbsp;Il a payé&nbsp;».
+        </span>
+        {!enCours && (
+          <span className="cl-banw">
+            {bills.map((b, i) => (
+              <Fragment key={b.payer}>
+                {i > 0 && ", "}
+                <Link href={ficheDe(b.payer, monthKey(period))}>{prenomDe(b.payer)}</Link>
+              </Fragment>
+            ))}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Sa tête : celle de son cheval, sinon ses initiales. */
+function Tete({ c }: { c: ClientDue }) {
+  const h = useDataStore((s) => s.horses.find((x) => !x.isArchived && x.ownerName === c.name));
+  return h ? <Face horse={h} /> : <span className="ini">{ini(c.name)}</span>;
+}
+
+const quiEst = (c: ClientDue) => (c.role === "proprietaire" ? (c.horses.length ? c.horses.join(", ") : "propriétaire") : accord(c.name, "cavalier", "cavalière"));
+const sousLigne = (c: ClientDue) =>
+  c.due > 0 ? (c.horses.length ? `${c.horses.join(", ")} · ${c.paieALaSeance ? "à la séance" : "au mois"}` : c.paieALaSeance ? "à la séance" : quiEst(c)) : quiEst(c);
+
+function LigneClient({ c }: { c: ClientDue }) {
+  return (
+    <Link href={ficheDe(c.name)} className="cl-row">
+      <Tete c={c} />
+      <span className="cl-rt">
+        <b>{c.name}</b>
+        <small>{sousLigne(c)}</small>
+      </span>
+      {c.due > 0 ? (
+        <span className="cl-amt">
+          <small>te doit</small>
+          <b>{eur(c.due)}</b>
+        </span>
+      ) : (
+        <span className="cl-ok">à jour</span>
+      )}
+      <Ic n="chev" className="chev" />
+    </Link>
+  );
+}
+
+/** Ajouter un client : un nom, propriétaire ou cavalier, et sa fiche s'ouvre. */
+function AjouterClient({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  const [nom, setNom] = useState("");
+  const [role, setRole] = useState<PersonRole>("cavalier");
+  const ok = () => {
+    const n = nom.trim();
+    if (!n) return;
+    useDataStore.getState().ensurePerson(n, role);
+    onClose();
+    router.push(ficheDe(n));
+  };
+  return createPortal(
+    <div className="carnet carnet-portal">
+      <div className="sheet-wrap open">
+        <div className="scrim" onClick={onClose} />
+        <div className="sheet" role="dialog" aria-modal="true" aria-label="Ajouter un client">
+          <div className="grab" />
+          <div className="shd">
+            <b>Ajouter un client</b>
+            <button type="button" className="x" onClick={onClose} aria-label="Fermer">
+              <Ic n="x" className="" />
+            </button>
+          </div>
+          <div className="pad cl-form">
+            <input className="input" placeholder="Son nom" value={nom} autoFocus onChange={(e) => setNom(e.target.value)} onKeyDown={(e) => e.key === "Enter" && ok()} aria-label="Son nom" />
+            <Seg<PersonRole>
+              value={role}
+              onChange={setRole}
+              label="Qui est-ce ?"
+              options={[
+                ["cavalier", "Monte en cours"],
+                ["proprietaire", "A un cheval ici"],
+              ]}
+            />
+            <button type="button" className="btn full" disabled={!nom.trim()} onClick={ok}>
+              Ajouter
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
 
 function Clients({ bascule }: { bascule: React.ReactNode }) {
   const data = useDataStore();
   const desk = useDesk();
   const router = useRouter();
-  const { count, total: aValider } = usePaniers();
   const [q, setQ] = useState("");
+  const [ajout, setAjout] = useState(false);
+  const today = localToday();
   const period = useMemo(() => currentPeriod(), []);
-  const rows = useMemo<Ligne[]>(() => {
-    const people = (data.people ?? []).filter((p) => p.active);
-    const phone = (name: string) => people.find((p) => p.name === name)?.phone;
-    const rev = clientRevenues(data, period);
-    const seen = new Set(rev.map((r) => r.name));
-    const zero = { pension: 0, seances: 0, soins: 0, autres: 0 };
-    const autres = people
-      .filter((p) => !seen.has(p.name))
-      .sort((a, b) => a.name.localeCompare(b.name, "fr"))
-      .map((p) => ({ name: p.name, role: p.role, horses: data.horses.filter((h) => !h.isArchived && h.ownerName === p.name).map((h) => h.name), buckets: zero, total: 0 }));
-    return [...rev, ...autres].map((r) => ({ ...r, phone: phone(r.name) }));
-  }, [data, period]);
-  const shown = q ? rows.filter((c) => c.name.toLowerCase().includes(q.toLowerCase())) : rows;
-  const total = rows.reduce((t, c) => t + c.total, 0);
-  const month = moisDe();
-  const horseOf = (c: Ligne) => data.horses.find((h) => !h.isArchived && c.horses.includes(h.name));
-  const sub = (c: Ligne) => (c.role === "proprietaire" ? c.horses.join(", ") || "propriétaire" : "cavalier");
-  const href = (name: string) => `/clients?q=${encodeURIComponent(name)}`;
-  const valNote = count > 0 && (
-    <p className="note ch-cnt">
-      {count} client{count > 1 ? "s" : ""} · <span className="in">{sg(aValider)}</span> à valider
-    </p>
+  const rows = useMemo(() => clientDues(data, period), [data, period]);
+  const match = (c: ClientDue) => !q || c.name.toLowerCase().includes(q.trim().toLowerCase());
+  const doivent = rows.filter((c) => c.due > 0);
+  const total = doivent.reduce((t, c) => t + c.due, 0);
+  const n = doivent.length;
+  const owe = doivent.filter(match);
+  const ok = rows.filter((c) => c.due <= 0 && match(c)).sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const sub = n ? (
+    <>
+      {n} client{n > 1 ? "s" : ""} te {n > 1 ? "doivent" : "doit"} <b>{eur(total)}</b>
+    </>
+  ) : (
+    "Personne ne te doit rien."
   );
   const search = (
     <label className="input ch-search">
@@ -123,113 +242,77 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
       <input placeholder="Chercher un client" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Chercher un client" />
     </label>
   );
-  const vide = <p className="note">{q ? "Personne à ce nom." : "Personne pour l’instant. Un nom noté dans une séance devient un client tout seul."}</p>;
+  const ajouter = (
+    <button type="button" className="btn line" onClick={() => setAjout(true)}>
+      <Ic n="plus" className="" />
+      Ajouter un client
+    </button>
+  );
   const pros = (
-    <p className="ch-fn">
-      Le maréchal, le vétérinaire et les autres pros sont dans{" "}
+    <p className="cl-fn">
+      Le maréchal et le vétérinaire sont dans{" "}
       <Link className="lnk" href="/contacts">
         tes contacts
-      </Link>
-      .
+      </Link>{" "}
+      : ce sont des pros, pas des clients.
     </p>
   );
-  const valider = (
-    <Sec blk ill="confirmer" title="À valider" delay={0.08}>
-      {valNote}
-      <ListePaniers />
-    </Sec>
-  );
-  const encaisser = (
-    <Sec blk ill="sacoche" title="À encaisser" action={<Link href="/argent?vue=facturer">Le détail</Link>} delay={0.14}>
-      <AEncaisser />
-    </Sec>
-  );
+  const vide = rows.length === 0 ? <p className="note cl-vide">Personne pour l’instant. Un nom noté dans une séance devient un client tout seul.</p> : !owe.length && !ok.length ? <p className="note cl-vide">Personne à ce nom.</p> : null;
+  const feuille = ajout && <AjouterClient onClose={() => setAjout(false)} />;
 
   if (desk) {
+    const shown = [...owe, ...ok];
     return (
       <Ecran wide className="ch-desk">
         <div className="dhead rise">
           <div>
-            <p className="k">{month}</p>
-            <h3>Clients et chevaux</h3>
-            <p>
-              Tes clients t’ont payé <Money v={total} /> ce mois. Ceux qui te font le plus de chiffre d’affaires sont en haut.
-            </p>
+            <p className="k">{moisDe()}</p>
+            <h3>Tes clients</h3>
+            <p>{sub}</p>
           </div>
-          <Link href="/clients" className="btn line">
-            <Ic n="plus" className="" />
-            Ajouter un client
-          </Link>
+          {ajouter}
         </div>
+        <FinDuMois today={today} />
         <div className="ch-bar2 rise" style={{ animationDelay: ".08s" }}>
           {bascule}
           {search}
         </div>
-        <div className="cols2 ch-cols">
-          <div>
-            {shown.length === 0 ? (
-              <div style={{ marginTop: 14 }}>{vide}</div>
-            ) : (
-              <table className="tbl rise" style={{ animationDelay: ".14s" }}>
-                <thead>
-                  <tr>
-                    <th>Client</th>
-                    <th>Chevaux</th>
-                    <th>Téléphone</th>
-                    {BUCKETS.map((b) => (
-                      <th key={b} className="n">
-                        {b === "seances" ? "Séances" : b === "soins" ? "Soins" : BUCKET_LABEL[b]}
-                      </th>
-                    ))}
-                    <th className="n">Total du mois</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shown.map((c) => (
-                    <tr key={c.name} className="go" onClick={() => router.push(href(c.name))}>
-                      <td>
-                        <Link href={href(c.name)} className="who" onClick={(e) => e.stopPropagation()}>
-                          <span className="ini">{ini(c.name)}</span>
-                          {c.name}
-                        </Link>
-                      </td>
-                      <td className="m">{c.role === "proprietaire" ? c.horses.join(", ") : "cavalier"}</td>
-                      <td className="m">{c.phone ?? ""}</td>
-                      {BUCKETS.map((b) => (
-                        <td key={b} className={`n${c.buckets[b] ? "" : " m"}`}>
-                          {c.buckets[b] ? eur(c.buckets[b]) : "·"}
-                        </td>
-                      ))}
-                      <td className="n">{c.total ? <b>{eur(c.total)}</b> : <span className="m">·</span>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                {shown.length > 1 && (
-                  <tfoot>
-                    <tr>
-                      <td colSpan={3}>{shown.length} clients</td>
-                      {BUCKETS.map((b) => {
-                        const s = shown.reduce((t, c) => t + c.buckets[b], 0);
-                        return (
-                          <td key={b} className="n">
-                            {s ? eur(s) : "·"}
-                          </td>
-                        );
-                      })}
-                      <td className="n">{eur(shown.reduce((t, c) => t + c.total, 0))}</td>
-                    </tr>
-                  </tfoot>
-                )}
-              </table>
-            )}
-            <p className="ch-fn">Ici, seulement ce que chaque client te paie. Ce que coûte son cheval n’est pas déduit : c’est sur le ticket du cheval, dans la vue Chevaux.</p>
-            {pros}
-          </div>
-          <div className="ch-stick">
-            {valider}
-            {encaisser}
-          </div>
-        </div>
+        {vide}
+        {shown.length > 0 && (
+          <table className="tbl rise" style={{ animationDelay: ".14s" }}>
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Chevaux</th>
+                <th>Téléphone</th>
+                <th>Paie</th>
+                <th className="n">Ce mois</th>
+                <th className="n">Payé</th>
+                <th className="n">Te doit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((c) => (
+                <tr key={c.name} className="go" onClick={() => router.push(ficheDe(c.name))}>
+                  <td>
+                    <Link href={ficheDe(c.name)} className="who" onClick={(e) => e.stopPropagation()}>
+                      <Tete c={c} />
+                      {c.name}
+                    </Link>
+                  </td>
+                  <td className="m">{c.horses.join(", ") || quiEst(c)}</td>
+                  <td className="m">{c.phone ?? ""}</td>
+                  <td className="m">{c.paieALaSeance ? "à la séance" : "au mois"}</td>
+                  <td className="n">{c.total ? eur(c.total) : "·"}</td>
+                  <td className="n m">{c.paid ? eur(c.paid) : "·"}</td>
+                  <td className="n">{c.due > 0 ? <b>{eur(c.due)}</b> : <span className="m">à jour</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {pros}
+        {feuille}
         <div className="end" />
       </Ecran>
     );
@@ -238,32 +321,36 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
   return (
     <Ecran>
       <Haut bascule={bascule} />
-      {valider}
-      {encaisser}
-      <Sec ill="gerant-buste" title="Tous les clients" action={<Link href="/clients">+ Ajouter</Link>} delay={0.2}>
-        <div className="ch-find">{search}</div>
-        <p className="note">
-          Ce qu’ils t’ont payé en {month.toLowerCase()} : <span className="in">{sg(total)}</span>.
-        </p>
-        {shown.length === 0 && vide}
-        <div className="rows">
-          {shown.map((c) => {
-            const h = horseOf(c);
-            return (
-              <Link key={c.name} href={href(c.name)} className="li ch-cli">
-                {h ? <Face horse={h} /> : <span className="ini">{ini(c.name)}</span>}
-                <span style={{ minWidth: 0 }}>
-                  <b>{c.name}</b>
-                  <small>{sub(c)}</small>
-                  {c.phone && <small className="pt">{c.phone}</small>}
-                </span>
-                {c.total ? <Pill tone="in">{sg(c.total)}</Pill> : <small>rien ce mois</small>}
-              </Link>
-            );
-          })}
-        </div>
-        {pros}
-      </Sec>
+      <FinDuMois today={today} />
+      <div className="cl-ttl rise">
+        <h3>Tes clients</h3>
+        <p>{sub}</p>
+      </div>
+      {rows.length > 6 && <div className="cl-find">{search}</div>}
+      {owe.length > 0 && (
+        <>
+          <p className="k cl-lk">Ils te doivent</p>
+          <div className="cl-rows">
+            {owe.map((c) => (
+              <LigneClient key={c.name} c={c} />
+            ))}
+          </div>
+        </>
+      )}
+      {ok.length > 0 && (
+        <>
+          <p className="k cl-lk">Ils ne te doivent plus rien</p>
+          <div className="cl-rows">
+            {ok.map((c) => (
+              <LigneClient key={c.name} c={c} />
+            ))}
+          </div>
+        </>
+      )}
+      {vide}
+      <div className="cl-tools">{ajouter}</div>
+      {pros}
+      {feuille}
       <div className="end" />
     </Ecran>
   );

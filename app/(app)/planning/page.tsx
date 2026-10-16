@@ -9,10 +9,10 @@ import { PlanningTaches, PlanningTachesHaut } from "@/components/bs/planning-tac
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
 import { CountUp, Empty, Ic, Seg, Sec, sg, type IllName } from "@/components/carnet/ui";
-import { DayBlock, iconOf, lateLabel, moneyCls } from "@/components/bs/day-block";
+import { DayBlock, aCompte, iconOf, moneyCls } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { dayItems, dayTones, seanceAmount, toValidate, type DayItem } from "@/lib/domain/seances";
+import { dayItems, dayTones, seanceAmount, type DayItem } from "@/lib/domain/seances";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { localToday } from "@/lib/utils/local-date";
 
@@ -75,7 +75,7 @@ function Planning() {
   const monthDays = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i)).filter((d, i) => i < 35 || d.slice(0, 7) === sel.slice(0, 7));
   const rangeKey = view === "semaine" ? monday : sel.slice(0, 7);
 
-  // Le bilan de la période : séances, ce qui est validé, ce qui reste prévu.
+  // Le bilan de la période : séances, ce qui a compté, ce qui reste prévu.
   const sum = useMemo(() => {
     const days = view === "semaine" ? week : monthDays.filter((d) => d.slice(0, 7) === sel.slice(0, 7));
     const inR = new Set(days);
@@ -87,18 +87,17 @@ function Planning() {
     return { count: ss.length, validated, planned };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, rangeKey, view]);
-  const pending = useMemo(() => toValidate(data, today, now).length, [data, today, now]);
   const tasks = useMemo(() => {
     const done = data.taskLists?.find((l) => l.isDone)?.id;
     return (data.tasks ?? []).filter((t) => t.listId !== done).length;
   }, [data]);
-  // Les séances à confirmer : toujours à portée, en bas du planning (les tâches ont leur onglet en haut).
+  // Ce qui a compté : toujours à portée, en bas du planning (les tâches ont leur onglet en haut).
   const liens = (
     <nav className="jr-liens" aria-label="Aussi dans le planning">
       <Link href="/valider">
         <Ic n="ck" />
-        <span>Séances à confirmer</span>
-        {pending > 0 ? <em>{pending}</em> : <Ic n="chev" className="chev" />}
+        <span>Ce qui a compté</span>
+        <Ic n="chev" className="chev" />
       </Link>
     </nav>
   );
@@ -158,7 +157,7 @@ function Planning() {
       </div>
       <div>
         <b className={moneyCls(sum.validated)}>{sg(sum.validated)}</b>
-        <small>confirmés</small>
+        <small>ont compté</small>
       </div>
       <div>
         <b className={soft}>{sg(sum.planned)}</b>
@@ -196,15 +195,6 @@ function Planning() {
               {viewSeg}
             </div>
           </div>
-          {pending > 0 && (
-            <Link href="/valider" className="banner">
-              <Ic n="clock" />
-              <span>
-                <b>{pending} à confirmer</b> · coche ce qui a bien eu lieu
-              </span>
-              <Ic n="chev" className="cn-ic sm chev" />
-            </Link>
-          )}
           {view === "semaine" ? (
             <WeekGrid days={week} today={today} now={now} onPickDay={(d) => openNoter({ mode: "seance", date: d })} />
           ) : (
@@ -310,16 +300,6 @@ function Planning() {
           <h3>Planning</h3>
           {viewSeg}
         </div>
-
-        {pending > 0 && (
-          <Link href="/valider" className="jr-ban rise" style={{ animationDelay: ".08s" }}>
-            <Ic n="clock" />
-            <span>
-              <b>{pending} à confirmer</b> · coche ce qui a eu lieu
-            </span>
-            <Ic n="chev" className="cn-ic sm chev" />
-          </Link>
-        )}
 
         {view === "semaine" ? (
           <>
@@ -527,13 +507,12 @@ function Creneaux({ items, isToday, now, today, onEmpty }: { items: DayItem[]; i
         {placed.map(({ it, s, e, col, cols }) => {
           const w = `((100% - 34px) / ${cols})`;
           const h = Math.max(30, ((e - s) / 60) * HOUR - 3);
-          const late = lateLabel(it, today);
-          const sub = [it.start, late || it.sub].filter(Boolean).join(" · ");
+          const sub = [it.start, it.sub].filter(Boolean).join(" · ");
           return (
             <button
               key={it.key}
               type="button"
-              className={`jr-ev${h < 40 ? " short" : ""}${cols > 1 ? " half" : ""}${it.done ? " done" : ""}${late ? " wait" : ""}`}
+              className={`jr-ev${h < 40 ? " short" : ""}${cols > 1 ? " half" : ""}${it.done || aCompte(it) ? " done" : ""}`}
               onClick={() => it.seance && openSeance(it.seance.id)}
               aria-label={`${it.title}, ${sub}${it.money ? `, ${sg(it.money)}` : ""}`}
               style={{

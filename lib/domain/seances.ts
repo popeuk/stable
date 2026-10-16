@@ -37,8 +37,8 @@ export function seriesDates(start: ISODate, repeat: Repeat, until?: ISODate): IS
 
 /**
  * Une séance posée sans cavalier ni cheval : un créneau ouvert, personne
- * d'inscrit pour l'instant. Elle ne rapporte rien et n'attend aucune
- * validation tant que personne n'y est inscrit.
+ * d'inscrit pour l'instant. Elle ne rapporte rien et ne compte pas tant que
+ * personne n'y est inscrit.
  */
 export const isEmptySeance = (s: Pick<Seance, "participants" | "horseIds">) => s.participants.length === 0 && s.horseIds.length === 0;
 
@@ -56,7 +56,7 @@ export function seanceAmount(s: Seance): number {
 }
 
 /**
- * Les recettes à créer quand une séance est validée. Chaque cavalier qui
+ * Les recettes à créer quand une séance compte (faite). Chaque cavalier qui
  * paie fait une recette au prix figé, rangée sur le cheval qu'il montait
  * (sinon répartie sur les chevaux de la séance), payée par lui.
  */
@@ -96,13 +96,13 @@ export function revenuesForSeance(
   return out;
 }
 
-/** Une séance est à valider quand son heure de fin est passée. */
+/** Une séance prévue doit compter quand son heure de fin est passée (lib/domain/compte-auto.ts). */
 export function seanceToValidate(s: Seance, today: ISODate, nowHHMM: string): boolean {
   if (s.status !== "planned" || isEmptySeance(s)) return false;
   return s.date < today || (s.date === today && s.end <= nowHHMM);
 }
 
-/** Un soin prévu est à valider le lendemain de sa date (ou passée son heure). */
+/** Un soin prévu doit compter le lendemain de sa date (ou passée son heure). */
 export function careToValidate(e: CareEvent, today: ISODate, nowHHMM: string): boolean {
   if (!e.pending) return false;
   return e.date < today || (e.date === today && !!e.start && e.start <= nowHHMM);
@@ -223,7 +223,11 @@ export function dayTones(data: StableData, date: ISODate): Tone[] {
   return [...Array(Math.min(3, g)).fill("g"), ...Array(Math.min(3, r)).fill("r"), ...Array(Math.min(2, o)).fill("o")] as Tone[];
 }
 
-/** Les séances et soins passés qui attendent leur validation. */
+/**
+ * Les séances et soins passés encore « prévus » : ce que le compteur
+ * automatique va compter au prochain passage (au plus 5 minutes). Presque
+ * toujours vide.
+ */
 export function toValidate(data: StableData, today: ISODate, nowHHMM: string): DayItem[] {
   const dates = new Set<string>();
   for (const s of data.seances ?? []) if (seanceToValidate(s, today, nowHHMM)) dates.add(s.date);

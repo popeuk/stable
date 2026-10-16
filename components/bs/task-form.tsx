@@ -3,13 +3,8 @@
 import { useState } from "react";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { useUiStore } from "@/stores/ui-store";
-import { Seg } from "@/components/carnet/ui";
-import { InField } from "@/components/bs/seance-form";
-import { esc } from "@/components/bs/ui";
-import { localToday } from "@/lib/utils/local-date";
-import { addDays } from "@/lib/domain/care";
-import type { TaskKind } from "@/lib/domain/types";
+import { F, InField, Jours, MoneyField, Puces, Repetition, Tiles, Toggles, Wheel, type SetD } from "@/components/bs/seance-form";
+import type { Draft, Habitudes, Rep } from "@/lib/domain/ajouter";
 
 /** Les étiquettes du métier, reprises du tableau du Clos. */
 export const LABELS: Record<string, string> = {
@@ -22,186 +17,101 @@ export const LABELS: Record<string, string> = {
 };
 
 /**
- * Ajouter une tâche d'équipe (titre, colonne, pour qui, échéance,
- * étiquettes, coût) ou un rendez-vous (un jour, une heure de début, une fin
- * et un lieu ou une personne facultatifs) : il apparaît au planning à son heure.
+ * Tâche ou rendez-vous, dans le + : « C’est quoi ? » en tuiles (les
+ * dernières tâches, sinon des valeurs sûres) avec « Autre chose… », et le
+ * « Plus de détails » qui garde tout ce que l'ancien formulaire savait faire :
+ * la fin, le lieu ou la personne, pour qui, les étiquettes, la colonne du
+ * tableau, le coût (partagé entre les chevaux une fois la tâche faite), le
+ * rappel, la répétition, les notes. Sans heure, c'est une tâche ; avec une
+ * heure, un rendez-vous.
  */
-export function TaskForm({ onDone, listId: presetList, kind: presetKind }: { onDone: () => void; listId?: string; kind?: TaskKind }) {
-  const data = useDataStore();
-  const addTask = useDataStore((s) => s.addTask);
-  const gerant = useSettingsStore((s) => s.gerant);
-  const say = useUiStore((s) => s.say);
-  const lists = data.taskLists ?? [];
-  const members = [gerant, ...(data.team ?? []).filter((m) => m.role === "employe").map((m) => m.name)];
-  const nbHorses = data.horses.filter((h) => !h.isArchived).length;
-  const today = localToday();
-  const [kind, setKind] = useState<TaskKind>(presetKind ?? "tache");
-  const rdv = kind === "rdv";
-  const [title, setTitle] = useState("");
-  const [end, setEnd] = useState("");
-  const [lieu, setLieu] = useState("");
-  const [listId, setListId] = useState(presetList ?? lists[0]?.id ?? "");
-  const [forWho, setForWho] = useState<string[]>([]);
-  const [when, setWhen] = useState<"none" | "today" | "tomorrow" | "other">("none");
-  const [other, setOther] = useState(addDays(today, 2));
-  const [time, setTime] = useState("");
-  const [labels, setLabels] = useState<string[]>([]);
-  const [cost, setCost] = useState("");
-
-  const date = when === "today" ? today : when === "tomorrow" ? addDays(today, 1) : when === "other" ? other : undefined;
-  // Un rendez-vous a toujours un jour et une heure ; la fin, si elle est donnée, vient après.
-  const rdvProblem = !rdv ? null : !date ? "Choisis le jour du rendez-vous." : !time ? "Indique l’heure du rendez-vous." : end && end <= time ? "La fin doit venir après le début." : null;
-  const ready = !!title.trim() && !!listId && !rdvProblem;
-  function save() {
-    if (!ready) return;
-    if (rdv) {
-      addTask({
-        kind: "rdv",
-        title: title.trim(),
-        listId,
-        labels: [],
-        forWho,
-        due: `${date}T${time}`,
-        end: end || undefined,
-        lieu: lieu.trim() || undefined,
-        createdBy: gerant,
-      });
-      say(`Rendez-vous ajouté au planning : <strong>${esc(title.trim())}</strong>.`);
-      onDone();
-      return;
-    }
-    addTask({
-      title: title.trim(),
-      listId,
-      labels,
-      forWho,
-      due: date ? (time ? `${date}T${time}` : date) : undefined,
-      cost: Number(cost.replace(",", ".")) > 0 ? Number(cost.replace(",", ".")) : undefined,
-      createdBy: gerant,
-    });
-    say(`Tâche ajoutée : <strong>${esc(title.trim())}</strong>.`);
-    onDone();
-  }
-  const toggle = (xs: string[], x: string) => (xs.includes(x) ? xs.filter((y) => y !== x) : [...xs, x]);
+export function QuoiTiles({ d, set, h, other, setOther, onDone }: { d: Draft; set: SetD; h: Habitudes; other: boolean; setOther: (b: boolean) => void; onDone?: () => void }) {
+  const known = h.quoi.includes(d.quoi);
   return (
-    <div className="form nt-form">
-      <Seg
-        label="Tâche ou rendez-vous"
-        value={kind}
-        onChange={(k) => {
-          setKind(k);
-          if (k === "rdv" && when === "none") setWhen("today");
-        }}
-        options={[
-          ["tache", "Tâche"],
-          ["rdv", "Rendez-vous"],
-        ]}
-      />
-      <label className="field">
-        <span>{rdv ? "Le rendez-vous" : "La tâche"}</span>
-        <input
-          className="input"
-          autoFocus
-          placeholder={rdv ? "Ex. Visite du véto, livraison du foin" : "Ex. Réparer la clôture du pré 2"}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && save()}
-          aria-label={rdv ? "Titre du rendez-vous" : "Titre de la tâche"}
-        />
-      </label>
-      {!rdv && lists.length > 0 && (
-        <div className="field">
-          <span>Où en est-elle ?</span>
-          <Seg label="Où en est-elle ?" value={listId} onChange={setListId} options={lists.map((l) => [l.id, l.title] as [string, string])} />
-        </div>
+    <Tiles
+      options={h.quoi.map((x) => ({ key: x, label: x }))}
+      value={known ? d.quoi : null}
+      onPick={(quoi) => {
+        setOther(false);
+        set((x) => ({ ...x, quoi }));
+        onDone?.();
+      }}
+      otherLabel="Autre chose…"
+      otherOn={other || (!!d.quoi && !known)}
+      onOther={() => {
+        setOther(true);
+        if (known) set((x) => ({ ...x, quoi: "" }));
+      }}
+      custom={known ? "" : d.quoi}
+      onCustom={(quoi) => set((x) => ({ ...x, quoi }))}
+      placeholder="Tape ce que c’est"
+    />
+  );
+}
+
+const REPEATS: [Rep, string][] = [
+  ["once", "Une fois"],
+  ["weekly", "Chaque semaine"],
+  ["monthly", "Chaque mois"],
+];
+const RAPPELS = ["La veille", "1 h avant", "Pas de rappel"];
+
+export function TaskDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Habitudes; today: string }) {
+  const data = useDataStore();
+  const gerant = useSettingsStore((s) => s.gerant);
+  const lists = data.taskLists ?? [];
+  const members = [gerant, ...(data.team ?? []).filter((m) => m.role === "employe").map((m) => m.name)].filter(Boolean);
+  const nbHorses = data.horses.filter((x) => !x.isArchived).length;
+  const [other, setOther] = useState(!!d.quoi && !h.quoi.includes(d.quoi));
+  const rdv = d.start != null;
+  return (
+    <>
+      <F label="C’est quoi">
+        <QuoiTiles d={d} set={set} h={h} other={other} setOther={setOther} />
+      </F>
+      <F label="Quel jour">
+        <Jours date={d.date} today={today} onDate={(date) => set((x) => ({ ...x, date }))} />
+      </F>
+      <F label="À quelle heure" hint={rdv ? "c’est un rendez-vous" : "sans heure, c’est une tâche"}>
+        <Wheel value={d.start} onPick={(t) => set((x) => ({ ...x, start: t }))} taskChip onTask={() => set((x) => ({ ...x, start: null, end: "" }))} />
+      </F>
+      {rdv && (
+        <F label="Fin" hint="si tu veux">
+          <input className="input nt-date" type="time" value={d.end} onChange={(e) => set((x) => ({ ...x, end: e.target.value }))} aria-label="Heure de fin" />
+        </F>
       )}
-      <div className="field">
-        <span>Pour qui ?</span>
-        <div className="chips">
-          {members.map((m) => (
-            <button key={m} type="button" className={`chip${forWho.includes(m) ? " on" : ""}`} aria-pressed={forWho.includes(m)} onClick={() => setForWho(toggle(forWho, m))}>
-              {m}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="field">
-        <span>{rdv ? "Quel jour ?" : "Pour quand ?"}</span>
-        <Seg
-          label={rdv ? "Quel jour ?" : "Pour quand ?"}
-          value={when}
-          onChange={setWhen}
-          options={[...(rdv ? [] : ([["none", "Pas de date"]] as ["none", string][])), ["today", "Aujourd’hui"], ["tomorrow", "Demain"], ["other", "Autre"]]}
-        />
-      </div>
-      {rdv ? (
-        <>
-          {when === "other" && (
-            <label className="field">
-              <span>Date</span>
-              <input className="input" type="date" value={other} onChange={(e) => setOther(e.target.value)} />
-            </label>
-          )}
-          <div className="nt-two">
-            <label className="field">
-              <span>Début</span>
-              <input className="input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-            </label>
-            <label className="field">
-              <span>Fin (facultatif)</span>
-              <input className="input" type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
-            </label>
-          </div>
-          <label className="field">
-            <span>Où, ou avec qui ? (facultatif)</span>
-            <input className="input" placeholder="Ex. Dr Martin, à la sellerie" value={lieu} onChange={(e) => setLieu(e.target.value)} />
-          </label>
-        </>
-      ) : (
-        when !== "none" && (
-          <div className={when === "other" ? "nt-two" : ""}>
-            {when === "other" && (
-              <label className="field">
-                <span>Date</span>
-                <input className="input" type="date" value={other} onChange={(e) => setOther(e.target.value)} />
-              </label>
-            )}
-            <label className="field">
-              <span>Heure</span>
-              <input className="input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-            </label>
-          </div>
-        )
+      <F label="Où, ou avec qui ?">
+        <InField className="nt-tin">
+          <input placeholder="Ex. Dr Martin, à la sellerie" aria-label="Où, ou avec qui" value={d.lieu} onChange={(e) => set((x) => ({ ...x, lieu: e.target.value }))} />
+        </InField>
+      </F>
+      {members.length > 0 && (
+        <F label="Qui s’en occupe ?">
+          <Toggles options={members} value={d.qui} onChange={(qui) => set((x) => ({ ...x, qui }))} />
+        </F>
       )}
-      {!rdv && (
-        <>
-          <div className="field">
-            <span>Étiquettes</span>
-            <div className="chips">
-              {Object.keys(LABELS).map((l) => (
-                <button key={l} type="button" className={`chip${labels.includes(l) ? " on" : ""}`} aria-pressed={labels.includes(l)} onClick={() => setLabels(toggle(labels, l))}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-          <label className="field">
-            <span>Ça coûte quelque chose ?</span>
-            <InField unit="€">
-              <input id="t-cost" inputMode="decimal" placeholder="0" value={cost} onChange={(e) => setCost(e.target.value.replace(/[^\d.,]/g, ""))} />
-            </InField>
-            <em>Une fois la tâche faite, le montant va dans les frais communs, partagé entre {nbHorses > 0 ? `tes ${nbHorses} chevaux` : "tous les chevaux"}.</em>
-          </label>
-        </>
+      {!rdv && lists.length > 1 && (
+        <F label="Où en est-elle ?">
+          <Puces options={lists.map((l) => [l.id, l.title] as [string, string])} value={d.listId ?? lists[0]?.id} onPick={(listId) => set((x) => ({ ...x, listId }))} />
+        </F>
       )}
-      {rdvProblem && title.trim() && (
-        <p className="note" role="alert">
-          <b>{rdvProblem}</b>
-        </p>
+      <F label="Étiquettes">
+        <Toggles options={Object.keys(LABELS)} value={d.labels} onChange={(labels) => set((x) => ({ ...x, labels }))} />
+      </F>
+      <F label="Ça coûte quelque chose ?" hint={`une fois faite, partagé entre ${nbHorses > 0 ? `tes ${nbHorses} chevaux` : "tous les chevaux"}`}>
+        <MoneyField value={d.price} onChange={(price) => set((x) => ({ ...x, price }))} label="Ce que ça coûte" />
+      </F>
+      {rdv && (
+        <F label="Rappel">
+          <Puces options={RAPPELS.map((r) => [r, r] as [string, string])} value={d.rappel} onPick={(rappel) => set((x) => ({ ...x, rappel: x.rappel === rappel ? "" : rappel }))} />
+        </F>
       )}
-      <button type="button" className="btn full" disabled={!ready} onClick={save}>
-        {rdv ? "Ajouter le rendez-vous" : "Ajouter la tâche"}
-      </button>
-    </div>
+      <F label="Répétition">
+        <Repetition d={d} set={set} options={REPEATS} />
+      </F>
+      <F label="Notes">
+        <textarea className="input ta nt-ta" rows={2} placeholder="Notes" aria-label="Notes" value={d.notes} onChange={(e) => set((x) => ({ ...x, notes: e.target.value }))} />
+      </F>
+    </>
   );
 }

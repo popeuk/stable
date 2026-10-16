@@ -17,7 +17,8 @@ const AIDES: Record<string, Aide> = {
     points: [
       "Ton objectif du mois : ce que tu veux qu’il te reste une fois tout payé, et où tu en es.",
       "Ta journée : les séances, les soins et les tâches prévus aujourd’hui.",
-      "Le + en bas de l’écran sert à tout noter : une séance, un soin, une dépense, une tâche. L’app range tout au bon endroit.",
+      "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
+      "Le + en bas de l’écran sert à tout ajouter : une séance, un soin, une tâche, de l’argent.",
     ],
   },
   planning: {
@@ -26,16 +27,16 @@ const AIDES: Record<string, Aide> = {
     points: [
       "Tout ce qui est prévu, jour par jour : séances, soins, tâches.",
       "Touche un créneau vide pour ajouter quelque chose à cette heure-là.",
-      "Une fois la séance passée, confirme qu’elle a eu lieu : elle compte alors dans ce que tu gagnes et dans ce que le client te doit.",
+      "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
     ],
   },
   valider: {
     id: "valider",
-    titre: "Confirmer ce qui a eu lieu",
+    titre: "Ce qui a compté",
     points: [
-      "Ici, les séances passées qui attendent ton accord.",
-      "Confirmée, une séance compte dans ton bilan et dans ce que le client te doit.",
-      "Annulée ou cavalier absent : dis-le, elle ne sera pas comptée.",
+      "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
+      "Une séance compte dans ton mois et dans ce que le client te doit.",
+      "Un cours à plusieurs : tout le monde compte. Ouvre la séance pour retirer un absent.",
     ],
   },
   chevaux: {
@@ -110,8 +111,17 @@ const AIDES: Record<string, Aide> = {
     titre: "Tes clients",
     points: [
       "Les propriétaires des chevaux en pension et les cavaliers qui prennent des cours.",
-      "Pour chacun : ses chevaux, ses séances du mois et ce qu’il te doit.",
+      "En haut, ceux qui te doivent le plus. Touche un nom pour ouvrir sa fiche.",
       "Un nom noté dans une séance devient un client tout seul.",
+    ],
+  },
+  client: {
+    id: "client",
+    titre: "La fiche d’un client",
+    points: [
+      "« Hugo te doit 114 € » : ce qu’il te doit, tout compris.",
+      "Il a payé ? Touche « Il a payé ». Une partie seulement ? « Il a payé une partie ».",
+      "Une ligne qui n’a pas eu lieu ? Retire-la avec ×.",
     ],
   },
   prestations: {

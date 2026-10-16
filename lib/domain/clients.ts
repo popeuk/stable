@@ -1,5 +1,6 @@
 import type { Period, PersonRole, StableData } from "@/lib/domain/types";
 import { dateInPeriod } from "@/lib/utils/period";
+import { billsFor, type Bill } from "@/lib/domain/billing";
 
 /**
  * Ce que chaque client a rapporté sur un mois : ce qu'il paie, rangé en
@@ -76,4 +77,136 @@ export function clientRevenues(
   return [...map.values()]
     .map((c) => ({ ...c, total: Math.round(c.total * 100) / 100 }))
     .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "fr"));
+}
+
+/* ------------------------------------------------------------------ */
+/* Tes clients : qui te doit quoi                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Une ligne de la liste « Tes clients ». Client = toute personne qui te
+ * rapporte de l'argent (propriétaire ou cavalier) ; les pros n'en sont pas.
+ * Ce qu'il doit vient de `billsFor` : ce qui a compté ce mois, moins ce
+ * qu'il a payé.
+ */
+export interface ClientDue {
+  name: string;
+  personId?: string;
+  role: PersonRole;
+  /** Ses chevaux en pension (noms). */
+  horses: string[];
+  /** Ce qui a compté ce mois. */
+  total: number;
+  paid: number;
+  /** Ce qu'il te doit encore (jamais négatif). */
+  due: number;
+  paieALaSeance: boolean;
+  phone?: string;
+}
+
+export function clientDues(data: StableData, period: Period): ClientDue[] {
+  const bills = billsFor(data, period).filter((b) => b.payer !== "Sans propriétaire");
+  const people = data.people ?? [];
+  const ownerOf = (name: string) =>
+    data.horses.filter((h) => !h.isArchived && h.ownerName === name).map((h) => h.name);
+  const map = new Map<string, ClientDue>();
+  const add = (name: string, role: PersonRole) => {
+    if (map.has(name)) return map.get(name)!;
+    const p = people.find((x) => x.name === name);
+    const c: ClientDue = {
+      name,
+      personId: p?.id,
+      role: p?.role ?? role,
+      horses: ownerOf(name),
+      total: 0,
+      paid: 0,
+      due: 0,
+      paieALaSeance: !!p?.paieALaSeance,
+      phone: p?.phone,
+    };
+    map.set(name, c);
+    return c;
+  };
+  for (const b of bills) {
+    const c = add(b.payer, b.role);
+    c.total = b.total;
+    c.paid = Math.round(b.paid * 100) / 100;
+    c.due = b.due;
+  }
+  for (const p of people) if (p.active) add(p.name, p.role);
+  for (const h of data.horses) if (!h.isArchived && h.ownerName) add(h.ownerName, "proprietaire");
+  return [...map.values()].sort(
+    (a, b) => (b.due > 0 ? 1 : 0) - (a.due > 0 ? 1 : 0) || b.due - a.due || a.name.localeCompare(b.name, "fr"),
+  );
+}
+
+/** Le prénom : le premier mot du nom (« Hugo L. » → « Hugo »). */
+export const prenomDe = (name: string) => name.trim().split(/\s+/)[0] || name;
+
+/**
+ * Prénoms féminins courants : pour accorder « Elle a payé ». La fiche ne
+ * connaît pas le genre ; à défaut on dit « Il ».
+ */
+const FEMININS = new Set(
+  (
+    "emma lea léa lou nina ines inès claire sophie julie jade louise alice chloe chloé camille manon sarah sara clara " +
+    "anna zoé zoe lina mila rose juliette charlotte lucie marie laura pauline mathilde margaux margot elsa eva ambre " +
+    "agathe romane océane oceane anaïs anais mélanie melanie céline celine nathalie isabelle valérie valerie sandrine " +
+    "stéphanie stephanie caroline aurélie aurelie émilie emilie élise elise héloïse heloise capucine apolline victoire " +
+    "lola léna lena maëlle maelle maëlys maelys justine marion audrey cécile cecile hélène helene anne catherine christine " +
+    "sylvie véronique veronique martine brigitte florence virginie delphine laetitia agnès agnes jeanne alix iris luna " +
+    "olivia mia jeanne-marie sabrina vanessa elodie élodie amandine morgane coralie estelle gaëlle gaelle solène solene"
+  ).split(/\s+/),
+);
+export function estElle(name: string): boolean {
+  return FEMININS.has(prenomDe(name).toLowerCase());
+}
+/** « Il » ou « Elle » (et les autres formes) selon le prénom. */
+export function accord<T>(name: string, il: T, elle: T): T {
+  return estElle(name) ? elle : il;
+}
+
+const moisNom = (p: Period) => new Date(p.year, p.month - 1, 15).toLocaleDateString("fr-FR", { month: "long" });
+
+/** « aux Trois Pommiers », « au Clos », « à la Ferme », « à Mon écurie ». */
+export function chezEcurie(stableName: string): string {
+  const n = stableName.trim();
+  if (/^les\s/i.test(n)) return `aux ${n.slice(4)}`;
+  if (/^le\s/i.test(n)) return `au ${n.slice(3)}`;
+  if (/^la\s/i.test(n)) return `à la ${n.slice(3)}`;
+  if (/^l[’']/i.test(n)) return `à l’${n.slice(2)}`;
+  return `à ${n}`;
+}
+
+const eur0 = (n: number) => `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(Math.round(n)).replace(/ /g, " ")} €`;
+
+/**
+ * Le message tout prêt « ce que tu me dois » : les pensions une à une, le
+ * reste regroupé (« Cours de Tonnerre (5) : 125 € »), ce qui est déjà payé,
+ * le reste à payer. Ce qui a été payé sur place n'y figure pas.
+ */
+export function messageDu(bill: Bill, period: Period, stableName: string, gerant: string): string {
+  const qui = prenomDe(bill.payer);
+  const lines = bill.lines.filter((l) => !l.onSite);
+  const fixes = lines.filter((l) => /pension/i.test(l.label));
+  const grp = new Map<string, { n: number; v: number }>();
+  for (const l of lines) {
+    if (fixes.includes(l)) continue;
+    const g = grp.get(l.label) ?? { n: 0, v: 0 };
+    g.n++;
+    g.v += l.amount;
+    grp.set(l.label, g);
+  }
+  const onSite = bill.lines.filter((l) => l.onSite).reduce((t, l) => t + l.amount, 0);
+  const deja = Math.round((bill.paid - onSite) * 100) / 100;
+  const out = [
+    `Bonjour ${qui},`,
+    `voici ce que tu me dois pour ${moisNom(period)} ${chezEcurie(stableName)} :`,
+    ...fixes.map((l) => `${l.label} : ${eur0(l.amount)}`),
+    ...[...grp.entries()].map(([t, g]) => `${t}${g.n > 1 ? ` (${g.n})` : ""} : ${eur0(g.v)}`),
+  ];
+  if (deja > 0) out.push(`Déjà payé : ${eur0(deja)}`);
+  out.push(`Reste à payer : ${eur0(bill.due)}.`);
+  out.push(gerant.trim() ? `Merci, ${gerant.trim()}` : "Merci");
+  return out.join("\n");
 }

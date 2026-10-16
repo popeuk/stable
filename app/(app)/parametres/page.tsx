@@ -65,7 +65,7 @@ function Parametres() {
 /* ---------- Tes tarifs ---------- */
 const ROWS: { key: keyof Tariffs; label: string; unit: string; hint: string }[] = [
   { key: "pension", label: "Pension", unit: "€ / mois", hint: "proposée pour chaque nouveau cheval, puis comptée toute seule chaque mois" },
-  { key: "cours_collectif", label: "Cours collectif", unit: "€ / cav.", hint: "compté pour chaque cavalier présent, une fois le cours confirmé" },
+  { key: "cours_collectif", label: "Cours collectif", unit: "€ / cav.", hint: "compté pour chaque cavalier présent, dès que le cours a eu lieu" },
   { key: "cours_individuel", label: "Cours individuel", unit: "€", hint: "" },
   { key: "entrainement", label: "Séance de travail", unit: "€", hint: "quand tu travailles un cheval pour son propriétaire" },
 ];

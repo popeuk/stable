@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback } from "react";
-import { esc, signed } from "@/components/bs/ui";
-import { Check, Ic, sg } from "@/components/carnet/ui";
+import { useShallow } from "zustand/react/shallow";
+import { esc } from "@/components/bs/ui";
+import { Check, Ic, eur, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { useParcours } from "@/components/bs/parcours";
-import { isEmptySeance, type DayItem } from "@/lib/domain/seances";
+import type { DayItem } from "@/lib/domain/seances";
+import { ligneDe, retirer } from "@/components/bs/retirer";
 import { localToday } from "@/lib/utils/local-date";
 
 /** Le pictogramme d'un élément de la journée (créneaux, semaine sur ordinateur). */
@@ -25,47 +27,24 @@ export function iconOf(it: DayItem): string {
 /** La classe de l'argent : vert ce qui rentre, rose ce qui sort. */
 export const moneyCls = (n?: number) => (!n ? "" : n > 0 ? "in" : "out");
 
-/** « en retard de 3 j » pour un soin passé, « à confirmer » pour le reste. */
-export function lateLabel(it: DayItem, today: string): string {
-  if (!it.late || it.done) return "";
-  const d = it.seance?.date ?? it.care?.[0].date;
-  if (it.care && d && d < today) {
-    const n = Math.round((Date.parse(today + "T12:00:00") - Date.parse(d + "T12:00:00")) / 864e5);
-    return `en retard de ${n} j`;
-  }
-  return "à confirmer";
-}
-
 /**
- * Valider un élément du planning. Une séance à plusieurs cavaliers ouvre la
- * feuille de présence ; les autres se valident d'une coche, avec « Annuler »
- * pendant 6 secondes.
+ * Cocher une tâche faite, avec « Annuler » pendant 6 secondes. Les séances
+ * et les soins ne se cochent plus : passés, ils comptent tout seuls
+ * (lib/domain/compte-auto.ts) et se retirent d'un × s'ils n'ont pas eu lieu.
  */
 export function useCheck() {
   const say = useUiStore((s) => s.say);
-  const openSeance = useUiStore((s) => s.openSeance);
   const { pass, parcours } = useParcours();
   return useCallback(
     (it: DayItem) => {
+      if (it.done || !it.task) return;
       const st = useDataStore.getState();
-      const snap = { seances: st.seances, careEvents: st.careEvents, directExpenses: st.directExpenses, revenues: st.revenues, tasks: st.tasks, sharedExpenses: st.sharedExpenses };
+      const snap = { tasks: st.tasks };
       const undo = () => useDataStore.setState(snap);
-      if (it.done) return;
-      if (it.seance) {
-        // Personne d'inscrit : rien à confirmer, la séance s'ouvre pour inscrire quelqu'un.
-        if (isEmptySeance(it.seance)) return openSeance(it.seance.id);
-        if (it.seance.participants.length > 1) return openSeance(it.seance.id, "presence");
-        st.validateSeance(it.seance.id, {});
-        say(`${esc(it.title)} : c’est fait, <strong>${signed(it.money ?? 0)}</strong> sur le ticket.`, undo);
-      } else if (it.care) {
-        st.confirmSession(it.care.map((e) => e.id), it.care.map((e) => e.horseId), it.care[0].date < localToday() ? it.care[0].date : localToday());
-        say(`${esc(it.title)} : c’est fait${it.money ? `, <strong>${signed(it.money)}</strong> sur le ticket` : ""}.`, undo);
-      } else if (it.task) {
-        const done = st.taskLists?.find((l) => l.isDone)?.id;
-        if (done) st.moveTask(it.task.id, done);
-        say(`Tâche faite : <strong>${esc(it.title)}</strong>.`, undo);
-      }
-      // Le parcours : trois validations aujourd'hui passent la barre « ta première journée ».
+      const done = st.taskLists?.find((l) => l.isDone)?.id;
+      if (done) st.moveTask(it.task.id, done);
+      say(`Tâche faite : <strong>${esc(it.title)}</strong>.`, undo);
+      // Le parcours : trois choses faites aujourd'hui passent la barre « ta première journée ».
       const after = useDataStore.getState();
       const today = localToday();
       const n =
@@ -73,14 +52,18 @@ export function useCheck() {
         (after.careEvents ?? []).filter((e) => !e.pending && e.date === today).length;
       if (n >= 3 && parcours.factures) setTimeout(() => pass("journee"), 1200);
     },
-    [say, openSeance, pass, parcours.factures],
+    [say, pass, parcours.factures],
   );
 }
 
+/** Une séance ou un soin passé : il a compté (ou va compter dans la minute). */
+export const aCompte = (it: DayItem) => it.type !== "task" && (it.done || it.late);
+
 /**
  * Une ligne de la journée, dans le carnet : l'heure, ce qui se passe, ce que
- * ça rapporte ou coûte, et la coche. Une séance à plusieurs a une coche en
- * pointillé : elle ouvre « qui était là ? ». À placer dans un `.rows`.
+ * ça rapporte ou coûte. Une tâche garde sa coche. Une séance ou un soin
+ * passé dit « a compté », avec × pour le retirer s'il n'a pas eu lieu (un
+ * cours à plusieurs ouvre « qui était là ? »). À placer dans un `.rows`.
  */
 export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: boolean }) {
   const check = useCheck();
@@ -88,7 +71,7 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
   const open = () => {
     if (it.seance) openSeance(it.seance.id);
   };
-  const late = lateLabel(it, localToday());
+  const compte = aCompte(it);
   const sub = it.sub || (it.type === "task" ? (it.task?.kind === "rdv" ? "rendez-vous" : "tâche d’équipe") : "");
   const body = (
     <>
@@ -100,34 +83,89 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
         )}
         {it.title}
       </b>
-      {(late || sub) && (
+      {(compte || sub) && (
         <small>
-          {late && <b className="jr-late">{late}</b>}
-          {late && sub ? " · " : ""}
+          {compte && (
+            <span className="cp-ok">
+              <Ic n="ck" className="" />a compté
+            </span>
+          )}
+          {compte && sub ? " · " : ""}
           {sub}
         </small>
       )}
     </>
   );
-  const multi = !!it.seance && it.seance.participants.length > 1 && !it.done;
   return (
-    <div className={`row${it.done ? " done" : ""}${showTime ? "" : " jr-notime"}`}>
-      <time>{showTime ? (it.start ?? "·") : ""}</time>
-      {it.seance ? (
-        <button type="button" className="jr-open" onClick={open} title="Ouvrir la séance">
-          {body}
-        </button>
-      ) : (
-        <span>{body}</span>
-      )}
-      <span className={`amt ${moneyCls(it.money)}`}>{it.money ? sg(it.money) : ""}</span>
-      {multi ? (
-        <button type="button" className="jr-ckm" onClick={() => check(it)} aria-label={`Dire qui était là : ${it.title}`}>
-          <Ic n="ck" className="" />
-        </button>
-      ) : (
-        <Check on={it.done} onClick={() => (it.done ? open() : check(it))} label={it.done ? `${it.title} : fait` : `C’est fait : ${it.title}`} />
-      )}
-    </div>
+    <>
+      <div className={`row${it.done && it.task ? " done" : ""}${showTime ? "" : " jr-notime"}`}>
+        <time>{showTime ? (it.start ?? "·") : ""}</time>
+        {it.seance ? (
+          <button type="button" className="jr-open" onClick={open} title="Ouvrir la séance">
+            {body}
+          </button>
+        ) : (
+          <span>{body}</span>
+        )}
+        <span className={`amt ${moneyCls(it.money)}`}>{it.money ? sg(it.money) : ""}</span>
+        {it.task ? (
+          <Check on={it.done} onClick={() => !it.done && check(it)} label={it.done ? `${it.title} : fait` : `C’est fait : ${it.title}`} />
+        ) : compte ? (
+          <button type="button" className="cp-rm" onClick={() => retirer(ligneDe(it))} aria-label={`Pas eu lieu ? Retirer : ${it.title}`}>
+            <Ic n="x" className="" />
+          </button>
+        ) : (
+          <span />
+        )}
+      </div>
+      {it.seance && <PayeSurPlace seance={it.seance} />}
+    </>
+  );
+}
+
+const hhmmNow = (d = new Date()) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+const prenom = (n: string) => n.trim().split(/\s+/)[0] || n;
+
+/**
+ * Payé sur place : sous une séance passée, une ligne par cavalier qui paie à
+ * la séance (réglé sur sa fiche client), avec « Payé sur place » d'un
+ * toucher. Le paiement est lié à la séance : sur sa fiche, la ligne dit
+ * « payé sur place ». Styles : app/carnet/client.css.
+ */
+function PayeSurPlace({ seance: s }: { seance: NonNullable<DayItem["seance"]> }) {
+  const people = useDataStore((st) => st.people);
+  const paid = useDataStore(useShallow((st) => (st.payments ?? []).filter((p) => p.seanceId === s.id).map((p) => p.payer)));
+  const say = useUiStore((st) => st.say);
+  const today = localToday();
+  const passee = s.status !== "cancelled" && (s.date < today || (s.date === today && s.end <= hhmmNow()));
+  if (!passee || s.unitPrice <= 0) return null;
+  const qui = s.participants
+    .filter((p) => p.present !== false)
+    .map((p) => (people ?? []).find((x) => x.id === p.personId))
+    .filter((p): p is NonNullable<typeof p> => !!p && !!p.paieALaSeance);
+  if (!qui.length) return null;
+  const payer = (name: string) => {
+    const id = useDataStore.getState().addPayment(name, s.date.slice(0, 7), s.unitPrice, s.id);
+    say(`${esc(prenom(name))} t’a payé <strong>${eur(s.unitPrice)}</strong>.`, () => useDataStore.getState().removePayment(id));
+  };
+  return (
+    <>
+      {qui.map((p) => (
+        <div key={p.id} className="cl-who">
+          <span>{prenom(p.name)}</span>
+          <span className="in">{sg(s.unitPrice)}</span>
+          {paid.includes(p.name) ? (
+            <span className="cl-paid">
+              <Ic n="ck" className="" />
+              payé sur place
+            </span>
+          ) : (
+            <button type="button" className="btn line" onClick={() => payer(p.name)}>
+              Payé sur place
+            </button>
+          )}
+        </div>
+      ))}
+    </>
   );
 }

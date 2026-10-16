@@ -224,7 +224,7 @@ function Moi() {
           <Ic n="trash" className="" />
           Tout effacer et recommencer
         </button>
-        <small>Le parcours repart de zéro. On te demande de confirmer avant.</small>
+        <small>Le parcours repart de zéro. On te le redemande avant.</small>
       </div>
     </Sec>
   );

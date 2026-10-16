@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { cap, signed } from "@/components/bs/ui";
 import { Ic, sg } from "@/components/carnet/ui";
-import { lateLabel, moneyCls, useCheck } from "@/components/bs/day-block";
+import { moneyCls, useCheck } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { dayItems, seanceAmount, type DayItem } from "@/lib/domain/seances";
@@ -11,7 +11,8 @@ import { dayItems, seanceAmount, type DayItem } from "@/lib/domain/seances";
 /**
  * La semaine sur ordinateur : sept colonnes, une ligne par heure. Cliquer
  * une heure vide planifie à cette heure ; cliquer une séance ouvre sa
- * fiche ; la petite coche (au survol) valide d'un geste. Les éléments sans
+ * fiche ; une tâche se coche d'un geste (au survol). Ce qui est passé
+ * compte tout seul. Les éléments sans
  * heure (soins du jour, tâches) vivent dans la ligne « Journée ».
  * Le style est dans app/carnet/journee.css (sous .jr-desk).
  */
@@ -64,7 +65,7 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
   const label = (it: DayItem) => `${it.start ? `${it.start}${it.end ? `-${it.end}` : ""} · ` : ""}${it.title}${it.sub ? `, ${it.sub}` : ""}${it.money ? `, ${signed(it.money)}` : ""}`;
   const open = (it: DayItem) => {
     if (it.seance) openSeance(it.seance.id);
-    else if (!it.done) check(it);
+    else if (it.task && !it.done) check(it);
   };
 
   return (
@@ -91,15 +92,14 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
               {list
                 .filter((it) => !it.start)
                 .map((it) => {
-                  const late = lateLabel(it, today);
                   return (
                     <button
                       key={it.key}
                       type="button"
                       className={`jci${it.done ? " done" : ""}`}
                       onClick={() => open(it)}
-                      title={it.done ? `${label(it)} (fait)` : `${label(it)} : clique pour confirmer que c’est fait`}
-                      aria-label={it.done ? `${label(it)}, fait` : `Confirmer que c’est fait : ${label(it)}`}
+                      title={it.done ? `${label(it)} (fait)` : it.task ? `${label(it)} : clique quand c’est fait` : label(it)}
+                      aria-label={it.done ? `${label(it)}, fait` : it.task ? `C’est fait : ${label(it)}` : label(it)}
                     >
                       {it.done && (
                         <span className="dk">
@@ -107,8 +107,8 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
                         </span>
                       )}
                       <span>
-                        {late ? <b>{it.title}</b> : it.title}
-                        {late ? ` · ${late}` : it.sub ? ` · ${it.sub}` : ""}
+                        {it.title}
+                        {it.sub ? ` · ${it.sub}` : ""}
                       </span>
                     </button>
                   );
@@ -147,7 +147,7 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
                   key={it.key}
                   role="button"
                   tabIndex={0}
-                  className={`ev${short ? " short" : ""}${it.done ? " done" : ""}${it.late && !it.done ? " wait" : ""}`}
+                  className={`ev${short ? " short" : ""}${it.done || it.late ? " done" : ""}`}
                   onClick={() => open(it)}
                   onKeyDown={(ev) => (ev.key === "Enter" || ev.key === " ") && (ev.preventDefault(), open(it))}
                   aria-label={label(it)}
@@ -171,15 +171,15 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
                   </b>
                   {!short && (
                     <small>
-                      <span>{[it.sub, it.late && !it.done ? lateLabel(it, today) : ""].filter(Boolean).join(" · ") || it.start}</span>
+                      <span>{it.sub || it.start}</span>
                       {money}
                     </small>
                   )}
-                  {!it.done && (
+                  {it.task && !it.done && (
                     <button
                       type="button"
                       className="evck"
-                      aria-label={`Confirmer que c’est fait : ${it.title}`}
+                      aria-label={`C’est fait : ${it.title}`}
                       title="C’est fait"
                       onClick={(ev) => {
                         ev.stopPropagation();

@@ -1,5 +1,6 @@
-/* Accueil plus simple, tournée du matin, navigation (barre du bas, rond, barre latérale).
-   components/bs/compteur.tsx, tournee.tsx, shell.tsx, desk.tsx, app/(app)/accueil. Tout sous .carnet. */
+/* Accueil plus simple, tournée du matin, navigation (barre du bas, rond, barre latérale),
+   lignes qui ont compté et bandeau de fin du mois (cp-).
+   components/bs/compteur.tsx, tournee.tsx, compte.tsx, shell.tsx, desk.tsx, app/(app)/accueil, app/(app)/valider. Tout sous .carnet. */
 
 /* ---------- Le compteur du mois ---------- */
 .carnet .ac-cptw { padding: 14px 14px 0; }
@@ -9,6 +10,7 @@
 .carnet .ac-cpt .big { display: block; margin-top: 6px; }
 .carnet .ac-sub { display: block; margin-top: 6px; font-size: 12.5px; line-height: 1.4; color: var(--ink2); }
 .carnet .ac-cpt .bar, .carnet .ac-cpt .bar-lab, .carnet .ac-go { grid-column: 1 / -1; }
+.carnet .ac-cpt .bar-lab { flex-wrap: wrap; gap: 2px 10px; }
 .carnet .ac-go { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line2); font-size: 13.5px; font-weight: 650; }
 .carnet .ac-go .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s var(--ease); }
 .carnet a.ac-cpt:hover .ac-go .chev { transform: translateX(3px); }
@@ -34,10 +36,8 @@
 .carnet .ac-nom b { display: block; font-size: 14.5px; font-weight: 650; line-height: 1.25; }
 .carnet .ac-nom small { display: block; font-size: 12.5px; color: var(--ink3); }
 .carnet .ac-nom .chev, .carnet .ac-acc .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-.carnet .ac-vhead { padding-bottom: 0; }
-.carnet .ac-vnote { margin-top: 6px; }
-.carnet .ac-pile { margin: 0 14px; }
 .carnet .ac-jnote { margin-top: 10px; }
+.carnet .ac-jour { padding-top: 14px; }
 
 @media (min-width: 1024px) {
   .carnet .ac-desk .ac-dtop { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; align-items: start; }
@@ -46,9 +46,31 @@
   .carnet .ac-desk .ac-perch .sitw { width: 52%; }
   .carnet .ac-desk .ac-nom { margin: 12px 0 0; }
   .carnet .ac-desk .sec { padding-left: 0; padding-right: 0; }
-  .carnet .ac-desk .ac-vhead { padding-top: 0; }
-  .carnet .ac-desk .ac-pile { margin: 0; }
 }
+
+/* ---------- Tout compte, tu retires (components/bs/compte.tsx) ---------- */
+/* Une ligne qui a compté : l'heure, ce que c'était, le montant signé, × ou « Qui était là ? ». */
+.carnet .cp-row { grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 6px; padding: 6px 0; min-height: 52px; }
+.carnet .cp-row > span, .carnet .cp-row > .jr-open { min-width: 0; }
+.carnet .cp-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.carnet .cp-row small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.carnet .cp-row.cp-next { grid-template-columns: 40px minmax(0, 1fr) auto; padding: 9px 0; }
+.carnet .cp-ok { display: inline-flex; align-items: center; gap: 3px; color: var(--ink2); font-weight: 600; }
+.carnet .cp-ok svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .cp-act { display: flex; align-items: center; justify-content: flex-end; }
+.carnet .cp-rm { width: 44px; height: 44px; margin-right: -8px; border: 0; background: none; padding: 0; color: var(--ink3); display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; }
+.carnet .cp-rm svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.carnet .cp-rm:hover { color: var(--ink); background: var(--mist); }
+.carnet .cp-who { min-height: 44px; padding: 0 2px 0 6px; border: 0; background: none; color: var(--ink); font-size: 12.5px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
+.carnet .cp-hint { margin: 6px 0 0; font-size: 12px; color: var(--ink3); }
+
+/* Le bandeau de fin du mois, vers la liste des clients */
+.carnet .cp-ban { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center; margin: 10px 14px 0; padding: 10px 12px; color: inherit; text-decoration: none; }
+.carnet .cp-ban .ill { width: 44px; height: 44px; object-fit: contain; }
+.carnet .cp-ban b { display: block; font-size: 15px; font-weight: 720; line-height: 1.2; letter-spacing: -.01em; }
+.carnet .cp-ban small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink2); line-height: 1.35; }
+.carnet .cp-ban .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+@media (min-width: 1024px) { .carnet .ac-desk .cp-ban { margin: 12px 0 0; } }
 
 /* ---------- L'en-tête : le rond ---------- */
 .carnet .ac-me { position: relative; width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: var(--ink); color: #fff; font-size: 14px; font-weight: 760; letter-spacing: -.02em; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
@@ -127,11 +149,9 @@
 .carnet .ac-h h3 { margin: 0; font-size: 32px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; text-wrap: balance; }
 .carnet .ac-h p:not(.ac-dt) { margin: 6px 0 0; font-size: 14.5px; color: var(--ink2); }
 .carnet .ac-h .ill { width: 64px; height: 64px; object-fit: contain; object-position: bottom; }
-.carnet .ac-tpile { margin-top: 2px; }
-.carnet .ac-kept { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--ink2); }
-.carnet .ac-kept b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.carnet .ac-hier { margin-top: 10px; }
 .carnet .ac-step > .btn.full { margin-top: auto; }
-.carnet .ac-step .ac-kept + .btn.full, .carnet .ac-step .ac-today + .btn.full, .carnet .ac-step .ac-mnote + .btn.full { margin-top: 18px; }
+.carnet .ac-step .ac-hier + .btn.full, .carnet .ac-step .ac-today + .btn.full, .carnet .ac-step .ac-mnote + .btn.full { margin-top: 18px; }
 .carnet .ac-scene { display: flex; justify-content: center; height: 150px; margin: 8px 0 4px; }
 .carnet .ac-scene .ill { height: 100%; width: auto; object-fit: contain; }
 .carnet .ac-today .row { grid-template-columns: 50px minmax(0, 1fr) auto; padding: 13px 0; }

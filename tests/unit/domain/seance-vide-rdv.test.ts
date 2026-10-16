@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { dayItems, isEmptySeance, revenuesForSeance, seanceAmount, seanceToValidate, toValidate } from "@/lib/domain/seances";
-import { paniers } from "@/lib/domain/paniers";
+import { aCompter } from "@/lib/domain/compte-auto";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import type { Seance, StableData } from "@/lib/domain/types";
 
@@ -24,7 +24,7 @@ describe("séance sans cavalier ni cheval", () => {
     expect(seanceToValidate(vide, "2026-10-11", "08:00")).toBe(false);
     const d = data([vide]);
     expect(toValidate(d, "2026-10-11", "08:00")).toHaveLength(0);
-    expect(paniers(d, "2026-10-11", "08:00")).toHaveLength(0);
+    expect(aCompter(d, "2026-10-11", "08:00").seances).toHaveLength(0);
   });
 
   it("validée quand même, elle ne crée aucune recette", () => {

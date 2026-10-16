@@ -57,6 +57,12 @@ export interface CareEvent {
    */
   nextDue?: ISODate | null;
   note?: string;
+  /**
+   * Refacturer au propriétaire : pour un soin à venir, l'intention est
+   * gardée ici ; la refacturation se fait quand le soin compte (sa dépense
+   * existe alors).
+   */
+  refacturer?: boolean;
 }
 
 /** Métadonnées par type d'acte : libellé et cadence de replanification. */

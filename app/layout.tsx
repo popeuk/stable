@@ -12,9 +12,9 @@ import "./carnet/argent.css";
 import "./carnet/ecurie.css";
 import "./carnet/arrivee.css";
 import "./carnet/noter.css";
-import "./carnet/paniers.css";
 import "./carnet/essayer.css";
 import "./carnet/accueil2.css";
+import "./carnet/client.css";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",

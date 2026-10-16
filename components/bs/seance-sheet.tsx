@@ -5,17 +5,22 @@ import { createPortal } from "react-dom";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
-import { eur, esc, signed } from "@/components/bs/ui";
-import { Chips, Face, Ic, Money, Seg, Switch, ini } from "@/components/carnet/ui";
+import { eur, esc } from "@/components/bs/ui";
+import { Chips, Face, Ic, Money, Seg, ini } from "@/components/carnet/ui";
+import { retirer } from "@/components/bs/retirer";
+import { localToday } from "@/lib/utils/local-date";
 import { MAX_PLACES, isEmptySeance, seanceAmount } from "@/lib/domain/seances";
 import { HorseChips, InField } from "@/components/bs/seance-form";
+import { habitues } from "@/lib/domain/ajouter";
+import { norm } from "@/lib/domain/interpret";
 import type { Seance } from "@/lib/domain/types";
 
 /**
- * La fiche d'une séance : la valider (feuille de présence), l'annuler avec
- * un motif, la modifier ou la supprimer avec une portée (cette séance, les
- * suivantes, toute la série). Toute validation ou annulation propose
- * « Annuler » pendant 6 secondes. Feuille du carnet, rendue dans le body
+ * La fiche d'une séance. À venir : inscrire, l'annuler avec un motif, la
+ * modifier ou la supprimer avec une portée (cette séance, les suivantes,
+ * toute la série). Passée : elle a compté toute seule avec tous ses
+ * inscrits présents ; on retire un absent, ou « Elle n’a pas eu lieu ».
+ * Chaque geste propose « Annuler » pendant 6 secondes. Feuille du carnet, rendue dans le body
  * (un parent flouté coupe les panneaux fixes sur iPhone).
  */
 const REASONS = ["Météo", "Cheval boiteux", "Cavalier absent", "Imprévu"];
@@ -37,6 +42,11 @@ function snapshot() {
   return { seances: st.seances, revenues: st.revenues };
 }
 
+const hhmm = (d = new Date()) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+
+/** Une séance passée : faite, ou prévue dont l'heure de fin est passée (elle compte toute seule). */
+const estPassee = (s: Seance, today: string, now: string) => s.status === "done" || (s.status === "planned" && (s.date < today || (s.date === today && s.end <= now)));
+
 function Inner({ seance }: { seance: Seance }) {
   const view0 = useUiStore((s) => s.seanceView);
   const close = useUiStore((s) => s.closeSeance);
@@ -45,10 +55,6 @@ function Inner({ seance }: { seance: Seance }) {
   const st = useDataStore.getState;
   const gerant = useSettingsStore((s) => s.gerant);
   const [view, setView] = useState<"fiche" | "presence" | "annuler" | "modifier" | "supprimer">(view0);
-  const [presence, setPresence] = useState<Record<string, boolean>>(
-    Object.fromEntries(seance.participants.map((p) => [p.personId, p.present ?? true])),
-  );
-  const [chargeAbsent, setChargeAbsent] = useState(!!seance.chargeAbsent);
   const [reason, setReason] = useState("");
   const [date, setDate] = useState(seance.date);
   const [start, setStart] = useState(seance.start);
@@ -66,25 +72,41 @@ function Inner({ seance }: { seance: Seance }) {
   const horse = (hid?: string) => data.horses.find((h) => h.id === hid);
   const series = seance.seriesId ? (data.seances ?? []).filter((x) => x.seriesId === seance.seriesId) : [];
   const following = series.filter((x) => x.date >= seance.date).length;
-  const absents = seance.participants.filter((p) => presence[p.personId] === false).length;
-  const paying = seance.participants.length ? seance.participants.length - (chargeAbsent ? 0 : absents) : seance.horseIds.length;
   const vide = isEmptySeance(seance);
-  const amount = seance.unitPrice * paying;
   const dateLabel = new Date(seance.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   const over = `${dateLabel.charAt(0).toUpperCase()}${dateLabel.slice(1)} · ${seance.start} à ${seance.end}${seance.lieu ? ` · ${seance.lieu}` : ""}`;
   const collectif = seance.format === "collectif";
+  const passee = estPassee(seance, localToday(), hhmm());
+  const plusieurs = seance.participants.length > 1;
 
-  function validate() {
-    const snap = snapshot();
-    st().validateSeance(seance.id, presence, chargeAbsent);
-    say(`${esc(seance.title)} : c’est fait, <strong>${signed(amount)}</strong> sur les tickets.`, () => useDataStore.setState(snap));
-    close();
-  }
   function cancel() {
     const snap = snapshot();
     st().cancelSeance(seance.id, reason);
     say(`Séance annulée : ${esc(seance.title)}${reason ? ` (${esc(reason.toLowerCase())})` : ""}. Rien n’est compté.`, () => useDataStore.setState(snap));
     close();
+  }
+  /** Elle n'a pas eu lieu : toute la séance est retirée, sa recette aussi. */
+  function pasEuLieu() {
+    if (!plusieurs) {
+      retirer({ seanceId: seance.id, label: seance.title });
+    } else {
+      const snap = snapshot();
+      st().cancelSeance(seance.id, "N’a pas eu lieu");
+      say(`${esc(seance.title)} : retiré.`, () => useDataStore.setState(snap));
+    }
+    close();
+  }
+  /** Un absent dans un cours à plusieurs : il ne paie plus, les autres restent comptés. */
+  function retirerAbsent(name: string) {
+    retirer({ seanceId: seance.id, payer: name, label: seance.title });
+  }
+  /** Il était là finalement : il compte de nouveau. */
+  function remettre(pid: string) {
+    const snap = snapshot();
+    const presence = Object.fromEntries(seance.participants.map((x) => [x.personId, x.personId === pid ? true : x.present !== false]));
+    const absents = seance.participants.some((x) => x.personId !== pid && x.present === false);
+    st().validateSeance(seance.id, presence, absents ? seance.chargeAbsent : false);
+    say(`${esc(person(pid)?.name ?? "")} compte de nouveau.`, () => useDataStore.setState(snap));
   }
   function saveEdit() {
     const patch: Partial<Seance> = { updatedBy: gerant };
@@ -131,7 +153,7 @@ function Inner({ seance }: { seance: Seance }) {
 
   // Annuler et Modifier se répondent en onglets, comme sur la maquette.
   const tabs =
-    seance.status === "planned" && (view === "annuler" || view === "modifier") ? (
+    seance.status === "planned" && !passee && (view === "annuler" || view === "modifier") ? (
       <div style={{ marginTop: 12 }}>
         <Seg
           value={view}
@@ -146,35 +168,44 @@ function Inner({ seance }: { seance: Seance }) {
     ) : null;
 
   let body: ReactNode = null;
-  if (view === "fiche") {
+  if (view === "fiche" || view === "presence") {
     const rows = seance.participants.length ? seance.participants : seance.horseIds.map((h) => ({ personId: "", horseId: h, present: undefined as boolean | undefined }));
+    const etat = seance.status === "cancelled" ? `Retirée${seance.cancelReason ? ` · ${seance.cancelReason}` : ""}` : passee ? "A compté" : "Prévue";
     body = (
       <>
         <div className="jr-pills">
-          <span className={`pill${seance.status === "planned" ? " ink" : ""}`}>
-            {seance.status === "done" ? "Faite" : seance.status === "cancelled" ? `Annulée${seance.cancelReason ? ` · ${seance.cancelReason}` : ""}` : "Prévue"}
-          </span>
+          <span className={`pill${!passee && seance.status === "planned" ? " ink" : ""}`}>{etat}</span>
           <span className="pill">
             {eur(seance.unitPrice)} {seance.participants.length ? "par cavalier" : "par cheval"}
           </span>
           {seance.seriesId && <span className="pill">revient, {series.length} séances en tout</span>}
         </div>
         <p className="k jr-k">
-          {seance.participants.length ? "Cavaliers" : "Chevaux"}
-          {collectif ? ` · ${seance.participants.length} sur ${seance.places ?? MAX_PLACES}` : ""}
+          {passee && seance.participants.length ? "Qui était là" : seance.participants.length ? "Cavaliers" : "Chevaux"}
+          {!passee && (collectif || seance.places) ? ` · ${seance.participants.length} sur ${seance.places ?? MAX_PLACES}` : ""}
         </p>
+        {passee && plusieurs && <p className="note">Tout le monde compte. Retire seulement ceux qui ne sont pas venus.</p>}
         {rows.map((p, i) => {
           const h = horse(p.horseId);
           const who = person(p.personId)?.name;
+          const absent = p.present === false;
           return (
             <div key={p.personId || p.horseId || i} className="li">
               {who ? <span className="ini">{ini(who)}</span> : <Face horse={h} />}
               <span>
                 <b>{who ?? h?.name}</b>
-                <small>{h && p.personId ? `sur ${h.name}` : ""}</small>
+                <small>{[h && p.personId ? `sur ${h.name}` : "", passee && who ? (absent ? "absent" : "présent") : ""].filter(Boolean).join(" · ")}</small>
               </span>
-              {seance.status === "done" && p.personId ? (
-                <span className="pill">{p.present === false ? "absent" : "présent"}</span>
+              {passee && seance.status !== "cancelled" && who && plusieurs ? (
+                absent ? (
+                  <button type="button" className="btn line" onClick={() => remettre(p.personId)}>
+                    Remettre
+                  </button>
+                ) : (
+                  <button type="button" className="cp-rm" onClick={() => retirerAbsent(who)} aria-label={`Pas venu ? Retirer ${who}`}>
+                    <Ic n="x" className="" />
+                  </button>
+                )
               ) : h && who ? (
                 <Face horse={h} className="jr-sm" />
               ) : (
@@ -184,37 +215,36 @@ function Inner({ seance }: { seance: Seance }) {
           );
         })}
         {vide && <p className="note">Personne d’inscrit pour l’instant{collectif ? ` · ${seance.places ?? MAX_PLACES} places libres` : ""}. Elle ne rapporte rien tant que personne n’y est inscrit.</p>}
-        {seance.status === "planned" && <Inscrire seance={seance} />}
+        {seance.status === "planned" && !passee && <Inscrire seance={seance} />}
         {seance.notes && <p className="note">{seance.notes}</p>}
         {seance.updatedBy && <p className="note" style={{ fontSize: 12 }}>Modifiée par {seance.updatedBy}</p>}
         <div className="card jr-tot">
-          <span className="k">{seance.status === "done" ? "A rapporté" : "Rapportera"}</span>
+          <span className="k">{passee ? "A rapporté" : "Rapportera"}</span>
           <b className="mid">
-            <Money v={seanceAmount(seance)} />
+            <Money v={seance.status === "cancelled" ? 0 : seanceAmount(seance)} />
           </b>
         </div>
-        {seance.status === "planned" && !vide && (
-          <button type="button" className="btn full jr-btn-top" onClick={() => (seance.participants.length > 1 ? setView("presence") : validate())}>
-            <Ic n="ck" className="" />
-            {seance.participants.length > 1 ? "Confirmer et dire qui était là" : `Confirmer que c’est fait · ${signed(amount)}`}
+        {passee && !vide && (
+          <button type="button" className="btn line full jr-btn-top" onClick={pasEuLieu}>
+            Elle n’a pas eu lieu
           </button>
         )}
-        {seance.status !== "planned" && (
+        {seance.status === "cancelled" && (
           <button
             type="button"
             className="btn line full jr-btn-top"
             onClick={() => {
               const snap = snapshot();
               st().unvalidateSeance(seance.id);
-              say("La séance repasse à « prévue ».", () => useDataStore.setState(snap));
+              say("La séance revient au planning.", () => useDataStore.setState(snap));
               close();
             }}
           >
-            {seance.status === "done" ? "Remettre en « prévue »" : "Remettre la séance au planning"}
+            Remettre la séance au planning
           </button>
         )}
-        <div className={seance.status === "planned" ? "jr-3" : "jr-2"}>
-          {seance.status === "planned" && (
+        <div className={seance.status === "planned" && !passee ? "jr-3" : "jr-2"}>
+          {seance.status === "planned" && !passee && (
             <button type="button" className="btn line" onClick={() => setView("annuler")}>
               Annulée
             </button>
@@ -225,61 +255,6 @@ function Inner({ seance }: { seance: Seance }) {
           <button type="button" className="btn line" onClick={() => setView("supprimer")}>
             <Ic n="trash" className="" />
             Supprimer
-          </button>
-        </div>
-      </>
-    );
-  } else if (view === "presence") {
-    body = (
-      <>
-        <p className="note">Tout le monde est noté présent. Touche seulement ceux qui ne sont pas venus.</p>
-        {seance.participants.map((p) => {
-          const h = horse(p.horseId);
-          const name = person(p.personId)?.name ?? "?";
-          const on = presence[p.personId] !== false;
-          return (
-            <div key={p.personId} className="li">
-              <span className="ini">{ini(name)}</span>
-              <span>
-                <b>{name}</b>
-                <small>{h ? `sur ${h.name}` : ""}</small>
-              </span>
-              <div className="jr-pa">
-                <Seg
-                  value={on ? "p" : "a"}
-                  onChange={(v) => setPresence({ ...presence, [p.personId]: v === "p" })}
-                  label={`Présence de ${name}`}
-                  options={[
-                    ["p", "Présent"],
-                    ["a", "Absent"],
-                  ]}
-                />
-              </div>
-            </div>
-          );
-        })}
-        {absents > 0 && (
-          <Switch on={chargeAbsent} onClick={() => setChargeAbsent(!chargeAbsent)}>
-            Faire payer {absents > 1 ? "les absents" : "l’absent"} (pas prévenu à temps)
-          </Switch>
-        )}
-        <div className="card jr-tot">
-          <span className="k">
-            {paying} × {eur(seance.unitPrice)} = {eur(amount)}
-          </span>
-          <b className="mid">
-            <Money v={amount} />
-          </b>
-        </div>
-        <button type="button" className="btn full jr-btn-top" onClick={validate}>
-          Confirmer · {signed(amount)}
-        </button>
-        <div className="jr-2">
-          <button type="button" className="btn line" onClick={() => setView("annuler")}>
-            Elle n’a pas eu lieu
-          </button>
-          <button type="button" className="btn line" onClick={close}>
-            Plus tard
           </button>
         </div>
       </>
@@ -365,7 +340,7 @@ function Inner({ seance }: { seance: Seance }) {
           </button>
         </div>
         <div className="pad">
-          <h3 className="jr-sh">{view === "presence" ? `${seance.title} · qui était là ?` : seance.title}</h3>
+          <h3 className="jr-sh">{view === "presence" && plusieurs ? `${seance.title} · qui était là ?` : seance.title}</h3>
           {body}
         </div>
       </div>
@@ -374,9 +349,11 @@ function Inner({ seance }: { seance: Seance }) {
 }
 
 /**
- * Inscrire quelqu'un après coup : un cavalier (son nom, ou un client déjà
- * connu) ou un cheval. Une séance posée vide se remplit ainsi ; elle se met
- * à rapporter dès le premier inscrit.
+ * Inscrire : les habitués de ce cours d'abord (ceux des séances passées du
+ * même cours, au même créneau), un toucher et c'est fait. Puis « Tape un
+ * nom » qui filtre à chaque lettre parmi les cavaliers et les propriétaires ;
+ * un nom inconnu devient un nouveau cavalier. Les places et le montant prévu
+ * suivent. Les chevaux s'ajoutent en dessous.
  */
 function Inscrire({ seance }: { seance: Seance }) {
   const data = useDataStore();
@@ -386,10 +363,14 @@ function Inscrire({ seance }: { seance: Seance }) {
   const horses = data.horses.filter((h) => !h.isArchived);
   const people = (data.people ?? []).filter((p) => p.active);
   const inscrits = new Set(seance.participants.map((p) => p.personId));
-  const max = seance.format === "collectif" ? (seance.places ?? MAX_PLACES) : seance.format === "particulier" ? 1 : MAX_PLACES;
+  const max = seance.format === "collectif" ? (seance.places ?? MAX_PLACES) : seance.format === "particulier" ? 1 : (seance.places ?? Infinity);
   const plein = seance.participants.length >= max;
-  const q = typed.trim().toLowerCase();
-  const sugg = q ? people.filter((p) => !inscrits.has(p.id) && p.name.toLowerCase().includes(q)).slice(0, 6) : [];
+  const habit = habitues(data.seances ?? [], seance)
+    .map((pid) => people.find((p) => p.id === pid))
+    .filter((p): p is NonNullable<typeof p> => !!p);
+  const q = norm(typed.trim());
+  const sugg = q ? people.filter((p) => !inscrits.has(p.id) && norm(p.name).includes(q)).slice(0, 6) : [];
+  const exact = people.some((p) => norm(p.name) === q);
 
   function inscrire(nom: string) {
     const v = nom.trim();
@@ -398,28 +379,43 @@ function Inscrire({ seance }: { seance: Seance }) {
     const snap = { seances: st.seances, people: st.people };
     const owner = horses.find((h) => h.ownerName === v);
     const personId = st.ensurePerson(v, owner ? "proprietaire" : "cavalier");
-    if (inscrits.has(personId)) return setTyped("");
+    setTyped("");
+    if (inscrits.has(personId)) return;
     const horseId = owner?.id ?? (seance.horseIds.length ? seance.horseIds[seance.participants.length % seance.horseIds.length] : undefined);
     st.updateSeance(seance.id, { participants: [...seance.participants, { personId, horseId }], updatedBy: gerant }, "one");
-    setTyped("");
     say(`<strong>${esc(v)}</strong> inscrit à ${esc(seance.title)}.`, () => useDataStore.setState(snap));
   }
 
   return (
     <div className="field" style={{ marginTop: 14 }}>
-      <span>{plein ? "C’est complet" : "Inscrire quelqu’un"}</span>
+      <span>{plein ? "C’est complet" : "Inscrire"}</span>
       {!plein && (
         <>
+          {habit.length > 0 && (
+            <div className="chips">
+              {habit.map((p) => (
+                <button key={p.id} type="button" className="chip" onClick={() => inscrire(p.name)}>
+                  + {p.name}
+                </button>
+              ))}
+            </div>
+          )}
           <InField>
-            <input value={typed} placeholder="Nom du cavalier ou du propriétaire" onChange={(e) => setTyped(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), inscrire(typed))} aria-label="Inscrire un cavalier" />
-            {typed.trim() && (
-              <button type="button" className="lnk" onClick={() => inscrire(typed)}>
-                Inscrire
-              </button>
-            )}
+            <input value={typed} placeholder="Tape un nom" onChange={(e) => setTyped(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), inscrire(typed))} aria-label="Tape un nom de cavalier ou de propriétaire" autoComplete="off" enterKeyHint="done" />
           </InField>
-          {sugg.length > 0 && (
-            <Chips value="" onChange={(id) => inscrire(people.find((p) => p.id === id)?.name ?? "")} options={sugg.map((p) => [p.id, `+ ${p.name}`] as [string, string])} />
+          {(sugg.length > 0 || (q && !exact)) && (
+            <div className="chips">
+              {sugg.map((p) => (
+                <button key={p.id} type="button" className="chip" onClick={() => inscrire(p.name)}>
+                  + {p.name}
+                </button>
+              ))}
+              {q && !exact && !typed.includes(",") && (
+                <button type="button" className="chip" onClick={() => inscrire(typed)}>
+                  + {typed.trim()}, nouveau cavalier
+                </button>
+              )}
+            </div>
           )}
         </>
       )}

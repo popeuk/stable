@@ -7,18 +7,18 @@ import { useDesk } from "@/components/bs/desk";
 import { dayItems } from "@/lib/domain/seances";
 import { Compteur } from "@/components/bs/compteur";
 import { Tournee } from "@/components/bs/tournee";
-import { PilePaniers, usePaniers } from "@/components/bs/paniers";
-import { DayBlock } from "@/components/bs/day-block";
+import { BandeauFinDuMois, LigneJour, useMaintenant } from "@/components/bs/compte";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
-import { Empty, Face, Ic, Money, Page, Sec } from "@/components/carnet/ui";
+import { Empty, Face, Ic, Page, Sec } from "@/components/carnet/ui";
 
 /**
- * L'accueil, en trois parties : le compteur du mois en grand (le gérant
- * assis dessus, la sacoche, la part encore à valider), ta journée en
- * quelques lignes, puis la pile des paniers. La tournée du matin s'ouvre
+ * L'accueil : le compteur du mois en grand (le gérant assis dessus, la
+ * sacoche), en fin de mois le bandeau « Fin du mois : n clients à faire
+ * payer », puis ta journée. Ce qui est passé a compté tout seul : la ligne
+ * le dit, avec × si ça n'a pas eu lieu. La tournée du matin s'ouvre
  * par-dessus une fois par jour. Sur ordinateur : compteur et journée côte à
- * côte, la pile et l'équipe dessous.
+ * côte, l'équipe dessous.
  */
 export default function AccueilPage() {
   return (
@@ -29,42 +29,16 @@ export default function AccueilPage() {
   );
 }
 
-const hhmm = () => {
-  const d = new Date();
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-};
-const pl = (n: number, w: string) => `${n} ${w}${n > 1 ? "s" : ""}`;
-
 function Accueil() {
   const desk = useDesk();
-  const { count, total } = usePaniers();
-
-  const valider = (
-    <>
-      <Sec ill="confirmer" title="À valider" action={<Link href="/chevaux?vue=clients">Clients</Link>} delay={0.24} className="ac-vhead">
-        <p className="note ac-vnote">
-          {count ? (
-            <>
-              {pl(count, "client")} · <Money v={total} /> à valider
-            </>
-          ) : (
-            "Ce qui a eu lieu arrive ici, rangé par client."
-          )}
-        </p>
-      </Sec>
-      <div className="ac-pile rise" style={{ animationDelay: "0.3s" }}>
-        <PilePaniers />
-      </div>
-    </>
-  );
 
   if (!desk)
     return (
       <Page className="ac-acc">
         <Compteur href="/argent" perch="gerant-assise" />
+        <BandeauFinDuMois />
         <NommerChevaux />
-        <Journee delay={0.12} max={4} />
-        {valider}
+        <Journee delay={0.12} max={5} />
         <div className="end" />
       </Page>
     );
@@ -73,6 +47,7 @@ function Accueil() {
       <div className="ac-dtop">
         <div>
           <Compteur href="/argent" perch="gerant-assise" />
+          <BandeauFinDuMois />
           <NommerChevaux />
         </div>
         <div>
@@ -80,7 +55,6 @@ function Accueil() {
         </div>
       </div>
       <div className="ac-dbot">
-        <div>{valider}</div>
         <Equipe />
       </div>
       <div className="end" />
@@ -88,24 +62,23 @@ function Accueil() {
   );
 }
 
-/** Ta journée, courte : ce qui est prévu aujourd'hui, sans ce qui attend déjà dans un panier. */
+/** Ta journée, courte : ce qui a compté (avec ×), puis ce qui vient. */
 function Journee({ delay, max }: { delay: number; max: number }) {
   const data = useDataStore();
-  const { paniers } = usePaniers();
-  const today = localToday();
-  const now = hhmm();
-  const items = useMemo(() => {
-    const dansPanier = new Set(paniers.flatMap((p) => p.lignes.map((l) => l.itemKey)));
-    return dayItems(data, today, today, now).filter((i) => !dansPanier.has(i.key));
-  }, [data, paniers, today, now]);
-  const left = items.filter((i) => !i.done);
-  const shown = left.slice(0, max);
-  const reste = left.length - shown.length;
+  const { today, time } = useMaintenant();
+  const items = useMemo(() => dayItems(data, today, today, time), [data, today, time]);
+  const comptes = items.filter((i) => i.type !== "task" && i.done);
+  const avenir = items.filter((i) => !i.done);
+  // Ce qui vient d'abord, puis ce qui a compté : au plus `max` lignes en tout.
+  const shownNext = avenir.slice(0, max);
+  const shownDone = comptes.slice(-Math.max(0, max - shownNext.length));
+  const shown = [...shownDone, ...shownNext].sort((a, b) => (a.start ?? "99").localeCompare(b.start ?? "99"));
+  const reste = items.filter((i) => !(i.type === "task" && i.done)).length - shown.length;
   return (
-    <Sec ill="carnet-buste" title="Ta journée" action={<Link href="/planning">Planning</Link>} delay={delay}>
+    <Sec ill="carnet-buste" title="Ta journée" action={<Link href="/planning">Planning</Link>} delay={delay} className="ac-jour">
       {!items.length ? (
         <p className="note ac-jnote">Rien de prévu aujourd’hui. Touche le + pour prévoir une séance, un soin ou une tâche.</p>
-      ) : !left.length ? (
+      ) : !shown.length ? (
         <Empty ill="dodo">
           <b>Tout est fait pour aujourd’hui.</b>
         </Empty>
@@ -113,9 +86,10 @@ function Journee({ delay, max }: { delay: number; max: number }) {
         <>
           <div className="rows">
             {shown.map((it) => (
-              <DayBlock key={it.key} it={it} />
+              <LigneJour key={it.key} it={it} />
             ))}
           </div>
+          {shownDone.length > 0 && <p className="note cp-hint">Pas eu lieu ? Retire la ligne.</p>}
           {reste > 0 && (
             <p className="note ac-jnote">
               <Link className="lnk" href="/planning">

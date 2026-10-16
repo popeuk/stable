@@ -188,7 +188,7 @@ export function AgendaRow({
 
 function sessionWhen(s: Session): { text: string; tone: "late" | "today" | "soon" } {
   if (s.daysUntil < 0)
-    return { text: `à confirmer · ${s.date.slice(8, 10)}/${s.date.slice(5, 7)}`, tone: "late" };
+    return { text: `passé · ${s.date.slice(8, 10)}/${s.date.slice(5, 7)}`, tone: "late" };
   if (s.daysUntil === 0) return { text: "aujourd'hui", tone: "today" };
   if (s.daysUntil === 1) return { text: "demain", tone: "today" };
   return { text: `dans ${s.daysUntil} j`, tone: "soon" };
@@ -349,7 +349,7 @@ export function SessionRow({
                 <Check size={18} />
                 {present.size === 0
                   ? "Personne n'est venu · annuler la séance"
-                  : `Confirmer${s.events.length > 1 ? ` · ${present.size} présent${present.size > 1 ? "s" : ""}` : ""}`}
+                  : `C’est fait${s.events.length > 1 ? ` · ${present.size} présent${present.size > 1 ? "s" : ""}` : ""}`}
               </button>
             </motion.div>
           </motion.div>

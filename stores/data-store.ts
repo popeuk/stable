@@ -25,8 +25,10 @@ import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
 import { revenuesForSeance } from "@/lib/domain/seances";
+import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
 import { distribute } from "@/lib/domain/distribution";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
+import { localToday } from "@/lib/utils/local-date";
 
 /**
  * Client-side data store. In the full product this is the IndexedDB-backed
@@ -58,6 +60,12 @@ interface DataState extends StableData {
    * qui manque et ne touche à rien d'existant.
    */
   runAutopilot: (today: string) => void;
+  /**
+   * Tout compte : les séances et soins encore prévus dont l'heure est passée
+   * comptent tout seuls (tous présents, à leur date). Idempotent, sans
+   * message. Renvoie combien d'éléments ont compté.
+   */
+  compterLePasse: (today: string, nowHHMM: string) => number;
   addRevenue: (r: Omit<Revenue, "id" | "stableId">) => void;
   addDirectExpense: (e: Omit<DirectExpense, "id" | "stableId">) => void;
   addSharedExpense: (e: Omit<SharedExpense, "id" | "stableId">) => void;
@@ -136,8 +144,13 @@ interface DataState extends StableData {
   /** Déplace une carte ; posée dans « Fait » avec un coût, elle crée la facture commune. */
   moveTask: (id: string, listId: string) => void;
   deleteTask: (id: string) => void;
-  addPayment: (payer: string, month: string, amount: number) => void;
+  /** Un paiement reçu (tout ou une partie du mois). Avec `seanceId` : payé sur place pour cette séance. Renvoie son id. */
+  addPayment: (payer: string, month: string, amount: number, seanceId?: string) => string;
+  /** Retire un paiement précis (« Annuler »). */
+  removePayment: (id: string) => void;
   removePayments: (payer: string, month: string) => void;
+  /** Une note datée sur un client, en tête de ses notes. */
+  addNote: (personId: string, text: string, at?: string) => void;
 }
 
 const STABLE_ID = "demo-stable";
@@ -241,7 +254,8 @@ export const useDataStore = create<DataState>()(
 
       logCare: (e) => get().logCareMany([e.horseId], e),
 
-      logCareMany: (horseIds, base) =>
+      logCareMany: (horseIds, base) => {
+        let aRefacturer: string[] = [];
         set((s) => {
           const groupId = horseIds.length > 1 ? id("grp") : undefined;
           const pending = base.date > new Date().toISOString().slice(0, 10) ? true : undefined;
@@ -285,14 +299,21 @@ export const useDataStore = create<DataState>()(
             }
             return { ...base, id: careId, stableId: STABLE_ID, horseId, groupId, pending, expenseId, revenueId };
           });
+          // Un soin fait à refacturer : sa dépense existe, on refacture tout de suite.
+          // (seulement pour un cheval qui a un propriétaire)
+          const proprio = (hid: string) => !!s.horses.find((h) => h.id === hid)?.ownerName;
+          aRefacturer = base.refacturer ? events.filter((e) => e.expenseId && proprio(e.horseId)).map((e) => e.expenseId!) : [];
           return {
             directExpenses,
             revenues,
             careEvents: [...(s.careEvents ?? []), ...events],
           };
-        }),
+        });
+        for (const eid of aRefacturer) get().rebillExpense(eid);
+      },
 
-      confirmSession: (eventIds, presentIds, actualDate) =>
+      confirmSession: (eventIds, presentIds, actualDate) => {
+        const aRefacturer: string[] = [];
         set((s) => {
           const ids = new Set(eventIds);
           const present = new Set(presentIds);
@@ -335,10 +356,14 @@ export const useDataStore = create<DataState>()(
               enqueueMutation("insert", "revenues", rev);
               revenues = [...revenues, rev];
             }
+            // Refacturer au propriétaire, décidé à la saisie : ça se fait maintenant qu'il compte.
+            if (e.refacturer && expenseId && s.horses.find((h) => h.id === e.horseId)?.ownerName) aRefacturer.push(expenseId);
             return [{ ...e, date: actualDate, pending: undefined, expenseId, revenueId }];
           });
           return { careEvents, directExpenses, revenues };
-        }),
+        });
+        for (const eid of aRefacturer) get().rebillExpense(eid);
+      },
 
       deleteCareEvent: (cid) =>
         set((s) => {
@@ -410,6 +435,14 @@ export const useDataStore = create<DataState>()(
               : s.rhythms,
           };
         }),
+
+      compterLePasse: (today, nowHHMM) => {
+        const plan = aCompter(get(), today, nowHHMM);
+        if (rienACompter(plan)) return 0;
+        for (const sid of plan.seances) get().validateSeance(sid, {});
+        for (const g of plan.soins) get().confirmSession(g.ids, g.horseIds, g.date);
+        return plan.seances.length + plan.soins.length;
+      },
 
       addRecurringExpense: (e) =>
         set((s) => ({
@@ -698,8 +731,21 @@ export const useDataStore = create<DataState>()(
 
       deleteTask: (tid) => set((s) => ({ tasks: (s.tasks ?? []).filter((x) => x.id !== tid) })),
 
-      addPayment: (payer, month, amount) =>
-        set((s) => ({ payments: [...(s.payments ?? []), { id: id("pay"), payer, month, amount, at: new Date().toISOString() }] })),
+      addPayment: (payer, month, amount, seanceId) => {
+        const pid = id("pay");
+        const amt = Math.round(amount * 100) / 100;
+        set((s) => ({ payments: [...(s.payments ?? []), { id: pid, payer, month, amount: amt, at: new Date().toISOString(), ...(seanceId ? { seanceId } : {}) }] }));
+        return pid;
+      },
+
+      removePayment: (pid) => set((s) => ({ payments: (s.payments ?? []).filter((p) => p.id !== pid) })),
+
+      addNote: (personId, text, at) => {
+        const t = text.trim();
+        if (!t) return;
+        const day = at ?? localToday();
+        set((s) => ({ people: (s.people ?? []).map((p) => (p.id === personId ? { ...p, notes: [{ id: id("note"), at: day, text: t }, ...(p.notes ?? [])] } : p)) }));
+      },
 
       removePayments: (payer, month) => set((s) => ({ payments: (s.payments ?? []).filter((p) => !(p.payer === payer && p.month === month)) })),
 

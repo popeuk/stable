@@ -6,24 +6,29 @@ import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { scopedKey } from "@/lib/account/session";
 import { dayItems } from "@/lib/domain/seances";
+import { aCompteLe } from "@/lib/domain/compte-auto";
+import { addDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
-import { usePaniers, PilePaniers } from "@/components/bs/paniers";
 import { phraseObjectif, useCompte, useMois } from "@/components/bs/compteur";
+import { LigneComptee } from "@/components/bs/compte";
 import { Ill, Money, eur, sg } from "@/components/carnet/ui";
-import type { Panier } from "@/lib/domain/paniers";
 
 /**
  * La tournée du matin : une fois par jour, à la première ouverture de
- * l'accueil, 30 secondes en trois étapes. Hier (la pile des paniers),
- * Aujourd'hui (ce qui t'attend, à regarder), Ton mois (le compteur qui compte
- * depuis la dernière tournée). « Passer » toujours en haut. Si rien n'attend
- * et rien n'est prévu, elle ne s'ouvre pas.
+ * l'accueil, 30 secondes en trois étapes. Hier, ce qui a compté (tout seul,
+ * avec × pour retirer ce qui n'a pas eu lieu), Aujourd'hui (ce qui t'attend,
+ * à regarder), Ton mois (le compteur qui compte depuis la dernière tournée).
+ * « Passer » toujours en haut. Si rien n'a compté hier et rien n'est prévu,
+ * elle ne s'ouvre pas.
  * Se souvient, sur cet appareil et par compte, du jour et du chiffre de la
  * dernière tournée.
  */
 
 type Etape = "hier" | "aujourdhui" | "mois";
 const NOMS: Record<Etape, string> = { hier: "Hier", aujourdhui: "Aujourd’hui", mois: "Ton mois" };
+
+/** Ce qui a compté hier : séances et soins faits (pas les tâches). */
+const hier = (today: string) => aCompteLe(useDataStore.getState(), addDays(today, -1), today, hhmm());
 interface Vu {
   date: string;
   net: number;
@@ -56,7 +61,6 @@ export function Tournee() {
   const ready = useDataStore((s) => s.hydrated);
   const forced = useUiStore((s) => s.tourneeOpen);
   const closeForced = useUiStore((s) => s.closeTournee);
-  const { count } = usePaniers();
   const { net } = useMois();
   const [auto, setAuto] = useState<null | { prev: Vu | null }>(null);
   const decide = useRef(false);
@@ -68,14 +72,16 @@ export function Tournee() {
     const vu = lire();
     const today = localToday();
     if (vu?.date === today) return;
+    // Ce qui est passé compte d'abord (idempotent) : « Hier » le montre déjà compté.
+    useDataStore.getState().compterLePasse(today, hhmm());
     const items = dayItems(useDataStore.getState(), today, today, hhmm()).filter((i) => !i.done);
-    if (!count && !items.length) {
+    if (!hier(today).length && !items.length) {
       ecrire({ date: today, net });
       return;
     }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAuto({ prev: vu });
-  }, [ready, count, net]);
+  }, [ready, net]);
 
   const open = forced || !!auto;
   if (!open || !ready) return null;
@@ -92,18 +98,17 @@ export function Tournee() {
 
 function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void }) {
   const data = useDataStore();
-  const { count, total } = usePaniers();
   const mois = useMois();
   const today = localToday();
   const items = useMemo(() => dayItems(data, today, today, hhmm()), [data, today]);
   const restants = items.filter((i) => !i.done);
+  const veille = useMemo(() => aCompteLe(data, addDays(today, -1), today, hhmm()), [data, today]);
+  const totalHier = veille.reduce((t, it) => t + (it.money ?? 0), 0);
 
-  // Les étapes se fixent à l'ouverture : valider la pile ne fait pas sauter « Hier ».
-  const [etapes] = useState<Etape[]>(() => [...(count ? (["hier"] as Etape[]) : []), ...(restants.length ? (["aujourdhui"] as Etape[]) : []), "mois"]);
-  const [aValiderAvant] = useState(total);
+  // Les étapes se fixent à l'ouverture : retirer une ligne ne fait pas sauter « Hier ».
+  const [etapes] = useState<Etape[]>(() => [...(veille.length ? (["hier"] as Etape[]) : []), ...(restants.length ? (["aujourdhui"] as Etape[]) : []), "mois"]);
   const [i, setI] = useState(0);
   const [fini, setFini] = useState(false);
-  const [valides, setValides] = useState<Panier[]>([]);
   const ref = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
 
@@ -135,14 +140,13 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
   };
 
   const etape = etapes[i];
-  const kept = valides.reduce((t, p) => t + p.total, 0);
   const memeMois = prev?.date?.slice(0, 7) === today.slice(0, 7);
   const depuis = memeMois && prev ? prev.net : 0;
   const dt = cap(new Date(today + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }));
   const moisNom = cap(new Date(today + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" }));
 
   const recap = [
-    ...(valides.length ? [`${pl(valides.length, "panier")} validé${valides.length > 1 ? "s" : ""}, ${sg(kept)} comptés dans ton mois.`] : etapes.includes("hier") && count ? [`${pl(count, "client")} encore à valider, dans Clients et chevaux.`] : []),
+    ...(etapes.includes("hier") ? [veille.length ? `Hier, ${pl(veille.length, "ligne")} ${veille.length > 1 ? "ont" : "a"} compté : ${sg(totalHier)}.` : "Hier, plus rien ne compte."] : []),
     ...(restants.length ? [`${restants.length > 1 ? `${restants.length} choses` : "Une chose"} au planning aujourd’hui.`] : []),
     `Ce mois, ${mois.net < 0 ? "il te manque" : "il te reste"} ${sg(mois.net)}.`,
   ];
@@ -195,26 +199,21 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
               <div className="ac-h">
                 <div>
                   <p className="ac-dt">Ce qui a eu lieu</p>
-                  <h3>À valider</h3>
-                  <p>
-                    {count ? (
-                      <>
-                        {pl(count, "client")} · <Money v={total} /> à valider
-                      </>
-                    ) : (
-                      "Rien à valider, tout le monde est à jour."
-                    )}
-                  </p>
+                  <h3>Hier, ce qui a compté</h3>
+                  <p>{veille.length ? <>Ça a compté tout seul : <Money v={totalHier} />.</> : "Plus rien hier : tu as tout retiré."}</p>
                 </div>
                 <Ill n="gerant-buste" alt="" />
               </div>
-              <div className="ac-tpile">
-                <PilePaniers onValidated={(p) => setValides((v) => [...v, p])} />
-              </div>
-              <div className="ac-kept">
-                <span>Validé ce matin</span>
-                <b className={kept > 0 ? "in" : "num"}>{sg(kept)}</b>
-              </div>
+              {veille.length > 0 && (
+                <>
+                  <div className="rows ac-hier">
+                    {veille.map((it) => (
+                      <LigneComptee key={it.key} it={it} />
+                    ))}
+                  </div>
+                  <p className="ac-mnote cp-hint">Pas eu lieu ? Retire la ligne.</p>
+                </>
+              )}
               <button type="button" className="btn full" onClick={suivant}>
                 Continuer
               </button>
@@ -265,14 +264,9 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                     Depuis ta dernière tournée : <Money v={mois.net - depuis} />.{" "}
                   </>
                 ) : null}
-                {kept > 0 && aValiderAvant > 0 ? (
+                {Math.round(mois.prevu) > 0 ? (
                   <>
-                    Dont <b>{sg(kept)}</b> validés ce matin.{" "}
-                  </>
-                ) : null}
-                {Math.round(mois.aValider) > 0 ? (
-                  <>
-                    Encore <Money v={mois.aValider} /> à valider.
+                    Encore <Money v={mois.prevu} /> prévu au planning.
                   </>
                 ) : null}
               </p>
@@ -290,7 +284,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
 
 /** Le compteur de la tournée : la gérante assise dessus, il compte depuis la dernière tournée. */
 function MoisQuiCompte({ depuis }: { depuis: number }) {
-  const { net, objective, pct, planPct } = useMois();
+  const { net, objective } = useMois();
   // Rien n'a bougé depuis la dernière tournée : le chiffre compte depuis zéro.
   const [from] = useState(Math.round(net - depuis) === 0 ? 0 : depuis);
   const v = useCompte(from, net, { ms: 1400, delay: 350 });
@@ -313,7 +307,6 @@ function MoisQuiCompte({ depuis }: { depuis: number }) {
           <>
             <span className="bar" aria-hidden="true">
               <i style={{ width: `${vpct}%`, transition: "none" }} />
-              {planPct > 0 && <i className="plan" style={{ left: `${pct}%`, width: `${planPct}%` }} />}
             </span>
             <span className="bar-lab">
               <span>0</span>

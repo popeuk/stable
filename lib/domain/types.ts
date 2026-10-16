@@ -222,7 +222,20 @@ export interface Person {
   name: string;
   role: PersonRole;
   phone?: string;
+  email?: string;
+  /** Ses notes, la plus récente en premier. */
+  notes?: PersonNote[];
+  /** Il paie ses cours et balades sur place, à la séance (sinon au mois). */
+  paieALaSeance?: boolean;
   active: boolean;
+}
+
+/** Une note datée sur un client. */
+export interface PersonNote {
+  id: string;
+  /** Date ISO de la note (AAAA-MM-JJ). */
+  at: string;
+  text: string;
 }
 
 /** Une prestation vendue (cours, travail du cheval, balade…), avec son prix. */
@@ -325,6 +338,8 @@ export interface Payment {
   month: string; // AAAA-MM
   amount: number;
   at: string;
+  /** Payé sur place : la séance réglée (avec `payer`, elle désigne sa ligne). */
+  seanceId?: string;
 }
 
 /** The full bundle of data the domain functions operate on. */

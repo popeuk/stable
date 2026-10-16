@@ -11,14 +11,12 @@ import { useUiStore } from "@/stores/ui-store";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
-import { toValidate } from "@/lib/domain/seances";
 import { billsFor } from "@/lib/domain/billing";
 import { suggestions } from "@/lib/domain/leviers";
 import { OBSTACLES } from "@/stores/settings-store";
 import { currentPeriod } from "@/lib/utils/period";
-import { localToday } from "@/lib/utils/local-date";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
-import { usePaniers } from "@/components/bs/paniers";
+import { useFinDuMois } from "@/components/bs/compte";
 import { BILAN, CLIENTS_CHEVAUX, under, usePlusItems } from "@/components/bs/nav";
 
 /* ------------------------------------------------------------------ */
@@ -42,12 +40,7 @@ export function useDesk() {
 const isMac = () => typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 export const modKey = () => (isMac() ? "⌘" : "Ctrl");
 
-const nowHHMM = () => {
-  const d = new Date();
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-};
-
-/** Les compteurs de la navigation : à valider, à facturer, actions, tâches. */
+/** Les compteurs de la navigation : à facturer, actions, tâches. */
 export function useNavCounts() {
   const data = useDataStore();
   const capacity = useSettingsStore((s) => s.capacity);
@@ -57,7 +50,6 @@ export function useNavCounts() {
     const period = currentPeriod();
     const done = data.taskLists?.find((l) => l.isDone)?.id;
     return {
-      pending: toValidate(data, localToday(), nowHHMM()).length,
       due: billsFor(data, period).reduce((t, b) => t + Math.max(0, b.due), 0),
       acts: suggestions(data, period, capacity).filter((x) => x.status !== "faite" && x.status !== "ecartee").length,
       net: monthBreakdown(data, period).net,
@@ -83,7 +75,8 @@ export function Sidebar() {
   const path = (usePathname() ?? "").replace(/(.)\/$/, "$1");
   const vue = useSearchParams().get("vue");
   const c = useNavCounts();
-  const { count } = usePaniers();
+  const fin = useFinDuMois();
+  const count = fin?.count ?? 0;
   const plus = usePlusItems();
   const stableName = useSettingsStore((s) => s.stableName);
   const gerant = useSettingsStore((s) => s.gerant);
@@ -103,7 +96,7 @@ export function Sidebar() {
         be stable
       </Link>
       <span className="stb">{stableName}</span>
-      <button type="button" className="add" onClick={() => openNoter({ mode: "seance" })}>
+      <button type="button" className="add" onClick={() => openNoter({})}>
         <Ic n="plus" className="cn-ic sm" />
         Ajouter
         <kbd>N</kbd>
@@ -290,11 +283,22 @@ function PaletteInner() {
 
   const all: Cmd[] = useMemo(
     () => [
-      { id: "a-seance", group: "Faire", label: "Planifier une séance", sub: "cours, travail, balade", ic: "cal", hint: "N", run: add("seance") },
+      {
+        id: "a-ajouter",
+        group: "Faire",
+        label: "Ajouter",
+        sub: "séance, soin, tâche, argent",
+        ic: "plus",
+        hint: "N",
+        run: () => {
+          close();
+          openNoter({});
+        },
+      },
+      { id: "a-seance", group: "Faire", label: "Planifier une séance", sub: "cours, travail, balade", ic: "cal", run: add("seance") },
       { id: "a-soin", group: "Faire", label: "Noter un soin", sub: "maréchal, véto, vermifuge…", ic: "shoe", run: add("soin") },
       { id: "a-tache", group: "Faire", label: "Ajouter une tâche d’équipe", ic: "board", run: add("tache") },
       { id: "a-depense", group: "Faire", label: "Noter une dépense", sub: "ou une recette", ic: "euro", run: add("depense") },
-      ...(c.pending ? [{ id: "a-valider", group: "Faire", label: `Confirmer ce qui attend (${c.pending})`, ic: "ck", run: go("/valider") }] : []),
       { id: "a-facturer", group: "Faire", label: "Préparer les factures du mois", sub: c.due ? `${eur(c.due)} en attente` : undefined, ic: "doc", run: go("/argent?vue=facturer") },
       { id: "g-accueil", group: "Aller à", label: "Accueil", ic: "home", hint: "G A", run: go("/accueil") },
       { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
@@ -302,9 +306,9 @@ function PaletteInner() {
       { id: "g-mois", group: "Aller à", label: "Mon mois", sub: signed(c.net), money: c.net, ic: "chart", hint: "G M", run: go("/argent") },
       ...plus.map((it) => ({ id: `r-${it.id}`, group: "Aller à", label: it.label, sub: it.sub, ic: it.ic, hint: HINTS[it.id], run: go(it.href ?? "/moi") })),
       { id: "g-recherche", group: "Aller à", label: "Chercher", sub: "un cheval, un client", ic: "search", run: go("/recherche") },
-      { id: "g-valider", group: "Aller à", label: "Séances à confirmer", sub: "dans Planning", ic: "ck", hint: "G V", run: go("/valider") },
+      { id: "g-valider", group: "Aller à", label: "Ce qui a compté", sub: "dans Planning", ic: "ck", hint: "G V", run: go("/valider") },
       { id: "g-equipe", group: "Aller à", label: "Tâches de l’équipe", sub: "dans Planning", ic: "board", hint: "G E", run: go("/equipe") },
-      { id: "g-clients", group: "Aller à", label: "Mes clients", sub: "dans Clients et chevaux", ic: "people", hint: "G K", run: go("/clients") },
+      { id: "g-clients", group: "Aller à", label: "Mes clients", sub: "dans Clients et chevaux", ic: "people", hint: "G K", run: go("/chevaux?vue=clients") },
       { id: "g-leviers", group: "Aller à", label: "Pistes pour gagner plus", sub: "dans Mon mois", ic: "bulb", hint: "G L", run: go("/argent?vue=leviers") },
       { id: "g-mouv", group: "Aller à", label: "Entrées et sorties d’argent", sub: "dans Mon mois", ic: "list", run: go("/argent?vue=mouvements") },
       { id: "g-bilans", group: "Aller à", label: "Sur plusieurs mois", sub: "bilan sur 3, 6 ou 12 mois", ic: "chart", hint: "G B", run: go("/pilotage") },
@@ -314,7 +318,7 @@ function PaletteInner() {
         .map((h) => ({ id: `h-${h.id}`, group: "Chevaux", label: h.name, sub: [h.pensionType, h.ownerName].filter(Boolean).join(" · "), face: h.id, run: go(`/ticket?id=${h.id}`) })),
       ...(data.people ?? [])
         .filter((p) => p.active)
-        .map((p) => ({ id: `p-${p.id}`, group: "Clients", label: p.name, sub: p.role === "proprietaire" ? "propriétaire" : "cavalier", ic: "user", run: go(`/clients?q=${encodeURIComponent(p.name)}`) })),
+        .map((p) => ({ id: `p-${p.id}`, group: "Clients", label: p.name, sub: p.role === "proprietaire" ? "propriétaire" : "cavalier", ic: "user", run: go(`/client?nom=${encodeURIComponent(p.name)}`) })),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, c, plus],
@@ -435,7 +439,7 @@ const GOTO: Record<string, string> = {
   m: "/argent",
   l: "/argent?vue=leviers",
   f: "/argent?vue=facturer",
-  k: "/clients",
+  k: "/chevaux?vue=clients",
   r: "/moi",
   b: "/pilotage",
   s: "/prestations",
@@ -477,7 +481,7 @@ export function Shortcuts() {
       else if (k === "n") {
         e.preventDefault();
         const id = location.pathname.includes("/ticket") ? new URLSearchParams(location.search).get("id") : null;
-        ui.openNoter(id ? { horseIds: [id] } : { mode: "seance" });
+        ui.openNoter(id ? { horseIds: [id] } : {});
       } else if (k === "/") {
         e.preventDefault();
         ui.openPalette();
@@ -510,12 +514,12 @@ function HelpInner({ close }: { close: () => void }) {
   useEscape(close);
   const rows: [string, string[]][] = [
     ["Chercher, aller à, faire", [modKey(), "K"]],
-    ["Noter (séance, soin, tâche, dépense)", ["N"]],
+    ["Ajouter (séance, soin, tâche, argent)", ["N"]],
     ["Accueil", ["G", "A"]],
     ["Planning", ["G", "P"]],
     ["Clients et chevaux", ["G", "C"]],
     ["Mon mois", ["G", "M"]],
-    ["Séances à confirmer", ["G", "V"]],
+    ["Ce qui a compté", ["G", "V"]],
     ["Tâches de l’équipe", ["G", "E"]],
     ["Mes clients", ["G", "K"]],
     ["Pistes pour gagner plus", ["G", "L"]],

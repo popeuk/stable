@@ -3,12 +3,13 @@
 import { useEffect } from "react";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { dayItems, toValidate } from "@/lib/domain/seances";
+import { dayItems } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 
 /**
- * Le rappel : à l'heure choisie (et le soir s'il reste quelque chose), une
- * notification résume la journée. Sans serveur d'envoi, elle part quand
+ * Le rappel : à l'heure choisie, une notification résume la journée ; le
+ * soir, s'il reste des tâches pas cochées, un second rappel. Les séances et
+ * les soins passés comptent tout seuls : rien à cocher pour eux. Sans serveur d'envoi, elle part quand
  * l'app est ouverte ou réveillée ; une seule fois par jour et par rappel.
  */
 const KEY = "be-stable-nudges";
@@ -28,8 +29,9 @@ export function MorningNudge() {
       } catch {}
       const data = useDataStore.getState();
       const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-      const todays = dayItems(data, today, today, hhmm).filter((i) => !i.done);
-      const late = toValidate(data, today, hhmm);
+      const items = dayItems(data, today, today, hhmm);
+      const todays = items.filter((i) => !i.done);
+      const tasks = items.filter((i) => i.type === "task" && !i.done);
       const [h, m] = reminder.split(":").map(Number);
       const minutes = now.getHours() * 60 + now.getMinutes();
       const notify = async (tag: string, title: string, body: string) => {
@@ -44,11 +46,15 @@ export function MorningNudge() {
       if (minutes >= h * 60 + m && sent.morning !== today) {
         notify(
           "morning",
-          `Aujourd’hui : ${todays.length} chose${todays.length > 1 ? "s" : ""} à faire`,
+          `Ta journée : ${todays.length} chose${todays.length > 1 ? "s" : ""}`,
           todays.length ? todays.slice(0, 3).map((i) => `${i.start ? `${i.start} ` : ""}${i.title}`).join(", ") : "Rien de prévu aujourd’hui. Profites-en pour avancer.",
         );
-      } else if (evening && minutes >= 19 * 60 + 30 && late.length > 0 && sent.evening !== today) {
-        notify("evening", `${late.length} chose${late.length > 1 ? "s" : ""} à confirmer`, "Coche ce qui a bien eu lieu. Seul ce qui est coché compte dans ton mois.");
+      } else if (evening && minutes >= 19 * 60 + 30 && tasks.length > 0 && sent.evening !== today) {
+        notify(
+          "evening",
+          `Encore ${tasks.length} tâche${tasks.length > 1 ? "s" : ""} aujourd’hui`,
+          `${tasks.slice(0, 3).map((i) => i.title).join(", ")}. Coche-les quand c’est fait.`,
+        );
       }
     };
     check();

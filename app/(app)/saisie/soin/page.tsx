@@ -226,7 +226,7 @@ function SoinComposer() {
             </InField>
             <em>
               {!revenueEdited && tariffFor(tariffs, kind) ? "On a mis ton tarif habituel. Tu peux le changer juste pour cette fois. " : ""}
-              Ce montant compte pour chaque cheval présent, une fois que tu as confirmé que la séance a eu lieu.
+              Ce montant compte pour chaque cheval présent, dès que la séance a eu lieu.
             </em>
           </label>
         )}

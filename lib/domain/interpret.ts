@@ -47,7 +47,7 @@ const KIND_PATTERNS: [RegExp, CareKind][] = [
 
 const WEEKDAYS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 
-function parseDate(t: string, today: ISODate): ISODate | null {
+export function parseDate(t: string, today: ISODate): ISODate | null {
   if (/apres[- ]demain/.test(t)) return addDays(today, 2);
   if (/\bdemain\b/.test(t)) return addDays(today, 1);
   if (/aujourd|ce soir|ce matin/.test(t)) return today;

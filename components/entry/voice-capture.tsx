@@ -87,7 +87,7 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
               className="flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] py-3 text-sm font-medium text-[var(--on-accent)]"
               style={{ background: "var(--accent-primary)" }}
             >
-              <Check size={16} /> Valider
+              <Check size={16} /> C’est bon
             </button>
           </div>
           <p className="mt-4 text-[10px] text-tertiary">

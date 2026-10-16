@@ -122,7 +122,7 @@ function Bilans() {
     return (
       <Page>
         <Hello title="Bilan sur plusieurs mois" />
-        <Empty ill="dodo">Rien à montrer pour l’instant. Ajoute tes chevaux et confirme tes premières séances. Ce bilan se remplira tout seul, mois après mois.</Empty>
+        <Empty ill="dodo">Rien à montrer pour l’instant. Ajoute tes chevaux et note tes premières séances. Ce bilan se remplira tout seul, mois après mois.</Empty>
         <div className="pad" style={{ marginTop: 14 }}>
           <Link href="/parcours" className="btn full">
             Reprendre le parcours
@@ -252,7 +252,7 @@ function Bilans() {
       </Sec>
       <Sec ill="confirmer" title="Ce que rapportent tes cours" action={<Link href="/prestations">Tes prestations</Link>} delay={0.46}>
         {prests.length === 0 ? (
-          <p className="note">Aucune séance confirmée sur cette période. Confirme tes séances dans le planning pour les voir ici.</p>
+          <p className="note">Aucune séance passée sur cette période. Note tes séances dans le planning : elles comptent toutes seules une fois passées.</p>
         ) : (
           prests.map((x) => (
             <div key={x.p.id} className="ar-post">

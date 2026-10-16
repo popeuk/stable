@@ -551,7 +551,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
           {erreur}
           <div className="foot">
             <button className="btn full" disabled={busy || code.length !== 6}>
-              {busy ? "Vérification…" : "Valider"}
+              {busy ? "Vérification…" : "Continuer"}
             </button>
             <p className="ar-proof">
               Rien reçu ? Regarde les indésirables, ou{" "}

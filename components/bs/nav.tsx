@@ -18,7 +18,7 @@ export const ROOTS = ["/accueil", "/planning", "/equipe", "/chevaux", "/argent"]
 /** Les écrans de Mon mois : l'onglet reste allumé sur chacun. */
 export const BILAN = ["/argent", "/pilotage", "/seuil", "/scenarios", "/depenses", "/plan", "/audit", "/decouvertes", "/conseiller", "/mois"];
 /** Les écrans de Clients et chevaux. */
-export const CLIENTS_CHEVAUX = ["/chevaux", "/clients", "/ticket", "/part", "/cheval", "/contacts"];
+export const CLIENTS_CHEVAUX = ["/chevaux", "/clients", "/client", "/ticket", "/part", "/cheval", "/contacts"];
 export const under = (path: string, list: string[]) => list.some((m) => path === m || path.startsWith(m + "/") || path.startsWith(m + "?"));
 
 const PARENTS: [string, string][] = [
@@ -134,7 +134,7 @@ export function RetourOrdinateur() {
 
 /** Le titre court d'un écran, pour l'en-tête hors des onglets. */
 const TITRES: [string, string][] = [
-  ["/valider", "À confirmer"],
+  ["/valider", "Ce qui a compté"],
   ["/ticket", "Fiche du cheval"],
   ["/part", "Le pot commun"],
   ["/argent", "Mon mois"],
@@ -143,6 +143,7 @@ const TITRES: [string, string][] = [
   ["/scenarios", "Et si… ?"],
   ["/depenses", "Entrées et sorties"],
   ["/clients", "Mes clients"],
+  ["/client", "Fiche client"],
   ["/contacts", "Les pros"],
   ["/equipe", "Tâches de l’équipe"],
   ["/prestations", "Mes tarifs"],
@@ -187,7 +188,7 @@ function useSessionKind() {
  * l'équipe, les réglages, et les premiers pas tant qu'ils ne sont pas finis
  * (en tête, « Garder mes chiffres » sans compte). Le reste de l'ancien Menu
  * a trouvé sa place : la loupe de l'en-tête pour chercher, séances à
- * confirmer et tâches en bas du Planning, bilans dans Mon mois,
+ * ce qui a compté et tâches en bas du Planning, bilans dans Mon mois,
  * explications, tournée et guide dans Réglages.
  */
 export function usePlusItems(): PlusItem[] {

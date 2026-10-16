@@ -11,7 +11,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
-import { usePaniers } from "@/components/bs/paniers";
+import { useFinDuMois } from "@/components/bs/compte";
 import { AideBouton, BILAN, CLIENTS_CHEVAUX, isRoot, titreDe, under, usePlusItems, useRetour, useSuiviNavigation, type PlusItem } from "@/components/bs/nav";
 
 /** L'initiale du gérant, pour le rond en haut à droite. */
@@ -158,16 +158,16 @@ function useNet() {
 }
 
 /**
- * La barre d'onglets : Accueil, Planning, +, Clients et chevaux (le nombre
- * de paniers à valider), Mon mois (le chiffre du mois, qui compte quand il
+ * La barre d'onglets : Accueil, Planning, +, Clients et chevaux (en fin de
+ * mois seulement, le nombre de clients qui te doivent encore), Mon mois (le chiffre du mois, qui compte quand il
  * change, et un « +X € » qui s'envole quand de l'argent rentre).
  */
 export function TabBar() {
   const path = usePathname() ?? "";
   const openNoter = useUiStore((s) => s.openNoter);
   const ready = useDataStore((s) => s.hydrated);
-  const paniers = usePaniers();
-  const count = ready ? paniers.count : 0;
+  const fin = useFinDuMois();
+  const count = ready && fin ? fin.count : 0;
   const net = useNet();
   const avant = useRef(net);
   const [gain, setGain] = useState(0);
@@ -207,7 +207,7 @@ export function TabBar() {
         >
           <Ic n="plus" />
         </button>
-        <Link href="/chevaux" aria-current={on(CLIENTS_CHEVAUX)} aria-label={`Clients et chevaux${count ? ` : ${count} panier${count > 1 ? "s" : ""} à valider` : ""}`}>
+        <Link href="/chevaux" aria-current={on(CLIENTS_CHEVAUX)} aria-label={`Clients et chevaux${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
           <span className="ac-ic">
             <Ic n="people" />
             {count > 0 && (
