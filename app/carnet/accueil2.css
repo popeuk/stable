@@ -42,6 +42,14 @@
 .carnet .ac-promo { position: relative; }
 .carnet .ac-promo-x { position: absolute; top: 10px; right: 24px; z-index: 1; height: 30px; padding: 0 12px; border: 0; border-radius: 15px; background: rgba(255, 255, 255, .86); color: var(--ink2); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .carnet .ac-promo-x:hover { color: var(--ink); }
+/* La marque mon-ecurie.fr, comme l'en-tête du site (pc-logo). */
+.carnet .ac-promo .tag { font-family: inherit; letter-spacing: 0; }
+.carnet .me-marque { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; row-gap: 6px; }
+.carnet .me-signe { width: 30px; height: 30px; flex: none; }
+.carnet .me-txt { display: flex; flex-direction: column; }
+.carnet .me-nom { font-size: 20px; font-weight: 800; line-height: .88; font-variation-settings: "wdth" 88; letter-spacing: -.012em; color: var(--ink); white-space: nowrap; }
+.carnet .me-par { margin-top: 3px; font-size: 10.5px; font-weight: 600; line-height: 1; letter-spacing: .03em; color: var(--ink2); white-space: nowrap; }
+.carnet .me-etat { margin-left: auto; padding: 4px 9px; border: 1px solid rgba(27, 18, 37, .12); border-radius: 12px; font-size: 11.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
 
 @media (min-width: 1024px) {
   .carnet .ac-desk .ac-dtop { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; align-items: start; }

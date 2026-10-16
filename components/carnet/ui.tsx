@@ -218,7 +218,7 @@ export function Pill({ children, tone }: { children: ReactNode; tone?: "in" | "o
 }
 
 /** L'encart promo : de la promo assumée et soignée, toujours en dernier. */
-export function Promo({ href, ill = "promo", tag, title, text, cta, contain, small, ping, external }: { href: string; ill?: IllName; tag: string; title: ReactNode; text: ReactNode; cta: string; contain?: boolean; small?: boolean; ping?: boolean; external?: boolean }) {
+export function Promo({ href, ill = "promo", tag, title, text, cta, contain, small, ping, external }: { href: string; ill?: IllName; tag: ReactNode; title: ReactNode; text: ReactNode; cta: string; contain?: boolean; small?: boolean; ping?: boolean; external?: boolean }) {
   const inner = (
     <>
       <span className="art">
