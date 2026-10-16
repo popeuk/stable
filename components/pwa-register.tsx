@@ -13,7 +13,8 @@ export function PwaRegister() {
     if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator)) return;
     const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-    navigator.serviceWorker.register(`${base}/sw.js`, { scope: `${base}/` }).catch(() => {});
+    // updateViaCache « none » : le navigateur revérifie sw.js à chaque visite, sans le cache HTTP.
+    navigator.serviceWorker.register(`${base}/sw.js`, { scope: `${base}/`, updateViaCache: "none" }).catch(() => {});
   }, []);
   return null;
 }
