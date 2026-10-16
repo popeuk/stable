@@ -7,6 +7,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { cap, dec1, esc } from "@/components/bs/ui";
 import { plannedRest } from "@/components/bs/goal-card";
 import { Compteur } from "@/components/bs/compteur";
+import { hasObjective, phraseObjectifMois, phrasePistes } from "@/lib/domain/objectif";
 import { useDesk } from "@/components/bs/desk";
 import { Chips, Coins, CountUp, Empty, Hello, Ic, Ill, Money, Page, Sec, Seg, eur, ini, sg, type IllName } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
@@ -135,7 +136,6 @@ function Mois() {
   const daysLeft = lastDay - now.getDate();
   const pct = objective > 0 ? Math.max(0, Math.min(100, (m.net / objective) * 100)) : 0;
   const restPct = objective > 0 ? Math.max(0, Math.min(100 - pct, (rest / objective) * 100)) : 0;
-  const left = Math.max(0, objective - m.net);
   const gagne = m.net > 0;
 
   const titre = isNow ? (
@@ -169,11 +169,11 @@ function Mois() {
   const sub = isNow ? (
     <>
       Au {now.getDate()} {mName}, tout payé, il te reste <Money v={m.net} />.{" "}
-      {left > 0 ? `Encore ${eur(left)} et tu atteins les ${eur(objective)} que tu vises.` : `Tu as atteint les ${eur(objective)} que tu vises.`}
+      {phraseObjectifMois(m.net, objective, true)}
     </>
   ) : (
     <>
-      Tout payé, il t’est resté <Money v={m.net} />. Ton objectif : {eur(objective)}.
+      Tout payé, il t’est resté <Money v={m.net} />. {phraseObjectifMois(m.net, objective, false)}
     </>
   );
 
@@ -197,10 +197,12 @@ function Mois() {
         {restPct > 0 && <i className="plan" style={{ width: `${pct + restPct}%` }} />}
         <i style={{ width: `${pct}%` }} />
       </div>
-      <div className="bar-lab">
-        <span>{m.net >= objective ? "objectif atteint" : `${Math.round(pct)} % du chemin`}</span>
-        <span>objectif : {eur(objective)}</span>
-      </div>
+      {hasObjective(objective) && (
+        <div className="bar-lab">
+          <span>{m.net >= objective ? "objectif atteint" : `${Math.round(pct)} % du chemin`}</span>
+          <span>objectif : {eur(objective)}</span>
+        </div>
+      )}
       {editGoal ? (
         <label className="field">
           <span>Ce que tu veux qu’il te reste par mois</span>
@@ -421,7 +423,6 @@ function Leviers() {
   const say = useUiStore((s) => s.say);
   const list = useMemo(() => suggestions(data, active, capacity), [data, active, capacity]);
   const m = useMemo(() => monthBreakdown(data, active), [data, active]);
-  const missing = Math.max(0, objective - m.net);
   const monthly = list.filter((s) => s.status !== "faite" && s.unit !== "une fois").reduce((t, s) => t + s.gain, 0);
   const gained = list.filter((s) => s.status === "faite").reduce((t, s) => t + (s.measured ?? s.gain), 0);
 
@@ -448,7 +449,7 @@ function Leviers() {
     <>
       <div className="card ar-head rise" style={{ animationDelay: ".05s" }}>
         <Ill n="piste" />
-        <p className="k">{missing > 0 ? `Il te manque ${eur(missing)} pour ton objectif. Avec ces pistes, jusqu’à` : "Objectif atteint. Avec ces pistes, encore jusqu’à"}</p>
+        <p className="k">{phrasePistes(m.net, objective)}</p>
         <p className="big in">
           <CountUp value={monthly} />
         </p>

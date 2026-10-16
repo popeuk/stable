@@ -8,7 +8,8 @@ import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { plannedRest } from "@/components/bs/goal-card";
 import { localToday } from "@/lib/utils/local-date";
-import { CountUp, Ic, Ill, eur, sg, type IllName } from "@/components/carnet/ui";
+import { CountUp, Ic, Ill, sg, type IllName } from "@/components/carnet/ui";
+import { phraseObjectif } from "@/lib/domain/objectif";
 
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -45,12 +46,8 @@ export function useMois() {
   return { net, objective, prevu, pct, left };
 }
 
-/** « Il te manque 448 € pour ton objectif de 1 000 €. » */
-export function phraseObjectif(net: number, objective: number) {
-  if (objective <= 0) return "Fixe-toi un objectif dans Mon mois.";
-  const left = Math.max(0, objective - net);
-  return left > 0 ? `Il te manque ${eur(left)} pour ton objectif de ${eur(objective)}.` : `Objectif de ${eur(objective)} atteint.`;
-}
+/** « Il te manque 448 € pour ton objectif de 1 000 €. » (sans objectif : une invitation). */
+export { phraseObjectif };
 
 /**
  * Le compteur du mois, en grand : ce qui te reste, la sacoche et ses pièces,
