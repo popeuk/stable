@@ -29,6 +29,9 @@ export interface Suggestion {
   measured?: number;
 }
 
+/** « 450 », « 450,50 », « 1 200 » : un montant dit à la française. */
+const montantFr = (n: number) => new Intl.NumberFormat("fr-FR", { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 }).format(n).replace(/\u202f/g, "\u00a0");
+
 const SOINS_REFACTURABLES = /orthop|ost[eé]o|compl[eé]ment|dentiste|parage/i;
 
 export function suggestions(data: StableData, period: Period, capacity: number): Suggestion[] {
@@ -81,7 +84,7 @@ export function suggestions(data: StableData, period: Period, capacity: number):
       out.push({
         id: `pension-${h.id}`,
         lever: "facturer",
-        title: `${h.name} : passer la pension de ${h.pension} à ${floor} €`,
+        title: `${h.name} : passer la pension de ${montantFr(h.pension)} à ${montantFr(floor)} €`,
         sub: `ce mois, une fois ses soins et sa part des frais communs payés, il te coûte ${Math.round(-t.net)} €. À ${floor} €, il ne te coûterait plus rien.`,
         gain: floor - h.pension,
         unit: "par mois",

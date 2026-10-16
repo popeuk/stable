@@ -79,3 +79,15 @@ describe("la journée compte tout, partout (P1-1 design)", () => {
     expect(resumeJournee([mk(false, "task")]).titre).toBe("Ta journée : 1 chose");
   });
 });
+
+describe("une pension à virgule se dit à la française dans les pistes", () => {
+  it("« 450,50 » et non « 450.5 »", () => {
+    const d = buildDemoData(NOW);
+    const h = d.horses[0];
+    h.pension = 450.5;
+    d.directExpenses.push({ id: "gros", stableId: "s", horseId: h.id, label: "Colique", amount: 900, date: "2026-10-10", source: "manual" });
+    const s = suggestions(d, oct, 12).find((x) => x.id === `pension-${h.id}`)!;
+    expect(s.title).toContain("450,50");
+    expect(s.title).not.toContain("450.5");
+  });
+});

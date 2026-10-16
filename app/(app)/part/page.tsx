@@ -67,7 +67,9 @@ function Part() {
           ))}
         </div>
         <p className="ch-div">
-          {eur(m.sharedTotal)} ÷ {horses.length} {horses.length > 1 ? "chevaux" : "cheval"} ≈ {eur(m.sharedTotal / n)} chacun
+          {horses.length
+            ? `${eur(m.sharedTotal)} ÷ ${horses.length} ${horses.length > 1 ? "chevaux" : "cheval"} ≈ ${eur(m.sharedTotal / n)} chacun`
+            : `Aucun cheval pour se partager ces ${eur(m.sharedTotal)} : ils comptent quand même dans ton mois.`}
         </p>
         {libres > 0 && (
           <>
