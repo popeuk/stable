@@ -6,13 +6,13 @@ import { Check, Ic, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { useParcours } from "@/components/bs/parcours";
-import type { DayItem } from "@/lib/domain/seances";
+import { isEmptySeance, type DayItem } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 
 /** Le pictogramme d'un élément de la journée (créneaux, semaine sur ordinateur). */
 export function iconOf(it: DayItem): string {
-  if (it.type === "seance") return (it.seance?.participants.length ?? 0) > 1 ? "user" : "horse";
-  if (it.type === "task") return it.task?.cost ? "flag" : "list";
+  if (it.type === "seance") return (it.seance?.participants.length ?? 0) > 1 || it.seance?.format === "collectif" ? "user" : "horse";
+  if (it.type === "task") return it.task?.kind === "rdv" ? "clock" : it.task?.cost ? "flag" : "list";
   const k = it.care?.[0].kind;
   if (k === "ferrure") return "shoe";
   if (k === "vaccin" || k === "vermifuge" || k === "veto" || k === "dentiste" || k === "osteo" || k === "soin") return "syringe";
@@ -52,6 +52,8 @@ export function useCheck() {
       const undo = () => useDataStore.setState(snap);
       if (it.done) return;
       if (it.seance) {
+        // Personne d'inscrit : rien à confirmer, la séance s'ouvre pour inscrire quelqu'un.
+        if (isEmptySeance(it.seance)) return openSeance(it.seance.id);
         if (it.seance.participants.length > 1) return openSeance(it.seance.id, "presence");
         st.validateSeance(it.seance.id, {});
         say(`${esc(it.title)} : c’est fait, <strong>${signed(it.money ?? 0)}</strong> sur le ticket.`, undo);
@@ -87,10 +89,17 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
     if (it.seance) openSeance(it.seance.id);
   };
   const late = lateLabel(it, localToday());
-  const sub = it.sub || (it.type === "task" ? "tâche d’équipe" : "");
+  const sub = it.sub || (it.type === "task" ? (it.task?.kind === "rdv" ? "rendez-vous" : "tâche d’équipe") : "");
   const body = (
     <>
-      <b>{it.title}</b>
+      <b>
+        {it.task?.kind === "rdv" && (
+          <span style={{ display: "inline-flex", verticalAlign: "-3px", marginRight: 4 }}>
+            <Ic n="clock" className="cn-ic sm" />
+          </span>
+        )}
+        {it.title}
+      </b>
       {(late || sub) && (
         <small>
           {late && <b className="jr-late">{late}</b>}

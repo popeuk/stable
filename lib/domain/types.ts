@@ -283,9 +283,17 @@ export interface TaskList {
   title: string;
   isDone?: boolean;
 }
+/** Une tâche (à faire) ou un rendez-vous (un jour, une heure). Absent = tâche. */
+export type TaskKind = "tache" | "rdv";
 export interface TeamTask {
   id: string;
   title: string;
+  /** Tâche ou rendez-vous. Les anciennes cartes n'ont pas ce champ : ce sont des tâches. */
+  kind?: TaskKind;
+  /** Rendez-vous : l'heure de fin (HH:MM), facultative. Le début est dans `due`. */
+  end?: string;
+  /** Rendez-vous : le lieu ou la personne, facultatif. */
+  lieu?: string;
   listId: string;
   labels: string[];
   due?: string; // AAAA-MM-JJTHH:MM

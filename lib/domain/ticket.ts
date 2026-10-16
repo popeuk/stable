@@ -1,5 +1,5 @@
 import type { Period, StableData } from "@/lib/domain/types";
-import { horsePnl, horseSharedCosts, stablePnl } from "@/lib/domain/calculations";
+import { horsePnl, horseSharedCosts, isOutside, stablePnl } from "@/lib/domain/calculations";
 import { dateInPeriod } from "@/lib/utils/period";
 import { recurringList, recurringDue } from "@/lib/domain/recurring";
 
@@ -85,7 +85,8 @@ export function horseTicket(data: StableData, horseId: string, period: Period): 
  */
 export function reconciledNets(data: StableData, period: Period): Record<string, number> {
   const s = stablePnl(data, period);
-  const target = Math.round(s.netResult);
+  // Les tickets se réconcilient avec ce que laissent les chevaux, sans l'argent hors chevaux.
+  const target = Math.round(s.horsesNet);
   const fl = s.perHorse.map((p) => ({ id: p.horseId, f: Math.floor(p.netResult), r: p.netResult - Math.floor(p.netResult) }));
   let left = target - fl.reduce((t, x) => t + x.f, 0);
   [...fl].sort((a, b) => b.r - a.r).forEach((x) => {
@@ -105,8 +106,14 @@ export interface MonthLine {
 export interface MonthBreakdown {
   ins: MonthLine[];
   shared: MonthLine[];
+  /** Les dépenses qui ne concernent aucun cheval (tracteur, matériel…). */
+  outs: MonthLine[];
+  /** Tout ce qui rentre, chevaux et hors chevaux. */
   revenue: number;
+  /** Les soins et frais des chevaux (sans les dépenses hors chevaux). */
   direct: number;
+  /** Ce qui sort sans concerner aucun cheval. */
+  outside: number;
   sharedTotal: number;
   net: number;
   horseCount: number;
@@ -130,6 +137,17 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
     if (!active.has(rec.horseId) || !recurringDue(rec, period)) continue;
     addIn(catName(data, rec.categoryId) ?? rec.label ?? "Autres recettes", rec.amount);
   }
+  // L'argent qui rentre sans concerner aucun cheval (PAC, subvention…), sous son nom.
+  for (const r of data.revenues) {
+    if (!isOutside(r) || !dateInPeriod(r.date, period)) continue;
+    addIn(r.note || catName(data, r.categoryId) || "Hors chevaux", r.amount);
+  }
+  const outMap = new Map<string, number>();
+  for (const e of data.directExpenses) {
+    if (!isOutside(e) || !dateInPeriod(e.date, period)) continue;
+    const label = e.label || catName(data, e.categoryId) || "Hors chevaux";
+    outMap.set(label, (outMap.get(label) ?? 0) + e.amount);
+  }
 
   // Les factures communes, à hauteur de ce qui est réparti sur les chevaux présents.
   const shMap = new Map<string, number>();
@@ -149,7 +167,8 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
   const rest = Math.round((s.sharedCosts - listed) * 100) / 100;
   if (rest > 0.5) addSh("Autres charges communes", rest);
 
-  const contribution = s.horseCount ? (s.revenue - s.directCosts) / s.horseCount : 0;
+  // Ce que laisse un cheval : sans l'argent hors chevaux.
+  const contribution = s.horseCount ? (s.horsesRevenue - s.horsesDirectCosts) / s.horseCount : 0;
   const seuil = contribution > 0 ? s.sharedCosts / contribution : Infinity;
 
   const sortDesc = (m: Map<string, number>) =>
@@ -158,8 +177,10 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
   return {
     ins: sortDesc(insMap),
     shared: sortDesc(shMap),
+    outs: sortDesc(outMap),
     revenue: s.revenue,
-    direct: s.directCosts,
+    direct: s.horsesDirectCosts,
+    outside: s.outsideCosts,
     sharedTotal: s.sharedCosts,
     net: s.netResult,
     horseCount: s.horseCount,

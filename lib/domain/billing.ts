@@ -32,6 +32,8 @@ export function billsFor(data: StableData, period: Period): Bill[] {
   const catName = (id?: string) => data.revenueCategories.find((c) => c.id === id)?.name;
   for (const r of data.revenues) {
     if (!dateInPeriod(r.date, period)) continue;
+    // L'argent hors chevaux (PAC, subvention) ne se facture à personne, sauf payeur nommé.
+    if (!r.horseId && !r.payer) continue;
     const horse = data.horses.find((h) => h.id === r.horseId);
     const payer = r.payer ?? horse?.ownerName ?? "Sans propriétaire";
     const person = data.people?.find((p) => p.name === payer);

@@ -55,6 +55,10 @@ function Composer() {
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
   const [rythme, setRythme] = useState<Rythme>(kind === "revenu" ? "monthly" : "once");
   const [date, setDate] = useState(localToday());
+  // Pour un cheval, ou rien à voir avec les chevaux (la PAC, le tracteur) : compté dans le mois, sur aucun ticket.
+  const [pour, setPour] = useState<"cheval" | "hors">("cheval");
+  const [quoi, setQuoi] = useState("");
+  const hors = pour === "hors";
 
   const cats = useMemo(
     () => (kind === "revenu" ? data.revenueCategories : data.expenseCategories.filter((c) => c.isDirect)),
@@ -65,7 +69,7 @@ function Composer() {
   const cat = cats.find((c) => c.id === categoryId) ?? (kind === "revenu" ? cats[0] : undefined);
   const amount = Number(raw.replace(",", ".")) || 0;
   const horse = horses.find((h) => h.id === horseId);
-  const canSave = amount > 0 && !!horse && !!cat;
+  const canSave = amount > 0 && (hors || (!!horse && !!cat));
 
   function press(key: string) {
     if (key === "back") return setRaw((r) => r.slice(0, -1));
@@ -81,7 +85,16 @@ function Composer() {
   }
 
   function save() {
-    if (!canSave || !horse || !cat) return;
+    if (!canSave) return;
+    if (hors) {
+      const lbl = quoi.trim();
+      useFlashStore.getState().setFlash({ kind: kind === "revenu" ? "revenue" : "expense", amount, label: `${lbl || "Hors chevaux"} · hors chevaux` });
+      if (kind === "revenu") addRevenue({ horseId: "", amount, date, note: lbl || undefined, source: "manual" });
+      else addDirectExpense({ horseId: "", label: lbl || "Hors chevaux", amount, date, source: "manual" });
+      router.push("/accueil");
+      return;
+    }
+    if (!horse || !cat) return;
     useFlashStore.getState().setFlash({
       kind: kind === "revenu" ? "revenue" : "expense",
       amount,
@@ -119,7 +132,7 @@ function Composer() {
           onChange={(v) => {
             setKind(v);
             setCategoryId(undefined);
-            setRythme(v === "revenu" ? "monthly" : "once");
+            setRythme(v === "revenu" && !hors ? "monthly" : "once");
           }}
           options={[
             ["revenu", "Ça rentre"],
@@ -129,7 +142,11 @@ function Composer() {
       </div>
 
       <p className="nt-phrase" aria-live="polite">
-        {kind === "revenu" ? (
+        {hors ? (
+          <>
+            <P on={!!quoi.trim()}>{quoi.trim() || "…"}</P> {kind === "revenu" ? "te rapporte" : "te coûte"} <P on={amount > 0}>{amountStr}</P> <span className="faint">(hors chevaux)</span>
+          </>
+        ) : kind === "revenu" ? (
           <>
             <P on={!!horse}>{horseStr}</P> te rapporte <P on={amount > 0}>{amountStr}</P>
             {rythmePhrase && <> {rythmePhrase}</>} <span className="faint">({catStr.toLowerCase()})</span>
@@ -146,30 +163,48 @@ function Composer() {
       <div className="form nt-form rise" style={{ animationDelay: ".14s" }}>
         <div className="field">
           <span>{kind === "revenu" ? "Qui te le rapporte ?" : "Pour qui ?"}</span>
-          {horses.length === 0 ? (
+          <div className="chips">
+            <button type="button" className={`chip${!hors ? " on" : ""}`} aria-pressed={!hors} onClick={() => setPour("cheval")}>
+              Un cheval
+            </button>
+            {kind === "charge" && (
+              <Link href="/saisie/mutualisee" className="chip nt-dash">
+                Toute l’écurie (partagé)
+              </Link>
+            )}
+            <button
+              type="button"
+              className={`chip${hors ? " on" : ""}`}
+              aria-pressed={hors}
+              onClick={() => {
+                setPour("hors");
+                setRythme("once");
+              }}
+            >
+              Rien à voir avec les chevaux
+            </button>
+          </div>
+          {hors ? (
+            <p className="note">Compté dans ton mois, sur aucun ticket et pas dans le pot commun.</p>
+          ) : horses.length === 0 ? (
             <NoHorse text="Ajoute d’abord un cheval pour pouvoir noter ce qu’il rapporte ou coûte." />
           ) : (
-            <>
-              <HorseChips horses={horses} value={horseId ? [horseId] : []} onChange={(ids) => setHorseId(ids[0] ?? null)} multi={false} wrap />
-              {kind === "charge" && (
-                <div className="chips">
-                  <Link href="/saisie/mutualisee" className="chip nt-dash">
-                    Frais communs (toute l’écurie)
-                  </Link>
-                </div>
-              )}
-            </>
+            <HorseChips horses={horses} value={horseId ? [horseId] : []} onChange={(ids) => setHorseId(ids[0] ?? null)} multi={false} wrap />
           )}
         </div>
 
         <div className="field">
           <span>C’est quoi ?</span>
-          <Chips value={cat?.id ?? ""} onChange={setCategoryId} options={cats.map((c) => [c.id, c.name] as [string, string])} />
+          {hors ? (
+            <input className="input" value={quoi} onChange={(e) => setQuoi(e.target.value)} placeholder={kind === "revenu" ? "Ex. PAC, subvention" : "Ex. Réparation du tracteur"} aria-label="C’est quoi ?" />
+          ) : (
+            <Chips value={cat?.id ?? ""} onChange={setCategoryId} options={cats.map((c) => [c.id, c.name] as [string, string])} />
+          )}
         </div>
 
         <div className="field">
           <span>{rythme === "once" ? "Quand ?" : "À partir de quand ?"}</span>
-          <Chips value={rythme} onChange={setRythme} options={RYTHMES.map((r) => [r.v, r.l] as [Rythme, string])} />
+          {!hors && <Chips value={rythme} onChange={setRythme} options={RYTHMES.map((r) => [r.v, r.l] as [Rythme, string])} />}
           <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label={rythme === "once" ? "Date" : "À partir du"} />
         </div>
 
@@ -185,7 +220,7 @@ function Composer() {
           <Ic n="ck" className="" />
           Enregistrer
         </button>
-        {!canSave && amount > 0 && horse && !cat && (
+        {!canSave && amount > 0 && !hors && horse && !cat && (
           <p className="note" role="alert">
             <b>Choisis ce que c’est (pension, soin…) pour pouvoir enregistrer.</b>
           </p>

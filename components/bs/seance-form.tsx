@@ -113,7 +113,9 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
   const dates = useMemo(() => seriesDates(date, repeat, until), [date, repeat, until]);
   const isCollectif = !!prest?.hasFormat && format === "collectif";
   const maxP = prest?.hasFormat ? (isCollectif ? places : 1) : MAX_PLACES;
-  const payers = Math.max(1, names.length || horseIds.length);
+  // Personne d'inscrit : un créneau posé, qui ne rapporte rien tant que personne n'y vient.
+  const payers = names.length || horseIds.length;
+  const vide = payers === 0;
   const total = (prest?.price ?? 0) * payers * dates.length;
   const suggestionsList = typed.trim()
     ? people.filter((p) => p.name.toLowerCase().includes(typed.trim().toLowerCase()) && !names.includes(p.name)).slice(0, 6)
@@ -125,9 +127,7 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
       ? "La fin doit venir après le début."
       : names.length > maxP
         ? `Trop de cavaliers : il y a ${maxP} place${maxP > 1 ? "s" : ""}.`
-        : names.length === 0 && horseIds.length === 0
-          ? "Ajoute un cavalier ou un cheval."
-          : names.some((n) => n.includes(","))
+        : names.some((n) => n.includes(","))
             ? "Un nom ne peut pas contenir de virgule."
             : null;
 
@@ -202,7 +202,7 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
       )}
 
       <div className="field">
-        <span>Cavaliers{prest?.hasFormat ? ` · ${names.length} sur ${maxP}` : ""}</span>
+        <span>Cavaliers{prest?.hasFormat ? ` · ${names.length} sur ${maxP}` : ""} (facultatif)</span>
         {names.length > 0 && (
           <div className="chips">
             {names.map((n) => (
@@ -233,7 +233,7 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
 
       {horses.length > 0 && (
         <div className="field">
-          <span>Chevaux</span>
+          <span>Chevaux (facultatif)</span>
           <HorseChips horses={horses} value={horseIds} onChange={setHorseIds} />
         </div>
       )}
@@ -318,6 +318,8 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
       <p className="note" role={problem ? "alert" : undefined}>
         {problem ? (
           <b>{problem}</b>
+        ) : vide ? (
+          <>Personne d’inscrit pour l’instant{isCollectif ? ` : ${places} places libres` : ""}. Tu pourras inscrire des cavaliers depuis la séance ; elle ne rapporte rien d’ici là.</>
         ) : (
           <>
             Ça doit te rapporter <b>{eur(total)}</b> : {payers} × {eur(prest?.price ?? 0)}
@@ -326,7 +328,7 @@ export function SeanceForm({ onDone, date: presetDate, start: presetStart, prest
         )}
       </p>
       <button type="button" className="btn full" disabled={!!problem} onClick={save}>
-        {dates.length > 1 ? `Ajouter les ${dates.length} séances · ${sg(total)}` : `Ajouter au planning · ${sg(total)}`}
+        {dates.length > 1 ? `Ajouter les ${dates.length} séances${total ? ` · ${sg(total)}` : ""}` : `Ajouter au planning${total ? ` · ${sg(total)}` : ""}`}
       </button>
     </div>
   );

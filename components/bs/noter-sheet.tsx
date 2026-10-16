@@ -44,6 +44,8 @@ const KINDS: Kind[] = [
 ];
 
 type When = "today" | "yesterday" | "tomorrow" | "other";
+/** Pour qui est l'argent : un cheval, toute l'écurie (partagé), ou rien à voir avec les chevaux. */
+type Pour = "cheval" | "ecurie" | "hors";
 type Done = { horseId?: string; sourceId?: string; text: string };
 
 export function NoterSheet() {
@@ -78,6 +80,7 @@ function NoterInner() {
   const [label, setLabel] = useState("");
   const [time, setTime] = useState("");
   const [catId, setCatId] = useState<string | undefined>();
+  const [pour, setPour] = useState<Pour>(prefill.kind === "commune" ? "ecurie" : "cheval");
   const [heard, setHeard] = useState("");
   const [listening, setListening] = useState(false);
   const [done, setDone] = useState<null | Done>(null);
@@ -88,7 +91,9 @@ function NoterInner() {
   const date = when === "today" ? today : when === "yesterday" ? addDays(today, -1) : when === "tomorrow" ? addDays(today, 1) : otherDate;
   const future = date > today;
   const isCare = !["recette", "depense", "commune"].includes(kind);
-  const needHorse = K.scope === "horse";
+  // Hors chevaux : une recette ou une dépense sans cheval, comptée dans le mois seulement.
+  const hors = mode === "depense" && pour === "hors" && kind !== "commune";
+  const needHorse = K.scope === "horse" && !hors;
   const ready = (needHorse ? horseIds.length > 0 : true) && (value > 0 || (isCare && future));
 
   const sharedCats = data.expenseCategories.filter((c) => !c.isDirect);
@@ -196,6 +201,25 @@ function NoterInner() {
       say(`<strong>${esc(lbl)}</strong> noté, partagé entre ${horses.length} chevaux.`);
       return;
     }
+    if (hors) {
+      const lbl = label.trim();
+      const before = new Set([...st.revenues.map((r) => r.id), ...st.directExpenses.map((d) => d.id)]);
+      if (kind === "recette") st.addRevenue({ horseId: "", amount: value, date, note: lbl || undefined, source: "manual" });
+      else st.addDirectExpense({ horseId: "", label: lbl || "Hors chevaux", amount: value, date, source: "manual" });
+      const after = useDataStore.getState();
+      const newRev = after.revenues.filter((x) => !before.has(x.id)).map((x) => x.id);
+      const newDep = after.directExpenses.filter((x) => !before.has(x.id)).map((x) => x.id);
+      const signed = kind === "recette" ? value : -value;
+      const nom = lbl || (kind === "recette" ? "Rentrée hors chevaux" : "Dépense hors chevaux");
+      setDone({ text: `<strong>${esc(nom)}</strong> : ${sg(signed)} dans ton mois. Ça ne touche aucun ticket ni le pot commun.` });
+      say(`<strong>${esc(nom)}</strong> : noté dans ton mois, ${sg(signed)}.`, () => {
+        const s2 = useDataStore.getState();
+        newRev.forEach((rid) => s2.deleteRevenue(rid));
+        newDep.forEach((eid) => s2.deleteDirectExpense(eid));
+        close();
+      });
+      return;
+    }
     if (kind === "recette" || kind === "depense") {
       const before = new Set([...st.revenues.map((r) => r.id), ...st.directExpenses.map((d) => d.id)]);
       let what = K.label;
@@ -301,19 +325,58 @@ function NoterInner() {
           <TaskForm onDone={close} />
         ) : (
           <div className="form nt-form">
-            <div className="field">
-              <span>{mode === "soin" ? "Quel soin ?" : "De l’argent qui rentre ou qui sort ?"}</span>
-              <Chips
-                value={kind}
-                onChange={(k) => {
-                  setKind(k);
-                  setCatId(undefined);
-                }}
-                options={KINDS.filter((k) => (mode === "depense") === MONEY_KINDS.includes(k.id)).map((k) => [k.id, k.label] as [NoteKindId, string])}
-              />
-            </div>
+            {mode === "depense" ? (
+              <>
+                <div className="field">
+                  <span>De l’argent qui rentre ou qui sort ?</span>
+                  <Seg
+                    label="Ça rentre ou ça sort"
+                    value={kind === "recette" ? "in" : "out"}
+                    onChange={(v) => {
+                      setCatId(undefined);
+                      if (v === "in") {
+                        setKind("recette");
+                        if (pour === "ecurie") setPour("cheval");
+                      } else setKind(pour === "ecurie" ? "commune" : "depense");
+                    }}
+                    options={[
+                      ["in", "Ça rentre"],
+                      ["out", "Ça sort"],
+                    ]}
+                  />
+                </div>
+                <div className="field">
+                  <span>Pour ?</span>
+                  <Chips
+                    value={kind === "commune" ? "ecurie" : pour}
+                    onChange={(p) => {
+                      setPour(p);
+                      setCatId(undefined);
+                      if (kind !== "recette") setKind(p === "ecurie" ? "commune" : "depense");
+                    }}
+                    options={[
+                      ["cheval", "Un cheval"],
+                      ...(kind === "recette" ? [] : ([["ecurie", "Toute l’écurie (partagé)"]] as [Pour, string][])),
+                      ["hors", "Rien à voir avec les chevaux"],
+                    ]}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="field">
+                <span>Quel soin ?</span>
+                <Chips
+                  value={kind}
+                  onChange={(k) => {
+                    setKind(k);
+                    setCatId(undefined);
+                  }}
+                  options={KINDS.filter((k) => !MONEY_KINDS.includes(k.id)).map((k) => [k.id, k.label] as [NoteKindId, string])}
+                />
+              </div>
+            )}
 
-            {(kind === "recette" || kind === "depense" || kind === "commune") && catList.length > 0 && (
+            {!hors && (kind === "recette" || kind === "depense" || kind === "commune") && catList.length > 0 && (
               <div className="field">
                 <span>{kind === "commune" ? "Quels frais ?" : "Quel genre ?"}</span>
                 <Chips value={catId ?? catList[0]?.id ?? ""} onChange={setCatId} options={catList.map((c) => [c.id, c.name] as [string, string])} />
@@ -331,6 +394,8 @@ function NoterInner() {
                   </Link>
                 )}
               </div>
+            ) : hors ? (
+              <p className="note">Compté dans ton mois (ce qui rentre, ce qui sort, ce qu’il te reste), sur aucun ticket et pas dans le pot commun.</p>
             ) : (
               <p className="note">Les frais communs (foin, paille, loyer…) sont partagés entre tes {horses.length} chevaux. Chacun en prend sa part sur son ticket.</p>
             )}
@@ -354,7 +419,7 @@ function NoterInner() {
               </label>
             )}
 
-            <input className="input" placeholder={kind === "commune" ? "Ex. Foin d’octobre" : isCare ? "Un détail (facultatif) : « rappel grippe »" : "Un nom pour t’y retrouver (facultatif)"} value={label} onChange={(e) => setLabel(e.target.value)} aria-label="Détail" />
+            <input className="input" placeholder={hors ? (kind === "recette" ? "C’est quoi ? Ex. PAC, subvention" : "C’est quoi ? Ex. Réparation du tracteur") : kind === "commune" ? "Ex. Foin d’octobre" : isCare ? "Un détail (facultatif) : « rappel grippe »" : "Un nom pour t’y retrouver (facultatif)"} value={label} onChange={(e) => setLabel(e.target.value)} aria-label="Détail" />
 
             <button type="button" className="btn full" disabled={!ready} onClick={save}>
               {cta}

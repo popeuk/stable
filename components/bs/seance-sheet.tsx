@@ -7,7 +7,8 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { eur, esc, signed } from "@/components/bs/ui";
 import { Chips, Face, Ic, Money, Seg, Switch, ini } from "@/components/carnet/ui";
-import { MAX_PLACES, seanceAmount } from "@/lib/domain/seances";
+import { MAX_PLACES, isEmptySeance, seanceAmount } from "@/lib/domain/seances";
+import { HorseChips, InField } from "@/components/bs/seance-form";
 import type { Seance } from "@/lib/domain/types";
 
 /**
@@ -66,7 +67,8 @@ function Inner({ seance }: { seance: Seance }) {
   const series = seance.seriesId ? (data.seances ?? []).filter((x) => x.seriesId === seance.seriesId) : [];
   const following = series.filter((x) => x.date >= seance.date).length;
   const absents = seance.participants.filter((p) => presence[p.personId] === false).length;
-  const paying = seance.participants.length ? seance.participants.length - (chargeAbsent ? 0 : absents) : Math.max(1, seance.horseIds.length);
+  const paying = seance.participants.length ? seance.participants.length - (chargeAbsent ? 0 : absents) : seance.horseIds.length;
+  const vide = isEmptySeance(seance);
   const amount = seance.unitPrice * paying;
   const dateLabel = new Date(seance.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   const over = `${dateLabel.charAt(0).toUpperCase()}${dateLabel.slice(1)} · ${seance.start} à ${seance.end}${seance.lieu ? ` · ${seance.lieu}` : ""}`;
@@ -181,6 +183,8 @@ function Inner({ seance }: { seance: Seance }) {
             </div>
           );
         })}
+        {vide && <p className="note">Personne d’inscrit pour l’instant{collectif ? ` · ${seance.places ?? MAX_PLACES} places libres` : ""}. Elle ne rapporte rien tant que personne n’y est inscrit.</p>}
+        {seance.status === "planned" && <Inscrire seance={seance} />}
         {seance.notes && <p className="note">{seance.notes}</p>}
         {seance.updatedBy && <p className="note" style={{ fontSize: 12 }}>Modifiée par {seance.updatedBy}</p>}
         <div className="card jr-tot">
@@ -189,7 +193,7 @@ function Inner({ seance }: { seance: Seance }) {
             <Money v={seanceAmount(seance)} />
           </b>
         </div>
-        {seance.status === "planned" && (
+        {seance.status === "planned" && !vide && (
           <button type="button" className="btn full jr-btn-top" onClick={() => (seance.participants.length > 1 ? setView("presence") : validate())}>
             <Ic n="ck" className="" />
             {seance.participants.length > 1 ? "Confirmer et dire qui était là" : `Confirmer que c’est fait · ${signed(amount)}`}
@@ -365,6 +369,72 @@ function Inner({ seance }: { seance: Seance }) {
           {body}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Inscrire quelqu'un après coup : un cavalier (son nom, ou un client déjà
+ * connu) ou un cheval. Une séance posée vide se remplit ainsi ; elle se met
+ * à rapporter dès le premier inscrit.
+ */
+function Inscrire({ seance }: { seance: Seance }) {
+  const data = useDataStore();
+  const say = useUiStore((s) => s.say);
+  const gerant = useSettingsStore((s) => s.gerant);
+  const [typed, setTyped] = useState("");
+  const horses = data.horses.filter((h) => !h.isArchived);
+  const people = (data.people ?? []).filter((p) => p.active);
+  const inscrits = new Set(seance.participants.map((p) => p.personId));
+  const max = seance.format === "collectif" ? (seance.places ?? MAX_PLACES) : seance.format === "particulier" ? 1 : MAX_PLACES;
+  const plein = seance.participants.length >= max;
+  const q = typed.trim().toLowerCase();
+  const sugg = q ? people.filter((p) => !inscrits.has(p.id) && p.name.toLowerCase().includes(q)).slice(0, 6) : [];
+
+  function inscrire(nom: string) {
+    const v = nom.trim();
+    if (!v || plein || v.includes(",")) return;
+    const st = useDataStore.getState();
+    const snap = { seances: st.seances, people: st.people };
+    const owner = horses.find((h) => h.ownerName === v);
+    const personId = st.ensurePerson(v, owner ? "proprietaire" : "cavalier");
+    if (inscrits.has(personId)) return setTyped("");
+    const horseId = owner?.id ?? (seance.horseIds.length ? seance.horseIds[seance.participants.length % seance.horseIds.length] : undefined);
+    st.updateSeance(seance.id, { participants: [...seance.participants, { personId, horseId }], updatedBy: gerant }, "one");
+    setTyped("");
+    say(`<strong>${esc(v)}</strong> inscrit à ${esc(seance.title)}.`, () => useDataStore.setState(snap));
+  }
+
+  return (
+    <div className="field" style={{ marginTop: 14 }}>
+      <span>{plein ? "C’est complet" : "Inscrire quelqu’un"}</span>
+      {!plein && (
+        <>
+          <InField>
+            <input value={typed} placeholder="Nom du cavalier ou du propriétaire" onChange={(e) => setTyped(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), inscrire(typed))} aria-label="Inscrire un cavalier" />
+            {typed.trim() && (
+              <button type="button" className="lnk" onClick={() => inscrire(typed)}>
+                Inscrire
+              </button>
+            )}
+          </InField>
+          {sugg.length > 0 && (
+            <Chips value="" onChange={(id) => inscrire(people.find((p) => p.id === id)?.name ?? "")} options={sugg.map((p) => [p.id, `+ ${p.name}`] as [string, string])} />
+          )}
+        </>
+      )}
+      {horses.length > 0 && (
+        <HorseChips
+          horses={horses}
+          value={seance.horseIds}
+          onChange={(ids) => {
+            const st = useDataStore.getState();
+            const snap = { seances: st.seances };
+            st.updateSeance(seance.id, { horseIds: ids, updatedBy: gerant }, "one");
+            say(ids.length > seance.horseIds.length ? "Cheval ajouté à la séance." : "Cheval retiré de la séance.", () => useDataStore.setState(snap));
+          }}
+        />
+      )}
     </div>
   );
 }

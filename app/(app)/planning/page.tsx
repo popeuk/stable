@@ -5,6 +5,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDesk } from "@/components/bs/desk";
 import { WeekGrid } from "@/components/bs/week-grid";
+import { PlanningTaches, PlanningTachesHaut } from "@/components/bs/planning-taches";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
 import { CountUp, Empty, Ic, Seg, Sec, sg, type IllName } from "@/components/carnet/ui";
@@ -59,13 +60,13 @@ function Planning() {
   const openNoter = useUiStore((s) => s.openNoter);
   const today = localToday();
   const now = hhmm();
-  const [view, setView] = useState<"semaine" | "mois">(() => read("bs:planning-vue", "semaine") as "semaine" | "mois");
-  const [dayView, setDayView] = useState<"liste" | "creneaux">(() => read("bs:planning-jour", "creneaux") as "liste" | "creneaux");
+  const [view, setView] = useState<"semaine" | "mois">(() => read("bs:planning-vue2", "semaine") as "semaine" | "mois");
+  const [dayView, setDayView] = useState<"liste" | "creneaux">(() => read("bs:planning-jour2", "liste") as "liste" | "creneaux");
   const jour = useSearchParams().get("jour");
   const [sel, setSel] = useState(jour && /^\d{4}-\d{2}-\d{2}$/.test(jour) ? jour : today);
   const desk = useDesk();
-  useEffect(() => write("bs:planning-vue", view), [view]);
-  useEffect(() => write("bs:planning-jour", dayView), [dayView]);
+  useEffect(() => write("bs:planning-vue2", view), [view]);
+  useEffect(() => write("bs:planning-jour2", dayView), [dayView]);
 
   const monday = addDays(sel, -weekdayIndex(sel));
   const week = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
@@ -91,18 +92,13 @@ function Planning() {
     const done = data.taskLists?.find((l) => l.isDone)?.id;
     return (data.tasks ?? []).filter((t) => t.listId !== done).length;
   }, [data]);
-  // Séances à confirmer et tâches de l'équipe : toujours à portée, en bas du planning.
+  // Les séances à confirmer : toujours à portée, en bas du planning (les tâches ont leur onglet en haut).
   const liens = (
     <nav className="jr-liens" aria-label="Aussi dans le planning">
       <Link href="/valider">
         <Ic n="ck" />
         <span>Séances à confirmer</span>
         {pending > 0 ? <em>{pending}</em> : <Ic n="chev" className="chev" />}
-      </Link>
-      <Link href="/equipe">
-        <Ic n="board" />
-        <span>Tâches de l’équipe</span>
-        {tasks > 0 ? <em>{tasks}</em> : <Ic n="chev" className="chev" />}
       </Link>
     </nav>
   );
@@ -176,6 +172,9 @@ function Planning() {
     return (
       <Screen wide>
         <div className="jr-desk">
+          <div style={{ marginBottom: 12 }}>
+            <PlanningTaches value="planning" count={tasks} />
+          </div>
           <div className="dhead">
             <div>
               <h3>Planning</h3>
@@ -277,6 +276,7 @@ function Planning() {
 
   return (
     <Screen>
+      <PlanningTachesHaut value="planning" count={tasks} />
       <div
         onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, done: false })}
         onTouchMove={(e) => {

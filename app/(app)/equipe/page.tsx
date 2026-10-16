@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, esc, eur } from "@/components/bs/ui";
 import { LABELS } from "@/components/bs/task-form";
+import { PlanningTaches, PlanningTachesHaut } from "@/components/bs/planning-taches";
 import { useDesk } from "@/components/bs/desk";
 import { Check, Ic, Seg, ini, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
@@ -99,8 +100,10 @@ function Equipe() {
     say(`Tâche ajoutée : <strong>${esc(title)}</strong>.`);
   }
 
+  const ouvertes = (data.tasks ?? []).filter((t) => !lists.find((l) => l.id === t.listId)?.isDone).length;
   const isDone = (t: TeamTask) => !!lists.find((l) => l.id === t.listId)?.isDone;
-  const isLate = (t: TeamTask) => !!t.due && t.due.slice(0, 10) < today && !isDone(t);
+  // Un rendez-vous passé n'est pas « en retard » : il a eu lieu.
+  const isLate = (t: TeamTask) => t.kind !== "rdv" && !!t.due && t.due.slice(0, 10) < today && !isDone(t);
 
   const card = (t: TeamTask) => {
     const late = isLate(t);
@@ -191,7 +194,13 @@ function Equipe() {
 
   return (
     <Screen wide={desk}>
+      {!desk && <PlanningTachesHaut value="taches" count={ouvertes} />}
       <div className="jr-equipe">
+        {desk && (
+          <div style={{ marginBottom: 12 }}>
+            <PlanningTaches value="taches" count={ouvertes} />
+          </div>
+        )}
         <div className="over rise" style={{ animationDelay: ".02s" }}>
           <span>{data.team?.length ? `${data.team.length + 1} personnes dans l’équipe` : "Toi et ton équipe"}</span>
           <button type="button" className="lnk" style={{ fontSize: 12.5, textDecoration: "none" }} onClick={() => openNoter({ mode: "tache" })}>

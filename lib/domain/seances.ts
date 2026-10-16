@@ -35,9 +35,16 @@ export function seriesDates(start: ISODate, repeat: Repeat, until?: ISODate): IS
   return out;
 }
 
+/**
+ * Une séance posée sans cavalier ni cheval : un créneau ouvert, personne
+ * d'inscrit pour l'instant. Elle ne rapporte rien et n'attend aucune
+ * validation tant que personne n'y est inscrit.
+ */
+export const isEmptySeance = (s: Pick<Seance, "participants" | "horseIds">) => s.participants.length === 0 && s.horseIds.length === 0;
+
 /** Combien de personnes paient : présentes, plus les absents facturés. */
 export function payingCount(s: Seance): number {
-  if (s.participants.length === 0) return Math.max(1, s.horseIds.length);
+  if (s.participants.length === 0) return s.horseIds.length;
   if (s.status !== "done") return s.participants.length;
   return s.participants.filter((p) => p.present !== false || s.chargeAbsent).length;
 }
@@ -70,8 +77,8 @@ export function revenuesForSeance(
   }
   const paying = s.participants.filter((p) => p.present !== false || s.chargeAbsent);
   paying.forEach((p, i) => {
-    const horseId = p.horseId ?? s.horseIds[i % Math.max(1, s.horseIds.length)];
-    if (!horseId) return;
+    // Un cavalier sans cheval : la recette est à lui, hors des tickets des chevaux (horseId vide).
+    const horseId = p.horseId ?? s.horseIds[i % Math.max(1, s.horseIds.length)] ?? "";
     const person = data.people?.find((x) => x.id === p.personId);
     out.push({
       id: makeId(),
@@ -91,7 +98,7 @@ export function revenuesForSeance(
 
 /** Une séance est à valider quand son heure de fin est passée. */
 export function seanceToValidate(s: Seance, today: ISODate, nowHHMM: string): boolean {
-  if (s.status !== "planned") return false;
+  if (s.status !== "planned" || isEmptySeance(s)) return false;
   return s.date < today || (s.date === today && s.end <= nowHHMM);
 }
 
@@ -122,7 +129,7 @@ export interface DayItem {
 
 const hhmm = (s?: string) => s ?? "";
 
-/** La journée : séances, soins et tâches d'équipe, triés par heure. */
+/** La journée : séances, soins, tâches d'équipe et rendez-vous, triés par heure. */
 export function dayItems(data: StableData, date: ISODate, today: ISODate, nowHHMM: string): DayItem[] {
   const name = (id?: string) => data.horses.find((h) => h.id === id)?.name ?? "";
   const person = (id: string) => data.people?.find((p) => p.id === id)?.name ?? "";
@@ -133,8 +140,15 @@ export function dayItems(data: StableData, date: ISODate, today: ISODate, nowHHM
     const who = s.participants.length
       ? s.participants.map((p) => person(p.personId)).filter(Boolean)
       : s.horseIds.map(name);
+    const places = s.places ?? MAX_PLACES;
     const sub = [
-      s.format === "collectif" ? `${s.participants.length} sur ${s.places ?? MAX_PLACES}` : who.slice(0, 2).join(", "),
+      isEmptySeance(s)
+        ? s.format === "collectif"
+          ? `personne d’inscrit pour l’instant · ${places} place${places > 1 ? "s" : ""} libre${places > 1 ? "s" : ""}`
+          : "personne d’inscrit pour l’instant"
+        : s.format === "collectif"
+          ? `${s.participants.length} sur ${places}`
+          : who.slice(0, 2).join(", "),
       s.lieu,
     ].filter(Boolean).join(" · ");
     items.push({
@@ -144,7 +158,7 @@ export function dayItems(data: StableData, date: ISODate, today: ISODate, nowHHM
       end: s.end,
       title: s.title,
       sub,
-      money: seanceAmount(s),
+      money: seanceAmount(s) || undefined,
       tone: "g",
       done: s.status === "done",
       late: seanceToValidate(s, today, nowHHMM),
@@ -181,12 +195,14 @@ export function dayItems(data: StableData, date: ISODate, today: ISODate, nowHHM
   for (const t of data.tasks ?? []) {
     if (!t.due || t.due.slice(0, 10) !== date) continue;
     const doneList = data.taskLists?.find((l) => l.isDone)?.id;
+    const rdv = t.kind === "rdv";
     items.push({
       key: t.id,
       type: "task",
       start: t.due.length > 10 ? t.due.slice(11, 16) : undefined,
+      end: rdv && t.end ? t.end : undefined,
       title: t.title,
-      sub: [t.forWho.join(", "), t.labels.join(" · ")].filter(Boolean).join(" · "),
+      sub: [rdv ? "rendez-vous" : "", rdv ? t.lieu : "", t.forWho.join(", "), t.labels.join(" · ")].filter(Boolean).join(" · "),
       money: t.cost ? -t.cost : undefined,
       tone: t.cost ? "o" : "n",
       done: t.listId === doneList,

@@ -13,7 +13,7 @@ import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
  * retour. Il revient à l'écran d'avant quand on vient de l'app, sinon au
  * parent logique (un ticket ramène aux chevaux, un réglage à « Moi »).
  */
-export const ROOTS = ["/accueil", "/planning", "/chevaux", "/argent"];
+export const ROOTS = ["/accueil", "/planning", "/equipe", "/chevaux", "/argent"];
 
 /** Les écrans de Mon mois : l'onglet reste allumé sur chacun. */
 export const BILAN = ["/argent", "/pilotage", "/seuil", "/scenarios", "/depenses", "/plan", "/audit", "/decouvertes", "/conseiller", "/mois"];

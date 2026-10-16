@@ -305,7 +305,7 @@ function Mois() {
             </div>
           ))}
         </Sec>
-        <Sec ill="gerant-foin" title="Ce qui sort" action={<span className="act out">{sg(-(m.direct + m.sharedTotal))}</span>} delay={0.42}>
+        <Sec ill="gerant-foin" title="Ce qui sort" action={<span className="act out">{sg(-(m.direct + m.sharedTotal + m.outside))}</span>} delay={0.42}>
           {m.shared.map((x) => (
             <div key={x.label} className="ar-post">
               <span className="ar-pic">
@@ -325,6 +325,18 @@ function Mois() {
             </span>
             <Money v={-m.direct} />
           </div>
+          {m.outs.map((x) => (
+            <div key={`hors-${x.label}`} className="ar-post">
+              <span className="ar-pic">
+                <Ic n={icFor(x.label)} className="ar-ic" />
+              </span>
+              <span>
+                {x.label}
+                <small>hors chevaux</small>
+              </span>
+              <Money v={-x.amount} />
+            </div>
+          ))}
         </Sec>
         {isNow && <Piste delay={0.48} />}
         <Link href="/seuil" className="card ar-lcard rise" style={{ animationDelay: ".5s", marginTop: 18 }}>
@@ -704,10 +716,10 @@ function Mouvements() {
   const rows = useMemo(() => {
     const r = data.revenues
       .filter((x) => dateInPeriod(x.date, active))
-      .map((x) => ({ id: x.id, t: "rev" as const, date: x.date, label: x.note || cat(x.categoryId) || "Rentrée d’argent", sub: [name(x.horseId), x.payer].filter(Boolean).join(" · "), amount: x.amount, horseId: x.horseId }));
+      .map((x) => ({ id: x.id, t: "rev" as const, date: x.date, label: x.note || cat(x.categoryId) || "Rentrée d’argent", sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.payer].filter(Boolean).join(" · "), amount: x.amount, horseId: x.horseId }));
     const d = data.directExpenses
       .filter((x) => dateInPeriod(x.date, active))
-      .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: x.label, sub: [name(x.horseId), x.rebillRevenueId ? "remis sur sa facture" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
+      .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: x.label, sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.rebillRevenueId ? "remis sur sa facture" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
     const s = data.sharedExpenses
       .filter((x) => x.periodYear === active.year && x.periodMonth === active.month)
       .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: x.label, sub: `pot commun · partagé entre ${x.allocations.length} chevaux`, amount: -x.totalAmount, horseId: "" }));

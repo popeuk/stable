@@ -94,15 +94,43 @@ export function horsePnl(
   };
 }
 
-/** Aggregate P&L across all active horses for one period. */
+/**
+ * L'argent qui ne concerne aucun cheval (« rien à voir avec les chevaux ») :
+ * une recette ou une dépense sans cheval (`horseId` vide). La PAC, la
+ * réparation du tracteur… Elle compte dans le mois de l'écurie, jamais sur
+ * un ticket ni dans le pot commun.
+ */
+export const isOutside = (e: { horseId?: string | null }) => !e.horseId;
+
+export function outsideMoney(data: StableData, period: Period) {
+  const revenue = sum(data.revenues.filter((r) => isOutside(r) && dateInPeriod(r.date, period)).map((r) => r.amount));
+  const costs = sum(data.directExpenses.filter((e) => isOutside(e) && dateInPeriod(e.date, period)).map((e) => e.amount));
+  return { revenue: round2(revenue), costs: round2(costs) };
+}
+
+/**
+ * Aggregate P&L across all active horses for one period, plus the money
+ * that concerns no horse. `revenue` and `directCosts` include it, so
+ * `revenue - directCosts - sharedCosts = netResult` still holds; the
+ * horses-only figures are `horsesRevenue`, `horsesDirectCosts`, `horsesNet`.
+ */
 export function stablePnl(data: StableData, period: Period) {
   const active = data.horses.filter((h) => !h.isArchived);
   const perHorse = active.map((h) => horsePnl(data, h.id, period));
+  const out = outsideMoney(data, period);
+  const horsesRevenue = round2(sum(perHorse.map((p) => p.revenue)));
+  const horsesDirectCosts = round2(sum(perHorse.map((p) => p.directCosts)));
+  const horsesNet = round2(sum(perHorse.map((p) => p.netResult)));
   return {
-    revenue: round2(sum(perHorse.map((p) => p.revenue))),
-    directCosts: round2(sum(perHorse.map((p) => p.directCosts))),
+    revenue: round2(horsesRevenue + out.revenue),
+    directCosts: round2(horsesDirectCosts + out.costs),
     sharedCosts: round2(sum(perHorse.map((p) => p.sharedCosts))),
-    netResult: round2(sum(perHorse.map((p) => p.netResult))),
+    netResult: round2(horsesNet + out.revenue - out.costs),
+    horsesRevenue,
+    horsesDirectCosts,
+    horsesNet,
+    outsideRevenue: out.revenue,
+    outsideCosts: out.costs,
     horseCount: active.length,
     perHorse,
   };

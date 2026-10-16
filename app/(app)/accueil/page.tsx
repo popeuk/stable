@@ -15,10 +15,10 @@ import { Empty, Face, Ic, Money, Page, Sec } from "@/components/carnet/ui";
 
 /**
  * L'accueil, en trois parties : le compteur du mois en grand (le gérant
- * assis dessus, la sacoche, la part encore à valider), la pile des paniers,
- * puis ta journée en quelques lignes. La tournée du matin s'ouvre par-dessus
- * une fois par jour. Sur ordinateur : compteur et pile côte à côte, la
- * journée et l'équipe dessous.
+ * assis dessus, la sacoche, la part encore à valider), ta journée en
+ * quelques lignes, puis la pile des paniers. La tournée du matin s'ouvre
+ * par-dessus une fois par jour. Sur ordinateur : compteur et journée côte à
+ * côte, la pile et l'équipe dessous.
  */
 export default function AccueilPage() {
   return (
@@ -41,7 +41,7 @@ function Accueil() {
 
   const valider = (
     <>
-      <Sec ill="confirmer" title="À valider" action={<Link href="/chevaux?vue=clients">Clients</Link>} delay={0.12} className="ac-vhead">
+      <Sec ill="confirmer" title="À valider" action={<Link href="/chevaux?vue=clients">Clients</Link>} delay={0.24} className="ac-vhead">
         <p className="note ac-vnote">
           {count ? (
             <>
@@ -52,7 +52,7 @@ function Accueil() {
           )}
         </p>
       </Sec>
-      <div className="ac-pile rise" style={{ animationDelay: "0.2s" }}>
+      <div className="ac-pile rise" style={{ animationDelay: "0.3s" }}>
         <PilePaniers />
       </div>
     </>
@@ -63,8 +63,8 @@ function Accueil() {
       <Page className="ac-acc">
         <Compteur href="/argent" perch="gerant-assise" />
         <NommerChevaux />
+        <Journee delay={0.12} max={4} />
         {valider}
-        <Journee delay={0.3} max={4} />
         <div className="end" />
       </Page>
     );
@@ -75,10 +75,12 @@ function Accueil() {
           <Compteur href="/argent" perch="gerant-assise" />
           <NommerChevaux />
         </div>
-        <div>{valider}</div>
+        <div>
+          <Journee delay={0.12} max={8} />
+        </div>
       </div>
       <div className="ac-dbot">
-        <Journee delay={0.28} max={8} />
+        <div>{valider}</div>
         <Equipe />
       </div>
       <div className="end" />
@@ -151,7 +153,7 @@ function Equipe() {
   const today = localToday();
   const done = data.taskLists?.find((l) => l.isDone)?.id;
   const doing = data.taskLists?.find((l) => !l.isDone && /cours/i.test(l.title))?.id;
-  const tasks = (data.tasks ?? []).filter((t) => t.listId !== done && ((t.due && t.due.slice(0, 10) <= today) || t.listId === doing)).slice(0, 5);
+  const tasks = (data.tasks ?? []).filter((t) => t.listId !== done && !(t.kind === "rdv" && t.due && t.due.slice(0, 10) < today) && ((t.due && t.due.slice(0, 10) <= today) || t.listId === doing)).slice(0, 5);
   if (!tasks.length) return <div />;
   return (
     <Sec ill="gerant-buste" title="L’équipe" action={<Link href="/equipe">Voir les tâches</Link>} delay={0.34}>
@@ -160,7 +162,7 @@ function Equipe() {
         return (
           <Link key={t.id} href="/equipe" className="li">
             <span className="ini" aria-hidden="true">
-              <Ic n="board" className="mt-ic" />
+              <Ic n={t.kind === "rdv" ? "clock" : "board"} className="mt-ic" />
             </span>
             <span>
               <b>{t.title}</b>
