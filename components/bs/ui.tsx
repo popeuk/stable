@@ -15,8 +15,7 @@ export const signed = (n: number) => {
 };
 export const dec1 = (n: number) => (isFinite(n) ? n.toFixed(1).replace(".", ",") : "∞");
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-export const esc = (s: string) =>
-  s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
+export { esc } from "@/lib/utils/esc";
 
 /** Un lien brut (dans un message HTML) doit porter le préfixe de déploiement. */
 export const withBase = (path: string) => `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${path}`;

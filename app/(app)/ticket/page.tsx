@@ -15,6 +15,7 @@ import { CARE_META, horseCareLog, upcomingDeadlines, type CareKind } from "@/lib
 import { currentPeriod, addMonths } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import type { Horse } from "@/lib/domain/types";
+import { msgFairePayer } from "@/lib/utils/esc";
 
 /**
  * La fiche d'un cheval : son portrait qui respire, puis le ticket du mois
@@ -201,7 +202,7 @@ function Ticket({ horse }: { horse: Horse }) {
               const st = useDataStore.getState();
               const snap = { revenues: st.revenues, directExpenses: st.directExpenses };
               st.rebillExpense(rebill.id);
-              say(`« ${rebill.label} » ajouté à ce que doit payer ${horse.ownerName || "son propriétaire"} : <strong>+${eur(rebill.amount)}</strong>.`, () => useDataStore.setState(snap));
+              say(msgFairePayer(rebill.label, horse.ownerName, eur(rebill.amount)), () => useDataStore.setState(snap));
             }}
           >
             Faire payer « {rebill.label.toLowerCase()} » au propriétaire · +{eur(rebill.amount)}

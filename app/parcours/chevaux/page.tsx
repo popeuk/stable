@@ -12,6 +12,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { localToday } from "@/lib/utils/local-date";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
+import { esc } from "@/components/bs/ui";
 
 const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"] as const;
 
@@ -65,7 +66,7 @@ function Chevaux() {
     const n = name.trim();
     if (!n) return;
     addHorse({ name: n, ownerName: owner.trim() || undefined, coat, blaze, pensionType: formule, pension: tariffs?.pension, entryDate: localToday() });
-    say(`<strong>${n.replace(/</g, "")}</strong> rejoint l’écurie.`);
+    say(`<strong>${esc(n)}</strong> rejoint l’écurie.`);
     setName("");
     setOwner(proprietaire);
   }
