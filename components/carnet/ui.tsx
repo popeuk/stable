@@ -90,8 +90,8 @@ export function Ill({ n, alt = "", className = "", style, fixe }: { n: IllName; 
   const perso = usePerso();
   const choix = fixe ? { n } : illPerso(n, perso);
   const repli = choix.repli;
-  // eslint-disable-next-line @next/next/no-img-element
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       key={choix.n}
       className={`ill ${className}`}

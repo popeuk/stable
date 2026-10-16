@@ -15,7 +15,7 @@ const AIDES: Record<string, Aide> = {
     id: "accueil",
     titre: "Ton accueil, chaque matin",
     points: [
-      "Ton objectif du mois : ce que tu veux qu’il te reste une fois tout payé, et où tu en es.",
+      "En haut, ce qu’il te reste ce mois une fois tout payé. Touche-le pour voir d’où ça vient.",
       "Ta journée : les séances, les soins et les tâches prévus aujourd’hui.",
       "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
       "Le + en bas de l’écran sert à tout ajouter : une séance, un soin, une tâche, de l’argent.",
@@ -44,8 +44,8 @@ const AIDES: Record<string, Aide> = {
     titre: "Ce que chaque cheval te laisse",
     points: [
       "Pour chaque cheval : ce qu’on te paie pour lui, moins ses soins, moins sa part des frais communs (foin, paille, loyer…).",
-      "En vert, il te rapporte. En rose, il te coûte plus qu’il ne te paie.",
-      "Passe sur « Clients » pour voir qui te fait le plus de chiffre d’affaires ce mois.",
+      "Le signe le dit : + il te laisse de l’argent, − il t’en coûte.",
+      "Passe sur « Clients » pour voir qui te doit encore.",
     ],
   },
   ticket: {
@@ -63,7 +63,7 @@ const AIDES: Record<string, Aide> = {
     points: [
       "Ce qui est rentré, ce qui est sorti, et ce qu’il te reste.",
       "Il se remplit tout seul avec ce que tu notes : pensions, séances, soins, dépenses. Personne ne fait de comptabilité.",
-      "Plus bas : des pistes pour gagner plus, ce qu’il reste à facturer, et tout ce qui est entré ou sorti.",
+      "Plus bas : tes séances de la semaine, des pistes pour gagner plus. Qui te doit quoi, c’est dans Clients.",
     ],
   },
   pilotage: {
@@ -113,6 +113,7 @@ const AIDES: Record<string, Aide> = {
       "Les propriétaires des chevaux en pension et les cavaliers qui prennent des cours.",
       "En haut, ceux qui te doivent le plus. Touche un nom pour ouvrir sa fiche.",
       "Un nom noté dans une séance devient un client tout seul.",
+      "Passe sur « Chevaux » pour voir ce que chaque cheval te laisse.",
     ],
   },
   client: {
@@ -146,7 +147,7 @@ const AIDES: Record<string, Aide> = {
     id: "moi",
     titre: "Ton écurie et tes réglages",
     points: [
-      "Le nom de ton écurie, ton objectif du mois, le rappel du matin.",
+      "Le nom de ton écurie, ton équipe, le rappel du matin.",
       "Tes chiffres restent sur ton téléphone, chiffrés. Tu peux en garder une copie.",
     ],
   },
@@ -156,4 +157,9 @@ const AIDES: Record<string, Aide> = {
 export function aidePour(path: string): Aide | undefined {
   const seg = path.replace(/^\/+/, "").split(/[/?#]/)[0];
   return AIDES[seg];
+}
+
+/** Une aide par son nom (l'onglet visible d'un écran à deux vues). */
+export function aideParId(id: string): Aide | undefined {
+  return AIDES[id];
 }

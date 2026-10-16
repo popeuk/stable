@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { plannedRest } from "@/components/bs/goal-card";
 import { localToday } from "@/lib/utils/local-date";
-import { CountUp, Ic, Ill, eur, sg, type IllName } from "@/components/carnet/ui";
+import { CountUp, Ic, Ill, eur, sg } from "@/components/carnet/ui";
 
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -45,35 +45,32 @@ export function useMois() {
   return { net, objective, prevu, pct, left };
 }
 
-/** « Il te manque 448 € pour ton objectif de 1 000 €. » */
+/** « Il te manque 448 € pour ton objectif de 1 000 €. » Sans objectif (0) : rien. */
 export function phraseObjectif(net: number, objective: number) {
-  if (objective <= 0) return "Fixe-toi un objectif dans Mon mois.";
+  if (objective <= 0) return "";
   const left = Math.max(0, objective - net);
   return left > 0 ? `Il te manque ${eur(left)} pour ton objectif de ${eur(objective)}.` : `Objectif de ${eur(objective)} atteint.`;
 }
 
+/** « d’ici le 31 » : la portée de ce qui est encore prévu, écrite. */
+export const dIciFin = () => {
+  const d = new Date();
+  return `d’ici le ${new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()}`;
+};
+
 /**
- * Le compteur du mois, en grand : ce qui te reste, la sacoche et ses pièces,
- * la barre vers l'objectif, et ce qui est encore prévu au planning ce mois.
+ * Le compteur du mois, en grand : ce qui te reste, le personnage à côté
+ * (ill), la barre vers l'objectif s'il y en a un, et ce qui est encore prévu
+ * au planning d'ici la fin du mois (en encre : ce n'est pas encore rentré).
  * Ce qui est passé compte déjà tout seul. Avec href, toute la carte mène au
- * détail (Mon mois).
- * perch : un personnage assis sur la carte (l'accueil).
+ * détail (Mon mois). Sans objectif, une proposition discrète d'en fixer un,
+ * sous la carte.
  */
-export function Compteur({ href, perch, className = "" }: { href?: string; perch?: IllName; className?: string }) {
+export function Compteur({ href, ill, className = "" }: { href?: string; ill?: boolean; className?: string }) {
   const { net, objective, prevu, pct } = useMois();
   const tone = Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "";
-
-  // Quand le chiffre monte (une séance qui compte), une pièce tombe dans la sacoche.
-  const avant = useRef(net);
-  const [drop, setDrop] = useState(0);
-  useEffect(() => {
-    const monte = Math.round(net - avant.current) > 0;
-    avant.current = net;
-    if (!monte || calme()) return;
-    setDrop((n) => n + 1);
-  }, [net]);
-
-  const piles = Math.max(0, Math.min(5, Math.round(pct / 20)));
+  const phrase = phraseObjectif(net, objective);
+  const prevuTxt = Math.round(prevu) > 0 ? `${sg(prevu)} encore prévu au planning ${dIciFin()}` : "";
   const inner: ReactNode = (
     <>
       <span className="ac-tx">
@@ -81,27 +78,23 @@ export function Compteur({ href, perch, className = "" }: { href?: string; perch
         <span className={`big ${tone}`}>
           <CountUp value={net} ms={900} />
         </span>
-        <span className="ac-sub">{phraseObjectif(net, objective)}</span>
+        <span className="ac-sub">{phrase || "Une fois tout payé : pensions, soins, frais communs."}</span>
       </span>
-      <span className={`ac-bag${drop ? " bump" : ""}`} key={`bag-${drop}`} aria-hidden="true">
-        <Ill n="sacoche" />
-        <span className="ac-tas">
-          {Array.from({ length: piles }, (_, i) => (
-            <i key={i} style={{ bottom: i * 6 }} />
-          ))}
+      {ill && (
+        <span className="ac-ill" aria-hidden="true">
+          <Ill n="assise" />
         </span>
-        {drop > 0 && <i className="ac-drop" />}
-      </span>
+      )}
       {objective > 0 && (
-        <>
-          <span className="bar" aria-hidden="true">
-            <i style={{ width: `${pct}%` }} />
-          </span>
-          <span className="bar-lab">
-            <span>{Math.round(pct)} % de ton objectif</span>
-            {Math.round(prevu) > 0 && <span>{sg(prevu)} encore prévu au planning</span>}
-          </span>
-        </>
+        <span className="bar" aria-hidden="true">
+          <i style={{ width: `${pct}%` }} />
+        </span>
+      )}
+      {(objective > 0 || prevuTxt) && (
+        <span className="bar-lab">
+          {objective > 0 && <span>{Math.round(pct)} % de ton objectif</span>}
+          {prevuTxt && <span>{prevuTxt}</span>}
+        </span>
       )}
       {href && (
         <span className="ac-go">
@@ -111,24 +104,24 @@ export function Compteur({ href, perch, className = "" }: { href?: string; perch
       )}
     </>
   );
-  const label = `${net < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"} ${sg(net)}. ${phraseObjectif(net, objective)}${Math.round(prevu) > 0 ? ` ${sg(prevu)} encore prévu au planning.` : ""}`;
+  const label = `${net < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"} ${sg(net)}. ${phrase}${prevuTxt ? ` ${prevuTxt}.` : ""}`;
   const card = href ? (
-    <Link href={href} className="card moncard ac-cpt" aria-label={`${label} Voir d’où ça vient.`}>
+    <Link href={href} className={`card moncard ac-cpt${ill ? "" : " nobag"}`} aria-label={`${label} Voir d’où ça vient.`}>
       {inner}
     </Link>
   ) : (
-    <div className="card moncard ac-cpt" aria-label={label} role="group">
+    <div className={`card moncard ac-cpt${ill ? "" : " nobag"}`} aria-label={label} role="group">
       {inner}
     </div>
   );
-  if (!perch) return <div className={`ac-cptw rise ${className}`}>{card}</div>;
-  const homme = perch.startsWith("gerant");
   return (
-    <div className={`perch ac-perch rise ${className}`} style={{ animationDelay: "0.04s" }}>
-      <div className="sitw">
-        <Ill n={perch} alt={`${homme ? "Un gérant assis" : "Une gérante assise"} sur le chiffre du mois, un café à la main.`} />
-      </div>
+    <div className={`ac-cptw rise ${className}`} style={{ animationDelay: "0.04s" }}>
       {card}
+      {objective <= 0 && href && (
+        <Link href="/argent?objectif=1" className="ac-fixer">
+          Te fixer un objectif pour le mois ?
+        </Link>
+      )}
     </div>
   );
 }

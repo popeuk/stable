@@ -8,7 +8,9 @@ import { useUiStore } from "@/stores/ui-store";
 import { DayBlock, moneyCls } from "@/components/bs/day-block";
 import { ligneDe, retirer } from "@/components/bs/retirer";
 import { Ic, Ill, sg } from "@/components/carnet/ui";
-import { clientsAFairePayer, demandePresence, estCollectif } from "@/lib/domain/compte-auto";
+import { aCompteLe, clientsAFairePayer, demandePresence, estCollectif } from "@/lib/domain/compte-auto";
+import { addDays } from "@/lib/domain/care";
+import { scopedKey } from "@/lib/account/session";
 import type { DayItem } from "@/lib/domain/seances";
 import type { StableData } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
@@ -33,6 +35,50 @@ export function useMaintenant() {
     return () => clearInterval(t);
   }, []);
   return now;
+}
+
+/**
+ * Les premiers jours d'usage (trois jours depuis la première ouverture sur
+ * cet appareil) : le temps d'apprendre « Pas eu lieu ? Retire la ligne. ».
+ * Après, l'indice se tait.
+ */
+export function useDebutant(jours = 3) {
+  const [debut, setDebut] = useState(true);
+  useEffect(() => {
+    const today = localToday();
+    let premier = today;
+    try {
+      const k = scopedKey("be-stable-premier-jour");
+      premier = localStorage.getItem(k) ?? today;
+      if (premier === today) localStorage.setItem(k, today);
+    } catch {}
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDebut(addDays(premier, jours) > today);
+  }, [jours]);
+  return debut;
+}
+
+/** « Hier : +100 € ont compté » : la ligne de l'accueil qui ouvre la tournée du matin. Rien hier : rien. */
+export function LigneHier() {
+  const data = useDataStore();
+  const { today, time } = useMaintenant();
+  const openTournee = useUiStore((s) => s.openTournee);
+  const veille = useMemo(() => aCompteLe(data, addDays(today, -1), today, time), [data, today, time]);
+  if (!veille.length) return null;
+  const total = veille.reduce((t, it) => t + (it.money ?? 0), 0);
+  const n = veille.length;
+  return (
+    <button type="button" className="cp-hier rise" style={{ animationDelay: "0.08s" }} onClick={openTournee}>
+      <span>
+        <b>Hier :</b> {Math.round(total) !== 0 ? <span className={moneyCls(total)}>{sg(total)}</span> : pl(n, "ligne")} {Math.round(total) !== 0 || n > 1 ? "ont" : "a"} compté
+        {Math.round(total) !== 0 && <small> · {pl(n, "ligne")}</small>}
+      </span>
+      <span className="cp-revoir">
+        Revoir
+        <Ic n="chev" className="chev" />
+      </span>
+    </button>
+  );
 }
 
 /**
