@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { Suspense, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { esc } from "@/components/bs/ui";
 import { retirer as retirerLigne } from "@/components/bs/retirer";
+import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
 import { CountUp, Empty, Face, Ic, Ill, Page as Ecran, Switch, eur, ini, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -52,7 +53,7 @@ function FicheRoute() {
   const sp = useSearchParams();
   const nom = sp.get("nom") ?? "";
   const mois = parseMois(sp.get("mois"));
-  const connu = useDataStore((s) => !!nom && ((s.people ?? []).some((p) => p.name === nom) || s.horses.some((h) => h.ownerName === nom) || s.revenues.some((r) => r.payer === nom)));
+  const connu = useDataStore((s) => !!nom && ((s.people ?? []).some((p) => p.name === nom) || s.horses.some((h) => h.ownerName?.trim().toLowerCase() === nom.trim().toLowerCase()) || s.revenues.some((r) => r.payer === nom)));
   if (!connu) {
     return (
       <Ecran>
@@ -70,10 +71,12 @@ function FicheRoute() {
 
 /* ---------- La fiche ---------- */
 
-type Ouverte = null | "part" | "notes";
+type Ouverte = null | "part" | "notes" | "chevaux";
+const meme = (a?: string, b?: string) => !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase();
 
 function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const data = useDataStore();
+  const router = useRouter();
   const say = useUiStore((s) => s.say);
   const signature = useSettingsStore((s) => s.gerant);
   const stableName = useSettingsStore((s) => s.stableName);
@@ -81,7 +84,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const period = mois ?? now;
   const mk = monthKey(period);
   const person = (data.people ?? []).find((p) => p.name === nom);
-  const horses = data.horses.filter((h) => !h.isArchived && h.ownerName === nom);
+  const horses = data.horses.filter((h) => !h.isArchived && meme(h.ownerName, nom));
   const role: PersonRole = person?.role ?? (horses.length ? "proprietaire" : "cavalier");
   const bill: Bill = billsFor(data, period).find((b) => b.payer === nom) ?? { payer: nom, role, lines: [], total: 0, paid: 0, due: 0 };
   const avant = monthsBefore(data, nom, now, 3);
@@ -194,16 +197,22 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         </p>
         <p>
           <Ic n="horse" className="" />
-          <span className="cl-1l">
-            {horses.length
-              ? horses.map((h, i) => (
-                  <span key={h.id}>
-                    {i > 0 && " · "}
-                    <Link href={`/ticket?id=${h.id}`}>{h.name}</Link>
-                    {h.pensionType ? `, ${h.pensionType.toLowerCase()}` : ""}
-                  </span>
-                ))
-              : `pas de cheval à ${accord(nom, "lui", "elle")}`}
+          <span className="pp-line">
+            <span className="cl-1l">
+              {horses.length
+                ? horses.map((h, i) => (
+                    <span key={h.id}>
+                      {i > 0 && " · "}
+                      <Link href={`/ticket?id=${h.id}`}>{h.name}</Link>
+                      {horses.length === 1 && h.pensionType ? `, ${h.pensionType.toLowerCase()}` : ""}
+                    </span>
+                  ))
+                : `pas de cheval à ${accord(nom, "lui", "elle")}`}
+            </span>
+            <button type="button" className="pp-add" onClick={() => setFeuille("chevaux")} aria-label={`Ajouter un cheval à ${nom}`}>
+              <Ic n="plus" className="" />
+              {horses.length ? "Ajouter" : "Ajouter un cheval"}
+            </button>
           </span>
         </p>
         <p>
@@ -301,6 +310,26 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       <div className="cl-blk cl-infos" ref={infos}>
         <h4>Ses infos</h4>
         <label className="field">
+          <span>Son nom</span>
+          <input
+            key={`n-${person?.id}-${nom}`}
+            className="input"
+            defaultValue={nom}
+            autoComplete="off"
+            onBlur={(e) => {
+              const n = e.target.value.trim();
+              if (!n || n === nom) return void (e.target.value = nom);
+              if ((data.people ?? []).some((p) => p.id !== person?.id && meme(p.name, n))) {
+                e.target.value = nom;
+                return say(`${esc(n)} est déjà dans tes clients.`);
+              }
+              // Le nom suit partout : ses chevaux, ce qu'il te doit, ses paiements.
+              maj({ name: n });
+              router.replace(`/client?nom=${encodeURIComponent(n)}${mois ? `&mois=${monthKey(mois)}` : ""}`);
+            }}
+          />
+        </label>
+        <label className="field">
           <span>Téléphone</span>
           <input key={`t-${person?.id}`} className="input" inputMode="tel" defaultValue={person?.phone ?? ""} placeholder="06 12 34 56 78" onBlur={(e) => e.target.value.trim() !== (person?.phone ?? "") && maj({ phone: e.target.value.trim() || undefined })} />
         </label>
@@ -327,6 +356,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           }}
         />
       )}
+      {feuille === "chevaux" && <ChevauxDuClient nom={nom} onClose={() => setFeuille(null)} />}
       {feuille === "notes" && (
         <NotesSheet
           qui={qui}

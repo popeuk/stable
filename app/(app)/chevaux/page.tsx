@@ -11,6 +11,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { reconciledNets, monthBreakdown, horseTicket } from "@/lib/domain/ticket";
 import { suggestions } from "@/lib/domain/leviers";
 import { useDesk } from "@/components/bs/desk";
+import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
 import { useRouter, useSearchParams } from "next/navigation";
 import { accord, clientDues, prenomDe, type ClientDue } from "@/lib/domain/clients";
 import { monthKey } from "@/lib/domain/billing";
@@ -168,18 +169,37 @@ function LigneClient({ c }: { c: ClientDue }) {
   );
 }
 
-/** Ajouter un client : un nom, propriétaire ou cavalier, et sa fiche s'ouvre. */
+/**
+ * Ajouter un client : un nom, propriétaire ou cavalier, et sa fiche s'ouvre.
+ * Un propriétaire : on choisit tout de suite ses chevaux (ou on en crée un).
+ */
 function AjouterClient({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const [nom, setNom] = useState("");
   const [role, setRole] = useState<PersonRole>("cavalier");
+  const [chevauxDe, setChevauxDe] = useState<string | null>(null);
   const ok = () => {
     const n = nom.trim();
     if (!n) return;
-    useDataStore.getState().ensurePerson(n, role);
+    const pid = useDataStore.getState().ensurePerson(n, role);
+    const vrai = useDataStore.getState().people?.find((p) => p.id === pid)?.name ?? n;
+    if (role === "proprietaire") return setChevauxDe(vrai);
     onClose();
-    router.push(ficheDe(n));
+    router.push(ficheDe(vrai));
   };
+  if (chevauxDe) {
+    return (
+      <ChevauxDuClient
+        nom={chevauxDe}
+        fin="Voir sa fiche"
+        onLeave={onClose}
+        onClose={() => {
+          onClose();
+          router.push(ficheDe(chevauxDe));
+        }}
+      />
+    );
+  }
   return createPortal(
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
@@ -204,7 +224,7 @@ function AjouterClient({ onClose }: { onClose: () => void }) {
               ]}
             />
             <button type="button" className="btn full" disabled={!nom.trim()} onClick={ok}>
-              Ajouter
+              {role === "proprietaire" ? "Ajouter et choisir ses chevaux" : "Ajouter"}
             </button>
           </div>
         </div>

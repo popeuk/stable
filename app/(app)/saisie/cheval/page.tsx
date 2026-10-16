@@ -6,6 +6,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Face, Ic, Page as Ecran, Portrait, Sec } from "@/components/carnet/ui";
 import { COATS, COAT_KEYS, type Coat } from "@/components/bs/horse-face";
 import { useDesk } from "@/components/bs/desk";
+import { ChoisirProprio } from "@/components/bs/choisir-proprio";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 
@@ -31,12 +32,15 @@ function SaisieCheval() {
   const tariffs = useDataStore((s) => s.tariffs);
 
   // ?edit=<id> passe le formulaire en modification, prérempli.
+  // ?proprietaire=Nom le préremplit ; ?retour=client ramène à sa fiche après.
   const editId = search.get("edit");
   const editing = editId ? horses.find((h) => h.id === editId) : undefined;
+  const proprietaire = search.get("proprietaire")?.trim() ?? "";
+  const retour = search.get("retour");
 
   const [name, setName] = useState(editing?.name ?? "");
   const [breed, setBreed] = useState(editing?.breed ?? "");
-  const [ownerName, setOwnerName] = useState(editing?.ownerName ?? "");
+  const [ownerName, setOwnerName] = useState(editing?.ownerName ?? proprietaire);
   const [coat, setCoat] = useState<Coat | undefined>(editing ? (editing.coat && editing.coat in COATS ? (editing.coat as Coat) : undefined) : "alezan");
   const [blaze, setBlaze] = useState<boolean | undefined>(editing?.blaze);
   const [formule, setFormule] = useState<string | undefined>(editing?.pensionType);
@@ -58,15 +62,20 @@ function SaisieCheval() {
       blaze,
       entryDate,
     };
+    // Retour à la fiche du client, sous le nom tel qu'il est noté dans le carnet.
+    const versClient = (hid: string) => {
+      const nom = retour === "client" ? useDataStore.getState().horses.find((h) => h.id === hid)?.ownerName : undefined;
+      return nom ? `/client?nom=${encodeURIComponent(nom)}` : null;
+    };
     if (editing) {
       updateHorse(editing.id, common);
-      router.push(`/ticket?id=${editing.id}`);
+      router.push(versClient(editing.id) ?? `/ticket?id=${editing.id}`);
       return;
     }
     // Le premier cheval ramène à l'accueil, pour que les premiers pas continuent.
     const isFirst = !horses.some((h) => !h.isArchived);
-    addHorse({ ...common, exitDate: null });
-    router.push(isFirst ? "/accueil" : "/chevaux");
+    const hid = addHorse({ ...common, exitDate: null });
+    router.push(versClient(hid) ?? (isFirst ? "/accueil" : "/chevaux"));
   }
 
   return (
@@ -92,12 +101,7 @@ function SaisieCheval() {
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Pacha" autoComplete="off" />
           {!editing && <em>Seul son nom est obligatoire. Tu pourras compléter plus tard.</em>}
         </label>
-        <label className="field">
-          <span>
-            Son propriétaire <span className="ch-opt">facultatif</span>
-          </span>
-          <input className="input" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder="Ex. Julie P." autoComplete="off" />
-        </label>
+        <ChoisirProprio value={ownerName} onChange={setOwnerName} />
         <div className="field" role="group" aria-label="Sa robe">
           <span>Sa robe</span>
           <div className="ch-sws">

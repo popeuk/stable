@@ -29,6 +29,7 @@ import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
 import { distribute } from "@/lib/domain/distribution";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
+import { avecProprio, changerProprio, nomConnu, renommerClient, retirerClient } from "@/lib/domain/proprio";
 
 /**
  * Client-side data store. In the full product this is the IndexedDB-backed
@@ -69,7 +70,8 @@ interface DataState extends StableData {
   addRevenue: (r: Omit<Revenue, "id" | "stableId">) => void;
   addDirectExpense: (e: Omit<DirectExpense, "id" | "stableId">) => void;
   addSharedExpense: (e: Omit<SharedExpense, "id" | "stableId">) => void;
-  addHorse: (h: Omit<Horse, "id" | "stableId" | "isArchived">) => void;
+  /** Rend l'id du cheval. Son propriétaire devient une personne du carnet. */
+  addHorse: (h: Omit<Horse, "id" | "stableId" | "isArchived">) => string;
   updateHorse: (id: string, patch: Partial<Omit<Horse, "id" | "stableId">>) => void;
   archiveHorse: (id: string) => void;
   deleteHorse: (id: string) => void;
@@ -120,7 +122,16 @@ interface DataState extends StableData {
   /* ---- Planning, validation, facturation, équipe (octobre 2026) ---- */
   /** Trouve une personne par son nom, ou la crée. Rend son identifiant. */
   ensurePerson: (name: string, role: PersonRole) => string;
+  /** Change le nom aussi sur ses chevaux, ses recettes et ses paiements. */
   updatePerson: (id: string, patch: Partial<Omit<Person, "id">>) => void;
+  /**
+   * Rattache un cheval à un propriétaire (créé une seule fois s'il n'existe
+   * pas), ou le détache (null). Le passé reste au nom d'avant. Rend une
+   * fonction qui annule exactement ce changement.
+   */
+  setOwner: (horseId: string, name: string | null) => () => void;
+  /** Retire un client : ses chevaux restent, sans propriétaire. */
+  deletePerson: (id: string) => void;
   /** Les prestations vendues : ajouter, modifier (prix, nom, actif), retirer. */
   addPrestation: (p: Omit<Prestation, "id" | "active">) => string;
   updatePrestation: (id: string, patch: Partial<Omit<Prestation, "id">>) => void;
@@ -184,17 +195,34 @@ export const useDataStore = create<DataState>()(
       },
 
       addHorse: (h) => {
-        const entity = {
+        const s0 = get();
+        const owner = h.ownerName?.trim() ? nomConnu(s0, h.ownerName) : undefined;
+        const entity: Horse = {
           ...h,
+          ownerName: owner,
           id: id("horse"),
           stableId: STABLE_ID,
           isArchived: false,
         };
-        enqueueMutation("insert", "horses", entity);
-        set((s) => ({ horses: [...s.horses, entity] }));
+        if (!owner) delete entity.ownerName;
+        enqueueMutation("insert", "horses", { ...entity });
+        set((s) => ({
+          horses: [...s.horses, entity],
+          ...(owner ? { people: avecProprio(s.people ?? [], owner, () => id("pers")) } : {}),
+        }));
+        return entity.id;
       },
 
-      updateHorse: (horseId, patch) =>
+      updateHorse: (horseId, rawPatch) => {
+        // Le propriétaire passe par setOwner : le passé reste au nom d'avant.
+        let patch = rawPatch;
+        if ("ownerName" in rawPatch) {
+          const { ownerName, ...rest } = rawPatch;
+          const cur = get().horses.find((h) => h.id === horseId)?.ownerName?.trim() || undefined;
+          if ((ownerName?.trim() || undefined) !== cur) get().setOwner(horseId, ownerName ?? null);
+          patch = rest;
+        }
+        if (!Object.keys(patch).length) return;
         set((s) => {
           const horse = s.horses.find((h) => h.id === horseId);
           if (horse) {
@@ -203,7 +231,8 @@ export const useDataStore = create<DataState>()(
           return {
             horses: s.horses.map((h) => (h.id === horseId ? { ...h, ...patch } : h)),
           };
-        }),
+        });
+      },
 
       archiveHorse: (horseId) =>
         set((s) => {
@@ -549,7 +578,65 @@ export const useDataStore = create<DataState>()(
         return pid;
       },
 
-      updatePerson: (pid, patch) => set((s) => ({ people: (s.people ?? []).map((p) => (p.id === pid ? { ...p, ...patch } : p)) })),
+      updatePerson: (pid, patch) =>
+        set((s) => {
+          const before = (s.people ?? []).find((p) => p.id === pid);
+          const people = (s.people ?? []).map((p) => (p.id === pid ? { ...p, ...patch, ...(patch.name !== undefined ? { name: patch.name.trim() || p.name } : {}) } : p));
+          const to = patch.name?.trim();
+          if (!before || !to || to === before.name) return { people };
+          // Renommer : le nom suit sur ses chevaux, ses recettes et ses paiements.
+          const r = renommerClient({ ...s, people: s.people ?? [] }, before.name, to);
+          for (const h of r.horses) if (h.ownerName === to && s.horses.find((x) => x.id === h.id)?.ownerName !== to) enqueueMutation("update", "horses", { ...h });
+          for (const x of r.revenues) if (x.payer === to && s.revenues.find((y) => y.id === x.id)?.payer !== to) enqueueMutation("update", "revenues", { ...x });
+          return { ...r, people: r.people!.map((p) => (p.id === pid ? { ...p, ...patch, name: to } : p)) };
+        }),
+
+      setOwner: (horseId, name) => {
+        const s = get();
+        const c = changerProprio(s, horseId, name, localToday(), () => id("pers"));
+        const hadPerson = new Set((s.people ?? []).map((p) => p.id));
+        const prevPeople = s.people ?? [];
+        const horse = c.horses.find((h) => h.id === horseId);
+        if (horse && c.before !== c.owner) enqueueMutation("update", "horses", { ...horse });
+        for (const t of c.touched) {
+          const r = c.revenues.find((x) => x.id === t.id);
+          if (r) enqueueMutation("update", "revenues", { ...r });
+        }
+        set({ horses: c.horses, revenues: c.revenues, people: c.people });
+        return () =>
+          set((cur) => {
+            const back = new Map(c.touched.map((t) => [t.id, t.before]));
+            const revenues = cur.revenues.map((r) => {
+              if (!back.has(r.id)) return r;
+              const next: Revenue = { ...r, payer: back.get(r.id) };
+              if (!next.payer) delete next.payer;
+              enqueueMutation("update", "revenues", { ...next });
+              return next;
+            });
+            const horses = cur.horses.map((h) => {
+              if (h.id !== horseId) return h;
+              const next: Horse = { ...h, ownerName: c.before };
+              if (!c.before) delete next.ownerName;
+              enqueueMutation("update", "horses", { ...next });
+              return next;
+            });
+            // La personne créée pour l'occasion repart, si rien d'autre ne la cite.
+            const people = (cur.people ?? []).flatMap((p) => {
+              if (!hadPerson.has(p.id)) return horses.some((h) => h.ownerName === p.name) ? [p] : [];
+              const prev = prevPeople.find((x) => x.id === p.id)!;
+              return [{ ...p, active: prev.active, role: prev.role }];
+            });
+            return { horses, revenues, people };
+          });
+      },
+
+      deletePerson: (pid) =>
+        set((s) => {
+          const r = retirerClient(s, pid, localToday(), () => id("pers"));
+          for (const h of r.horses) if (s.horses.find((x) => x.id === h.id)?.ownerName !== h.ownerName) enqueueMutation("update", "horses", { ...h });
+          for (const x of r.revenues) if (s.revenues.find((y) => y.id === x.id)?.payer !== x.payer) enqueueMutation("update", "revenues", { ...x });
+          return r;
+        }),
 
       addPrestation: (p) => {
         const pid = id("prest");

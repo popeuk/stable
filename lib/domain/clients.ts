@@ -107,12 +107,14 @@ export interface ClientDue {
 export function clientDues(data: StableData, period: Period): ClientDue[] {
   const bills = billsFor(data, period).filter((b) => b.payer !== "Sans propriétaire");
   const people = data.people ?? [];
+  // Un même client, quelle que soit la casse ou les espaces (« hugo l. » = « Hugo L. »).
+  const cle = (n: string) => n.trim().toLowerCase();
   const ownerOf = (name: string) =>
-    data.horses.filter((h) => !h.isArchived && h.ownerName === name).map((h) => h.name);
+    data.horses.filter((h) => !h.isArchived && h.ownerName && cle(h.ownerName) === cle(name)).map((h) => h.name);
   const map = new Map<string, ClientDue>();
   const add = (name: string, role: PersonRole) => {
-    if (map.has(name)) return map.get(name)!;
-    const p = people.find((x) => x.name === name);
+    if (map.has(cle(name))) return map.get(cle(name))!;
+    const p = people.find((x) => cle(x.name) === cle(name));
     const c: ClientDue = {
       name,
       personId: p?.id,
@@ -124,14 +126,14 @@ export function clientDues(data: StableData, period: Period): ClientDue[] {
       paieALaSeance: !!p?.paieALaSeance,
       phone: p?.phone,
     };
-    map.set(name, c);
+    map.set(cle(name), c);
     return c;
   };
   for (const b of bills) {
     const c = add(b.payer, b.role);
-    c.total = b.total;
-    c.paid = Math.round(b.paid * 100) / 100;
-    c.due = b.due;
+    c.total = Math.round((c.total + b.total) * 100) / 100;
+    c.paid = Math.round((c.paid + b.paid) * 100) / 100;
+    c.due = Math.round((c.due + b.due) * 100) / 100;
   }
   for (const p of people) if (p.active) add(p.name, p.role);
   for (const h of data.horses) if (!h.isArchived && h.ownerName) add(h.ownerName, "proprietaire");

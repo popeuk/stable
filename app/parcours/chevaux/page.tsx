@@ -7,6 +7,7 @@ import { Chips, Face, Ic, Portrait } from "@/components/carnet/ui";
 import { MontantMois, ObHead } from "@/components/bs/ob-head";
 import { COATS, COAT_KEYS, type Coat } from "@/components/bs/horse-face";
 import { ajouterChevaux, useParcours } from "@/components/bs/parcours";
+import { ChoisirProprio } from "@/components/bs/choisir-proprio";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { localToday } from "@/lib/utils/local-date";
@@ -31,7 +32,10 @@ export default function Page() {
  */
 function Chevaux() {
   const router = useRouter();
-  const retour = useSearchParams().get("retour");
+  const sp = useSearchParams();
+  const retour = sp.get("retour");
+  // ?proprietaire=Nom : les chevaux ajoutés un par un sont à lui ; « Terminé » ramène à sa fiche (?retour=client).
+  const proprietaire = sp.get("proprietaire")?.trim() ?? "";
   const allHorses = useDataStore((s) => s.horses);
   const horses = allHorses.filter((h) => !h.isArchived);
   const addHorse = useDataStore((s) => s.addHorse);
@@ -39,12 +43,12 @@ function Chevaux() {
   const say = useUiStore((s) => s.say);
   const { pass } = useParcours();
   const [name, setName] = useState("");
-  const [owner, setOwner] = useState("");
+  const [owner, setOwner] = useState(proprietaire);
   const [coat, setCoat] = useState<Coat>("alezan");
   const [blaze, setBlaze] = useState(true);
   const [formule, setFormule] = useState<string>("Box + paddock");
   // Ouvert depuis l'app (« Ajouter un cheval »), on garde le formulaire nommé.
-  const [noms, setNoms] = useState(!!retour);
+  const [noms, setNoms] = useState(!!retour || !!proprietaire);
   const [nombre, setNombre] = useState(horses.length ? 1 : 9);
   const [tick, setTick] = useState(0);
   const [pension, setPension] = useState(tariffs?.pension ? String(tariffs.pension) : "");
@@ -52,6 +56,7 @@ function Chevaux() {
 
   const suite = () => {
     if (!retour) pass("chevaux");
+    if (retour === "client" && proprietaire) return router.push(`/client?nom=${encodeURIComponent(proprietaire)}`);
     router.push(retour ? `/${retour}` : "/parcours/tarifs");
   };
 
@@ -61,7 +66,7 @@ function Chevaux() {
     addHorse({ name: n, ownerName: owner.trim() || undefined, coat, blaze, pensionType: formule, pension: tariffs?.pension, entryDate: localToday() });
     say(`<strong>${n.replace(/</g, "")}</strong> rejoint l’écurie.`);
     setName("");
-    setOwner("");
+    setOwner(proprietaire);
   }
 
   function parNombre() {
@@ -151,11 +156,7 @@ function Chevaux() {
           <span>Son nom</span>
           <input id="h-name" className="input" placeholder="Ex. Pacha" value={name} autoComplete="off" onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
         </label>
-        <label className="field" htmlFor="h-owner">
-          <span>Son propriétaire</span>
-          <input id="h-owner" className="input" placeholder="Ex. Julie P." value={owner} autoComplete="off" onChange={(e) => setOwner(e.target.value)} />
-          <em>Facultatif.</em>
-        </label>
+        <ChoisirProprio value={owner} onChange={setOwner} />
         <div className="field">
           <span>Sa robe</span>
           <div className="ar-robes">
