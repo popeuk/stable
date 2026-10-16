@@ -118,7 +118,7 @@ export function AideCarte({ compact }: { compact?: boolean }) {
   const demandee = ouverte === aide.id;
   // Sur l'accueil, la carte vit sous le chiffre (compact) : la coque ne la montre pas en tête.
   const ici = clean(path) === "/accueil";
-  if (compact !== ici) return null;
+  if (!!compact !== ici) return null;
   const premiere = compact && vues.length === 0;
   if (!demandee && !premiere) return null;
   const ok = () => {
