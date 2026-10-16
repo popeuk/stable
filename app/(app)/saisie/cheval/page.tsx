@@ -83,7 +83,7 @@ function SaisieCheval() {
     <Ecran wide={desk} className={desk ? "ch-desk ch-narrow" : undefined}>
       {editing && (
         <div className="hello rise" style={{ animationDelay: ".02s" }}>
-          <h3>Modifier {editing.name}</h3>
+          <h2>Modifier {editing.name}</h2>
         </div>
       )}
       <div className="ch-preview rise" style={{ animationDelay: ".04s" }}>

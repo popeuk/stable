@@ -34,7 +34,7 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
       className="fixed inset-0 z-[60] flex flex-col items-center justify-center px-8"
-      style={{ background: "var(--bg-overlay)" }}
+      style={{ background: "var(--scrim)" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -46,13 +46,13 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
           </p>
           <motion.div
             className="flex size-40 items-center justify-center rounded-full"
-            style={{ background: "var(--c-danger-soft)" }}
+            style={{ background: "var(--mist)" }}
             animate={{ scale: [1, 1.12, 1] }}
             transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
           >
             <motion.div
               className="size-24 rounded-full"
-              style={{ background: "var(--c-danger)" }}
+              style={{ background: "var(--out)" }}
               animate={{ opacity: [0.6, 1, 0.6] }}
               transition={{ repeat: Infinity, duration: 1.4 }}
             />
@@ -67,7 +67,7 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
           animate={{ y: 0, opacity: 1 }}
           className="w-full max-w-sm rounded-[var(--radius-xl)] border bg-elevated p-6 text-center"
         >
-          <p className="text-2xs uppercase tracking-wide text-tertiary">J&apos;ai compris</p>
+          <p className="text-xs uppercase tracking-wide text-tertiary">J&apos;ai compris</p>
           <p className="mt-2 font-[family-name:var(--font-bricolage)] text-2xl text-primary">
             {parsed.summary}
           </p>
@@ -84,13 +84,13 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
             </button>
             <button
               onClick={onClose}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] py-3 text-sm font-medium text-[var(--on-accent)]"
-              style={{ background: "var(--accent-primary)" }}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] py-3 text-sm font-medium text-[var(--on-ink)]"
+              style={{ background: "var(--ink)" }}
             >
               <Check size={16} /> C’est bon
             </button>
           </div>
-          <p className="mt-4 text-[10px] text-tertiary">
+          <p className="mt-4 text-[12px] text-tertiary">
             Démo : transcription simulée. La saisie vocale réelle passe par
             Whisper + Claude.
           </p>

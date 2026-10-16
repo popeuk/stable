@@ -64,7 +64,7 @@ function Contacts() {
     <Ecran wide={desk} className={desk ? "ch-desk ch-narrow" : undefined}>
       <div className="hello rise" style={{ animationDelay: ".04s" }}>
         <p className="ch-over0">{people.length} personnes</p>
-        <h3>Contacts</h3>
+        <h2>Contacts</h2>
         <p>Les propriétaires de tes chevaux et les pros qui s’en occupent (maréchal, véto…). La liste se remplit toute seule.</p>
       </div>
 

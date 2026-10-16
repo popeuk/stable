@@ -36,11 +36,11 @@ export function ImpactFlash() {
             style={{
               background:
                 flash.kind === "revenue"
-                  ? "var(--c-success)"
+                  ? "var(--in)"
                   : flash.kind === "care"
-                    ? "var(--accent-secondary)"
-                    : "var(--accent-primary)",
-              color: "#fff",
+                    ? "var(--ink3)"
+                    : "var(--ink)",
+              color: "var(--on-ink)",
             }}
           >
             <Check size={16} strokeWidth={3} />

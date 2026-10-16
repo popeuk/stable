@@ -15,17 +15,17 @@ export function SyncIndicator() {
     SyncStatus,
     { color: string; label: string; pulse: boolean }
   > = {
-    synced: { color: "var(--c-success)", label: "Synchronisé", pulse: false },
-    syncing: { color: "#5b8def", label: "Synchronisation…", pulse: true },
-    error: { color: "var(--c-danger)", label: "Erreur de synchro", pulse: false },
-    local: { color: "var(--text-tertiary)", label: "Mode local", pulse: true },
+    synced: { color: "var(--ink2)", label: "Synchronisé", pulse: false },
+    syncing: { color: "var(--ink)", label: "Synchronisation…", pulse: true },
+    error: { color: "var(--ink)", label: "Erreur de synchro", pulse: false },
+    local: { color: "var(--ink3)", label: "Mode local", pulse: true },
   };
   const c = config[status];
   const label = pending > 0 ? `${c.label} · ${pending} en attente` : c.label;
 
   return (
     <div
-      className="flex items-center gap-1.5 text-2xs text-tertiary"
+      className="flex items-center gap-1.5 text-xs text-tertiary"
       title={label}
       aria-label={label}
     >

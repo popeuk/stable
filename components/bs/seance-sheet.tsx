@@ -340,7 +340,7 @@ function Inner({ seance }: { seance: Seance }) {
           </button>
         </div>
         <div className="pad">
-          <h3 className="jr-sh">{view === "presence" && plusieurs ? `${seance.title} · qui était là ?` : seance.title}</h3>
+          <h2 className="jr-sh">{view === "presence" && plusieurs ? `${seance.title} · qui était là ?` : seance.title}</h2>
           {body}
         </div>
       </div>

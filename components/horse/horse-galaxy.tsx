@@ -41,16 +41,16 @@ export function HorseGalaxy({ items }: { items: HorseWithPnl[] }) {
     <div className="relative mx-auto w-full max-w-[420px]">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
         {/* Axis hints */}
-        <text x={pad} y={16} fill="var(--text-tertiary)" fontSize="9">
+        <text x={pad} y={16} fill="var(--ink3)" fontSize="9">
           récents
         </text>
-        <text x={W - pad} y={16} fill="var(--text-tertiary)" fontSize="9" textAnchor="end">
+        <text x={W - pad} y={16} fill="var(--ink3)" fontSize="9" textAnchor="end">
           anciens
         </text>
         <text
           x={10}
           y={H / 2}
-          fill="var(--text-tertiary)"
+          fill="var(--ink3)"
           fontSize="9"
           transform={`rotate(-90 10 ${H / 2})`}
           textAnchor="middle"
@@ -84,7 +84,7 @@ export function HorseGalaxy({ items }: { items: HorseWithPnl[] }) {
               <text
                 x={x}
                 y={y + r + 12}
-                fill="var(--text-secondary)"
+                fill="var(--ink2)"
                 fontSize="9"
                 textAnchor="middle"
                 className="font-[family-name:var(--font-bricolage)]"
@@ -95,7 +95,7 @@ export function HorseGalaxy({ items }: { items: HorseWithPnl[] }) {
           );
         })}
       </svg>
-      <p className="mt-2 text-center text-2xs text-tertiary">
+      <p className="mt-2 text-center text-xs text-tertiary">
         Taille = chiffre d&apos;affaires · couleur = marge nette
       </p>
     </div>

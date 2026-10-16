@@ -45,13 +45,13 @@ export default function ProtoToday() {
       <section className="px-5 pt-4">
         <div className="flex border border-[var(--o-line-strong)] bg-[var(--o-paper)]">
           <div className="flex-1 p-5">
-            <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--o-muted)]">
+            <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--o-muted)]">
               {"Le point du jour"}
             </p>
             <p className="mt-2 text-[17px] font-bold leading-snug">
               {`${worst.horse.name} mérite ton attention. ${best.horse.name}, lui, te porte ce mois.`}
             </p>
-            <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-[var(--o-muted)]">
+            <p className="mt-4 text-[12px] font-bold uppercase tracking-wide text-[var(--o-muted)]">
               {"Ce mois, tu gardes"}
             </p>
             <p
@@ -90,7 +90,7 @@ export default function ProtoToday() {
           className="proto-grain flex items-center justify-between border border-[var(--o-ink)] bg-[var(--o-ink)] p-4 text-[var(--o-bg)]"
         >
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--o-yellow)]">
+            <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--o-yellow)]">
               {"Simulateur"}
             </p>
             <p className="mt-1 text-[16px] font-bold">{"Teste une hausse de pension"}</p>

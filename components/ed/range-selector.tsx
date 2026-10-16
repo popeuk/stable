@@ -18,8 +18,8 @@ export function RangeSelector() {
           className={cn(
             "shrink-0 rounded-full border px-3 py-1.5 text-[12px] font-bold",
             preset === r.value
-              ? "border-[var(--text-primary)] bg-[var(--ink)] text-[var(--on-ink)]"
-              : "border-[var(--border-strong)] text-tertiary",
+              ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--on-ink)]"
+              : "border-[var(--line)] text-tertiary",
           )}
         >
           {r.label}

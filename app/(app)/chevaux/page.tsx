@@ -327,7 +327,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
         <div className="dhead rise">
           <div>
             <p className="k">{moisDe()}</p>
-            <h3>Tes clients</h3>
+            <h2>Tes clients</h2>
             <p>{sub}</p>
             {rassure}
             {sansProprio}
@@ -387,11 +387,11 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
       <div className="cl-ttl rise">
         <p className="k">Tes clients</p>
         {n ? (
-          <h3>
+          <h2>
             {n} te {n > 1 ? "doivent" : "doit"} <span className="num">{eur(total)}</span>
-          </h3>
+          </h2>
         ) : (
-          <h3>Personne ne te doit rien.</h3>
+          <h2>Personne ne te doit rien.</h2>
         )}
         {rassure}
         {sansProprio}
@@ -543,7 +543,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
         <div className="dhead rise">
           <div>
             <p className="k">{month}</p>
-            <h3>Tes chevaux</h3>
+            <h2>Tes chevaux</h2>
             <p>
               Ce mois, tes chevaux {net >= 0 ? "te laissent" : "te coûtent"} <Money v={net} /> à eux tous, une fois leurs frais payés. Clique un cheval pour voir le détail.
             </p>
@@ -641,13 +641,13 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
       {n > 0 && (
         <div className="hello rise" style={{ animationDelay: ".06s" }}>
           <p className="ch-over0">{month}</p>
-          <h3>
+          <h2>
             {n === 1 ? "Ton cheval" : `Tes ${n} chevaux`} {net >= 0 ? (n === 1 ? "te laisse" : "te laissent") : n === 1 ? "te coûte" : "te coûtent"}{" "}
             <span className={Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "num"}>
               <CountUp value={net} />
             </span>{" "}
             ce mois.
-          </h3>
+          </h2>
           <p>Une fois leurs soins et leur part des frais communs payés. Touche un cheval pour voir son ticket.</p>
         </div>
       )}

@@ -45,10 +45,10 @@ export function InsightsCarousel() {
             </div>
             <p
               className="mt-3 text-[20px] font-extrabold tabular-nums"
-              style={{ color: insight.keyMetricValue >= 0 ? "var(--c-success)" : "var(--c-danger)" }}
+              style={{ color: insight.keyMetricValue >= 0 ? "var(--in)" : "var(--out)" }}
             >
               {eur(insight.keyMetricValue)}
-              <span className="ml-1 text-[11px] font-semibold text-tertiary">
+              <span className="ml-1 text-[12px] font-semibold text-tertiary">
                 {insight.keyMetricLabel}
               </span>
             </p>

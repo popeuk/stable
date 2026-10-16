@@ -35,7 +35,7 @@ function Part() {
   return (
     <Ecran wide={desk} className={desk ? "ch-desk ch-narrow" : undefined}>
       <div className="hello rise" style={{ animationDelay: ".04s" }}>
-        <h3>Le pot commun, c’est quoi&nbsp;?</h3>
+        <h2>Le pot commun, c’est quoi&nbsp;?</h2>
         <p>Ce sont les dépenses qui servent à toute l’écurie (foin, paille, loyer, salaires…), pas à un cheval en particulier. Chaque cheval en paie un morceau : c’est sa part.</p>
       </div>
       <Sec ill="brouette" title={`Le pot ${du}`} delay={0.12} />

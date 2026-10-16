@@ -1,0 +1,45 @@
+/* ============================================================
+   Prototype skin : direction éditoriale (inspirée OCITE) :
+   bords carrés, lignes fines, beaucoup d'air. Scopée à /proto.
+   ============================================================ */
+.proto-skin {
+  --o-bg: #fbf6e9;
+  --o-paper: #ffffff;
+  --o-yellow: #f3c63f;
+  --o-yellow-2: #f8db78;
+  --o-ink: #17150d;
+  --o-line: rgba(23, 21, 13, 0.14);
+  --o-line-strong: rgba(23, 21, 13, 0.28);
+  --o-muted: #6f6a5b;
+  --o-accent: #e8743b;
+  --o-green: #2f7d50;
+  --o-red: #c0432e;
+  --o-blue: #dde8f3;
+  --o-rose: #f6e2da;
+  --o-mint: #dcefe1;
+  --o-lilac: #e7e3f3;
+  color: var(--o-ink);
+  background: var(--o-bg);
+  font-family: var(--font-hanken), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.proto-skin h1,
+.proto-skin h2,
+.proto-skin h3 {
+  letter-spacing: -0.025em;
+}
+
+/* Mot en contour, à la "Cycle" d'OCITE */
+.proto-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--o-ink);
+}
+
+/* Grain léger pour l'effet éditorial sur les aplats */
+.proto-grain {
+  background-image: radial-gradient(rgba(23, 21, 13, 0.05) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { X, HelpCircle } from "lucide-react";
 import { LESSONS } from "@/content/lessons";
 import { useDataStore } from "@/stores/data-store";
@@ -44,7 +44,7 @@ export function Explain({
         <button
           onClick={reveal}
           aria-label={`Comprendre : ${lesson.title}`}
-          className="inline-flex size-[18px] items-center justify-center border border-[var(--border-strong)] text-tertiary"
+          className="inline-flex size-[18px] items-center justify-center border border-[var(--line)] text-tertiary"
         >
           <HelpCircle size={11} />
         </button>
@@ -57,7 +57,7 @@ export function Explain({
       <button
         onClick={reveal}
         className={cn(
-          "underline decoration-dotted decoration-[var(--accent-primary)] underline-offset-[3px] transition-colors hover:text-[var(--accent-primary)]",
+          "cn-term underline decoration-dotted decoration-[var(--ink)] underline-offset-[3px] transition-colors hover:text-[var(--ink)]",
           className,
         )}
       >
@@ -68,81 +68,83 @@ export function Explain({
   return (
     <>
       {trigger}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="fixed inset-0 z-[60] flex items-end justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <button
-              aria-label="Fermer"
-              className="absolute inset-0"
-              style={{ background: "var(--bg-overlay)" }}
-              onClick={() => setOpen(false)}
-            />
+      <MotionConfig reducedMotion="user">
+        <AnimatePresence>
+          {open && (
             <motion.div
-              role="dialog"
-              aria-label={lesson.title}
-              className="relative z-10 w-full max-w-[440px] rounded-t-[28px] bg-elevated px-6 pb-10 pt-3 shadow-[var(--shadow-floating)]"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 380, damping: 34 }}
+              className="fixed inset-0 z-[60] flex items-end justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             >
-              <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--border-strong)]" />
-              <div className="flex items-start justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
-                  Notion · 2 min
-                </span>
-                <button onClick={() => setOpen(false)} aria-label="Fermer" className="text-tertiary">
-                  <X size={20} />
-                </button>
-              </div>
-
-              <h3 className="mt-2 font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-                {lesson.title}
-              </h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-secondary">
-                {lesson.definition}
-              </p>
-
-              {lesson.yourData && (
-                <div className="mt-4 border border-[var(--border-strong)] bg-base p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--accent-primary)]">
-                    Pour toi, ce mois
-                  </p>
-                  <p className="mt-1.5 text-[15px] leading-relaxed text-primary">
-                    {lesson.yourData(data, period)}
-                  </p>
-                </div>
-              )}
-
-              <p className="mt-5 text-[11px] font-bold uppercase tracking-wide text-tertiary">
-                Ce que tu peux faire
-              </p>
-              <div className="mt-2 border-t border-[var(--border-default)]">
-                {lesson.whatToDo.map((t, i) => (
-                  <div key={i} className="flex gap-3 border-b border-[var(--border-default)] py-3">
-                    <span className="text-[13px] font-bold tabular-nums text-tertiary">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <p className="text-[14px] leading-relaxed text-secondary">{t}</p>
-                  </div>
-                ))}
-              </div>
-
               <button
+                aria-label="Fermer"
+                className="absolute inset-0"
+                style={{ background: "var(--scrim)" }}
                 onClick={() => setOpen(false)}
-                className="mt-6 w-full rounded-full bg-[var(--ink)] py-3.5 text-[15px] font-bold text-[var(--on-ink)]"
+              />
+              <motion.div
+                role="dialog"
+                aria-label={lesson.title}
+                className="relative z-10 w-full max-w-[440px] rounded-t-[28px] bg-elevated px-6 pb-10 pt-3 shadow-[var(--shadow-floating)]"
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", stiffness: 380, damping: 34 }}
               >
-                J&apos;ai compris
-              </button>
+                <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line)]" />
+                <div className="flex items-start justify-between">
+                  <span className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
+                    Notion · 2 min
+                  </span>
+                  <button onClick={() => setOpen(false)} aria-label="Fermer" className="text-tertiary">
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <h2 className="mt-2 font-[family-name:var(--font-bricolage)] text-2xl text-primary">
+                  {lesson.title}
+                </h2>
+                <p className="mt-2 text-[15px] leading-relaxed text-secondary">
+                  {lesson.definition}
+                </p>
+
+                {lesson.yourData && (
+                  <div className="mt-4 border border-[var(--line)] bg-base p-4">
+                    <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--ink)]">
+                      Pour toi, ce mois
+                    </p>
+                    <p className="mt-1.5 text-[15px] leading-relaxed text-primary">
+                      {lesson.yourData(data, period)}
+                    </p>
+                  </div>
+                )}
+
+                <p className="mt-5 text-[12px] font-bold uppercase tracking-wide text-tertiary">
+                  Ce que tu peux faire
+                </p>
+                <div className="mt-2 border-t border-[var(--line)]">
+                  {lesson.whatToDo.map((t, i) => (
+                    <div key={i} className="flex gap-3 border-b border-[var(--line)] py-3">
+                      <span className="text-[13px] font-bold tabular-nums text-tertiary">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <p className="text-[14px] leading-relaxed text-secondary">{t}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setOpen(false)}
+                  className="mt-6 w-full rounded-full bg-[var(--ink)] py-3.5 text-[15px] font-bold text-[var(--on-ink)]"
+                >
+                  J&apos;ai compris
+                </button>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </MotionConfig>
     </>
   );
 }

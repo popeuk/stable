@@ -15,7 +15,7 @@
 .carnet .ar-link { font-size: 13px; font-weight: 650; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; white-space: nowrap; background: none; border: 0; padding: 0; cursor: pointer; }
 .carnet .ar .dots i { width: 18px; }
 .carnet .ar .q { padding: 18px 22px 0; }
-.carnet .ar .q h3 { font-size: 31px; }
+.carnet .ar .q :is(h1, h3) { font-size: 31px; }
 .carnet .ar .foot .btn { height: 50px; font-size: 15.5px; }
 .carnet .ar .foot > .lnk { justify-self: center; font-size: 13.5px; color: var(--ink2); font-weight: 600; text-align: center; }
 .carnet .ar .btn:disabled, .carnet .ar-pc .btn:disabled { opacity: .4; cursor: default; }
@@ -33,8 +33,8 @@
 .carnet .ar-stwrap .stories .cta .lnk { justify-self: center; color: var(--ink2); font-weight: 600; font-size: 13.5px; }
 .carnet .ar-stwrap .ar-login { position: absolute; top: calc(env(safe-area-inset-top) + 32px); right: 22px; z-index: 3; }
 .carnet .ar-stwrap .stage { font: inherit; color: inherit; }
-.carnet .ar-stwrap .ar-rays { position: absolute; left: 50%; top: 22%; width: 160px; height: 160px; margin-left: -80px; border-radius: 50%; background: radial-gradient(circle, rgba(233, 196, 106, .4), transparent 68%); animation: ar-halo 4s var(--slow) infinite; }
-.carnet .ar-stwrap .ar-lamp { position: absolute; left: 40%; top: 4%; width: 110px; height: 140px; background: radial-gradient(ellipse at 50% 20%, rgba(233, 196, 106, .45), transparent 70%); animation: ar-flicker 3s var(--slow) infinite; }
+.carnet .ar-stwrap .ar-rays { position: absolute; left: 50%; top: 22%; width: 160px; height: 160px; margin-left: -80px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--hay) 40%, transparent), transparent 68%); animation: ar-halo 4s var(--slow) infinite; }
+.carnet .ar-stwrap .ar-lamp { position: absolute; left: 40%; top: 4%; width: 110px; height: 140px; background: radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--hay) 45%, transparent), transparent 70%); animation: ar-flicker 3s var(--slow) infinite; }
 .carnet .ar-stwrap .slide.on .tx > span { transition-delay: .18s; }
 @keyframes ar-halo { 50% { transform: scale(1.12); opacity: .7; } }
 @keyframes ar-flicker { 0%, 100% { opacity: .85; transform: scale(1); } 40% { opacity: .55; transform: scale(.94); } 60% { opacity: 1; transform: scale(1.04); } }
@@ -45,7 +45,7 @@
 .carnet .ar-pts { list-style: none; margin: 16px 22px 0; padding: 0; display: grid; gap: 10px; }
 .carnet .ar-pts li { display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: center; font-size: 15px; font-weight: 640; }
 .carnet .ar-pts .pk { width: 24px; height: 24px; border-radius: 50%; background: var(--ink); display: flex; align-items: center; justify-content: center; }
-.carnet .ar-pts .pk svg { width: 13px; height: 13px; fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .ar-pts .pk svg { width: 13px; height: 13px; fill: none; stroke: var(--sheet); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------- Recherche et champs ---------- */
 .carnet .ar-in { width: auto; margin: 16px 22px 0; height: 52px; font-size: 17px; box-shadow: inset 0 0 0 1.5px var(--ink); }
@@ -76,7 +76,7 @@
 .carnet .ar-meter i.on { background: var(--ink); }
 .carnet .ar-steps { list-style: none; counter-reset: s; margin: 16px 22px 0; padding: 0; display: grid; gap: 8px; }
 .carnet .ar-steps li { counter-increment: s; position: relative; padding-left: 30px; font-size: 14px; line-height: 1.45; color: var(--ink2); }
-.carnet .ar-steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 21px; height: 21px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 11.5px; font-weight: 750; display: flex; align-items: center; justify-content: center; }
+.carnet .ar-steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 21px; height: 21px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 12px; font-weight: 750; display: flex; align-items: center; justify-content: center; }
 
 /* ---------- La fiche (aperçu, aujourd'hui et reprise) ---------- */
 .carnet .ar-fc { background: var(--sheet); }
@@ -89,15 +89,15 @@
 .carnet .ar-fc .px strong { font-size: 22px; font-weight: 760; color: var(--ink); letter-spacing: -.02em; margin: 0 3px; font-variant-numeric: tabular-nums; }
 .carnet .ar-fc .pl { font-size: 13px; color: var(--ink3); }
 .carnet .ar-fc .pl.ok { color: var(--ink); font-weight: 650; }
-.carnet .ar-apercu { margin: 18px 22px 0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px rgba(27, 18, 37, .05); }
+.carnet .ar-apercu { margin: 18px 22px 0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 5%, transparent); }
 .carnet .ar-apercu .ar-fc { background: transparent; }
-.carnet .ar-ba { --x: 34%; position: relative; margin: 16px 22px 0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line), 0 10px 26px -14px rgba(27, 18, 37, .3); background: var(--sheet); }
+.carnet .ar-ba { --x: 34%; position: relative; margin: 16px 22px 0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line), 0 10px 26px -14px color-mix(in srgb, var(--ink) 30%, transparent); background: var(--sheet); }
 .carnet .ar-ba .calque { position: absolute; inset: 0; clip-path: inset(0 0 0 var(--x)); }
-.carnet .ar-ba .tag { position: absolute; top: 10px; z-index: 3; font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: .04em; padding: 3px 7px; border-radius: 4px; background: rgba(255, 255, 255, .92); color: var(--ink2); }
+.carnet .ar-ba .tag { position: absolute; top: 10px; z-index: 3; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: .04em; padding: 3px 7px; border-radius: 4px; background: color-mix(in srgb, var(--on-ink) 92%, transparent); color: var(--ink2); }
 .carnet .ar-ba .tag.a { left: 10px; }
-.carnet .ar-ba .tag.b { right: 10px; background: var(--ink); color: #fff; }
+.carnet .ar-ba .tag.b { right: 10px; background: var(--ink); color: var(--on-ink); }
 .carnet .ar-ba .knob { position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; margin-left: -1px; background: var(--ink); z-index: 3; pointer-events: none; }
-.carnet .ar-ba .knob::after { content: "‹ ›"; position: absolute; top: 50%; left: 50%; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; letter-spacing: 2px; box-shadow: 0 4px 12px rgba(27, 18, 37, .3); }
+.carnet .ar-ba .knob::after { content: "‹ ›"; position: absolute; top: 50%; left: 50%; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; letter-spacing: 2px; box-shadow: 0 4px 12px color-mix(in srgb, var(--ink) 30%, transparent); }
 .carnet .ar-ba input { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
 .carnet .ar-ex { margin: 8px 22px 0; font-size: 12px; color: var(--ink3); }
 
@@ -137,7 +137,7 @@
 .carnet .ar-ob .jn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ar-ob b { display: block; font-size: 14.5px; font-weight: 650; line-height: 1.2; }
 .carnet .ar-ob small { display: block; font-size: 12px; color: var(--ink3); line-height: 1.35; }
-.carnet .ar-ob.done .jn { background: var(--ink); color: #fff; }
+.carnet .ar-ob.done .jn { background: var(--ink); color: var(--on-ink); }
 .carnet .ar-ob.done .jn svg { stroke-width: 2.6; }
 .carnet .ar-ob.done b { color: var(--ink2); }
 .carnet .ar-ob.now .jn { background: var(--sheet); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
@@ -156,7 +156,7 @@
 .carnet .ar-ln .face { width: 38px; height: 38px; }
 .carnet .ar-ln b { display: block; font-size: 14.5px; font-weight: 640; line-height: 1.2; }
 .carnet .ar-ln small { font-size: 12px; color: var(--ink3); }
-.carnet .ar-ln .inl { width: 86px; height: 38px; border: 0; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); padding: 0 10px; text-align: right; font: inherit; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--ink); outline: none; }
+.carnet .ar-ln .inl { width: 86px; height: 44px; border: 0; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); padding: 0 10px; text-align: right; font: inherit; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--ink); outline: none; }
 .carnet .ar-ln .inl:focus { box-shadow: inset 0 0 0 2px var(--ink); }
 .carnet .ar-ln .inl::placeholder { color: var(--ink3); font-weight: 500; }
 .carnet .ar-ln > i { font-style: normal; color: var(--ink3); font-size: 13px; }
@@ -183,7 +183,7 @@
 .carnet .ar-seuil { position: relative; margin: 18px 22px 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px 4px; justify-items: center; }
 .carnet .ar-seuil .face { width: 38px; height: 38px; }
 .carnet .ar-seuil .vide { width: 38px; height: 38px; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--line); }
-.carnet .ar-seuil .trait { position: absolute; height: 46px; border-left: 3px solid var(--ink); }
+.carnet .ar-seuil .trait { position: absolute; height: 46px; width: 3px; background: var(--ink); }
 .carnet .ar-seuil-lab { display: flex; justify-content: space-between; gap: 10px; margin: 8px 22px 0; font-size: 12.5px; color: var(--ink3); }
 .carnet .ar-seuil-lab b { color: var(--ink); display: flex; align-items: center; gap: 4px; }
 .carnet .ar-seuil-lab b svg { width: 15px; height: 15px; }
@@ -202,7 +202,7 @@
   .carnet .ar.ar-duo { max-width: 1040px; display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 420px); justify-content: center; gap: 72px; }
   .carnet .ar-duo .ar-side { display: flex; flex-direction: column; justify-content: center; position: sticky; top: 0; height: 100dvh; }
   .carnet .ar-side .k { margin-bottom: 12px; }
-  .carnet .ar-side .ar-apercu { margin: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 24px 50px -24px rgba(27, 18, 37, .3); }
+  .carnet .ar-side .ar-apercu { margin: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 24px 50px -24px color-mix(in srgb, var(--ink) 30%, transparent); }
   .carnet .ar-side .ar-ex { margin: 10px 0 0; }
   .carnet .ar-side .ar-big { margin: 14px 0 0; font-size: 40px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; }
   .carnet .ar-side .hero-ill { height: 260px; justify-content: flex-start; }
@@ -216,7 +216,7 @@
 .carnet .ar-mm .es-help { margin: 0; }
 .carnet .ar-mm-f { height: 60px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: flex; align-items: center; gap: 8px; padding: 0 16px; transition: box-shadow .2s; }
 .carnet .ar-mm-f:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
-.carnet .ar-mm-f input { flex: 1; min-width: 0; width: 0; border: 0; background: none; padding: 0; outline: none; font: inherit; font-size: 28px; font-weight: 760; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
+.carnet .ar-mm-f input { flex: 1; min-width: 0; width: 0; align-self: stretch; border: 0; background: none; padding: 0; outline: none; font: inherit; font-size: 28px; font-weight: 760; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
 .carnet .ar-mm-f input::placeholder { color: var(--ink3); }
 .carnet .ar-mm-f .u { flex: none; font-size: 13.5px; font-weight: 600; color: var(--ink3); }
 .carnet .ar-alt { display: flex; align-items: center; width: fit-content; margin: 10px auto 0; min-height: 44px; padding: 0 12px; border: 0; background: none; font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }

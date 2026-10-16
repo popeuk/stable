@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { ClientGate } from "@/components/ui/client-gate";
 import { cap } from "@/components/bs/ui";
 import { Face, Hello, Money, Page, eur } from "@/components/carnet/ui";
@@ -132,27 +132,29 @@ function Audit() {
       <Hello title={cap(formatMonthYear(period))} sub="Audit mensuel. Fais glisser les cartes." />
 
       <div className="ar-swipe">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={index}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
-            onDragEnd={(_, info) => {
-              if (info.offset.x < -60 && index < cards.length - 1) setIndex((i) => i + 1);
-              else if (info.offset.x > 60 && index > 0) setIndex((i) => i - 1);
-            }}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className="card">
-              <p className="k">{card.tag}</p>
-              <div className="ar-body">{card.render}</div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
+        <MotionConfig reducedMotion="user">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={index}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(_, info) => {
+                if (info.offset.x < -60 && index < cards.length - 1) setIndex((i) => i + 1);
+                else if (info.offset.x > 60 && index > 0) setIndex((i) => i - 1);
+              }}
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -40 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="card">
+                <p className="k">{card.tag}</p>
+                <div className="ar-body">{card.render}</div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </MotionConfig>
       </div>
 
       <div className="ar-dots">

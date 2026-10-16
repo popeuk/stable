@@ -9,7 +9,7 @@ import { NoterSheet } from "@/components/bs/noter-sheet";
 import { SeanceSheet } from "@/components/bs/seance-sheet";
 import { MorningNudge } from "@/components/bs/morning-nudge";
 import { SessionSync } from "@/components/bs/session-sync";
-import { AideCarte, RetourOrdinateur } from "@/components/bs/nav";
+import { AideCarte, RetourOrdinateur, TitreEcran } from "@/components/bs/nav";
 import { GarderBandeau } from "@/components/bs/garder";
 import { Tournee } from "@/components/bs/tournee";
 
@@ -33,6 +33,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </Suspense>
       </ClientGate>
       <main className="cn-main">
+        <TitreEcran />
         <ClientGate>
           <Header />
           <div className="cn-page" style={{ paddingBottom: 0, paddingTop: 0 }}>

@@ -72,12 +72,12 @@ export function EquipeReglages() {
             ["prestataire", "Pro extérieur"],
           ]}
         />
-        <span className="input">
+        <label className="input">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={role === "employe" ? "Son nom, ex. Julie" : "Son nom, ex. M. Roche"} aria-label="Son nom" />
-        </span>
-        <span className="input">
+        </label>
+        <label className="input">
           <input value={job} onChange={(e) => setJob(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder={role === "employe" ? "Son métier (facultatif)" : "Maréchal, vétérinaire… (facultatif)"} aria-label="Son métier (facultatif)" />
-        </span>
+        </label>
         <button type="button" className="btn full" onClick={save} disabled={!name.trim()}>
           <Ic n="plus" className="" />
           Ajouter à l’équipe
@@ -131,9 +131,9 @@ export function CategoriesReglages() {
         />
       </div>
       <div className="ec-cadd">
-        <span className="input">
+        <label className="input">
           <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Nouvelle catégorie" aria-label="Nom de la nouvelle catégorie" />
-        </span>
+        </label>
         <button type="button" className="btn" onClick={add} aria-label="Ajouter cette catégorie">
           <Ic n="plus" className="" />
         </button>

@@ -88,7 +88,7 @@ export function Sidebar() {
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
     { href: "/planning", ic: "cal", label: "Planning", key: "P", on: under(path, ["/planning", "/valider", "/equipe"]) },
     { href: "/chevaux", ic: "people", label: "Clients", key: "C", on: under(path, CLIENTS_CHEVAUX), badge: count ? String(count) : undefined, cls: "attn" },
-    { href: "/argent", ic: "chart", label: "Mon mois", key: "M", on: under(path, BILAN) && !vue, badge: signed(c.net), cls: c.net >= 0 ? "in" : "out" },
+    { href: "/argent", ic: "chart", label: "Mon mois", key: "M", on: under(path, BILAN) && !vue, badge: signed(c.net), cls: c.net > 0 ? "in" : c.net < 0 ? "out" : undefined },
   ];
   return (
     <aside className="cn-side" aria-label="Navigation">

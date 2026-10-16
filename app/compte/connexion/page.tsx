@@ -112,7 +112,7 @@ export default function Page() {
             {top}
             {garder ? (
               <div className="q rise">
-                <h3>On garde tout pour demain.</h3>
+                <h1>On garde tout pour demain.</h1>
                 <p>Ton e-mail, puis un code. Pas de mot de passe.</p>
               </div>
             ) : (
@@ -121,7 +121,7 @@ export default function Page() {
                   <Ill n="assise" alt="La gérante, assise, une tasse de café à la main." />
                 </div>
                 <div className="q rise" style={{ animationDelay: ".08s" }}>
-                  <h3>Content de te revoir.</h3>
+                  <h1>Content de te revoir.</h1>
                 </div>
               </>
             )}
@@ -148,7 +148,7 @@ export default function Page() {
           <form className="ar-v" onSubmit={(e) => (e.preventDefault(), run(async () => ouvrir(await api.verifierCode(email.trim(), code))))}>
             {top}
             <div className="q">
-              <h3>Le code reçu.</h3>
+              <h1>Le code reçu.</h1>
               <p>Envoyé à {email.trim()}.</p>
             </div>
             <CodeInput
@@ -179,7 +179,7 @@ export default function Page() {
           <form className="ar-v" noValidate onSubmit={(e) => (e.preventDefault(), run(async () => ouvrir(await api.connexion({ email: email.trim(), password: pw }))))}>
             {top}
             <div className="q">
-              <h3>Avec ton mot de passe.</h3>
+              <h1>Avec ton mot de passe.</h1>
             </div>
             <div className="ar-form">
               <label className="field">

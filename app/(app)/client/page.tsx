@@ -169,7 +169,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       <div className="cl-id rise">
         {horses[0] ? <Face horse={horses[0]} /> : <span className="ini">{ini(nom)}</span>}
         <div>
-          <h3>{nom}</h3>
+          <h2>{nom}</h2>
           <p>
             {quiEst} · {seance ? "paie à la séance" : "paie au mois"}
           </p>
@@ -257,12 +257,12 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       </div>
 
       <div className="cl-blk">
-        <h4>
+        <h3>
           {nomMois(period)}
           <span>
             {eur(bill.total)} en tout · {eur(bill.paid)} payé{bill.paid > 1 ? "s" : ""}
           </span>
-        </h4>
+        </h3>
         {lignes.length ? <p className="cl-auto">Ce qui a eu lieu s’ajoute tout seul.</p> : <p className="cl-auto">Rien ce mois pour l’instant.</p>}
         {lignes.map((l) => (
           <Ligne key={l.id} l={l} onRetirer={retirer} />
@@ -284,7 +284,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
 
       {avant.length > 0 && (
         <div className="cl-blk">
-          <h4>Les mois d’avant</h4>
+          <h3>Les mois d’avant</h3>
           {avant.map((m) => {
             const body = (
               <>
@@ -315,7 +315,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       )}
 
       <div className="cl-blk cl-infos" ref={infos}>
-        <h4>Ses infos</h4>
+        <h3>Ses infos</h3>
         <label className="field">
           <span>Son nom</span>
           <input

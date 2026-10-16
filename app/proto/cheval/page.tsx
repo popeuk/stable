@@ -91,7 +91,7 @@ export default function ProtoCheval() {
       {/* Copilote */}
       <div className="mt-5 px-5">
         <div className="proto-grain border border-[var(--o-ink)] bg-[var(--o-ink)] p-5 text-[var(--o-bg)]">
-          <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--o-yellow)]">
+          <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--o-yellow)]">
             {"Ton copilote"}
           </p>
           <p className="mt-2 text-[15px] leading-relaxed">

@@ -75,15 +75,15 @@ export function Tag({
   tone?: "line" | "ink" | "amber" | "green" | "red";
 }) {
   const styles: Record<string, string> = {
-    line: "border border-[var(--border-strong)] text-primary",
+    line: "border border-[var(--line)] text-primary",
     ink: "bg-[var(--ink)] text-[var(--on-ink)]",
-    amber: "bg-[var(--accent-primary)] text-[var(--on-accent)]",
-    green: "bg-[var(--c-success)] text-white",
-    red: "bg-[var(--c-danger)] text-white",
+    amber: "bg-[var(--ink)] text-[var(--on-ink)]",
+    green: "bg-[var(--in)] text-white",
+    red: "bg-[var(--out)] text-white",
   };
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${styles[tone]}`}
+      className={`inline-flex items-center gap-1 px-2.5 py-1 text-[12px] font-bold uppercase tracking-wide ${styles[tone]}`}
     >
       {children}
     </span>
@@ -94,9 +94,9 @@ export function ArrowDisc({ size = 44 }: { size?: number }) {
   return (
     <span
       className="flex shrink-0 items-center justify-center rounded-full"
-      style={{ width: size, height: size, background: "var(--accent-primary)" }}
+      style={{ width: size, height: size, background: "var(--ink)" }}
     >
-      <ArrowUpRight size={size * 0.5} strokeWidth={2} color="var(--on-accent)" />
+      <ArrowUpRight size={size * 0.5} strokeWidth={2} color="var(--on-ink)" />
     </span>
   );
 }

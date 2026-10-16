@@ -47,7 +47,7 @@ export function AdoptChoice({ to = "/accueil", source = "legacy" }: { to?: strin
             <Ill n="carnet" alt="" />
           </div>
           <div className="hello rise" style={{ animationDelay: "0.1s" }}>
-            <h3>Ton compte a déjà une écurie.</h3>
+            <h2>Ton compte a déjà une écurie.</h2>
             <p>Tu as aussi noté des chiffres sur cet appareil, sans compte. Choisis ceux que tu gardes.</p>
           </div>
           <GardeListe r={resume} />
@@ -72,7 +72,7 @@ export function AdoptChoice({ to = "/accueil", source = "legacy" }: { to?: strin
           <Ill n="carnet" alt="" />
         </div>
         <div className="hello rise" style={{ animationDelay: "0.1s" }}>
-          <h3>Une écurie t’attend déjà sur cet appareil.</h3>
+          <h2>Une écurie t’attend déjà sur cet appareil.</h2>
           <p>Des chevaux, des séances ou des chiffres ont été notés sur cet appareil avant que tu aies un compte. Tu peux les mettre dans ton compte. Ils seront protégés et toi seul y auras accès.</p>
         </div>
         <div className="mt-afoot rise" style={{ animationDelay: "0.18s" }}>

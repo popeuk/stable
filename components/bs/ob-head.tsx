@@ -11,9 +11,9 @@ export function ObHead({ n, title, sub, retour }: { n: number; title: string; su
           <Ic n="back" className="" />
           {retour === "chevaux" ? "Mes chevaux" : "Moi"}
         </Link>
-        <h4 className="ar-t1" style={{ marginTop: 14 }}>
+        <h1 className="ar-t1" style={{ marginTop: 14 }}>
           {title}
-        </h4>
+        </h1>
         <p className="ar-sub">{sub}</p>
       </>
     );
@@ -27,9 +27,9 @@ export function ObHead({ n, title, sub, retour }: { n: number; title: string; su
       <div className="bar ar-prog" style={{ marginTop: 10 }} role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n - 1} aria-label={`Étape ${n} sur 6`}>
         <i style={{ width: `${Math.round(((n - 1) / 6) * 100 + 6)}%` }} />
       </div>
-      <h4 className="ar-t1" style={{ marginTop: 14 }}>
+      <h1 className="ar-t1" style={{ marginTop: 14 }}>
         {title}
-      </h4>
+      </h1>
       <p className="ar-sub">{sub}</p>
     </>
   );

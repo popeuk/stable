@@ -37,7 +37,7 @@ export function BottomNav() {
                 />
               )}
               {tab.icon}
-              <span className="text-[10.5px] font-semibold">{tab.label}</span>
+              <span className="text-[12px] font-semibold">{tab.label}</span>
             </Link>
           );
         })}

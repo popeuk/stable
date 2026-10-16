@@ -1,86 +1,13 @@
 /* Carnet · chapitre matin : styles propres à ses écrans, tous sous .carnet */
 
 /* ---------- Accueil ---------- */
-.carnet .hello .mt-dt { margin: 0 0 6px; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
-.carnet .moncard.mt-goal { display: block; color: inherit; text-decoration: none; background: var(--sheet); border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px rgba(27, 18, 37, .04); padding: 16px 16px 14px; }
-.carnet .mt-goal .big { margin-top: 8px; }
-.carnet .mt-goal .sub { margin: 4px 0 0; font-size: 12.5px; color: var(--ink3); }
-.carnet .mt-goal .note { margin-top: 10px; }
-.carnet .mt-goal .note b { color: var(--ink); }
-.carnet .mt-goal .bar-lab .sw { display: inline-block; width: 10px; height: 6px; border-radius: 2px; background: var(--ink); margin-right: 6px; vertical-align: 1px; }
-.carnet .mt-goal .bar-lab .sw.plan { background: repeating-linear-gradient(135deg, rgba(27, 18, 37, .4) 0 2px, var(--mist) 2px 4px); }
-.carnet .mt-confirm { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 12px 0 0; }
-.carnet .mt-confirm b { display: block; font-size: 14.5px; font-weight: 640; line-height: 1.3; }
-.carnet .mt-confirm small { font-size: 12.5px; color: var(--ink2); }
-.carnet .mt-confirm .btn { justify-self: start; }
-.carnet .sec .mt-note { margin-top: 10px; }
-.carnet .mt-watch { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; padding-top: 10px; color: inherit; text-decoration: none; }
-.carnet .mt-watch b { display: block; font-size: 14.5px; font-weight: 640; }
-.carnet .mt-watch p { margin: 3px 0 0; font-size: 13px; color: var(--ink2); line-height: 1.45; }
-.carnet .mt-watch > .in, .carnet .mt-watch > .out { text-align: right; white-space: nowrap; }
-.carnet .mt-watch small { display: block; font-size: 11px; font-weight: 600; color: var(--ink3); }
-.carnet .mt-pas { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; margin: 14px 14px 0; padding: 14px; color: inherit; text-decoration: none; }
-.carnet .mt-pas .ill { width: 44px; height: 44px; object-fit: contain; }
-.carnet .mt-pas b { display: block; font-size: 14.5px; font-weight: 640; margin-top: 3px; }
-.carnet .mt-pas .dots { margin-top: 8px; }
-.carnet .mt-pas .dots i { width: 18px; }
-.carnet .mt-acc .chev, .carnet .mt-find .chev { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+.carnet .mt-find .chev { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .carnet .sec .empty { padding: 14px 0 10px; }
-.carnet .sec .mt-fini .ill { width: 140px; }
-.carnet .mt-fini b { color: var(--ink); }
 .carnet .mt-ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .carnet .mt-late { display: inline; font-size: inherit; font-weight: 700; color: var(--ink); }
-.carnet .mt-acc .li .ini { color: var(--ink2); }
-
-/* La semaine (ordinateur) */
-.carnet .mt-week { margin-top: 22px; }
-.carnet .mt-week .k { display: flex; justify-content: space-between; }
-.carnet .mt-week .k a { color: var(--ink2); text-transform: none; letter-spacing: 0; font-size: 12.5px; font-weight: 600; text-decoration: none; }
-.carnet .mt-wds { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 8px; }
-.carnet .mt-wd { display: grid; justify-items: center; gap: 1px; padding: 8px 2px 9px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font-size: 12.5px; color: var(--ink); text-decoration: none; text-transform: capitalize; }
-.carnet .mt-wd small { font-size: 11px; color: var(--ink3); font-weight: 600; }
-.carnet .mt-wd b { font-size: 17px; font-weight: 700; }
-.carnet .mt-wd.td { box-shadow: inset 0 0 0 2px var(--ink); }
-.carnet .mt-wd .nil { color: var(--ink3); }
-.carnet .mt-week .note { margin-top: 8px; }
-.carnet .mt-week .note b { color: var(--ink); }
 
 /* On te doit encore (ordinateur) */
-.carnet .mt-mid { margin-top: 10px; }
-.carnet .mt-owe { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line2); font-size: 13.5px; color: inherit; text-decoration: none; }
-.carnet .mt-owe:last-child { border-bottom: 0; padding-bottom: 0; }
-.carnet .mt-owe > span { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.carnet .mt-owe .ini { width: 26px; height: 26px; font-size: 10px; }
-.carnet .mt-owe b { font-variant-numeric: tabular-nums; font-weight: 650; }
-
-/* ---------- Accueil sur ordinateur ---------- */
-@media (min-width: 1024px) {
-  .carnet .mt-desk .mt-dhero { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: end; }
-  .carnet .mt-desk .hello { padding: 0; }
-  .carnet .mt-desk .hello h3 { font-size: 54px; }
-  .carnet .mt-desk .hello > p:last-child { font-size: 17px; }
-  .carnet .mt-desk .perch { padding: 0; margin: 0; }
-  .carnet .mt-desk .sitw { width: 44%; margin-right: 18px; }
-  .carnet .mt-desk .moncard.mt-goal { padding: 14px 16px; }
-  .carnet .mt-desk .mt-goal .big { margin-top: 6px; }
-  .carnet .mt-cols3 { display: grid; grid-template-columns: 1.12fr 1fr 1fr; gap: 0 24px; margin-top: 4px; align-items: start; }
-  .carnet .mt-cols3 .sec { padding-left: 0; padding-right: 0; }
-  .carnet .mt-cols3 .sec.blk { margin: 14px 0 0; padding: 12px 14px 12px 10px; }
-  .carnet .mt-cols3 .sec.blk .mt-note { margin-top: 6px; }
-  .carnet .mt-cols3 .mt-confirm { grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 0 0; }
-  .carnet .mt-cols3 .mt-confirm b { font-size: 14px; }
-  .carnet .mt-cols3 .mt-confirm .btn { height: 38px; padding: 0 12px; font-size: 13.5px; }
-  .carnet .mt-cols3 .mt-watch b { font-size: 14px; }
-  .carnet .mt-cols3 .mt-watch p { line-height: 1.4; }
-  .carnet .mt-cols3 .mt-pas { margin: 14px 0 0; }
-  .carnet .mt-cols3 .promo { margin: 14px 0 0; }
-  .carnet .mt-cols3 .promo.small .art { height: 108px; }
-  .carnet .mt-cols3 .promo.small .art .ill { object-position: center 10%; }
-  .carnet .mt-cols3 .promo .ping { top: 16%; }
-  .carnet .mt-cols3 .promo .bd { gap: 5px; padding: 11px 14px 13px; }
-  .carnet .mt-cols3 .promo .tx { font-size: 13px; line-height: 1.4; }
-  .carnet .mt-cols3 .promo .cta { height: 36px; padding: 0 12px; font-size: 13px; margin-top: 2px; }
-}
 
 /* ---------- Chercher ---------- */
 .carnet .mt-sfind { gap: 10px; color: var(--ink3); padding-right: 6px; }
@@ -107,7 +34,7 @@
 .carnet .mt-with { font-size: 12px; color: var(--ink3); }
 .carnet .mt-with b { color: var(--ink2); font-weight: 650; }
 .carnet .mt-adopt .hello { padding: 18px 22px 0; }
-.carnet .mt-adopt .hello h3 { font-size: 31px; }
+.carnet .mt-adopt .hello :is(h2, h3) { font-size: 31px; }
 .carnet .mt-afoot { display: grid; gap: 10px; padding: 24px 22px 0; }
 .carnet .mt-afoot .btn { height: 50px; font-size: 15.5px; }
 .carnet .mt-afoot .btn:disabled { opacity: .5; cursor: default; }

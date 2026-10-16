@@ -5,9 +5,9 @@
 /* ---------- Le sélecteur ---------- */
 .carnet .pp-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .carnet .pp-c { display: inline-flex; flex-direction: column; justify-content: center; align-items: flex-start; min-height: 44px; max-width: 100%; padding: 6px 14px; border: 0; border-radius: 22px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font: inherit; font-size: 14px; font-weight: 640; color: var(--ink); text-align: left; cursor: pointer; }
-.carnet .pp-c small { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; font-weight: 500; color: var(--ink3); }
+.carnet .pp-c small { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 500; color: var(--ink3); }
 .carnet .pp-c:active { background: var(--mist); }
-.carnet .pp-new { flex-direction: row; align-items: center; gap: 6px; background: var(--ink); color: #fff; box-shadow: none; }
+.carnet .pp-new { flex-direction: row; align-items: center; gap: 6px; background: var(--ink); color: var(--on-ink); box-shadow: none; }
 .carnet .pp-new svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .carnet .pp-sel { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 52px; padding: 6px 6px 6px 8px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .pp-selt b { display: block; font-size: 15px; font-weight: 680; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

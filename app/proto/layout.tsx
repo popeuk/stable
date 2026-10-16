@@ -1,4 +1,5 @@
 import { Hanken_Grotesk } from "next/font/google";
+import "./proto.css";
 
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],

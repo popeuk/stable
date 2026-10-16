@@ -35,7 +35,7 @@ export default function ProtoLecon() {
 
       {/* Pour toi */}
       <div className="mx-5 mt-6 border border-[var(--o-line-strong)] bg-[var(--o-paper)] p-5">
-        <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--o-accent)]">
+        <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--o-accent)]">
           {"Pour toi, ce mois"}
         </p>
         <p className="mt-2 text-[16px] leading-relaxed">

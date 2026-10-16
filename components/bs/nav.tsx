@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { create } from "zustand";
 import { Ic } from "@/components/carnet/ui";
 import { getSession } from "@/lib/account/session";
@@ -127,13 +127,15 @@ export function AideCarte({ compact }: { compact?: boolean }) {
   };
   if (compact && !demandee) return <AideLigne aide={aide} ok={ok} />;
   return (
-    <section className={`aide${compact ? " compact open" : ""}`} aria-label="Comment ça marche ici">
+    <section className={`aide${compact ? " compact open" : ""}`} aria-labelledby="aide-t">
       <button type="button" className="x" onClick={ok} aria-label="Fermer l’aide">
         <svg viewBox="0 0 24 24">
           <path d="M6 6l12 12M18 6 6 18" />
         </svg>
       </button>
-      <h5>{aide.titre}</h5>
+      <p className="aide-t" id="aide-t">
+        {aide.titre}
+      </p>
       <ol>
         {aide.points.map((p) => (
           <li key={p}>{p}</li>
@@ -227,6 +229,40 @@ const TITRES: [string, string][] = [
   ["/conseiller", "Pose une question"],
 ];
 export const titreDe = (p: string) => TITRES.find(([m]) => p.replace(/(.)\/$/, "$1").startsWith(m))?.[1] ?? "";
+
+/**
+ * Le titre principal de l'écran (h1), lu par les lecteurs d'écran : l'en-tête
+ * montre le mot-symbole ou un titre court, pas un h1. S'efface si l'écran a
+ * déjà son propre h1 (Mon mois, Clients et chevaux, le seuil...).
+ */
+const ONGLETS: [string, string][] = [
+  ["/accueil", "Accueil"],
+  ["/aujourdhui", "Accueil"],
+  ["/maintenant", "Accueil"],
+  ["/planning", "Planning"],
+  ["/chevaux", "Clients et chevaux"],
+  ["/ecurie", "Clients et chevaux"],
+  ["/mois", "Mon mois"],
+];
+export function TitreEcran() {
+  const path = usePathname() ?? "";
+  const ref = useRef<HTMLHeadingElement>(null);
+  const [autre, setAutre] = useState(false);
+  useEffect(() => {
+    const main = ref.current?.closest("main");
+    if (!main) return;
+    const voir = () => setAutre([...main.querySelectorAll("h1")].some((h) => h !== ref.current));
+    voir();
+    const mo = new MutationObserver(voir);
+    mo.observe(main, { childList: true, subtree: true });
+    return () => mo.disconnect();
+  }, [path]);
+  return (
+    <h1 ref={ref} className="sr-only" hidden={autre}>
+      {titreDe(path) || ONGLETS.find(([m]) => path.startsWith(m))?.[1] || "Be Stable"}
+    </h1>
+  );
+}
 
 /* ---------- Le rond : ce qu'on règle rarement ---------- */
 

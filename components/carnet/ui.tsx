@@ -164,9 +164,11 @@ export const ini = (n: string) =>
     .toUpperCase();
 
 /* ---------- Argent ---------- */
-export function Money({ v, className = "", plain, exact }: { v: number; className?: string; plain?: boolean; exact?: boolean }) {
+/** Un montant signé : vert s'il rentre, rose s'il sort. « prevu » : pas encore rentré, en encre avec son signe. */
+export function Money({ v, className = "", plain, exact, prevu }: { v: number; className?: string; plain?: boolean; exact?: boolean; prevu?: boolean }) {
   const r = exact ? Math.round(v * 100) / 100 : arrondi(v);
-  return <span className={`${r > 0 ? "in" : r < 0 ? "out" : "num"} ${className}`}>{plain ? (exact ? eurc : eur)(Math.abs(v)) : (exact ? sgc : sg)(v)}</span>;
+  const tone = prevu ? "num prevu" : r > 0 ? "in" : r < 0 ? "out" : "num";
+  return <span className={`${tone} ${className}`}>{plain ? (exact ? eurc : eur)(Math.abs(v)) : (exact ? sgc : sg)(v)}</span>;
 }
 
 /** Un chiffre qui compte jusqu'à sa valeur, puis suit ses changements. */
@@ -204,10 +206,10 @@ export function Sec({ ill, illStyle, title, action, blk, nomarge, delay = 0, cla
       )}
       <div style={{ minWidth: 0 }}>
         {title && (
-          <h4>
+          <h2>
             <span>{title}</span>
             {action}
-          </h4>
+          </h2>
         )}
         {children}
       </div>
@@ -218,7 +220,7 @@ export function Sec({ ill, illStyle, title, action, blk, nomarge, delay = 0, cla
 export function Hello({ title, sub, delay = 0.04 }: { title: ReactNode; sub?: ReactNode; delay?: number }) {
   return (
     <div className="hello rise" style={{ animationDelay: `${delay}s` }}>
-      <h3>{title}</h3>
+      <h2>{title}</h2>
       {sub && <p>{sub}</p>}
     </div>
   );

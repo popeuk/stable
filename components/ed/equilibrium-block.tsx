@@ -26,10 +26,10 @@ export function EquilibriumBlock() {
   const covered = eq.coverage >= 1;
   const pct = Math.round(Math.min(1, eq.coverage) * 100);
   const barColor = covered
-    ? "var(--c-success)"
+    ? "var(--in)"
     : eq.coverage >= 0.85
-      ? "var(--c-warning)"
-      : "var(--c-danger)";
+      ? "var(--ink)"
+      : "var(--out)";
   const pensions = eq.missingPensionEquiv.toLocaleString("fr-FR");
 
   return (
@@ -50,7 +50,7 @@ export function EquilibriumBlock() {
       </div>
 
       {/* Charges as the track, revenue as the fill; the right edge is break-even. */}
-      <div className="mt-2.5 h-2.5 w-full border border-[var(--border-strong)] bg-base">
+      <div className="mt-2.5 h-2.5 w-full border border-[var(--line)] bg-base">
         <motion.div
           className="h-full"
           initial={{ width: 0 }}
@@ -59,7 +59,7 @@ export function EquilibriumBlock() {
           style={{ background: barColor }}
         />
       </div>
-      <div className="mt-1 flex justify-between text-[11px] text-tertiary">
+      <div className="mt-1 flex justify-between text-[12px] text-tertiary">
         <span>0 €</span>
         <span>tes dépenses : {formatEur(eq.monthlyCharges)} par mois</span>
       </div>
@@ -88,13 +88,13 @@ export function EquilibriumBlock() {
       </p>
 
       {eq.horseCount > 0 && eq.avgPension > 0 && (
-        <p className="mt-2 border-t border-[var(--border-default)] pt-2 text-[12px] text-tertiary">
+        <p className="mt-2 border-t border-[var(--line)] pt-2 text-[12px] text-tertiary">
           En moyenne, un cheval te rapporte {formatEur(eq.avgPension)} par mois et te coûte{" "}
           {formatEur(eq.costPerHorse)}. Il te laisse donc{" "}
           <span
             className="font-bold"
             style={{
-              color: eq.marginPerHorse >= 0 ? "var(--c-success)" : "var(--c-danger)",
+              color: eq.marginPerHorse >= 0 ? "var(--in)" : "var(--out)",
             }}
           >
             {eq.marginPerHorse >= 0 ? "+" : ""}

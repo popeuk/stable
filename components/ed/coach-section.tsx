@@ -37,7 +37,7 @@ export function CoachSection() {
     <section>
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles size={15} className="text-[var(--accent-primary)]" />
+          <Sparkles size={15} className="text-[var(--ink)]" />
           <h2 className="text-[13px] font-bold uppercase tracking-[0.08em] text-tertiary">
             Ton plan de la semaine
           </h2>
@@ -58,7 +58,7 @@ export function CoachSection() {
             exit={{ opacity: 0, height: 0 }}
             className="mb-2 overflow-hidden ink-panel p-4 text-[var(--on-ink)]"
           >
-            <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
+            <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
               Tu t&apos;étais engagé
             </p>
             <p className="mt-1 text-[15px] font-bold">{a.title}</p>
@@ -70,7 +70,7 @@ export function CoachSection() {
             <div className="mt-3 flex gap-2">
               <button
                 onClick={() => complete(a.id)}
-                className="flex items-center gap-1.5 bg-[var(--accent-primary)] px-3 py-1.5 text-[13px] font-bold text-[var(--on-accent)]"
+                className="flex items-center gap-1.5 bg-[var(--ink)] px-3 py-1.5 text-[13px] font-bold text-[var(--on-ink)]"
               >
                 <Check size={14} /> C&apos;est fait
               </button>
@@ -98,7 +98,7 @@ export function CoachSection() {
             <div className="flex items-start justify-between gap-3">
               <p className="text-[15px] font-bold leading-snug text-primary">{r.title}</p>
               {r.expectedImpact > 0 && (
-                <span className="shrink-0 whitespace-nowrap rounded-full bg-[var(--c-success-soft)] px-2 py-1 text-[12px] font-extrabold text-[var(--c-success)]">
+                <span className="shrink-0 whitespace-nowrap rounded-full bg-[var(--mist)] px-2 py-1 text-[12px] font-extrabold text-[var(--in)]">
                   {r.impactKind === "potentiel" ? "≈ " : "+"}
                   {formatEur(r.expectedImpact)}/mois
                 </span>
@@ -109,7 +109,7 @@ export function CoachSection() {
               {r.lessonKey && (
                 <>
                   {" "}
-                  <Explain k={r.lessonKey} className="text-[var(--accent-primary)]">
+                  <Explain k={r.lessonKey} className="text-[var(--ink)]">
                     En savoir plus
                   </Explain>
                 </>
@@ -119,7 +119,7 @@ export function CoachSection() {
               {r.scenarioHref && (
                 <Link
                   href={r.scenarioHref}
-                  className="flex items-center gap-1.5 border border-[var(--border-strong)] px-3 py-1.5 text-[13px] font-bold text-primary"
+                  className="flex items-center gap-1.5 border border-[var(--line)] px-3 py-1.5 text-[13px] font-bold text-primary"
                 >
                   <FlaskConical size={14} /> Tester
                 </Link>
@@ -136,7 +136,7 @@ export function CoachSection() {
                     periodKey: periodKey(active),
                   })
                 }
-                className="flex items-center gap-1.5 btn-primary px-3 py-1.5 text-[13px] font-bold text-[var(--on-accent)]"
+                className="flex items-center gap-1.5 btn-primary px-3 py-1.5 text-[13px] font-bold text-[var(--on-ink)]"
               >
                 Je m&apos;y mets <ArrowRight size={14} />
               </button>
@@ -149,11 +149,11 @@ export function CoachSection() {
         href="/conseiller"
         className="mt-2 flex items-center gap-2.5 card px-3.5 py-3 text-primary"
       >
-        <HorseLine size={20} stroke={1.4} color="var(--accent-primary)" />
+        <HorseLine size={20} stroke={1.4} color="var(--ink)" />
         <span className="flex-1 text-[13px] font-semibold text-secondary">
           Une question sur ces conseils ?
         </span>
-        <span className="text-[12px] font-bold text-[var(--accent-primary)]">En parler ›</span>
+        <span className="text-[12px] font-bold text-[var(--ink)]">En parler ›</span>
       </Link>
     </section>
   );

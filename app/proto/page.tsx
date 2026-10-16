@@ -21,7 +21,7 @@ export default function ProtoCover() {
             <Tag tone="ink">Écuries de pension</Tag>
           </div>
           <div className="absolute bottom-4 right-4 text-right">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--o-ink)]/70">
+            <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--o-ink)]/70">
               {"En 60 secondes"}
             </p>
           </div>

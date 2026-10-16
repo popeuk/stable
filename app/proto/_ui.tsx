@@ -101,7 +101,7 @@ export function Tag({
   };
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${styles[tone]}`}
+      className={`inline-flex items-center gap-1 px-2.5 py-1 text-[12px] font-bold uppercase tracking-wide ${styles[tone]}`}
     >
       {children}
     </span>

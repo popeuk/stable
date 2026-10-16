@@ -82,7 +82,7 @@ export function Essayer() {
             <Portrait />
           </div>
           <div className="q rise" style={{ animationDelay: ".08s" }}>
-            <h3>On regarde ce qu’il te reste ?</h3>
+            <h1>On regarde ce qu’il te reste ?</h1>
             <p>Quelques minutes, tes chiffres, pas de compte.</p>
           </div>
           <div className="foot rise" style={{ animationDelay: ".16s" }}>

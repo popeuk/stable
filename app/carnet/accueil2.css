@@ -33,9 +33,9 @@
 .carnet .aide.compact .aide-x svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .carnet .aide.compact ol { margin: 2px 0 0; }
 .carnet .aide.compact li { color: var(--ink2); }
-.carnet .aide.compact li::before { background: var(--ink); color: #fff; }
-.carnet .aide.compact .ok { margin: 10px 0 12px; background: var(--ink); color: #fff; }
-.carnet .aide.compact.open h5 { color: var(--ink); }
+.carnet .aide.compact li::before { background: var(--ink); color: var(--on-ink); }
+.carnet .aide.compact .ok { margin: 10px 0 12px; background: var(--ink); color: var(--on-ink); }
+.carnet .aide.compact.open .aide-t { color: var(--ink); }
 .carnet .aide.compact.open .x { background: var(--mist); }
 .carnet .aide.compact.open .x svg { stroke: var(--ink); }
 
@@ -56,7 +56,7 @@
 .carnet .ac-jour { padding-top: 14px; }
 /* L'encart mon-ecurie.fr (components/bs/promo-mon-ecurie.tsx) : « Plus tard » posé sur l'image. */
 .carnet .ac-promo { position: relative; }
-.carnet .ac-promo-x { position: absolute; top: 10px; right: 24px; z-index: 1; height: 30px; padding: 0 12px; border: 0; border-radius: 15px; background: rgba(255, 255, 255, .86); color: var(--ink2); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.carnet .ac-promo-x { position: absolute; top: 10px; right: 24px; z-index: 1; height: 36px; padding: 0 12px; border: 0; border-radius: 15px; background: color-mix(in srgb, var(--on-ink) 86%, transparent); color: var(--ink2); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .carnet .ac-promo-x:hover { color: var(--ink); }
 /* La marque mon-ecurie.fr, comme l'en-tête du site (pc-logo). */
 .carnet .ac-promo .tag { font-family: inherit; letter-spacing: 0; }
@@ -64,8 +64,8 @@
 .carnet .me-signe { width: 30px; height: 30px; flex: none; }
 .carnet .me-txt { display: flex; flex-direction: column; }
 .carnet .me-nom { font-size: 20px; font-weight: 800; line-height: .88; font-variation-settings: "wdth" 88; letter-spacing: -.012em; color: var(--ink); white-space: nowrap; }
-.carnet .me-par { margin-top: 3px; font-size: 10.5px; font-weight: 600; line-height: 1; letter-spacing: .03em; color: var(--ink2); white-space: nowrap; }
-.carnet .me-etat { margin-left: auto; padding: 4px 9px; border: 1px solid rgba(27, 18, 37, .12); border-radius: 12px; font-size: 11.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
+.carnet .me-par { margin-top: 3px; font-size: 12px; font-weight: 600; line-height: 1; letter-spacing: .03em; color: var(--ink2); white-space: nowrap; }
+.carnet .me-etat { margin-left: auto; padding: 4px 9px; border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); border-radius: 12px; font-size: 12px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
 
 @media (min-width: 1024px) {
   .carnet .ac-desk .ac-dtop { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; align-items: start; }
@@ -83,7 +83,6 @@
   .carnet .ac-desk .sec { padding-left: 0; padding-right: 0; }
 }
 
-/* ---------- Tout compte, tu retires (components/bs/compte.tsx) ---------- */
 /* Une ligne qui a compté : l'heure, ce que c'était, le montant signé, × ou « Qui était là ? ». */
 .carnet .cp-row { grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 6px; padding: 6px 0; min-height: 52px; }
 .carnet .cp-row > span, .carnet .cp-row > .jr-open { min-width: 0; }
@@ -108,7 +107,7 @@
 @media (min-width: 1024px) { .carnet .ac-desk .cp-ban { margin: 12px 0 0; } }
 
 /* ---------- L'en-tête : le rond ---------- */
-.carnet .ac-me { position: relative; width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: var(--ink); color: #fff; font-size: 14px; font-weight: 760; letter-spacing: -.02em; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.carnet .ac-me { position: relative; width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 14px; font-weight: 760; letter-spacing: -.02em; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .carnet .ac-me::after { content: ""; position: absolute; inset: -5px; }
 .carnet .hd .ac-me { margin-left: auto; }
 .carnet .hd .help + .ac-me { margin-left: 4px; }
@@ -137,12 +136,12 @@
 .carnet .ac-it em { font-style: normal; font-size: 12.5px; color: var(--ink3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .carnet .ac-it em.in { color: var(--in); font-weight: 700; }
 .carnet .ac-it em.out { color: var(--out); font-weight: 700; }
-.carnet .ac-it em.attn { color: #fff; background: var(--ink); padding: 1px 7px; border-radius: 10px; font-weight: 700; }
+.carnet .ac-it em.attn { color: var(--on-ink); background: var(--ink); padding: 1px 7px; border-radius: 10px; font-weight: 700; }
 
 /* ---------- La barre du bas ---------- */
 .carnet .ac-tb a, .carnet .ac-tb button:not(.plus) { position: relative; align-content: start; min-height: 46px; line-height: 1.1; white-space: nowrap; }
 .carnet .ac-tb .ac-ic { position: relative; display: block; width: 21px; height: 21px; }
-.carnet .ac-badge { position: absolute; top: -5px; right: -12px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--ink); color: #fff; font-size: 10.5px; font-style: normal; font-weight: 750; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--sheet); }
+.carnet .ac-badge { position: absolute; top: -5px; right: -12px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--ink); color: var(--on-ink); font-size: 12px; font-style: normal; font-weight: 750; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--sheet); }
 .carnet .ac-two { text-align: center; }
 /* Le kit grise toutes les span de la barre : l'onglet allumé doit les reprendre (« Clients »). */
 .carnet .ac-tb a span { color: inherit; }
@@ -153,14 +152,9 @@
 @keyframes ac-fly { from { opacity: 0; transform: translate(-50%, 8px); } 20% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } to { opacity: 0; transform: translate(-50%, -10px); } }
 
 /* ---------- La barre latérale : « Plus » ---------- */
-.carnet .ac-splus { margin-top: 6px; }
-.carnet .ac-splus > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 6px; padding: 6px 10px; margin: 8px 0 0; }
-.carnet .ac-splus > summary::-webkit-details-marker { display: none; }
-.carnet .ac-splus > summary .chev { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s var(--ease); }
-.carnet .ac-splus[open] > summary .chev { transform: rotate(90deg); }
-.carnet .ac-splus > summary:hover { background: var(--mist); }
+
 .carnet .ac-sgrp { display: grid; gap: 2px; }
-.carnet .ac-sk { margin: 10px 10px 2px; font-size: 11.5px; font-weight: 600; color: var(--ink3); }
+.carnet .ac-sk { margin: 10px 10px 2px; font-size: 12px; font-weight: 600; color: var(--ink3); }
 .carnet .cn-side .it em.out { color: var(--out); font-weight: 700; }
 
 /* ---------- La tournée du matin ---------- */
@@ -171,9 +165,9 @@
 .carnet .ac-skip { position: relative; height: 40px; padding: 0 18px; border: 0; border-radius: 20px; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--ink); font-size: 14px; font-weight: 700; color: var(--ink); cursor: pointer; flex: none; }
 .carnet .ac-skip::after { content: ""; position: absolute; inset: -3px -2px; }
 .carnet .ac-bars { display: grid; gap: 5px; margin-top: 4px; }
-.carnet .ac-bars i { display: block; height: 3px; border-radius: 2px; background: rgba(27, 18, 37, .12); overflow: hidden; }
-.carnet .ac-bars b { display: block; height: 100%; width: 0; background: var(--ink); transition: width .6s var(--ease); }
-.carnet .ac-steps { display: grid; gap: 5px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 11.5px; font-weight: 650; color: var(--ink3); }
+.carnet .ac-bars i { display: block; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; }
+.carnet .ac-bars b { display: block; height: 100%; width: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .6s var(--ease); }
+.carnet .ac-steps { display: grid; gap: 5px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 12px; font-weight: 650; color: var(--ink3); }
 .carnet .ac-steps .on { color: var(--ink); }
 .carnet .ac-stage { flex: 1; overflow: hidden auto; scrollbar-width: none; overscroll-behavior: contain; }
 .carnet .ac-stage::-webkit-scrollbar { display: none; }
@@ -181,7 +175,7 @@
 @keyframes ac-in { from { opacity: 0; transform: translateX(26px); } }
 .carnet .ac-dt { margin: 0 0 4px; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
 .carnet .ac-h { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
-.carnet .ac-h h3 { margin: 0; font-size: 32px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; text-wrap: balance; }
+.carnet .ac-h :is(h2, h3) { margin: 0; font-size: 32px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; text-wrap: balance; }
 .carnet .ac-h p:not(.ac-dt) { margin: 6px 0 0; font-size: 14.5px; color: var(--ink2); }
 .carnet .ac-h .ill { width: 64px; height: 64px; object-fit: contain; object-position: bottom; }
 .carnet .ac-hier { margin-top: 10px; }
@@ -199,14 +193,14 @@
 .carnet .ac-mnote b { color: var(--ink); }
 .carnet .ac-end { justify-content: center; gap: 16px; }
 .carnet .ac-end .ill { height: 150px; width: auto; object-fit: contain; align-self: center; }
-.carnet .ac-end h3 { margin: 0; font-size: 36px; font-weight: 770; letter-spacing: -.035em; line-height: 1.02; font-variation-settings: "wdth" 86; }
+.carnet .ac-end :is(h2, h3) { margin: 0; font-size: 36px; font-weight: 770; letter-spacing: -.035em; line-height: 1.02; font-variation-settings: "wdth" 86; }
 .carnet .ac-recap { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .carnet .ac-recap li { position: relative; padding-left: 26px; font-size: 14.5px; line-height: 1.4; color: var(--ink2); }
 .carnet .ac-recap li::before { content: ""; position: absolute; left: 2px; top: 5px; width: 12px; height: 7px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(-45deg); }
 .carnet .ac-end .btn { margin-top: 6px; }
 
 @media (min-width: 1024px) {
-  .carnet .ac-tour { background: rgba(27, 18, 37, .35); padding: 40px 0; }
+  .carnet .ac-tour { background: color-mix(in srgb, var(--ink) 35%, transparent); padding: 40px 0; }
   .carnet .ac-top, .carnet .ac-stage { width: 480px; margin: 0 auto; background: var(--paper); }
   .carnet .ac-top { border-radius: 16px 16px 0 0; padding-top: 6px; }
   .carnet .ac-stage { flex: 1; border-radius: 0 0 16px 16px; }

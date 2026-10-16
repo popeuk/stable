@@ -209,7 +209,7 @@ function Equipe() {
           </button>
         </div>
         <div className="jr-ttl rise" style={{ animationDelay: ".05s" }}>
-          <h3>Tâches d’équipe</h3>
+          <h2>Tâches d’équipe</h2>
         </div>
         <div className="jr-ctl rise" style={{ animationDelay: ".08s" }}>
           <Seg
@@ -251,9 +251,9 @@ function Equipe() {
                       drop(l.id);
                     }}
                   >
-                    <h5>
+                    <h3>
                       {l.title} <span>{ts.length}</span>
-                    </h5>
+                    </h3>
                     {ts.map(card)}
                     {!l.isDone && (
                       <div className="jr-quick">
@@ -378,7 +378,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
             </div>
             <p className="k jr-k">Étiquettes</p>
             <div className="chips">
-              {Object.keys(LABELS).map((l) => (
+              {LABELS.map((l) => (
                 <button key={l} type="button" className={`chip${t.labels.includes(l) ? " on" : ""}`} aria-pressed={t.labels.includes(l)} onClick={() => upd({ labels: t.labels.includes(l) ? t.labels.filter((x) => x !== l) : [...t.labels, l] })}>
                   {l}
                 </button>

@@ -19,7 +19,7 @@ export function CopiloteNote({
         color="rgba(255,255,255,0.06)"
         className="pointer-events-none absolute -right-3 -top-2"
       />
-      <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
+      <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
         {label}
       </p>
       <div className="relative mt-2 text-[15px] font-medium leading-relaxed">{children}</div>
