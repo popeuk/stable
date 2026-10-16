@@ -1,8 +1,12 @@
 "use client";
 
-import { Rejoindre } from "@/components/bs/rejoindre";
+import { Essayer } from "@/components/bs/essayer";
 
-/** La porte d'entrée des gérants : une question par écran (voir Rejoindre). */
+/**
+ * La porte d'entrée : essayer avec ses chiffres, avant tout compte (voir
+ * Essayer). L'ancien parcours de revendication de la fiche mon-ecurie.fr
+ * reste sur /compte/inscription (?retrouver=1 pour chercher sa fiche).
+ */
 export default function BienvenuePage() {
-  return <Rejoindre />;
+  return <Essayer />;
 }

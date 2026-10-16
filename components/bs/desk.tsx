@@ -18,6 +18,8 @@ import { OBSTACLES } from "@/stores/settings-store";
 import { currentPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
+import { usePaniers } from "@/components/bs/paniers";
+import { BILAN, CLIENTS_CHEVAUX, under, usePlusGroups } from "@/components/bs/nav";
 
 /* ------------------------------------------------------------------ */
 /* L'écran large                                                        */
@@ -72,59 +74,45 @@ export function useNavCounts() {
 /* La barre latérale                                                    */
 /* ------------------------------------------------------------------ */
 
-type NavItem = { href: string; picto: string; label: string; badge?: string; hot?: boolean; key?: string; match: (p: string, vue: string | null) => boolean };
-
-function useNav(): { title: string; items: NavItem[] }[] {
-  const c = useNavCounts();
-  return [
-    {
-      title: "Le quotidien",
-      items: [
-        { href: "/accueil", picto: "home", label: "Accueil", key: "A", match: (p) => p === "/accueil" },
-        { href: "/planning", picto: "cal", label: "Planning", key: "P", match: (p) => p.startsWith("/planning") },
-        { href: "/valider", picto: "check", label: "À confirmer", badge: c.pending ? String(c.pending) : undefined, hot: c.pending > 0, key: "V", match: (p) => p.startsWith("/valider") },
-        { href: "/chevaux", picto: "horse", label: "Chevaux", badge: String(c.horses), key: "C", match: (p) => ["/chevaux", "/ticket", "/part", "/cheval"].some((m) => p.startsWith(m)) },
-        { href: "/equipe", picto: "board", label: "Tâches de l’équipe", badge: c.tasks ? String(c.tasks) : undefined, key: "E", match: (p) => p.startsWith("/equipe") },
-      ],
-    },
-    {
-      title: "Ton bilan",
-      items: [
-        { href: "/argent", picto: "euro", label: "Bilan du mois", badge: signed(c.net), key: "M", match: (p, v) => p.startsWith("/argent") && !v },
-        { href: "/argent?vue=leviers", picto: "bulb", label: "Pistes pour gagner plus", badge: c.acts ? String(c.acts) : undefined, key: "L", match: (p, v) => p.startsWith("/argent") && v === "leviers" },
-        { href: "/argent?vue=facturer", picto: "doc", label: "À facturer", badge: c.due ? eur(c.due) : undefined, key: "F", match: (p, v) => p.startsWith("/argent") && v === "facturer" },
-        { href: "/argent?vue=mouvements", picto: "list", label: "Entrées et sorties", match: (p, v) => p.startsWith("/argent") && v === "mouvements" },
-        { href: "/pilotage", picto: "chart", label: "Sur plusieurs mois", key: "B", match: (p) => ["/pilotage", "/seuil", "/scenarios"].some((m) => p.startsWith(m)) },
-      ],
-    },
-    {
-      title: "Ton écurie",
-      items: [
-        { href: "/ma-fiche", picto: "flag", label: "Ma fiche mon-ecurie.fr", match: (p) => p.startsWith("/ma-fiche") },
-        { href: "/prestations", picto: "cours", label: "Cours et services", match: (p) => p.startsWith("/prestations") },
-        { href: "/clients", picto: "personne", label: "Mes clients", badge: c.clients ? String(c.clients) : undefined, key: "K", match: (p) => p.startsWith("/clients") },
-        { href: "/moi", picto: "reglages", label: "Mon écurie", match: (p) => p.startsWith("/moi") },
-        ...(c.parcours < 6 ? [{ href: "/parcours", picto: "flag", label: "Premiers pas", badge: `${c.parcours}/6`, match: (p: string) => p.startsWith("/parcours") }] : []),
-      ],
-    },
-  ];
-}
-
+/**
+ * La barre latérale : la même structure que le téléphone. Accueil,
+ * Planning, Clients et chevaux, Mon mois, puis « Plus » : le contenu du rond.
+ */
 export function Sidebar() {
   const path = (usePathname() ?? "").replace(/(.)\/$/, "$1");
   const vue = useSearchParams().get("vue");
-  const nav = useNav();
   const c = useNavCounts();
+  const { count } = usePaniers();
+  const groups = usePlusGroups();
   const stableName = useSettingsStore((s) => s.stableName);
   const gerant = useSettingsStore((s) => s.gerant);
   const openNoter = useUiStore((s) => s.openNoter);
   const openPalette = useUiStore((s) => s.openPalette);
   const install = useInstall();
   const [how, setHow] = useState(false);
-  const pct = Math.max(0, Math.min(100, c.objective ? (c.net / c.objective) * 100 : 0));
-  const month = new Date().toLocaleDateString("fr-FR", { month: "long" });
+  // « Plus » se souvient d'être ouvert ; il s'ouvre seul sur un de ses écrans.
+  const dansPlus = groups.some((g) => g.items.some((it) => it.href && it.href !== "/argent" && !it.href.startsWith("/argent?") && path.startsWith(it.href.split(/[?#]/)[0])));
+  const [plus, setPlus] = useState(() => {
+    try {
+      return localStorage.getItem("be-stable-side-plus") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const ouvert = plus || dansPlus;
+  const basculer = (v: boolean) => {
+    setPlus(v);
+    try {
+      localStorage.setItem("be-stable-side-plus", v ? "1" : "0");
+    } catch {}
+  };
 
-  const IC: Record<string, string> = { check: "ck", cours: "hay", personne: "people", reglages: "gear" };
+  const main: { href: string; ic: string; label: string; key: string; on: boolean; badge?: string; cls?: string }[] = [
+    { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
+    { href: "/planning", ic: "cal", label: "Planning", key: "P", on: under(path, ["/planning", "/valider", "/equipe"]) },
+    { href: "/chevaux", ic: "people", label: "Clients et chevaux", key: "C", on: under(path, CLIENTS_CHEVAUX), badge: count ? String(count) : undefined, cls: "attn" },
+    { href: "/argent", ic: "chart", label: "Mon mois", key: "M", on: under(path, BILAN) && !vue, badge: signed(c.net), cls: c.net >= 0 ? "in" : "out" },
+  ];
   return (
     <aside className="cn-side" aria-label="Navigation">
       <Link href="/accueil" className="wm">
@@ -141,31 +129,45 @@ export function Sidebar() {
         Chercher, aller à…
         <kbd>{modKey()} K</kbd>
       </button>
-      {nav.map((g) => (
-        <div key={g.title} style={{ display: "grid", gap: 2 }}>
-          <p className="grp">{g.title}</p>
-          {g.items.map((it) => {
-            const on = it.match(path, vue);
-            const money = it.href === "/argent";
-            return (
-              <Link key={it.href} href={it.href} className="it" aria-current={on ? "page" : undefined} title={it.key ? `${it.label} (G puis ${it.key})` : it.label}>
-                <Ic n={IC[it.picto] ?? it.picto} />
-                <span style={{ flex: 1, minWidth: 0 }}>{it.label}</span>
-                {it.badge && <em className={it.hot ? "attn" : money ? (c.net >= 0 ? "in" : "") : ""}>{it.badge}</em>}
-              </Link>
-            );
-          })}
-        </div>
-      ))}
-      <Link href="/argent" className="goal">
-        <span className="k">
-          Objectif de {month} · {eur(c.objective)}
-        </span>
-        <b style={c.net < 0 ? { color: "var(--out)" } : undefined}>{signed(c.net)}</b>
-        <span className="bar" style={{ marginTop: 4 }} aria-hidden>
-          <i style={{ width: `${pct}%` }} />
-        </span>
-      </Link>
+      <div style={{ display: "grid", gap: 2, marginTop: 8 }}>
+        {main.map((it) => (
+          <Link key={it.href} href={it.href} className="it" aria-current={it.on ? "page" : undefined} title={`${it.label} (G puis ${it.key})`}>
+            <Ic n={it.ic} />
+            <span style={{ flex: 1, minWidth: 0 }}>{it.label}</span>
+            {it.badge && <em className={it.cls}>{it.badge}</em>}
+          </Link>
+        ))}
+      </div>
+      <details className="ac-splus" open={ouvert} onToggle={(e) => basculer((e.currentTarget as HTMLDetailsElement).open)}>
+        <summary className="grp">
+          Plus
+          <Ic n="chev" className="chev" />
+        </summary>
+        {groups.map((g) => (
+          <div key={g.title} className="ac-sgrp">
+            <p className="ac-sk">{g.title}</p>
+            {g.items.map((it) => {
+              const base = it.href?.split(/[?#]/)[0];
+              const q = it.href?.includes("?vue=") ? it.href.split("?vue=")[1] : null;
+              const on = !!base && (q ? path.startsWith(base) && vue === q : base !== "/argent" && path.startsWith(base));
+              const em = it.badge && <em className={it.tone ?? ""}>{it.badge}</em>;
+              return it.href ? (
+                <Link key={it.id} href={it.href} className="it" aria-current={on ? "page" : undefined}>
+                  <Ic n={it.ic} />
+                  <span style={{ flex: 1, minWidth: 0 }}>{it.label}</span>
+                  {em}
+                </Link>
+              ) : (
+                <button key={it.id} type="button" className="it" style={{ background: "none", border: 0, cursor: "pointer", textAlign: "left", width: "100%" }} onClick={it.run}>
+                  <Ic n={it.ic} />
+                  <span style={{ flex: 1, minWidth: 0 }}>{it.label}</span>
+                  {em}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </details>
       <div className="ft">
         {!install.installed && (
           <button

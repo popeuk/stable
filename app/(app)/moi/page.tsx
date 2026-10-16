@@ -291,6 +291,15 @@ function Moi() {
 /** Le compte : qui est connecté, sa fiche, se déconnecter. Dans la démo : créer son compte. */
 function Compte() {
   const s = getSession();
+  if (s?.kind === "locale")
+    return (
+      <>
+        <p className="note">Ton écurie est sur ce téléphone, sans compte. Crée ton accès pour la retrouver partout et ne rien perdre.</p>
+        <Link href="/compte/connexion?garder=1" className="btn full" style={{ marginTop: 12 }}>
+          Garder mes chiffres
+        </Link>
+      </>
+    );
   if (s?.kind !== "compte")
     return (
       <>

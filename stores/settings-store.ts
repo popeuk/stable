@@ -119,6 +119,9 @@ export const useSettingsStore = create<SettingsState>()(
             parcours: { ...NO_OBSTACLE },
             arrived: false,
           });
+        // L'écurie essayée sans compte : pas encore de nom, pas de prénom.
+        else if (wasFresh("be-stable-settings") && s?.kind === "locale")
+          useSettingsStore.setState({ stableName: "Mon écurie", gerant: "", parcours: { ...NO_OBSTACLE }, arrived: false });
       },
       // v4 : le parcours de démarrage arrive ; les anciens réglages sont gardés.
       migrate: (old, v) => ({ objective: 1000, ...(old as object), ...(v < 4 ? { parcours: { ...NO_OBSTACLE }, arrived: false } : {}) }) as never,

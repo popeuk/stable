@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { cap, dec1, esc } from "@/components/bs/ui";
 import { plannedRest } from "@/components/bs/goal-card";
+import { Compteur } from "@/components/bs/compteur";
 import { useDesk } from "@/components/bs/desk";
 import { Chips, Coins, CountUp, Empty, Hello, Ic, Ill, Money, Page, Sec, Seg, eur, ini, sg, type IllName } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
@@ -21,9 +22,10 @@ import { localToday } from "@/lib/utils/local-date";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 
 /**
- * Bilan (ancien onglet Argent) : le mois face à l'objectif, les leviers (remplir, facturer
+ * Mon mois (ancien Bilan) : le compteur du mois en tête, d'où vient l'argent et
+ * où il part, une piste pour gagner plus, puis les leviers (remplir, facturer
  * juste, dépenser mieux), ce qu'il faut facturer par personne, et tous les
- * mouvements à corriger. Rendu : le carnet illustré (maquette 4-argent).
+ * mouvements à corriger. Rendu : le carnet illustré.
  */
 type Vue = "mois" | "leviers" | "facturer" | "mouvements";
 const VUES: [Vue, string][] = [
@@ -32,7 +34,7 @@ const VUES: [Vue, string][] = [
   ["facturer", "Facturer"],
   ["mouvements", "Historique"],
 ];
-const TITRES: Record<Vue, string> = { mois: "Bilan du mois", leviers: "Pistes pour gagner plus", facturer: "À facturer", mouvements: "Entrées et sorties d’argent" };
+const TITRES: Record<Vue, string> = { mois: "Mon mois", leviers: "Pistes pour gagner plus", facturer: "À facturer", mouvements: "Entrées et sorties d’argent" };
 
 /** Le pictogramme d'une ligne d'argent, d'après son libellé. */
 function icFor(label: string): string {
@@ -84,7 +86,7 @@ function Argent() {
         </button>
       </div>
       <div className="ar-bseg">
-        <Seg value={vue} onChange={(v) => router.replace(v === "mois" ? "/argent" : `/argent?vue=${v}`)} options={VUES} label="Vues du Bilan" />
+        <Seg value={vue} onChange={(v) => router.replace(v === "mois" ? "/argent" : `/argent?vue=${v}`)} options={VUES} label="Vues de Mon mois" />
       </div>
       {vue === "mois" && <Mois />}
       {vue === "leviers" && <Leviers />}
@@ -222,17 +224,49 @@ function Mois() {
 
   const aria = `Séances de ${mName} par semaine : ${weeks.map((w) => `${eur(w.done + w.planned)}${w.planned ? ` dont ${eur(w.planned)} prévus` : ""}`).join(", ")}.`;
 
+  const objectif = editGoal ? (
+    <label className="field ar-goalf">
+      <span>Ce que tu veux qu’il te reste par mois</span>
+      <span className="input">
+        <input inputMode="numeric" defaultValue={objective} onChange={(e) => setObjective(Number(e.target.value) || 0)} onBlur={() => setEditGoal(false)} autoFocus />
+        <span className="u">€</span>
+      </span>
+    </label>
+  ) : (
+    <div className="ar-lnks ar-cptl">
+      <button type="button" className="lnk" onClick={() => setEditGoal(true)}>
+        Changer l’objectif
+      </button>
+      {Math.round(rest) !== 0 && (
+        <span>
+          Encore <Money v={rest} /> prévus au planning, {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}.
+        </span>
+      )}
+    </div>
+  );
+
   return (
     <div className="ar-split">
       <div>
-        <div className="ar-compte" aria-hidden="true">
-          <Ill n="foin" className="ar-who" />
-          {gagne && <Coins />}
-          <Ill n="sacoche" className="ar-sac" />
-        </div>
-        <Hello title={titre} sub={sub} delay={0.1} />
-        {goal}
-        <Sec ill="carnet-buste" title="Tes séances, semaine par semaine" delay={0.26}>
+        {isNow ? (
+          <>
+            <div className="ar-cpt">
+              <Compteur />
+            </div>
+            {objectif}
+          </>
+        ) : (
+          <>
+            <div className="ar-compte" aria-hidden="true">
+              <Ill n="foin" className="ar-who" />
+              {gagne && <Coins />}
+              <Ill n="sacoche" className="ar-sac" />
+            </div>
+            <Hello title={titre} sub={sub} delay={0.1} />
+            {goal}
+          </>
+        )}
+        <Sec ill="gerant-buste" title="Tes séances, semaine par semaine" delay={0.26}>
           <div className="ar-wk" role="img" aria-label={aria} style={{ gridTemplateColumns: `repeat(${weeks.length}, 1fr)` }}>
             {weeks.map((w, i) => (
               <div key={w.label}>
@@ -271,7 +305,7 @@ function Mois() {
             </div>
           ))}
         </Sec>
-        <Sec ill="brouette" title="Ce qui sort" action={<span className="act out">{sg(-(m.direct + m.sharedTotal))}</span>} delay={0.42}>
+        <Sec ill="gerant-foin" title="Ce qui sort" action={<span className="act out">{sg(-(m.direct + m.sharedTotal))}</span>} delay={0.42}>
           {m.shared.map((x) => (
             <div key={x.label} className="ar-post">
               <span className="ar-pic">
@@ -292,6 +326,7 @@ function Mois() {
             <Money v={-m.direct} />
           </div>
         </Sec>
+        {isNow && <Piste delay={0.48} />}
         <Link href="/seuil" className="card ar-lcard rise" style={{ animationDelay: ".5s", marginTop: 18 }}>
           <span className="ar-pic">
             <Ic n="flag" className="ar-ic" />
@@ -319,11 +354,34 @@ function Mois() {
   );
 }
 
+/** La meilleure piste du moment (faire payer ce qui est dû d'abord), qui mène à « Gagner plus ». */
+function Piste({ delay }: { delay: number }) {
+  const data = useDataStore();
+  const capacity = useSettingsStore((s) => s.capacity);
+  const list = useMemo(() => suggestions(data, currentPeriod(), capacity).filter((s) => s.status !== "faite" && s.status !== "ecartee"), [data, capacity]);
+  const action = list.find((s) => s.lever === "facturer") ?? list[0];
+  if (!action) return null;
+  return (
+    <Sec blk ill="piste" title="Une piste pour gagner plus" action={<Link href="/argent?vue=leviers">{list.length > 1 ? `Les ${list.length} pistes` : "Voir"}</Link>} delay={delay}>
+      <Link href="/argent?vue=leviers" className="ar-piste">
+        <span style={{ minWidth: 0 }}>
+          <b>{action.title}</b>
+          <small>{cap(action.sub)}</small>
+        </span>
+        <span className="in">
+          {sg(action.gain)}
+          <small>{action.unit}</small>
+        </span>
+      </Link>
+    </Sec>
+  );
+}
+
 /* ---------------- Leviers ---------------- */
 const LEVERS: { id: Lever; title: string; ill: IllName }[] = [
   { id: "remplir", title: "Remplir les boxes", ill: "tete-fondu" },
   { id: "facturer", title: "Faire payer ce qui est dû", ill: "sacoche" },
-  { id: "depenser", title: "Payer moins cher", ill: "brouette" },
+  { id: "depenser", title: "Payer moins cher", ill: "foin" },
 ];
 const STATUS: Record<Suggestion["status"], [string, string]> = {
   proposee: ["idée", "pill"],
@@ -770,7 +828,7 @@ function Mouvements() {
       {(recRevs.length > 0 || recExps.length > 0) && (
         <Sec
           blk
-          ill="carnet-buste"
+          ill="gerant-assise"
           delay={0.15}
           title="Compté tout seul, chaque mois"
           action={<Link href="/saisie">+ Ajouter</Link>}

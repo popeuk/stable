@@ -7,9 +7,11 @@ import { useDataStore } from "@/stores/data-store";
 import { getSession } from "@/lib/account/session";
 
 /**
- * Le portier de l'app : sans compte (ni démo), retour à l'accueil ; avec un
- * compte dont l'écurie n'est pas encore installée, direction le parcours,
- * sauf s'il a choisi de le finir plus tard.
+ * Le portier de l'app : sans session (ni compte, ni démo, ni écurie essayée
+ * sur cet appareil), retour à l'accueil « Essayer avant le compte » ; avec
+ * une écurie pas encore installée, direction le parcours, sauf s'il a
+ * choisi de le finir plus tard. L'essai passe lui-même les trois premières
+ * étapes (chevaux, tarifs, frais) : il entre directement dans l'app.
  * Il attend que les données du compte soient chargées avant de décider.
  */
 export function OnboardingGate() {

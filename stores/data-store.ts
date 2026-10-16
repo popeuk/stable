@@ -743,9 +743,10 @@ export const useDataStore = create<DataState>()(
       migrate: () => ({ ...buildDemoData(), autopilotDismissed: [] }) as never,
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        // Un compte qui n'a encore rien sur cet appareil démarre vide ; la
-        // démo garde son écurie d'exemple.
-        if (wasFresh("be-stable-data") && getSession()?.kind === "compte") state.startEmpty();
+        // Un compte qui n'a encore rien sur cet appareil démarre vide, comme
+        // l'écurie essayée sans compte ; la démo garde son écurie d'exemple.
+        const kind = getSession()?.kind;
+        if (wasFresh("be-stable-data") && (kind === "compte" || kind === "locale")) state.startEmpty();
         useDataStore.setState({ hydrated: true });
       },
     },

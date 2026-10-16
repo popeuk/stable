@@ -7,7 +7,8 @@ import { nf, pwScore, useAnnuaire } from "@/components/bs/account-ui";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
 import { Ic, Ill } from "@/components/carnet/ui";
 import { api, ApiError, PW_MIN, type Fiche, type StableHit } from "@/lib/account/api";
-import { enter, getSession, hasAccountData, hasLegacyData, sessionFrom, setSession, updateAccount, type AccountSession, type Listing } from "@/lib/account/session";
+import { enter, getSession, hasAccountData, hasLegacyData, hasLocaleData, sessionFrom, setSession, updateAccount, type AccountSession, type Listing } from "@/lib/account/session";
+import { adoptLocale } from "@/lib/account/vault";
 
 /**
  * Rejoindre Be Stable : une question par écran.
@@ -19,6 +20,11 @@ import { enter, getSession, hasAccountData, hasLegacyData, sessionFrom, setSessi
  *   5. l'e-mail, puis le code reçu (pas de mot de passe).
  * La demande part toute seule après le code, puis la rosette.
  * Sur ordinateur, la fiche se construit à côté de la question.
+ *
+ * Ce n'est plus la porte d'entrée (voir Essayer) : on y arrive depuis l'app
+ * pour retrouver sa fiche mon-ecurie.fr (/compte/inscription?retrouver=1,
+ * directement à la recherche) ou depuis un lien du site (?fiche=ID).
+ * Une écurie essayée sans compte passe dans le compte après le code.
  */
 type Etape = "accueil" | "pourquoi" | "nom" | "creer" | "elle" | "gain" | "places" | "prix" | "email" | "code" | "envoi" | "fait";
 const RANG: Record<Etape, number> = { accueil: 0, pourquoi: 0, nom: 1, creer: 1, elle: 2, gain: 2, places: 3, prix: 4, email: 5, code: 5, envoi: 5, fait: 5 };
@@ -37,9 +43,9 @@ const TU: Record<string, string> = {
 const dire = (x: unknown, defaut: string) => (x instanceof ApiError ? TU[x.code] ?? x.message : defaut);
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; creer?: boolean }) {
+export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { ficheId?: number; creer?: boolean; retrouver?: boolean }) {
   const chiffres = useAnnuaire();
-  const [etape, setEtape] = useState<Etape>(creer ? "creer" : ficheId ? "elle" : "accueil");
+  const [etape, setEtape] = useState<Etape>(creer ? "creer" : ficheId ? "elle" : retrouver ? "nom" : "accueil");
   const [hist, setHist] = useState<Etape[]>([]);
   const [compte, setCompte] = useState<AccountSession | null>(null);
   const [q, setQ] = useState("");
@@ -52,7 +58,8 @@ export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; cr
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [adopt, setAdopt] = useState(false);
+  const [adopt, setAdopt] = useState<"legacy" | "locale" | null>(null);
+  const garde = useRef(false);
   const [listing, setListing] = useState<Listing | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -162,6 +169,8 @@ export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; cr
       const s = sessionFrom(r);
       setSession(s);
       setCompte(s);
+      // L'écurie essayée sans compte passe dans un compte encore vide.
+      if (hasLocaleData() && !hasAccountData(s.userId)) garde.current = await adoptLocale("locale");
       // Un compte qui a déjà sa fiche validée entre directement dans l'app.
       if (r.listing?.status === "validee") return entrer(s, "/accueil");
       await envoyer(s);
@@ -174,11 +183,12 @@ export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; cr
   }
 
   function entrer(s: AccountSession, to: string) {
-    if (!hasAccountData(s.userId) && hasLegacyData()) return setAdopt(true);
-    enter(s, to);
+    if (hasLocaleData()) return setAdopt("locale");
+    if (!hasAccountData(s.userId) && hasLegacyData()) return setAdopt("legacy");
+    enter(s, garde.current ? "/accueil" : to);
   }
 
-  if (adopt) return <AdoptChoice to="/parcours" />;
+  if (adopt) return <AdoptChoice to={adopt === "locale" ? "/accueil" : "/parcours"} source={adopt} />;
 
   const n = RANG[etape];
   const prixN = Number(prix);
@@ -229,6 +239,10 @@ export function Rejoindre({ ficheId = 0, creer = false }: { ficheId?: number; cr
         <button type="button" className="ar-back" onClick={retour} aria-label="Revenir">
           <Ic n="back" className="" />
         </button>
+      ) : retrouver && etape === "nom" ? (
+        <Link href="/ma-fiche" className="ar-back" aria-label="Revenir à ma fiche">
+          <Ic n="back" className="" />
+        </Link>
       ) : (
         <span className="ar-wm">be stable</span>
       )}

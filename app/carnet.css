@@ -337,3 +337,4 @@
 /* Bouton éteint, commun à tous les chapitres */
 .carnet .btn:disabled, .carnet .btn[aria-disabled="true"] { opacity: .4; cursor: default; pointer-events: none; }
 html:has(.carnet), body:has(.carnet) { background: #FCFBF9; }
+.carnet .tbl .n, .carnet .tbl th { white-space: nowrap; }

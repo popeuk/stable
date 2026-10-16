@@ -1,0 +1,165 @@
+/* Accueil plus simple, tournée du matin, navigation (barre du bas, rond, barre latérale).
+   components/bs/compteur.tsx, tournee.tsx, shell.tsx, desk.tsx, app/(app)/accueil. Tout sous .carnet. */
+
+/* ---------- Le compteur du mois ---------- */
+.carnet .ac-cptw { padding: 14px 14px 0; }
+.carnet .ac-cpt { display: grid; grid-template-columns: minmax(0, 1fr) 96px; column-gap: 8px; padding: 16px 16px 12px; color: inherit; text-decoration: none; text-align: left; }
+.carnet .ac-cpt.nobag { grid-template-columns: minmax(0, 1fr); }
+.carnet .ac-tx { display: block; min-width: 0; }
+.carnet .ac-cpt .big { display: block; margin-top: 6px; }
+.carnet .ac-sub { display: block; margin-top: 6px; font-size: 12.5px; line-height: 1.4; color: var(--ink2); }
+.carnet .ac-cpt .bar, .carnet .ac-cpt .bar-lab, .carnet .ac-go { grid-column: 1 / -1; }
+.carnet .ac-go { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line2); font-size: 13.5px; font-weight: 650; }
+.carnet .ac-go .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s var(--ease); }
+.carnet a.ac-cpt:hover .ac-go .chev { transform: translateX(3px); }
+
+/* La sacoche et ses pièces : une pièce de plus par cinquième de l'objectif. */
+.carnet .ac-bag { grid-column: 2; grid-row: 1; position: relative; width: 96px; height: 96px; align-self: center; transform-origin: 50% 100%; }
+.carnet .ac-bag .ill { position: absolute; width: 132px; max-width: none; left: -26px; top: -22px; pointer-events: none; }
+.carnet .ac-bag.bump { animation: ac-bump .5s var(--ease) .55s both; }
+@keyframes ac-bump { 40% { transform: scale(1.06, .94); } 70% { transform: scale(.98, 1.03); } }
+.carnet .ac-tas { position: absolute; left: -6px; bottom: 2px; width: 24px; height: 40px; }
+.carnet .ac-tas i, .carnet .ac-drop { position: absolute; left: 0; width: 24px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #F7E3A0, var(--hay) 60%, #C99A2E); box-shadow: inset 0 0 0 1.5px #C99A2E, 0 1px 0 #B0841F; }
+.carnet .ac-drop { left: 40px; top: -10px; width: 16px; height: 16px; animation: ac-drop .7s cubic-bezier(.55, 0, .8, .2) both; }
+@keyframes ac-drop { from { transform: translateY(-46px); opacity: 0; } 20% { opacity: 1; } 85% { opacity: 1; } to { transform: translateY(38px); opacity: 0; } }
+
+/* Le personnage assis sur le compteur (accueil, tournée) */
+.carnet .ac-perch { padding: 6px 14px 0; margin-top: 0; }
+.carnet .ac-perch .sitw { width: 58%; margin-right: 22px; }
+.carnet .ac-perch .ac-cpt { position: relative; z-index: 1; }
+
+/* ---------- L'accueil ---------- */
+.carnet .ac-nom { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; margin: 10px 14px 0; padding: 10px 14px; color: inherit; text-decoration: none; }
+.carnet .ac-nom .face { width: 40px; height: 40px; }
+.carnet .ac-nom b { display: block; font-size: 14.5px; font-weight: 650; line-height: 1.25; }
+.carnet .ac-nom small { display: block; font-size: 12.5px; color: var(--ink3); }
+.carnet .ac-nom .chev, .carnet .ac-acc .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.carnet .ac-vhead { padding-bottom: 0; }
+.carnet .ac-vnote { margin-top: 6px; }
+.carnet .ac-pile { margin: 0 14px; }
+.carnet .ac-jnote { margin-top: 10px; }
+
+@media (min-width: 1024px) {
+  .carnet .ac-desk .ac-dtop { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; align-items: start; }
+  .carnet .ac-desk .ac-dbot { display: grid; grid-template-columns: 1.15fr 1fr; gap: 0 32px; align-items: start; margin-top: 8px; }
+  .carnet .ac-desk .ac-perch { padding: 0; }
+  .carnet .ac-desk .ac-perch .sitw { width: 52%; }
+  .carnet .ac-desk .ac-nom { margin: 12px 0 0; }
+  .carnet .ac-desk .sec { padding-left: 0; padding-right: 0; }
+  .carnet .ac-desk .ac-vhead { padding-top: 0; }
+  .carnet .ac-desk .ac-pile { margin: 0; }
+}
+
+/* ---------- L'en-tête : le rond ---------- */
+.carnet .ac-me { position: relative; width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: var(--ink); color: #fff; font-size: 14px; font-weight: 760; letter-spacing: -.02em; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.carnet .ac-me::after { content: ""; position: absolute; inset: -5px; }
+.carnet .hd .ac-me { margin-left: auto; }
+.carnet .hd .help + .ac-me { margin-left: 4px; }
+.carnet .hd .help { margin-left: auto; }
+
+/* La feuille du rond */
+.carnet .ac-rond { outline: none; }
+.carnet .ac-mehd { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.carnet .ac-mehd .ac-me { cursor: default; }
+.carnet .ac-mehd .ac-me::after { content: none; }
+.carnet .ac-mehd b { display: block; }
+.carnet .ac-mehd small { display: block; font-size: 12px; color: var(--ink3); font-weight: 500; }
+.carnet .ac-find { margin-top: 4px; color: var(--ink3); text-decoration: none; }
+.carnet .ac-pas { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; margin-top: 12px; padding: 12px 14px; color: inherit; text-decoration: none; }
+.carnet .ac-pas .ill { width: 44px; height: 44px; object-fit: contain; }
+.carnet .ac-pas b { display: block; font-size: 14.5px; font-weight: 640; margin-top: 3px; }
+.carnet .ac-pas .dots { margin-top: 8px; }
+.carnet .ac-pas .dots i { width: 18px; }
+.carnet .ac-pas .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .ac-grp { margin-top: 18px; }
+.carnet .ac-grp > .k { padding-bottom: 4px; }
+.carnet .ac-it { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; min-height: 50px; padding: 8px 0; border: 0; border-bottom: 1px solid var(--line2); background: none; color: var(--ink); text-align: left; text-decoration: none; cursor: pointer; font-size: 15px; }
+.carnet .ac-it > svg:first-child { width: 20px; height: 20px; fill: none; stroke: var(--ink2); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .ac-itx { min-width: 0; }
+.carnet .ac-it b { display: block; font-weight: 600; line-height: 1.25; }
+.carnet .ac-it small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink3); line-height: 1.35; }
+.carnet .ac-it .chev { width: 15px; height: 15px; fill: none; stroke: var(--ink3); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .ac-it em { font-style: normal; font-size: 12.5px; color: var(--ink3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.carnet .ac-it em.in { color: var(--in); font-weight: 700; }
+.carnet .ac-it em.out { color: var(--out); font-weight: 700; }
+.carnet .ac-it em.attn { color: #fff; background: var(--ink); padding: 1px 7px; border-radius: 10px; font-weight: 700; }
+
+/* ---------- La barre du bas ---------- */
+.carnet .ac-tb a, .carnet .ac-tb button:not(.plus) { position: relative; align-content: start; min-height: 46px; line-height: 1.1; white-space: nowrap; }
+.carnet .ac-tb .ac-ic { position: relative; display: block; width: 21px; height: 21px; }
+.carnet .ac-badge { position: absolute; top: -5px; right: -12px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--ink); color: #fff; font-size: 10.5px; font-style: normal; font-weight: 750; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--sheet); }
+.carnet .ac-two { text-align: center; }
+.carnet .ac-net { font-size: 12px; font-weight: 760; font-variant-numeric: tabular-nums; letter-spacing: -.01em; color: var(--ink3); }
+.carnet .ac-net.in { color: var(--in); }
+.carnet .ac-net.out { color: var(--out); }
+.carnet .ac-fly { left: 50%; bottom: 100%; margin-bottom: 8px; transform: translateX(-50%); animation: ac-fly 1.4s var(--ease) both; }
+@keyframes ac-fly { from { opacity: 0; transform: translate(-50%, 8px); } 20% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } to { opacity: 0; transform: translate(-50%, -10px); } }
+
+/* ---------- La barre latérale : « Plus » ---------- */
+.carnet .ac-splus { margin-top: 6px; }
+.carnet .ac-splus > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 6px; padding: 6px 10px; margin: 8px 0 0; }
+.carnet .ac-splus > summary::-webkit-details-marker { display: none; }
+.carnet .ac-splus > summary .chev { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s var(--ease); }
+.carnet .ac-splus[open] > summary .chev { transform: rotate(90deg); }
+.carnet .ac-splus > summary:hover { background: var(--mist); }
+.carnet .ac-sgrp { display: grid; gap: 2px; }
+.carnet .ac-sk { margin: 10px 10px 2px; font-size: 11.5px; font-weight: 600; color: var(--ink3); }
+.carnet .cn-side .it em.out { color: var(--out); font-weight: 700; }
+
+/* ---------- La tournée du matin ---------- */
+.carnet .ac-tour { position: fixed; inset: 0; z-index: 55; display: flex; flex-direction: column; background: var(--paper); outline: none; padding-top: env(safe-area-inset-top); animation: cn-fade .25s both; }
+.carnet .ac-top { flex: none; width: 100%; max-width: 480px; margin: 0 auto; padding: 0 18px 4px; }
+.carnet .ac-tophd { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 56px; }
+.carnet .ac-tophd span { font-size: 12.5px; font-weight: 650; color: var(--ink2); }
+.carnet .ac-skip { position: relative; height: 40px; padding: 0 18px; border: 0; border-radius: 20px; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--ink); font-size: 14px; font-weight: 700; color: var(--ink); cursor: pointer; flex: none; }
+.carnet .ac-skip::after { content: ""; position: absolute; inset: -3px -2px; }
+.carnet .ac-bars { display: grid; gap: 5px; margin-top: 4px; }
+.carnet .ac-bars i { display: block; height: 3px; border-radius: 2px; background: rgba(27, 18, 37, .12); overflow: hidden; }
+.carnet .ac-bars b { display: block; height: 100%; width: 0; background: var(--ink); transition: width .6s var(--ease); }
+.carnet .ac-steps { display: grid; gap: 5px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 11.5px; font-weight: 650; color: var(--ink3); }
+.carnet .ac-steps .on { color: var(--ink); }
+.carnet .ac-stage { flex: 1; overflow: hidden auto; scrollbar-width: none; overscroll-behavior: contain; }
+.carnet .ac-stage::-webkit-scrollbar { display: none; }
+.carnet .ac-step { width: 100%; max-width: 480px; min-height: 100%; margin: 0 auto; display: flex; flex-direction: column; padding: 14px 18px calc(26px + env(safe-area-inset-bottom)); animation: ac-in .5s var(--ease) both; }
+@keyframes ac-in { from { opacity: 0; transform: translateX(26px); } }
+.carnet .ac-dt { margin: 0 0 4px; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
+.carnet .ac-h { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.carnet .ac-h h3 { margin: 0; font-size: 32px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; text-wrap: balance; }
+.carnet .ac-h p:not(.ac-dt) { margin: 6px 0 0; font-size: 14.5px; color: var(--ink2); }
+.carnet .ac-h .ill { width: 64px; height: 64px; object-fit: contain; object-position: bottom; }
+.carnet .ac-tpile { margin-top: 2px; }
+.carnet .ac-kept { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--ink2); }
+.carnet .ac-kept b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.carnet .ac-step > .btn.full { margin-top: auto; }
+.carnet .ac-step .ac-kept + .btn.full, .carnet .ac-step .ac-today + .btn.full, .carnet .ac-step .ac-mnote + .btn.full { margin-top: 18px; }
+.carnet .ac-scene { display: flex; justify-content: center; height: 150px; margin: 8px 0 4px; }
+.carnet .ac-scene .ill { height: 100%; width: auto; object-fit: contain; }
+.carnet .ac-today .row { grid-template-columns: 50px minmax(0, 1fr) auto; padding: 13px 0; }
+.carnet .ac-today time { font-size: 13px; color: var(--ink); font-weight: 600; }
+.carnet .ac-today b { font-size: 15.5px; }
+.carnet .ac-tperch { padding: 0; margin-top: 14px; }
+.carnet .ac-tperch .sitw { width: 66%; margin-right: 6px; }
+.carnet .ac-tperch .ac-cpt .bar i { transition: none; }
+.carnet .ac-mnote { margin: 12px 2px 0; font-size: 14px; color: var(--ink2); }
+.carnet .ac-mnote b { color: var(--ink); }
+.carnet .ac-end { justify-content: center; gap: 16px; }
+.carnet .ac-end .ill { height: 150px; width: auto; object-fit: contain; align-self: center; }
+.carnet .ac-end h3 { margin: 0; font-size: 36px; font-weight: 770; letter-spacing: -.035em; line-height: 1.02; font-variation-settings: "wdth" 86; }
+.carnet .ac-recap { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.carnet .ac-recap li { position: relative; padding-left: 26px; font-size: 14.5px; line-height: 1.4; color: var(--ink2); }
+.carnet .ac-recap li::before { content: ""; position: absolute; left: 2px; top: 5px; width: 12px; height: 7px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(-45deg); }
+.carnet .ac-end .btn { margin-top: 6px; }
+
+@media (min-width: 1024px) {
+  .carnet .ac-tour { background: rgba(27, 18, 37, .35); padding: 40px 0; }
+  .carnet .ac-top, .carnet .ac-stage { width: 480px; margin: 0 auto; background: var(--paper); }
+  .carnet .ac-top { border-radius: 16px 16px 0 0; padding-top: 6px; }
+  .carnet .ac-stage { flex: 1; border-radius: 0 0 16px 16px; }
+  .carnet .ac-step { min-height: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carnet .ac-bag.bump, .carnet .ac-drop, .carnet .ac-fly, .carnet .ac-step, .carnet .ac-tour { animation: none; }
+  .carnet .ac-drop { display: none; }
+  .carnet .ac-bars b { transition: none; }
+}

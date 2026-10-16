@@ -84,6 +84,20 @@
 .carnet .ch-fpick .face { width: 40px; height: 40px; }
 .carnet .ch-form .btn[disabled], .carnet .ch-addrow .btn[disabled] { opacity: .4; cursor: default; }
 
+/* ---------- Clients et chevaux : le sélecteur, les blocs du haut ---------- */
+.carnet .ch-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.carnet .ch-cchd { position: sticky; top: calc(env(safe-area-inset-top) + 52px); z-index: 20; padding: 12px 14px 10px; background: var(--paper); border-bottom: 1px solid var(--line2); }
+.carnet .note.ch-cnt { margin: 6px 0 2px; }
+.carnet .ch-find { margin: 10px 0 0; }
+.carnet .ch-find .ch-search { height: 44px; }
+.carnet .ch-cli .pill { white-space: nowrap; }
+.carnet .ch-cli > small { white-space: nowrap; }
+.carnet .ch-watch { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; padding: 10px 0 2px; color: inherit; text-decoration: none; min-height: 44px; }
+.carnet .ch-watch .face { width: 40px; height: 40px; }
+.carnet .ch-watch b { display: block; font-size: 15px; font-weight: 680; line-height: 1.2; }
+.carnet .ch-watch small { display: block; font-size: 12.5px; color: var(--ink2); line-height: 1.35; margin-top: 2px; }
+.carnet .ch-watch .in, .carnet .ch-watch .out { white-space: nowrap; font-weight: 700; }
+
 /* ---------- Ordinateur ---------- */
 .carnet .ch-desk .dhead .k { margin: 0 0 4px; }
 .carnet .ch-bar2 { display: flex; align-items: center; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
@@ -115,6 +129,9 @@
   .carnet .cols2.ch-cols { align-items: start; margin-top: 8px; }
   .carnet .ch-stick { position: sticky; top: 22px; }
   .carnet .ch-narrow { max-width: 640px; }
+  .carnet .ch-tops { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 4px; }
+  .carnet .ch-tops:empty { display: none; }
+  .carnet .ch-desk .ch-stick .sec.blk { margin-top: 14px; }
 }
 
 /* Les icônes sans classe du sprite : trait, pas de remplissage. */

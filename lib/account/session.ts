@@ -7,8 +7,9 @@
  * identifiants et la fiche, Be Stable garde la gestion (chevaux, argent,
  * planning) sur l'appareil, chiffrée avec la clé du compte.
  *
- * Trois états : aucun compte (on montre l'accueil), la démo (sans serveur,
- * rien n'est envoyé), un compte connecté. Un seul compte est ouvert à la
+ * Quatre états : aucune session (on montre l'accueil), la démo (l'écurie
+ * d'exemple, sans serveur), l'écurie locale (ses propres chiffres, sur cet
+ * appareil, sans compte : on essaie avant de s'inscrire), un compte connecté. Un seul compte est ouvert à la
  * fois : se connecter à un autre ferme le premier et efface sa clé.
  */
 export type ListingStatus = "aucune" | "revendication_en_attente" | "creation_en_attente" | "validee" | "refusee";
@@ -40,7 +41,20 @@ export interface DemoSession {
   kind: "demo";
 }
 
-export type Session = AccountSession | DemoSession;
+/**
+ * L'écurie essayée avant le compte : les chiffres du gérant, sur cet appareil
+ * seulement, en clair comme la démo. « Garder mes chiffres » la fait passer
+ * dans un compte (lib/account/vault : adoptLocale).
+ */
+export interface LocaleSession {
+  kind: "locale";
+  at: string;
+}
+
+export type Session = AccountSession | DemoSession | LocaleSession;
+
+/** Le tiroir de l'écurie essayée sans compte. */
+export const LOCALE_SCOPE = "locale";
 
 const KEY = "be-stable-session";
 
@@ -68,10 +82,21 @@ export function clearSession() {
   localStorage.removeItem(KEY);
 }
 
-/** Le préfixe de rangement des données : un tiroir par compte, un pour la démo. */
+/** Le préfixe de rangement des données : un tiroir par compte, un pour la démo, un pour l'écurie essayée sans compte. */
 export function scopeOf(s: Session | null = getSession()): string | null {
   if (!s) return null;
-  return s.kind === "demo" ? "demo" : `u${s.userId}`;
+  if (s.kind === "demo") return "demo";
+  if (s.kind === "locale") return LOCALE_SCOPE;
+  return `u${s.userId}`;
+}
+
+/** Une écurie essayée sans compte attend-elle sur cet appareil ? */
+export function hasLocaleData(): boolean {
+  try {
+    return !!localStorage.getItem(`be-stable-data@${LOCALE_SCOPE}`);
+  } catch {
+    return false;
+  }
 }
 
 export function scopedKey(name: string, s: Session | null = getSession()): string {

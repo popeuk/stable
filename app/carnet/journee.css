@@ -98,6 +98,8 @@
 .carnet .jr-ckm svg { width: 14px; height: 14px; fill: none; stroke: var(--ink2); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .jr-rosette { width: 128px; }
 .carnet .jr-ok { color: var(--ink); font-size: 17px; }
+.carnet .jr-valider .note.jr-pcnt { margin: 6px 0 2px; }
+.carnet .jr-valider .jr-h2 { margin: 26px 18px 0; font-size: 18px; font-weight: 700; letter-spacing: -.015em; }
 
 /* ---------- Feuilles ---------- */
 .carnet .jr-over { font-size: 12.5px; font-weight: 600; color: var(--ink3); padding-right: 10px; }
@@ -228,6 +230,7 @@
 @media (min-width: 1024px) {
   .carnet .jr-valider { max-width: 760px; }
   .carnet .jr-valider .sec.blk { margin-left: 0; margin-right: 0; }
+  .carnet .jr-valider .jr-h2 { margin-left: 0; }
   .carnet .jr-equipe .jr-board { overflow: visible; padding-left: 0; padding-right: 0; }
   .carnet .jr-equipe .jr-col { flex: 1 1 0; width: auto; min-width: 240px; }
   .carnet .jr-equipe .jr-ctl { padding-left: 0; padding-right: 0; }

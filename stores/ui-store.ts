@@ -55,6 +55,10 @@ interface UiState {
   helpOpen: boolean;
   openHelp: () => void;
   closeHelp: () => void;
+  /** La tournée du matin rouverte à la main (rond, « Revoir la tournée »). */
+  tourneeOpen: boolean;
+  openTournee: () => void;
+  closeTournee: () => void;
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -84,4 +88,7 @@ export const useUiStore = create<UiState>((set) => ({
   helpOpen: false,
   openHelp: () => set({ helpOpen: true, paletteOpen: false }),
   closeHelp: () => set({ helpOpen: false }),
+  tourneeOpen: false,
+  openTournee: () => set({ tourneeOpen: true }),
+  closeTournee: () => set({ tourneeOpen: false }),
 }));

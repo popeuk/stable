@@ -84,7 +84,7 @@ function MaFiche() {
       <Seul>
         <Hello title="Ta fiche, c’est ta vitrine." sub="Dans l’écurie d’exemple, il n’y a pas de vraie fiche. Crée ton compte pour reprendre celle de ton écurie : c’est gratuit et sans commission." />
         <div className="pad rise" style={{ marginTop: 16, animationDelay: ".1s" }}>
-          <Link href="/bienvenue" className="btn full">
+          <Link href="/compte/inscription?retrouver=1" className="btn full">
             Trouver mon écurie
             <Ic n="arrow" className="" />
           </Link>
@@ -109,7 +109,7 @@ function MaFiche() {
       <Seul>
         <Hello title="Ton écurie n’a pas encore sa fiche." sub="Cherche ton écurie sur mon-ecurie.fr et mets-la à ton nom. Si elle n’y est pas, ajoute-la. C’est gratuit, sans commission." />
         <div className="pad rise" style={{ marginTop: 16, animationDelay: ".1s" }}>
-          <Link href="/bienvenue" className="btn full">
+          <Link href="/compte/inscription?retrouver=1" className="btn full">
             Trouver mon écurie
             <Ic n="arrow" className="" />
           </Link>
