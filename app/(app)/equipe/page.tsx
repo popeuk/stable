@@ -13,6 +13,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { localToday } from "@/lib/utils/local-date";
 import type { TeamTask } from "@/lib/domain/types";
+import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 
 /**
  * Le tableau de l'équipe : des colonnes (À faire, En cours, Fait), des
@@ -404,11 +405,11 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
               <span className="input">
                 <input
                   inputMode="decimal"
-                  defaultValue={t.cost ?? ""}
+                  defaultValue={montantEnTexte(t.cost)}
                   aria-label="Montant"
                   placeholder="0"
                   style={{ flex: 1, minWidth: 0, border: 0, background: "none", outline: "none", fontWeight: 600, padding: 0 }}
-                  onChange={(e) => upd({ cost: Number(e.target.value.replace(",", ".")) > 0 ? Number(e.target.value.replace(",", ".")) : undefined })}
+                  onChange={(e) => upd({ cost: montantOuZero(e.target.value) > 0 ? montantOuZero(e.target.value) : undefined })}
                   disabled={!!t.costExpenseId}
                 />
                 <span className="u">€</span>

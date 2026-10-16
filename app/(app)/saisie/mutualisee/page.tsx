@@ -11,6 +11,7 @@ import { useFlashStore } from "@/stores/flash-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { distribute } from "@/lib/domain/distribution";
 import type { DistributionMode } from "@/lib/domain/types";
+import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 
 export default function SaisieMutualiseePage() {
   return (
@@ -36,7 +37,7 @@ function SaisieMutualisee() {
   const [selected, setSelected] = useState<Set<string>>(() => new Set(horses.map((h) => h.id)));
 
   const selectedHorses = horses.filter((h) => selected.has(h.id));
-  const totalNum = Number(total) || 0;
+  const totalNum = montantOuZero(total);
 
   const allocations = useMemo(() => distribute(totalNum, selectedHorses, mode, period), [totalNum, selectedHorses, mode, period]);
 
@@ -81,7 +82,7 @@ function SaisieMutualisee() {
         <label className="field">
           <span>Combien en tout ?</span>
           <InField unit="€" big>
-            <input type="number" inputMode="decimal" placeholder="0" value={total} onChange={(e) => setTotal(e.target.value)} />
+            <input type="text" inputMode="decimal" placeholder="0" value={total} onChange={(e) => setTotal(saisieMontant(e.target.value))} />
           </InField>
         </label>
 

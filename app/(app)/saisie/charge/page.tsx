@@ -9,6 +9,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import type { Frequency } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
+import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 
 const FREQS: [Frequency, string][] = [
   ["monthly", "Chaque mois"],
@@ -47,20 +48,20 @@ function SaisieCharge() {
   const [hasEnd, setHasEnd] = useState(false);
   const [end, setEnd] = useState("");
 
-  const canSave = horseId && Number(amount) > 0 && label.trim() && (!recurring || (date && (!hasEnd || end)));
+  const canSave = horseId && montantOuZero(amount) > 0 && label.trim() && (!recurring || (date && (!hasEnd || end)));
 
   function save() {
     if (!canSave) return;
     const horseName = horses.find((h) => h.id === horseId)?.name ?? "";
     useFlashStore.getState().setFlash({
       kind: "expense",
-      amount: Number(amount),
+      amount: montantOuZero(amount),
       label: `${label.trim()}${horseName ? ` · ${horseName}` : ""}`,
     });
     if (recurring) {
       addRecurringExpense({
         label: label.trim(),
-        amount: Number(amount),
+        amount: montantOuZero(amount),
         categoryId,
         isShared: false,
         horseId: horseId!,
@@ -74,7 +75,7 @@ function SaisieCharge() {
         horseId: horseId!,
         categoryId,
         label: label.trim(),
-        amount: Number(amount),
+        amount: montantOuZero(amount),
         date,
         source: photoMode ? "photo" : "manual",
       });
@@ -128,7 +129,7 @@ function SaisieCharge() {
         <label className="field">
           <span>Combien ?</span>
           <InField unit="€" big>
-            <input type="number" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <input type="text" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => setAmount(saisieMontant(e.target.value))} />
           </InField>
         </label>
 
@@ -170,7 +171,7 @@ function SaisieCharge() {
 
         <button type="button" className="btn full" disabled={!canSave} onClick={save}>
           <Ic n="ck" className="" />
-          Enregistrer{Number(amount) > 0 ? ` · ${sg(-Number(amount))}${recurring ? " à chaque fois" : ""}` : ""}
+          Enregistrer{montantOuZero(amount) > 0 ? ` · ${sg(-montantOuZero(amount))}${recurring ? " à chaque fois" : ""}` : ""}
         </button>
         <button type="button" className="btn ghost nt-cancel" onClick={() => router.back()}>
           Annuler

@@ -75,7 +75,7 @@ export function ajouterChevaux(nombre: number, pension: number, today = localTod
   const d = useDataStore.getState();
   const month = today.slice(0, 7);
   const n = Math.max(1, Math.min(60, Math.round(nombre)));
-  const p = Math.max(0, Math.round(pension));
+  const p = Math.max(0, Math.round(pension * 100) / 100);
   const deja = d.horses.reduce((m, h) => Math.max(m, Number(NUMERO.exec(h.name.trim())?.[1] ?? 0)), 0);
   for (let i = 1; i <= n; i++) d.addHorse({ name: `Cheval ${deja + i}`, pension: p || undefined, entryDate: `${month}-01` });
   if (p) d.setTariff("pension", p);
@@ -94,7 +94,7 @@ export function pensionCommune(data: Pick<Data, "horses" | "tariffs">): number |
 /** Change la pension commune : le tarif et chaque cheval présent, pension du mois comprise. */
 export function changerPensionCommune(pension: number, today = localToday()) {
   const d = useDataStore.getState();
-  const p = Math.max(0, Math.round(pension));
+  const p = Math.max(0, Math.round(pension * 100) / 100);
   d.setTariff("pension", p || undefined);
   for (const h of d.horses) if (!h.isArchived) d.setPension(h.id, p, today.slice(0, 7));
 }

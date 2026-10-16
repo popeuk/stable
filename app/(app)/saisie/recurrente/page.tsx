@@ -10,6 +10,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import type { DistributionMode, Frequency } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
+import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 
 export default function SaisieRecurrentePage() {
   return (
@@ -43,18 +44,18 @@ function SaisieRecurrente() {
   const [hasEnd, setHasEnd] = useState(false);
   const [end, setEnd] = useState("");
 
-  const canSave = label.trim() && Number(amount) > 0 && (shared || horseId) && start && (!hasEnd || end);
+  const canSave = label.trim() && montantOuZero(amount) > 0 && (shared || horseId) && start && (!hasEnd || end);
 
   function save() {
     if (!canSave) return;
     useFlashStore.getState().setFlash({
       kind: "expense",
-      amount: Number(amount),
+      amount: montantOuZero(amount),
       label: `${label.trim()} · comptée à chaque fois`,
     });
     addRecurring({
       label: label.trim(),
-      amount: Number(amount),
+      amount: montantOuZero(amount),
       categoryId,
       isShared: shared,
       horseId: shared ? undefined : horseId!,
@@ -106,7 +107,7 @@ function SaisieRecurrente() {
         <label className="field">
           <span>Combien à chaque fois ?</span>
           <InField unit="€" big>
-            <input type="number" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <input type="text" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => setAmount(saisieMontant(e.target.value))} />
           </InField>
         </label>
 
@@ -153,7 +154,7 @@ function SaisieRecurrente() {
 
         <button type="button" className="btn full" disabled={!canSave} onClick={save}>
           <Ic n="ck" className="" />
-          Enregistrer{Number(amount) > 0 ? ` · ${sg(-Number(amount))} à chaque fois` : ""}
+          Enregistrer{montantOuZero(amount) > 0 ? ` · ${sg(-montantOuZero(amount))} à chaque fois` : ""}
         </button>
         <button type="button" className="btn ghost nt-cancel" onClick={() => router.back()}>
           Annuler

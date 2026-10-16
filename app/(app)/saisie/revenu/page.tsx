@@ -9,6 +9,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import type { Frequency } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
+import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 
 const FREQS: [Frequency, string][] = [
   ["monthly", "Chaque mois"],
@@ -44,7 +45,7 @@ function SaisieRevenu() {
   const [hasEnd, setHasEnd] = useState(false);
   const [end, setEnd] = useState("");
 
-  const canSave = horseId && Number(amount) > 0 && (!recurring || (date && (!hasEnd || end)));
+  const canSave = horseId && montantOuZero(amount) > 0 && (!recurring || (date && (!hasEnd || end)));
 
   function save() {
     if (!canSave) return;
@@ -52,14 +53,14 @@ function SaisieRevenu() {
     const catName = data.revenueCategories.find((c) => c.id === categoryId)?.name ?? "Revenu";
     useFlashStore.getState().setFlash({
       kind: "revenue",
-      amount: Number(amount),
+      amount: montantOuZero(amount),
       label: `${catName}${horseName ? ` · ${horseName}` : ""}`,
     });
     if (recurring) {
       addRecurringRevenue({
         horseId: horseId!,
         categoryId,
-        amount: Number(amount),
+        amount: montantOuZero(amount),
         frequency,
         startDate: date,
         endDate: hasEnd ? end : null,
@@ -69,7 +70,7 @@ function SaisieRevenu() {
       addRevenue({
         horseId: horseId!,
         categoryId,
-        amount: Number(amount),
+        amount: montantOuZero(amount),
         date,
         source: "manual",
       });
@@ -107,7 +108,7 @@ function SaisieRevenu() {
         <label className="field">
           <span>Combien ?</span>
           <InField unit="€" big>
-            <input type="number" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <input type="text" inputMode="decimal" placeholder="0" value={amount} onChange={(e) => setAmount(saisieMontant(e.target.value))} />
           </InField>
         </label>
 
@@ -149,7 +150,7 @@ function SaisieRevenu() {
 
         <button type="button" className="btn full" disabled={!canSave} onClick={save}>
           <Ic n="ck" className="" />
-          Enregistrer{Number(amount) > 0 ? ` · ${sg(Number(amount))}${recurring ? " à chaque fois" : ""}` : ""}
+          Enregistrer{montantOuZero(amount) > 0 ? ` · ${sg(montantOuZero(amount))}${recurring ? " à chaque fois" : ""}` : ""}
         </button>
         <button type="button" className="btn ghost nt-cancel" onClick={() => router.back()}>
           Annuler

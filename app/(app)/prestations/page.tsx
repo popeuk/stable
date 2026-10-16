@@ -12,6 +12,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { payingCount, seanceAmount } from "@/lib/domain/seances";
 import { currentPeriod, samePeriod } from "@/lib/utils/period";
 import type { Prestation } from "@/lib/domain/types";
+import { lireMontant, montantEnTexte, montantOuZero, saisieMontant } from "@/lib/utils/montant";
 
 /**
  * Les prestations : ce que l'écurie vend en plus des pensions (cours,
@@ -203,7 +204,7 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
           <label className="lrow">
             <span>Prix</span>
             <span className="input">
-              <input inputMode="decimal" defaultValue={p.price} style={{ fontWeight: 600 }} onChange={(e) => Number(e.target.value.replace(",", ".")) >= 0 && upd({ price: Number(e.target.value.replace(",", ".")) || 0 })} />
+              <input inputMode="decimal" defaultValue={montantEnTexte(p.price)} style={{ fontWeight: 600 }} onChange={(e) => lireMontant(e.target.value) !== null && upd({ price: montantOuZero(e.target.value) })} />
               <span className="u">€</span>
             </span>
           </label>
@@ -245,7 +246,7 @@ function AddForm() {
   const [label, setLabel] = useState("");
   const [price, setPrice] = useState("");
   const [fmt, setFmt] = useState(false);
-  const n = Number(price.replace(",", "."));
+  const n = montantOuZero(price);
   const ok = label.trim().length > 1 && n > 0;
   function add() {
     if (!ok) return;
@@ -267,7 +268,7 @@ function AddForm() {
         <label className="field">
           <span>Prix</span>
           <span className="input">
-            <input inputMode="decimal" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} style={{ fontWeight: 600 }} />
+            <input inputMode="decimal" placeholder="0" value={price} onChange={(e) => setPrice(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && add()} style={{ fontWeight: 600 }} />
             <span className="u">€</span>
           </span>
         </label>

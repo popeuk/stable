@@ -11,6 +11,7 @@ import { ChoisirProprio } from "@/components/bs/choisir-proprio";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { localToday } from "@/lib/utils/local-date";
+import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 
 const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"] as const;
 
@@ -51,8 +52,8 @@ function Chevaux() {
   const [noms, setNoms] = useState(!!retour || !!proprietaire);
   const [nombre, setNombre] = useState(horses.length ? 1 : 9);
   const [tick, setTick] = useState(0);
-  const [pension, setPension] = useState(tariffs?.pension ? String(tariffs.pension) : "");
-  const p = Number(pension) || 0;
+  const [pension, setPension] = useState(montantEnTexte(tariffs?.pension));
+  const p = montantOuZero(pension);
 
   const suite = () => {
     if (!retour) pass("chevaux");

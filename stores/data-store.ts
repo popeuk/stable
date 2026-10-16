@@ -526,7 +526,7 @@ export const useDataStore = create<DataState>()(
 
       setPension: (horseId, amount, monthKey) =>
         set((s) => {
-          const value = Math.max(0, Math.round(amount));
+          const value = Math.max(0, Math.round(amount * 100) / 100);
           const rid = `rev-pension-${horseId}-${monthKey}`;
           return {
             horses: s.horses.map((h) => (h.id === horseId ? { ...h, pension: value } : h)),
@@ -537,7 +537,7 @@ export const useDataStore = create<DataState>()(
       setMonthlyCharge: (categoryId, label, amount, period) =>
         set((s) => {
           const start = `${period.year}-${String(period.month).padStart(2, "0")}-01`;
-          const value = Math.max(0, Math.round(amount));
+          const value = Math.max(0, Math.round(amount * 100) / 100);
           const sharedExpenses = s.sharedExpenses.filter(
             (e) => !(e.categoryId === categoryId && e.periodYear === period.year && e.periodMonth === period.month),
           );

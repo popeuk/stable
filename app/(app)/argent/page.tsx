@@ -21,6 +21,7 @@ import { seanceAmount } from "@/lib/domain/seances";
 import { currentPeriod, dateInPeriod, samePeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
+import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 
 /**
  * Mon mois (ancien Bilan) : le compteur du mois en tête, d'où vient l'argent et
@@ -207,7 +208,7 @@ function Mois() {
         <label className="field">
           <span>Ce que tu veux qu’il te reste par mois</span>
           <span className="input">
-            <input inputMode="numeric" defaultValue={objective} onChange={(e) => setObjective(Number(e.target.value) || 0)} onBlur={() => setEditGoal(false)} autoFocus />
+            <input inputMode="decimal" defaultValue={montantEnTexte(objective)} onChange={(e) => setObjective(montantOuZero(e.target.value))} onBlur={() => setEditGoal(false)} autoFocus />
             <span className="u">€</span>
           </span>
         </label>
@@ -230,7 +231,7 @@ function Mois() {
     <label className="field ar-goalf">
       <span>Ce que tu veux qu’il te reste par mois</span>
       <span className="input">
-        <input inputMode="numeric" defaultValue={objective} onChange={(e) => setObjective(Number(e.target.value) || 0)} onBlur={() => setEditGoal(false)} autoFocus />
+        <input inputMode="decimal" defaultValue={montantEnTexte(objective)} onChange={(e) => setObjective(montantOuZero(e.target.value))} onBlur={() => setEditGoal(false)} autoFocus />
         <span className="u">€</span>
       </span>
     </label>

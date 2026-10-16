@@ -10,6 +10,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore, type NotificationPrefs } from "@/stores/settings-store";
 import type { Tariffs, TeamRole } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
+import { lireMontant, montantEnTexte, saisieMontant } from "@/lib/utils/montant";
 
 /**
  * Tous les réglages, sur un seul écran : les prix, l'équipe, les catégories,
@@ -78,11 +79,12 @@ function Tarifs() {
   const deleteService = useDataStore((s) => s.deleteService);
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
+  const [txt, setTxt] = useState<Partial<Record<keyof Tariffs, string>>>({});
 
   function saveService() {
     if (!newName.trim()) return;
-    const p = Number(newPrice.replace(",", "."));
-    addService({ name: newName, price: Number.isFinite(p) && p > 0 ? p : undefined });
+    const p = lireMontant(newPrice);
+    addService({ name: newName, price: p && p > 0 ? p : undefined });
     setNewName("");
     setNewPrice("");
   }
@@ -101,10 +103,12 @@ function Tarifs() {
               id={`tarif-${row.key}`}
               type="text"
               inputMode="decimal"
-              value={tariffs[row.key] ? String(tariffs[row.key]) : ""}
+              value={txt[row.key] ?? montantEnTexte(tariffs[row.key])}
               onChange={(e) => {
-                const v = Number(e.target.value.replace(",", ".").replace(/[^0-9.]/g, ""));
-                setTariff(row.key, Number.isFinite(v) && v > 0 ? v : undefined);
+                // Le texte tapé reste tel quel (« 450, » puis « 450,50 ») ; le tarif suit au centime.
+                const t = saisieMontant(e.target.value);
+                setTxt((x) => ({ ...x, [row.key]: t }));
+                setTariff(row.key, lireMontant(t) || undefined);
               }}
               placeholder="…"
             />
@@ -132,7 +136,7 @@ function Tarifs() {
           <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveService()} placeholder="Balade, transport…" aria-label="Nom de la prestation" />
         </span>
         <span className="input">
-          <input value={newPrice} onChange={(e) => setNewPrice(e.target.value.replace(/[^0-9,\.]/g, ""))} onKeyDown={(e) => e.key === "Enter" && saveService()} inputMode="decimal" placeholder="…" aria-label="Prix de la prestation" />
+          <input value={newPrice} onChange={(e) => setNewPrice(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && saveService()} inputMode="decimal" placeholder="…" aria-label="Prix de la prestation" />
           <span className="u">€</span>
         </span>
         <button type="button" className="btn" onClick={saveService} disabled={!newName.trim()} aria-label="Ajouter la prestation">

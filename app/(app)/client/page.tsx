@@ -16,6 +16,7 @@ import { billsFor, monthKey, monthsBefore, type Bill, type BillLine } from "@/li
 import { accord, messageDu, prenomDe } from "@/lib/domain/clients";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
+import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 
 /**
  * La fiche d'un client (`/client?nom=Hugo L.`, `&mois=2026-10` pour un mois
@@ -430,7 +431,7 @@ function Feuille({ titre, onClose, children }: { titre: string; onClose: () => v
 function PartSheet({ qui, nom, due, onClose, onOk }: { qui: string; nom: string; due: number; onClose: () => void; onOk: (v: number) => void }) {
   const sug = due > 100 ? 100 : Math.max(1, Math.round(due / 2));
   const [v, setV] = useState(String(sug));
-  const val = Math.round(Number(v.replace(",", ".")) || 0);
+  const val = montantOuZero(v);
   return (
     <Feuille titre={`${qui} a payé une partie`} onClose={onClose}>
       <div className="pad cl-pform">
@@ -438,7 +439,7 @@ function PartSheet({ qui, nom, due, onClose, onOk }: { qui: string; nom: string;
           {accord(nom, "Il", "Elle")} te doit {eur(due)}. Combien {accord(nom, "t’a-t-il", "t’a-t-elle")} payé ?
         </p>
         <label className="input cl-amtin">
-          <input type="number" inputMode="numeric" min={1} max={due} step={1} value={v} autoFocus onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === "Enter" && val > 0 && onOk(val)} aria-label="Montant payé" />
+          <input type="text" inputMode="decimal" value={v} autoFocus onChange={(e) => setV(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && val > 0 && onOk(val)} aria-label="Montant payé" />
           <span className="u">€</span>
         </label>
         <div className="chips">
