@@ -37,7 +37,7 @@ export function TimeRibbon() {
   const activeBar = bars.find((b) => samePeriod(b.period, active));
 
   return (
-    <div className="sticky top-0 z-30 border-b bg-[var(--bg-base)]/90 backdrop-blur-md">
+    <div className="sticky top-0 z-30 border-b bg-[var(--paper)]/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-[480px] items-end justify-between gap-[3px] px-4 pb-2 pt-3">
         {bars.map((bar) => {
           const isActive = samePeriod(bar.period, active);
@@ -56,10 +56,10 @@ export function TimeRibbon() {
                   style={{
                     height: `${Math.max(8, bar.ratio * 100)}%`,
                     backgroundColor: isActive
-                      ? "var(--accent-primary)"
+                      ? "var(--ink)"
                       : positive
-                        ? "var(--c-success)"
-                        : "var(--c-danger)",
+                        ? "var(--in)"
+                        : "var(--out)",
                     opacity: isActive ? 1 : 0.35,
                   }}
                 />
@@ -67,7 +67,7 @@ export function TimeRibbon() {
               <span
                 className="text-[9px] uppercase leading-none"
                 style={{
-                  color: isActive ? "var(--text-primary)" : "var(--text-tertiary)",
+                  color: isActive ? "var(--ink)" : "var(--ink3)",
                 }}
               >
                 {formatShortMonth(bar.period).slice(0, 1)}
@@ -79,7 +79,7 @@ export function TimeRibbon() {
       <div className="mx-auto flex max-w-[480px] items-center justify-between px-4 pb-2">
         <span className="text-2xs capitalize text-tertiary">
           {formatShortMonth(active)} {active.year} ·{" "}
-          <span className="tabnums" style={{ color: (activeBar?.value ?? 0) >= 0 ? "var(--c-success)" : "var(--c-danger)" }}>
+          <span className="tabnums" style={{ color: (activeBar?.value ?? 0) >= 0 ? "var(--in)" : "var(--out)" }}>
             {formatEurCompact(activeBar?.value ?? 0)}
           </span>
         </span>

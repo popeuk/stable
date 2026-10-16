@@ -177,7 +177,7 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
           <button
             aria-label="Fermer"
             className="absolute inset-0"
-            style={{ background: "var(--bg-overlay)" }}
+            style={{ background: "var(--scrim)" }}
             onClick={onClose}
           />
           <motion.div
@@ -188,7 +188,7 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 380, damping: 34 }}
           >
-            <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--border-strong)]" />
+            <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line)]" />
             <p className="title-serif text-[20px] text-primary">Dis-moi ce qu&apos;il se passe</p>
             <p className="mt-0.5 text-[13px] text-secondary">
               « Cours collectif demain 14 h avec Belle et Pacha, 25 euros »
@@ -207,7 +207,7 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
                 }}
                 rows={2}
                 placeholder={phase === "listening" ? "Je t'écoute…" : "Parle ou écris ici…"}
-                className="min-h-[64px] flex-1 resize-none rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-base px-3 py-2.5 text-[15px] text-primary outline-none"
+                className="min-h-[64px] flex-1 resize-none rounded-[var(--radius-md)] border border-[var(--line)] bg-base px-3 py-2.5 text-[15px] text-primary outline-none"
               />
               {canListen ? (
                 <button
@@ -215,15 +215,15 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
                   aria-label="Parler"
                   className="flex size-16 shrink-0 items-center justify-center rounded-full"
                   style={{
-                    background: phase === "listening" ? "var(--c-danger)" : "var(--accent-primary)",
-                    color: "var(--on-accent)",
+                    background: phase === "listening" ? "var(--out)" : "var(--ink)",
+                    color: "var(--on-ink)",
                     animation: phase === "listening" ? "pulse-drift 1.2s infinite" : undefined,
                   }}
                 >
                   <Mic size={26} />
                 </button>
               ) : (
-                <span className="flex size-16 shrink-0 items-center justify-center rounded-full border border-[var(--border-strong)] text-tertiary">
+                <span className="flex size-16 shrink-0 items-center justify-center rounded-full border border-[var(--line)] text-tertiary">
                   <Keyboard size={22} />
                 </span>
               )}
@@ -232,7 +232,7 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
             {text.trim() && phase !== "preview" && phase !== "thinking" && (
               <button
                 onClick={() => void understand(text)}
-                className="btn-primary mt-3 flex w-full items-center justify-center gap-2 py-3 text-[14px] text-[var(--on-accent)]"
+                className="btn-primary mt-3 flex w-full items-center justify-center gap-2 py-3 text-[14px] text-[var(--on-ink)]"
               >
                 <Sparkles size={16} /> Comprendre
               </button>
@@ -249,9 +249,9 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 rounded-[var(--radius-lg)] border border-[var(--border-strong)] bg-base p-4"
+                className="mt-4 rounded-[var(--radius-lg)] border border-[var(--line)] bg-base p-4"
               >
-                <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
+                <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
                   {usedLLM ? "Compris (IA)" : "Compris"}
                 </p>
                 <p className="mt-1.5 flex items-start gap-2 text-[16px] font-bold leading-snug text-primary">
@@ -265,12 +265,12 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
                       ? "toute l'écurie"
                       : command.horseIds.map(nameOf).join(", ")}
                     {command.revenue ? (
-                      <span style={{ color: "var(--c-success)" }}>
+                      <span style={{ color: "var(--in)" }}>
                         {" "}· {formatEur(command.revenue)}/cheval
                       </span>
                     ) : null}
                     {command.cost ? (
-                      <span style={{ color: "var(--accent-primary)" }}>
+                      <span style={{ color: "var(--ink)" }}>
                         {" "}· {formatEur(command.cost)}
                       </span>
                     ) : null}
@@ -279,7 +279,7 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
                 <div className="mt-3 flex gap-2">
                   <button
                     onClick={confirm}
-                    className="btn-primary flex flex-1 items-center justify-center gap-1.5 py-2.5 text-[14px] text-[var(--on-accent)]"
+                    className="btn-primary flex flex-1 items-center justify-center gap-1.5 py-2.5 text-[14px] text-[var(--on-ink)]"
                   >
                     <Check size={16} /> C&apos;est ça
                   </button>
@@ -294,7 +294,7 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
             )}
 
             {phase === "notfound" && (
-              <div className="mt-4 rounded-[var(--radius-lg)] bg-[var(--c-warning-soft)] p-4">
+              <div className="mt-4 rounded-[var(--radius-lg)] bg-[var(--mist)] p-4">
                 <p className="text-[14px] font-bold text-primary">
                   Il me manque {missing.length ? missing.join(" et ") : "des détails"}.
                 </p>
@@ -310,7 +310,7 @@ export function VoiceSheet({ open, onClose }: { open: boolean; onClose: () => vo
               </div>
             )}
 
-            <div className="mt-4 flex items-center justify-between border-t border-[var(--border-default)] pt-3 text-[12px] text-tertiary">
+            <div className="mt-4 flex items-center justify-between border-t border-[var(--line)] pt-3 text-[12px] text-tertiary">
               <button onClick={correct} className="font-semibold">
                 Saisie manuelle
               </button>

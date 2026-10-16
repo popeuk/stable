@@ -26,7 +26,7 @@ export function HorseCard({ item, index }: { item: HorseWithPnl; index: number }
     >
       <Link
         href={`/cheval?id=${horse.id}`}
-        className="block rounded-[var(--radius-lg)] border bg-elevated p-4 transition-colors active:bg-[var(--bg-pressed)]"
+        className="block rounded-[var(--radius-lg)] border bg-elevated p-4 transition-colors active:bg-[var(--mist)]"
       >
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -46,11 +46,11 @@ export function HorseCard({ item, index }: { item: HorseWithPnl; index: number }
             style={{
               color:
                 trend === "hausse"
-                  ? "var(--c-success)"
+                  ? "var(--in)"
                   : trend === "baisse"
-                    ? "var(--c-danger)"
-                    : "var(--text-tertiary)",
-              background: "var(--bg-pressed)",
+                    ? "var(--out)"
+                    : "var(--ink3)",
+              background: "var(--mist)",
             }}
           >
             {TREND_ICON[trend]}
@@ -67,7 +67,7 @@ export function HorseCard({ item, index }: { item: HorseWithPnl; index: number }
               animateOnMount={false}
             />
             {underThreshold && (
-              <span className="ml-2 rounded-full bg-[var(--c-danger-soft)] px-2 py-0.5 text-[10px] text-[var(--c-danger)]">
+              <span className="ml-2 rounded-full bg-[var(--mist)] px-2 py-0.5 text-[10px] text-[var(--out)]">
                 sous le seuil
               </span>
             )}

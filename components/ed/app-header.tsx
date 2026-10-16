@@ -17,7 +17,7 @@ export function AppHeader() {
   if (pathname.startsWith("/saisie") || pathname.startsWith("/recherche")) return null;
 
   return (
-    <div className="sticky top-0 z-30 border-b border-[var(--border-default)] bg-base/95 backdrop-blur-md">
+    <div className="sticky top-0 z-30 border-b border-[var(--line)] bg-base/95 backdrop-blur-md">
       <div
         className="mx-auto flex max-w-[440px] items-center justify-between px-5 py-2.5"
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 10px)" }}
@@ -37,14 +37,14 @@ export function AppHeader() {
           <Link
             href="/recherche"
             aria-label="Rechercher"
-            className="flex size-9 items-center justify-center rounded-full border border-[var(--border-strong)] text-secondary"
+            className="flex size-9 items-center justify-center rounded-full border border-[var(--line)] text-secondary"
           >
             <Search size={17} strokeWidth={1.8} />
           </Link>
           <Link
             href="/parametres"
             aria-label="Réglages de l'écurie"
-            className="flex size-9 items-center justify-center rounded-full border border-[var(--border-strong)] text-secondary"
+            className="flex size-9 items-center justify-center rounded-full border border-[var(--line)] text-secondary"
           >
             <Settings size={18} strokeWidth={1.8} />
           </Link>

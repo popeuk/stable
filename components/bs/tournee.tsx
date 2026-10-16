@@ -266,7 +266,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                 ) : null}
                 {Math.round(mois.prevu) > 0 ? (
                   <>
-                    Encore <Money v={mois.prevu} /> prévu au planning.
+                    Encore <Money v={mois.prevu} prevu /> prévu au planning.
                   </>
                 ) : null}
               </p>

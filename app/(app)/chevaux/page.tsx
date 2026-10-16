@@ -592,7 +592,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
           <p className="ch-over0">{month}</p>
           <h3>
             {n === 1 ? "Ton cheval" : `Tes ${n} chevaux`} {m.net >= 0 ? (n === 1 ? "te laisse" : "te laissent") : n === 1 ? "te coûte" : "te coûtent"}{" "}
-            <span className={m.net >= 0 ? "in" : "out"}>
+            <span className={m.net > 0 ? "in" : m.net < 0 ? "out" : "num"}>
               <CountUp value={m.net} />
             </span>{" "}
             ce mois.

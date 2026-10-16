@@ -6,15 +6,8 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { F, InField, Jours, MoneyField, Puces, Repetition, Tiles, Toggles, Wheel, type SetD } from "@/components/bs/seance-form";
 import type { Draft, Habitudes, Rep } from "@/lib/domain/ajouter";
 
-/** Les étiquettes du métier, reprises du tableau du Clos. */
-export const LABELS: Record<string, string> = {
-  Urgent: "#8E3A5C",
-  Chevaux: "#134E3A",
-  Écurie: "#8C6A35",
-  Clients: "#F6B3CB",
-  Travaux: "#7A7284",
-  Admin: "#1B1225",
-};
+/** Les étiquettes du métier, reprises du tableau du Clos (sans couleur : la couleur dit l'argent). */
+export const LABELS = ["Urgent", "Chevaux", "Écurie", "Clients", "Travaux", "Admin"];
 
 /**
  * Tâche ou rendez-vous, dans le + : « C’est quoi ? » en tuiles (les
@@ -96,7 +89,7 @@ export function TaskDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Habi
         </F>
       )}
       <F label="Étiquettes">
-        <Toggles options={Object.keys(LABELS)} value={d.labels} onChange={(labels) => set((x) => ({ ...x, labels }))} />
+        <Toggles options={LABELS} value={d.labels} onChange={(labels) => set((x) => ({ ...x, labels }))} />
       </F>
       <F label="Ça coûte quelque chose ?" hint={`une fois faite, partagé entre ${nbHorses > 0 ? `tes ${nbHorses} chevaux` : "tous les chevaux"}`}>
         <MoneyField value={d.price} onChange={(price) => set((x) => ({ ...x, price }))} label="Ce que ça coûte" />

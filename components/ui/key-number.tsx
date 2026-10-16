@@ -63,9 +63,9 @@ export function KeyNumber({
 
   const color = colorBySign
     ? value > 0
-      ? "text-[var(--c-success)]"
+      ? "text-[var(--in)]"
       : value < 0
-        ? "text-[var(--c-danger)]"
+        ? "text-[var(--out)]"
         : "text-primary"
     : undefined;
 
@@ -76,7 +76,7 @@ export function KeyNumber({
         color,
         className,
       )}
-      style={{ color: color ? undefined : "var(--text-primary)" }}
+      style={{ color: color ? undefined : "var(--ink)" }}
     >
       {prefix}
       {render(display, format)}

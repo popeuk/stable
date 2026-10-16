@@ -67,12 +67,12 @@ export function Compass() {
         className="flex flex-1 flex-col items-center gap-0.5 py-1"
         aria-label={label}
       >
-        <span style={{ color: isActive ? "var(--accent-primary)" : "var(--text-tertiary)" }}>
+        <span style={{ color: isActive ? "var(--ink)" : "var(--ink3)" }}>
           {icon}
         </span>
         <span
           className="text-[10px]"
-          style={{ color: isActive ? "var(--text-primary)" : "var(--text-tertiary)" }}
+          style={{ color: isActive ? "var(--ink)" : "var(--ink3)" }}
         >
           {label}
         </span>
@@ -91,7 +91,7 @@ export function Compass() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setOpen(false)}
-            style={{ background: "var(--bg-overlay)" }}
+            style={{ background: "var(--scrim)" }}
           >
             <div className="absolute inset-x-0 bottom-28 mx-auto max-w-[480px]">
               <div className="relative mx-auto h-44 w-72">
@@ -117,7 +117,7 @@ export function Compass() {
                         }}
                         className="flex w-16 flex-col items-center gap-1"
                       >
-                        <span className="flex size-12 items-center justify-center rounded-full border bg-elevated text-[var(--accent-primary)] shadow-[var(--shadow-floating)]">
+                        <span className="flex size-12 items-center justify-center rounded-full border bg-elevated text-[var(--ink)] shadow-[var(--shadow-floating)]">
                           {action.icon}
                         </span>
                         <span className="text-[10px] text-secondary">{action.label}</span>
@@ -136,7 +136,7 @@ export function Compass() {
         className="fixed inset-x-0 bottom-0 z-40"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="mx-auto flex max-w-[480px] items-end justify-between border-t bg-[var(--bg-base)]/95 px-6 pb-2 pt-2 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[480px] items-end justify-between border-t bg-[var(--paper)]/95 px-6 pb-2 pt-2 backdrop-blur-md">
           {sideBtn("/maintenant", "Maintenant", <Home size={22} />)}
 
           <div className="relative -mt-7 flex flex-col items-center">
@@ -149,12 +149,12 @@ export function Compass() {
               onTouchEnd={endPress}
               className={cn(
                 "flex size-16 items-center justify-center rounded-full shadow-[var(--shadow-floating)] transition-transform active:scale-95",
-                voice && "ring-4 ring-[var(--c-danger)]",
+                voice && "ring-4 ring-[var(--out)]",
               )}
-              style={{ background: "var(--accent-primary)" }}
+              style={{ background: "var(--ink)" }}
             >
-              <motion.span animate={{ rotate: open ? 45 : 0 }} className="text-[var(--on-accent)]">
-                {voice ? <Mic size={26} color="var(--on-accent)" /> : <Plus size={28} />}
+              <motion.span animate={{ rotate: open ? 45 : 0 }} className="text-[var(--on-ink)]">
+                {voice ? <Mic size={26} color="var(--on-ink)" /> : <Plus size={28} />}
               </motion.span>
             </button>
           </div>

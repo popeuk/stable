@@ -64,7 +64,7 @@ export function PasswordField({ label = "Mot de passe", value, onChange, error, 
   const [show, setShow] = useState(false);
   const sc = pwScore(value);
   const words = ["Trop court", "Correct", "Bien", "Solide", "Très solide"];
-  const colors = ["var(--rose-ink)", "#8C6A35", "var(--vert-2)", "var(--vert)", "var(--vert)"];
+  const colors = ["var(--ink3)", "var(--ink2)", "var(--ink)", "var(--ink)", "var(--ink)"];
   return (
     <div className="bs-lbl">
       <label htmlFor={id} className="bs-lbl-t">
@@ -121,9 +121,9 @@ export function HitRow({ h, onPick }: { h: StableHit; onPick: () => void }) {
       {h.statut === "revendiquee" ? (
         <span className="bs-pill n">déjà reprise</span>
       ) : h.statut === "en_verification" ? (
-        <span className="bs-pill o">en vérification</span>
+        <span className="bs-pill n">en vérification</span>
       ) : (
-        <span className="bs-pill g">à reprendre</span>
+        <span className="bs-pill k">à reprendre</span>
       )}
       <Picto name="chev" />
     </button>

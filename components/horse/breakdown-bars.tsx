@@ -8,7 +8,7 @@ export interface BreakdownItem {
 /** Horizontal category breakdown bars (sections 9.4.4 / 9.4.5). */
 export function BreakdownBars({
   items,
-  color = "var(--accent-primary)",
+  color = "var(--ink)",
 }: {
   items: BreakdownItem[];
   color?: string;
@@ -25,7 +25,7 @@ export function BreakdownBars({
             <span className="text-secondary">{item.label}</span>
             <span className="tabnums text-primary">{formatEur(item.amount)}</span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--bg-pressed)]">
+          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--mist)]">
             <div
               className="h-full rounded-full"
               style={{ width: `${(Math.abs(item.amount) / max) * 100}%`, background: color }}

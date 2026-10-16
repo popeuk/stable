@@ -187,7 +187,7 @@ function Mois() {
         <p className="note">
           {Math.round(rest) !== 0 && (
             <>
-              Encore <Money v={rest} /> prévus au planning d’ici le {lastDay}.{" "}
+              Encore <Money v={rest} prevu /> prévus au planning d’ici le {lastDay}.{" "}
             </>
           )}
           Il reste {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
@@ -239,7 +239,7 @@ function Mois() {
       </button>
       {Math.round(rest) !== 0 && (
         <span>
-          Encore <Money v={rest} /> prévus au planning, {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}.
+          Encore <Money v={rest} prevu /> prévus au planning, {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}.
         </span>
       )}
     </div>
@@ -449,7 +449,7 @@ function Leviers() {
       <div className="card ar-head rise" style={{ animationDelay: ".05s" }}>
         <Ill n="piste" />
         <p className="k">{missing > 0 ? `Il te manque ${eur(missing)} pour ton objectif. Avec ces pistes, jusqu’à` : "Objectif atteint. Avec ces pistes, encore jusqu’à"}</p>
-        <p className="big in">
+        <p className="big">
           <CountUp value={monthly} />
         </p>
         <span className="ar-u">de plus par mois (estimation)</span>
@@ -475,7 +475,7 @@ function Leviers() {
                   <small>{acts.length ? `${acts.length} piste${acts.length > 1 ? "s" : ""}` : "rien à faire ce mois-ci"}</small>
                 </>
               }
-              action={<span className="act in">{sg(leverPotential(list, lv.id))}</span>}
+              action={<span className="act">{sg(leverPotential(list, lv.id))}</span>}
             >
               {acts.map((s) => (
                 <div key={s.id} className={`ar-pst${s.status === "faite" ? " fait" : s.status === "ecartee" ? " cote" : ""}`}>
@@ -484,7 +484,7 @@ function Leviers() {
                     <p>{s.sub}</p>
                   </span>
                   <span className="ar-rt">
-                    <span className="in">
+                    <span className={s.status === "faite" ? "in" : "num"}>
                       {sg(s.measured ?? s.gain)}
                       <small>{s.status === "faite" ? "gagnés" : s.unit}</small>
                     </span>

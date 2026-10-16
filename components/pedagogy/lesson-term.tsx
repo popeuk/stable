@@ -32,7 +32,7 @@ export function LessonTerm({ lessonKey, children, className }: LessonTermProps) 
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "underline decoration-dotted decoration-[var(--accent-primary)] underline-offset-4 transition-colors hover:text-[var(--accent-primary)]",
+          "underline decoration-dotted decoration-[var(--ink)] underline-offset-4 transition-colors hover:text-[var(--ink)]",
           className,
         )}
       >
@@ -50,7 +50,7 @@ export function LessonTerm({ lessonKey, children, className }: LessonTermProps) 
             <button
               aria-label="Fermer"
               className="absolute inset-0"
-              style={{ background: "var(--bg-overlay)" }}
+              style={{ background: "var(--scrim)" }}
               onClick={() => setOpen(false)}
             />
             <motion.div
@@ -62,7 +62,7 @@ export function LessonTerm({ lessonKey, children, className }: LessonTermProps) 
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 380, damping: 32 }}
             >
-              <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-[var(--border-strong)]" />
+              <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-[var(--line)]" />
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Fermer"
@@ -77,8 +77,8 @@ export function LessonTerm({ lessonKey, children, className }: LessonTermProps) 
               <p className="mt-2 text-sm text-secondary">{lesson.definition}</p>
 
               {lesson.yourData && (
-                <div className="mt-5 rounded-[var(--radius-lg)] bg-[var(--accent-primary-soft)] p-4">
-                  <p className="text-2xs font-medium uppercase tracking-wide text-[var(--accent-primary)]">
+                <div className="mt-5 rounded-[var(--radius-lg)] bg-[var(--mist)] p-4">
+                  <p className="text-2xs font-medium uppercase tracking-wide text-[var(--ink)]">
                     Pour toi, ça veut dire
                   </p>
                   <p className="mt-1.5 text-sm text-primary">
@@ -93,7 +93,7 @@ export function LessonTerm({ lessonKey, children, className }: LessonTermProps) 
               <ul className="mt-2 space-y-2">
                 {lesson.whatToDo.map((t, i) => (
                   <li key={i} className="flex gap-2 text-sm text-secondary">
-                    <span className="text-[var(--accent-primary)]">·</span>
+                    <span className="text-[var(--ink)]">·</span>
                     {t}
                   </li>
                 ))}
@@ -101,7 +101,7 @@ export function LessonTerm({ lessonKey, children, className }: LessonTermProps) 
 
               <button
                 onClick={() => setOpen(false)}
-                className="mt-6 w-full rounded-[var(--radius-md)] bg-[var(--accent-primary)] py-3 text-sm font-medium text-[var(--on-accent)]"
+                className="mt-6 w-full rounded-[var(--radius-md)] bg-[var(--ink)] py-3 text-sm font-medium text-[var(--on-ink)]"
               >
                 Compris
               </button>

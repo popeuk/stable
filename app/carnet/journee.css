@@ -20,18 +20,18 @@
 .carnet .jr-days button { border: 0; background: none; border-radius: 8px; padding: 6px 0 6px; display: grid; justify-items: center; gap: 1px; font-size: 10.5px; font-weight: 600; color: var(--ink3); cursor: pointer; }
 .carnet .jr-days b { font-size: 16px; color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
 .carnet .jr-days .td:not([aria-pressed="true"]) b { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
-.carnet .jr-days [aria-pressed="true"] { background: var(--ink); color: rgba(255, 255, 255, .7); }
-.carnet .jr-days [aria-pressed="true"] b { color: #fff; }
+.carnet .jr-days [aria-pressed="true"] { background: var(--ink); color: color-mix(in srgb, var(--on-ink) 70%, transparent); }
+.carnet .jr-days [aria-pressed="true"] b { color: var(--on-ink); }
 .carnet .jr-dots { display: inline-flex; gap: 3px; height: 4px; margin-top: 3px; }
 .carnet .jr-dots i, .carnet .jr-dots s { width: 4px; height: 4px; border-radius: 50%; background: var(--ink3); text-decoration: none; }
-.carnet [aria-pressed="true"] .jr-dots i { background: rgba(255, 255, 255, .75); }
+.carnet [aria-pressed="true"] .jr-dots i { background: color-mix(in srgb, var(--on-ink) 75%, transparent); }
 
 /* Le soleil suit l'heure */
 .carnet .jr-ciel { position: relative; height: 100px; }
 .carnet .jr-arc { position: absolute; left: 24px; right: 24px; bottom: 24px; height: 62px; }
 .carnet .jr-arc > svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .carnet .jr-arc path { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 4 5; }
-.carnet .jr-sun { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--hay), #fff 40%), var(--hay) 70%); box-shadow: 0 0 0 7px color-mix(in srgb, var(--hay) 22%, transparent); animation: jr-sun 2.4s var(--ease) both; }
+.carnet .jr-sun { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--hay), var(--sheet) 40%), var(--hay) 70%); box-shadow: 0 0 0 7px color-mix(in srgb, var(--hay) 22%, transparent); animation: jr-sun 2.4s var(--ease) both; }
 .carnet .jr-sun em { position: absolute; left: 50%; top: 30px; transform: translateX(-50%); font-style: normal; font-family: var(--mono); font-size: 10.5px; font-weight: 600; color: var(--ink2); }
 @keyframes jr-sun { 0% { left: 0; top: 100%; } }
 .carnet .jr-hours { position: absolute; left: 24px; right: 24px; bottom: 4px; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10.5px; color: var(--ink3); }
@@ -50,7 +50,7 @@
 .carnet .jr-h > span { position: absolute; left: 0; top: -8px; padding-right: 4px; font-family: var(--mono); font-size: 10.5px; color: var(--ink3); background: var(--paper); }
 .carnet .jr-h button { position: absolute; left: 34px; right: 0; top: 0; bottom: 0; border: 0; background: none; border-radius: 6px; cursor: pointer; }
 .carnet .jr-h button:hover { background: var(--mist); }
-.carnet .jr-ev { position: absolute; z-index: 1; display: grid; grid-template-columns: 15px 1fr auto; gap: 6px; align-items: start; padding: 6px 8px; border: 0; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px rgba(27, 18, 37, .05); color: var(--ink2); text-align: left; font: inherit; cursor: pointer; overflow: hidden; }
+.carnet .jr-ev { position: absolute; z-index: 1; display: grid; grid-template-columns: 15px 1fr auto; gap: 6px; align-items: start; padding: 6px 8px; border: 0; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink2); text-align: left; font: inherit; cursor: pointer; overflow: hidden; }
 .carnet .jr-ev > svg { width: 15px; height: 15px; margin-top: 1px; }
 .carnet .jr-ev > span { min-width: 0; }
 .carnet .jr-ev b { display: block; font-size: 12.5px; font-weight: 650; color: var(--ink); line-height: 1.2; }
@@ -80,9 +80,9 @@
 .carnet .jr-m .jr-dots { margin-top: 0; }
 .carnet .jr-m.out { background: none; box-shadow: none; color: var(--ink3); }
 .carnet .jr-m.td { box-shadow: inset 0 0 0 1.5px var(--ink); }
-.carnet .jr-m.sel { background: var(--ink); box-shadow: none; color: #fff; }
-.carnet .jr-m.sel em { color: #fff; }
-.carnet .jr-m.sel .jr-dots s { background: rgba(255, 255, 255, .75); }
+.carnet .jr-m.sel { background: var(--ink); box-shadow: none; color: var(--on-ink); }
+.carnet .jr-m.sel em { color: var(--on-ink); }
+.carnet .jr-m.sel .jr-dots s { background: color-mix(in srgb, var(--on-ink) 75%, transparent); }
 .carnet .jr-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 12px; color: var(--ink2); }
 .carnet .jr-legend > span { display: inline-flex; align-items: center; gap: 5px; }
 
@@ -121,7 +121,7 @@
 .carnet .jr-col.over { box-shadow: inset 0 0 0 2px var(--ink); }
 .carnet .jr-col h5 { margin: 0 2px 2px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 700; }
 .carnet .jr-col h5 span { min-width: 22px; text-align: center; padding: 1px 7px; border-radius: 10px; background: var(--sheet); font-size: 12px; font-weight: 700; color: var(--ink2); font-variant-numeric: tabular-nums; }
-.carnet .jr-t { display: grid; gap: 7px; width: 100%; padding: 10px 11px; border: 0; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px rgba(27, 18, 37, .05); text-align: left; font: inherit; color: var(--ink); cursor: pointer; }
+.carnet .jr-t { display: grid; gap: 7px; width: 100%; padding: 10px 11px; border: 0; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 5%, transparent); text-align: left; font: inherit; color: var(--ink); cursor: pointer; }
 .carnet .jr-t > b { font-size: 14px; font-weight: 650; line-height: 1.25; }
 .carnet .jr-t.jr-done > b { color: var(--ink2); }
 .carnet .jr-t.drag { opacity: .45; }
@@ -163,7 +163,7 @@
 .carnet .jr-desk .wg-head button { cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0 2px; }
 .carnet .jr-desk .wg-head button:hover { background: var(--mist); }
 .carnet .jr-desk .wg-head b { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; margin-left: 2px; border-radius: 13px; font-size: 14px; color: var(--ink); font-weight: 700; }
-.carnet .jr-desk .wg-head .td b { background: var(--ink); color: #fff; }
+.carnet .jr-desk .wg-head .td b { background: var(--ink); color: var(--on-ink); }
 .carnet .jr-desk .wg-head em { flex-basis: 100%; font-style: normal; font-size: 11px; line-height: 1.2; }
 .carnet .jr-desk .wg-day { border-bottom: 1px solid var(--line); }
 .carnet .jr-desk .wg-day .gut { font-family: var(--mono); font-size: 10.5px; color: var(--ink3); display: flex; align-items: center; justify-content: center; }
@@ -178,10 +178,10 @@
 .carnet .jr-desk .wg-body .hrs span { position: absolute; right: 8px; margin-top: -1px; font-family: var(--mono); font-size: 10.5px; color: var(--ink3); background: var(--sheet); }
 .carnet .jr-desk .wg-body .hrs span:first-child { margin-top: 3px; }
 .carnet .jr-desk .wg-body .col { position: relative; min-width: 0; border-left: 1px solid var(--line2); }
-.carnet .jr-desk .wg-body .col.td { background: rgba(244, 241, 245, .55); }
+.carnet .jr-desk .wg-body .col.td { background: color-mix(in srgb, var(--mist) 55%, transparent); }
 .carnet .jr-desk .slot { position: absolute; left: 0; right: 0; border: 0; padding: 0; background: none; cursor: pointer; }
 .carnet .jr-desk .slot:hover { background: var(--mist); }
-.carnet .jr-desk .ev { position: absolute; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 0; padding: 2px 6px; border-radius: 5px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px rgba(27, 18, 37, .06); border-left: 3px solid var(--ink); overflow: hidden; cursor: pointer; text-align: left; }
+.carnet .jr-desk .ev { position: absolute; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 0; padding: 2px 6px; border-radius: 5px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent); border-left: 3px solid var(--ink); overflow: hidden; cursor: pointer; text-align: left; }
 .carnet .jr-desk .ev b { display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 12px; font-weight: 650; line-height: 1.2; }
 .carnet .jr-desk .ev b > span:first-child, .carnet .jr-desk .ev small > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .carnet .jr-desk .ev small { display: flex; justify-content: space-between; gap: 4px; font-size: 11px; color: var(--ink3); line-height: 1.25; }
@@ -190,7 +190,7 @@
 .carnet .jr-desk .ev.done { opacity: .58; border-left-color: var(--ink3); }
 .carnet .jr-desk .ev.done b > span:first-child { text-decoration: line-through; text-decoration-color: var(--ink3); }
 .carnet .jr-desk .dk { width: 14px; height: 14px; border-radius: 50%; background: var(--ink); display: flex; align-items: center; justify-content: center; flex: none; }
-.carnet .jr-desk .dk svg { width: 9px; height: 9px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .jr-desk .dk svg { width: 9px; height: 9px; fill: none; stroke: var(--sheet); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .jr-desk .ev.wait { box-shadow: inset 0 0 0 1.5px var(--ink); border-left-style: dashed; }
 .carnet .jr-desk .evck { position: absolute; right: 3px; bottom: 3px; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--ink3); background: var(--sheet); display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; opacity: 0; transition: opacity .15s; }
 .carnet .jr-desk .evck svg { width: 11px; height: 11px; fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -233,7 +233,7 @@
 .carnet .jr-liens a > span { flex: 1; min-width: 0; line-height: 1.2; }
 .carnet .jr-liens svg { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--ink2); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .jr-liens .chev { width: 14px; height: 14px; stroke: var(--ink3); }
-.carnet .jr-liens em { flex: none; min-width: 20px; padding: 1px 7px; border-radius: 10px; background: var(--ink); color: #fff; font-style: normal; font-size: 12px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.carnet .jr-liens em { flex: none; min-width: 20px; padding: 1px 7px; border-radius: 10px; background: var(--ink); color: var(--on-ink); font-style: normal; font-size: 12px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
 .carnet .jr-liens a:hover { background: var(--mist); }
 @media (min-width: 1024px) {
   .carnet .jr-desk .jr-liens { max-width: 520px; margin: 18px 0 0; }

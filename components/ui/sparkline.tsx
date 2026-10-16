@@ -43,7 +43,7 @@ export function Sparkline({
 
   const line = data.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const last = data[data.length - 1];
-  const stroke = color ?? (last >= 0 ? "var(--c-success)" : "var(--c-danger)");
+  const stroke = color ?? (last >= 0 ? "var(--in)" : "var(--out)");
 
   const zeroY = y(0);
   const areaPath = `${line} L${x(data.length - 1).toFixed(1)},${(height - pad).toFixed(1)} L${x(0).toFixed(1)},${(height - pad).toFixed(1)} Z`;
@@ -69,7 +69,7 @@ export function Sparkline({
           x2={width}
           y1={zeroY}
           y2={zeroY}
-          stroke="var(--border-default)"
+          stroke="var(--line)"
           strokeWidth={0.5}
           strokeDasharray="2 3"
         />

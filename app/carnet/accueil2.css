@@ -40,7 +40,7 @@
 .carnet .ac-jour { padding-top: 14px; }
 /* L'encart mon-ecurie.fr (components/bs/promo-mon-ecurie.tsx) : « Plus tard » posé sur l'image. */
 .carnet .ac-promo { position: relative; }
-.carnet .ac-promo-x { position: absolute; top: 10px; right: 24px; z-index: 1; height: 30px; padding: 0 12px; border: 0; border-radius: 15px; background: rgba(255, 255, 255, .86); color: var(--ink2); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.carnet .ac-promo-x { position: absolute; top: 10px; right: 24px; z-index: 1; height: 30px; padding: 0 12px; border: 0; border-radius: 15px; background: color-mix(in srgb, var(--on-ink) 86%, transparent); color: var(--ink2); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .carnet .ac-promo-x:hover { color: var(--ink); }
 /* La marque mon-ecurie.fr, comme l'en-tête du site (pc-logo). */
 .carnet .ac-promo .tag { font-family: inherit; letter-spacing: 0; }
@@ -49,7 +49,7 @@
 .carnet .me-txt { display: flex; flex-direction: column; }
 .carnet .me-nom { font-size: 20px; font-weight: 800; line-height: .88; font-variation-settings: "wdth" 88; letter-spacing: -.012em; color: var(--ink); white-space: nowrap; }
 .carnet .me-par { margin-top: 3px; font-size: 10.5px; font-weight: 600; line-height: 1; letter-spacing: .03em; color: var(--ink2); white-space: nowrap; }
-.carnet .me-etat { margin-left: auto; padding: 4px 9px; border: 1px solid rgba(27, 18, 37, .12); border-radius: 12px; font-size: 11.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
+.carnet .me-etat { margin-left: auto; padding: 4px 9px; border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); border-radius: 12px; font-size: 11.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
 
 @media (min-width: 1024px) {
   .carnet .ac-desk .ac-dtop { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; align-items: start; }
@@ -87,7 +87,7 @@
 @media (min-width: 1024px) { .carnet .ac-desk .cp-ban { margin: 12px 0 0; } }
 
 /* ---------- L'en-tête : le rond ---------- */
-.carnet .ac-me { position: relative; width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: var(--ink); color: #fff; font-size: 14px; font-weight: 760; letter-spacing: -.02em; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.carnet .ac-me { position: relative; width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 14px; font-weight: 760; letter-spacing: -.02em; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .carnet .ac-me::after { content: ""; position: absolute; inset: -5px; }
 .carnet .hd .ac-me { margin-left: auto; }
 .carnet .hd .help + .ac-me { margin-left: 4px; }
@@ -116,12 +116,12 @@
 .carnet .ac-it em { font-style: normal; font-size: 12.5px; color: var(--ink3); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .carnet .ac-it em.in { color: var(--in); font-weight: 700; }
 .carnet .ac-it em.out { color: var(--out); font-weight: 700; }
-.carnet .ac-it em.attn { color: #fff; background: var(--ink); padding: 1px 7px; border-radius: 10px; font-weight: 700; }
+.carnet .ac-it em.attn { color: var(--on-ink); background: var(--ink); padding: 1px 7px; border-radius: 10px; font-weight: 700; }
 
 /* ---------- La barre du bas ---------- */
 .carnet .ac-tb a, .carnet .ac-tb button:not(.plus) { position: relative; align-content: start; min-height: 46px; line-height: 1.1; white-space: nowrap; }
 .carnet .ac-tb .ac-ic { position: relative; display: block; width: 21px; height: 21px; }
-.carnet .ac-badge { position: absolute; top: -5px; right: -12px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--ink); color: #fff; font-size: 10.5px; font-style: normal; font-weight: 750; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--sheet); }
+.carnet .ac-badge { position: absolute; top: -5px; right: -12px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--ink); color: var(--on-ink); font-size: 10.5px; font-style: normal; font-weight: 750; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--sheet); }
 .carnet .ac-two { text-align: center; }
 /* Le kit grise toutes les span de la barre : l'onglet allumé doit les reprendre (« Clients et chevaux »). */
 .carnet .ac-tb a span { color: inherit; }
@@ -145,7 +145,7 @@
 .carnet .ac-skip { position: relative; height: 40px; padding: 0 18px; border: 0; border-radius: 20px; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--ink); font-size: 14px; font-weight: 700; color: var(--ink); cursor: pointer; flex: none; }
 .carnet .ac-skip::after { content: ""; position: absolute; inset: -3px -2px; }
 .carnet .ac-bars { display: grid; gap: 5px; margin-top: 4px; }
-.carnet .ac-bars i { display: block; height: 3px; border-radius: 2px; background: rgba(27, 18, 37, .12); overflow: hidden; }
+.carnet .ac-bars i { display: block; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; }
 .carnet .ac-bars b { display: block; height: 100%; width: 0; background: var(--ink); transition: width .6s var(--ease); }
 .carnet .ac-steps { display: grid; gap: 5px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 11.5px; font-weight: 650; color: var(--ink3); }
 .carnet .ac-steps .on { color: var(--ink); }
@@ -180,7 +180,7 @@
 .carnet .ac-end .btn { margin-top: 6px; }
 
 @media (min-width: 1024px) {
-  .carnet .ac-tour { background: rgba(27, 18, 37, .35); padding: 40px 0; }
+  .carnet .ac-tour { background: color-mix(in srgb, var(--ink) 35%, transparent); padding: 40px 0; }
   .carnet .ac-top, .carnet .ac-stage { width: 480px; margin: 0 auto; background: var(--paper); }
   .carnet .ac-top { border-radius: 16px 16px 0 0; padding-top: 6px; }
   .carnet .ac-stage { flex: 1; border-radius: 0 0 16px 16px; }

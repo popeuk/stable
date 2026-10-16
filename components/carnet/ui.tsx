@@ -122,9 +122,11 @@ export const ini = (n: string) =>
     .toUpperCase();
 
 /* ---------- Argent ---------- */
-export function Money({ v, className = "", plain }: { v: number; className?: string; plain?: boolean }) {
+/** Un montant signé : vert s'il rentre, rose s'il sort. « prevu » : pas encore rentré, en encre avec son signe. */
+export function Money({ v, className = "", plain, prevu }: { v: number; className?: string; plain?: boolean; prevu?: boolean }) {
   const r = Math.round(v);
-  return <span className={`${r > 0 ? "in" : r < 0 ? "out" : "num"} ${className}`}>{plain ? eur(Math.abs(v)) : sg(v)}</span>;
+  const tone = prevu ? "num prevu" : r > 0 ? "in" : r < 0 ? "out" : "num";
+  return <span className={`${tone} ${className}`}>{plain ? eur(Math.abs(v)) : sg(v)}</span>;
 }
 
 /** Un chiffre qui compte jusqu'à sa valeur, puis suit ses changements. */

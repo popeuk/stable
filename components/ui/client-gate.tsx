@@ -24,7 +24,7 @@ export function ClientGate({ children }: { children: React.ReactNode }) {
   if (!ready) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center" aria-busy="true" aria-label="Chargement">
-        <div className="size-6 animate-pulse rounded-full bg-[var(--accent-primary-soft)]" />
+        <div className="size-6 animate-pulse rounded-full bg-[var(--mist)]" />
       </div>
     );
   }

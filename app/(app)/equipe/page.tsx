@@ -377,7 +377,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
             </div>
             <p className="k jr-k">Étiquettes</p>
             <div className="chips">
-              {Object.keys(LABELS).map((l) => (
+              {LABELS.map((l) => (
                 <button key={l} type="button" className={`chip${t.labels.includes(l) ? " on" : ""}`} aria-pressed={t.labels.includes(l)} onClick={() => upd({ labels: t.labels.includes(l) ? t.labels.filter((x) => x !== l) : [...t.labels, l] })}>
                   {l}
                 </button>

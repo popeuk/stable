@@ -57,7 +57,7 @@
 .carnet .ch-preview .portrait { height: 132px; }
 .carnet .ch-preview .portrait .disc { width: 124px; height: 124px; }
 .carnet .ch-sws { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.carnet .ch-sw { width: 34px; height: 34px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(27, 18, 37, .12); }
+.carnet .ch-sw { width: 34px; height: 34px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent); }
 .carnet .ch-sw[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
 .carnet .ch-opt { font-weight: 400; color: var(--ink3); }
 .carnet .ch-fpick { display: flex; flex-wrap: wrap; gap: 10px 8px; margin-top: 12px; }
@@ -135,7 +135,7 @@
 .carnet .cl-tools { display: grid; padding: 14px 18px 0; }
 .carnet .cl-fn { margin: 12px 18px 0; font-size: 12.5px; color: var(--ink3); line-height: 1.45; }
 .carnet .cl-fn .lnk { font-size: 12.5px; }
-.carnet .cl-ban { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; margin: 10px 14px 0; padding: 10px 12px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px rgba(27, 18, 37, .04); }
+.carnet .cl-ban { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; margin: 10px 14px 0; padding: 10px 12px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent); }
 .carnet .cl-ban .ill { width: 44px; height: 44px; object-fit: contain; }
 .carnet .cl-ban b { display: block; font-size: 15.5px; font-weight: 720; line-height: 1.2; letter-spacing: -.01em; }
 .carnet .cl-ban span { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink2); line-height: 1.35; }

@@ -40,7 +40,7 @@
 .carnet .ar-wk em { font-style: normal; font-size: 10.5px; font-weight: 650; color: var(--ink2); font-variant-numeric: tabular-nums; }
 .carnet .ar-wk .ar-st { width: 62%; display: flex; flex-direction: column; justify-content: flex-end; height: 64px; }
 .carnet .ar-wk .ar-st i { display: block; transform-origin: bottom; animation: ar-grow 1s var(--ease) both; }
-.carnet .ar-wk .ar-st i.p { background: repeating-linear-gradient(135deg, rgba(27, 18, 37, .28) 0 3px, transparent 3px 6px); box-shadow: inset 0 0 0 1px rgba(27, 18, 37, .35); }
+.carnet .ar-wk .ar-st i.p { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--ink) 28%, transparent) 0 3px, transparent 3px 6px); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 35%, transparent); }
 .carnet .ar-wk .ar-st i.d { background: var(--ink); }
 .carnet .ar-wk .ar-st i:first-child { border-radius: 2px 2px 0 0; }
 .carnet .ar-wk small { font-size: 10.5px; color: var(--ink3); }
@@ -49,7 +49,7 @@
 .carnet .ar-leg { display: flex; gap: 14px; font-size: 11.5px; color: var(--ink3); margin-top: 8px; }
 .carnet .ar-leg span { display: inline-flex; align-items: center; gap: 5px; }
 .carnet .ar-leg i { width: 11px; height: 11px; border-radius: 2px; background: var(--ink); display: inline-block; }
-.carnet .ar-leg i.p { background: repeating-linear-gradient(135deg, rgba(27, 18, 37, .3) 0 2px, transparent 2px 4px); box-shadow: inset 0 0 0 1px rgba(27, 18, 37, .35); }
+.carnet .ar-leg i.p { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--ink) 30%, transparent) 0 2px, transparent 2px 4px); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 35%, transparent); }
 
 /* Postes, lignes d'argent */
 .carnet .ar-post { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line2); font-size: 14px; }
@@ -150,8 +150,8 @@
 .carnet .ar-mc .ar-base { position: absolute; left: 0; right: 0; border-top: 1px solid var(--ink3); }
 .carnet .ar-mc .ar-m { position: relative; }
 .carnet .ar-mc .ar-m i { position: absolute; left: 16%; right: 16%; background: var(--ink); border-radius: 3px 3px 0 0; transform-origin: bottom; animation: ar-grow 1s var(--ease) both; }
-.carnet .ar-mc .ar-m i.neg { border-radius: 0 0 3px 3px; transform-origin: top; background: repeating-linear-gradient(135deg, rgba(27, 18, 37, .28) 0 3px, transparent 3px 6px); box-shadow: inset 0 0 0 1px rgba(27, 18, 37, .45); }
-.carnet .ar-mc .ar-m.now i { background: repeating-linear-gradient(135deg, var(--ink) 0 3px, rgba(27, 18, 37, .55) 3px 6px); box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink); }
+.carnet .ar-mc .ar-m i.neg { border-radius: 0 0 3px 3px; transform-origin: top; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--ink) 28%, transparent) 0 3px, transparent 3px 6px); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 45%, transparent); }
+.carnet .ar-mc .ar-m.now i { background: repeating-linear-gradient(135deg, var(--ink) 0 3px, color-mix(in srgb, var(--ink) 55%, transparent) 3px 6px); box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink); }
 .carnet .ar-mc .ar-m em { position: absolute; left: -4px; right: -4px; text-align: center; font-style: normal; font-size: 10.5px; font-weight: 650; color: var(--ink2); font-variant-numeric: tabular-nums; z-index: 2; white-space: nowrap; text-shadow: 0 0 3px var(--paper), 0 0 3px var(--paper), 0 0 3px var(--paper); }
 .carnet .ar-mc .ar-m small { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-size: 11px; color: var(--ink3); }
 .carnet .ar-mc .ar-m.now small { color: var(--ink); font-weight: 700; }
@@ -176,7 +176,7 @@
 .carnet .ar-grid12 .face { width: 42px; height: 42px; }
 .carnet .ar-grid12 .ar-vide { width: 42px; height: 42px; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--line); }
 .carnet .ar-grid12 .ar-trait { position: absolute; height: 54px; border-left: 3px solid var(--ink); border-radius: 2px; box-shadow: -2px 0 0 var(--sheet), 2px 0 0 var(--sheet); z-index: 1; }
-.carnet .ar-grid12 .ar-trait span { position: absolute; left: -2px; bottom: -26px; white-space: nowrap; font-size: 11.5px; font-weight: 700; color: #fff; background: var(--ink); padding: 2px 7px; border-radius: 10px; transform: translateX(-50%); }
+.carnet .ar-grid12 .ar-trait span { position: absolute; left: -2px; bottom: -26px; white-space: nowrap; font-size: 11.5px; font-weight: 700; color: var(--on-ink); background: var(--ink); padding: 2px 7px; border-radius: 10px; transform: translateX(-50%); }
 .carnet .ar-glab { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--ink3); margin-top: 12px; }
 .carnet .ar-glab b { color: var(--ink); display: inline-flex; align-items: center; gap: 4px; }
 .carnet .ar-glab b .ar-ic { width: 14px; height: 14px; }
@@ -197,8 +197,8 @@
 .carnet .ar-range::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(var(--ink), var(--ink)) 0 0 / var(--p) 100% no-repeat, var(--line); }
 .carnet .ar-range::-moz-range-track { height: 4px; border-radius: 2px; background: var(--line); }
 .carnet .ar-range::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--ink); }
-.carnet .ar-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -9px; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 2px var(--ink), 0 2px 6px rgba(27, 18, 37, .2); }
-.carnet .ar-range::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 2px var(--ink), 0 2px 6px rgba(27, 18, 37, .2); }
+.carnet .ar-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -9px; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 2px var(--ink), 0 2px 6px color-mix(in srgb, var(--ink) 20%, transparent); }
+.carnet .ar-range::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 2px var(--ink), 0 2px 6px color-mix(in srgb, var(--ink) 20%, transparent); }
 .carnet .ar-sld .ar-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink3); margin-top: 4px; font-variant-numeric: tabular-nums; }
 
 /* Pages sans maquette dédiée : plan, audit, conseiller, découvertes */
@@ -215,9 +215,9 @@
 .carnet .ar-dots button[aria-current="true"] i { background: var(--ink); }
 .carnet .ar-chat { display: grid; gap: 10px; padding: 14px 14px 0; }
 .carnet .ar-msg { max-width: 88%; padding: 10px 14px; font-size: 14px; line-height: 1.5; white-space: pre-line; }
-.carnet .ar-msg.me { justify-self: end; max-width: 80%; border-radius: 10px 10px 2px 10px; background: var(--ink); color: #fff; font-weight: 550; }
+.carnet .ar-msg.me { justify-self: end; max-width: 80%; border-radius: 10px 10px 2px 10px; background: var(--ink); color: var(--on-ink); font-weight: 550; }
 .carnet .ar-msg.card { justify-self: start; border-radius: 10px 10px 10px 2px; }
-.carnet .ar-ask { position: sticky; bottom: calc(84px + env(safe-area-inset-bottom)); display: flex; gap: 8px; margin: 14px 14px 0; padding: 6px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px rgba(27, 18, 37, .08); z-index: 4; }
+.carnet .ar-ask { position: sticky; bottom: calc(84px + env(safe-area-inset-bottom)); display: flex; gap: 8px; margin: 14px 14px 0; padding: 6px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px color-mix(in srgb, var(--ink) 8%, transparent); z-index: 4; }
 .carnet .ar-ask .input { box-shadow: none; }
 .carnet .ar-ask .btn { width: 44px; padding: 0; flex: none; }
 .carnet .ar-ins { display: block; margin: 10px 14px 0; color: inherit; text-decoration: none; }

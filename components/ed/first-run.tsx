@@ -67,18 +67,18 @@ export function FirstRun() {
           className="pulse-field absolute inset-0"
           style={
             {
-              "--pulse-a": "rgba(189, 96, 23, 0.28)",
-              "--pulse-b": "rgba(124, 144, 112, 0.20)",
+              "--pulse-a": "rgba(27, 18, 37, 0.08)",
+              "--pulse-b": "rgba(27, 18, 37, 0.05)",
             } as React.CSSProperties
           }
         />
         <HorseLine
           size={130}
           stroke={0.8}
-          color="var(--border-default)"
+          color="var(--line)"
           className="pointer-events-none absolute -right-3 -top-3"
         />
-        <p className="relative text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
+        <p className="relative text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
           Bienvenue
         </p>
         <h1 className="relative mt-1 max-w-[18rem] font-[family-name:var(--font-bricolage)] text-2xl leading-tight text-primary">
@@ -99,7 +99,7 @@ export function FirstRun() {
           <button
             onClick={() => setCapacity(capacity - 1)}
             aria-label="moins"
-            className="flex size-8 items-center justify-center border border-[var(--border-strong)] text-primary"
+            className="flex size-8 items-center justify-center border border-[var(--line)] text-primary"
           >
             <Minus size={15} />
           </button>
@@ -109,7 +109,7 @@ export function FirstRun() {
           <button
             onClick={() => setCapacity(capacity + 1)}
             aria-label="plus"
-            className="flex size-8 items-center justify-center border border-[var(--border-strong)] bg-[var(--accent-primary)] text-[var(--on-accent)]"
+            className="flex size-8 items-center justify-center border border-[var(--line)] bg-[var(--ink)] text-[var(--on-ink)]"
           >
             <Plus size={15} />
           </button>
@@ -122,9 +122,9 @@ export function FirstRun() {
           <span>Tes premières étapes</span>
           <span className="tabular-nums">{doneCount}/3</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--bg-pressed)]">
+        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--mist)]">
           <motion.div
-            className="h-full bg-[var(--accent-primary)]"
+            className="h-full bg-[var(--ink)]"
             initial={{ width: 0 }}
             animate={{ width: `${(doneCount / 3) * 100}%` }}
             transition={{ duration: 0.5 }}
@@ -143,9 +143,9 @@ export function FirstRun() {
             <span
               className="flex size-7 shrink-0 items-center justify-center border text-[13px] font-bold tabular-nums"
               style={{
-                borderColor: s.done ? "var(--c-success)" : "var(--border-strong)",
-                background: s.done ? "var(--c-success)" : "transparent",
-                color: s.done ? "#fff" : "var(--text-tertiary)",
+                borderColor: s.done ? "var(--in)" : "var(--line)",
+                background: s.done ? "var(--in)" : "transparent",
+                color: s.done ? "var(--on-ink)" : "var(--ink3)",
               }}
             >
               {s.done ? <Check size={15} /> : s.n}
@@ -157,7 +157,7 @@ export function FirstRun() {
             {!s.done && s.enabled && (
               <Link
                 href={s.href}
-                className="flex shrink-0 items-center gap-1.5 btn-primary px-3 py-1.5 text-[13px] font-bold text-[var(--on-accent)]"
+                className="flex shrink-0 items-center gap-1.5 btn-primary px-3 py-1.5 text-[13px] font-bold text-[var(--on-ink)]"
               >
                 {s.cta} <ArrowRight size={14} />
               </Link>

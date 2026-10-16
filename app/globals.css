@@ -1,88 +1,54 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Be Stable — Design tokens (section 7 of the spec)
-   Dark mode is the primary, default theme.
+   Be Stable : le seul jeu de couleurs de l'app (octobre 2026).
+   Interface en papier et encre. Le vert (--in) ne dit que l'argent qui
+   rentre, le rose (--out) que l'argent qui sort, toujours avec le signe.
+   Le vert anglais et le rose casaque de la marque (--vert, --rose) sont
+   réservés aux flots et à l'aperçu de la fiche mon-ecurie.fr.
    ============================================================ */
-
 :root {
-  /* v5 « Le Livret » (octobre 2026) : papier, encre, vert anglais, rose casaque.
-     Les anciens noms de jetons sont gardés : les écrans secondaires suivent. */
-  --bg-base: #FCFBF9;
-  --bg-elevated: #FFFFFF;
-  --bg-pressed: #F1EEF3;
-  --bg-overlay: rgba(27, 18, 37, 0.4);
+  --paper: #FCFBF9; --sheet: #FFFFFF; --mist: #F4F1F5; --cream: #FDF5E6;
+  --line: #E7E2EA; --line2: #F0ECF2;
+  --ink: #1B1225; --ink2: #5A5264; --ink3: #8A8294; --on-ink: #FFFFFF;
+  --in: #17603F; --out: #A0285A; --hay: #E9C46A;
+  --scrim: rgba(27, 18, 37, .35);
+  --vert: #134E3A; --vert-deep: #0B3325; --rose: #F6B3CB; --on-vert: #BFD6CB;
 
-  --text-primary: #1B1225;
-  --text-secondary: #5A5264;
-  --text-tertiary: #7A7284;
-  --text-disabled: #B9B3C0;
-
-  --ink: #134E3A;
-  --on-ink: #FFFFFF;
-
-  --accent-primary: #134E3A;
-  --on-accent: #FFFFFF;
-  --accent-primary-soft: #E3ECE7;
-  --accent-secondary: #8FB3A3;
-
-  --c-success: #134E3A;
-  --c-success-soft: #E3ECE7;
-  --c-danger: #8E3A5C;
-  --c-danger-soft: #FCE3EC;
-  --c-warning: #8C6A35;
-  --c-warning-soft: #F5ECDC;
-
-  --border-subtle: #EAE6ED;
-  --border-default: #DCD6E0;
-  --border-strong: #C9C2CF;
-
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-
-  --shadow-card: 0 1px 2px rgba(27, 18, 37, 0.04), inset 0 0 0 1px #DCD6E0;
-  --shadow-elevated: 0 2px 4px rgba(27, 18, 37, 0.05), 0 12px 30px rgba(27, 18, 37, 0.08);
-  --shadow-floating: 0 10px 30px rgba(27, 18, 37, 0.16);
-
-  /* Le Livret */
-  --vert: #134E3A; --vert-deep: #0B3325; --vert-2: #1A5E47; --vert-soft: #E3ECE7;
-  --rose: #F6B3CB; --rose-soft: #FCE3EC; --rose-ink: #8E3A5C; --rose-line: #F2C9D8; --rose-pic: #A2476B;
-  --ink-1: #1B1225; --ink-2: #5A5264; --ink-3: #7A7284;
-  --paper: #FCFBF9; --mist: #F1EEF3; --line: #DCD6E0; --line-2: #EAE6ED;
-  --on-vert: #BFD6CB;
+  --radius-sm: 8px; --radius-md: 10px; --radius-lg: 12px; --radius-xl: 16px;
+  --shadow-card: 0 1px 2px rgba(27, 18, 37, .04), inset 0 0 0 1px var(--line);
+  --shadow-elevated: 0 2px 4px rgba(27, 18, 37, .05), 0 12px 30px rgba(27, 18, 37, .08);
+  --shadow-floating: 0 10px 30px rgba(27, 18, 37, .16);
   --ease: cubic-bezier(.22, 1, .36, 1);
+  --ease-signature: cubic-bezier(.16, 1, .3, 1);
 }
-
-/* Thème clair seul : la cour, en plein jour. */
 
 /* Map tokens into the Tailwind v4 theme so utilities like
    bg-elevated, text-secondary, text-success exist. */
 @theme inline {
-  --color-base: var(--bg-base);
-  --color-elevated: var(--bg-elevated);
-  --color-pressed: var(--bg-pressed);
+  --color-base: var(--paper);
+  --color-elevated: var(--sheet);
+  --color-pressed: var(--mist);
 
-  --color-primary: var(--text-primary);
-  --color-secondary: var(--text-secondary);
-  --color-tertiary: var(--text-tertiary);
-  --color-disabled: var(--text-disabled);
+  --color-primary: var(--ink);
+  --color-secondary: var(--ink2);
+  --color-tertiary: var(--ink3);
+  --color-disabled: var(--ink3);
 
-  --color-accent: var(--accent-primary);
-  --color-accent-soft: var(--accent-primary-soft);
-  --color-sage: var(--accent-secondary);
+  --color-accent: var(--ink);
+  --color-accent-soft: var(--mist);
+  --color-sage: var(--ink3);
 
-  --color-success: var(--c-success);
-  --color-success-soft: var(--c-success-soft);
-  --color-danger: var(--c-danger);
-  --color-danger-soft: var(--c-danger-soft);
-  --color-warning: var(--c-warning);
-  --color-warning-soft: var(--c-warning-soft);
+  --color-success: var(--in);
+  --color-success-soft: var(--mist);
+  --color-danger: var(--out);
+  --color-danger-soft: var(--mist);
+  --color-warning: var(--ink);
+  --color-warning-soft: var(--mist);
 
-  --color-border-subtle: var(--border-subtle);
-  --color-border-default: var(--border-default);
-  --color-border-strong: var(--border-strong);
+  --color-border-subtle: var(--line2);
+  --color-border-default: var(--line);
+  --color-border-strong: var(--line);
 
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
@@ -90,12 +56,12 @@
   --radius-xl: var(--radius-xl);
 
   --font-sans: var(--font-bricolage);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-plex);
   --font-display: var(--font-bricolage);
 }
 
 * {
-  border-color: var(--border-default);
+  border-color: var(--line);
 }
 
 html {
@@ -104,8 +70,8 @@ html {
 }
 
 body {
-  background: var(--bg-base);
-  color: var(--text-primary);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--font-bricolage), system-ui, sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
@@ -120,25 +86,14 @@ body {
   font-feature-settings: "tnum";
 }
 
-/* ============================================================
-   v3 — la couche sensorielle. Le "pouls" : un champ de couleur
-   vivant dont la teinte EST l'état de santé de l'écurie.
-   ============================================================ */
-:root {
-  --ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
-  /* Teintes du pouls (surchargées inline selon la santé). */
-  --pulse-a: rgba(189, 96, 23, 0.2);
-  --pulse-b: rgba(124, 144, 112, 0.18);
-}
-
 /* La carte : papier flottant, grand arrondi, ombre douce. */
 .card {
-  background: var(--bg-elevated);
+  background: var(--sheet);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
 }
 
-/* Le panneau d'encre : vert chasse, texte ivoire. */
+/* Le panneau d'encre. */
 .ink-panel {
   background: var(--ink);
   color: var(--on-ink);
@@ -146,7 +101,7 @@ body {
   box-shadow: var(--shadow-elevated);
 }
 
-/* Titre de section : serif italique, fini les petites capitales. */
+/* Titre de section. */
 .title-serif {
   font-family: var(--font-bricolage);
   font-weight: 640;
@@ -154,11 +109,11 @@ body {
   font-variation-settings: "wdth" 90;
 }
 
-/* Bouton principal : pilule cognac. */
+/* Bouton principal : pilule d'encre. */
 .btn-primary {
   border-radius: 999px;
-  background: var(--accent-primary);
-  color: var(--on-accent);
+  background: var(--ink);
+  color: var(--on-ink);
   font-weight: 700;
   box-shadow: var(--shadow-elevated);
 }
@@ -170,13 +125,13 @@ body {
 /* Pilule fantôme. */
 .btn-ghost {
   border-radius: 999px;
-  border: 1px solid var(--border-strong);
-  color: var(--text-primary);
+  border: 1px solid var(--line);
+  color: var(--ink);
   font-weight: 700;
 }
 
 /* ============================================================
-   Physique d'interaction — tout élément touchable a une masse.
+   Physique d'interaction : tout élément touchable a une masse.
    (taste-skill : jamais d'état instantané, jamais de linear.)
    ============================================================ */
 button,
@@ -196,11 +151,17 @@ a:active,
   transform: scale(0.97);
 }
 
-/* Clavier : un anneau cognac net, jamais l'outline par défaut. */
+/* Clavier : un anneau d'encre net, jamais l'outline par défaut. */
 :focus-visible {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* Sélection de texte : une brume d'encre, jamais le rose (réservé à l'argent qui sort). */
+::selection {
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+  color: var(--ink);
 }
 
 /* Pas de mot orphelin sous un grand titre. */
@@ -208,18 +169,6 @@ h1,
 h2,
 h3 {
   text-wrap: balance;
-}
-
-/* Le plateau : l'enceinte externe du double-bezel (carte posée dans
-   son écrin, comme une plaque de verre dans un plateau usiné). */
-.tray {
-  border-radius: 30px;
-  padding: 6px;
-  background: rgba(27, 36, 30, 0.05);
-  box-shadow: inset 0 0 0 1px var(--border-subtle);
-}
-:root[data-theme="dark"] .tray {
-  background: rgba(242, 239, 228, 0.04);
 }
 
 @keyframes pulse-drift {
@@ -250,6 +199,8 @@ h3 {
 }
 
 .pulse-field {
+  --pulse-a: rgba(27, 18, 37, .06);
+  --pulse-b: rgba(27, 18, 37, .04);
   background-image:
     radial-gradient(ellipse 90% 70% at 20% 20%, var(--pulse-a), transparent 62%),
     radial-gradient(ellipse 85% 75% at 80% 80%, var(--pulse-b), transparent 60%);
@@ -257,7 +208,7 @@ h3 {
   animation: pulse-drift 16s var(--ease-signature) infinite alternate;
 }
 
-/* Grain fin sur les aplats — l'anti-générique. */
+/* Grain fin sur les aplats, l'anti-générique. */
 .grain {
   position: relative;
 }
@@ -269,15 +220,6 @@ h3 {
   background-size: 4px 4px;
   pointer-events: none;
 }
-:root[data-theme="dark"] .grain::after {
-  background-image: radial-gradient(rgba(245, 242, 234, 0.04) 1px, transparent 1px);
-}
-
-/* Filet — la seule ligne autorisée quand l'espace ne suffit pas. */
-.hairline {
-  border-top: 1px solid var(--border-default);
-}
-
 ::-webkit-scrollbar {
   width: 0;
   height: 0;
@@ -291,49 +233,3 @@ h3 {
     transition-duration: 0.001ms !important;
   }
 }
-
-/* ============================================================
-   Prototype skin — direction éditoriale (inspirée OCITE) :
-   bords carrés, lignes fines, beaucoup d'air. Scopée à /proto.
-   ============================================================ */
-.proto-skin {
-  --o-bg: #fbf6e9;
-  --o-paper: #ffffff;
-  --o-yellow: #f3c63f;
-  --o-yellow-2: #f8db78;
-  --o-ink: #17150d;
-  --o-line: rgba(23, 21, 13, 0.14);
-  --o-line-strong: rgba(23, 21, 13, 0.28);
-  --o-muted: #6f6a5b;
-  --o-accent: #e8743b;
-  --o-green: #2f7d50;
-  --o-red: #c0432e;
-  --o-blue: #dde8f3;
-  --o-rose: #f6e2da;
-  --o-mint: #dcefe1;
-  --o-lilac: #e7e3f3;
-  color: var(--o-ink);
-  background: var(--o-bg);
-  font-family: var(--font-hanken), system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-.proto-skin h1,
-.proto-skin h2,
-.proto-skin h3 {
-  letter-spacing: -0.025em;
-}
-
-/* Mot en contour, à la "Cycle" d'OCITE */
-.proto-outline {
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--o-ink);
-}
-
-/* Grain léger pour l'effet éditorial sur les aplats */
-.proto-grain {
-  background-image: radial-gradient(rgba(23, 21, 13, 0.05) 1px, transparent 1px);
-  background-size: 4px 4px;
-}
-

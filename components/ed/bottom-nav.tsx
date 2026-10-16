@@ -45,7 +45,7 @@ export function BottomNav() {
         >
           <span
             className="flex size-12 items-center justify-center rounded-full transition-transform active:scale-90"
-            style={{ background: "var(--accent-primary)", color: "var(--on-accent)" }}
+            style={{ background: "var(--ink)", color: "var(--on-ink)" }}
           >
             <Mic size={23} strokeWidth={2} />
           </span>

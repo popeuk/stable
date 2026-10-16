@@ -44,7 +44,7 @@ const AIDES: Record<string, Aide> = {
     titre: "Ce que chaque cheval te laisse",
     points: [
       "Pour chaque cheval : ce qu’on te paie pour lui, moins ses soins, moins sa part des frais communs (foin, paille, loyer…).",
-      "En vert, il te rapporte. En rose, il te coûte plus qu’il ne te paie.",
+      "En vert, ce qu’il te rapporte. En rose, ce qui sort de ta poche.",
       "Passe sur « Clients » pour voir qui te fait le plus de chiffre d’affaires ce mois.",
     ],
   },

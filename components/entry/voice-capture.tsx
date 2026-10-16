@@ -34,7 +34,7 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
       className="fixed inset-0 z-[60] flex flex-col items-center justify-center px-8"
-      style={{ background: "var(--bg-overlay)" }}
+      style={{ background: "var(--scrim)" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -46,13 +46,13 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
           </p>
           <motion.div
             className="flex size-40 items-center justify-center rounded-full"
-            style={{ background: "var(--c-danger-soft)" }}
+            style={{ background: "var(--mist)" }}
             animate={{ scale: [1, 1.12, 1] }}
             transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
           >
             <motion.div
               className="size-24 rounded-full"
-              style={{ background: "var(--c-danger)" }}
+              style={{ background: "var(--out)" }}
               animate={{ opacity: [0.6, 1, 0.6] }}
               transition={{ repeat: Infinity, duration: 1.4 }}
             />
@@ -84,8 +84,8 @@ export function VoiceCapture({ onClose }: { onClose: () => void }) {
             </button>
             <button
               onClick={onClose}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] py-3 text-sm font-medium text-[var(--on-accent)]"
-              style={{ background: "var(--accent-primary)" }}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] py-3 text-sm font-medium text-[var(--on-ink)]"
+              style={{ background: "var(--ink)" }}
             >
               <Check size={16} /> C’est bon
             </button>

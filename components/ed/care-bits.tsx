@@ -83,10 +83,10 @@ export function DeadlineRow({
   const logCare = useDataStore((s) => s.logCare);
   const color =
     d.status === "overdue"
-      ? "var(--c-danger)"
+      ? "var(--out)"
       : d.status === "soon"
-        ? "var(--c-warning)"
-        : "var(--text-tertiary)";
+        ? "var(--ink)"
+        : "var(--ink3)";
   const today = localToday();
   // Le RDV proposé : l'échéance — et jamais avant demain, pour qu'il reste
   // un rendez-vous à confirmer, pas un acte déjà fait.
@@ -99,9 +99,9 @@ export function DeadlineRow({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-      className="flex items-center gap-3 border-b border-[var(--border-default)] py-3"
+      className="flex items-center gap-3 border-b border-[var(--line)] py-3"
     >
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-full" style={{ color, background: "var(--bg-pressed)" }}>
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full" style={{ color, background: "var(--mist)" }}>
         <CareIcon kind={d.kind} />
       </span>
       <Link href={`/ticket?id=${d.horseId}`} className="min-w-0 flex-1">
@@ -161,7 +161,7 @@ export function AgendaRow({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-      className="flex items-center gap-3 border-b border-[var(--border-default)] py-3"
+      className="flex items-center gap-3 border-b border-[var(--line)] py-3"
     >
       <span
         className="flex size-8 shrink-0 items-center justify-center rounded-full"
@@ -215,7 +215,7 @@ export function SessionRow({
     names.length <= 2 ? names.join(", ") : `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
   const when = sessionWhen(s);
   const tone =
-    when.tone === "late" ? "var(--c-warning)" : when.tone === "today" ? "var(--text-primary)" : "var(--text-secondary)";
+    when.tone === "late" ? "var(--ink)" : when.tone === "today" ? "var(--ink)" : "var(--ink2)";
   const today = localToday();
   const actualDate = s.date <= today ? s.date : today;
   const revenue = s.events[0]?.revenue;
@@ -248,7 +248,7 @@ export function SessionRow({
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-        className="flex items-center gap-3 border-b border-[var(--border-default)] py-3"
+        className="flex items-center gap-3 border-b border-[var(--line)] py-3"
       >
         <span
           className="flex size-8 shrink-0 items-center justify-center rounded-full"
@@ -285,7 +285,7 @@ export function SessionRow({
             <button
               aria-label="Fermer"
               className="absolute inset-0"
-              style={{ background: "var(--bg-overlay)" }}
+              style={{ background: "var(--scrim)" }}
               onClick={() => setSheet(false)}
             />
             <motion.div
@@ -296,7 +296,7 @@ export function SessionRow({
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 380, damping: 34 }}
             >
-              <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--border-strong)]" />
+              <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line)]" />
               <p className="title-serif text-[20px] text-primary">
                 {CARE_META[s.kind].label}
                 {s.label ? ` · ${s.label}` : ""}
@@ -313,13 +313,13 @@ export function SessionRow({
                     <li key={e.id}>
                       <button
                         onClick={() => toggle(e.horseId)}
-                        className="flex w-full items-center gap-3 border-b border-[var(--border-default)] py-2.5"
+                        className="flex w-full items-center gap-3 border-b border-[var(--line)] py-2.5"
                       >
                         <HorseAvatar name={horseName(e.horseId)} size={30} />
                         <span
                           className="flex-1 text-left text-[15px] font-bold"
                           style={{
-                            color: on ? "var(--text-primary)" : "var(--text-disabled)",
+                            color: on ? "var(--ink)" : "var(--ink3)",
                             textDecoration: on ? "none" : "line-through",
                           }}
                         >
@@ -328,9 +328,9 @@ export function SessionRow({
                         <span
                           className="flex size-6 items-center justify-center rounded-full border"
                           style={{
-                            background: on ? "var(--c-success)" : "transparent",
-                            borderColor: on ? "var(--c-success)" : "var(--border-strong)",
-                            color: "#fff",
+                            background: on ? "var(--in)" : "transparent",
+                            borderColor: on ? "var(--in)" : "var(--line)",
+                            color: "var(--on-ink)",
                           }}
                         >
                           {on && <Check size={14} strokeWidth={3} />}
@@ -343,8 +343,8 @@ export function SessionRow({
 
               <button
                 onClick={confirm}
-                className="btn-primary mt-5 flex w-full items-center justify-center gap-2 py-3.5 text-[15px] text-[var(--on-accent)]"
-                style={present.size === 0 ? { background: "var(--c-danger)" } : undefined}
+                className="btn-primary mt-5 flex w-full items-center justify-center gap-2 py-3.5 text-[15px] text-[var(--on-ink)]"
+                style={present.size === 0 ? { background: "var(--out)" } : undefined}
               >
                 <Check size={18} />
                 {present.size === 0

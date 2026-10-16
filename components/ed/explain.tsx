@@ -44,7 +44,7 @@ export function Explain({
         <button
           onClick={reveal}
           aria-label={`Comprendre : ${lesson.title}`}
-          className="inline-flex size-[18px] items-center justify-center border border-[var(--border-strong)] text-tertiary"
+          className="inline-flex size-[18px] items-center justify-center border border-[var(--line)] text-tertiary"
         >
           <HelpCircle size={11} />
         </button>
@@ -57,7 +57,7 @@ export function Explain({
       <button
         onClick={reveal}
         className={cn(
-          "underline decoration-dotted decoration-[var(--accent-primary)] underline-offset-[3px] transition-colors hover:text-[var(--accent-primary)]",
+          "underline decoration-dotted decoration-[var(--ink)] underline-offset-[3px] transition-colors hover:text-[var(--ink)]",
           className,
         )}
       >
@@ -79,7 +79,7 @@ export function Explain({
             <button
               aria-label="Fermer"
               className="absolute inset-0"
-              style={{ background: "var(--bg-overlay)" }}
+              style={{ background: "var(--scrim)" }}
               onClick={() => setOpen(false)}
             />
             <motion.div
@@ -91,9 +91,9 @@ export function Explain({
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 380, damping: 34 }}
             >
-              <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--border-strong)]" />
+              <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line)]" />
               <div className="flex items-start justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--accent-primary)]">
+                <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
                   Notion · 2 min
                 </span>
                 <button onClick={() => setOpen(false)} aria-label="Fermer" className="text-tertiary">
@@ -109,8 +109,8 @@ export function Explain({
               </p>
 
               {lesson.yourData && (
-                <div className="mt-4 border border-[var(--border-strong)] bg-base p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--accent-primary)]">
+                <div className="mt-4 border border-[var(--line)] bg-base p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--ink)]">
                     Pour toi, ce mois
                   </p>
                   <p className="mt-1.5 text-[15px] leading-relaxed text-primary">
@@ -122,9 +122,9 @@ export function Explain({
               <p className="mt-5 text-[11px] font-bold uppercase tracking-wide text-tertiary">
                 Ce que tu peux faire
               </p>
-              <div className="mt-2 border-t border-[var(--border-default)]">
+              <div className="mt-2 border-t border-[var(--line)]">
                 {lesson.whatToDo.map((t, i) => (
-                  <div key={i} className="flex gap-3 border-b border-[var(--border-default)] py-3">
+                  <div key={i} className="flex gap-3 border-b border-[var(--line)] py-3">
                     <span className="text-[13px] font-bold tabular-nums text-tertiary">
                       {String(i + 1).padStart(2, "0")}
                     </span>
