@@ -103,6 +103,17 @@ export function AideCarte({ compact }: { compact?: boolean }) {
   const voir = useSettingsStore((s) => s.voirAide);
   const { ouverte, fermer } = useAideOuverte();
   useEffect(() => fermer(), [path, fermer]);
+  // La ligne d'aide de l'accueil a été montrée : en quittant l'accueil, elle compte comme vue.
+  useEffect(() => {
+    if (compact || clean(path) === "/accueil") return;
+    try {
+      const vue = sessionStorage.getItem(MONTREE);
+      if (vue) {
+        sessionStorage.removeItem(MONTREE);
+        voir(vue);
+      }
+    } catch {}
+  }, [path, compact, voir]);
   if (!aide) return null;
   const demandee = ouverte === aide.id;
   // Sur l'accueil, la carte vit sous le chiffre (compact) : la coque ne la montre pas en tête.
@@ -135,11 +146,15 @@ export function AideCarte({ compact }: { compact?: boolean }) {
   );
 }
 
-/** L'aide de la première visite, en une ligne qui se déplie. Montrée une fois : en quittant l'écran, elle est vue. */
+const MONTREE = "be-stable-aide-montree";
+/** L'aide de la première visite, en une ligne qui se déplie. Montrée une fois : en quittant l'accueil, elle est vue (la coque s'en charge). */
 function AideLigne({ aide, ok }: { aide: Aide; ok: () => void }) {
   const [deplie, setDeplie] = useState(false);
-  const voir = useSettingsStore((s) => s.voirAide);
-  useEffect(() => () => voir(aide.id), [aide.id, voir]);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(MONTREE, aide.id);
+    } catch {}
+  }, [aide.id]);
   return (
       <section className="aide compact" aria-label="Comment ça marche ici">
         <button type="button" className="aide-l" aria-expanded={deplie} onClick={() => setDeplie(!deplie)}>
