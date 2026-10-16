@@ -9,26 +9,23 @@ import { dayItems } from "@/lib/domain/seances";
 import { aCompteLe } from "@/lib/domain/compte-auto";
 import { addDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
-import { phraseObjectif, useCompte, useMois } from "@/components/bs/compteur";
-import { LigneComptee } from "@/components/bs/compte";
+import { dIciFin, phraseObjectif, useCompte, useMois } from "@/components/bs/compteur";
+import { LigneComptee, useDebutant } from "@/components/bs/compte";
 import { Ill, Money, eur, sg } from "@/components/carnet/ui";
 
 /**
- * La tournée du matin : une fois par jour, à la première ouverture de
- * l'accueil, 30 secondes en trois étapes. Hier, ce qui a compté (tout seul,
- * avec × pour retirer ce qui n'a pas eu lieu), Aujourd'hui (ce qui t'attend,
- * à regarder), Ton mois (le compteur qui compte depuis la dernière tournée).
- * « Passer » toujours en haut. Si rien n'a compté hier et rien n'est prévu,
- * elle ne s'ouvre pas.
- * Se souvient, sur cet appareil et par compte, du jour et du chiffre de la
- * dernière tournée.
+ * La tournée du matin : 30 secondes en trois étapes, quand on la demande
+ * (la ligne « Hier : … ont compté » de l'accueil, ou Réglages). Elle ne
+ * s'ouvre jamais toute seule. Hier, ce qui a compté (tout seul, avec × pour
+ * retirer ce qui n'a pas eu lieu), Aujourd'hui (ce qui t'attend, à
+ * regarder), Ton mois (le compteur qui compte depuis la dernière tournée).
+ * « Passer » toujours en haut. Se souvient, sur cet appareil et par compte,
+ * du jour et du chiffre de la dernière tournée.
  */
 
 type Etape = "hier" | "aujourdhui" | "mois";
 const NOMS: Record<Etape, string> = { hier: "Hier", aujourdhui: "Aujourd’hui", mois: "Ton mois" };
 
-/** Ce qui a compté hier : séances et soins faits (pas les tâches). */
-const hier = (today: string) => aCompteLe(useDataStore.getState(), addDays(today, -1), today, hhmm());
 interface Vu {
   date: string;
   net: number;
@@ -56,44 +53,13 @@ const hhmm = () => {
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const pl = (n: number, w: string) => `${n} ${w}${n > 1 ? "s" : ""}`;
 
-/** Posée dans l'accueil : décide à l'ouverture, ou se rouvre depuis le rond. */
+/** Posée une fois dans la coque de l'app : s'ouvre quand on la demande. */
 export function Tournee() {
   const ready = useDataStore((s) => s.hydrated);
-  const forced = useUiStore((s) => s.tourneeOpen);
-  const closeForced = useUiStore((s) => s.closeTournee);
-  const { net } = useMois();
-  const [auto, setAuto] = useState<null | { prev: Vu | null }>(null);
-  const decide = useRef(false);
-
-  // Une seule décision par ouverture de l'accueil, une fois les données là.
-  useEffect(() => {
-    if (!ready || decide.current) return;
-    decide.current = true;
-    const vu = lire();
-    const today = localToday();
-    if (vu?.date === today) return;
-    // Ce qui est passé compte d'abord (idempotent) : « Hier » le montre déjà compté.
-    useDataStore.getState().compterLePasse(today, hhmm());
-    const items = dayItems(useDataStore.getState(), today, today, hhmm()).filter((i) => !i.done);
-    if (!hier(today).length && !items.length) {
-      ecrire({ date: today, net });
-      return;
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAuto({ prev: vu });
-  }, [ready, net]);
-
-  const open = forced || !!auto;
+  const open = useUiStore((s) => s.tourneeOpen);
+  const close = useUiStore((s) => s.closeTournee);
   if (!open || !ready) return null;
-  return (
-    <TourneeEcran
-      prev={auto?.prev ?? lire()}
-      onClose={() => {
-        setAuto(null);
-        closeForced();
-      }}
-    />
-  );
+  return <TourneeEcran prev={lire()} onClose={close} />;
 }
 
 function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void }) {
@@ -103,6 +69,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
   const items = useMemo(() => dayItems(data, today, today, hhmm()), [data, today]);
   const restants = items.filter((i) => !i.done);
   const veille = useMemo(() => aCompteLe(data, addDays(today, -1), today, hhmm()), [data, today]);
+  const debutant = useDebutant();
   const totalHier = veille.reduce((t, it) => t + (it.money ?? 0), 0);
 
   // Les étapes se fixent à l'ouverture : retirer une ligne ne fait pas sauter « Hier ».
@@ -147,7 +114,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
 
   const recap = [
     ...(etapes.includes("hier") ? [veille.length ? `Hier, ${pl(veille.length, "ligne")} ${veille.length > 1 ? "ont" : "a"} compté : ${sg(totalHier)}.` : "Hier, plus rien ne compte."] : []),
-    ...(restants.length ? [`${restants.length > 1 ? `${restants.length} choses` : "Une chose"} au planning aujourd’hui.`] : []),
+    ...(restants.length ? [`Encore ${restants.length > 1 ? `${restants.length} choses` : "une chose"} au planning aujourd’hui.`] : []),
     `Ce mois, ${mois.net < 0 ? "il te manque" : "il te reste"} ${sg(mois.net)}.`,
   ];
 
@@ -211,7 +178,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                       <LigneComptee key={it.key} it={it} />
                     ))}
                   </div>
-                  <p className="ac-mnote cp-hint">Pas eu lieu ? Retire la ligne.</p>
+                  {debutant && <p className="ac-mnote cp-hint">Pas eu lieu ? Retire la ligne.</p>}
                 </>
               )}
               <button type="button" className="btn full" onClick={suivant}>
@@ -266,7 +233,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                 ) : null}
                 {Math.round(mois.prevu) > 0 ? (
                   <>
-                    Encore <Money v={mois.prevu} /> prévu au planning.
+                    Encore {sg(mois.prevu)} prévu au planning {dIciFin()}.
                   </>
                 ) : null}
               </p>
@@ -301,7 +268,7 @@ function MoisQuiCompte({ depuis }: { depuis: number }) {
           <span className={`big ${tone}`}>
             <span className="num">{sg(v)}</span>
           </span>
-          <span className="ac-sub">{phraseObjectif(net, objective)}</span>
+          {objective > 0 && <span className="ac-sub">{phraseObjectif(net, objective)}</span>}
         </span>
         {objective > 0 && (
           <>

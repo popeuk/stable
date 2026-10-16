@@ -158,7 +158,7 @@ function useNet() {
 }
 
 /**
- * La barre d'onglets : Accueil, Planning, +, Clients et chevaux (en fin de
+ * La barre d'onglets : Accueil, Planning, +, Clients (les clients et leurs chevaux ; en fin de
  * mois seulement, le nombre de clients qui te doivent encore), Mon mois (le chiffre du mois, qui compte quand il
  * change, et un « +X € » qui s'envole quand de l'argent rentre).
  */
@@ -207,7 +207,7 @@ export function TabBar() {
         >
           <Ic n="plus" />
         </button>
-        <Link href="/chevaux" aria-current={on(CLIENTS_CHEVAUX)} aria-label={`Clients et chevaux${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
+        <Link href="/chevaux" aria-current={on(CLIENTS_CHEVAUX)} aria-label={`Clients${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
           <span className="ac-ic">
             <Ic n="people" />
             {count > 0 && (
@@ -216,11 +216,7 @@ export function TabBar() {
               </em>
             )}
           </span>
-          <span className="ac-two" aria-hidden="true">
-            Clients et
-            <br />
-            chevaux
-          </span>
+          <span aria-hidden="true">Clients</span>
         </Link>
         <Link href="/argent" aria-current={on(BILAN)} aria-label={`Mon mois : ${net < 0 ? "il te manque" : "il te reste"} ${sg(net)}`} className="ac-mois">
           <Ic n="chart" />
@@ -238,12 +234,45 @@ export function TabBar() {
   );
 }
 
+/** Ce que le message ne doit jamais couvrir : la barre du bas, les pieds d'action, le bandeau « Garde-les ». */
+const PIEDS = ".tb, .foot, .es-keep, .nt-stick, .ch-stick, .sheet .btn.full";
+
+/**
+ * Le message du bas (« Étape franchie », « Annuler »). Il se pose au-dessus
+ * du plus haut pied d'action visible en bas de l'écran : il ne recouvre
+ * jamais un bouton.
+ */
 export function ToastHost() {
   const toast = useUiStore((s) => s.toast);
   const dismiss = useUiStore((s) => s.dismiss);
+  const [bas, setBas] = useState<number | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const placer = () => {
+      const h = window.innerHeight;
+      let haut = h;
+      document.querySelectorAll<HTMLElement>(PIEDS).forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (!r.width || !r.height || r.bottom <= h * 0.45 || r.top >= h) return;
+        haut = Math.min(haut, r.top);
+      });
+      setBas(haut < h ? h - haut + 10 : null);
+    };
+    const raf = requestAnimationFrame(placer);
+    // L'écran peut changer sous le message (un écran suivant, une feuille qui s'ouvre) : on replace.
+    const t = setInterval(placer, 200);
+    window.addEventListener("scroll", placer, { passive: true });
+    window.addEventListener("resize", placer);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(t);
+      window.removeEventListener("scroll", placer);
+      window.removeEventListener("resize", placer);
+    };
+  }, [toast]);
   if (!toast) return null;
   return (
-    <div className="toast" role="status" aria-live="polite" key={toast.id}>
+    <div className="toast" role="status" aria-live="polite" key={toast.id} style={bas != null ? { bottom: bas } : undefined}>
       <p dangerouslySetInnerHTML={{ __html: toast.html }} />
       {toast.undo && (
         <button

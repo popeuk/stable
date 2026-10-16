@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, Suspense, useMemo, useState } from "react";
+import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { cap } from "@/components/bs/ui";
@@ -11,10 +11,11 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { reconciledNets, monthBreakdown, horseTicket } from "@/lib/domain/ticket";
 import { suggestions } from "@/lib/domain/leviers";
 import { useDesk } from "@/components/bs/desk";
+import { useAideIci } from "@/components/bs/nav";
 import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
 import { useRouter, useSearchParams } from "next/navigation";
 import { accord, clientDues, prenomDe, type ClientDue } from "@/lib/domain/clients";
-import { monthKey } from "@/lib/domain/billing";
+import { billsFor, monthKey } from "@/lib/domain/billing";
 import { clientsAFairePayer } from "@/lib/domain/compte-auto";
 import { addMonths, currentPeriod, daysInMonth } from "@/lib/utils/period";
 import { CARE_META, upcomingDeadlines, type Deadline } from "@/lib/domain/care";
@@ -22,7 +23,7 @@ import { localToday } from "@/lib/utils/local-date";
 import type { Horse, Period, PersonRole } from "@/lib/domain/types";
 
 /**
- * Clients et chevaux : un onglet, deux vues.
+ * Clients : un onglet, deux vues.
  * Clients (en premier) : qui te doit quoi, trié par ce qu'ils doivent, et
  * le bandeau de fin de mois. Chevaux : le cheval à surveiller en tête,
  * puis ce que chacun te laisse. `?vue=chevaux` ouvre les chevaux.
@@ -58,6 +59,12 @@ function Vues() {
       ]}
     />
   );
+  // L'aide du « ? » suit l'onglet visible.
+  const poser = useAideIci((s) => s.poser);
+  useEffect(() => {
+    poser(vue);
+    return () => poser(null);
+  }, [vue, poser]);
   return vue === "clients" ? <Clients bascule={bascule} /> : <Chevaux bascule={bascule} />;
 }
 
@@ -76,7 +83,7 @@ function NetPill({ v }: { v: number }) {
 function Haut({ bascule }: { bascule: React.ReactNode }) {
   return (
     <>
-      <h1 className="ch-sr">Clients et chevaux</h1>
+      <h1 className="ch-sr">Clients</h1>
       <div className="ch-cchd">{bascule}</div>
     </>
   );
@@ -86,6 +93,11 @@ function Haut({ bascule }: { bascule: React.ReactNode }) {
 /* Tes clients : qui te doit quoi, du plus gros au plus petit           */
 /* ------------------------------------------------------------------ */
 
+/** « d’octobre », « de mai ». */
+const deMoisDe = (p: Period) => {
+  const m = new Date(p.year, p.month - 1, 15).toLocaleDateString("fr-FR", { month: "long" });
+  return /^[aeiouyéè]/i.test(m) ? `d’${m}` : `de ${m}`;
+};
 const MOIS_COURT = (p: Period) => cap(new Date(p.year, p.month - 1, 15).toLocaleDateString("fr-FR", { month: "long" }));
 const ficheDe = (name: string, mois?: string) => `/client?nom=${encodeURIComponent(name)}${mois ? `&mois=${mois}` : ""}`;
 
@@ -256,6 +268,22 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
   ) : (
     "Personne ne te doit rien."
   );
+  // En milieu de mois, ce qui est dû est surtout la pension du mois en cours : on le dit, pour rassurer.
+  const finDuMois = useMemo(() => clientsAFairePayer(data, today), [data, today]);
+  const pensions = useMemo(
+    () =>
+      billsFor(data, period)
+        .filter((b) => b.payer !== "Sans propriétaire")
+        .reduce((t, b) => t + Math.min(b.due, b.lines.filter((l) => /pension/i.test(l.label)).reduce((u, l) => u + l.amount, 0)), 0),
+    [data, period],
+  );
+  const rassure =
+    n > 0 && !finDuMois ? (
+      <p className="cl-ras">
+        {Math.round(pensions) > 0 ? `Dont ${eur(pensions)} de pensions ${deMoisDe(period)}, réglées d’habitude en fin de mois. ` : "Le mois est en cours : la plupart règlent à la fin. "}
+        Normal à cette date.
+      </p>
+    ) : null;
   const search = (
     <label className="input ch-search">
       <Ic n="search" className="" />
@@ -289,6 +317,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
             <p className="k">{moisDe()}</p>
             <h3>Tes clients</h3>
             <p>{sub}</p>
+            {rassure}
           </div>
           {ajouter}
         </div>
@@ -343,8 +372,15 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
       <Haut bascule={bascule} />
       <FinDuMois today={today} />
       <div className="cl-ttl rise">
-        <h3>Tes clients</h3>
-        <p>{sub}</p>
+        <p className="k">Tes clients</p>
+        {n ? (
+          <h3>
+            {n} te {n > 1 ? "doivent" : "doit"} <span className="num">{eur(total)}</span>
+          </h3>
+        ) : (
+          <h3>Personne ne te doit rien.</h3>
+        )}
+        {rassure}
       </div>
       {rows.length > 6 && <div className="cl-find">{search}</div>}
       {owe.length > 0 && (
@@ -444,6 +480,8 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
   const nets = useMemo(() => reconciledNets(data, period), [data, period]);
   const m = useMemo(() => monthBreakdown(data, period), [data, period]);
   const horses = data.horses.filter((h) => !h.isArchived);
+  // Ce que les chevaux laissent, à eux seuls : la somme de leurs tickets (l'argent hors chevaux n'y est pas).
+  const net = horses.reduce((t, h) => t + (nets[h.id] ?? 0), 0);
   const anon = horses.filter(sansNom);
   const sorted = [...horses].sort((a, b) => (nets[b.id] ?? 0) - (nets[a.id] ?? 0));
   const pos = sorted.filter((h) => (nets[h.id] ?? 0) > 0);
@@ -491,9 +529,9 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
         <div className="dhead rise">
           <div>
             <p className="k">{month}</p>
-            <h3>Clients et chevaux</h3>
+            <h3>Tes chevaux</h3>
             <p>
-              Ce mois, tes chevaux {m.net >= 0 ? "te laissent" : "te coûtent"} <Money v={m.net} /> à eux tous, une fois leurs frais payés. Clique un cheval pour voir le détail.
+              Ce mois, tes chevaux {net >= 0 ? "te laissent" : "te coûtent"} <Money v={net} /> à eux tous, une fois leurs frais payés. Clique un cheval pour voir le détail.
             </p>
           </div>
           <Link href={ajouter} className="btn">
@@ -585,21 +623,21 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
   return (
     <Ecran>
       <Haut bascule={bascule} />
-      <ASurveiller delay={0.06} />
-      <ANommer horses={anon} delay={0.1} />
       {n > 0 && (
-        <div className="hello rise" style={{ animationDelay: ".14s" }}>
+        <div className="hello rise" style={{ animationDelay: ".06s" }}>
           <p className="ch-over0">{month}</p>
           <h3>
-            {n === 1 ? "Ton cheval" : `Tes ${n} chevaux`} {m.net >= 0 ? (n === 1 ? "te laisse" : "te laissent") : n === 1 ? "te coûte" : "te coûtent"}{" "}
-            <span className={m.net >= 0 ? "in" : "out"}>
-              <CountUp value={m.net} />
+            {n === 1 ? "Ton cheval" : `Tes ${n} chevaux`} {net >= 0 ? (n === 1 ? "te laisse" : "te laissent") : n === 1 ? "te coûte" : "te coûtent"}{" "}
+            <span className={Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "num"}>
+              <CountUp value={net} />
             </span>{" "}
             ce mois.
           </h3>
           <p>Une fois leurs soins et leur part des frais communs payés. Touche un cheval pour voir son ticket.</p>
         </div>
       )}
+      <ASurveiller delay={0.12} />
+      <ANommer horses={anon} delay={0.14} />
       {n > 0 && (
         <div className="pad rise" style={{ animationDelay: ".2s", paddingTop: 12 }}>
           {chips}

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { cap, signed } from "@/components/bs/ui";
 import { Ic, sg } from "@/components/carnet/ui";
-import { moneyCls, useCheck } from "@/components/bs/day-block";
+import { aCompte, moneyCls, useCheck } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { dayItems, seanceAmount, type DayItem } from "@/lib/domain/seances";
@@ -62,7 +62,7 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days[0]]);
 
-  const label = (it: DayItem) => `${it.start ? `${it.start}${it.end ? `-${it.end}` : ""} · ` : ""}${it.title}${it.sub ? `, ${it.sub}` : ""}${it.money ? `, ${signed(it.money)}` : ""}`;
+  const label = (it: DayItem) => `${it.start ? `${it.start}${it.end ? `-${it.end}` : ""} · ` : ""}${it.title}${it.sub ? `, ${it.sub}` : ""}${it.money ? `, ${signed(it.money)}` : ""}${aCompte(it) ? ", a compté" : ""}`;
   const open = (it: DayItem) => {
     if (it.seance) openSeance(it.seance.id);
     else if (it.task && !it.done) check(it);
@@ -161,8 +161,8 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
                 >
                   <b>
                     <span>{it.title}</span>
-                    {it.done ? (
-                      <span className="dk">
+                    {it.done || aCompte(it) ? (
+                      <span className="dk" aria-hidden="true">
                         <Ic n="ck" className="" />
                       </span>
                     ) : short ? (

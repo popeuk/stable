@@ -5,8 +5,8 @@ import { Promo } from "@/components/carnet/ui";
 import { getSession, type Session } from "@/lib/account/session";
 
 /**
- * L'encart mon-ecurie.fr de l'accueil : de la promo assumée, toujours en
- * dernier. Le message suit où en est le gérant : pas encore de fiche (la
+ * L'encart mon-ecurie.fr de l'accueil : de la promo assumée, réduite et
+ * toujours en dernier, jamais dans l'écurie d'exemple. Le message suit où en est le gérant : pas encore de fiche (la
  * reprendre), fiche en vérification (préparer la suite), fiche en ligne (la
  * tenir à jour). Rien de promis que le site ne tient pas : un annuaire,
  * gratuit, sans commission. « Plus tard » le cache quinze jours. En tête,
@@ -27,7 +27,8 @@ function enPause() {
 export function PromoMonEcurie({ small }: { small?: boolean }) {
   // L'accueil n'est rendu que dans le navigateur (ClientGate) : on lit tout de suite.
   const [etat, setEtat] = useState<{ s: Session | null; cache: boolean }>(() => ({ s: getSession(), cache: enPause() }));
-  if (etat.cache) return null;
+  // L'écurie d'exemple n'a pas de fiche à reprendre : pas d'encart.
+  if (etat.cache || etat.s?.kind === "demo") return null;
 
   const listing = etat.s?.kind === "compte" ? etat.s.listing : null;
   const statut = listing?.status ?? "aucune";
@@ -56,7 +57,10 @@ export function PromoMonEcurie({ small }: { small?: boolean }) {
         : {
             etat: "gratuit, sans commission",
             title: small ? "Les cavaliers cherchent leur pension. Ton écurie y est peut-être déjà." : <>Les cavaliers cherchent leur pension.<br />Ton écurie y est peut-être déjà.</>,
-            text: "Plus de 12 000 écuries sur la carte de France. Reprends la tienne avec ce même compte, en deux minutes.",
+            text:
+              etat.s?.kind === "compte"
+                ? "Des milliers d’écuries sont déjà sur la carte de France. Reprends la tienne avec ce même compte, en deux minutes."
+                : "Des milliers d’écuries sont déjà sur la carte de France. Cherche la tienne et mets-la à ton nom : c’est gratuit.",
             cta: "Trouver mon écurie",
           };
 

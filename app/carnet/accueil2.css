@@ -15,20 +15,29 @@
 .carnet .ac-go .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s var(--ease); }
 .carnet a.ac-cpt:hover .ac-go .chev { transform: translateX(3px); }
 
-/* La sacoche et ses pièces : une pièce de plus par cinquième de l'objectif. */
-.carnet .ac-bag { grid-column: 2; grid-row: 1; position: relative; width: 96px; height: 96px; align-self: center; transform-origin: 50% 100%; }
-.carnet .ac-bag .ill { position: absolute; width: 132px; max-width: none; left: -26px; top: -22px; pointer-events: none; }
-.carnet .ac-bag.bump { animation: ac-bump .5s var(--ease) .55s both; }
-@keyframes ac-bump { 40% { transform: scale(1.06, .94); } 70% { transform: scale(.98, 1.03); } }
-.carnet .ac-tas { position: absolute; left: -6px; bottom: 2px; width: 24px; height: 40px; }
-.carnet .ac-tas i, .carnet .ac-drop { position: absolute; left: 0; width: 24px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #F7E3A0, var(--hay) 60%, #C99A2E); box-shadow: inset 0 0 0 1.5px #C99A2E, 0 1px 0 #B0841F; }
-.carnet .ac-drop { left: 40px; top: -10px; width: 16px; height: 16px; animation: ac-drop .7s cubic-bezier(.55, 0, .8, .2) both; }
-@keyframes ac-drop { from { transform: translateY(-46px); opacity: 0; } 20% { opacity: 1; } 85% { opacity: 1; } to { transform: translateY(38px); opacity: 0; } }
+/* Le personnage à côté du chiffre (accueil) : une seule image, assise, posée à droite. */
+.carnet .ac-cpt { grid-template-columns: minmax(0, 1fr) 138px; }
+.carnet .ac-ill { grid-column: 2; grid-row: 1; align-self: end; display: flex; justify-content: flex-end; margin: 0 -8px -2px 0; pointer-events: none; }
+.carnet .ac-ill .ill { width: 100%; height: auto; }
+/* Pas d'objectif : la proposition, discrète, sous la carte. */
+.carnet .ac-fixer { display: inline-flex; align-items: center; min-height: 44px; margin: 2px 2px 0; font-size: 13.5px; font-weight: 600; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; }
 
-/* Le personnage assis sur le compteur (accueil, tournée) */
-.carnet .ac-perch { padding: 6px 14px 0; margin-top: 0; }
-.carnet .ac-perch .sitw { width: 58%; margin-right: 22px; }
-.carnet .ac-perch .ac-cpt { position: relative; z-index: 1; }
+/* L'aide de la première visite, en une ligne sous le chiffre (components/bs/nav.tsx, AideCarte compact). */
+.carnet .aide.compact { margin: 10px 14px 0; padding: 0 44px 0 12px; border-radius: 8px; background: var(--sheet); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .aide.compact.open { padding: 14px 14px 12px; }
+.carnet .aide.compact .aide-l { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; border: 0; background: none; padding: 0; font: inherit; font-size: 14.5px; font-weight: 650; color: var(--ink); text-align: left; cursor: pointer; }
+.carnet .aide.compact .aide-l svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.carnet .aide.compact .aide-l .chev { margin-left: auto; width: 15px; height: 15px; transition: transform .2s var(--ease); }
+.carnet .aide.compact .aide-l[aria-expanded="true"] .chev { transform: rotate(90deg); }
+.carnet .aide.compact .aide-x { position: absolute; right: 2px; top: 2px; width: 44px; height: 44px; border: 0; background: none; color: var(--ink2); display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; }
+.carnet .aide.compact .aide-x svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.carnet .aide.compact ol { margin: 2px 0 0; }
+.carnet .aide.compact li { color: var(--ink2); }
+.carnet .aide.compact li::before { background: var(--ink); color: #fff; }
+.carnet .aide.compact .ok { margin: 10px 0 12px; background: var(--ink); color: #fff; }
+.carnet .aide.compact.open h5 { color: var(--ink); }
+.carnet .aide.compact.open .x { background: var(--mist); }
+.carnet .aide.compact.open .x svg { stroke: var(--ink); }
 
 /* ---------- L'accueil ---------- */
 .carnet .ac-nom { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; margin: 10px 14px 0; padding: 10px 14px; color: inherit; text-decoration: none; }
@@ -37,6 +46,13 @@
 .carnet .ac-nom small { display: block; font-size: 12.5px; color: var(--ink3); }
 .carnet .ac-nom .chev, .carnet .ac-acc .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .carnet .ac-jnote { margin-top: 10px; }
+/* « Hier : +100 € ont compté », qui ouvre la tournée */
+.carnet .cp-hier { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: calc(100% - 28px); min-height: 48px; margin: 10px 14px 0; padding: 0 12px; border: 0; border-top: 1px solid var(--line2); border-bottom: 1px solid var(--line2); background: none; font: inherit; font-size: 14.5px; color: var(--ink); text-align: left; cursor: pointer; }
+.carnet .cp-hier b { font-weight: 700; }
+.carnet .cp-hier .in, .carnet .cp-hier .out { font-weight: 750; font-variant-numeric: tabular-nums; }
+.carnet .cp-hier small { font-size: 13px; color: var(--ink2); }
+.carnet .cp-revoir { display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 650; color: var(--ink2); white-space: nowrap; }
+.carnet .cp-revoir .chev { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ac-jour { padding-top: 14px; }
 /* L'encart mon-ecurie.fr (components/bs/promo-mon-ecurie.tsx) : « Plus tard » posé sur l'image. */
 .carnet .ac-promo { position: relative; }
@@ -53,12 +69,16 @@
 
 @media (min-width: 1024px) {
   .carnet .ac-desk .ac-dtop { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; align-items: start; }
-  .carnet .ac-desk .ac-dbot { display: grid; grid-template-columns: 1.15fr 1fr; gap: 0 32px; align-items: start; margin-top: 8px; }
-  .carnet .ac-desk .ac-perch { padding: 0; }
-  .carnet .ac-desk .ac-perch .sitw { width: 52%; }
+  .carnet .ac-desk .ac-cptw { padding: 14px 0 0; }
+  .carnet .ac-desk .ac-cpt { grid-template-columns: minmax(0, 1fr) 220px; padding: 22px 22px 14px; }
+  .carnet .ac-desk .ac-cpt .big { font-size: 72px; }
+  .carnet .ac-desk .aide.compact, .carnet .ac-desk .cp-hier { margin-left: 0; margin-right: 0; }
+  .carnet .ac-desk .cp-hier { width: 100%; }
   .carnet .ac-desk .ac-nom { margin: 12px 0 0; }
   .carnet .ac-desk .ac-promo .promo { margin: 18px 0 0; }
-  .carnet .ac-desk .ac-promo .promo.small .art { height: 156px; }
+  .carnet .ac-desk .ac-promo .promo.small { display: grid; grid-template-columns: 260px 1fr; }
+  .carnet .ac-desk .ac-promo .promo.small .art { height: 100%; min-height: 150px; }
+  .carnet .ac-desk .ac-promo .promo.small .bd { border-top: 0; }
   .carnet .ac-desk .ac-promo-x { top: 28px; right: 10px; }
   .carnet .ac-desk .sec { padding-left: 0; padding-right: 0; }
 }
@@ -124,7 +144,7 @@
 .carnet .ac-tb .ac-ic { position: relative; display: block; width: 21px; height: 21px; }
 .carnet .ac-badge { position: absolute; top: -5px; right: -12px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--ink); color: #fff; font-size: 10.5px; font-style: normal; font-weight: 750; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--sheet); }
 .carnet .ac-two { text-align: center; }
-/* Le kit grise toutes les span de la barre : l'onglet allumé doit les reprendre (« Clients et chevaux »). */
+/* Le kit grise toutes les span de la barre : l'onglet allumé doit les reprendre (« Clients »). */
 .carnet .ac-tb a span { color: inherit; }
 .carnet .ac-net { font-size: 12px; font-weight: 760; font-variant-numeric: tabular-nums; letter-spacing: -.01em; color: var(--ink3); }
 .carnet .ac-net.in { color: var(--in); }
@@ -194,7 +214,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .carnet .ac-bag.bump, .carnet .ac-drop, .carnet .ac-fly, .carnet .ac-step, .carnet .ac-tour { animation: none; }
-  .carnet .ac-drop { display: none; }
+  .carnet .ac-fly, .carnet .ac-step, .carnet .ac-tour { animation: none; }
   .carnet .ac-bars b { transition: none; }
+}
+
+/* L'encart mon-ecurie.fr réduit, en tout dernier (téléphone) */
+@media (max-width: 1023px) {
+  .carnet .ac-acc .ac-promo .promo.small .art { height: 96px; }
+  .carnet .ac-acc .ac-promo .promo.small strong { font-size: 17px; }
+  .carnet .ac-acc .ac-promo .promo.small .bd { gap: 6px; padding: 12px 16px 14px; }
 }

@@ -68,7 +68,7 @@ export function useNavCounts() {
 
 /**
  * La barre latérale : la même structure que le téléphone. Accueil,
- * Planning, Clients et chevaux, Mon mois, puis « Ton écurie » : les mêmes
+ * Planning, Clients, Mon mois, puis « Ton écurie » : les mêmes
  * lignes que le rond.
  */
 export function Sidebar() {
@@ -87,7 +87,7 @@ export function Sidebar() {
   const main: { href: string; ic: string; label: string; key: string; on: boolean; badge?: string; cls?: string }[] = [
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
     { href: "/planning", ic: "cal", label: "Planning", key: "P", on: under(path, ["/planning", "/valider", "/equipe"]) },
-    { href: "/chevaux", ic: "people", label: "Clients et chevaux", key: "C", on: under(path, CLIENTS_CHEVAUX), badge: count ? String(count) : undefined, cls: "attn" },
+    { href: "/chevaux", ic: "people", label: "Clients", key: "C", on: under(path, CLIENTS_CHEVAUX), badge: count ? String(count) : undefined, cls: "attn" },
     { href: "/argent", ic: "chart", label: "Mon mois", key: "M", on: under(path, BILAN) && !vue, badge: signed(c.net), cls: c.net >= 0 ? "in" : "out" },
   ];
   return (
@@ -299,16 +299,16 @@ function PaletteInner() {
       { id: "a-soin", group: "Faire", label: "Noter un soin", sub: "maréchal, véto, vermifuge…", ic: "shoe", run: add("soin") },
       { id: "a-tache", group: "Faire", label: "Ajouter une tâche d’équipe", ic: "board", run: add("tache") },
       { id: "a-depense", group: "Faire", label: "Noter une dépense", sub: "ou une recette", ic: "euro", run: add("depense") },
-      { id: "a-facturer", group: "Faire", label: "Préparer les factures du mois", sub: c.due ? `${eur(c.due)} en attente` : undefined, ic: "doc", run: go("/argent?vue=facturer") },
+      { id: "a-facturer", group: "Faire", label: "Faire payer tes clients", sub: c.due ? `${eur(c.due)} en attente` : undefined, ic: "doc", run: go("/chevaux?vue=clients") },
       { id: "g-accueil", group: "Aller à", label: "Accueil", ic: "home", hint: "G A", run: go("/accueil") },
       { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
-      { id: "g-chevaux", group: "Aller à", label: "Clients et chevaux", ic: "people", hint: "G C", run: go("/chevaux") },
+      { id: "g-chevaux", group: "Aller à", label: "Clients", sub: "tes clients et leurs chevaux", ic: "people", hint: "G C", run: go("/chevaux") },
       { id: "g-mois", group: "Aller à", label: "Mon mois", sub: signed(c.net), money: c.net, ic: "chart", hint: "G M", run: go("/argent") },
       ...plus.map((it) => ({ id: `r-${it.id}`, group: "Aller à", label: it.label, sub: it.sub, ic: it.ic, hint: HINTS[it.id], run: go(it.href ?? "/moi") })),
       { id: "g-recherche", group: "Aller à", label: "Chercher", sub: "un cheval, un client", ic: "search", run: go("/recherche") },
       { id: "g-valider", group: "Aller à", label: "Ce qui a compté", sub: "dans Planning", ic: "ck", hint: "G V", run: go("/valider") },
       { id: "g-equipe", group: "Aller à", label: "Tâches de l’équipe", sub: "dans Planning", ic: "board", hint: "G E", run: go("/equipe") },
-      { id: "g-clients", group: "Aller à", label: "Mes clients", sub: "dans Clients et chevaux", ic: "people", hint: "G K", run: go("/chevaux?vue=clients") },
+      { id: "g-clients", group: "Aller à", label: "Mes clients", sub: "qui te doit quoi", ic: "people", hint: "G K", run: go("/chevaux?vue=clients") },
       { id: "g-leviers", group: "Aller à", label: "Pistes pour gagner plus", sub: "dans Mon mois", ic: "bulb", hint: "G L", run: go("/argent?vue=leviers") },
       { id: "g-mouv", group: "Aller à", label: "Entrées et sorties d’argent", sub: "dans Mon mois", ic: "list", run: go("/argent?vue=mouvements") },
       { id: "g-bilans", group: "Aller à", label: "Sur plusieurs mois", sub: "bilan sur 3, 6 ou 12 mois", ic: "chart", hint: "G B", run: go("/pilotage") },
@@ -438,7 +438,7 @@ const GOTO: Record<string, string> = {
   e: "/equipe",
   m: "/argent",
   l: "/argent?vue=leviers",
-  f: "/argent?vue=facturer",
+  f: "/chevaux?vue=clients",
   k: "/chevaux?vue=clients",
   r: "/moi",
   b: "/pilotage",
@@ -517,13 +517,13 @@ function HelpInner({ close }: { close: () => void }) {
     ["Ajouter (séance, soin, tâche, argent)", ["N"]],
     ["Accueil", ["G", "A"]],
     ["Planning", ["G", "P"]],
-    ["Clients et chevaux", ["G", "C"]],
+    ["Clients", ["G", "C"]],
     ["Mon mois", ["G", "M"]],
     ["Ce qui a compté", ["G", "V"]],
     ["Tâches de l’équipe", ["G", "E"]],
     ["Mes clients", ["G", "K"]],
     ["Pistes pour gagner plus", ["G", "L"]],
-    ["À facturer", ["G", "F"]],
+    ["Faire payer tes clients", ["G", "F"]],
     ["Sur plusieurs mois", ["G", "B"]],
     ["Ma fiche mon-ecurie.fr", ["G", "O"]],
     ["Mes tarifs", ["G", "S"]],

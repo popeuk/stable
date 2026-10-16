@@ -8,6 +8,7 @@ import { enter, getSession, hasLocaleData, setSession, type LocaleSession } from
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { Horse } from "@/lib/domain/types";
+import { usePerso } from "@/components/bs/perso";
 
 /**
  * Essayer avant le compte : un premier écran, puis le même parcours que
@@ -19,28 +20,7 @@ import type { Horse } from "@/lib/domain/types";
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /* ---------- Le personnage : gérante ou gérant, tiré une fois par appareil ---------- */
-export type Perso = "f" | "m";
-const TIRAGE = "be-stable-tirage";
-/** Un tirage simple et stable : le même personnage à chaque visite sur cet appareil. */
-export function usePerso(): Perso {
-  const [p, setP] = useState<Perso>("f");
-  useEffect(() => {
-    let v: Perso = "f";
-    try {
-      const raw = localStorage.getItem(TIRAGE);
-      if (raw === "f" || raw === "m") v = raw;
-      else {
-        v = Math.random() < 0.5 ? "f" : "m";
-        localStorage.setItem(TIRAGE, v);
-      }
-    } catch {
-      v = new Date().getDate() % 2 ? "m" : "f";
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setP(v);
-  }, []);
-  return p;
-}
+export { usePerso, type Perso } from "@/components/bs/perso";
 
 /* ---------- Ouvrir l'écurie de l'essai ---------- */
 /**

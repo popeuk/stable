@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Back, dec1 } from "@/components/bs/ui";
+import { Back, dec1, ilEnFaut } from "@/components/bs/ui";
 import { SeuilGrid } from "@/components/bs/seuil-grid";
 import { useParcours } from "@/components/bs/parcours";
 import { Hello, Ic, Page, Tip, eur } from "@/components/carnet/ui";
@@ -41,7 +41,7 @@ function Seuil() {
         <Hello
           title={
             <>
-              Il en faut {dec1(m.seuil)}.
+              {ilEnFaut(m.seuil)}
               <br />
               Tu en as {n}.
             </>
@@ -61,7 +61,7 @@ function Seuil() {
 
       <p className="ar-calc rise" style={{ animationDelay: ".22s" }}>
         {ok
-          ? `Tes frais communs font ${eur(m.sharedTotal)} par mois. Une fois ses soins payés, chaque cheval te laisse en moyenne ${eur(m.contribution)}. ${Math.round(m.sharedTotal)} divisé par ${Math.round(m.contribution)} : il t’en faut donc ${dec1(m.seuil)} pour tout payer. Tu en as ${n}.`
+          ? `Tes frais communs font ${eur(m.sharedTotal)} par mois. Une fois ses soins payés, chaque cheval te laisse en moyenne ${eur(m.contribution)}. ${eur(m.sharedTotal).replace(" €", "")} divisé par ${eur(m.contribution).replace(" €", "")} : ${dec1(m.seuil)}. Un demi-cheval ne se loge pas : il t’en faut donc ${Math.ceil(m.seuil - 1e-9)} pour tout payer. Tu en as ${n}.`
           : "Pour l’instant, les pensions ne paient même pas les soins des chevaux. Peu importe leur nombre, tu perds de l’argent. La piste : revoir le prix des pensions."}
       </p>
 
@@ -92,7 +92,7 @@ function Seuil() {
               if (!last) router.push("/parcours");
             }}
           >
-            J’ai compris, obstacle passé
+            J’ai compris, étape franchie
             <Ic n="ck" className="" />
           </button>
         )}

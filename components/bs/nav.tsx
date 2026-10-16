@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { create } from "zustand";
 import { Ic } from "@/components/carnet/ui";
 import { getSession } from "@/lib/account/session";
-import { aidePour } from "@/lib/aide";
+import { aideParId, aidePour, type Aide } from "@/lib/aide";
 import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
 
 /**
@@ -17,7 +17,7 @@ export const ROOTS = ["/accueil", "/planning", "/equipe", "/chevaux", "/argent"]
 
 /** Les écrans de Mon mois : l'onglet reste allumé sur chacun. */
 export const BILAN = ["/argent", "/pilotage", "/seuil", "/scenarios", "/depenses", "/plan", "/audit", "/decouvertes", "/conseiller", "/mois"];
-/** Les écrans de Clients et chevaux. */
+/** Les écrans de l'onglet Clients (clients et leurs chevaux). */
 export const CLIENTS_CHEVAUX = ["/chevaux", "/clients", "/client", "/ticket", "/part", "/cheval", "/contacts"];
 export const under = (path: string, list: string[]) => list.some((m) => path === m || path.startsWith(m + "/") || path.startsWith(m + "?"));
 
@@ -66,10 +66,23 @@ const useAideOuverte = create<{ ouverte: string | null; ouvrir: (id: string) => 
   fermer: () => set({ ouverte: null }),
 }));
 
+/**
+ * L'aide de l'onglet visible quand un écran en a deux (Clients · Chevaux) :
+ * l'écran la pose, et l'enlève en partant.
+ */
+export const useAideIci = create<{ ici: string | null; poser: (id: string | null) => void }>((set) => ({
+  ici: null,
+  poser: (id) => set({ ici: id }),
+}));
+function useAide() {
+  const path = usePathname() ?? "";
+  const ici = useAideIci((s) => s.ici);
+  return { path, aide: (ici && aideParId(ici)) || aidePour(path) };
+}
+
 /** Le « ? » de l'en-tête : rouvre l'aide de l'écran, s'il en a une. */
 export function AideBouton({ className = "help" }: { className?: string }) {
-  const path = usePathname() ?? "";
-  const aide = aidePour(path);
+  const { aide } = useAide();
   const ouvrir = useAideOuverte((s) => s.ouvrir);
   if (!aide) return null;
   return (
@@ -79,22 +92,42 @@ export function AideBouton({ className = "help" }: { className?: string }) {
   );
 }
 
-/** La carte « Comment ça marche ici », en tête d'écran à la première visite. */
-export function AideCarte() {
-  const path = usePathname() ?? "";
-  const aide = aidePour(path);
+/**
+ * La carte « Comment ça marche ici ». Elle s'ouvre toute seule une seule
+ * fois en tout, sur l'accueil, compacte et sous le chiffre (compact) ; sur
+ * les autres écrans, seulement quand on touche le « ? ».
+ */
+export function AideCarte({ compact }: { compact?: boolean }) {
+  const { path, aide } = useAide();
   const vues = useSettingsStore((s) => s.aidesVues);
   const voir = useSettingsStore((s) => s.voirAide);
   const { ouverte, fermer } = useAideOuverte();
   useEffect(() => fermer(), [path, fermer]);
+  // La ligne d'aide de l'accueil a été montrée : en quittant l'accueil, elle compte comme vue.
+  useEffect(() => {
+    if (compact || clean(path) === "/accueil") return;
+    try {
+      const vue = sessionStorage.getItem(MONTREE);
+      if (vue) {
+        sessionStorage.removeItem(MONTREE);
+        voir(vue);
+      }
+    } catch {}
+  }, [path, compact, voir]);
   if (!aide) return null;
-  if (vues.includes(aide.id) && ouverte !== aide.id) return null;
+  const demandee = ouverte === aide.id;
+  // Sur l'accueil, la carte vit sous le chiffre (compact) : la coque ne la montre pas en tête.
+  const ici = clean(path) === "/accueil";
+  if (!!compact !== ici) return null;
+  const premiere = compact && vues.length === 0;
+  if (!demandee && !premiere) return null;
   const ok = () => {
     voir(aide.id);
     fermer();
   };
+  if (compact && !demandee) return <AideLigne aide={aide} ok={ok} />;
   return (
-    <section className="aide" aria-label="Comment ça marche ici">
+    <section className={`aide${compact ? " compact open" : ""}`} aria-label="Comment ça marche ici">
       <button type="button" className="x" onClick={ok} aria-label="Fermer l’aide">
         <svg viewBox="0 0 24 24">
           <path d="M6 6l12 12M18 6 6 18" />
@@ -113,12 +146,47 @@ export function AideCarte() {
   );
 }
 
+const MONTREE = "be-stable-aide-montree";
+/** L'aide de la première visite, en une ligne qui se déplie. Montrée une fois : en quittant l'accueil, elle est vue (la coque s'en charge). */
+function AideLigne({ aide, ok }: { aide: Aide; ok: () => void }) {
+  const [deplie, setDeplie] = useState(false);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(MONTREE, aide.id);
+    } catch {}
+  }, [aide.id]);
+  return (
+      <section className="aide compact" aria-label="Comment ça marche ici">
+        <button type="button" className="aide-l" aria-expanded={deplie} onClick={() => setDeplie(!deplie)}>
+          <Ic n="help" className="" />
+          <span>Comment ça marche ici ?</span>
+          <Ic n="chev" className="chev" />
+        </button>
+        {deplie && (
+          <>
+            <ol>
+              {aide.points.map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            </ol>
+            <button type="button" className="ok" onClick={ok}>
+              J’ai compris
+            </button>
+          </>
+        )}
+        <button type="button" className="aide-x" onClick={ok} aria-label="Ne plus montrer l’aide">
+          <Ic n="x" className="" />
+        </button>
+      </section>
+  );
+}
+
 /** Ordinateur : la ligne de retour au-dessus d'un écran qui n'est pas un onglet. */
 export function RetourOrdinateur() {
-  const path = usePathname() ?? "";
+  const { path, aide } = useAide();
   const retour = useRetour();
   const racine = isRoot(path);
-  if (racine && !aidePour(path)) return null;
+  if (racine && !aide) return null;
   return (
     <div className="cn-back-desk">
       {!racine && (
@@ -149,8 +217,7 @@ const TITRES: [string, string][] = [
   ["/prestations", "Mes tarifs"],
   ["/ma-fiche", "Ma fiche"],
   ["/moi", "Réglages"],
-  ["/parametres/equipe", "Mon équipe"],
-  ["/parametres", "Tous les réglages"],
+  ["/parametres", "Réglages"],
   ["/recherche", "Chercher"],
   ["/saisie/cheval", "Ajouter un cheval"],
   ["/saisie", "Noter"],

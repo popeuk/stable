@@ -36,12 +36,12 @@ function Parcours() {
         </button>
       </div>
       <h4 className="ar-t1 rise">
-        {n} obstacle{n > 1 ? "s" : ""} sur 6
+        {n} étape{n > 1 ? "s" : ""} sur 6
       </h4>
       <p className="ar-sub rise" style={{ animationDelay: ".05s" }}>
         Six étapes pour que l’app connaisse ton écurie. Les trois premières se font ici, en quelques minutes. Les trois autres viennent toutes seules, en utilisant l’app.
       </p>
-      <div className="bar ar-prog" role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n} aria-label={`${n} obstacles sur 6`}>
+      <div className="bar ar-prog" role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n} aria-label={`${n} étapes sur 6`}>
         <i style={{ width: `${(n / 6) * 100}%` }} />
       </div>
       <div className="ar-course rise" style={{ animationDelay: ".12s" }}>
@@ -74,7 +74,7 @@ function Parcours() {
       {current ? (
         <Link href={OBSTACLE_META[current].href} className="card ar-obc rise" style={{ animationDelay: ".2s" }}>
           <span style={{ flex: 1 }}>
-            <span className="k">Obstacle du moment</span>
+            <span className="k">Étape du moment</span>
             <b>{OBSTACLE_META[current].todo}</b>
           </span>
           <Ic n="arrow" className="ar-ico" />

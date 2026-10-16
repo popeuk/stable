@@ -11,6 +11,7 @@ import { MorningNudge } from "@/components/bs/morning-nudge";
 import { SessionSync } from "@/components/bs/session-sync";
 import { AideCarte, RetourOrdinateur } from "@/components/bs/nav";
 import { GarderBandeau } from "@/components/bs/garder";
+import { Tournee } from "@/components/bs/tournee";
 
 /**
  * La coque de l'app, dans le carnet illustré. Au téléphone : une colonne au
@@ -45,6 +46,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <TabBar />
       <NoterSheet />
       <SeanceSheet />
+      <ClientGate>
+        <Tournee />
+      </ClientGate>
       <CommandPalette />
       <ShortcutHelp />
       <ToastHost />

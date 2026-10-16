@@ -171,3 +171,10 @@
 .carnet .ch-desk .cl-ban { margin: 14px 0 0; max-width: 640px; }
 .carnet .ch-desk .cl-fn { margin-left: 0; }
 .carnet .ch-desk .tbl .who .face { width: 30px; height: 30px; }
+
+/* Clients : « 11 te doivent 2 210 € » en gros, puis la phrase qui rassure en milieu de mois */
+.carnet .cl-ttl .k { margin: 0 0 2px; }
+.carnet .cl-ttl h3 { font-size: 30px; }
+.carnet .cl-ttl h3 .num { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.carnet .cl-ras { margin: 6px 0 0; font-size: 14px; line-height: 1.45; color: var(--ink2); }
+.carnet .ch-desk .cl-ras { max-width: 560px; }

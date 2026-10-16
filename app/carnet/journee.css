@@ -63,8 +63,8 @@
 .carnet .jr-ev.short { padding-top: 4px; padding-bottom: 4px; }
 .carnet .jr-ev.short b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .carnet .jr-ev.short small { display: none; }
-.carnet .jr-ev.done { opacity: .5; }
-.carnet .jr-ev.done b { text-decoration: line-through; }
+/* Ce qui a compté n'est jamais barré : il garde son encre (un fait accompli, pas un annulé). */
+.carnet .jr-ev.done { box-shadow: inset 3px 0 0 var(--ink3); }
 .carnet .jr-ev.wait { box-shadow: inset 0 0 0 1.5px var(--ink); }
 .carnet .jr-ev.half { grid-template-columns: 15px 1fr; }
 .carnet .jr-ev.half > .in, .carnet .jr-ev.half > .out { grid-column: 2; }
@@ -186,8 +186,7 @@
 .carnet .jr-desk .wg-day .jci { display: flex; align-items: center; gap: 4px; min-width: 0; border: 0; text-align: left; font: inherit; font-size: 11.5px; line-height: 1.25; padding: 3px 6px; border-radius: 4px; background: var(--mist); color: var(--ink2); cursor: pointer; }
 .carnet .jr-desk .wg-day .jci > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .carnet .jr-desk .wg-day .jci b { color: var(--ink); font-weight: 650; }
-.carnet .jr-desk .wg-day .jci.done { opacity: .58; }
-.carnet .jr-desk .wg-day .jci.done b { text-decoration: line-through; }
+.carnet .jr-desk .wg-day .jci.done { opacity: 1; }
 .carnet .jr-desk .wg-body { position: relative; background: repeating-linear-gradient(to bottom, var(--line2) 0 1px, transparent 1px 36px); }
 .carnet .jr-desk .wg-body .hrs { position: relative; background: var(--sheet); }
 .carnet .jr-desk .wg-body .hrs span { position: absolute; right: 8px; margin-top: -1px; font-family: var(--mono); font-size: 10.5px; color: var(--ink3); background: var(--sheet); }
@@ -202,8 +201,7 @@
 .carnet .jr-desk .ev small { display: flex; justify-content: space-between; gap: 4px; font-size: 11px; color: var(--ink3); line-height: 1.25; }
 .carnet .jr-desk .ev small .in, .carnet .jr-desk .ev small .out, .carnet .jr-desk .ev b .in, .carnet .jr-desk .ev b .out { flex: none; font-size: 11.5px; }
 .carnet .jr-desk .ev.short { align-content: center; padding: 0 7px; }
-.carnet .jr-desk .ev.done { opacity: .58; border-left-color: var(--ink3); }
-.carnet .jr-desk .ev.done b > span:first-child { text-decoration: line-through; text-decoration-color: var(--ink3); }
+.carnet .jr-desk .ev.done { border-left-color: var(--ink3); }
 .carnet .jr-desk .dk { width: 14px; height: 14px; border-radius: 50%; background: var(--ink); display: flex; align-items: center; justify-content: center; flex: none; }
 .carnet .jr-desk .dk svg { width: 9px; height: 9px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .jr-desk .ev.wait { box-shadow: inset 0 0 0 1.5px var(--ink); border-left-style: dashed; }
@@ -253,4 +251,26 @@
 .carnet .jr-liens a:hover { background: var(--mist); }
 @media (min-width: 1024px) {
   .carnet .jr-desk .jr-liens { max-width: 520px; margin: 18px 0 0; }
+}
+
+/* Planning au téléphone : un seul sélecteur (Semaine · Mois) à droite du titre « Semaine du … » et ses flèches. */
+.carnet .jr-ttl2 { padding: 12px 18px 0 6px; }
+.carnet .jr-pnav { display: flex; align-items: center; gap: 0; min-width: 0; }
+.carnet .jr-pnav button { position: relative; width: 40px; height: 44px; border: 0; background: none; display: flex; align-items: center; justify-content: center; color: var(--ink); padding: 0; cursor: pointer; flex: none; }
+.carnet .jr-pnav button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .jr-pnav h1 { margin: 0; min-width: 0; font-size: 21px; font-weight: 760; letter-spacing: -.02em; line-height: 1.05; font-variation-settings: "wdth" 88; white-space: nowrap; }
+.carnet .jr-pnav h1 small { display: block; font-size: 12.5px; font-weight: 600; letter-spacing: 0; color: var(--ink2); font-variation-settings: normal; }
+.carnet .jr-ttl2 .seg { width: 132px; }
+.carnet .jr-back { padding: 4px 18px 0; }
+.carnet .jr-back .lnk { min-height: 40px; }
+/* La journée choisie en une ligne, la portée écrite */
+.carnet .jr-resume { margin: 12px 18px 0; padding: 10px 0; border-top: 1px solid var(--line2); border-bottom: 1px solid var(--line2); font-size: 14.5px; line-height: 1.45; color: var(--ink2); }
+.carnet .jr-resume b { color: var(--ink); font-weight: 700; }
+.carnet .jr-resume .in, .carnet .jr-resume .out { font-weight: 720; font-variant-numeric: tabular-nums; }
+.carnet .jr-mode { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 2px; border: 0; background: none; font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink2); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.carnet .jr-mode svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .jr-taches .li { grid-template-columns: minmax(0, 1fr) auto; }
+.carnet .jr-desk .jr-h1 { margin: 0; font-size: 30px; font-weight: 760; letter-spacing: -.03em; line-height: 1.05; font-variation-settings: "wdth" 86; }
+@media (min-width: 1024px) {
+  .carnet .jr-desk .jr-taches { padding-left: 0; padding-right: 0; max-width: 640px; }
 }

@@ -118,7 +118,7 @@ export function CourseDrawing({ done }: { done: number }) {
   ];
   const won = done >= 6;
   return (
-    <svg viewBox="0 0 270 200" width="100%" style={{ maxWidth: 300, display: "block", margin: "4px auto 0" }} role="img" aria-label={`Parcours : ${done} obstacles passés sur 6`}>
+    <svg viewBox="0 0 270 200" width="100%" style={{ maxWidth: 300, display: "block", margin: "4px auto 0" }} role="img" aria-label={`Parcours : ${done} étapes franchies sur 6`}>
       <path d="M6 170 C40 170 50 120 70 120 S100 150 118 140 S150 100 166 104 S195 130 206 124 S232 80 262 40" fill="none" stroke="#DCD6E0" strokeWidth="3" strokeDasharray="6 6" />
       {jumps.map(([x, y], k) => {
         const col = k < done ? "#134E3A" : k === done ? "#F6B3CB" : "#DCD6E0";
@@ -169,3 +169,9 @@ export function Rosette({ lines, size = 112 }: { lines: string[]; size?: number 
     </svg>
   );
 }
+
+/** « Il en faut 8 (7,5 pile). » : un demi-cheval ne se loge pas, on arrondit au-dessus. */
+export const ilEnFaut = (seuil: number) => {
+  const n = Math.ceil(seuil - 1e-9);
+  return Math.abs(n - seuil) < 0.05 ? `Il en faut ${n}.` : `Il en faut ${n} (${dec1(seuil)} pile).`;
+};

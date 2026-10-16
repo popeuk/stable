@@ -41,10 +41,10 @@ export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /* ---------- Briques partagées des saisies (feuille Ajouter et écrans /saisie) ---------- */
 
-/** Les chevaux en puces avec leur tête ; un ou plusieurs selon `multi`. */
-export function HorseChips({ horses, value, onChange, multi = true, wrap }: { horses: Horse[]; value: string[]; onChange: (ids: string[]) => void; multi?: boolean; wrap?: boolean }) {
+/** Les chevaux en puces avec leur tête ; un ou plusieurs selon `multi`. grille : trois colonnes, tous visibles (feuille du +). */
+export function HorseChips({ horses, value, onChange, multi = true, wrap, grille }: { horses: Horse[]; value: string[]; onChange: (ids: string[]) => void; multi?: boolean; wrap?: boolean; grille?: boolean }) {
   return (
-    <div className={`chips nt-faces${wrap ? " wrap" : ""}`}>
+    <div className={`chips nt-faces${wrap ? " wrap" : ""}${grille ? " nt-fgrid" : ""}`}>
       {horses.map((h) => {
         const on = value.includes(h.id);
         return (

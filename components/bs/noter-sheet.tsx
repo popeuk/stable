@@ -19,8 +19,9 @@ import { localToday } from "@/lib/utils/local-date";
 import { currentPeriod } from "@/lib/utils/period";
 
 /**
- * Le + : « Ajouter ». Un bouton foncé « Je préfère le dire » et quatre gros
- * boutons (Séance, Soin, Tâche ou rendez-vous, Argent). Rien ne démarre tout
+ * Le + : « Ajouter ». Quatre gros boutons (Séance, Soin, Tâche ou
+ * rendez-vous, Argent), puis, en second, « Ou dis-le à voix haute » (la
+ * reconnaissance vocale n'existe pas partout). Rien ne démarre tout
  * seul. Après un bouton, deux questions avec les réponses habituelles déjà
  * cochées, chacune avec sa sortie libre ; « C’est bon » marche à tout moment
  * (seul l'argent demande un montant). À la voix, la phrase est comprise puis
@@ -464,14 +465,14 @@ function NoterInner() {
       />
       {x.pour === "cheval" && horses.length > 0 && (
         <div className="nt-gap">
-          <HorseChips horses={horses} value={x.horseIds} onChange={(horseIds) => set((y) => ({ ...y, horseIds }))} />
+          <HorseChips grille horses={horses} value={x.horseIds} onChange={(horseIds) => set((y) => ({ ...y, horseIds }))} />
         </div>
       )}
     </>
   );
   const soinTiles = (x: Draft) => (
     <Tiles
-      options={h.soins.slice(0, 5).map((s) => ({ key: s.kind, label: s.label, sub: [s.price ? eur(s.price) : "", s.provider].filter(Boolean).join(" · ") || hh(s.start) }))}
+      options={h.soins.slice(0, 5).map((s) => ({ key: s.kind, label: s.label, sub: [s.price ? eur(s.price) : "", s.provider].filter(Boolean).join(" · ") || `d’habitude à ${hh(s.start)}` }))}
       value={x.custom ? null : x.care}
       onPick={(k) => {
         setOther(false);
@@ -586,13 +587,6 @@ function NoterInner() {
   if (screen === "grid") {
     body = (
       <>
-        <button type="button" className="nt-dire" onClick={listen}>
-          <Ic n="mic" className="" />
-          <span>
-            <b>Je préfère le dire</b>
-            <small>dis-le en une phrase, l’app prépare le reste</small>
-          </span>
-        </button>
         <div className="nt-four">
           {TYPES.map((t) => (
             <button key={t.id} type="button" onClick={() => choose(t.id)}>
@@ -604,7 +598,13 @@ function NoterInner() {
             </button>
           ))}
         </div>
-        <p className="nt-later">Tu pourras ajouter les cavaliers et les chevaux après.</p>
+        <button type="button" className="nt-dire nt-dire2" onClick={listen}>
+          <Ic n="mic" className="" />
+          <span>
+            <b>Ou dis-le à voix haute</b>
+            <small>une phrase, l’app prépare le reste</small>
+          </span>
+        </button>
       </>
     );
   } else if (screen === "listen") {
@@ -757,7 +757,7 @@ function NoterInner() {
       if (k === "pl") return <Puces options={[1, 2, 4, 6, 8, 10].map((n) => [n, `${n} place${n > 1 ? "s" : ""}`] as [number, string])} value={x.places} onPick={(places) => (set((y) => ({ ...y, places })), close1())} />;
       if (k === "p") return <Keypad value={x.price ?? 0} onChange={(n) => set((y) => ({ ...y, price: n || null }))} onOk={close1} />;
       if (k === "m") return <Keypad value={x.amount} sens={x.sens} onChange={(amount) => (set((y) => ({ ...y, amount })), setTried(false))} onOk={close1} />;
-      if (k === "cheval") return <HorseChips horses={horses} value={x.horseIds} onChange={(horseIds) => set((y) => ({ ...y, horseIds }))} />;
+      if (k === "cheval") return <HorseChips grille horses={horses} value={x.horseIds} onChange={(horseIds) => set((y) => ({ ...y, horseIds }))} />;
       if (k === "sens")
         return (
           <Puces
@@ -834,7 +834,7 @@ function NoterInner() {
           {horses.length > 0 && (
             <>
               <Q em="si tu veux">Pour quel cheval ?</Q>
-              <HorseChips horses={horses} value={x.horseIds} onChange={(horseIds) => set((y) => ({ ...y, horseIds }))} />
+              <HorseChips grille horses={horses} value={x.horseIds} onChange={(horseIds) => set((y) => ({ ...y, horseIds }))} />
             </>
           )}
           <Q>Quel jour ?</Q>
@@ -902,7 +902,7 @@ function NoterInner() {
           </F>
           {horses.length > 0 && (
             <F label="Quel cheval" hint="sans cheval, c’est un rendez-vous au planning">
-              <HorseChips horses={horses} value={x.horseIds} onChange={(horseIds) => set((y) => ({ ...y, horseIds }))} />
+              <HorseChips grille horses={horses} value={x.horseIds} onChange={(horseIds) => set((y) => ({ ...y, horseIds }))} />
             </F>
           )}
           <F label="Quel jour">

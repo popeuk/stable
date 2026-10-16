@@ -19,7 +19,8 @@ import type { Period, Person, PersonRole } from "@/lib/domain/types";
 
 /**
  * La fiche d'un client (`/client?nom=Hugo L.`, `&mois=2026-10` pour un mois
- * précis). En haut, sans défiler : Appeler, Message, E-mail, Notes, son
+ * précis). En haut, sans défiler : Appeler, Message, E-mail (ou un seul
+ * « Ajoute son numéro » tant qu'il manque), Notes, son
  * téléphone, ses chevaux, sa dernière note, puis « Hugo te doit 114 € » et
  * « Il a payé ». En dessous : les lignes du mois (× pour retirer ce qui n'a
  * pas eu lieu), le message tout prêt, les mois d'avant, ses infos.
@@ -175,9 +176,18 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       </div>
 
       <div className="cl-qa rise" role="group" aria-label={accord(nom, "Le contacter", "La contacter")}>
-        {contact(phone ? `tel:${telHref}` : undefined, <Ic n="phone" className="" />, "Appeler")}
-        {contact(phone ? `sms:${telHref}` : undefined, <Bulle />, "Message")}
-        {contact(email ? `mailto:${email}` : undefined, <Ic n="mail" className="" />, "E-mail")}
+        {phone ? (
+          <>
+            {contact(`tel:${telHref}`, <Ic n="phone" className="" />, "Appeler")}
+            {contact(`sms:${telHref}`, <Bulle />, "Message")}
+          </>
+        ) : (
+          <button type="button" className="cl-addnum" onClick={versInfos}>
+            <Ic n="phone" className="" />
+            Ajoute son numéro
+          </button>
+        )}
+        {email && contact(`mailto:${email}`, <Ic n="mail" className="" />, "E-mail")}
         <button type="button" onClick={() => setFeuille("notes")}>
           <Ic n="doc" className="" />
           Notes
@@ -185,16 +195,12 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       </div>
 
       <div className="cl-key rise">
-        <p>
-          <Ic n="phone" className="" />
-          {phone ? (
+        {phone && (
+          <p>
+            <Ic n="phone" className="" />
             <a href={`tel:${telHref}`}>{phone}</a>
-          ) : (
-            <button type="button" className="cl-add" onClick={versInfos}>
-              Ajoute son numéro
-            </button>
-          )}
-        </p>
+          </p>
+        )}
         <p>
           <Ic n="horse" className="" />
           <span className="pp-line">
@@ -229,7 +235,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
             <span className="cl-lab">{due > 0 ? `${qui} te doit` : `${Il} ne te doit plus rien.`}</span>
             <b className="cl-big">{due > 0 ? <CountUp value={due} fmt={eur} ms={700} /> : eur(0)}</b>
           </span>
-          {due <= 0 && <Ill n={accord(nom, "gerant-rosette", "rosette")} className="cl-ros" />}
+          {due <= 0 && <Ill fixe n={accord(nom, "gerant-rosette", "rosette")} className="cl-ros" />}
         </div>
         {vientDePayer && <p className="cl-cnt">Déjà compté dans ton mois.</p>}
         {seance && due > 0 && ouvertes.length > 0 && (
@@ -331,11 +337,11 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         </label>
         <label className="field">
           <span>Téléphone</span>
-          <input key={`t-${person?.id}`} className="input" inputMode="tel" defaultValue={person?.phone ?? ""} placeholder="06 12 34 56 78" onBlur={(e) => e.target.value.trim() !== (person?.phone ?? "") && maj({ phone: e.target.value.trim() || undefined })} />
+          <input key={`t-${person?.id}`} className="input" inputMode="tel" defaultValue={person?.phone ?? ""} placeholder="Son numéro" onBlur={(e) => e.target.value.trim() !== (person?.phone ?? "") && maj({ phone: e.target.value.trim() || undefined })} />
         </label>
         <label className="field">
           <span>E-mail</span>
-          <input key={`m-${person?.id}`} className="input" type="email" inputMode="email" defaultValue={person?.email ?? ""} placeholder="nom@exemple.fr" onBlur={(e) => e.target.value.trim() !== (person?.email ?? "") && maj({ email: e.target.value.trim() || undefined })} />
+          <input key={`m-${person?.id}`} className="input" type="email" inputMode="email" defaultValue={person?.email ?? ""} placeholder="Son e-mail" onBlur={(e) => e.target.value.trim() !== (person?.email ?? "") && maj({ email: e.target.value.trim() || undefined })} />
         </label>
         <Switch on={seance} onClick={() => maj({ paieALaSeance: !seance })}>
           Paie à la séance

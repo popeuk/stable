@@ -8,6 +8,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
 import { useDesk } from "@/components/bs/desk";
 import { Hello, Ic, Sec, Switch, ini } from "@/components/carnet/ui";
+import { CategoriesReglages, EquipeReglages } from "@/components/bs/reglages";
 import { api } from "@/lib/account/api";
 import { getSession, leave } from "@/lib/account/session";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
@@ -18,7 +19,12 @@ import { useUiStore } from "@/stores/ui-store";
 import { agendaSessions, CARE_META } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
 
-/** Réglages : l'écurie, le rappel du matin, revoir les explications et la tournée, et la porte de Be Stable (guide, communauté). */
+/**
+ * Réglages, sur un seul niveau : le compte, l'écurie (nom, boxes, tarifs,
+ * frais communs), l'équipe, les catégories, le rappel du matin, l'app, revoir
+ * les explications et la tournée, les données. Rien qui ne fait rien : pas
+ * de ligne « bientôt », pas de thème sombre, pas d'interrupteur sans effet.
+ */
 export default function Page() {
   return (
     <ClientGate>
@@ -90,10 +96,9 @@ function Moi() {
   const libres = Math.max(0, s.capacity - horses.length);
   const won = n === 6;
   const nameOf = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "";
-  const soon = () => say("Bientôt : ce lien ouvrira Be Stable.");
 
   const ecurie = (
-    <Sec ill="brouette" title="Ton écurie" delay={0.18}>
+    <Sec title="Ton écurie" delay={0.18} id="ecurie">
       <div className="li np">
         <Li title={<label htmlFor="st-name">Nom</label>} sub="en haut de l’app" right={<input id="st-name" className="input sm" defaultValue={s.stableName} onChange={(e) => s.setIdentity({ stableName: e.target.value })} />} />
       </div>
@@ -113,14 +118,11 @@ function Moi() {
       <Link href="/parcours/factures?retour=moi" className="li np">
         <Li title="Tes frais communs" sub="foin, litière, loyer, salaires" right={chev} />
       </Link>
-      <Link href="/parametres" className="li np">
-        <Li title="Tous les réglages" sub="tarifs, équipe, catégories, notifications" right={chev} />
-      </Link>
     </Sec>
   );
 
   const rappel = (
-    <Sec ill="assise" title="Le rappel du matin" blk delay={0.26}>
+    <Sec title="Le rappel du matin" blk delay={0.26} id="notifications">
       <div className="chips ec-bells" style={{ marginTop: 10 }}>
         {["6:30", "7:00", "7:45", "8:30"].map((t) => (
           <button key={t} type="button" className="chip" aria-pressed={s.reminder === t} onClick={() => s.setReminder(t)}>
@@ -171,7 +173,7 @@ function Moi() {
   );
 
   const premiers = (
-    <Sec ill="rosette" title="Tes premiers pas" delay={desk ? 0.1 : 0.32}>
+    <Sec title="Tes premiers pas" delay={desk ? 0.1 : 0.32}>
       <Link href="/parcours" className="li np">
         <Li title={won ? "Flot « Écurie prête » gagné" : `${n} étape${n > 1 ? "s" : ""} sur 6 franchie${n > 1 ? "s" : ""}`} sub={won ? "toutes les étapes sont faites" : "passer à l’étape suivante"} right={chev}>
           <span className="ec-steps" aria-hidden="true">
@@ -185,7 +187,7 @@ function Moi() {
   );
 
   const donnees = (
-    <Sec ill="carnet" title="Tes données" delay={desk ? 0.26 : 0.44}>
+    <Sec title="Tes données" delay={desk ? 0.26 : 0.44}>
       <p className="note">Tout est enregistré sur cet appareil. Pour passer du téléphone à l’ordinateur, exporte ici puis reprends le fichier sur l’autre appareil.</p>
       <button type="button" className="li np" onClick={exportData}>
         <Li title="Exporter mes données" sub="un fichier de sauvegarde avec toute ton écurie" right={<Ic n="download" className="ec-ico" />} />
@@ -230,16 +232,16 @@ function Moi() {
   );
 
   const revoir = (
-    <Sec ill="guide" title="Revoir" delay={desk ? 0.3 : 0.47} id="revoir">
+    <Sec title="Revoir" delay={desk ? 0.3 : 0.47} id="revoir">
       <button
         type="button"
         className="li np"
         onClick={() => {
           s.revoirAides();
-          say("Les explications reviennent en tête de chaque écran.");
+          router.push("/accueil");
         }}
       >
-        <Li title="Les explications de chaque écran" sub="la carte « Comment ça marche ici » revient partout" right={chev} />
+        <Li title="Les explications" sub="la ligne « Comment ça marche ici ? » revient sur l’accueil ; le « ? » en haut de chaque écran les rouvre" right={chev} />
       </button>
       <button
         type="button"
@@ -254,27 +256,13 @@ function Moi() {
     </Sec>
   );
 
-  const plusLoin = (
-    <Sec ill="piste" title="Aller plus loin avec Be Stable" delay={desk ? 0.34 : 0.5} id="bestable">
-      <button type="button" className="li np" onClick={soon}>
-        <Li title="Le guide de l’écurie active" sub="fixer tes prix, partager les frais, remplir tes boxes" right={<span className="pill">bientôt</span>} />
-      </button>
-      <button type="button" className="li np" onClick={soon}>
-        <Li title={`Publier mes ${libres} boxes libres`} sub="sur mon-ecurie.fr, gratuit, sans commission" right={<span className="pill">bientôt</span>} />
-      </button>
-      <button type="button" className="li np" onClick={soon}>
-        <Li title="Gérer · la communauté des gérants" sub={won ? "40 € par mois, tarif fondateur −20 % la première année" : "s’ouvre avec ton flot « Écurie prête »"} right={<span className="pill">bientôt</span>} />
-      </button>
-    </Sec>
-  );
-
   const compte = (
-    <Sec ill="carnet-buste" title="Ton compte" delay={0.1}>
+    <Sec title="Ton compte" delay={0.1}>
       <Compte />
     </Sec>
   );
   const app = (
-    <Sec ill="foin" title="L’app sur ton téléphone" delay={desk ? 0.18 : 0.38}>
+    <Sec title="L’app sur ton téléphone" delay={desk ? 0.18 : 0.38}>
       <Install />
     </Sec>
   );
@@ -282,32 +270,34 @@ function Moi() {
   return (
     <Screen wide={desk}>
       <div className="ec-pg">
-        <Hello title="Réglages" sub="Ce qui se règle une fois, et qu’on retrouve ici quand ça change." />
+        <Hello title="Réglages" sub="Ce qui se règle une fois, et qu’on retrouve ici quand ça change. Tout est sur cette page." />
         {desk ? (
           <div className="cols2 ec-cols">
             <div>
               {compte}
               {ecurie}
-              {rappel}
+              <EquipeReglages />
+              <CategoriesReglages />
             </div>
             <div>
               {premiers}
+              {rappel}
               {app}
               {revoir}
               {donnees}
-              {plusLoin}
             </div>
           </div>
         ) : (
           <>
             {compte}
             {ecurie}
+            <EquipeReglages />
             {rappel}
             {premiers}
+            <CategoriesReglages />
             {app}
             {revoir}
             {donnees}
-            {plusLoin}
           </>
         )}
         <div className="end" />

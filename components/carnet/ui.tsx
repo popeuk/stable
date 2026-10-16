@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { withBase } from "@/components/bs/ui";
 import { coatOf } from "@/components/bs/horse-face";
+import { altPerso, illPerso, usePerso } from "@/components/bs/perso";
 import type { Horse } from "@/lib/domain/types";
 
 /**
@@ -80,9 +81,37 @@ export type IllName =
   | "assise" | "brouette" | "carnet-buste" | "carnet" | "cavaliere" | "confirmer" | "dodo" | "foin" | "guide"
   | "matin" | "piste" | "promo" | "rosette" | "sacoche" | "sereine" | "soir" | "tete-fondu" | "tete"
   | "gerant-assise" | "gerant-buste" | "gerant-foin" | "gerant-rosette";
-export function Ill({ n, alt = "", className = "", style }: { n: IllName; alt?: string; className?: string; style?: CSSProperties }) {
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img className={`ill ${className}`} src={withBase(`/img/carnet/${n}.webp`)} alt={alt} style={style} draggable={false} loading="lazy" decoding="async" />;
+/**
+ * Une illustration. Celles du personnage suivent le tirage de l'appareil
+ * (gérante ou gérant, usePerso) ; fixe : l'image telle quelle (un client, pas
+ * le gérant). Une version gérant pas encore dessinée retombe sur la gérante.
+ */
+export function Ill({ n, alt = "", className = "", style, fixe }: { n: IllName; alt?: string; className?: string; style?: CSSProperties; fixe?: boolean }) {
+  const perso = usePerso();
+  const choix = fixe ? { n } : illPerso(n, perso);
+  const repli = choix.repli;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      key={choix.n}
+      className={`ill ${className}`}
+      src={withBase(`/img/carnet/${choix.n}.webp`)}
+      alt={fixe ? alt : altPerso(alt, perso)}
+      style={style}
+      draggable={false}
+      loading="lazy"
+      decoding="async"
+      onError={
+        repli
+          ? (e) => {
+              const img = e.currentTarget;
+              const vers = withBase(`/img/carnet/${repli}.webp`);
+              if (!img.src.endsWith(vers)) img.src = vers;
+            }
+          : undefined
+      }
+    />
+  );
 }
 
 /* ---------- Chevaux : une seule tête, la robe par filtre ---------- */

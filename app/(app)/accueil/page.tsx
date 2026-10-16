@@ -6,27 +6,26 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { useDesk } from "@/components/bs/desk";
 import { dayItems } from "@/lib/domain/seances";
 import { Compteur } from "@/components/bs/compteur";
-import { Tournee } from "@/components/bs/tournee";
-import { BandeauFinDuMois, LigneJour, useMaintenant } from "@/components/bs/compte";
+import { BandeauFinDuMois, LigneHier, LigneJour, useDebutant, useFinDuMois, useMaintenant } from "@/components/bs/compte";
+import { AideCarte } from "@/components/bs/nav";
 import { PromoMonEcurie } from "@/components/bs/promo-mon-ecurie";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 import { Empty, Face, Ic, Page, Sec } from "@/components/carnet/ui";
 
 /**
- * L'accueil : le compteur du mois en grand (le gérant assis dessus, la
- * sacoche), en fin de mois le bandeau « Fin du mois : n clients à faire
- * payer », puis ta journée. Ce qui est passé a compté tout seul : la ligne
- * le dit, avec × si ça n'a pas eu lieu. La tournée du matin s'ouvre
- * par-dessus une fois par jour. Sur ordinateur : compteur et journée côte à
- * côte, l'équipe et l'encart mon-ecurie.fr dessous ; sur téléphone, l'encart
- * ferme la page.
+ * L'accueil, dans l'ordre : le chiffre du mois (le personnage à côté), la
+ * ligne « Hier : … ont compté » qui ouvre la tournée du matin si on veut,
+ * ta journée en pleine largeur, une seule chose à faire à la fois (fin du
+ * mois, ou des chevaux à nommer), et l'encart mon-ecurie.fr réduit, tout en
+ * bas. L'aide de la première visite tient en une ligne, sous le chiffre.
+ * Sur ordinateur : le chiffre en grand à gauche, ta journée à droite et
+ * l'équipe dessous.
  */
 export default function AccueilPage() {
   return (
     <ClientGate>
       <Accueil />
-      <Tournee />
     </ClientGate>
   );
 }
@@ -37,11 +36,12 @@ function Accueil() {
   if (!desk)
     return (
       <Page className="ac-acc">
-        <Compteur href="/argent" perch="gerant-assise" />
-        <BandeauFinDuMois />
-        <NommerChevaux />
+        <Compteur href="/argent" ill />
+        <AideCarte compact />
+        <LigneHier />
         <Journee delay={0.12} max={5} />
-        <PromoMonEcurie />
+        <UneChose />
+        <PromoMonEcurie small />
         <div className="end" />
       </Page>
     );
@@ -49,21 +49,27 @@ function Accueil() {
     <Page wide className="ac-acc ac-desk">
       <div className="ac-dtop">
         <div>
-          <Compteur href="/argent" perch="gerant-assise" />
-          <BandeauFinDuMois />
-          <NommerChevaux />
+          <Compteur href="/argent" ill />
+          <AideCarte compact />
+          <LigneHier />
+          <UneChose />
         </div>
         <div>
           <Journee delay={0.12} max={8} />
+          <Equipe />
         </div>
       </div>
-      <div className="ac-dbot">
-        <Equipe />
-        <PromoMonEcurie small />
-      </div>
+      <PromoMonEcurie small />
       <div className="end" />
     </Page>
   );
+}
+
+/** Une seule chose à faire à la fois : la fin du mois d'abord, sinon les chevaux à nommer. */
+function UneChose() {
+  const fin = useFinDuMois();
+  if (fin && fin.count) return <BandeauFinDuMois />;
+  return <NommerChevaux />;
 }
 
 /** Ta journée, courte : ce qui a compté (avec ×), puis ce qui vient. */
@@ -78,8 +84,9 @@ function Journee({ delay, max }: { delay: number; max: number }) {
   const shownDone = comptes.slice(-Math.max(0, max - shownNext.length));
   const shown = [...shownDone, ...shownNext].sort((a, b) => (a.start ?? "99").localeCompare(b.start ?? "99"));
   const reste = items.filter((i) => !(i.type === "task" && i.done)).length - shown.length;
+  const debutant = useDebutant();
   return (
-    <Sec ill="carnet-buste" title="Ta journée" action={<Link href="/planning">Planning</Link>} delay={delay} className="ac-jour">
+    <Sec title="Ta journée" action={<Link href="/planning">Tout le planning</Link>} delay={delay} className="ac-jour">
       {!items.length ? (
         <p className="note ac-jnote">Rien de prévu aujourd’hui. Touche le + pour prévoir une séance, un soin ou une tâche.</p>
       ) : !shown.length ? (
@@ -93,7 +100,7 @@ function Journee({ delay, max }: { delay: number; max: number }) {
               <LigneJour key={it.key} it={it} />
             ))}
           </div>
-          {shownDone.length > 0 && <p className="note cp-hint">Pas eu lieu ? Retire la ligne.</p>}
+          {debutant && shownDone.length > 0 && <p className="note cp-hint">Pas eu lieu ? Retire la ligne.</p>}
           {reste > 0 && (
             <p className="note ac-jnote">
               <Link className="lnk" href="/planning">
@@ -132,9 +139,9 @@ function Equipe() {
   const done = data.taskLists?.find((l) => l.isDone)?.id;
   const doing = data.taskLists?.find((l) => !l.isDone && /cours/i.test(l.title))?.id;
   const tasks = (data.tasks ?? []).filter((t) => t.listId !== done && !(t.kind === "rdv" && t.due && t.due.slice(0, 10) < today) && ((t.due && t.due.slice(0, 10) <= today) || t.listId === doing)).slice(0, 5);
-  if (!tasks.length) return <div />;
+  if (!tasks.length) return null;
   return (
-    <Sec ill="gerant-buste" title="L’équipe" action={<Link href="/equipe">Voir les tâches</Link>} delay={0.34}>
+    <Sec title="L’équipe" action={<Link href="/equipe">Voir les tâches</Link>} delay={0.34}>
       {tasks.map((t) => {
         const late = !!t.due && t.due.slice(0, 10) < today;
         return (
