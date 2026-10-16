@@ -78,7 +78,8 @@ export function Ic({ n, className = "cn-ic", label }: { n: string; className?: s
 /* ---------- Illustrations ---------- */
 export type IllName =
   | "assise" | "brouette" | "carnet-buste" | "carnet" | "cavaliere" | "confirmer" | "dodo" | "foin" | "guide"
-  | "matin" | "piste" | "promo" | "rosette" | "sacoche" | "sereine" | "soir" | "tete-fondu" | "tete";
+  | "matin" | "piste" | "promo" | "rosette" | "sacoche" | "sereine" | "soir" | "tete-fondu" | "tete"
+  | "gerant-assise" | "gerant-buste" | "gerant-foin" | "gerant-rosette";
 export function Ill({ n, alt = "", className = "", style }: { n: IllName; alt?: string; className?: string; style?: CSSProperties }) {
   // eslint-disable-next-line @next/next/no-img-element
   return <img className={`ill ${className}`} src={withBase(`/img/carnet/${n}.webp`)} alt={alt} style={style} draggable={false} loading="lazy" decoding="async" />;
