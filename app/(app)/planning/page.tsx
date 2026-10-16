@@ -147,21 +147,23 @@ function Planning() {
       ]}
     />
   );
+  // La portée dite en toutes lettres : ces chiffres sont ceux de la semaine ou du mois affiché, pas de la journée.
+  const portee = view === "semaine" ? "sur la semaine" : "sur le mois";
   const trio = (soft: string) => (
     <div className="trio">
       <div>
         <b>
           <CountUp value={sum.count} fmt={nombre} />
         </b>
-        <small>séance{sum.count > 1 ? "s" : ""}</small>
+        <small>séance{sum.count > 1 ? "s" : ""} {portee}</small>
       </div>
       <div>
         <b className={moneyCls(sum.validated)}>{sg(sum.validated)}</b>
-        <small>ont compté</small>
+        <small>ont compté {portee}</small>
       </div>
       <div>
         <b className={soft}>{sg(sum.planned)}</b>
-        <small>encore prévus</small>
+        <small>encore prévus {portee}</small>
       </div>
     </div>
   );

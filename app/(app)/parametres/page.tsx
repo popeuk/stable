@@ -373,11 +373,11 @@ function Reste() {
         <span>
           <b>Nombre de boxes</b>
           <small>
-            {activeHorses} cheva{activeHorses > 1 ? "ux" : "l"} chez toi
+            {activeHorses} cheva{activeHorses > 1 ? "ux" : "l"} chez toi{capacity ? "" : " · pas encore dit"}
           </small>
         </span>
         <span className="ec-stp">
-          <Stepper value={capacity} onChange={setCapacity} min={1} max={60} />
+          <Stepper value={capacity || activeHorses} onChange={setCapacity} min={1} max={60} />
         </span>
       </div>
 

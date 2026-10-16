@@ -37,7 +37,8 @@ export function suggestions(data: StableData, period: Period, capacity: number):
   const m = monthBreakdown(data, period);
 
   // Remplir : chaque box libre loué laisse en moyenne ce que laisse un cheval.
-  const free = Math.max(0, capacity - horses.length);
+  // Sans nombre de boxes donné (0), aucune estimation : rien n'est promis sur une donnée inventée.
+  const free = capacity > 0 ? Math.max(0, capacity - horses.length) : 0;
   if (free > 0 && m.contribution > 0) {
     out.push({
       id: "remplir-box",
@@ -68,17 +69,20 @@ export function suggestions(data: StableData, period: Period, capacity: number):
     });
   }
 
-  // Facturer juste : les pensions sous ce que coûte le cheval sans ses soins.
+  // Facturer juste : un cheval qui te coûte vraiment ce mois (son ticket est
+  // négatif, soins, cours et part comprises) : la pension qui le remet à zéro.
+  // Un cheval dont le ticket est positif ne fait jamais perdre d'argent.
   for (const h of horses) {
     if (!h.pension) continue;
     const t = horseTicket(data, h.id, period);
-    const floor = Math.ceil((t.share + 40) / 10) * 10; // part de l'écurie + 40 € de soins courants
+    if (t.net >= 0) continue;
+    const floor = Math.ceil((h.pension - t.net) / 10) * 10;
     if (h.pension < floor) {
       out.push({
         id: `pension-${h.id}`,
         lever: "facturer",
         title: `${h.name} : passer la pension de ${h.pension} à ${floor} €`,
-        sub: "aujourd’hui, sa pension ne paie pas sa part des frais communs et ses soins de base. Tu perds de l’argent avec lui.",
+        sub: `ce mois, une fois ses soins et sa part des frais communs payés, il te coûte ${Math.round(-t.net)} €. À ${floor} €, il ne te coûterait plus rien.`,
         gain: floor - h.pension,
         unit: "par mois",
         apply: { type: "pension", horseId: h.id, amount: floor },

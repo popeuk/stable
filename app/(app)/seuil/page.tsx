@@ -54,7 +54,7 @@ function Seuil() {
 
       <div className="card rise" style={{ animationDelay: ".14s", margin: "16px 14px 0" }}>
         <p className="k">
-          Tes {Math.max(capacity, n)} box{Math.max(capacity, n) > 1 ? "es" : ""}
+          {capacity ? `Tes ${Math.max(capacity, n)} box${Math.max(capacity, n) > 1 ? "es" : ""}` : `Tes ${n} cheva${n > 1 ? "ux" : "l"}`}
         </p>
         <SeuilGrid horses={horses} capacity={capacity} seuil={m.seuil} />
       </div>

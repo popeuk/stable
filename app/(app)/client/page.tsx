@@ -12,7 +12,7 @@ import { CountUp, Empty, Face, Ic, Ill, Page as Ecran, Switch, eur, ini, sg } fr
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
-import { billsFor, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
+import { billOf, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
 import { accord, messageDu, prenomDe } from "@/lib/domain/clients";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
@@ -87,7 +87,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const person = (data.people ?? []).find((p) => p.name === nom);
   const horses = data.horses.filter((h) => !h.isArchived && meme(h.ownerName, nom));
   const role: PersonRole = person?.role ?? (horses.length ? "proprietaire" : "cavalier");
-  const bill: Bill = billsFor(data, period).find((b) => b.payer === nom) ?? { payer: nom, role, lines: [], total: 0, paid: 0, due: 0 };
+  const bill: Bill = billOf(data, nom, period) ?? { payer: nom, role, lines: [], total: 0, paid: 0, due: 0 };
   const avant = monthsBefore(data, nom, now, 3);
   const [feuille, setFeuille] = useState<Ouverte>(null);
   const [vientDePayer, setVientDePayer] = useState(false);

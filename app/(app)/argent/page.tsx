@@ -17,7 +17,7 @@ import { usePeriodStore } from "@/stores/period-store";
 import { useUiStore } from "@/stores/ui-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { suggestions, leverPotential, type Lever, type Suggestion } from "@/lib/domain/leviers";
-import { billsFor, monthKey, type Bill } from "@/lib/domain/billing";
+import { billTotals, billsFor, monthKey, type Bill } from "@/lib/domain/billing";
 import { seanceAmount } from "@/lib/domain/seances";
 import { currentPeriod, dateInPeriod, samePeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
@@ -534,10 +534,12 @@ function Facturer() {
   const [open, setOpen] = useState<string | null>(null);
   const bills = useMemo(() => billsFor(data, active), [data, active]);
   const mk = monthKey(active);
-  const total = bills.reduce((t, b) => t + b.total, 0);
-  const paid = bills.reduce((t, b) => t + Math.min(b.paid, b.total), 0);
-  const shown = bills.filter((b) => b.role === role);
-  const nProp = bills.filter((b) => b.role === "proprietaire").length;
+  // Les mêmes chiffres que Clients : ce qui reste dû, client par client. Les
+  // chevaux sans propriétaire sont dits à part, jamais comptés comme à recevoir.
+  const { total, paid, sansProprietaire } = billTotals(bills);
+  const orphan = bills.find((b) => b.orphan);
+  const shown = bills.filter((b) => b.role === role && !b.orphan);
+  const nProp = bills.filter((b) => b.role === "proprietaire" && !b.orphan).length;
   const nCav = bills.filter((b) => b.role === "cavalier").length;
   const desk = useDesk();
   const current = shown.find((b) => b.payer === open) ?? shown[0];
@@ -622,7 +624,12 @@ function Facturer() {
           />
         </div>
         <Sec ill="carnet-buste" title="Qui te doit quoi" action={<span className="act">{mName}</span>} delay={0.12}>
-          {shown.length === 0 && <p className="note">Personne à facturer ce mois-ci. Les pensions, séances et soins à refacturer apparaîtront ici.</p>}
+          {shown.length === 0 && !(role === "proprietaire" && orphan) && <p className="note">Personne à facturer ce mois-ci. Les pensions, séances et soins à refacturer apparaîtront ici.</p>}
+          {role === "proprietaire" && orphan && (
+            <p className="note">
+              {eur(sansProprietaire)} viennent de chevaux sans propriétaire ({[...new Set(orphan.lines.map((l) => l.horse).filter(Boolean))].join(", ")}). Ajoute leur propriétaire sur leur fiche pour savoir à qui le demander.
+            </p>
+          )}
           {shown.map((b) => {
             const isOpen = !desk && open === b.payer;
             const isCur = desk && current?.payer === b.payer;
@@ -649,7 +656,7 @@ function Facturer() {
                     </span>
                   </button>
                   <span className="ar-rt">
-                    <b>{eur(b.total)}</b>
+                    <b>{eur(b.due > 0 ? b.due : b.total)}</b>
                     {b.due <= 0 ? (
                       <button
                         type="button"
@@ -663,7 +670,7 @@ function Facturer() {
                         payé
                       </button>
                     ) : (
-                      <small>{b.due < b.total ? `${eur(b.due)} à recevoir` : "à recevoir"}</small>
+                      <small>{b.due < b.total ? `à recevoir sur ${eur(b.total)}` : "à recevoir"}</small>
                     )}
                   </span>
                 </div>

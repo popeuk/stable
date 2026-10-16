@@ -13,6 +13,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { localToday } from "@/lib/utils/local-date";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { esc } from "@/components/bs/ui";
+import { useSettingsStore } from "@/stores/settings-store";
 
 const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"] as const;
 
@@ -55,6 +56,10 @@ function Chevaux() {
   const [tick, setTick] = useState(0);
   const [pension, setPension] = useState(montantEnTexte(tariffs?.pension));
   const p = montantOuZero(pension);
+  // Le nombre de boxes, facultatif : sans lui, aucune estimation de boxes vides.
+  const capacity = useSettingsStore((s) => s.capacity);
+  const setCapacity = useSettingsStore((s) => s.setCapacity);
+  const [boxes, setBoxes] = useState(capacity ? String(capacity) : "");
 
   const suite = () => {
     if (!retour) pass("chevaux");
@@ -73,6 +78,8 @@ function Chevaux() {
 
   function parNombre() {
     if (!p) return;
+    const b = Number(boxes);
+    if (b > 0) setCapacity(Math.max(b, horses.length + nombre));
     const vide = horses.length === 0;
     const n = ajouterChevaux(nombre, p);
     if (vide) return suite();
@@ -125,6 +132,18 @@ function Chevaux() {
         </div>
         <p className="es-count-lab">{deja ? (nombre > 1 ? "chevaux de plus" : "cheval de plus") : nombre > 1 ? "chevaux" : "cheval"}</p>
         <MontantMois id="h-pension" label="Une pension, c’est combien par mois ?" value={pension} onChange={setPension} help="En moyenne, toutes formules confondues." />
+        {!deja && (
+          <div className="ar-mm">
+            <label htmlFor="h-boxes">Combien de boxes en tout ?</label>
+            <span className="ar-mm-f">
+              <input id="h-boxes" inputMode="numeric" autoComplete="off" placeholder="?" value={boxes} onChange={(e) => setBoxes(e.target.value.replace(/\D/g, "").slice(0, 2))} aria-describedby="h-boxes-aide" />
+              <span className="u">boxes</span>
+            </span>
+            <p id="h-boxes-aide" className="es-help">
+              Facultatif. Avec, l’app te dit ce que rapporteraient tes boxes vides.
+            </p>
+          </div>
+        )}
         {deja ? (
           <>
             <button type="button" className="btn line ar-go" disabled={!p} onClick={parNombre}>

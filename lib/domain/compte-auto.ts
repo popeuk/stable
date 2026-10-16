@@ -88,6 +88,6 @@ export function finDuMois(today: ISODate): Period | null {
 export function clientsAFairePayer(data: StableData, today: ISODate): { period: Period; bills: Bill[] } | null {
   const period = finDuMois(today);
   if (!period) return null;
-  const bills = billsFor(data, period).filter((b) => b.due > 0 && b.payer !== "Sans propriétaire");
+  const bills = billsFor(data, period).filter((b) => b.due > 0 && !b.orphan);
   return { period, bills };
 }

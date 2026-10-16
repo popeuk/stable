@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { dayItems } from "@/lib/domain/seances";
+import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 
 /**
@@ -30,7 +30,6 @@ export function MorningNudge() {
       const data = useDataStore.getState();
       const hhmm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       const items = dayItems(data, today, today, hhmm);
-      const todays = items.filter((i) => !i.done);
       const tasks = items.filter((i) => i.type === "task" && !i.done);
       const [h, m] = reminder.split(":").map(Number);
       const minutes = now.getHours() * 60 + now.getMinutes();
@@ -44,11 +43,9 @@ export function MorningNudge() {
         else new Notification(title, { body, tag });
       };
       if (minutes >= h * 60 + m && sent.morning !== today) {
-        notify(
-          "morning",
-          `Ta journée : ${todays.length} chose${todays.length > 1 ? "s" : ""}`,
-          todays.length ? todays.slice(0, 3).map((i) => `${i.start ? `${i.start} ` : ""}${i.title}`).join(", ") : "Rien de prévu aujourd’hui. Profites-en pour avancer.",
-        );
+        // Le même compte que l'accueil : toutes les choses du jour.
+        const r = resumeJournee(items);
+        notify("morning", r.titre, r.corps);
       } else if (evening && minutes >= 19 * 60 + 30 && tasks.length > 0 && sent.evening !== today) {
         notify(
           "evening",

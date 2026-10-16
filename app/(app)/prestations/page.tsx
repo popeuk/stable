@@ -134,7 +134,7 @@ function Prestations() {
             </div>
             <div>
               <b className="pl2">{sg(tot.planned)}</b>
-              <small>encore prévues</small>
+              <small>encore prévues ce mois</small>
             </div>
           </div>
         </div>

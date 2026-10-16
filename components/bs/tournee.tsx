@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { scopedKey } from "@/lib/account/session";
-import { dayItems } from "@/lib/domain/seances";
+import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { aCompteLe } from "@/lib/domain/compte-auto";
 import { addDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
@@ -147,7 +147,8 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
 
   const recap = [
     ...(etapes.includes("hier") ? [veille.length ? `Hier, ${pl(veille.length, "ligne")} ${veille.length > 1 ? "ont" : "a"} compté : ${sg(totalHier)}.` : "Hier, plus rien ne compte."] : []),
-    ...(restants.length ? [`${restants.length > 1 ? `${restants.length} choses` : "Une chose"} au planning aujourd’hui.`] : []),
+    // Toutes les choses du jour, comme l'accueil : séances, soins, tâches, rendez-vous.
+    ...(resumeJournee(items).ligne ? [resumeJournee(items).ligne!] : []),
     `Ce mois, ${mois.net < 0 ? "il te manque" : "il te reste"} ${sg(mois.net)}.`,
   ];
 
@@ -266,7 +267,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                 ) : null}
                 {Math.round(mois.prevu) > 0 ? (
                   <>
-                    Encore <Money v={mois.prevu} /> prévu au planning.
+                    Encore <Money v={mois.prevu} /> prévu au planning ce mois.
                   </>
                 ) : null}
               </p>

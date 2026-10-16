@@ -96,7 +96,7 @@ export function Compteur({ href, perch, className = "" }: { href?: string; perch
           </span>
           <span className="bar-lab">
             <span>{Math.round(pct)} % de ton objectif</span>
-            {Math.round(prevu) > 0 && <span>{sg(prevu)} encore prévu au planning</span>}
+            {Math.round(prevu) > 0 && <span>{sg(prevu)} encore prévu au planning ce mois</span>}
           </span>
         </>
       )}
@@ -108,7 +108,7 @@ export function Compteur({ href, perch, className = "" }: { href?: string; perch
       )}
     </>
   );
-  const label = `${net < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"} ${sg(net)}. ${phraseObjectif(net, objective)}${Math.round(prevu) > 0 ? ` ${sg(prevu)} encore prévu au planning.` : ""}`;
+  const label = `${net < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"} ${sg(net)}. ${phraseObjectif(net, objective)}${Math.round(prevu) > 0 ? ` ${sg(prevu)} encore prévu au planning ce mois.` : ""}`;
   const card = href ? (
     <Link href={href} className="card moncard ac-cpt" aria-label={`${label} Voir d’où ça vient.`}>
       {inner}

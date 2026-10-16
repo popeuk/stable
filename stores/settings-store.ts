@@ -18,6 +18,11 @@ const ALL_OBSTACLES: Record<ObstacleId, boolean> = { chevaux: true, tarifs: true
 
 /** L'objectif de l'écurie d'exemple : la démo montre à quoi sert un objectif. */
 export const DEMO_OBJECTIVE = 1000;
+/** Les boxes de l'écurie d'exemple (9 chevaux, 12 boxes). */
+export const DEMO_CAPACITY = 12;
+
+/** Le nombre de boxes est-il connu ? (0 = jamais donné) */
+export const capaciteConnue = (capacity: number) => capacity > 0;
 
 /** Pas d'objectif posé (0) : l'interface ne parle alors ni de manque ni de pourcentage. */
 export const hasObjective = (objective: number) => objective > 0;
@@ -35,7 +40,7 @@ export function settingsAtOpen(kind: "compte" | "demo" | "locale" | undefined, f
       parcours: { ...ALL_OBSTACLES },
       arrived: true,
       onboarded: true,
-      ...(fresh ? { objective: DEMO_OBJECTIVE, stableName: "Les Trois Pommiers", gerant: "Claire" } : {}),
+      ...(fresh ? { objective: DEMO_OBJECTIVE, capacity: DEMO_CAPACITY, stableName: "Les Trois Pommiers", gerant: "Claire" } : {}),
     };
   if (!fresh) return null;
   if (kind === "compte") return { stableName: p.stableName || "Mon écurie", gerant: p.prenom || "", parcours: { ...NO_OBSTACLE }, arrived: false, objective: 0 };
@@ -45,7 +50,11 @@ export function settingsAtOpen(kind: "compte" | "demo" | "locale" | undefined, f
 
 interface SettingsState {
   notifications: NotificationPrefs;
-  /** Number of stalls the stable can host — drives occupancy advice. */
+  /**
+   * Le nombre de boxes de l'écurie, tel que le gérant l'a donné. 0 = pas
+   * encore donné : aucune estimation de boxes vides ne s'affiche tant qu'on
+   * ne le connaît pas (rien n'est promis sur une donnée inventée).
+   */
   capacity: number;
   /** Has the user seen the intro onboarding? */
   onboarded: boolean;
@@ -97,7 +106,7 @@ export const useSettingsStore = create<SettingsState>()(
         monthlyAudit: true,
         horseAlerts: true,
       },
-      capacity: 12,
+      capacity: 0,
       onboarded: false,
       parcours: { ...NO_OBSTACLE },
       arrived: false,
@@ -135,7 +144,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "be-stable-settings",
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => vault),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
@@ -147,7 +156,12 @@ export const useSettingsStore = create<SettingsState>()(
         if (patch) useSettingsStore.setState(patch);
       },
       // v4 : le parcours de démarrage arrive ; les anciens réglages sont gardés.
-      migrate: (old, v) => ({ objective: 0, ...(old as object), ...(v < 4 ? { parcours: { ...NO_OBSTACLE }, arrived: false } : {}) }) as never,
+      // v6 : les 12 boxes d'office n'étaient jamais demandés : hors démo, ils redeviennent « pas encore donné ».
+      migrate: (old, v) => {
+        const o = { objective: 0, capacity: 0, ...(old as object) } as { capacity: number };
+        const capacity = v < 6 && o.capacity === 12 && getSession()?.kind !== "demo" ? 0 : o.capacity;
+        return { ...o, capacity, ...(v < 4 ? { parcours: { ...NO_OBSTACLE }, arrived: false } : {}) } as never;
+      },
     },
   ),
 );
