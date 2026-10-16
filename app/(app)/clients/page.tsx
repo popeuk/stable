@@ -4,8 +4,7 @@ import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 /**
- * L'ancienne page « Mes clients » mène à la nouvelle liste (Clients et
- * chevaux, vue Clients) ; `?q=Nom` ouvre directement la fiche du client.
+ * L'ancienne page « Mes clients » mène à la liste de l'onglet Clients ; `?q=Nom` ouvre directement la fiche du client.
  * Rien ne se perd : l'ajout et la recherche sont dans la liste, le
  * téléphone dans la fiche, les pros dans tes contacts.
  */

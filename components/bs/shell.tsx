@@ -158,7 +158,7 @@ function useNet() {
 }
 
 /**
- * La barre d'onglets : Accueil, Planning, +, Clients et chevaux (en fin de
+ * La barre d'onglets : Accueil, Planning, +, Clients (les clients et leurs chevaux ; en fin de
  * mois seulement, le nombre de clients qui te doivent encore), Mon mois (le chiffre du mois, qui compte quand il
  * change, et un « +X € » qui s'envole quand de l'argent rentre).
  */
@@ -207,7 +207,7 @@ export function TabBar() {
         >
           <Ic n="plus" />
         </button>
-        <Link href="/chevaux" aria-current={on(CLIENTS_CHEVAUX)} aria-label={`Clients et chevaux${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
+        <Link href="/chevaux" aria-current={on(CLIENTS_CHEVAUX)} aria-label={`Clients${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
           <span className="ac-ic">
             <Ic n="people" />
             {count > 0 && (
@@ -216,11 +216,7 @@ export function TabBar() {
               </em>
             )}
           </span>
-          <span className="ac-two" aria-hidden="true">
-            Clients et
-            <br />
-            chevaux
-          </span>
+          <span aria-hidden="true">Clients</span>
         </Link>
         <Link href="/argent" aria-current={on(BILAN)} aria-label={`Mon mois : ${net < 0 ? "il te manque" : "il te reste"} ${sg(net)}`} className="ac-mois">
           <Ic n="chart" />
