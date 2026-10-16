@@ -8,6 +8,7 @@ import { dayItems } from "@/lib/domain/seances";
 import { Compteur } from "@/components/bs/compteur";
 import { Tournee } from "@/components/bs/tournee";
 import { BandeauFinDuMois, LigneJour, useMaintenant } from "@/components/bs/compte";
+import { PromoMonEcurie } from "@/components/bs/promo-mon-ecurie";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 import { Empty, Face, Ic, Page, Sec } from "@/components/carnet/ui";
@@ -18,7 +19,8 @@ import { Empty, Face, Ic, Page, Sec } from "@/components/carnet/ui";
  * payer », puis ta journée. Ce qui est passé a compté tout seul : la ligne
  * le dit, avec × si ça n'a pas eu lieu. La tournée du matin s'ouvre
  * par-dessus une fois par jour. Sur ordinateur : compteur et journée côte à
- * côte, l'équipe dessous.
+ * côte, l'équipe et l'encart mon-ecurie.fr dessous ; sur téléphone, l'encart
+ * ferme la page.
  */
 export default function AccueilPage() {
   return (
@@ -39,6 +41,7 @@ function Accueil() {
         <BandeauFinDuMois />
         <NommerChevaux />
         <Journee delay={0.12} max={5} />
+        <PromoMonEcurie />
         <div className="end" />
       </Page>
     );
@@ -56,6 +59,7 @@ function Accueil() {
       </div>
       <div className="ac-dbot">
         <Equipe />
+        <PromoMonEcurie small />
       </div>
       <div className="end" />
     </Page>
