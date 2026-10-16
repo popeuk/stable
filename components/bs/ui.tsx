@@ -169,3 +169,9 @@ export function Rosette({ lines, size = 112 }: { lines: string[]; size?: number 
     </svg>
   );
 }
+
+/** « Il en faut 8 (7,5 pile). » : un demi-cheval ne se loge pas, on arrondit au-dessus. */
+export const ilEnFaut = (seuil: number) => {
+  const n = Math.ceil(seuil - 1e-9);
+  return Math.abs(n - seuil) < 0.05 ? `Il en faut ${n}.` : `Il en faut ${n} (${dec1(seuil)} pile).`;
+};

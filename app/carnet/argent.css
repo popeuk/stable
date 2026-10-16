@@ -243,3 +243,8 @@
   .carnet .ar-tbl-wrap { padding: 0; }
   .carnet .ar-ask { bottom: 24px; }
 }
+
+/* Mon mois : une seule image (plus de sacoche), le chiffre, puis ce qui rentre et ce qui sort */
+.carnet .ar-compte { height: 150px; }
+.carnet .ar-compte .ar-who { width: 200px; }
+.carnet .ar-goalh { display: block; margin-top: 6px; font-size: 12.5px; color: var(--ink2); }

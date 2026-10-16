@@ -2,7 +2,6 @@
 
 import type { Horse } from "@/lib/domain/types";
 import { Face, Ic } from "@/components/carnet/ui";
-import { dec1 } from "@/components/bs/ui";
 
 /**
  * Le seuil en têtes de chevaux : une case par box, les chevaux présents
@@ -19,11 +18,11 @@ export function SeuilGrid({ horses, capacity, seuil }: { horses: Horse[]; capaci
   const free = Math.max(0, capacity - horses.length);
   return (
     <>
-      <div className="ar-grid12" role="img" aria-label={isFinite(seuil) ? `${horses.length} chevaux sur ${cap} boxes. Il en faut ${dec1(seuil)} pour ne pas perdre d’argent.` : `${horses.length} chevaux. Les pensions ne paient pas encore les soins.`}>
+      <div className="ar-grid12" role="img" aria-label={isFinite(seuil) ? `${horses.length} chevaux sur ${cap} boxes. Il en faut ${Math.ceil(seuil - 1e-9)} pour ne pas perdre d’argent.` : `${horses.length} chevaux. Les pensions ne paient pas encore les soins.`}>
         {Array.from({ length: cap }, (_, i) => (horses[i] ? <Face key={i} horse={horses[i]} /> : <span key={i} className="ar-vide" />))}
         {isFinite(seuil) && (
           <span className="ar-trait" style={{ left: `calc(${((col / cols) * 100).toFixed(2)}% + 1px)`, top: row * ROW - 6 }}>
-            <span>il en faut {dec1(seuil)}</span>
+            <span>il en faut {Math.ceil(seuil - 1e-9)}</span>
           </span>
         )}
       </div>
@@ -33,7 +32,7 @@ export function SeuilGrid({ horses, capacity, seuil }: { horses: Horse[]; capaci
         </span>
         <b>
           <Ic n="flag" className="ar-ic" />
-          {isFinite(seuil) ? `il en faut ${dec1(seuil)}` : "pas encore atteignable"}
+          {isFinite(seuil) ? `il en faut ${Math.ceil(seuil - 1e-9)}` : "pas encore atteignable"}
         </b>
       </div>
     </>

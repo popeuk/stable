@@ -1,40 +1,40 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
-import { cap, dec1, esc } from "@/components/bs/ui";
+import { cap, esc, ilEnFaut } from "@/components/bs/ui";
 import { plannedRest } from "@/components/bs/goal-card";
-import { Compteur } from "@/components/bs/compteur";
 import { useDesk } from "@/components/bs/desk";
-import { Chips, Coins, CountUp, Empty, Hello, Ic, Ill, Money, Page, Sec, Seg, eur, ini, sg, type IllName } from "@/components/carnet/ui";
+import { Chips, CountUp, Empty, Hello, Ic, Ill, Money, Page, Sec, Seg, eur, sg, type IllName } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useUiStore } from "@/stores/ui-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { suggestions, leverPotential, type Lever, type Suggestion } from "@/lib/domain/leviers";
-import { billsFor, monthKey, type Bill } from "@/lib/domain/billing";
+import { clientDues } from "@/lib/domain/clients";
 import { seanceAmount } from "@/lib/domain/seances";
 import { currentPeriod, dateInPeriod, samePeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 
 /**
- * Mon mois (ancien Bilan) : le compteur du mois en tête, d'où vient l'argent et
- * où il part, une piste pour gagner plus, puis les leviers (remplir, facturer
- * juste, dépenser mieux), ce qu'il faut facturer par personne, et tous les
- * mouvements à corriger. Rendu : le carnet illustré.
+ * Mon mois (ancien Bilan) : le chiffre du mois en tête, puis ce qui rentre
+ * et ce qui sort (d'où ça vient), puis les séances semaine par semaine, une
+ * piste pour gagner plus et les explications. Encaisser se fait à un seul
+ * endroit, l'onglet Clients : l'ancienne vue Facturer y mène. Les leviers
+ * (remplir, faire payer, dépenser mieux) et tous les mouvements à corriger
+ * ont leur onglet. Rendu : le carnet illustré.
  */
-type Vue = "mois" | "leviers" | "facturer" | "mouvements";
+type Vue = "mois" | "leviers" | "mouvements";
 const VUES: [Vue, string][] = [
   ["mois", "Le mois"],
   ["leviers", "Gagner plus"],
-  ["facturer", "Facturer"],
   ["mouvements", "Historique"],
 ];
-const TITRES: Record<Vue, string> = { mois: "Mon mois", leviers: "Pistes pour gagner plus", facturer: "À facturer", mouvements: "Entrées et sorties d’argent" };
+const TITRES: Record<Vue, string> = { mois: "Mon mois", leviers: "Pistes pour gagner plus", mouvements: "Entrées et sorties d’argent" };
 
 /** Le pictogramme d'une ligne d'argent, d'après son libellé. */
 function icFor(label: string): string {
@@ -51,8 +51,14 @@ function icFor(label: string): string {
   return "euro";
 }
 const monthName = (y: number, m: number) => new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long" });
-/** « d’octobre », « de mai ». */
-const deMois = (name: string) => (/^[aeiouyéè]/i.test(name) ? `d’${name}` : `de ${name}`);
+/** L'adresse demande d'ouvrir le champ de l'objectif (« Te fixer un objectif ? » de l'accueil). */
+const objectifDemande = () => {
+  try {
+    return new URLSearchParams(window.location.search).get("objectif") === "1";
+  } catch {
+    return false;
+  }
+};
 
 export default function Page_() {
   return (
@@ -68,6 +74,10 @@ function Argent() {
   const router = useRouter();
   const brut = useSearchParams().get("vue");
   const vue: Vue = VUES.some(([k]) => k === brut) ? (brut as Vue) : "mois";
+  // Encaisser, c'est dans Clients : l'ancienne adresse de Facturer y mène.
+  useEffect(() => {
+    if (brut === "facturer") router.replace("/chevaux?vue=clients");
+  }, [brut, router]);
   const active = usePeriodStore((s) => s.active);
   const step = usePeriodStore((s) => s.step);
   const isNow = samePeriod(active, currentPeriod());
@@ -90,7 +100,6 @@ function Argent() {
       </div>
       {vue === "mois" && <Mois />}
       {vue === "leviers" && <Leviers />}
-      {vue === "facturer" && <Facturer />}
       {vue === "mouvements" && <Mouvements />}
       <div className="end" />
     </Page>
@@ -103,8 +112,11 @@ function Mois() {
   const active = usePeriodStore((s) => s.active);
   const objective = useSettingsStore((s) => s.objective);
   const setObjective = useSettingsStore((s) => s.setObjective);
-  const [editGoal, setEditGoal] = useState(false);
+  // « Te fixer un objectif ? » sur l'accueil ouvre directement le champ.
+  const [editGoal, setEditGoal] = useState(() => objectifDemande());
   const m = useMemo(() => monthBreakdown(data, active), [data, active]);
+  const dues = useMemo(() => clientDues(data, active).filter((c) => c.due > 0), [data, active]);
+  const duTotal = dues.reduce((t, c) => t + c.due, 0);
   const isNow = samePeriod(active, currentPeriod());
   const today = localToday();
   const rest = useMemo(() => (isNow ? plannedRest(data, today) : 0), [data, today, isNow]);
@@ -168,13 +180,11 @@ function Mois() {
 
   const sub = isNow ? (
     <>
-      Au {now.getDate()} {mName}, tout payé, il te reste <Money v={m.net} />.{" "}
-      {left > 0 ? `Encore ${eur(left)} et tu atteins les ${eur(objective)} que tu vises.` : `Tu as atteint les ${eur(objective)} que tu vises.`}
+      Au {now.getDate()} {mName}, tout payé : pensions, soins, frais communs.{" "}
+      {objective > 0 ? (left > 0 ? `Encore ${eur(left)} et tu atteins les ${eur(objective)} que tu vises.` : `Tu as atteint les ${eur(objective)} que tu vises.`) : ""}
     </>
   ) : (
-    <>
-      Tout payé, il t’est resté <Money v={m.net} />. Ton objectif : {eur(objective)}.
-    </>
+    <>Tout payé : pensions, soins, frais communs.{objective > 0 ? ` Ton objectif : ${eur(objective)}.` : ""}</>
   );
 
   const goal = (
@@ -187,32 +197,37 @@ function Mois() {
         <p className="note">
           {Math.round(rest) !== 0 && (
             <>
-              Encore <Money v={rest} /> prévus au planning d’ici le {lastDay}.{" "}
+              Encore {sg(rest)} prévus au planning d’ici le {lastDay}.{" "}
             </>
           )}
           Il reste {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
         </p>
       )}
-      <div className="bar" aria-hidden="true">
-        {restPct > 0 && <i className="plan" style={{ width: `${pct + restPct}%` }} />}
-        <i style={{ width: `${pct}%` }} />
-      </div>
-      <div className="bar-lab">
-        <span>{m.net >= objective ? "objectif atteint" : `${Math.round(pct)} % du chemin`}</span>
-        <span>objectif : {eur(objective)}</span>
-      </div>
+      {objective > 0 && (
+        <>
+          <div className="bar" aria-hidden="true">
+            {restPct > 0 && <i className="plan" style={{ width: `${pct + restPct}%` }} />}
+            <i style={{ width: `${pct}%` }} />
+          </div>
+          <div className="bar-lab">
+            <span>{m.net >= objective ? "objectif atteint" : `${Math.round(pct)} % du chemin`}</span>
+            <span>objectif : {eur(objective)}</span>
+          </div>
+        </>
+      )}
       {editGoal ? (
         <label className="field">
           <span>Ce que tu veux qu’il te reste par mois</span>
           <span className="input">
-            <input inputMode="numeric" defaultValue={objective} onChange={(e) => setObjective(Number(e.target.value) || 0)} onBlur={() => setEditGoal(false)} autoFocus />
+            <input inputMode="numeric" defaultValue={objective || ""} placeholder="0" onChange={(e) => setObjective(Number(e.target.value) || 0)} onBlur={() => setEditGoal(false)} autoFocus />
             <span className="u">€</span>
           </span>
+          <small className="ar-goalh">Laisse vide pour ne pas avoir d’objectif.</small>
         </label>
       ) : (
         <div className="ar-lnks">
           <button type="button" className="lnk" onClick={() => setEditGoal(true)}>
-            Changer l’objectif
+            {objective > 0 ? "Changer l’objectif" : "Te fixer un objectif"}
           </button>
           <Link className="lnk" href="/argent?vue=leviers">
             Voir les pistes
@@ -224,76 +239,8 @@ function Mois() {
 
   const aria = `Séances de ${mName} par semaine : ${weeks.map((w) => `${eur(w.done + w.planned)}${w.planned ? ` dont ${eur(w.planned)} prévus` : ""}`).join(", ")}.`;
 
-  const objectif = editGoal ? (
-    <label className="field ar-goalf">
-      <span>Ce que tu veux qu’il te reste par mois</span>
-      <span className="input">
-        <input inputMode="numeric" defaultValue={objective} onChange={(e) => setObjective(Number(e.target.value) || 0)} onBlur={() => setEditGoal(false)} autoFocus />
-        <span className="u">€</span>
-      </span>
-    </label>
-  ) : (
-    <div className="ar-lnks ar-cptl">
-      <button type="button" className="lnk" onClick={() => setEditGoal(true)}>
-        Changer l’objectif
-      </button>
-      {Math.round(rest) !== 0 && (
-        <span>
-          Encore <Money v={rest} /> prévus au planning, {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}.
-        </span>
-      )}
-    </div>
-  );
-
-  return (
-    <div className="ar-split">
-      <div>
-        {isNow ? (
-          <>
-            <div className="ar-cpt">
-              <Compteur />
-            </div>
-            {objectif}
-          </>
-        ) : (
-          <>
-            <div className="ar-compte" aria-hidden="true">
-              <Ill n="foin" className="ar-who" />
-              {gagne && <Coins />}
-              <Ill n="sacoche" className="ar-sac" />
-            </div>
-            <Hello title={titre} sub={sub} delay={0.1} />
-            {goal}
-          </>
-        )}
-        <Sec ill="gerant-buste" title="Tes séances, semaine par semaine" delay={0.26}>
-          <div className="ar-wk" role="img" aria-label={aria} style={{ gridTemplateColumns: `repeat(${weeks.length}, 1fr)` }}>
-            {weeks.map((w, i) => (
-              <div key={w.label}>
-                <em>{Math.round(w.done + w.planned)}</em>
-                <span className="ar-st">
-                  {w.planned > 0 && <i className="p" style={{ height: `${(w.planned / max) * 100}%`, animationDelay: `${i * 0.08}s` }} />}
-                  {w.done > 0 && <i className="d" style={{ height: `${(w.done / max) * 100}%`, borderRadius: w.planned ? 0 : undefined, animationDelay: `${i * 0.08}s` }} />}
-                </span>
-                <small className={w.now ? "now" : undefined}>{w.label}</small>
-              </div>
-            ))}
-          </div>
-          <div className="ar-leg">
-            <span>
-              <i />a eu lieu
-            </span>
-            <span>
-              <i className="p" />
-              encore prévu
-            </span>
-          </div>
-          <p className="note">En euros. Sous chaque barre, le premier jour de la semaine.</p>
-        </Sec>
-      </div>
-
-      <div>
-        <Sec ill="piste" title="Ce qui rentre" action={<span className="act in">{sg(m.revenue)}</span>} delay={0.34}>
+  const ceQuiRentre = (
+        <Sec title="Ce qui rentre" action={<span className="act in">{sg(m.revenue)}</span>} delay={0.2}>
           {m.ins.length === 0 && <p className="note">Rien n’est encore rentré ce mois-ci.</p>}
           {m.ins.map((x) => (
             <div key={x.label} className="ar-post">
@@ -305,7 +252,9 @@ function Mois() {
             </div>
           ))}
         </Sec>
-        <Sec ill="gerant-foin" title="Ce qui sort" action={<span className="act out">{sg(-(m.direct + m.sharedTotal + m.outside))}</span>} delay={0.42}>
+  );
+  const ceQuiSort = (
+        <Sec title="Ce qui sort" action={<span className="act out">{sg(-(m.direct + m.sharedTotal + m.outside))}</span>} delay={0.26}>
           {m.shared.map((x) => (
             <div key={x.label} className="ar-post">
               <span className="ar-pic">
@@ -338,14 +287,65 @@ function Mois() {
             </div>
           ))}
         </Sec>
+  );
+
+  return (
+    <div className="ar-split">
+      <div>
+        <div className="ar-compte" aria-hidden="true">
+          <Ill n="foin" className="ar-who" />
+        </div>
+        <Hello title={titre} sub={sub} delay={0.1} />
+        {goal}
+        {ceQuiRentre}
+        {ceQuiSort}
+      </div>
+
+      <div>
+        <Sec title="Tes séances, semaine par semaine" delay={0.32}>
+          <div className="ar-wk" role="img" aria-label={aria} style={{ gridTemplateColumns: `repeat(${weeks.length}, 1fr)` }}>
+            {weeks.map((w, i) => (
+              <div key={w.label}>
+                <em>{Math.round(w.done + w.planned)}</em>
+                <span className="ar-st">
+                  {w.planned > 0 && <i className="p" style={{ height: `${(w.planned / max) * 100}%`, animationDelay: `${i * 0.08}s` }} />}
+                  {w.done > 0 && <i className="d" style={{ height: `${(w.done / max) * 100}%`, borderRadius: w.planned ? 0 : undefined, animationDelay: `${i * 0.08}s` }} />}
+                </span>
+                <small className={w.now ? "now" : undefined}>{w.label}</small>
+              </div>
+            ))}
+          </div>
+          <div className="ar-leg">
+            <span>
+              <i />a eu lieu
+            </span>
+            <span>
+              <i className="p" />
+              encore prévu
+            </span>
+          </div>
+          <p className="note">En euros. Sous chaque barre, le premier jour de la semaine.</p>
+        </Sec>
         {isNow && <Piste delay={0.48} />}
-        <Link href="/seuil" className="card ar-lcard rise" style={{ animationDelay: ".5s", marginTop: 18 }}>
+        {isNow && (
+          <Link href="/chevaux?vue=clients" className="card ar-lcard rise" style={{ animationDelay: ".48s", marginTop: 18 }}>
+            <span className="ar-pic">
+              <Ic n="people" className="ar-ic" />
+            </span>
+            <span>
+              <span className="k">Qui te doit quoi</span>
+              <b>{dues.length ? `${dues.length} client${dues.length > 1 ? "s" : ""} te ${dues.length > 1 ? "doivent" : "doit"} ${eur(duTotal)}. Encaisse dans Clients.` : "Personne ne te doit rien ce mois."}</b>
+            </span>
+            <Ic n="chev" className="chev" />
+          </Link>
+        )}
+        <Link href="/seuil" className="card ar-lcard rise" style={{ animationDelay: ".5s", marginTop: isNow ? 0 : 18 }}>
           <span className="ar-pic">
             <Ic n="flag" className="ar-ic" />
           </span>
           <span>
             <span className="k">Combien de chevaux pour ne pas perdre d’argent</span>
-            <b>{isFinite(m.seuil) ? `Il en faut ${dec1(m.seuil)}. Tu en as ${m.horseCount}.` : "Tes pensions ne paient pas encore les soins des chevaux"}</b>
+            <b>{isFinite(m.seuil) ? `${ilEnFaut(m.seuil)} Tu en as ${m.horseCount}.` : "Tes pensions ne paient pas encore les soins des chevaux"}</b>
           </span>
           <Ic n="chev" className="chev" />
         </Link>
@@ -390,7 +390,7 @@ function Piste({ delay }: { delay: number }) {
           <b>{action.title}</b>
           <small>{cap(action.sub)}</small>
         </span>
-        <span className="in">
+        <span className="num">
           {sg(action.gain)}
           <small>{action.unit}</small>
         </span>
@@ -448,11 +448,11 @@ function Leviers() {
     <>
       <div className="card ar-head rise" style={{ animationDelay: ".05s" }}>
         <Ill n="piste" />
-        <p className="k">{missing > 0 ? `Il te manque ${eur(missing)} pour ton objectif. Avec ces pistes, jusqu’à` : "Objectif atteint. Avec ces pistes, encore jusqu’à"}</p>
-        <p className="big in">
+        <p className="k">{objective <= 0 ? "Avec ces pistes, jusqu’à" : missing > 0 ? `Il te manque ${eur(missing)} pour ton objectif. Avec ces pistes, jusqu’à` : "Objectif atteint. Avec ces pistes, encore jusqu’à"}</p>
+        <p className="big num">
           <CountUp value={monthly} />
         </p>
-        <span className="ar-u">de plus par mois (estimation)</span>
+        <span className="ar-u">de plus par mois possibles (estimation)</span>
         {gained > 0 && (
           <p className="ar-gain">
             <span>Déjà gagné grâce à ce que tu as fait</span>
@@ -475,7 +475,7 @@ function Leviers() {
                   <small>{acts.length ? `${acts.length} piste${acts.length > 1 ? "s" : ""}` : "rien à faire ce mois-ci"}</small>
                 </>
               }
-              action={<span className="act in">{sg(leverPotential(list, lv.id))}</span>}
+              action={<span className="act">{sg(leverPotential(list, lv.id))} possibles</span>}
             >
               {acts.map((s) => (
                 <div key={s.id} className={`ar-pst${s.status === "faite" ? " fait" : s.status === "ecartee" ? " cote" : ""}`}>
@@ -484,7 +484,7 @@ function Leviers() {
                     <p>{s.sub}</p>
                   </span>
                   <span className="ar-rt">
-                    <span className="in">
+                    <span className={s.status === "faite" ? "in" : "num"}>
                       {sg(s.measured ?? s.gain)}
                       <small>{s.status === "faite" ? "gagnés" : s.unit}</small>
                     </span>
@@ -519,184 +519,6 @@ function Leviers() {
         </Link>
       </div>
     </>
-  );
-}
-
-/* ---------------- À facturer ---------------- */
-function Facturer() {
-  const data = useDataStore();
-  const active = usePeriodStore((s) => s.active);
-  const say = useUiStore((s) => s.say);
-  const [role, setRole] = useState<"proprietaire" | "cavalier">("proprietaire");
-  const [open, setOpen] = useState<string | null>(null);
-  const bills = useMemo(() => billsFor(data, active), [data, active]);
-  const mk = monthKey(active);
-  const total = bills.reduce((t, b) => t + b.total, 0);
-  const paid = bills.reduce((t, b) => t + Math.min(b.paid, b.total), 0);
-  const shown = bills.filter((b) => b.role === role);
-  const nProp = bills.filter((b) => b.role === "proprietaire").length;
-  const nCav = bills.filter((b) => b.role === "cavalier").length;
-  const desk = useDesk();
-  const current = shown.find((b) => b.payer === open) ?? shown[0];
-  const mName = monthName(active.year, active.month);
-
-  function received(b: Bill) {
-    const snap = useDataStore.getState().payments;
-    useDataStore.getState().addPayment(b.payer, mk, b.due);
-    say(`${esc(b.payer)} : <strong>${eur(b.due)}</strong> reçus.`, () => useDataStore.setState({ payments: snap }));
-  }
-
-  const billTicket = (b: Bill) => (
-    <div className="ticket print" key={b.payer}>
-      {desk && (
-        <div className="ar-th">
-          <span className="ini">{ini(b.payer)}</span>
-          <span>{b.payer}</span>
-          <span className="pill">{b.due <= 0 ? "payé" : `${eur(b.due)} dus`}</span>
-        </div>
-      )}
-      {b.lines.map((l, i) => (
-        <div key={i} className="r">
-          <span>
-            {l.label}
-            <small>
-              {l.horse ? `${l.horse} · ` : ""}
-              {new Date(l.date + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-            </small>
-          </span>
-          <span>{eur(l.amount)}</span>
-        </div>
-      ))}
-      <div className="r tot">
-        <span>Total</span>
-        <span>{eur(b.total)}</span>
-      </div>
-    </div>
-  );
-
-  function copy() {
-    const txt = shown
-      .map((b) => `${b.payer} : ${eur(b.total)}${b.paid ? ` (payé ${eur(b.paid)})` : ""}\n${b.lines.map((l) => `  · ${l.label}${l.horse ? ` (${l.horse})` : ""} ${eur(l.amount)}`).join("\n")}`)
-      .join("\n\n");
-    navigator.clipboard?.writeText(txt).then(
-      () => say("Récapitulatif copié. Colle-le dans un e-mail ou dans ton logiciel de factures."),
-      () => say("La copie ne marche pas sur ce navigateur."),
-    );
-  }
-
-  return (
-    <div className={desk ? "ar-split" : undefined}>
-      <div>
-        <div className="trio ar-sum3 rise" style={{ animationDelay: ".05s" }}>
-          <div>
-            <b>
-              <CountUp value={total} fmt={eur} />
-            </b>
-            <small>à facturer</small>
-          </div>
-          <div>
-            <b className="in">
-              <CountUp value={paid} />
-            </b>
-            <small>déjà reçu</small>
-          </div>
-          <div>
-            <b>
-              <CountUp value={total - paid} fmt={eur} />
-            </b>
-            <small>encore à recevoir</small>
-          </div>
-        </div>
-        <div className="ar-bseg" style={{ marginTop: 14 }}>
-          <Seg
-            value={role}
-            onChange={setRole}
-            label="Qui facturer"
-            options={[
-              ["proprietaire", `Propriétaires · ${nProp}`],
-              ["cavalier", `Cavaliers · ${nCav}`],
-            ]}
-          />
-        </div>
-        <Sec ill="carnet-buste" title="Qui te doit quoi" action={<span className="act">{mName}</span>} delay={0.12}>
-          {shown.length === 0 && <p className="note">Personne à facturer ce mois-ci. Les pensions, séances et soins à refacturer apparaîtront ici.</p>}
-          {shown.map((b) => {
-            const isOpen = !desk && open === b.payer;
-            const isCur = desk && current?.payer === b.payer;
-            return (
-              <div key={b.payer} className={`ar-payer${isOpen ? " open" : ""}${isCur ? " on" : ""}`}>
-                <div className="ar-prow">
-                  <button
-                    type="button"
-                    className="ar-whob"
-                    onClick={() => setOpen(desk ? b.payer : open === b.payer ? null : b.payer)}
-                    aria-expanded={desk ? undefined : open === b.payer}
-                    aria-pressed={desk ? isCur : undefined}
-                  >
-                    <span className="ini">{ini(b.payer)}</span>
-                    <span style={{ minWidth: 0 }}>
-                      <b className="ar-nm">{b.payer}</b>
-                      <small>
-                        {b.lines.length} ligne{b.lines.length > 1 ? "s" : ""}
-                        {(() => {
-                          const hs = [...new Set(b.lines.map((l) => l.horse).filter(Boolean))].join(", ");
-                          return hs ? ` · ${hs}` : "";
-                        })()}
-                      </small>
-                    </span>
-                  </button>
-                  <span className="ar-rt">
-                    <b>{eur(b.total)}</b>
-                    {b.due <= 0 ? (
-                      <button
-                        type="button"
-                        className="pill"
-                        aria-label={`${b.payer} : payé. Toucher pour annuler le paiement`}
-                        onClick={() => {
-                          useDataStore.getState().removePayments(b.payer, mk);
-                          say(`${esc(b.payer)} : paiement annulé.`);
-                        }}
-                      >
-                        payé
-                      </button>
-                    ) : (
-                      <small>{b.due < b.total ? `${eur(b.due)} à recevoir` : "à recevoir"}</small>
-                    )}
-                  </span>
-                </div>
-                {b.due > 0 && !desk && (
-                  <div className="ar-pay">
-                    <button type="button" className="btn line" onClick={() => received(b)}>
-                      J’ai reçu le paiement
-                    </button>
-                  </div>
-                )}
-                {isOpen && billTicket(b)}
-              </div>
-            );
-          })}
-        </Sec>
-        {shown.length > 0 && (
-          <div className="pad rise" style={{ animationDelay: ".2s", marginTop: 14 }}>
-            <button type="button" className="btn full" onClick={copy}>
-              <Ic n="doc" className="" />
-              Copier le récapitulatif {deMois(mName)}
-            </button>
-            <p className="note">Colle-le dans un mail ou dans ton logiciel de factures.</p>
-          </div>
-        )}
-      </div>
-      {desk && current && (
-        <div className="ar-side">
-          {billTicket(current)}
-          {current.due > 0 && (
-            <button type="button" className="btn full" style={{ marginTop: 14 }} onClick={() => received(current)}>
-              {current.payer} a payé {eur(current.due)}
-            </button>
-          )}
-        </div>
-      )}
-    </div>
   );
 }
 

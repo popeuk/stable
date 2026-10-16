@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { dec1 } from "@/components/bs/ui";
 import { CountUp, Face, Ic, Ill, Money, Steam, sg } from "@/components/carnet/ui";
 import { usePerso } from "@/components/bs/essayer";
 import { useDataStore } from "@/stores/data-store";
@@ -142,7 +141,7 @@ function Seuil({ horses, capacity, seuil }: { horses: Horse[]; capacity: number;
   const vides = Math.max(0, capacity - horses.length);
   return (
     <>
-      <div className="ar-seuil rise" style={{ animationDelay: ".16s" }} role="img" aria-label={isFinite(seuil) ? `${horses.length} chevaux. Il en faut ${dec1(seuil)} pour ne pas perdre d’argent.` : `${horses.length} chevaux. Les pensions ne paient pas encore les soins.`}>
+      <div className="ar-seuil rise" style={{ animationDelay: ".16s" }} role="img" aria-label={isFinite(seuil) ? `${horses.length} chevaux. Il en faut ${Math.ceil(seuil - 1e-9)} pour ne pas perdre d’argent.` : `${horses.length} chevaux. Les pensions ne paient pas encore les soins.`}>
         {Array.from({ length: cap }, (_, i) => (horses[i] ? <Face key={i} horse={horses[i]} /> : <span key={i} className="vide" />))}
         {isFinite(seuil) && <span className="trait" style={{ left: `calc(${((col / cols) * 100).toFixed(2)}% + 1px)`, top: row * 48 - 4 }} />}
       </div>
@@ -152,7 +151,7 @@ function Seuil({ horses, capacity, seuil }: { horses: Horse[]; capacity: number;
         </span>
         <b>
           <Ic n="flag" className="ar-ico" />
-          {isFinite(seuil) ? `il en faut ${dec1(seuil)}` : "pas encore atteignable"}
+          {isFinite(seuil) ? `il en faut ${Math.ceil(seuil - 1e-9)}` : "pas encore atteignable"}
         </b>
       </div>
     </>
