@@ -9,7 +9,7 @@ import ParametresPage from "../page";
  */
 export default function Page() {
   useEffect(() => {
-    const t = setTimeout(() => document.getElementById("tarifs")?.scrollIntoView({ block: "start" }), 120);
+    const t = setTimeout(() => document.getElementById("ecurie")?.scrollIntoView({ block: "start" }), 120);
     return () => clearTimeout(t);
   }, []);
   return <ParametresPage />;
