@@ -176,7 +176,7 @@ function Planning() {
           </div>
           <div className="dhead">
             <div>
-              <h3>Planning</h3>
+              <h2>Planning</h2>
               <div className="pnav">
                 <button type="button" className="rb" onClick={() => shift(-1)} aria-label="Période précédente" title="Période précédente (←)">
                   <Ic n="back" />
@@ -297,7 +297,7 @@ function Planning() {
           )}
         </div>
         <div className="jr-ttl rise" style={{ animationDelay: ".05s" }}>
-          <h3>Planning</h3>
+          <h2>Planning</h2>
           {viewSeg}
         </div>
 

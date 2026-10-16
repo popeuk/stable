@@ -69,7 +69,7 @@ function Nouveau() {
           <div className="ar-v">
             {top}
             <div className="q">
-              <h3>Ce lien n’est plus valable.</h3>
+              <h1>Ce lien n’est plus valable.</h1>
               <p>Il a peut-être déjà servi, ou il date de plus de 24 heures. Demande-en un nouveau : c’est immédiat.</p>
             </div>
             <div className="foot">
@@ -82,7 +82,7 @@ function Nouveau() {
           <form className="ar-v" onSubmit={submit} noValidate>
             {top}
             <div className="q">
-              <h3>Choisis ton nouveau mot de passe</h3>
+              <h1>Choisis ton nouveau mot de passe</h1>
               <p>Il remplace l’ancien sur Be Stable et sur mon-ecurie.fr. Tu seras connecté juste après.</p>
             </div>
             <div className="ar-form">

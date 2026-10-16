@@ -34,7 +34,7 @@
 .carnet .mt-with { font-size: 12px; color: var(--ink3); }
 .carnet .mt-with b { color: var(--ink2); font-weight: 650; }
 .carnet .mt-adopt .hello { padding: 18px 22px 0; }
-.carnet .mt-adopt .hello h3 { font-size: 31px; }
+.carnet .mt-adopt .hello :is(h2, h3) { font-size: 31px; }
 .carnet .mt-afoot { display: grid; gap: 10px; padding: 24px 22px 0; }
 .carnet .mt-afoot .btn { height: 50px; font-size: 15.5px; }
 .carnet .mt-afoot .btn:disabled { opacity: .5; cursor: default; }

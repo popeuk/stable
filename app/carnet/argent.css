@@ -57,9 +57,9 @@
 .carnet .ar-pic { width: 30px; height: 30px; border-radius: 50%; background: var(--mist); color: var(--ink2); display: flex; align-items: center; justify-content: center; flex: none; }
 .carnet .ar-pic .ar-ic { width: 16px; height: 16px; }
 .carnet .ar-post .in, .carnet .ar-post .out { font-size: 14px; }
-.carnet .ar-post small { display: block; font-size: 11.5px; color: var(--ink3); }
-.carnet .sec h4 .act.in { color: var(--in); font-weight: 700; font-size: 14px; }
-.carnet .sec h4 .act.out { color: var(--out); font-weight: 700; font-size: 14px; }
+.carnet .ar-post small { display: block; font-size: 12px; color: var(--ink3); }
+.carnet .sec :is(h2, h4) .act.in { color: var(--in); font-weight: 700; font-size: 14px; }
+.carnet .sec :is(h2, h4) .act.out { color: var(--out); font-weight: 700; font-size: 14px; }
 
 /* Cartes liens */
 .carnet .ar-lcard { display: grid; grid-template-columns: 34px 1fr 16px; gap: 12px; align-items: center; margin: 10px 14px 0; padding: 14px; color: inherit; text-decoration: none; }
@@ -74,7 +74,7 @@
 .carnet .ar-head .ar-u { font-size: 12.5px; color: var(--ink3); }
 .carnet .ar-head > .ill { position: absolute; right: 10px; top: 8px; width: 58px; }
 .carnet .ar-head .ar-gain { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line2); font-size: 13.5px; color: var(--ink2); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.carnet .ar-fam h4 small { display: block; font-size: 12px; color: var(--ink3); font-weight: 500; letter-spacing: 0; margin-top: 2px; }
+.carnet .ar-fam :is(h2, h4) small { display: block; font-size: 12px; color: var(--ink3); font-weight: 500; letter-spacing: 0; margin-top: 2px; }
 .carnet .ar-pst { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 0; border-bottom: 1px solid var(--line2); }
 .carnet .ar-pst:last-child { border-bottom: 0; }
 .carnet .ar-pst b { display: block; font-size: 14.5px; font-weight: 650; line-height: 1.25; }

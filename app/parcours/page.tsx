@@ -35,9 +35,9 @@ function Parcours() {
           <Ic n="x" className="" />
         </button>
       </div>
-      <h4 className="ar-t1 rise">
+      <h1 className="ar-t1 rise">
         {n} obstacle{n > 1 ? "s" : ""} sur 6
-      </h4>
+      </h1>
       <p className="ar-sub rise" style={{ animationDelay: ".05s" }}>
         Six étapes pour que l’app connaisse ton écurie. Les trois premières se font ici, en quelques minutes. Les trois autres viennent toutes seules, en utilisant l’app.
       </p>

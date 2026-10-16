@@ -287,7 +287,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
         <div className="dhead rise">
           <div>
             <p className="k">{moisDe()}</p>
-            <h3>Tes clients</h3>
+            <h2>Tes clients</h2>
             <p>{sub}</p>
           </div>
           {ajouter}
@@ -343,7 +343,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
       <Haut bascule={bascule} />
       <FinDuMois today={today} />
       <div className="cl-ttl rise">
-        <h3>Tes clients</h3>
+        <h2>Tes clients</h2>
         <p>{sub}</p>
       </div>
       {rows.length > 6 && <div className="cl-find">{search}</div>}
@@ -491,7 +491,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
         <div className="dhead rise">
           <div>
             <p className="k">{month}</p>
-            <h3>Clients et chevaux</h3>
+            <h2>Clients et chevaux</h2>
             <p>
               Ce mois, tes chevaux {m.net >= 0 ? "te laissent" : "te coûtent"} <Money v={m.net} /> à eux tous, une fois leurs frais payés. Clique un cheval pour voir le détail.
             </p>
@@ -590,13 +590,13 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
       {n > 0 && (
         <div className="hello rise" style={{ animationDelay: ".14s" }}>
           <p className="ch-over0">{month}</p>
-          <h3>
+          <h2>
             {n === 1 ? "Ton cheval" : `Tes ${n} chevaux`} {m.net >= 0 ? (n === 1 ? "te laisse" : "te laissent") : n === 1 ? "te coûte" : "te coûtent"}{" "}
             <span className={m.net > 0 ? "in" : m.net < 0 ? "out" : "num"}>
               <CountUp value={m.net} />
             </span>{" "}
             ce mois.
-          </h3>
+          </h2>
           <p>Une fois leurs soins et leur part des frais communs payés. Touche un cheval pour voir son ticket.</p>
         </div>
       )}

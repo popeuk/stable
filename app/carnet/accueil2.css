@@ -155,7 +155,7 @@
 @keyframes ac-in { from { opacity: 0; transform: translateX(26px); } }
 .carnet .ac-dt { margin: 0 0 4px; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
 .carnet .ac-h { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
-.carnet .ac-h h3 { margin: 0; font-size: 32px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; text-wrap: balance; }
+.carnet .ac-h :is(h2, h3) { margin: 0; font-size: 32px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; text-wrap: balance; }
 .carnet .ac-h p:not(.ac-dt) { margin: 6px 0 0; font-size: 14.5px; color: var(--ink2); }
 .carnet .ac-h .ill { width: 64px; height: 64px; object-fit: contain; object-position: bottom; }
 .carnet .ac-hier { margin-top: 10px; }
@@ -173,7 +173,7 @@
 .carnet .ac-mnote b { color: var(--ink); }
 .carnet .ac-end { justify-content: center; gap: 16px; }
 .carnet .ac-end .ill { height: 150px; width: auto; object-fit: contain; align-self: center; }
-.carnet .ac-end h3 { margin: 0; font-size: 36px; font-weight: 770; letter-spacing: -.035em; line-height: 1.02; font-variation-settings: "wdth" 86; }
+.carnet .ac-end :is(h2, h3) { margin: 0; font-size: 36px; font-weight: 770; letter-spacing: -.035em; line-height: 1.02; font-variation-settings: "wdth" 86; }
 .carnet .ac-recap { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .carnet .ac-recap li { position: relative; padding-left: 26px; font-size: 14.5px; line-height: 1.4; color: var(--ink2); }
 .carnet .ac-recap li::before { content: ""; position: absolute; left: 2px; top: 5px; width: 12px; height: 7px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(-45deg); }

@@ -164,10 +164,10 @@ export function Sec({ ill, illStyle, title, action, blk, nomarge, delay = 0, cla
       )}
       <div style={{ minWidth: 0 }}>
         {title && (
-          <h4>
+          <h2>
             <span>{title}</span>
             {action}
-          </h4>
+          </h2>
         )}
         {children}
       </div>
@@ -178,7 +178,7 @@ export function Sec({ ill, illStyle, title, action, blk, nomarge, delay = 0, cla
 export function Hello({ title, sub, delay = 0.04 }: { title: ReactNode; sub?: ReactNode; delay?: number }) {
   return (
     <div className="hello rise" style={{ animationDelay: `${delay}s` }}>
-      <h3>{title}</h3>
+      <h2>{title}</h2>
       {sub && <p>{sub}</p>}
     </div>
   );

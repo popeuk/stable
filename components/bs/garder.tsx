@@ -104,7 +104,7 @@ export function GardeFait({ onOpen }: { onOpen: () => void }) {
         <Ill n={perso === "m" ? "gerant-rosette" : "rosette"} alt={perso === "m" ? "Le gérant brandit une rosette." : "La gérante brandit une rosette."} />
       </div>
       <div className="q rise" style={{ animationDelay: ".1s" }}>
-        <h3>C’est gardé.</h3>
+        <h2>C’est gardé.</h2>
         <p>Demain, ton e-mail suffit pour retrouver tes chiffres.</p>
       </div>
       <div className="foot rise" style={{ animationDelay: ".2s" }}>

@@ -180,11 +180,11 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
           {fini ? (
             <section className="ac-step ac-end" key="fin">
               <Ill n="gerant-rosette" alt="" />
-              <h3>
+              <h2>
                 Tu sais où tu en es.
                 <br />
                 Bonne journée.
-              </h3>
+              </h2>
               <ul className="ac-recap">
                 {recap.map((r) => (
                   <li key={r}>{r}</li>
@@ -199,7 +199,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
               <div className="ac-h">
                 <div>
                   <p className="ac-dt">Ce qui a eu lieu</p>
-                  <h3>Hier, ce qui a compté</h3>
+                  <h2>Hier, ce qui a compté</h2>
                   <p>{veille.length ? <>Ça a compté tout seul : <Money v={totalHier} />.</> : "Plus rien hier : tu as tout retiré."}</p>
                 </div>
                 <Ill n="gerant-buste" alt="" />
@@ -223,7 +223,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
               <div className="ac-h">
                 <div>
                   <p className="ac-dt">{dt}</p>
-                  <h3>Aujourd’hui</h3>
+                  <h2>Aujourd’hui</h2>
                   <p>Rien à faire, juste regarder.</p>
                 </div>
               </div>
@@ -254,7 +254,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                   <p className="ac-dt">
                     {moisNom}, au {Number(today.slice(8))}
                   </p>
-                  <h3>Ton mois</h3>
+                  <h2>Ton mois</h2>
                 </div>
               </div>
               <MoisQuiCompte depuis={depuis} />

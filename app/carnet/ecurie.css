@@ -39,7 +39,7 @@
 .carnet .ec-fp .ph { height: 112px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: var(--mist) center / cover no-repeat; color: var(--ink3); font-size: 12.5px; font-weight: 600; }
 .carnet .ec-fp .ph svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ec-fp .bd { padding: 12px 14px 14px; }
-.carnet .ec-fp h5 { margin: 0; font-size: 18px; font-weight: 740; letter-spacing: -.015em; overflow-wrap: anywhere; }
+.carnet .ec-fp :is(h2, h5) { margin: 0; font-size: 18px; font-weight: 740; letter-spacing: -.015em; overflow-wrap: anywhere; }
 .carnet .ec-fp .loc { margin: 2px 0 0; font-size: 12.5px; color: var(--ink3); }
 .carnet .ec-fp .pill { margin-top: 8px; }
 .carnet .ec-fp .pill svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
@@ -173,7 +173,7 @@
 
 /* ---------- Ordinateur ---------- */
 @media (min-width: 1024px) {
-  .carnet .ec-pg .hello h3 { font-size: 40px; }
+  .carnet .ec-pg .hello :is(h2, h3) { font-size: 40px; }
   .carnet .ec-hrow { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
   .carnet .ec-hrow > .btn { display: inline-flex; flex: none; margin-bottom: 6px; }
   .carnet .ec-pg .ec-trio { max-width: 520px; }

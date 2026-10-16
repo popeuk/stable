@@ -275,7 +275,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
             <Ill n="cavaliere" alt="Une cavalière cherche une pension sur son téléphone, appuyée à la barrière du paddock." />
           </div>
           <div className="q rise" style={{ animationDelay: ".08s" }}>
-            <h3>D’abord, retrouvons ton écurie.</h3>
+            <h1>D’abord, retrouvons ton écurie.</h1>
             <p>
               Elle a sans doute déjà sa fiche sur <b>mon-ecurie.fr</b>, l’annuaire des pensions pour chevaux : <b className="num">{chiffres ? nf(chiffres.ecuries) : "7 681"} écuries</b> y sont, partout en France. En la reprenant :
             </p>
@@ -306,7 +306,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
         <form className="ar-v" onSubmit={(e) => (e.preventDefault(), hits?.[0] && choisir(hits[0]))}>
           {top}
           <div className="q">
-            <h3>Comment s’appelle ton écurie ?</h3>
+            <h1>Comment s’appelle ton écurie ?</h1>
           </div>
           <label className="input ar-in">
             <Ic n="search" className="ar-ico" />
@@ -366,7 +366,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
         >
           {top}
           <div className="q">
-            <h3>Ajoutons-la.</h3>
+            <h1>Ajoutons-la.</h1>
             <p>Le nom, le code postal et la commune suffisent.</p>
           </div>
           <div className="ar-form">
@@ -397,7 +397,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
         <div className="ar-v">
           {top}
           <div className="q">
-            <h3>{statut === "revendiquee" ? "Elle a déjà son gérant." : statut === "en_verification" ? "Une demande est déjà en cours." : "C’est elle ?"}</h3>
+            <h1>{statut === "revendiquee" ? "Elle a déjà son gérant." : statut === "en_verification" ? "Une demande est déjà en cours." : "C’est elle ?"}</h1>
           </div>
           <div className="ar-apercu" aria-label="Aperçu de la fiche sur mon-ecurie.fr">
             <FicheCarte f={fiche} etat="avant" />
@@ -450,7 +450,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
         <div className="ar-v">
           {top}
           <div className="q">
-            <h3>Glisse.</h3>
+            <h1>Glisse.</h1>
           </div>
           <AvantApres f={fiche} />
           <div className="foot">
@@ -467,7 +467,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
         <form className="ar-v" onSubmit={(e) => (e.preventDefault(), aller("prix"))}>
           {top}
           <div className="q">
-            <h3>Des places libres en ce moment ?</h3>
+            <h1>Des places libres en ce moment ?</h1>
           </div>
           <div className="ar-grand">
             <button type="button" aria-label="Une place de moins" onClick={() => setPlaces(String(Math.max(0, Number(places || 1) - 1)))}>
@@ -497,7 +497,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
         <form className="ar-v" onSubmit={(e) => (e.preventDefault(), compte ? envoyer(compte) : aller("email"))}>
           {top}
           <div className="q">
-            <h3>Ta pension, à partir de combien ?</h3>
+            <h1>Ta pension, à partir de combien ?</h1>
           </div>
           <label className="ar-prix">
             <input inputMode="numeric" value={prix} placeholder="0" aria-label="Prix à partir de, par mois" onChange={(e) => setPrix(e.target.value.replace(/\D/g, "").slice(0, 5))} autoFocus />
@@ -518,7 +518,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
         <form className="ar-v" onSubmit={demanderCode} noValidate>
           {top}
           <div className="q">
-            <h3>Où t’envoyer ton code ?</h3>
+            <h1>Où t’envoyer ton code ?</h1>
           </div>
           <label className="input ar-in">
             <input autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.fr" aria-label="Ton e-mail" />
@@ -544,7 +544,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
         <form className="ar-v" onSubmit={(e) => (e.preventDefault(), verifier(code))}>
           {top}
           <div className="q">
-            <h3>Le code reçu.</h3>
+            <h1>Le code reçu.</h1>
             <p>Envoyé à {email.trim()}.</p>
           </div>
           <CodeInput value={code} onChange={(v) => (setCode(v), v.length === 6 && verifier(v))} disabled={busy} />
@@ -568,7 +568,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
         <div className="ar-v" aria-busy="true">
           {top}
           <div className="q">
-            <h3>Un instant…</h3>
+            <h1>Un instant…</h1>
           </div>
         </div>
       )}
@@ -581,7 +581,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
             <Ill n="rosette" alt="La gérante brandit une rosette." />
           </div>
           <div className="q rise" style={{ animationDelay: ".08s" }}>
-            <h3>{listing?.status === "validee" ? "Ta fiche est à toi." : "Demande envoyée."}</h3>
+            <h1>{listing?.status === "validee" ? "Ta fiche est à toi." : "Demande envoyée."}</h1>
             <p>{listing?.status === "validee" ? "Tout est prêt dans Be Stable." : "On vérifie à la main, en général sous deux jours ouvrés. Tu reçois un e-mail dès que la fiche est à toi."}</p>
           </div>
           <div className="foot">

@@ -25,7 +25,7 @@ export default function NotFound() {
           <Ill n="dodo" alt="" />
         </div>
         <div className="q" style={{ paddingTop: 6 }}>
-          <h3>Page introuvable</h3>
+          <h1>Page introuvable</h1>
           <p>Cette page n’existe pas, ou plus.</p>
         </div>
         <div className="foot" style={{ marginTop: 10 }}>

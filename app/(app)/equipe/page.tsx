@@ -208,7 +208,7 @@ function Equipe() {
           </button>
         </div>
         <div className="jr-ttl rise" style={{ animationDelay: ".05s" }}>
-          <h3>Tâches d’équipe</h3>
+          <h2>Tâches d’équipe</h2>
         </div>
         <div className="jr-ctl rise" style={{ animationDelay: ".08s" }}>
           <Seg
@@ -250,9 +250,9 @@ function Equipe() {
                       drop(l.id);
                     }}
                   >
-                    <h5>
+                    <h3>
                       {l.title} <span>{ts.length}</span>
-                    </h5>
+                    </h3>
                     {ts.map(card)}
                     {!l.isDone && (
                       <div className="jr-quick">

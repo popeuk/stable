@@ -15,7 +15,7 @@
 .carnet .ar-link { font-size: 13px; font-weight: 650; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; white-space: nowrap; background: none; border: 0; padding: 0; cursor: pointer; }
 .carnet .ar .dots i { width: 18px; }
 .carnet .ar .q { padding: 18px 22px 0; }
-.carnet .ar .q h3 { font-size: 31px; }
+.carnet .ar .q :is(h1, h3) { font-size: 31px; }
 .carnet .ar .foot .btn { height: 50px; font-size: 15.5px; }
 .carnet .ar .foot > .lnk { justify-self: center; font-size: 13.5px; color: var(--ink2); font-weight: 600; text-align: center; }
 .carnet .ar .btn:disabled, .carnet .ar-pc .btn:disabled { opacity: .4; cursor: default; }

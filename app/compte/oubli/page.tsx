@@ -57,7 +57,7 @@ function Oubli() {
               <Ill n="foin" alt="" />
             </div>
             <div className="q rise" style={{ animationDelay: ".08s" }} role="status">
-              <h3>Regarde ta boîte mail.</h3>
+              <h1>Regarde ta boîte mail.</h1>
               <p>
                 Si un compte existe pour <b>{email.trim()}</b>, un e-mail de mon-ecurie.fr vient de partir avec un lien pour choisir un nouveau mot de passe.
               </p>
@@ -77,7 +77,7 @@ function Oubli() {
           <form className="ar-v" onSubmit={submit} noValidate>
             {top}
             <div className="q">
-              <h3>Mot de passe oublié</h3>
+              <h1>Mot de passe oublié</h1>
               <p>Donne l’adresse de ton compte. Tu reçois un lien pour choisir un nouveau mot de passe, valable pour Be Stable et pour mon-ecurie.fr.</p>
             </div>
             <div className="ar-form">

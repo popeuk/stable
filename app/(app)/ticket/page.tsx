@@ -128,7 +128,7 @@ function Ticket({ horse }: { horse: Horse }) {
     <>
       <Portrait horse={horse} />
       <div className="hello rise" style={{ animationDelay: ".15s" }}>
-        <h3>{horse.name}</h3>
+        <h2>{horse.name}</h2>
         <p>{sub || "pension"}</p>
         <Link href={`/saisie/cheval?edit=${horse.id}`} className="lnk ch-edit">
           Modifier sa fiche
