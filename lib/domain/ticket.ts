@@ -1,7 +1,8 @@
 import type { Period, StableData } from "@/lib/domain/types";
 import { horsePnl, horseSharedCosts, isOutside, stablePnl } from "@/lib/domain/calculations";
 import { dateInPeriod } from "@/lib/utils/period";
-import { recurringList, recurringDue } from "@/lib/domain/recurring";
+import { recurringList, recurringDue, recurringDirectDue, recurringRevenuesDue } from "@/lib/domain/recurring";
+import { chevauxDuMois, repartition } from "@/lib/domain/presence";
 
 /**
  * Le ticket du mois d'un cheval, et le bilan du mois de l'écurie, dans la
@@ -51,16 +52,14 @@ export function horseTicket(data: StableData, horseId: string, period: Period): 
       kind: "in",
     });
   }
-  for (const rec of data.recurringRevenues ?? []) {
-    if (rec.horseId !== horseId || !recurringDue(rec, period)) continue;
+  for (const rec of recurringRevenuesDue(data, horseId, period)) {
     lines.push({ key: rec.id, label: rec.label || catName(data, rec.categoryId) || "Recette", amount: rec.amount, kind: "in" });
   }
   for (const e of data.directExpenses) {
     if (e.horseId !== horseId || !dateInPeriod(e.date, period)) continue;
     lines.push({ key: e.id, sourceId: e.id, date: e.date, label: e.label, amount: -e.amount, kind: "out" });
   }
-  for (const rec of recurringList(data)) {
-    if (rec.isShared || rec.horseId !== horseId || !recurringDue(rec, period)) continue;
+  for (const rec of recurringDirectDue(data, horseId, period)) {
     lines.push({ key: rec.id, label: rec.label, amount: -rec.amount, kind: "out" });
   }
   const share = horseSharedCosts(data, horseId, period);
@@ -125,7 +124,8 @@ export interface MonthBreakdown {
 
 export function monthBreakdown(data: StableData, period: Period): MonthBreakdown {
   const s = stablePnl(data, period);
-  const active = new Set(data.horses.filter((h) => !h.isArchived).map((h) => h.id));
+  // Les chevaux de ce mois-là (un cheval parti garde son passé).
+  const active = new Set(chevauxDuMois(data, period).map((h) => h.id));
 
   const insMap = new Map<string, number>();
   const addIn = (label: string, a: number) => insMap.set(label, (insMap.get(label) ?? 0) + a);
@@ -133,10 +133,9 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
     if (!active.has(r.horseId) || !dateInPeriod(r.date, period)) continue;
     addIn(catName(data, r.categoryId) ?? "Autres recettes", r.amount);
   }
-  for (const rec of data.recurringRevenues ?? []) {
-    if (!active.has(rec.horseId) || !recurringDue(rec, period)) continue;
-    addIn(catName(data, rec.categoryId) ?? rec.label ?? "Autres recettes", rec.amount);
-  }
+  // Les récurrentes des chevaux du mois (pension en modèle), seulement s'ils sont encore là.
+  for (const hid of active)
+    for (const rec of recurringRevenuesDue(data, hid, period)) addIn(catName(data, rec.categoryId) ?? rec.label ?? "Autres recettes", rec.amount);
   // L'argent qui rentre sans concerner aucun cheval (PAC, subvention…), sous son nom.
   for (const r of data.revenues) {
     if (!isOutside(r) || !dateInPeriod(r.date, period)) continue;
@@ -154,14 +153,14 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
   const addSh = (label: string, a: number) => shMap.set(label, (shMap.get(label) ?? 0) + a);
   for (const se of data.sharedExpenses) {
     if (se.periodYear !== period.year || se.periodMonth !== period.month) continue;
-    const a = se.allocations.filter((x) => active.has(x.horseId)).reduce((t, x) => t + x.allocatedAmount, 0);
+    const parts = repartition(data, se);
+    // Sans aucun cheval ce mois-là, la facture compte quand même, en entier.
+    const a = parts.length ? parts.filter((x) => active.has(x.horseId)).reduce((t, x) => t + x.allocatedAmount, 0) : se.totalAmount;
     if (a > 0) addSh(se.label, a);
   }
-  // Les charges récurrentes partagées (assurance, crédit…), sous leur nom.
-  if (active.size) {
-    for (const r of recurringList(data)) {
-      if (r.isShared && recurringDue(r, period)) addSh(r.label, r.amount);
-    }
+  // Les charges récurrentes partagées (assurance, crédit…), sous leur nom, avec ou sans cheval.
+  for (const r of recurringList(data)) {
+    if (r.isShared && recurringDue(r, period)) addSh(r.label, r.amount);
   }
   const listed = [...shMap.values()].reduce((t, a) => t + a, 0);
   const rest = Math.round((s.sharedCosts - listed) * 100) / 100;

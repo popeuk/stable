@@ -11,7 +11,6 @@ import { Ic, Money, eur } from "@/components/carnet/ui";
 import { applySoin, draftFor, draftFromCompris, endOf, habitudes, manque, titre, type AjoutType, type Draft, type Habitudes, type Pour } from "@/lib/domain/ajouter";
 import { comprendre } from "@/lib/domain/dire";
 import { norm } from "@/lib/domain/interpret";
-import { distribute } from "@/lib/domain/distribution";
 import { seriesDates } from "@/lib/domain/seances";
 import type { CareKind } from "@/lib/domain/care";
 import type { Frequency } from "@/lib/domain/types";
@@ -397,7 +396,9 @@ function NoterInner() {
         periodYear: period.year,
         distributionMode: "equal",
         source: "manual",
-        allocations: distribute(v, horses, "equal", period),
+        // Pas de répartition figée : partagée entre les chevaux présents ce mois-là,
+        // y compris ceux qui arrivent après ; sans cheval, elle compte quand même (presence.ts).
+        allocations: [],
         note,
       });
     } else {

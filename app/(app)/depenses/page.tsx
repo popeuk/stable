@@ -11,6 +11,7 @@ import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { RANGE_PRESETS, periodStart, rangePeriods, type RangePreset } from "@/lib/utils/period";
 import { aggregateStablePnl } from "@/lib/domain/calculations";
+import { partageLabel, repartition } from "@/lib/domain/presence";
 
 /**
  * The Journal: every euro in and out, in one list. The owner's paper notebook,
@@ -66,8 +67,8 @@ function Journal() {
   const deleteRevenue = useDataStore((s) => s.deleteRevenue);
   const deleteDirect = useDataStore((s) => s.deleteDirectExpense);
   const deleteShared = useDataStore((s) => s.deleteSharedExpense);
-  const deleteRecurring = useDataStore((s) => s.deleteRecurringExpense);
-  const deleteRecurringRevenue = useDataStore((s) => s.deleteRecurringRevenue);
+  const deleteRecurring = useDataStore((s) => s.stopRecurringExpense);
+  const deleteRecurringRevenue = useDataStore((s) => s.stopRecurringRevenue);
   const [filter, setFilter] = useState<Filter>("tout");
 
   const recurrings = useMemo(() => data.recurringExpenses ?? [], [data.recurringExpenses]);
@@ -104,7 +105,7 @@ function Journal() {
         id: s.id,
         date: periodStart({ year: s.periodYear, month: s.periodMonth }),
         label: s.label,
-        target: `Frais communs · partagés entre ${s.allocations.length} chevaux`,
+        target: partageLabel(repartition(data, s).length),
         amount: s.totalAmount,
         kind: "shared",
       });

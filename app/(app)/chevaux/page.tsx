@@ -20,6 +20,7 @@ import { addMonths, currentPeriod, daysInMonth } from "@/lib/utils/period";
 import { CARE_META, upcomingDeadlines, type Deadline } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
 import type { Horse, Period, PersonRole } from "@/lib/domain/types";
+import { Partis } from "@/components/bs/partis";
 
 /**
  * Clients et chevaux : un onglet, deux vues.
@@ -444,6 +445,8 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
   const nets = useMemo(() => reconciledNets(data, period), [data, period]);
   const m = useMemo(() => monthBreakdown(data, period), [data, period]);
   const horses = data.horses.filter((h) => !h.isArchived);
+  // Ce que laissent les chevaux eux-mêmes (la somme de leurs tickets), sans l'argent hors chevaux.
+  const horsesNet = horses.reduce((t, h) => t + (nets[h.id] ?? 0), 0);
   const anon = horses.filter(sansNom);
   const sorted = [...horses].sort((a, b) => (nets[b.id] ?? 0) - (nets[a.id] ?? 0));
   const pos = sorted.filter((h) => (nets[h.id] ?? 0) > 0);
@@ -493,7 +496,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
             <p className="k">{month}</p>
             <h3>Clients et chevaux</h3>
             <p>
-              Ce mois, tes chevaux {m.net >= 0 ? "te laissent" : "te coûtent"} <Money v={m.net} /> à eux tous, une fois leurs frais payés. Clique un cheval pour voir le détail.
+              Ce mois, tes chevaux {horsesNet >= 0 ? "te laissent" : "te coûtent"} <Money v={horsesNet} /> à eux tous, une fois leurs frais payés. Clique un cheval pour voir le détail.
             </p>
           </div>
           <Link href={ajouter} className="btn">
@@ -572,6 +575,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
           )}
         </table>
         {rows.length === 0 && <p className="note">{horses.length ? "Aucun cheval dans ce filtre." : "Aucun cheval pour l’instant. Ajoute le premier avec le bouton en haut."}</p>}
+        <Partis />
         <p className="ch-fn">
           «&nbsp;Ce qu’il te laisse&nbsp;» : ce qu’on te paie pour lui, moins ses soins et ses frais, moins sa part du pot commun (foin, salaires, loyer…){horses.length ? `, ${eur(each)} par cheval ce mois` : ""}.
         </p>
@@ -591,9 +595,9 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
         <div className="hello rise" style={{ animationDelay: ".14s" }}>
           <p className="ch-over0">{month}</p>
           <h3>
-            {n === 1 ? "Ton cheval" : `Tes ${n} chevaux`} {m.net >= 0 ? (n === 1 ? "te laisse" : "te laissent") : n === 1 ? "te coûte" : "te coûtent"}{" "}
-            <span className={m.net >= 0 ? "in" : "out"}>
-              <CountUp value={m.net} />
+            {n === 1 ? "Ton cheval" : `Tes ${n} chevaux`} {horsesNet >= 0 ? (n === 1 ? "te laisse" : "te laissent") : n === 1 ? "te coûte" : "te coûtent"}{" "}
+            <span className={horsesNet >= 0 ? "in" : "out"}>
+              <CountUp value={horsesNet} />
             </span>{" "}
             ce mois.
           </h3>
@@ -646,6 +650,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
           Ajouter un cheval
         </Link>
       </div>
+      <Partis />
       <div className="end" />
     </Ecran>
   );

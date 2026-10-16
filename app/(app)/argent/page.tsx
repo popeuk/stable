@@ -8,6 +8,7 @@ import { cap, dec1, esc } from "@/components/bs/ui";
 import { plannedRest } from "@/components/bs/goal-card";
 import { Compteur } from "@/components/bs/compteur";
 import { hasObjective, phraseObjectifMois, phrasePistes } from "@/lib/domain/objectif";
+import { partageLabel, repartition } from "@/lib/domain/presence";
 import { useDesk } from "@/components/bs/desk";
 import { Chips, Coins, CountUp, Empty, Hello, Ic, Ill, Money, Page, Sec, Seg, eur, ini, sg, type IllName } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
@@ -724,7 +725,7 @@ function Mouvements() {
       .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: x.label, sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.rebillRevenueId ? "remis sur sa facture" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
     const s = data.sharedExpenses
       .filter((x) => x.periodYear === active.year && x.periodMonth === active.month)
-      .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: x.label, sub: `pot commun · partagé entre ${x.allocations.length} chevaux`, amount: -x.totalAmount, horseId: "" }));
+      .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: x.label, sub: partageLabel(repartition(data, x).length), amount: -x.totalAmount, horseId: "" }));
     return [...r, ...d, ...s]
       .filter((x) => (kind === "in" ? x.amount > 0 : kind === "out" ? x.amount < 0 : true))
       .filter((x) => !horse || x.horseId === horse)
@@ -734,12 +735,16 @@ function Mouvements() {
   const groups = new Map<string, typeof rows>();
   for (const r of rows) groups.set(r.date, [...(groups.get(r.date) ?? []), r]);
 
-  const recRevs = (data.recurringRevenues ?? []).filter((r) => kind !== "out" && (!horse || r.horseId === horse));
-  const recExps = (data.recurringExpenses ?? []).filter((r) => kind !== "in" && (!horse || r.horseId === horse));
+  // Les récurrentes arrêtées avant ce mois ne sont plus listées ; leur argent passé reste dans les mois.
+  const debutMois = `${localToday().slice(0, 7)}-01`;
+  const enCours = (r: { endDate?: string | null }) => !r.endDate || r.endDate >= debutMois;
+  const arretee = (r: { endDate?: string | null }) => !!r.endDate && r.endDate <= localToday();
+  const recRevs = (data.recurringRevenues ?? []).filter((r) => kind !== "out" && (!horse || r.horseId === horse) && enCours(r));
+  const recExps = (data.recurringExpenses ?? []).filter((r) => kind !== "in" && (!horse || r.horseId === horse) && enCours(r));
 
   function remove(r: (typeof rows)[number]) {
     const st = useDataStore.getState();
-    const snap = { revenues: st.revenues, directExpenses: st.directExpenses, sharedExpenses: st.sharedExpenses };
+    const snap = { revenues: st.revenues, directExpenses: st.directExpenses, sharedExpenses: st.sharedExpenses, careEvents: st.careEvents };
     if (r.t === "rev") st.deleteRevenue(r.id);
     if (r.t === "dir") st.deleteDirectExpense(r.id);
     if (r.t === "sh") st.deleteSharedExpense(r.id);
@@ -873,14 +878,16 @@ function Mouvements() {
               </span>
               <span className="ar-rt">
                 <Money v={r.amount} />
-                <button
-                  type="button"
-                  className="lnk"
-                  aria-label={`Arrêter ${r.label ?? "la pension"}`}
-                  onClick={() => confirm("Arrêter cette rentrée d’argent qui revient chaque mois ?") && useDataStore.getState().deleteRecurringRevenue(r.id)}
-                >
-                  Arrêter
-                </button>
+                {!arretee(r) && (
+                  <button
+                    type="button"
+                    className="lnk"
+                    aria-label={`Arrêter ${r.label ?? "la pension"}`}
+                    onClick={() => confirm("Arrêter cette rentrée d’argent qui revient chaque mois ? Ce qu’elle a déjà rapporté reste dans les mois passés.") && useDataStore.getState().stopRecurringRevenue(r.id)}
+                  >
+                    Arrêter
+                  </button>
+                )}
               </span>
             </div>
           ))}
@@ -898,14 +905,16 @@ function Mouvements() {
               </span>
               <span className="ar-rt">
                 <Money v={-r.amount} />
-                <button
-                  type="button"
-                  className="lnk"
-                  aria-label={`Arrêter ${r.label}`}
-                  onClick={() => confirm(`Arrêter « ${r.label} » ? Elle ne sera plus comptée chaque mois.`) && useDataStore.getState().deleteRecurringExpense(r.id)}
-                >
-                  Arrêter
-                </button>
+                {!arretee(r) && (
+                  <button
+                    type="button"
+                    className="lnk"
+                    aria-label={`Arrêter ${r.label}`}
+                    onClick={() => confirm(`Arrêter « ${r.label} » ? Elle ne sera plus comptée les mois suivants. Les mois passés ne bougent pas.`) && useDataStore.getState().stopRecurringExpense(r.id)}
+                  >
+                    Arrêter
+                  </button>
+                )}
               </span>
             </div>
           ))}

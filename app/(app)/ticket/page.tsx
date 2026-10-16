@@ -81,6 +81,7 @@ function Ticket({ horse }: { horse: Horse }) {
   const router = useRouter();
   const data = useDataStore();
   const archiveHorse = useDataStore((s) => s.archiveHorse);
+  const restoreHorse = useDataStore((s) => s.restoreHorse);
   const openNoter = useUiStore((s) => s.openNoter);
   const lastLine = useUiStore((s) => s.lastLine);
   const { pass, setupDone, parcours } = useParcours();
@@ -292,13 +293,20 @@ function Ticket({ horse }: { horse: Horse }) {
     </>
   );
 
-  const leave = (
+  const leave = horse.isArchived ? (
+    <div className="ch-leave">
+      <p className="note">{horse.exitDate ? `Parti le ${jour(horse.exitDate, "long")}. ` : "Parti. "}Son argent reste dans les mois où il était là.</p>
+      <button type="button" className="btn ghost" onClick={() => restoreHorse(horse.id)}>
+        {horse.name} revient à l’écurie
+      </button>
+    </div>
+  ) : (
     <div className="ch-leave">
       <button
         type="button"
         className="btn ghost"
         onClick={() => {
-          if (window.confirm(`${horse.name} quitte l’écurie ? Ce qu’il a rapporté et coûté reste visible dans les mois passés.`)) {
+          if (window.confirm(`${horse.name} quitte l’écurie aujourd’hui ? Ce qu’il a rapporté et coûté reste dans les mois où il était là. Sa pension ne sera plus comptée les mois suivants. Tu le retrouves dans les chevaux partis.`)) {
             archiveHorse(horse.id);
             router.push("/chevaux");
           }
