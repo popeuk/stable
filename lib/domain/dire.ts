@@ -82,6 +82,26 @@ export function montantDit(text: string): number | undefined {
   return v > 0 && v < 1_000_000 ? v : undefined;
 }
 
+/**
+ * Un montant dit sans « € », en fin de phrase : « Facture véto Diva 120 ».
+ * Les heures, les places, les dates (« le 12 », « dans 3 jours ») ne
+ * comptent pas.
+ */
+export function montantNu(text: string): number | undefined {
+  const t = norm(text)
+    .replace(/\b\d{1,2}\s*(?:heures?|h)(?:\s*\d{2})?\b/g, " ")
+    .replace(/\b\d+\s*places?\b/g, " ")
+    .replace(/\b(?:le|du|au|dans)\s+\d+(?:\s*jours?)?\b/g, " ")
+    .trim();
+  const m = t.match(/(?:^|\s)(\d{1,3}(?:[   ]\d{3})+|\d+)(?:[.,](\d{1,2}))?$/);
+  if (!m) return undefined;
+  const v = Number(m[1].replace(/[   ]/g, "") + (m[2] ? "." + m[2] : ""));
+  return v > 0 && v < 1_000_000 ? v : undefined;
+}
+
+/** « tous les chevaux », « toute l'écurie », « tout le monde » : chaque cheval. */
+const TOUS = /\b(tous les chevaux|toute l ?ecurie|tout le monde)\b/;
+
 /** Une heure : « 18 h », « 9h30 », « 7 h 30 », « 8 heures », « midi ». */
 export function heureDite(text: string): string | undefined {
   const t = norm(text);
@@ -100,7 +120,8 @@ const escRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 export function nomDit(text: string, horses: { id: string; name: string }[] = []): string {
   let s = ` ${text} `;
   const cut = (re: RegExp) => (s = s.replace(re, " "));
-  cut(/\d{1,3}(?:[   ]\d{3})*(?:[.,]\d{1,2})?\s*(?:€|euros?\b|eur\b)/gi);
+  cut(/(?:\d{1,3}(?:[   ]\d{3})+|\d+)(?:[.,]\d{1,2})?\s*(?:€|euros?\b|eur\b)/gi);
+  cut(/\bpour\s+tous\s+les\s+chevaux\b|\btous\s+les\s+chevaux\b/gi);
   cut(/\b(?:la|par) (?:place|personne|cavalier)\b/gi);
   cut(/\b\d+\s*places?\b/gi);
   cut(/(?:à\s*)?\b\d{1,2}\s*(?:heures?|h)(?:\s*\d{2})?\b/gi);
@@ -151,14 +172,17 @@ export function comprendre(text: string, ctx: DireContext): Compris {
   const date = parseDate(t, ctx.today);
   const start = heureDite(text);
   const amount = montantDit(text);
+  // Un nombre sans « € » en fin de phrase ne vaut montant que pour un soin ou de l'argent.
+  const nu = amount ?? montantNu(text);
   const pm = t.match(/\b(\d+)\s*places?\b/);
   const places = pm ? Number(pm[1]) : undefined;
-  const horseIds = chevauxDits(text, ctx.horses);
-  const label = nomDit(text, ctx.horses);
+  // « Vermifuge pour tous les chevaux » : chaque cheval de l'écurie.
+  const horseIds = TOUS.test(words(text)) ? ctx.horses.map((h) => h.id) : chevauxDits(text, ctx.horses);
+  const label = nomDit(text, ctx.horses).replace(/\s*\d+(?:[.,]\d{1,2})?$/, "").trim();
   const base = { date: date ?? ctx.today, dateSaid: !!date, start, horseIds };
 
   const soin = SOINS.find(([re]) => re.test(t));
-  if (soin) return { ...base, type: "soin", care: soin[1], amount };
+  if (soin) return { ...base, type: "soin", care: soin[1], amount: nu };
 
   const ps = ctx.prestations ?? [];
   const prestaWord = ps.some((p) => norm(p.label).split(/[^a-z0-9]+/).some((x) => x.length >= 4 && !STOP.has(x) && words(t).includes(` ${x} `)));
@@ -170,7 +194,7 @@ export function comprendre(text: string, ctx: DireContext): Compris {
   if ((amount && !start) || (argentMot && !start)) {
     const sens = ENTREE.test(t) ? "in" : "out";
     const pour: Pour = horseIds.length ? "cheval" : HORS.test(t) ? "hors" : ECURIE.test(t) ? "ecurie" : sens === "in" ? "hors" : "ecurie";
-    return { ...base, type: "argent", amount, sens, pour, label: label || undefined };
+    return { ...base, type: "argent", amount: nu, sens, pour, label: label || undefined };
   }
 
   return { ...base, type: "rdv", amount, label: label || text.trim() || undefined };
