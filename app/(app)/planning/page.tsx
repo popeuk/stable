@@ -5,7 +5,6 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDesk } from "@/components/bs/desk";
 import { WeekGrid } from "@/components/bs/week-grid";
-import { PlanningTaches, PlanningTachesHaut } from "@/components/bs/planning-taches";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
 import { CountUp, Empty, Ic, Seg, Sec, sg, type IllName } from "@/components/carnet/ui";
@@ -87,10 +86,6 @@ function Planning() {
     return { count: ss.length, validated, planned };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, rangeKey, view]);
-  const tasks = useMemo(() => {
-    const done = data.taskLists?.find((l) => l.isDone)?.id;
-    return (data.tasks ?? []).filter((t) => t.listId !== done).length;
-  }, [data]);
   // Ce qui a compté : toujours à portée, en bas du planning (les tâches ont leur onglet en haut).
   const liens = (
     <nav className="jr-liens" aria-label="Aussi dans le planning">
@@ -147,23 +142,49 @@ function Planning() {
       ]}
     />
   );
+  const portee = view === "semaine" ? "cette semaine" : "ce mois";
   const trio = (soft: string) => (
     <div className="trio">
       <div>
         <b>
           <CountUp value={sum.count} fmt={nombre} />
         </b>
-        <small>séance{sum.count > 1 ? "s" : ""}</small>
+        <small>
+          séance{sum.count > 1 ? "s" : ""} {portee}
+        </small>
       </div>
       <div>
         <b className={moneyCls(sum.validated)}>{sg(sum.validated)}</b>
-        <small>ont compté</small>
+        <small>ont compté {portee}</small>
       </div>
       <div>
         <b className={soft}>{sg(sum.planned)}</b>
-        <small>encore prévus</small>
+        <small>encore prévus {portee}</small>
       </div>
     </div>
+  );
+  // La journée choisie, en une ligne, la portée écrite : ce qui a compté, ce qui vient.
+  const jourNom = sel === today ? "Aujourd’hui" : cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }));
+  const nbSeances = items.filter((i) => i.type === "seance").length;
+  const aCompteJour = items.filter(aCompte).reduce((t, i) => t + (i.money ?? 0), 0);
+  const aVenirJour = items.filter((i) => !aCompte(i) && !i.done).reduce((t, i) => t + (i.money ?? 0), 0);
+  const resume = (
+    <p className="jr-resume rise" style={{ animationDelay: ".18s" }}>
+      <b>{jourNom} :</b> {nbSeances ? `${nbSeances} séance${nbSeances > 1 ? "s" : ""}` : "aucune séance"}
+      {Math.round(aCompteJour) !== 0 && (
+        <>
+          {" · "}
+          <span className={moneyCls(aCompteJour)}>{sg(aCompteJour)}</span> {sel === today ? "ont déjà compté" : "ont compté"}
+        </>
+      )}
+      {Math.round(aVenirJour) !== 0 && (
+        <>
+          {" · "}
+          {sg(aVenirJour)} encore prévus {sel === today ? "aujourd’hui" : "ce jour-là"}
+        </>
+      )}
+      .
+    </p>
   );
 
   /* ---------------- Ordinateur ---------------- */
@@ -171,12 +192,9 @@ function Planning() {
     return (
       <Screen wide>
         <div className="jr-desk">
-          <div style={{ marginBottom: 12 }}>
-            <PlanningTaches value="planning" count={tasks} />
-          </div>
           <div className="dhead">
             <div>
-              <h3>Planning</h3>
+              <h1 className="jr-h1">{title}</h1>
               <div className="pnav">
                 <button type="button" className="rb" onClick={() => shift(-1)} aria-label="Période précédente" title="Période précédente (←)">
                   <Ic n="back" />
@@ -184,7 +202,6 @@ function Planning() {
                 <button type="button" className="rb" onClick={() => shift(1)} aria-label="Période suivante" title="Période suivante (→)">
                   <Ic n="chev" />
                 </button>
-                <b>{title}</b>
                 <button type="button" className="chip" onClick={() => setSel(today)} disabled={view === "semaine" ? week.includes(today) : sel.slice(0, 7) === today.slice(0, 7)} title="Aujourd’hui (T)">
                   Aujourd’hui
                 </button>
@@ -226,7 +243,8 @@ function Planning() {
                         {money ? <span className={moneyCls(money)}>{sg(money)}</span> : null}
                       </span>
                       {its.slice(0, 3).map((it) => (
-                        <i key={it.key} style={{ textDecoration: it.done ? "line-through" : undefined }}>
+                        <i key={it.key}>
+                          {aCompte(it) || it.done ? "✓ " : ""}
                           {it.start ? `${it.start} ` : ""}
                           {it.title}
                         </i>
@@ -247,6 +265,7 @@ function Planning() {
             </span>
             <span className="hint">Clique sur une heure libre pour ajouter quelque chose · Flèches ← → pour changer de {view === "semaine" ? "semaine" : "mois"} · T pour aujourd’hui</span>
           </p>
+          <Taches />
           {liens}
         </div>
       </Screen>
@@ -266,7 +285,6 @@ function Planning() {
 
   return (
     <Screen>
-      <PlanningTachesHaut value="planning" count={tasks} />
       <div
         onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, done: false })}
         onTouchMove={(e) => {
@@ -280,26 +298,30 @@ function Planning() {
           }
         }}
       >
-        <div className="jr-per rise" style={{ animationDelay: ".02s" }}>
-          <span className="nav">
+        <div className="jr-ttl jr-ttl2 rise" style={{ animationDelay: ".02s" }}>
+          <span className="jr-pnav">
             <button type="button" onClick={() => shift(-1)} aria-label={`${unit} précédent${view === "semaine" ? "e" : ""}`}>
               <Ic n="back" className="" />
             </button>
-            {title}
+            <h1>
+              <small>{view === "semaine" ? "Semaine du" : "Le mois de"}</small>
+              {view === "semaine"
+                ? `${Number(monday.slice(8))} ${new Date(monday + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" })}`
+                : cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { month: "long", year: "numeric" }))}
+            </h1>
             <button type="button" onClick={() => shift(1)} aria-label={`${unit} suivant${view === "semaine" ? "e" : ""}`}>
               <Ic n="chev" className="" />
             </button>
           </span>
-          {sel !== today && (
-            <button type="button" className="lnk" onClick={() => setSel(today)}>
-              Aujourd’hui
-            </button>
-          )}
-        </div>
-        <div className="jr-ttl rise" style={{ animationDelay: ".05s" }}>
-          <h3>Planning</h3>
           {viewSeg}
         </div>
+        {(view === "semaine" ? !week.includes(today) : sel.slice(0, 7) !== today.slice(0, 7)) && (
+          <div className="jr-back rise">
+            <button type="button" className="lnk" onClick={() => setSel(today)}>
+              Revenir à aujourd’hui
+            </button>
+          </div>
+        )}
 
         {view === "semaine" ? (
           <>
@@ -396,9 +418,12 @@ function Planning() {
           </div>
         )}
 
-        <div className="pad rise" style={{ animationDelay: ".2s", marginTop: view === "semaine" && sel === today ? 6 : 14 }}>
-          {trio("jr-plan")}
-        </div>
+        {view === "semaine" && resume}
+        {view === "mois" && (
+          <div className="pad rise" style={{ animationDelay: ".2s", marginTop: 14 }}>
+            {trio("jr-plan")}
+          </div>
+        )}
         {view === "mois" && (
           <div className="pad rise" style={{ animationDelay: ".26s" }}>
             <p className="note">Touche un jour pour ouvrir sa semaine.</p>
@@ -410,15 +435,10 @@ function Planning() {
         <>
           <div className="jr-dayh rise" style={{ animationDelay: ".24s" }}>
             <b>{cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" }))}</b>
-            <Seg
-              value={dayView}
-              onChange={setDayView}
-              label="Liste ou créneaux"
-              options={[
-                ["liste", "Liste"],
-                ["creneaux", "Créneaux"],
-              ]}
-            />
+            <button type="button" className="jr-mode" onClick={() => setDayView(dayView === "liste" ? "creneaux" : "liste")}>
+              <Ic n={dayView === "liste" ? "clock" : "list"} className="" />
+              {dayView === "liste" ? "Voir en créneaux" : "Voir en liste"}
+            </button>
           </div>
           {dayView === "liste" ? (
             items.length ? (
@@ -449,9 +469,44 @@ function Planning() {
           )}
         </>
       )}
+      <Taches />
       {liens}
       <div className="end" />
     </Screen>
+  );
+}
+
+/** Les tâches de l'équipe, en section en bas du planning : ce qui reste à faire, et le tableau complet. */
+function Taches() {
+  const data = useDataStore();
+  const today = localToday();
+  const fait = data.taskLists?.find((l) => l.isDone)?.id;
+  const ouvertes = (data.tasks ?? [])
+    .filter((t) => t.listId !== fait && !(t.kind === "rdv" && t.due && t.due.slice(0, 10) < today))
+    .sort((a, b) => (a.due ?? "9999").localeCompare(b.due ?? "9999"));
+  return (
+    <Sec title="Les tâches de l’équipe" action={<Link href="/equipe">{ouvertes.length ? `Toutes · ${ouvertes.length}` : "Ouvrir"}</Link>} delay={0.3} className="jr-taches">
+      {!ouvertes.length ? (
+        <p className="note">Rien à faire pour l’équipe. Touche le + pour ajouter une tâche.</p>
+      ) : (
+        <div className="rows">
+          {ouvertes.slice(0, 4).map((t) => {
+            const late = !!t.due && t.due.slice(0, 10) < today;
+            return (
+              <Link key={t.id} href="/equipe" className="li">
+                <span>
+                  <b>{t.title}</b>
+                  <small>
+                    {[t.forWho.join(", "), t.due ? (late ? "en retard" : t.due.slice(0, 10) === today ? "aujourd’hui" : new Date(t.due.slice(0, 10) + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })) : ""].filter(Boolean).join(" · ")}
+                  </small>
+                </span>
+                <Ic n="chev" className="chev" />
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </Sec>
   );
 }
 

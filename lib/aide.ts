@@ -26,8 +26,9 @@ const AIDES: Record<string, Aide> = {
     titre: "Ton planning",
     points: [
       "Tout ce qui est prévu, jour par jour : séances, soins, tâches.",
-      "Touche un créneau vide pour ajouter quelque chose à cette heure-là.",
+      "Sous les jours, la journée choisie en une ligne : ce qui a déjà compté, ce qui est encore prévu.",
       "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
+      "En bas, les tâches de l’équipe.",
     ],
   },
   valider: {
