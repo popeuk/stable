@@ -56,9 +56,9 @@
 @keyframes nt-ring { 0% { transform: scale(1); opacity: .45; } 100% { transform: scale(1.6); opacity: 0; } }
 .carnet .nt-wave { display: flex; gap: 4px; align-items: center; height: 20px; margin-top: 16px; visibility: hidden; }
 .carnet .nt-wave.on { visibility: visible; }
-.carnet .nt-wave i { width: 4px; height: 6px; border-radius: 2px; background: var(--ink); animation: nt-wave .9s ease-in-out infinite; }
+.carnet .nt-wave i { width: 4px; height: 18px; border-radius: 2px; background: var(--ink); transform: scaleY(.34); animation: nt-wave .9s ease-in-out infinite; }
 .carnet .nt-wave i:nth-child(2) { animation-delay: .15s; } .carnet .nt-wave i:nth-child(3) { animation-delay: .3s; } .carnet .nt-wave i:nth-child(4) { animation-delay: .45s; } .carnet .nt-wave i:nth-child(5) { animation-delay: .6s; }
-@keyframes nt-wave { 50% { height: 18px; } }
+@keyframes nt-wave { 50% { transform: scaleY(1); } }
 .carnet .nt-sayit { margin: 12px 0 0; font-size: 26px; font-weight: 760; letter-spacing: -.025em; line-height: 1.05; }
 .carnet .nt-heard { margin: 8px 0 0; min-height: 2.9em; font-size: 14.5px; line-height: 1.45; color: var(--ink3); text-wrap: balance; }
 .carnet .nt-heard.live { color: var(--ink); font-size: 17px; font-weight: 650; line-height: 1.35; }

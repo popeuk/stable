@@ -164,7 +164,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
           <div className="ac-bars" style={{ gridTemplateColumns: `repeat(${etapes.length}, 1fr)` }} aria-hidden="true">
             {etapes.map((e, k) => (
               <i key={e}>
-                <b style={{ width: fini || k < i ? "100%" : k === i ? "50%" : "0%" }} />
+                <b style={{ transform: `scaleX(${fini || k < i ? 1 : k === i ? 0.5 : 0})` }} />
               </i>
             ))}
           </div>

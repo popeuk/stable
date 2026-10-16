@@ -146,8 +146,8 @@
 .carnet .ac-skip::after { content: ""; position: absolute; inset: -3px -2px; }
 .carnet .ac-bars { display: grid; gap: 5px; margin-top: 4px; }
 .carnet .ac-bars i { display: block; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; }
-.carnet .ac-bars b { display: block; height: 100%; width: 0; background: var(--ink); transition: width .6s var(--ease); }
-.carnet .ac-steps { display: grid; gap: 5px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 11.5px; font-weight: 650; color: var(--ink3); }
+.carnet .ac-bars b { display: block; height: 100%; width: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .6s var(--ease); }
+.carnet .ac-steps { display: grid; gap: 5px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 12px; font-weight: 650; color: var(--ink3); }
 .carnet .ac-steps .on { color: var(--ink); }
 .carnet .ac-stage { flex: 1; overflow: hidden auto; scrollbar-width: none; overscroll-behavior: contain; }
 .carnet .ac-stage::-webkit-scrollbar { display: none; }

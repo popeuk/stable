@@ -32,9 +32,9 @@
 .carnet .jr-arc > svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .carnet .jr-arc path { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 4 5; }
 .carnet .jr-sun { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--hay), var(--sheet) 40%), var(--hay) 70%); box-shadow: 0 0 0 7px color-mix(in srgb, var(--hay) 22%, transparent); animation: jr-sun 2.4s var(--ease) both; }
-.carnet .jr-sun em { position: absolute; left: 50%; top: 30px; transform: translateX(-50%); font-style: normal; font-family: var(--mono); font-size: 10.5px; font-weight: 600; color: var(--ink2); }
-@keyframes jr-sun { 0% { left: 0; top: 100%; } }
-.carnet .jr-hours { position: absolute; left: 24px; right: 24px; bottom: 4px; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10.5px; color: var(--ink3); }
+.carnet .jr-sun em { position: absolute; left: 50%; top: 30px; transform: translateX(-50%); font-style: normal; font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink2); }
+@keyframes jr-sun { from { opacity: 0; transform: translateY(14px) scale(.6); } }
+.carnet .jr-hours { position: absolute; left: 24px; right: 24px; bottom: 4px; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; color: var(--ink3); }
 .carnet .jr-plan { color: var(--ink2); }
 .carnet .jr-dayh { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 18px 18px 0; }
 .carnet .jr-dayh > b { font-size: 21px; font-weight: 740; letter-spacing: -.02em; }
