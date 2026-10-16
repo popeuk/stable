@@ -96,7 +96,7 @@ function Tarifs() {
             <b>{row.label}</b>
             {row.hint && <small>{row.hint}</small>}
           </label>
-          <span className="input xs">
+          <label className="input xs">
             <input
               id={`tarif-${row.key}`}
               type="text"
@@ -109,7 +109,7 @@ function Tarifs() {
               placeholder="…"
             />
             <span className="u">{row.unit}</span>
-          </span>
+          </label>
         </div>
       ))}
       <p className="ec-help">Si tu laisses une case vide, tu taperas le prix toi-même à chaque fois.</p>
@@ -128,13 +128,13 @@ function Tarifs() {
         </div>
       ))}
       <div className="ec-cadd three">
-        <span className="input">
+        <label className="input">
           <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveService()} placeholder="Balade, transport…" aria-label="Nom de la prestation" />
-        </span>
-        <span className="input">
+        </label>
+        <label className="input">
           <input value={newPrice} onChange={(e) => setNewPrice(e.target.value.replace(/[^0-9,\.]/g, ""))} onKeyDown={(e) => e.key === "Enter" && saveService()} inputMode="decimal" placeholder="…" aria-label="Prix de la prestation" />
           <span className="u">€</span>
-        </span>
+        </label>
         <button type="button" className="btn" onClick={saveService} disabled={!newName.trim()} aria-label="Ajouter la prestation">
           <Ic n="plus" className="" />
         </button>
@@ -203,12 +203,12 @@ function Equipe() {
             ["prestataire", "Pro extérieur"],
           ]}
         />
-        <span className="input">
+        <label className="input">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={role === "employe" ? "Son nom, ex. Julie" : "Son nom, ex. M. Roche"} aria-label="Son nom" />
-        </span>
-        <span className="input">
+        </label>
+        <label className="input">
           <input value={job} onChange={(e) => setJob(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder={role === "employe" ? "Son métier (facultatif)" : "Maréchal, vétérinaire… (facultatif)"} aria-label="Son métier (facultatif)" />
-        </span>
+        </label>
         <button type="button" className="btn full" onClick={save} disabled={!name.trim()}>
           <Ic n="plus" className="" />
           Ajouter à l’équipe
@@ -262,9 +262,9 @@ function Categories() {
         />
       </div>
       <div className="ec-cadd">
-        <span className="input">
+        <label className="input">
           <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Nouvelle catégorie" aria-label="Nom de la nouvelle catégorie" />
-        </span>
+        </label>
         <button type="button" className="btn" onClick={add} aria-label="Ajouter cette catégorie">
           <Ic n="plus" className="" />
         </button>
