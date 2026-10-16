@@ -8,6 +8,7 @@ import { ObHead } from "@/components/bs/ob-head";
 import { changerPensionCommune, pensionCommune, useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
+import { lireMontant, montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 
 export default function Page() {
   return (
@@ -52,7 +53,7 @@ function Tarifs() {
                 <b>La pension</b>
                 <small className="ar-set">Réglée pour {horses.length > 1 ? `tes ${horses.length} chevaux` : "ton cheval"}</small>
               </span>
-              <input className="inl" inputMode="numeric" defaultValue={commune || ""} placeholder="0" aria-label="Pension de chaque cheval, euros par mois" onChange={(e) => changerPensionCommune(Number(e.target.value.replace(",", ".")) || 0)} />
+              <input className="inl" inputMode="decimal" defaultValue={montantEnTexte(commune)} placeholder="0" aria-label="Pension de chaque cheval, euros par mois" onChange={(e) => changerPensionCommune(montantOuZero(e.target.value))} />
               <i>€</i>
             </div>
           </div>
@@ -69,7 +70,7 @@ function Tarifs() {
                 <b>{h.name}</b>
                 <small>{h.pensionType ?? "Pension"}</small>
               </span>
-              <input className="inl" inputMode="numeric" defaultValue={h.pension ?? ""} placeholder="0" aria-label={`Pension de ${h.name}, euros par mois`} onChange={(e) => setPension(h.id, Number(e.target.value.replace(",", ".")) || 0, month)} />
+              <input className="inl" inputMode="decimal" defaultValue={montantEnTexte(h.pension)} placeholder="0" aria-label={`Pension de ${h.name}, euros par mois`} onChange={(e) => setPension(h.id, montantOuZero(e.target.value), month)} />
               <i>€</i>
             </div>
           ))}
@@ -92,7 +93,7 @@ function Tarifs() {
               <b>{l}</b>
               <small>{s}</small>
             </span>
-            <input className="inl" inputMode="numeric" defaultValue={tariffs[k] ?? ""} placeholder="0" aria-label={`${l}, euros`} onChange={(e) => setTariff(k, Number(e.target.value.replace(",", ".")) || undefined)} />
+            <input className="inl" inputMode="decimal" defaultValue={montantEnTexte(tariffs[k])} placeholder="0" aria-label={`${l}, euros`} onChange={(e) => setTariff(k, lireMontant(e.target.value) || undefined)} />
             <i>€</i>
           </div>
         ))}

@@ -16,7 +16,7 @@ import { useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
-import { agendaSessions, CARE_META } from "@/lib/domain/care";
+import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 
 /**
@@ -91,11 +91,11 @@ function Moi() {
   const { n } = useParcours();
   const [perm, setPerm] = useState<string>(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   const today = localToday();
-  const todays = agendaSessions(data, today).filter((x) => x.daysUntil <= 0);
+  // L'aperçu du rappel compte comme l'accueil : séances, soins, tâches, rendez-vous.
+  const jour = resumeJournee(dayItems(data, today, today, "00:00"));
   const horses = data.horses.filter((h) => !h.isArchived);
   const libres = Math.max(0, s.capacity - horses.length);
   const won = n === 6;
-  const nameOf = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "";
 
   const ecurie = (
     <Sec title="Ton écurie" delay={0.18} id="ecurie">
@@ -108,8 +108,8 @@ function Moi() {
       <div className="li np">
         <Li
           title={<label htmlFor="st-cap">Nombre de boxes</label>}
-          sub={`${horses.length} occupé${horses.length > 1 ? "s" : ""}, ${libres} libre${libres > 1 ? "s" : ""}`}
-          right={<input id="st-cap" className="input xs" inputMode="numeric" defaultValue={s.capacity} onChange={(e) => Number(e.target.value) > 0 && s.setCapacity(Number(e.target.value))} />}
+          sub={s.capacity ? `${horses.length} occupé${horses.length > 1 ? "s" : ""}, ${libres} libre${libres > 1 ? "s" : ""}` : `${horses.length} occupé${horses.length > 1 ? "s" : ""}, combien en tout ?`}
+          right={<input id="st-cap" className="input xs" inputMode="numeric" placeholder="?" defaultValue={s.capacity || ""} onChange={(e) => Number(e.target.value) > 0 && s.setCapacity(Number(e.target.value))} />}
         />
       </div>
       <Link href="/parcours/tarifs?retour=moi" className="li np">
@@ -143,10 +143,8 @@ function Moi() {
           <div className="nh">
             <i>bs</i>Be Stable<span>maintenant</span>
           </div>
-          <b>
-            Ta journée : {todays.length} chose{todays.length > 1 ? "s" : ""}
-          </b>
-          <p>{todays.length ? cap(todays.slice(0, 3).map((x) => `${CARE_META[x.kind].label.toLowerCase()} ${x.events.map((e) => nameOf(e.horseId)).slice(0, 2).join(", ")}`).join(", ")) + "." : "Rien de prévu. Une journée pour avancer."}</p>
+          <b>{jour.titre}</b>
+          <p>{jour.corps}</p>
         </div>
       </div>
       {perm !== "granted" && perm !== "unsupported" && (

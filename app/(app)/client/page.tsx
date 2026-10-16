@@ -12,10 +12,11 @@ import { CountUp, Empty, Face, Ic, Ill, Page as Ecran, Switch, eur, ini, sg } fr
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
-import { billsFor, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
+import { billOf, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
 import { accord, messageDu, prenomDe } from "@/lib/domain/clients";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
+import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 
 /**
  * La fiche d'un client (`/client?nom=Hugo L.`, `&mois=2026-10` pour un mois
@@ -87,7 +88,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const person = (data.people ?? []).find((p) => p.name === nom);
   const horses = data.horses.filter((h) => !h.isArchived && meme(h.ownerName, nom));
   const role: PersonRole = person?.role ?? (horses.length ? "proprietaire" : "cavalier");
-  const bill: Bill = billsFor(data, period).find((b) => b.payer === nom) ?? { payer: nom, role, lines: [], total: 0, paid: 0, due: 0 };
+  const bill: Bill = billOf(data, nom, period) ?? { payer: nom, role, lines: [], total: 0, paid: 0, due: 0 };
   const avant = monthsBefore(data, nom, now, 3);
   const [feuille, setFeuille] = useState<Ouverte>(null);
   const [vientDePayer, setVientDePayer] = useState(false);
@@ -436,7 +437,7 @@ function Feuille({ titre, onClose, children }: { titre: string; onClose: () => v
 function PartSheet({ qui, nom, due, onClose, onOk }: { qui: string; nom: string; due: number; onClose: () => void; onOk: (v: number) => void }) {
   const sug = due > 100 ? 100 : Math.max(1, Math.round(due / 2));
   const [v, setV] = useState(String(sug));
-  const val = Math.round(Number(v.replace(",", ".")) || 0);
+  const val = montantOuZero(v);
   return (
     <Feuille titre={`${qui} a payé une partie`} onClose={onClose}>
       <div className="pad cl-pform">
@@ -444,7 +445,7 @@ function PartSheet({ qui, nom, due, onClose, onOk }: { qui: string; nom: string;
           {accord(nom, "Il", "Elle")} te doit {eur(due)}. Combien {accord(nom, "t’a-t-il", "t’a-t-elle")} payé ?
         </p>
         <label className="input cl-amtin">
-          <input type="number" inputMode="numeric" min={1} max={due} step={1} value={v} autoFocus onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === "Enter" && val > 0 && onOk(val)} aria-label="Montant payé" />
+          <input type="text" inputMode="decimal" value={v} autoFocus onChange={(e) => setV(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && val > 0 && onOk(val)} aria-label="Montant payé" />
           <span className="u">€</span>
         </label>
         <div className="chips">

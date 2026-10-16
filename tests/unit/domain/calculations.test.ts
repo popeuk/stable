@@ -84,12 +84,24 @@ describe("stablePnl", () => {
     expect(s.horseCount).toBe(2);
   });
 
-  it("excludes archived horses", () => {
+  it("un cheval parti ne compte plus après son départ", () => {
     const data = baseData();
-    data.horses[1].isArchived = true;
+    data.horses[1] = { ...data.horses[1], isArchived: true, exitDate: "2024-01-20" };
+    // Rien de noté pour lui en février : il n'est plus là.
+    data.revenues = data.revenues.filter((r) => r.horseId !== "h2");
+    data.sharedExpenses[0].allocations = [{ horseId: "h1", allocatedAmount: 200 }];
     const s = stablePnl(data, period);
     expect(s.horseCount).toBe(1);
     expect(s.revenue).toBe(600);
+  });
+
+  it("un cheval parti garde l'argent des mois où il était là", () => {
+    const data = baseData();
+    const avant = stablePnl(data, period);
+    data.horses[1] = { ...data.horses[1], isArchived: true, exitDate: "2024-03-02" };
+    const apres = stablePnl(data, period);
+    expect(apres).toEqual(avant);
+    expect(apres.revenue).toBe(1000);
   });
 });
 

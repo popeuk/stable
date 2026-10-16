@@ -11,7 +11,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
-import { billsFor } from "@/lib/domain/billing";
+import { billTotals, billsFor } from "@/lib/domain/billing";
 import { suggestions } from "@/lib/domain/leviers";
 import { OBSTACLES } from "@/stores/settings-store";
 import { currentPeriod } from "@/lib/utils/period";
@@ -50,7 +50,7 @@ export function useNavCounts() {
     const period = currentPeriod();
     const done = data.taskLists?.find((l) => l.isDone)?.id;
     return {
-      due: billsFor(data, period).reduce((t, b) => t + Math.max(0, b.due), 0),
+      due: billTotals(billsFor(data, period)).due,
       acts: suggestions(data, period, capacity).filter((x) => x.status !== "faite" && x.status !== "ecartee").length,
       net: monthBreakdown(data, period).net,
       tasks: (data.tasks ?? []).filter((t) => t.listId !== done).length,

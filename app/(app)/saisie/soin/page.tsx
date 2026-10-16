@@ -12,6 +12,7 @@ import { CARE_KINDS, CARE_META, type CareKind } from "@/lib/domain/care";
 import { weekdayOf, WEEKDAY_LABELS } from "@/lib/domain/rhythm";
 import type { Tariffs } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
+import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 
 /** Le tarif par défaut d'un acte facturable : la grille de Réglages. */
 function tariffFor(t: Tariffs, k: CareKind): number | undefined {
@@ -89,8 +90,8 @@ function SoinComposer() {
   const billable = kind === "cours_collectif" || kind === "cours_individuel" || kind === "concours" || kind === "entrainement" || kind === "prestation";
   const canRepeat = kind === "cours_collectif" || kind === "cours_individuel" || kind === "entrainement" || kind === "prestation";
   const kindLabel = serviceName ?? CARE_META[kind].label;
-  const costNum = Number(cost.replace(",", ".")) || 0;
-  const revenueNum = Number(revenue.replace(",", ".")) || 0;
+  const costNum = montantOuZero(cost);
+  const revenueNum = montantOuZero(revenue);
   const canSave = selected.length > 0;
 
   function save() {
@@ -202,7 +203,7 @@ function SoinComposer() {
               Combien ça t’a coûté ? <span className="nt-opt">facultatif</span>
             </span>
             <InField unit="€">
-              <input type="text" inputMode="decimal" placeholder="0" value={cost} onChange={(e) => setCost(e.target.value.replace(/[^0-9,.]/g, ""))} />
+              <input type="text" inputMode="decimal" placeholder="0" value={cost} onChange={(e) => setCost(saisieMontant(e.target.value))} />
             </InField>
           </label>
         </div>
@@ -220,7 +221,7 @@ function SoinComposer() {
                 value={revenue}
                 onChange={(e) => {
                   setRevenueEdited(true);
-                  setRevenue(e.target.value.replace(/[^0-9,.]/g, ""));
+                  setRevenue(saisieMontant(e.target.value));
                 }}
               />
             </InField>

@@ -11,7 +11,6 @@ import { Ic, Money, eur } from "@/components/carnet/ui";
 import { applySoin, draftFor, draftFromCompris, endOf, habitudes, manque, titre, type AjoutType, type Draft, type Habitudes, type Pour } from "@/lib/domain/ajouter";
 import { comprendre } from "@/lib/domain/dire";
 import { norm } from "@/lib/domain/interpret";
-import { distribute } from "@/lib/domain/distribution";
 import { seriesDates } from "@/lib/domain/seances";
 import type { CareKind } from "@/lib/domain/care";
 import type { Frequency } from "@/lib/domain/types";
@@ -398,7 +397,9 @@ function NoterInner() {
         periodYear: period.year,
         distributionMode: "equal",
         source: "manual",
-        allocations: distribute(v, horses, "equal", period),
+        // Pas de répartition figée : partagée entre les chevaux présents ce mois-là,
+        // y compris ceux qui arrivent après ; sans cheval, elle compte quand même (presence.ts).
+        allocations: [],
         note,
       });
     } else {
@@ -702,13 +703,13 @@ function NoterInner() {
               { k: "cheval", l: horseName ? `pour ${horseName}` : "quel cheval ?", ph: !horseName },
               J,
               { k: "h", l: hh(x.start ?? "09:00") },
-              { k: "p", l: x.price ? <Money v={-x.price} /> : "sans prix" },
+              { k: "p", l: x.price ? <Money exact v={-x.price} /> : "sans prix" },
             ]
           : x.type === "rdv"
             ? [{ k: "quoi", l: x.quoi.trim() || "c’est quoi ?", ph: !x.quoi.trim() }, J, { k: "h", l: x.start ? hh(x.start) : "sans heure" }]
             : [
                 { k: "sens", l: x.sens === "in" ? "Ça rentre" : "Ça sort" },
-                { k: "m", l: x.amount ? <Money v={x.sens === "in" ? x.amount : -x.amount} /> : "combien ?", ph: !x.amount },
+                { k: "m", l: x.amount ? <Money exact v={x.sens === "in" ? x.amount : -x.amount} /> : "combien ?", ph: !x.amount },
                 { k: "lab", l: x.label.trim() || "c’est quoi ?", ph: !x.label.trim() },
                 { k: "pour", l: x.pour === "cheval" ? (horseName ? `pour ${horseName}` : "pour quel cheval ?") : x.pour === "ecurie" ? "pour l’écurie" : "rien à voir avec les chevaux", ph: x.pour === "cheval" && !horseName },
                 J,

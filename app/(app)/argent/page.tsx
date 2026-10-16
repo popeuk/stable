@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { cap, esc, ilEnFaut } from "@/components/bs/ui";
 import { plannedRest } from "@/components/bs/goal-card";
+import { hasObjective, phraseObjectifMois, phrasePistes } from "@/lib/domain/objectif";
+import { partageLabel, repartition } from "@/lib/domain/presence";
 import { useDesk } from "@/components/bs/desk";
 import { Chips, CountUp, Empty, Hello, Ic, Ill, Money, Page, Sec, Seg, eur, sg, type IllName } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
@@ -19,6 +21,7 @@ import { seanceAmount } from "@/lib/domain/seances";
 import { currentPeriod, dateInPeriod, samePeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
+import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 
 /**
  * Mon mois (ancien Bilan) : le chiffre du mois en tête, puis ce qui rentre
@@ -147,7 +150,6 @@ function Mois() {
   const daysLeft = lastDay - now.getDate();
   const pct = objective > 0 ? Math.max(0, Math.min(100, (m.net / objective) * 100)) : 0;
   const restPct = objective > 0 ? Math.max(0, Math.min(100 - pct, (rest / objective) * 100)) : 0;
-  const left = Math.max(0, objective - m.net);
   const gagne = m.net > 0;
 
   const titre = isNow ? (
@@ -181,10 +183,10 @@ function Mois() {
   const sub = isNow ? (
     <>
       Au {now.getDate()} {mName}, tout payé : pensions, soins, frais communs.{" "}
-      {objective > 0 ? (left > 0 ? `Encore ${eur(left)} et tu atteins les ${eur(objective)} que tu vises.` : `Tu as atteint les ${eur(objective)} que tu vises.`) : ""}
+      {phraseObjectifMois(m.net, objective, true)}
     </>
   ) : (
-    <>Tout payé : pensions, soins, frais communs.{objective > 0 ? ` Ton objectif : ${eur(objective)}.` : ""}</>
+    <>Tout payé : pensions, soins, frais communs.{hasObjective(objective) ? ` ${phraseObjectifMois(m.net, objective, false)}` : ""}</>
   );
 
   const goal = (
@@ -219,7 +221,7 @@ function Mois() {
         <label className="field">
           <span>Ce que tu veux qu’il te reste par mois</span>
           <span className="input">
-            <input inputMode="numeric" defaultValue={objective || ""} placeholder="0" onChange={(e) => setObjective(Number(e.target.value) || 0)} onBlur={() => setEditGoal(false)} autoFocus />
+            <input inputMode="decimal" defaultValue={montantEnTexte(objective)} placeholder="0" onChange={(e) => setObjective(montantOuZero(e.target.value))} onBlur={() => setEditGoal(false)} autoFocus />
             <span className="u">€</span>
           </span>
           <small className="ar-goalh">Laisse vide pour ne pas avoir d’objectif.</small>
@@ -421,7 +423,6 @@ function Leviers() {
   const say = useUiStore((s) => s.say);
   const list = useMemo(() => suggestions(data, active, capacity), [data, active, capacity]);
   const m = useMemo(() => monthBreakdown(data, active), [data, active]);
-  const missing = Math.max(0, objective - m.net);
   const monthly = list.filter((s) => s.status !== "faite" && s.unit !== "une fois").reduce((t, s) => t + s.gain, 0);
   const gained = list.filter((s) => s.status === "faite").reduce((t, s) => t + (s.measured ?? s.gain), 0);
 
@@ -448,7 +449,7 @@ function Leviers() {
     <>
       <div className="card ar-head rise" style={{ animationDelay: ".05s" }}>
         <Ill n="piste" />
-        <p className="k">{objective <= 0 ? "Avec ces pistes, jusqu’à" : missing > 0 ? `Il te manque ${eur(missing)} pour ton objectif. Avec ces pistes, jusqu’à` : "Objectif atteint. Avec ces pistes, encore jusqu’à"}</p>
+        <p className="k">{phrasePistes(m.net, objective)}</p>
         <p className="big num">
           <CountUp value={monthly} />
         </p>
@@ -544,7 +545,7 @@ function Mouvements() {
       .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: x.label, sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.rebillRevenueId ? "remis sur sa facture" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
     const s = data.sharedExpenses
       .filter((x) => x.periodYear === active.year && x.periodMonth === active.month)
-      .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: x.label, sub: `pot commun · partagé entre ${x.allocations.length} chevaux`, amount: -x.totalAmount, horseId: "" }));
+      .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: x.label, sub: partageLabel(repartition(data, x).length), amount: -x.totalAmount, horseId: "" }));
     return [...r, ...d, ...s]
       .filter((x) => (kind === "in" ? x.amount > 0 : kind === "out" ? x.amount < 0 : true))
       .filter((x) => !horse || x.horseId === horse)
@@ -554,12 +555,16 @@ function Mouvements() {
   const groups = new Map<string, typeof rows>();
   for (const r of rows) groups.set(r.date, [...(groups.get(r.date) ?? []), r]);
 
-  const recRevs = (data.recurringRevenues ?? []).filter((r) => kind !== "out" && (!horse || r.horseId === horse));
-  const recExps = (data.recurringExpenses ?? []).filter((r) => kind !== "in" && (!horse || r.horseId === horse));
+  // Les récurrentes arrêtées avant ce mois ne sont plus listées ; leur argent passé reste dans les mois.
+  const debutMois = `${localToday().slice(0, 7)}-01`;
+  const enCours = (r: { endDate?: string | null }) => !r.endDate || r.endDate >= debutMois;
+  const arretee = (r: { endDate?: string | null }) => !!r.endDate && r.endDate <= localToday();
+  const recRevs = (data.recurringRevenues ?? []).filter((r) => kind !== "out" && (!horse || r.horseId === horse) && enCours(r));
+  const recExps = (data.recurringExpenses ?? []).filter((r) => kind !== "in" && (!horse || r.horseId === horse) && enCours(r));
 
   function remove(r: (typeof rows)[number]) {
     const st = useDataStore.getState();
-    const snap = { revenues: st.revenues, directExpenses: st.directExpenses, sharedExpenses: st.sharedExpenses };
+    const snap = { revenues: st.revenues, directExpenses: st.directExpenses, sharedExpenses: st.sharedExpenses, careEvents: st.careEvents };
     if (r.t === "rev") st.deleteRevenue(r.id);
     if (r.t === "dir") st.deleteDirectExpense(r.id);
     if (r.t === "sh") st.deleteSharedExpense(r.id);
@@ -693,14 +698,16 @@ function Mouvements() {
               </span>
               <span className="ar-rt">
                 <Money v={r.amount} />
-                <button
-                  type="button"
-                  className="lnk"
-                  aria-label={`Arrêter ${r.label ?? "la pension"}`}
-                  onClick={() => confirm("Arrêter cette rentrée d’argent qui revient chaque mois ?") && useDataStore.getState().deleteRecurringRevenue(r.id)}
-                >
-                  Arrêter
-                </button>
+                {!arretee(r) && (
+                  <button
+                    type="button"
+                    className="lnk"
+                    aria-label={`Arrêter ${r.label ?? "la pension"}`}
+                    onClick={() => confirm("Arrêter cette rentrée d’argent qui revient chaque mois ? Ce qu’elle a déjà rapporté reste dans les mois passés.") && useDataStore.getState().stopRecurringRevenue(r.id)}
+                  >
+                    Arrêter
+                  </button>
+                )}
               </span>
             </div>
           ))}
@@ -718,14 +725,16 @@ function Mouvements() {
               </span>
               <span className="ar-rt">
                 <Money v={-r.amount} />
-                <button
-                  type="button"
-                  className="lnk"
-                  aria-label={`Arrêter ${r.label}`}
-                  onClick={() => confirm(`Arrêter « ${r.label} » ? Elle ne sera plus comptée chaque mois.`) && useDataStore.getState().deleteRecurringExpense(r.id)}
-                >
-                  Arrêter
-                </button>
+                {!arretee(r) && (
+                  <button
+                    type="button"
+                    className="lnk"
+                    aria-label={`Arrêter ${r.label}`}
+                    onClick={() => confirm(`Arrêter « ${r.label} » ? Elle ne sera plus comptée les mois suivants. Les mois passés ne bougent pas.`) && useDataStore.getState().stopRecurringExpense(r.id)}
+                  >
+                    Arrêter
+                  </button>
+                )}
               </span>
             </div>
           ))}

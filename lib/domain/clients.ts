@@ -105,7 +105,7 @@ export interface ClientDue {
 }
 
 export function clientDues(data: StableData, period: Period): ClientDue[] {
-  const bills = billsFor(data, period).filter((b) => b.payer !== "Sans propriétaire");
+  const bills = billsFor(data, period).filter((b) => !b.orphan);
   const people = data.people ?? [];
   // Un même client, quelle que soit la casse ou les espaces (« hugo l. » = « Hugo L. »).
   const cle = (n: string) => n.trim().toLowerCase();

@@ -4,11 +4,12 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { Face, Ic, Money, eur } from "@/components/carnet/ui";
+import { Face, Ic, eur } from "@/components/carnet/ui";
 import { MAX_SEANCES, seriesDates } from "@/lib/domain/seances";
 import { addDays } from "@/lib/domain/care";
 import { applyCours, endOf, fromMin, type CoursHabit, type Draft, type Habitudes, type Rep } from "@/lib/domain/ajouter";
 import type { Horse } from "@/lib/domain/types";
+import { lireMontant, montantEnTexte, montantTape, saisieMontant, toucheMontant } from "@/lib/utils/montant";
 
 /**
  * Les briques du + (feuille Ajouter) et des écrans /saisie : les chevaux en
@@ -214,19 +215,25 @@ export function Wheel({ value, onPick, taskChip, onTask }: { value: string | nul
   );
 }
 
-/** Le pavé du montant. `sens` signe et colore le montant (argent qui rentre ou qui sort). */
+/**
+ * Le pavé du montant. `sens` signe et colore le montant (argent qui rentre ou
+ * qui sort). Sans bouton OK, la dernière touche est la virgule : les
+ * centimes se tapent (« 12,50 € »).
+ */
 export function Keypad({ value, onChange, onOk, sens }: { value: number; onChange: (n: number) => void; onOk?: () => void; sens?: "in" | "out" }) {
+  const [txt, setTxt] = useState(() => montantEnTexte(value));
+  // Le montant changé d'ailleurs (remis à zéro, prérempli) : le texte suit.
+  const shown = (lireMontant(txt) ?? 0) === (value || 0) ? txt : montantEnTexte(value);
   const press = (k: string) => {
-    let n = Math.floor(value || 0);
-    if (k === "del") n = Math.floor(n / 10);
-    else if (k === "00") n = Math.min(999999, n * 100);
-    else n = Math.min(999999, n * 10 + Number(k));
-    onChange(n);
+    const t = toucheMontant(shown, k);
+    setTxt(t);
+    onChange(lireMontant(t) ?? 0);
   };
+  const n = value || 0;
   return (
     <div className="nt-kp">
-      <div className={`nt-amt${value ? "" : " ph"}`} aria-live="polite">
-        {value ? sens ? <Money v={sens === "in" ? value : -value} /> : eur(value) : `0${NB}€`}
+      <div className={`nt-amt${n ? "" : " ph"}`} aria-live="polite">
+        {n ? <span className={sens ? (sens === "in" ? "in" : "out") : undefined}>{`${sens ? (sens === "in" ? "+" : "−") : ""}${montantTape(shown)}`}</span> : `0${NB}€`}
       </div>
       <div className="nt-pad">
         {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((k) => (
@@ -245,8 +252,8 @@ export function Keypad({ value, onChange, onOk, sens }: { value: number; onChang
             OK
           </button>
         ) : (
-          <button type="button" onClick={() => press("00")}>
-            00
+          <button type="button" onClick={() => press(",")} aria-label="Virgule, pour les centimes">
+            ,
           </button>
         )}
       </div>
@@ -313,7 +320,7 @@ export const F = ({ label, hint, children }: { label: string; hint?: string; chi
 
 /** Un montant tapé au clavier (Plus de détails). */
 export function MoneyField({ value, onChange, placeholder = "0", label }: { value: number | null; onChange: (n: number | null) => void; placeholder?: string; label: string }) {
-  const [txt, setTxt] = useState(value ? String(value).replace(".", ",") : "");
+  const [txt, setTxt] = useState(montantEnTexte(value));
   return (
     <InField unit="€">
       <input
@@ -322,10 +329,10 @@ export function MoneyField({ value, onChange, placeholder = "0", label }: { valu
         aria-label={label}
         value={txt}
         onChange={(e) => {
-          const v = e.target.value.replace(/[^\d.,]/g, "");
+          const v = saisieMontant(e.target.value);
           setTxt(v);
-          const n = parseFloat(v.replace(",", "."));
-          onChange(isFinite(n) && n > 0 ? n : null);
+          const n = lireMontant(v);
+          onChange(n && n > 0 ? n : null);
         }}
       />
     </InField>

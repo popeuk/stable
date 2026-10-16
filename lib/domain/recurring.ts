@@ -1,6 +1,13 @@
 import type { Period, RecurringSchedule, StableData } from "@/lib/domain/types";
 import { distribute } from "@/lib/domain/distribution";
 import { periodEnd, periodStart } from "@/lib/utils/period";
+import { chevauxPresents, partiAvant } from "@/lib/domain/presence";
+
+/** Un cheval parti avant ce mois ne reçoit plus ses récurrentes (pension, charge à lui). */
+function encoreLa(data: StableData, horseId: string | undefined, period: Period): boolean {
+  const h = horseId ? data.horses.find((x) => x.id === horseId) : undefined;
+  return !h || !partiAvant(h, periodStart(period));
+}
 
 /** Is a recurring template due (and active) in a given month? */
 export function recurringDue(rec: RecurringSchedule, period: Period): boolean {
@@ -28,15 +35,23 @@ export function recurringList(data: StableData) {
   return data.recurringExpenses ?? [];
 }
 
+/** Les recettes récurrentes d'un cheval dues ce mois, s'il est encore là. */
+export function recurringRevenuesDue(data: StableData, horseId: string, period: Period) {
+  return (data.recurringRevenues ?? []).filter((r) => r.horseId === horseId && recurringDue(r, period) && encoreLa(data, horseId, period));
+}
+
 /** Recurring revenues (e.g. pensions) due for one horse in a period. */
 export function recurringRevenueForHorse(
   data: StableData,
   horseId: string,
   period: Period,
 ): number {
-  return (data.recurringRevenues ?? [])
-    .filter((r) => r.horseId === horseId && recurringDue(r, period))
-    .reduce((s, r) => s + r.amount, 0);
+  return recurringRevenuesDue(data, horseId, period).reduce((s, r) => s + r.amount, 0);
+}
+
+/** Les charges récurrentes directes d'un cheval dues ce mois, s'il est encore là. */
+export function recurringDirectDue(data: StableData, horseId: string, period: Period) {
+  return recurringList(data).filter((r) => !r.isShared && r.horseId === horseId && recurringDue(r, period) && encoreLa(data, horseId, period));
 }
 
 /** Recurring direct charges due for one horse in a period. */
@@ -46,7 +61,7 @@ export function recurringDirectForHorse(
   period: Period,
 ): number {
   return recurringList(data)
-    .filter((r) => !r.isShared && r.horseId === horseId && recurringDue(r, period))
+    .filter((r) => !r.isShared && r.horseId === horseId && recurringDue(r, period) && encoreLa(data, horseId, period))
     .reduce((s, r) => s + r.amount, 0);
 }
 
@@ -56,7 +71,8 @@ export function recurringSharedForHorse(
   horseId: string,
   period: Period,
 ): number {
-  const active = data.horses.filter((h) => !h.isArchived);
+  // Partagées entre les chevaux présents ce mois-là : le passé ne bouge pas quand un cheval part ou arrive.
+  const active = chevauxPresents(data, period);
   let total = 0;
   for (const r of recurringList(data)) {
     if (!r.isShared || !recurringDue(r, period)) continue;
@@ -73,11 +89,18 @@ export function recurringSlices(
   period: Period,
 ): { label: string; categoryId?: string; amount: number; kind: "direct" | "shared" }[] {
   return recurringList(data)
-    .filter((r) => recurringDue(r, period))
+    .filter((r) => recurringDue(r, period) && (r.isShared || encoreLa(data, r.horseId, period)))
     .map((r) => ({
       label: r.label,
       categoryId: r.categoryId,
       amount: r.amount,
       kind: r.isShared ? ("shared" as const) : ("direct" as const),
     }));
+}
+
+/** Les charges récurrentes partagées dues ce mois (le total, avant répartition). */
+export function recurringSharedTotal(data: StableData, period: Period): number {
+  return recurringList(data)
+    .filter((r) => r.isShared && recurringDue(r, period))
+    .reduce((t, r) => t + r.amount, 0);
 }

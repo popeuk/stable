@@ -9,6 +9,7 @@ import { useDesk } from "@/components/bs/desk";
 import { ChoisirProprio } from "@/components/bs/choisir-proprio";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
+import { montantEnTexte, montantOuZero, saisieMontant } from "@/lib/utils/montant";
 
 const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"];
 
@@ -45,9 +46,9 @@ function SaisieCheval() {
   const [blaze, setBlaze] = useState<boolean | undefined>(editing?.blaze);
   const [formule, setFormule] = useState<string | undefined>(editing?.pensionType);
   // Un nouveau cheval arrive avec le tarif de la grille, modifiable ici.
-  const [pension, setPension] = useState(editing ? (editing.pension ? String(editing.pension) : "") : (tariffs?.pension?.toString() ?? ""));
+  const [pension, setPension] = useState(montantEnTexte(editing ? editing.pension : tariffs?.pension));
   const [entryDate, setEntryDate] = useState(editing?.entryDate ?? localToday());
-  const pensionNum = Number(pension.replace(",", ".")) || 0;
+  const pensionNum = montantOuZero(pension);
   const others = horses.filter((h) => !h.isArchived && h.id !== editing?.id);
 
   function save() {
@@ -132,7 +133,7 @@ function SaisieCheval() {
               type="text"
               inputMode="decimal"
               value={pension}
-              onChange={(e) => setPension(e.target.value.replace(/[^0-9,.]/g, ""))}
+              onChange={(e) => setPension(saisieMontant(e.target.value))}
               placeholder="450"
               style={{ border: 0, background: "none", outline: "none", font: "inherit", flex: 1, minWidth: 0, fontVariantNumeric: "tabular-nums" }}
             />

@@ -10,6 +10,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useFlashStore } from "@/stores/flash-store";
 import type { Frequency } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
+import { montantOuZero } from "@/lib/utils/montant";
 
 /**
  * Le composeur : la saisie n'est pas un formulaire, c'est une phrase.
@@ -67,7 +68,7 @@ function Composer() {
   // Un revenu part sur Pension (l'écrasante majorité) ; une dépense n'a PAS
   // de catégorie imposée : le gérant choisit, sinon on n'enregistre pas.
   const cat = cats.find((c) => c.id === categoryId) ?? (kind === "revenu" ? cats[0] : undefined);
-  const amount = Number(raw.replace(",", ".")) || 0;
+  const amount = montantOuZero(raw);
   const horse = horses.find((h) => h.id === horseId);
   const canSave = amount > 0 && (hors || (!!horse && !!cat));
 

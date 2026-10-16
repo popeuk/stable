@@ -15,6 +15,7 @@ import { usePeriodStore } from "@/stores/period-store";
 import { formatEur } from "@/lib/utils/format-currency";
 import { dateInPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
+import { repartition } from "@/lib/domain/presence";
 
 function eur(n: number) {
   const v = new Intl.NumberFormat("fr-FR").format(Math.round(Math.abs(n))).replace(/\u202f/g, "\u00a0");
@@ -41,8 +42,8 @@ function Cheval({ id }: { id: string }) {
   const horses = useHorses(true);
   const data = useDataStore();
   const period = usePeriodStore((s) => s.active);
-  const delRecRevenue = useDataStore((s) => s.deleteRecurringRevenue);
-  const delRecExpense = useDataStore((s) => s.deleteRecurringExpense);
+  const delRecRevenue = useDataStore((s) => s.stopRecurringRevenue);
+  const delRecExpense = useDataStore((s) => s.stopRecurringExpense);
   const delRevenue = useDataStore((s) => s.deleteRevenue);
   const delDirect = useDataStore((s) => s.deleteDirectExpense);
   const archiveHorse = useDataStore((s) => s.archiveHorse);
@@ -82,7 +83,7 @@ function Cheval({ id }: { id: string }) {
 
   const sharedContrib = data.sharedExpenses
     .filter((s) => s.periodYear === period.year && s.periodMonth === period.month)
-    .map((s) => ({ label: s.label, amount: s.allocations.find((a) => a.horseId === horse.id)?.allocatedAmount ?? 0 }))
+    .map((s) => ({ label: s.label, amount: repartition(data, s).find((a) => a.horseId === horse.id)?.allocatedAmount ?? 0 }))
     .filter((x) => x.amount > 0);
 
   const todayIso = localToday();

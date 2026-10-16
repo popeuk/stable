@@ -9,6 +9,7 @@ import { MontantMois, ObHead } from "@/components/bs/ob-head";
 import { chargeDuMois, fraisDuMois, fraisEnUnTotal, retirerPostes, retirerTotal, useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { currentPeriod } from "@/lib/utils/period";
+import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 
 /** Les pictos des catégories, dans le jeu d'icônes du carnet. */
 const IC: Record<string, string> = { box: "home", fer: "shoe", veto: "syringe", pot: "syringe", main: "user", dent: "syringe", cours: "clock", trophee: "flag", foin: "hay", personne: "user", cle: "home", camion: "arrow", euro: "doc" };
@@ -39,13 +40,13 @@ function Factures() {
   const period = useMemo(() => currentPeriod(), []);
   const f = fraisDuMois(data, period);
   const [mode, setMode] = useState<Mode>(() => (fraisDuMois(useDataStore.getState(), period).postes > 0 ? "postes" : "total"));
-  const [txt, setTxt] = useState(() => String(Math.round(fraisDuMois(useDataStore.getState(), period).total) || ""));
+  const [txt, setTxt] = useState(() => montantEnTexte(fraisDuMois(useDataStore.getState(), period).total));
   // Les champs poste par poste se remontent quand un total les vide.
   const [rev, setRev] = useState(0);
 
   const changerTotal = (v: string) => {
     setTxt(v);
-    fraisEnUnTotal(Number(v) || 0, period);
+    fraisEnUnTotal(montantOuZero(v), period);
   };
 
   return (
@@ -115,11 +116,11 @@ function Factures() {
                 </span>
                 <input
                   className="inl"
-                  inputMode="numeric"
-                  defaultValue={Math.round(chargeDuMois(data, c.id, period)) || ""}
+                  inputMode="decimal"
+                  defaultValue={montantEnTexte(chargeDuMois(data, c.id, period))}
                   placeholder="0"
                   aria-label={`${c.name}, euros par mois`}
-                  onChange={(e) => setMonthlyCharge(c.id, c.name, Number(e.target.value.replace(",", ".")) || 0, period)}
+                  onChange={(e) => setMonthlyCharge(c.id, c.name, montantOuZero(e.target.value), period)}
                 />
                 <i>€</i>
               </div>

@@ -18,10 +18,23 @@ import type { Horse } from "@/lib/domain/types";
 /* Espace insécable ordinaire : la fine (U+202F) ne s’affiche pas dans nos polices. */
 const nf0 = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 const nf = { format: (n: number) => nf0.format(n).replace(/\u202f/g, "\u00a0") };
-export const eur = (n: number) => `${nf.format(Math.round(n))} €`;
+/** À l'euro, symétrique : 500,5 donne 501 et −500,5 donne −501 (le même chiffre, rentré ou sorti). */
+const arrondi = (n: number) => Math.sign(n) * Math.round(Math.abs(n)) || 0;
+export const eur = (n: number) => `${nf.format(arrondi(n))} €`;
 export const sg = (n: number) => {
-  const r = Math.round(n);
+  const r = arrondi(n);
   return `${r > 0 ? "+" : r < 0 ? "−" : ""}${nf.format(Math.abs(r))} €`;
+};
+/** Au centime quand il y en a (« 12,50 € »), à l'euro sinon : pour un montant saisi, jamais pour un total. */
+const nf2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const auCentime = (n: number) => {
+  const a = Math.round(Math.abs(n) * 100) / 100;
+  return Number.isInteger(a) ? nf.format(a) : nf2.format(a).replace(/\u202f/g, "\u00a0");
+};
+export const eurc = (n: number) => `${auCentime(n)} €`;
+export const sgc = (n: number) => {
+  const r = Math.round(n * 100) / 100;
+  return `${r > 0 ? "+" : r < 0 ? "−" : ""}${auCentime(r)} €`;
 };
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -151,9 +164,9 @@ export const ini = (n: string) =>
     .toUpperCase();
 
 /* ---------- Argent ---------- */
-export function Money({ v, className = "", plain }: { v: number; className?: string; plain?: boolean }) {
-  const r = Math.round(v);
-  return <span className={`${r > 0 ? "in" : r < 0 ? "out" : "num"} ${className}`}>{plain ? eur(Math.abs(v)) : sg(v)}</span>;
+export function Money({ v, className = "", plain, exact }: { v: number; className?: string; plain?: boolean; exact?: boolean }) {
+  const r = exact ? Math.round(v * 100) / 100 : arrondi(v);
+  return <span className={`${r > 0 ? "in" : r < 0 ? "out" : "num"} ${className}`}>{plain ? (exact ? eurc : eur)(Math.abs(v)) : (exact ? sgc : sg)(v)}</span>;
 }
 
 /** Un chiffre qui compte jusqu'à sa valeur, puis suit ses changements. */

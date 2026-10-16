@@ -147,7 +147,8 @@ function Seuil({ horses, capacity, seuil }: { horses: Horse[]; capacity: number;
       </div>
       <div className="ar-seuil-lab">
         <span>
-          {horses.length} cheva{horses.length > 1 ? "ux" : "l"} · {vides} box vide{vides > 1 ? "s" : ""}
+          {horses.length} cheva{horses.length > 1 ? "ux" : "l"}
+          {capacity > 0 && ` · ${vides} box vide${vides > 1 ? "s" : ""}`}
         </span>
         <b>
           <Ic n="flag" className="ar-ico" />

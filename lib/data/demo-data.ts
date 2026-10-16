@@ -89,8 +89,9 @@ export function buildDemoData(now = new Date()): StableData {
     name: h.name,
     breed: h.breed,
     birthYear: h.birthYear,
-    // Entered between 8 and 36 months ago to vary "ancienneté".
-    entryDate: periodStart(addMonths(end, -(8 + idx * 3))),
+    // Entrés il y a 12 à 40 mois : présents sur les 12 mois de l'exemple
+    // (un cheval ne partage les frais communs qu'à partir de son arrivée).
+    entryDate: periodStart(addMonths(end, -(12 + idx * 3))),
     exitDate: null,
     isArchived: false,
     pensionType: DEMO_HORSES[idx].formule,

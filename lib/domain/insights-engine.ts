@@ -168,7 +168,9 @@ function ruleSharedExpenseImpact(
     b.totalAmount > a.totalAmount ? b : a,
   );
   const total = stablePnl(data, period);
-  const sharedTotal = month.reduce((s, m) => s + m.totalAmount, 0);
+  // Le même total que Mon mois et Et si… : les factures du mois ET les
+  // charges récurrentes partagées (assurance, crédit…).
+  const sharedTotal = total.sharedCosts;
   return [
     {
       id: `shared_expense_impact-${heaviest.id}-${periodKey(period)}`,
@@ -186,7 +188,9 @@ function ruleVsLastYear(data: StableData, period: Period): Insight[] {
   const lastYear = addMonths(period, -12);
   const now = stablePnl(data, period);
   const then = stablePnl(data, lastYear);
-  if (then.revenue === 0 && now.revenue === 0) return [];
+  // Pas de comparaison sans rien de noté l'an dernier : « il t'est resté 0 € » serait faux.
+  const rienNote = then.revenue === 0 && then.directCosts === 0 && then.sharedCosts === 0;
+  if (rienNote || (then.revenue === 0 && now.revenue === 0)) return [];
   const delta = now.netResult - then.netResult;
   if (Math.abs(delta) < 1) return [];
   const up = delta > 0;

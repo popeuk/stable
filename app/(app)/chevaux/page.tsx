@@ -21,6 +21,7 @@ import { addMonths, currentPeriod, daysInMonth } from "@/lib/utils/period";
 import { CARE_META, upcomingDeadlines, type Deadline } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
 import type { Horse, Period, PersonRole } from "@/lib/domain/types";
+import { Partis } from "@/components/bs/partis";
 
 /**
  * Clients : un onglet, deux vues.
@@ -273,7 +274,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
   const pensions = useMemo(
     () =>
       billsFor(data, period)
-        .filter((b) => b.payer !== "Sans propriétaire")
+        .filter((b) => !b.orphan)
         .reduce((t, b) => t + Math.min(b.due, b.lines.filter((l) => /pension/i.test(l.label)).reduce((u, l) => u + l.amount, 0)), 0),
     [data, period],
   );
@@ -284,6 +285,17 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
         Normal à cette date.
       </p>
     ) : null;
+  // Les pensions des chevaux sans propriétaire : dites telles quelles, jamais comptées dans ce qu'on te doit.
+  const orphan = useMemo(() => billsFor(data, period).find((b) => b.orphan), [data, period]);
+  const sansProprio = orphan && Math.round(orphan.total) > 0 ? (
+    <p className="cl-ras">
+      {(() => {
+        const noms = [...new Set(orphan.lines.map((l) => l.horse).filter(Boolean))];
+        const qui = noms.length > 3 ? `${noms.length} chevaux sans propriétaire` : `chevaux sans propriétaire (${noms.join(", ")})`;
+        return `${n ? "Et " : ""}${eur(orphan.total)} viennent de ${qui} : personne à qui les demander pour l’instant. Ajoute leur propriétaire sur leur fiche.`;
+      })()}
+    </p>
+  ) : null;
   const search = (
     <label className="input ch-search">
       <Ic n="search" className="" />
@@ -318,6 +330,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
             <h3>Tes clients</h3>
             <p>{sub}</p>
             {rassure}
+            {sansProprio}
           </div>
           {ajouter}
         </div>
@@ -381,6 +394,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
           <h3>Personne ne te doit rien.</h3>
         )}
         {rassure}
+        {sansProprio}
       </div>
       {rows.length > 6 && <div className="cl-find">{search}</div>}
       {owe.length > 0 && (
@@ -610,6 +624,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
           )}
         </table>
         {rows.length === 0 && <p className="note">{horses.length ? "Aucun cheval dans ce filtre." : "Aucun cheval pour l’instant. Ajoute le premier avec le bouton en haut."}</p>}
+        <Partis />
         <p className="ch-fn">
           «&nbsp;Ce qu’il te laisse&nbsp;» : ce qu’on te paie pour lui, moins ses soins et ses frais, moins sa part du pot commun (foin, salaires, loyer…){horses.length ? `, ${eur(each)} par cheval ce mois` : ""}.
         </p>
@@ -684,6 +699,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
           Ajouter un cheval
         </Link>
       </div>
+      <Partis />
       <div className="end" />
     </Ecran>
   );

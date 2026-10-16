@@ -12,6 +12,7 @@ import { monthBreakdown, reconciledNets } from "@/lib/domain/ticket";
 import { seanceAmount } from "@/lib/domain/seances";
 import { addMonths, currentPeriod, lastNPeriods, samePeriod } from "@/lib/utils/period";
 import type { Period } from "@/lib/domain/types";
+import { hasObjective } from "@/lib/domain/objectif";
 
 /**
  * Bilan sur plusieurs mois : les mois mis bout à bout. Les mêmes calculs que « Le mois »
@@ -67,7 +68,7 @@ function Bilans() {
   const net = months.reduce((t, x) => t + x.m.net, 0);
   const avg = net / Math.max(1, months.length);
   const keep = revenue > 0 ? Math.round((net / revenue) * 100) : 0;
-  const reachedList = months.filter((x) => x.m.net >= objective);
+  const reachedList = hasObjective(objective) ? months.filter((x) => x.m.net >= objective) : [];
   const reached = reachedList.length;
   const cur = months[months.length - 1]?.m;
 
@@ -159,10 +160,12 @@ function Bilans() {
               </b>{" "}
               : {reachedList.map((x) => mName(x.p)).join(", ").replace(/, ([^,]*)$/, " et $1")}.
             </>
-          ) : (
+          ) : hasObjective(objective) ? (
             <>
               <b>Objectif de {eur(objective)} pas encore atteint</b> sur ces {months.length} mois.
             </>
+          ) : (
+            <>Pas d’objectif pour l’instant : tu peux t’en fixer un dans Mon mois.</>
           )}
         </span>
       </div>
@@ -188,7 +191,7 @@ function Bilans() {
       <Sec ill="carnet-buste" title="Mois par mois" action={<Link href="/argent">Ce mois-ci</Link>} delay={0.14}>
         <MonthChart months={months.map((x) => ({ p: x.p, net: x.m.net }))} objective={objective} />
         <p className="note">
-          En euros. Le pointillé, c’est ton objectif de {eur(objective)}. {cap(mName(now))} est en cours, il reste {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
+          En euros.{hasObjective(objective) ? ` Le pointillé, c’est ton objectif de ${eur(objective)}.` : ""} {cap(mName(now))} est en cours, il reste {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
         </p>
       </Sec>
       <Sec ill="brouette" title="Où part ton argent" action={<span className="act out">{sg(-charges)}</span>} delay={0.22}>
@@ -331,11 +334,11 @@ function MonthChart({ months, objective }: { months: { p: Period; net: number }[
   const many = months.length > 8;
   const nf = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
   const lab = (v: number) => (many ? `${dec1(v / 1000)} k` : `${Math.round(v) < 0 ? "−" : ""}${nf.format(Math.abs(Math.round(v))).replace(/\u202f/g, "\u00a0")}`);
-  const aria = `Ce qui t’est resté : ${months.map((m) => `${mName(m.p)} ${sg(m.net)}`).join(", ")}. Objectif ${eur(objective)}.`;
+  const aria = `Ce qui t’est resté : ${months.map((m) => `${mName(m.p)} ${sg(m.net)}`).join(", ")}.${hasObjective(objective) ? ` Objectif ${eur(objective)}.` : ""}`;
   return (
     <div className="ar-mc" role="img" aria-label={aria} style={{ height: H + BASE + 18, gridTemplateColumns: `repeat(${months.length}, minmax(0, 1fr))`, gap: many ? 4 : 8 }}>
       <span className="ar-base" style={{ bottom: zero }} />
-      <span className="ar-obj" style={{ bottom: zero + objective * scale }} />
+      {hasObjective(objective) && <span className="ar-obj" style={{ bottom: zero + objective * scale }} />}
       {months.map(({ p, net }, i) => {
         const isNow = samePeriod(p, now);
         const h = Math.max(2, Math.abs(net) * scale);

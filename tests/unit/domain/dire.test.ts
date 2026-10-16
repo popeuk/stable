@@ -121,3 +121,23 @@ describe("les briques de la phrase", () => {
     expect(nomDit("Maréchal pour Pacha jeudi 9 h, 85 €", CTX.horses)).toBe("Maréchal");
   });
 });
+
+describe("la voix : tous les chevaux, les centimes, les milliers (P2-11)", () => {
+  const ctx2 = { today: "2026-10-16", horses: [{ id: "d", name: "Diva" }, { id: "p", name: "Pacha" }, { id: "b", name: "Belle" }] };
+  it("« Vermifuge pour tous les chevaux aujourd'hui 12,50 € » : chaque cheval, 12,50 €", () => {
+    const c = comprendre("Vermifuge pour tous les chevaux aujourd'hui 12,50 €", ctx2);
+    expect(c).toMatchObject({ type: "soin", care: "vermifuge", amount: 12.5 });
+    expect(c.horseIds).toEqual(["d", "p", "b"]);
+  });
+  it("« PAC 3000 euros » garde le libellé « PAC »", () => {
+    expect(comprendre("PAC 3000 euros", ctx2)).toMatchObject({ type: "argent", amount: 3000, label: "PAC", pour: "hors", sens: "in" });
+    expect(nomDit("PAC 3 000 euros")).toBe("PAC");
+  });
+  it("« Facture véto Diva 120 » : 120 € sans le signe", () => {
+    expect(comprendre("Facture véto Diva 120", ctx2)).toMatchObject({ type: "soin", care: "veto", amount: 120, horseIds: ["d"] });
+  });
+  it("un nombre nu ne transforme pas un rendez-vous en argent", () => {
+    expect(comprendre("Livraison du foin lundi 8 h", ctx2).type).not.toBe("argent");
+    expect(comprendre("Rendez-vous banque le 12", ctx2).amount).toBeUndefined();
+  });
+});

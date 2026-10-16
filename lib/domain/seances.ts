@@ -236,3 +236,22 @@ export function toValidate(data: StableData, today: ISODate, nowHHMM: string): D
     .sort()
     .flatMap((d) => dayItems(data, d, today, nowHHMM).filter((i) => i.late && i.type !== "task"));
 }
+
+/**
+ * Le résumé de la journée, le même partout (accueil, tournée, rappel du
+ * matin, aperçu des réglages) : toutes les choses du jour, séances, soins,
+ * tâches et rendez-vous, faites ou à venir.
+ */
+export function resumeJournee(items: DayItem[]) {
+  const n = items.length;
+  const faits = items.filter((i) => i.done).length;
+  const choses = (k: number) => (k > 1 ? `${k} choses` : k === 1 ? "une chose" : "rien");
+  const titre = n ? `Ta journée : ${n} chose${n > 1 ? "s" : ""}` : "Ta journée : rien de prévu";
+  const avenir = items.filter((i) => !i.done);
+  const liste = (avenir.length ? avenir : items).slice(0, 3).map((i) => `${i.start ? `${i.start} ` : ""}${i.title}`).join(", ");
+  const corps = n ? `${liste}${n > 3 ? "…" : "."}` : "Rien de prévu aujourd’hui. Profites-en pour avancer.";
+  const ligne = n
+    ? `${n > 1 ? `${n} choses` : "Une chose"} au planning aujourd’hui${faits ? `, dont ${faits === n ? (n > 1 ? "toutes" : "elle") : choses(faits)} déjà ${faits > 1 ? "faites" : "faite"}` : ""}.`
+    : null;
+  return { n, faits, restants: n - faits, titre, corps, ligne };
+}

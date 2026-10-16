@@ -14,6 +14,23 @@ import { getSession } from "@/lib/account/session";
  * chemin qu'un compte : tant que son parcours n'est pas fini, /parcours.
  * Il attend que les données du compte soient chargées avant de décider.
  */
+/**
+ * Où envoyer le visiteur (null = il reste où il est). La démo est une écurie
+ * déjà installée : elle n'est jamais renvoyée vers le parcours.
+ */
+export function gateTarget(
+  kind: "compte" | "demo" | "locale" | null,
+  parcours: { chevaux: boolean; tarifs: boolean; factures: boolean },
+  plusTard: boolean,
+  path: string,
+): string | null {
+  if (!kind) return "/bienvenue";
+  if (kind === "demo") return null;
+  const setup = parcours.chevaux && parcours.tarifs && parcours.factures;
+  const libre = ["/parcours", "/bienvenue", "/compte", "/ma-fiche"].some((p) => path.startsWith(p));
+  return !setup && !plusTard && !libre ? "/parcours" : null;
+}
+
 export function OnboardingGate() {
   const router = useRouter();
   const path = usePathname() ?? "";
@@ -34,12 +51,8 @@ export function OnboardingGate() {
 
   useEffect(() => {
     if (!ready) return;
-    if (!getSession()) {
-      router.replace("/bienvenue");
-      return;
-    }
-    const setup = parcours.chevaux && parcours.tarifs && parcours.factures;
-    if (!setup && !plusTard && !path.startsWith("/parcours") && !path.startsWith("/bienvenue") && !path.startsWith("/compte") && !path.startsWith("/ma-fiche")) router.replace("/parcours");
+    const to = gateTarget(getSession()?.kind ?? null, parcours, plusTard, path);
+    if (to) router.replace(to);
   }, [ready, parcours, plusTard, path, router]);
 
   return null;

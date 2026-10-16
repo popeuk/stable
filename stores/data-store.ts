@@ -26,10 +26,10 @@ import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
-import { distribute } from "@/lib/domain/distribution";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
 import { avecProprio, changerProprio, nomConnu, renommerClient, retirerClient } from "@/lib/domain/proprio";
+import { arreterRecurrentes, daterLesDeparts, revenirALEcurie } from "@/lib/domain/presence";
 
 /**
  * Client-side data store. In the full product this is the IndexedDB-backed
@@ -73,7 +73,14 @@ interface DataState extends StableData {
   /** Rend l'id du cheval. Son propriétaire devient une personne du carnet. */
   addHorse: (h: Omit<Horse, "id" | "stableId" | "isArchived">) => string;
   updateHorse: (id: string, patch: Partial<Omit<Horse, "id" | "stableId">>) => void;
-  archiveHorse: (id: string) => void;
+  /**
+   * Le cheval quitte l'écurie ce jour-là (aujourd'hui par défaut) : il garde
+   * son argent des mois où il était là, il ne compte plus après, sa pension
+   * n'est plus postée. Il reste dans les chevaux partis.
+   */
+  archiveHorse: (id: string, date?: string) => void;
+  /** Un cheval parti revient : il recompte à partir d'aujourd'hui. */
+  restoreHorse: (id: string, today?: string) => void;
   deleteHorse: (id: string) => void;
   deleteRevenue: (id: string) => void;
   deleteDirectExpense: (id: string) => void;
@@ -98,9 +105,17 @@ interface DataState extends StableData {
   /** Supprime un acte ET sa dépense liée le cas échéant (le graphe suit). */
   deleteCareEvent: (id: string) => void;
   addRecurringExpense: (e: Omit<RecurringExpense, "id" | "stableId">) => void;
+  /** Supprime une charge récurrente notée par erreur (le passé aussi). */
   deleteRecurringExpense: (id: string) => void;
+  /**
+   * Arrête une charge récurrente : elle ne compte plus après ce jour (fin
+   * du mois précédent si elle n'a pas encore compté ce mois). Le passé reste.
+   */
+  stopRecurringExpense: (id: string, today?: string) => void;
   addRecurringRevenue: (r: Omit<RecurringRevenue, "id" | "stableId">) => void;
   deleteRecurringRevenue: (id: string) => void;
+  /** Arrête une recette récurrente : même règle, le passé reste. */
+  stopRecurringRevenue: (id: string, today?: string) => void;
   addRevenueCategory: (name: string) => void;
   addExpenseCategory: (name: string, isDirect: boolean) => void;
   deleteRevenueCategory: (id: string) => void;
@@ -196,6 +211,7 @@ export const useDataStore = create<DataState>()(
 
       addHorse: (h) => {
         const s0 = get();
+        const today = localToday();
         const owner = h.ownerName?.trim() ? nomConnu(s0, h.ownerName) : undefined;
         const entity: Horse = {
           ...h,
@@ -210,6 +226,8 @@ export const useDataStore = create<DataState>()(
           horses: [...s.horses, entity],
           ...(owner ? { people: avecProprio(s.people ?? [], owner, () => id("pers")) } : {}),
         }));
+        // Sa pension du mois compte tout de suite, sans attendre le prochain chargement.
+        get().runAutopilot(today);
         return entity.id;
       },
 
@@ -234,18 +252,26 @@ export const useDataStore = create<DataState>()(
         });
       },
 
-      archiveHorse: (horseId) =>
+      archiveHorse: (horseId, date = localToday()) =>
         set((s) => {
           const horse = s.horses.find((h) => h.id === horseId);
-          if (horse) {
-            enqueueMutation("update", "horses", { ...horse, isArchived: true });
-          }
-          return {
-            horses: s.horses.map((h) =>
-              h.id === horseId ? { ...h, isArchived: true } : h,
-            ),
-          };
+          if (!horse) return s;
+          const next: Horse = { ...horse, isArchived: true, exitDate: date };
+          enqueueMutation("update", "horses", { ...next });
+          return { horses: s.horses.map((h) => (h.id === horseId ? next : h)) };
         }),
+
+      restoreHorse: (horseId, today = localToday()) => {
+        set((s) => {
+          const horse = s.horses.find((h) => h.id === horseId);
+          if (!horse) return s;
+          const next = revenirALEcurie(horse, today);
+          enqueueMutation("update", "horses", { ...next });
+          return { horses: s.horses.map((h) => (h.id === horseId ? next : h)) };
+        });
+        // Sa pension du mois, s'il en a une et qu'elle n'est pas déjà là.
+        get().runAutopilot(today);
+      },
 
       deleteHorse: (horseId) => {
         enqueueMutation("delete", "horses", { id: horseId });
@@ -273,7 +299,18 @@ export const useDataStore = create<DataState>()(
 
       deleteDirectExpense: (eid) => {
         enqueueMutation("delete", "direct_expenses", { id: eid });
-        set((s) => ({ directExpenses: s.directExpenses.filter((e) => e.id !== eid) }));
+        set((s) => {
+          // Sa refacturation au propriétaire s'en va avec, et le soin lié perd sa dépense.
+          const gone = s.revenues.filter((r) => r.rebillOf === eid);
+          for (const r of gone) enqueueMutation("delete", "revenues", { id: r.id });
+          return {
+            directExpenses: s.directExpenses.filter((e) => e.id !== eid),
+            revenues: gone.length ? s.revenues.filter((r) => r.rebillOf !== eid) : s.revenues,
+            careEvents: (s.careEvents ?? []).some((c) => c.expenseId === eid)
+              ? (s.careEvents ?? []).map((c) => (c.expenseId === eid ? { ...c, expenseId: undefined } : c))
+              : s.careEvents,
+          };
+        });
       },
 
       deleteSharedExpense: (sid) => {
@@ -486,6 +523,11 @@ export const useDataStore = create<DataState>()(
           recurringExpenses: (s.recurringExpenses ?? []).filter((e) => e.id !== rid),
         })),
 
+      stopRecurringExpense: (rid, today = localToday()) =>
+        set((s) => ({
+          recurringExpenses: arreterRecurrentes(s.recurringExpenses ?? [], rid, today),
+        })),
+
       addRecurringRevenue: (r) =>
         set((s) => ({
           recurringRevenues: [
@@ -497,6 +539,11 @@ export const useDataStore = create<DataState>()(
       deleteRecurringRevenue: (rid) =>
         set((s) => ({
           recurringRevenues: (s.recurringRevenues ?? []).filter((e) => e.id !== rid),
+        })),
+
+      stopRecurringRevenue: (rid, today = localToday()) =>
+        set((s) => ({
+          recurringRevenues: arreterRecurrentes(s.recurringRevenues ?? [], rid, today),
         })),
 
       addRevenueCategory: (name) =>
@@ -526,7 +573,7 @@ export const useDataStore = create<DataState>()(
 
       setPension: (horseId, amount, monthKey) =>
         set((s) => {
-          const value = Math.max(0, Math.round(amount));
+          const value = Math.max(0, Math.round(amount * 100) / 100);
           const rid = `rev-pension-${horseId}-${monthKey}`;
           return {
             horses: s.horses.map((h) => (h.id === horseId ? { ...h, pension: value } : h)),
@@ -537,7 +584,7 @@ export const useDataStore = create<DataState>()(
       setMonthlyCharge: (categoryId, label, amount, period) =>
         set((s) => {
           const start = `${period.year}-${String(period.month).padStart(2, "0")}-01`;
-          const value = Math.max(0, Math.round(amount));
+          const value = Math.max(0, Math.round(amount * 100) / 100);
           const sharedExpenses = s.sharedExpenses.filter(
             (e) => !(e.categoryId === categoryId && e.periodYear === period.year && e.periodMonth === period.month),
           );
@@ -789,7 +836,6 @@ export const useDataStore = create<DataState>()(
           if (listId === doneList && task.cost && task.cost > 0 && !costExpenseId) {
             const now = new Date();
             const period = { year: now.getFullYear(), month: now.getMonth() + 1 };
-            const active = s.horses.filter((h) => !h.isArchived);
             costExpenseId = id("shared");
             sharedExpenses = [
               ...sharedExpenses,
@@ -802,7 +848,9 @@ export const useDataStore = create<DataState>()(
                 periodYear: period.year,
                 distributionMode: "equal",
                 source: "manual",
-                allocations: distribute(task.cost, active, "equal", period),
+                // Sans répartition figée : partagée entre les chevaux présents ce mois-là,
+                // même ceux qui arrivent après (presence.ts, repartition).
+                allocations: [],
               },
             ];
           }
@@ -868,12 +916,13 @@ export const useDataStore = create<DataState>()(
     }),
     {
       name: "be-stable-data",
-      version: 2,
+      version: 3,
       // Un tiroir par compte, chiffré avec la clé du compte (lib/account/vault).
       storage: createJSONStorage(() => vault),
       // v2 : séances, personnes, tâches d'équipe, actions, paiements. Une
       // version 1 repart de la démo complète pour avoir des exemples cohérents.
-      migrate: () => ({ ...buildDemoData(), autopilotDismissed: [] }) as never,
+      // v3 : les chevaux partis reçoivent une date de départ (presence.ts) ; leur passé revient.
+      migrate: (old, v) => (v < 2 ? { ...buildDemoData(), autopilotDismissed: [] } : daterLesDeparts(old as StableData)) as never,
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         // Un compte qui n'a encore rien sur cet appareil démarre vide, comme

@@ -8,9 +8,11 @@ import { dateInPeriod, lastNPeriods, previousPeriod, samePeriod } from "@/lib/ut
 import {
   recurringDirectForHorse,
   recurringSharedForHorse,
+  recurringSharedTotal,
   recurringRevenueForHorse,
   recurringSlices,
 } from "@/lib/domain/recurring";
+import { chevauxDuMois, facturesSansCheval, repartition } from "@/lib/domain/presence";
 
 /**
  * Pure P&L calculations (section 10 of the spec). No I/O, no framework.
@@ -60,7 +62,7 @@ export function horseSharedCosts(
   let total = 0;
   for (const se of data.sharedExpenses) {
     if (se.periodYear !== period.year || se.periodMonth !== period.month) continue;
-    for (const alloc of se.allocations) {
+    for (const alloc of repartition(data, se)) {
       if (alloc.horseId === horseId) total += alloc.allocatedAmount;
     }
   }
@@ -109,23 +111,31 @@ export function outsideMoney(data: StableData, period: Period) {
 }
 
 /**
- * Aggregate P&L across all active horses for one period, plus the money
- * that concerns no horse. `revenue` and `directCosts` include it, so
+ * Aggregate P&L across the horses of one period, plus the money that
+ * concerns no horse. `revenue` and `directCosts` include it, so
  * `revenue - directCosts - sharedCosts = netResult` still holds; the
  * horses-only figures are `horsesRevenue`, `horsesDirectCosts`, `horsesNet`.
+ *
+ * Les chevaux du mois sont ceux qui étaient là ce mois-là, ou qui y ont de
+ * l'argent noté (presence.ts) : un cheval parti garde son passé, il ne
+ * compte plus après son départ. Les frais communs d'un mois sans aucun
+ * cheval comptent quand même (`sharedUnallocated`, inclus dans
+ * `sharedCosts`) : ils ne disparaissent pas.
  */
 export function stablePnl(data: StableData, period: Period) {
-  const active = data.horses.filter((h) => !h.isArchived);
+  const active = chevauxDuMois(data, period);
   const perHorse = active.map((h) => horsePnl(data, h.id, period));
   const out = outsideMoney(data, period);
+  const unallocated = facturesSansCheval(data, period, recurringSharedTotal(data, period));
   const horsesRevenue = round2(sum(perHorse.map((p) => p.revenue)));
   const horsesDirectCosts = round2(sum(perHorse.map((p) => p.directCosts)));
   const horsesNet = round2(sum(perHorse.map((p) => p.netResult)));
   return {
     revenue: round2(horsesRevenue + out.revenue),
     directCosts: round2(horsesDirectCosts + out.costs),
-    sharedCosts: round2(sum(perHorse.map((p) => p.sharedCosts))),
-    netResult: round2(horsesNet + out.revenue - out.costs),
+    sharedCosts: round2(sum(perHorse.map((p) => p.sharedCosts)) + unallocated),
+    sharedUnallocated: unallocated,
+    netResult: round2(horsesNet + out.revenue - out.costs - unallocated),
     horsesRevenue,
     horsesDirectCosts,
     horsesNet,
