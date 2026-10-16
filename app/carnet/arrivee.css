@@ -183,7 +183,7 @@
 .carnet .ar-seuil { position: relative; margin: 18px 22px 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px 4px; justify-items: center; }
 .carnet .ar-seuil .face { width: 38px; height: 38px; }
 .carnet .ar-seuil .vide { width: 38px; height: 38px; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--line); }
-.carnet .ar-seuil .trait { position: absolute; height: 46px; border-left: 3px solid var(--ink); }
+.carnet .ar-seuil .trait { position: absolute; height: 46px; width: 3px; background: var(--ink); }
 .carnet .ar-seuil-lab { display: flex; justify-content: space-between; gap: 10px; margin: 8px 22px 0; font-size: 12.5px; color: var(--ink3); }
 .carnet .ar-seuil-lab b { color: var(--ink); display: flex; align-items: center; gap: 4px; }
 .carnet .ar-seuil-lab b svg { width: 15px; height: 15px; }
