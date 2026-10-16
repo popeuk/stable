@@ -92,7 +92,7 @@ function Seuil() {
               if (!last) router.push("/parcours");
             }}
           >
-            J’ai compris, obstacle passé
+            J’ai compris, étape franchie
             <Ic n="ck" className="" />
           </button>
         )}

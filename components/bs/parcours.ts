@@ -42,11 +42,11 @@ export function useParcours() {
       const after = OBSTACLES.filter((o) => (o === id ? true : useSettingsStore.getState().parcours[o])).length;
       if (after === 6 && !arrived) {
         setArrived();
-        say(`Obstacle franchi : <strong>${OBSTACLE_META[id].title}</strong>. C’était la dernière étape.`);
+        say(`Étape franchie : <strong>${OBSTACLE_META[id].title}</strong>. C’était la dernière.`);
         setTimeout(() => router.push("/parcours/arrivee"), 1100);
         return true;
       }
-      say(`Obstacle franchi : <strong>${OBSTACLE_META[id].title}</strong>. ${after} ${after > 1 ? "étapes" : "étape"} sur 6.`);
+      say(`Étape franchie : <strong>${OBSTACLE_META[id].title}</strong>. ${after} ${after > 1 ? "étapes" : "étape"} sur 6.`);
       return false;
     },
     [passObstacle, arrived, setArrived, say, router],

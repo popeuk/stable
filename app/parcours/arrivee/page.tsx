@@ -37,7 +37,7 @@ function Reste() {
   const n = data.horses.filter((h) => !h.isArchived).length;
   return (
     <div className="ar-fin ar-reste">
-      <h4 className="ar-t1 rise">Trois obstacles sur six.</h4>
+      <h4 className="ar-t1 rise">Trois étapes sur six.</h4>
       <div className="perch es-perch rise" style={{ animationDelay: ".08s" }}>
         {net < 0 ? (
           <div className="es-bag">
@@ -79,7 +79,7 @@ function Reste() {
         </div>
       </div>
       <p className="note rise" style={{ animationDelay: ".12s" }}>
-        C’est une estimation. Plus tu notes, plus c’est juste. Les trois derniers obstacles se passent en utilisant l’app.
+        C’est une estimation. Plus tu notes, plus c’est juste. Les trois dernières étapes se franchissent en utilisant l’app.
       </p>
       <div className="foot rise" style={{ animationDelay: ".2s" }}>
         <Link href="/accueil" className="btn full">
@@ -104,7 +104,7 @@ function Fin() {
         <Ill n="rosette" alt="La gérante brandit une rosette." />
       </div>
       <h4 className="ar-t1 rise" style={{ animationDelay: ".08s" }}>
-        Six obstacles sur six. Ton flot est gagné.
+        Six étapes sur six. Ton flot est gagné.
       </h4>
       <Seuil horses={horses} capacity={capacity} seuil={m.seuil} />
       <p className="ar-say">
