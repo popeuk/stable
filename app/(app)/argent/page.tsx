@@ -627,7 +627,11 @@ function Facturer() {
           {shown.length === 0 && !(role === "proprietaire" && orphan) && <p className="note">Personne à facturer ce mois-ci. Les pensions, séances et soins à refacturer apparaîtront ici.</p>}
           {role === "proprietaire" && orphan && (
             <p className="note">
-              {eur(sansProprietaire)} viennent de chevaux sans propriétaire ({[...new Set(orphan.lines.map((l) => l.horse).filter(Boolean))].join(", ")}). Ajoute leur propriétaire sur leur fiche pour savoir à qui le demander.
+              {(() => {
+                const noms = [...new Set(orphan.lines.map((l) => l.horse).filter(Boolean))];
+                const qui = noms.length > 3 ? `${noms.length} chevaux sans propriétaire` : `chevaux sans propriétaire (${noms.join(", ")})`;
+                return `${eur(sansProprietaire)} viennent de ${qui}. Personne à qui les demander pour l’instant : ajoute leur propriétaire sur leur fiche.`;
+              })()}
             </p>
           )}
           {shown.map((b) => {
