@@ -611,7 +611,7 @@ function Stories({ onStart, onDemo, login }: { onStart: () => void; onDemo: () =
   const [i, setI] = useState(0);
   const bars = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
-    const fill = (k: number) => bars.current.forEach((b, j) => b && (b.style.width = j < i ? "100%" : j === i ? `${k * 100}%` : "0"));
+    const fill = (k: number) => bars.current.forEach((b, j) => b && (b.style.transform = `scaleX(${j < i ? 1 : j === i ? k : 0})`));
     if (calme()) return fill(1);
     const t0 = performance.now();
     let raf = 0;
@@ -627,6 +627,7 @@ function Stories({ onStart, onDemo, login }: { onStart: () => void; onDemo: () =
   const dernier = i === SCENES.length - 1;
   return (
     <div className="ar-stwrap">
+      <h1 className="sr-only">Be Stable, ton écurie et ce qu’elle te rapporte</h1>
       <div className="stories">
         <div className="bars" aria-hidden="true">
           {SCENES.map((s, j) => (

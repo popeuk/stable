@@ -202,7 +202,7 @@
 .carnet .stories { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; background: var(--paper); }
 .carnet .stories .bars { display: grid; grid-auto-flow: column; gap: 5px; padding: 54px 20px 0; }
 .carnet .stories .bars i { height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; }
-.carnet .stories .bars b { display: block; height: 100%; width: 0; background: var(--ink); }
+.carnet .stories .bars b { display: block; height: 100%; width: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left; }
 .carnet .stories .stage { position: relative; border: 0; background: none; padding: 0; cursor: pointer; text-align: left; overflow: hidden; }
 .carnet .stories .slide { position: absolute; inset: 0; display: grid; grid-template-rows: 1fr auto; padding: 14px 22px 0; opacity: 0; transition: opacity .6s var(--ease); }
 .carnet .stories .slide.on { opacity: 1; }
