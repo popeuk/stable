@@ -1,7 +1,7 @@
 ---
 titre: "DESIGN - Be Stable, Le Livret"
 created: 2026-09-30
-modified: 2026-10-11
+modified: 2026-10-17
 tags: [sujet/mon-ecurie]
 name: "Be Stable, Le Livret"
 description: "Every stable gets its livret: numbered fields, true prices, an earned flot."
@@ -21,6 +21,15 @@ colors:
   ink-3: "#7A7284"
   line-2: "#EAE6ED"
   on-vert-2: "#8FB3A3"
+  app-sheet: "#FFFFFF"
+  app-mist: "#F4F1F5"
+  app-line: "#E7E2EA"
+  app-line-2: "#F0ECF2"
+  app-ink-3: "#6E6678"
+  app-cream: "#FDF5E6"
+  app-hay: "#E9C46A"
+  money-in: "#17603F"
+  money-out: "#A0285A"
 typography:
   wordmark:
     fontFamily: "Bricolage Grotesque, sans-serif"
@@ -84,6 +93,55 @@ typography:
     letterSpacing: "-0.02em"
     fontVariation: "\"wdth\" 88"
     fontFeature: "\"tnum\" 1"
+  app-small:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "12px"
+    fontWeight: 600
+    lineHeight: 1.35
+  app-meta:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.45
+  app-body:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.45
+  app-row:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "14.5px"
+    fontWeight: 640
+    lineHeight: 1.2
+  app-lead:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.45
+  app-field:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "16px"
+    fontWeight: 400
+  app-section:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "18px"
+    fontWeight: 700
+    letterSpacing: "-0.015em"
+  app-hello:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "32px"
+    fontWeight: 760
+    lineHeight: 1.02
+    letterSpacing: "-0.03em"
+    fontVariation: "\"wdth\" 86"
+  app-big:
+    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontSize: "44px"
+    fontWeight: 780
+    lineHeight: 1
+    letterSpacing: "-0.03em"
+    fontVariation: "\"wdth\" 86"
+    fontFeature: "\"tnum\" 1"
 rounded:
   print: "4px"
   ui: "6px"
@@ -91,6 +149,7 @@ rounded:
   frame: "14px"
   pill: "40px"
   sheet: "16px"
+  app-card: "8px"
 spacing:
   gap: "10px"
   block: "26px"
@@ -187,6 +246,26 @@ components:
     textColor: "{colors.ink}"
     rounded: "{rounded.sheet}"
     padding: "10px 18px 22px"
+  app-button:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.surface}"
+    rounded: "{rounded.ui}"
+    padding: "0 16px"
+    height: "44px"
+  app-button-delete:
+    textColor: "{colors.ink}"
+    rounded: "{rounded.ui}"
+    padding: "0 16px"
+    height: "44px"
+  app-tab-plus:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.surface}"
+    rounded: "50%"
+    size: "56px"
+  app-money-in:
+    textColor: "{colors.money-in}"
+  app-money-out:
+    textColor: "{colors.money-out}"
 ---
 
 # Design System: Be Stable, Le Livret
@@ -239,6 +318,8 @@ A restrained lilac-tinted neutral base with two saturated voices, a deep English
 
 **The Rose Legibility Rule.** Rose is never text on paper or white. It is text only on vert (figures, display lines), and a ground only under vert or vert-deep text.
 
+**The Money Colour Rule (app).** In the app the interface is paper and ink; buttons are ink. Green (money-in) means only money that has come in, rose (money-out) only money that has gone out, always written with its sign (+ or −). Nothing else is coloured: not focus, selection, deletion, errors, statuses, activity types, estimates, what is still planned, or a net of zero. Activity types are told apart by a pictogram. Vert anglais and Rose casaque stay the brand: the flots, the rosettes and the preview of a mon-ecurie.fr listing. The highlighter band, the Rose button and the Fait stamp belong to the boards and the site, not to the app.
+
 ## Typography
 
 **Display Font:** Bricolage Grotesque (with sans-serif)
@@ -270,7 +351,7 @@ The boards are fixed-width compositions (1600px) with 88px page margins; respons
 
 Structure is a field grid: cells share 1px hairlines (the grid draws top and left, each cell draws right and bottom), cells pad 28px, and each cell opens with its label. Inside a livret, sections are stacked rows separated by hairlines at 18px vertical padding, and formulas align on a three-column grid (description, availability, right-aligned price). Data strips set three to four figures side by side under a single currentColor rule.
 
-The app (prototype, 11 octobre 2026) is mobile-first: one column of at most 480px, 18px side padding, sections ruled by Ligne at 26px vertical padding, a sticky translucent header and a fixed tab bar. Vert bands (month banner, month hero, the Be Stable door) bleed to the column edges. From 980px the column is shown as an object: framed at 14px radius with the Frame shadow, beside a sticky aside (64px wordmark, 52px display line, a ruled screen index) across a 72px gutter.
+The app is mobile-first: one column of at most 480px, 18px side padding, sections ruled by line hairlines, an opaque white sticky header and a fixed white tab bar (no blur, see the iPhone sheet rule). From 1024px a 232px white sidebar replaces both, the content runs up to 1120px, and sheets open as a 440px panel on the right. No vert band in the app: the interface stays paper and ink.
 
 **The Hairline Grid Rule.** Group content with shared 1px Ligne rules, not with separate boxed cards.
 
@@ -283,7 +364,7 @@ The world is flat and ruled. Depth appears only on surfaces that float above the
 - **Frame** (`box-shadow: 0 2px 4px rgba(27,18,37,.05), 0 24px 60px rgba(27,18,37,.10), inset 0 0 0 1px #DCD6E0`): a whole page or livret shown in situ.
 - **Print** (`box-shadow: 0 2px 4px rgba(27,18,37,.06), 0 18px 44px rgba(27,18,37,.12)`): posters and social posts presented as objects.
 
-In the app, three pieces of chrome float like the search bar: the central Noter button (`0 6px 18px rgba(19,78,58,.32)` with a 5px paper ring), bottom sheets (`0 -10px 40px rgba(27,18,37,.18)` over a 42 % ink scrim) and the ink toast (`0 12px 32px rgba(27,18,37,.3)`). The plan, the panels and the rows stay flat.
+In the app, three pieces of chrome float like the search bar: the central + button (ink, `0 8px 18px` ink at 25 %), bottom sheets (`0 -10px 30px` ink at 18 % over a 35 % ink scrim) and the ink toast (`0 10px 26px` ink at 25 %). Panels and rows stay flat.
 
 ### Named Rules
 **The Flat Page Rule.** Content on the page is never lifted; only the search bar and presented artefacts float, and their shadows stay soft and ink-tinted.
@@ -292,7 +373,7 @@ In the app, three pieces of chrome float like the search bar: the central Noter 
 
 Photographs are cropped square-cornered and large; they take a radius only when clipped by a rounded container. UI carries a small, firm 6px radius (buttons, price cards, social inner cards); the search field takes 10px, the framed livret page 14px, printed artefacts 4px. Chips are full pills (40px). Circles are reserved for field numbers, avatars (initials on Rose) and the flot. App icon tiles follow platform rounding (28px on 120px, 10px on 48px).
 
-In the app, the plan's boxes are square-cornered rooms, not cards; bottom sheets take 16px top corners (all four once floated on desktop); the Fait stamp keeps the 4px print radius; bars, waffle cells and seuil cells take 2px to 3px.
+In the app, cards and buttons take 6px to 8px, bottom sheets 18px top corners (square once docked on desktop), chips and pills are full pills; bars and seuil cells take 2px to 3px.
 
 **The Square Photo Rule.** A photo never gets its own radius or a decorative frame.
 
@@ -360,23 +441,17 @@ Added with the internal Operate tool "Base mon écurie" (visualiseur-base). Same
 - **Revue en quatre blocs** (outil Enrichissement, À valider, 10 octobre 2026): sections ruled by a Ligne hairline, each opened by a 26px numbered circle and a 24px title, with an effect pill on the right above a 44px tabular count: mist « Invisible sur le site », Vert « Visible sur les fiches », amber « Remplace une valeur », alert « Retire ou signale ». Rows read as a sentence (verb first, old value struck in ink-3, new value bold), followed by the italic citation and a « source » link. Confidence is said in words, never as a number: Sûr (Vert on #E3ECE7), Probable (mist), À vérifier (amber). Bulk decisions run in batches behind a sticky ink progress bar with a Rose fill.
 - **Department heat ramp:** four steps from light to full, #E3ECE7, #C4D8CD, #8FB3A3 (on-vert-2), then Vert. The lightest step carries ink text, the two middle steps vert-deep, the Vert step on-vert text with white figures. Departments without data stay mist. Always shown with a "Moins / Plus" legend.
 
-### App Be Stable (prototype)
-Added with the clickable app prototype (11 octobre 2026). The stable seen from above: Vert, ink and mist say what each horse leaves this month; Rose marks figures on vert, stamps and the current state.
-- **Plan des boxes:** two blocks of 2 rows by 3 boxes, separated by a 34px allée labelled "Allée" (11.5px 600, +0.14em, uppercase, ink-3) between dashed Ligne lines. Walls are 1.5px ink-3 lines drawn by the grid gap and outer border, shared by neighbours; each box facing the allée has a door gap, a 3px paper notch across the middle 40 % of that wall. A box is at least 84px tall, square, padded 9px 10px 8px: number (10.5px 600, +0.08em, 70 % opacity), horse name (16.5px 700, width 92), month figure (19px 800, width 88, tabular). Three colour states: rapporte is Vert with white name and Rose figure, à l'équilibre is mist with ink, pèse is solid ink with white. A free box is paper hatched at 135 degrees (1px line-2 every 8px), "Libre" in ink-2 and "à louer" in Vert 700. A changed box pulses once with a Rose ring (1.1s). Always followed by a four-swatch legend (12px squares).
-- **Month banner:** a full-bleed Vert band (14px 18px 16px): the month line (14px on-vert-muted, month name 15px 600 white), the result in Rose at the app figure size with an 18px 500 white unit, then the copilot line. The Le mois hero repeats it with the figure at 84px.
-- **Copilot line:** the tail-less flot as the speaker's mark (40px; inverted colours on vert, earned colours on paper), beside "Ton copilote" (12px 600, on-vert-2 on vert, ink-3 on paper) over one 16.5px sentence at 1.45.
-- **Task row:** a three-column grid (58px time, task, action) between line-2 rules, 14px vertical padding. Time 15px 700 tabular; late tasks give the slot to a 12px 600 ink-2 note. Task 16.5px 600 over a 14px ink-2 detail. The action is a 44px outline button (1.5px inset ink ring, 6px radius) that fills ink on hover, with a "Plus tard" underlined text link. Once done, the text turns ink-3 and is struck through, and the action becomes the Fait stamp.
-- **Fait stamp:** a Rose tag with a 1.5px inset vert-deep ring, 4px radius, 800 13px uppercase +0.04em vert-deep text with the tabular time, rotated -5 degrees. It lands once (from -16 degrees and 160 %, 0.45s) and is never erased for the day.
-- **Rolling digits:** every month or box figure that changes rolls each digit through a 0 to 9 column inside a 1em window (0.7s, cubic-bezier(.2,.9,.2,1)); signs, spaces and units stay still; the full value is the accessible label.
-- **Horse balance bars:** 30px bars (3px radius) beside an 86px label column, segments in tabular 12.5px 600: income Vert with white, direct costs ink with white, share of charges mist with a Ligne ring, overrun Rose with vert-deep. A 1.5px ink rule then sets the net at 44px. A six-month column chart follows (Vert positive, ink negative, current month ringed in Rose over a paper gap, zero line ink-3).
-- **Waffle:** a 10 by 10 grid of 2px-radius cells (3px gap, at most 340px) showing where 100 € of income goes: shared charges in the vert-deep to ink family, care costs in a muted lilac grey, what remains in Rose. A two-column legend carries tabular amounts.
-- **Seuil strip:** twelve 38px cells (3px radius, 4px gap), one per box: occupied Vert, empty mist with a Ligne ring, still needed with a 2px inset ink ring. A 2px Rose vertical marker labelled "seuil n" (12px 700) slides to the break-even point.
-- **Simulator:** rows ruled by line-2, each a 16px 600 label with its value as an 18px 800 width-88 tabular output, a 13.5px ink-2 hint, then a 44px slider: 6px track filled Vert up to the value over Ligne, 28px white thumb with a 2px inset Vert ring. The result panel is Vert (6px radius, 18px 16px): the difference in Rose at 52px, the comparison in on-vert-muted.
-- **Livret flot grid:** the flots in a three-column hairline grid (shared Ligne rules), each cell a 76px flot tilted between -6 and 6 degrees, a 13px 600 name and a 12px ink-2 state ("gagné", "à gagner"). Earned flots take Le flot's colours; unearned ones show the imprint of Flot à gagner. Conditions below follow the Livret du gérant rows (26px numbered circles turning to solid ink when met). The count reads "n sur 6" at 30px 800 width 88.
-- **Be Stable door:** a full-bleed Vert section closing the livret, headed by a 26px display line whose highlighted word turns Rose text (no band on vert), with an inverted flot. Offers are separated by 25 % on-vert-muted rules: 20px 700 width-90 name, 15.5px on-vert-muted text, price in Rose 30px 800 tabular, and a ghost button (1.5px inset on-vert-2 ring, white text). The Gérer offer is gated by "Livret complet": until every flot is earned its name and price sit at 60 % opacity beside an imprint flot and the button leads back to the livret; once complete the flot inverts to earned and the action becomes a Rose button.
-- **Bottom sheets:** paper sheets up to 480px wide and 92 % of the viewport tall, 16px top corners, a 42px by 5px Ligne grab handle, a 44px round close control, sliding up 40px in 0.34s. Inside: a mist segmented control (pressed segment white with a soft shadow), the say field (white, 10px radius, float shadow, 48px Rose mic button), chips, and the amount field (40px 800 width-88 tabular figure, 2px inset Vert ring on focus).
-- **Tab bar:** fixed, paper at 96 % with a blur and a Ligne top rule, five columns; tabs are 24px line icons over 11.5px 600 ink-3 labels, the current tab in ink with a 3px Vert bar on the top edge. The centre is the Noter button: a 58px Vert disc raised 22px above the bar, white plus, Vert label, hover vert-2.
-- **Motion:** screens enter in 0.32s (6px rise) on cubic-bezier(.22,1,.36,1); every animation and transition collapses under reduced motion.
+### App Be Stable (le carnet)
+The app as it ships since 15 October 2026 (the carnet illustré, rules of 17 October 2026). One token set, defined once in `:root` (`app/globals.css`) and used by every screen; the clickable prototype of 11 October lives on in `prototype/`.
+- **Tokens:** paper `#FCFBF9` (page), sheet `#FFFFFF` (raised surfaces), mist `#F4F1F5` (quiet fills, segmented controls), line `#E7E2EA` and line-2 `#F0ECF2` (hairlines), ink `#1B1225`, ink-2 `#5A5264`, ink-3 `#6E6678` (5.3:1 on paper, 4.9:1 on mist), cream `#FDF5E6` and hay `#E9C46A` (illustration grounds only), money-in `#17603F` (7.3:1 on paper), money-out `#A0285A` (6.9:1 on paper), scrim ink at 35 %. Brand tokens `--vert`, `--vert-deep`, `--rose`, `--on-vert` are reserved for flots, rosettes and the listing preview. Ink transparencies are written `color-mix(in srgb, var(--ink) n%, transparent)`, never as raw rgba.
+- **Colour:** see The Money Colour Rule. A figure that has come in reads `+120 €` in money-in, one that has gone out `−85 €` in money-out; what is still planned, an estimate or a potential reads in ink with its sign; zero is ink. Focus is a 2px ink outline (offset 2px); text selection is an ink mist (14 %); the delete button is an ink outline with a trash pictogram, its gravity carried by the words and the confirmation.
+- **Type ramp:** 14px body (1.45), 12px minimum anywhere in the app (labels, tab labels, captions, kickers), 13px meta, 14.5px 640 row titles, 15px leads, 16px in every field (so iOS never zooms on focus), 18px 700 section heads, 32px 760 width-86 hellos, 44px 780 width-86 tabular month figure. IBM Plex Mono only on the horse's ticket and its times.
+- **Touch targets:** 44 by 44px minimum for anything a gloved thumb can press. When the drawing must stay small (the C'est fait check, a row's trash, back and help in the header, close crosses, week and month arrows, colour swatches, text links), a centred `::after` extends the hit area to 44px around it; segmented controls are 38px inside a 3px mist frame, extended to the frame's edge; chips, steppers, inputs and buttons are 44px tall. A field box is a label: a press anywhere in it puts the caret inside. The tab bar's centre + is a 56px ink disc raised 24px; tab labels are 12px 600.
+- **Headings:** one h1 per screen. The app shell reads the screen's name as a visually hidden h1 when the screen has no visible one; account, onboarding and trial screens show their question as the h1. Page titles and sections are h2, their sub-blocks h3. The help card opens on a paragraph, not a heading.
+- **Zoom:** pinch-zoom is never blocked (no maximum-scale, no gesture blocking); double-tap zoom is cut by `touch-action: manipulation`.
+- **Motion:** screens and lines rise in 0.3s to 0.7s on cubic-bezier(.22,1,.36,1); bars grow with `transform: scaleX`, never `width`. Under reduced motion every loop stops (one iteration, 0.001ms), the steam and the promo ping disappear, and framer-motion follows the system setting (`MotionConfig reducedMotion="user"`).
+- **Agenda (desktop week):** event cards are white with a 1px line ring and a 2px ink top rule (ink-3 once done, a dashed ink outline while waiting); never a coloured side stripe.
+- **Service worker:** the cache name changes with every build (`scripts/stamp-sw.mjs`), old caches are deleted on activation, build files are cache-first, images, icons and the manifest are served from cache and refreshed in the background.
 
 ## Do's and Don'ts
 
@@ -388,8 +463,9 @@ Added with the clickable app prototype (11 octobre 2026). The stable seen from a
 - **Do** keep the wordmark lowercase "be stable", 800, width 88, letter-spacing -0.004em, on one line.
 - **Do** award the flot only for a named status, tilted at most 8 degrees.
 - **Do** label fictitious stables, prices and portraits in mockups.
-- **Do** colour a box by what its horse leaves this month (Vert rapporte, mist à l'équilibre, ink pèse, hatched paper for a free box) and always show the legend.
-- **Do** roll a changed figure digit by digit and keep a stamped Fait visible for the day.
+- **Do** keep the app in paper and ink: green only for money that has come in, rose only for money that has gone out, always with + or −.
+- **Do** give every touch target 44px, extending the hit area around a small drawing rather than shrinking the target.
+- **Do** keep app text at 12px or more, and every field at 16px.
 
 ### Don't:
 - **Don't** set Rose text on paper or white.
@@ -398,5 +474,6 @@ Added with the clickable app prototype (11 octobre 2026). The stable seen from a
 - **Don't** round or frame photographs on their own.
 - **Don't** lift page content with shadows; only the search bar and presented artefacts float, softly.
 - **Don't** use the flot as ornament or change its geometry; it is a stamp, not a costume.
-- **Don't** round or space the plan's boxes like cards; neighbours share 1.5px ink-3 walls.
+- **Don't** use green or rose in the app for focus, selection, deletion, errors, statuses, estimates, what is still planned, or zero.
+- **Don't** block pinch-zoom, and don't mark a card with a coloured side stripe.
 - **Don't** carry the boards' filled index badges or specimen captions onto product surfaces; they annotate the planche.
