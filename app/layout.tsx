@@ -4,7 +4,6 @@ import { EARLY_INSTALL_SCRIPT, PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 import "./bs.css";
 import "./carnet.css";
-import { SansZoom } from "@/components/sans-zoom";
 import "./carnet/matin.css";
 import "./carnet/journee.css";
 import "./carnet/chevaux.css";
@@ -54,9 +53,6 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
-  // App, pas site : on ne zoome pas au doigt (le zoom du navigateur sur ordinateur reste libre).
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
 };
 
@@ -76,7 +72,6 @@ export default function RootLayout({
       <body>
         {children}
         <PwaRegister />
-        <SansZoom />
       </body>
     </html>
   );
