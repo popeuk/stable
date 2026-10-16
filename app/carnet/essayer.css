@@ -40,7 +40,6 @@
 .carnet .es-calc { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); display: grid; gap: 4px; font-family: var(--mono); font-size: 12.5px; }
 .carnet .es-calc div { display: flex; justify-content: space-between; gap: 10px; }
 .carnet .es-calc span:first-child { color: var(--ink2); }
-.carnet .es-est { margin: 12px 22px 0; }
 
 /* ---------- Garder : ce qu'on garde, puis c'est gardé ---------- */
 .carnet .es-kept { list-style: none; margin: 16px 22px 0; padding: 12px 14px; border-radius: 8px; background: var(--mist); display: grid; gap: 7px; font-size: 13.5px; color: var(--ink2); }

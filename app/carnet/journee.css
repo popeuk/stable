@@ -16,10 +16,6 @@
 .carnet .jr-ttl { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 4px 18px 0; }
 .carnet .jr-ttl h3 { margin: 0; font-size: 30px; font-weight: 760; letter-spacing: -.03em; line-height: 1.05; font-variation-settings: "wdth" 86; }
 .carnet .jr-ttl .seg { width: 150px; flex: none; }
-.carnet .jr-ban { display: flex; align-items: center; gap: 10px; margin: 12px 14px 0; padding: 10px 12px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px rgba(27, 18, 37, .04); color: var(--ink2); text-decoration: none; font-size: 13.5px; }
-.carnet .jr-ban b { color: var(--ink); }
-.carnet .jr-ban > span { flex: 1; }
-.carnet .jr-ban .cn-ic { width: 18px; height: 18px; }
 .carnet .jr-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; padding: 12px 12px 0; }
 .carnet .jr-days button { border: 0; background: none; border-radius: 8px; padding: 6px 0 6px; display: grid; justify-items: center; gap: 1px; font-size: 10.5px; font-weight: 600; color: var(--ink3); cursor: pointer; }
 .carnet .jr-days b { font-size: 16px; color: var(--ink); font-weight: 650; font-variant-numeric: tabular-nums; }
@@ -93,13 +89,8 @@
 /* ---------- À confirmer ---------- */
 .carnet .jr-wait { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .carnet .jr-wait .mid { display: block; margin-top: 6px; }
-.carnet .jr-zero { color: var(--ink3); }
-.carnet .jr-ckm { width: 28px; height: 28px; border-radius: 50%; border: 1.6px dashed var(--ink2); background: transparent; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
-.carnet .jr-ckm svg { width: 14px; height: 14px; fill: none; stroke: var(--ink2); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .jr-rosette { width: 128px; }
 .carnet .jr-ok { color: var(--ink); font-size: 17px; }
-.carnet .jr-valider .note.jr-pcnt { margin: 6px 0 2px; }
-.carnet .jr-valider .jr-h2 { margin: 26px 18px 0; font-size: 18px; font-weight: 700; letter-spacing: -.015em; }
 
 /* ---------- Feuilles ---------- */
 .carnet .jr-over { font-size: 12.5px; font-weight: 600; color: var(--ink3); padding-right: 10px; }
@@ -112,8 +103,6 @@
 .carnet .jr-3, .carnet .jr-2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 6px; }
 .carnet .jr-2 { grid-template-columns: 1fr 1fr; }
 .carnet .jr-3 .btn, .carnet .jr-2 .btn { padding: 0 8px; font-size: 13.5px; }
-.carnet .jr-pa { width: 140px; flex: none; }
-.carnet .jr-pa button { padding: 7px 4px; font-size: 12.5px; }
 .carnet .jr-form { padding: 14px 0 0; gap: 12px; }
 .carnet .jr-scope { width: 100%; border: 0; border-bottom: 1px solid var(--line2); background: none; text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .carnet .jr-scope .ck { width: 26px; height: 26px; pointer-events: none; }
@@ -167,10 +156,6 @@
 .carnet .jr-desk .rb svg { width: 16px; height: 16px; }
 .carnet .jr-desk .pnav .chip { margin-left: 8px; padding: 5px 12px; }
 .carnet .jr-desk .pnav .chip:disabled { opacity: .45; cursor: default; }
-.carnet .jr-desk .banner { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 10px 14px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); text-decoration: none; font-size: 13.5px; }
-.carnet .jr-desk .banner span { flex: 1; color: var(--ink2); }
-.carnet .jr-desk .banner b { color: var(--ink); }
-.carnet .jr-desk .banner .cn-ic { width: 17px; height: 17px; }
 .carnet .jr-desk .wg { position: relative; margin-top: 12px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); overflow: auto; max-height: calc(100dvh - 250px); min-height: 360px; }
 .carnet .jr-desk .wg-r { display: grid; grid-template-columns: 52px repeat(7, minmax(0, 1fr)); }
 .carnet .jr-desk .wg-head { position: sticky; top: 0; z-index: 4; background: var(--sheet); }
@@ -230,7 +215,6 @@
 @media (min-width: 1024px) {
   .carnet .jr-valider { max-width: 760px; }
   .carnet .jr-valider .sec.blk { margin-left: 0; margin-right: 0; }
-  .carnet .jr-valider .jr-h2 { margin-left: 0; }
   .carnet .jr-equipe .jr-board { overflow: visible; padding-left: 0; padding-right: 0; }
   .carnet .jr-equipe .jr-col { flex: 1 1 0; width: auto; min-width: 240px; }
   .carnet .jr-equipe .jr-ctl { padding-left: 0; padding-right: 0; }

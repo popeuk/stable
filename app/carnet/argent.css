@@ -170,7 +170,6 @@
 .carnet .ar-arr.dn .ar-ic { transform: rotate(90deg); }
 .carnet .ar-lose { margin: 10px 0 2px; font-size: 14px; line-height: 1.4; }
 .carnet .ar-lose b { font-weight: 700; }
-.carnet .ar-li-pic .chev { width: 16px; height: 16px; }
 
 /* Seuil */
 .carnet .ar-grid12 { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px 4px; justify-items: center; margin: 14px 0 38px; }

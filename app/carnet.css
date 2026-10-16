@@ -21,14 +21,6 @@
 .carnet .hd .ttl { flex: 1; min-width: 0; font-size: 14px; font-weight: 650; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .carnet .hd .back { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; margin-left: -8px; flex: none; }
 .carnet .hd .help { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ink3); flex: none; }
-.carnet .bilan { position: relative; display: flex; flex-direction: column; align-items: flex-end; padding: 5px 9px; border-radius: 6px; background: var(--mist); line-height: 1.05; flex: none; }
-.carnet .bilan small { font-size: 9.5px; font-weight: 650; color: var(--ink3); letter-spacing: .02em; }
-.carnet .bilan b { font-size: 14px; font-weight: 750; color: var(--in); font-variant-numeric: tabular-nums; }
-.carnet .bilan.on { background: var(--ink); }
-.carnet .bilan.on small { color: rgba(255, 255, 255, .7); }
-.carnet .bilan.on b { color: #fff; }
-.carnet .bilan.bump { animation: cn-bump .7s var(--ease); }
-@keyframes cn-bump { 25% { transform: scale(1.1); } }
 .carnet .chip-fly { position: absolute; z-index: 70; pointer-events: none; font-size: 13px; font-weight: 750; color: var(--in); background: var(--sheet); padding: 3px 9px; border-radius: 20px; box-shadow: 0 8px 20px rgba(27, 18, 37, .18); font-variant-numeric: tabular-nums; }
 .carnet .tb { flex: none; display: grid; grid-template-columns: 1fr 1fr 58px 1fr 1fr; align-items: center; padding: 6px 6px 22px; background: var(--sheet); border-top: 1px solid var(--line2); position: relative; z-index: 5; }
 .carnet .tb span { display: grid; justify-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--ink3); }
@@ -90,12 +82,6 @@
 .carnet .ck.on svg { stroke-dashoffset: 0; }
 .carnet .face { width: 40px; height: 40px; border-radius: 50%; background: var(--mist); overflow: hidden; position: relative; flex: none; }
 .carnet .face img { position: absolute; left: 4%; bottom: -6%; width: 104%; }
-.carnet .face.lg { width: 56px; height: 56px; }
-.carnet .coat-noir img { filter: brightness(.38) saturate(.55); }
-.carnet .coat-gris img { filter: grayscale(1) brightness(1.32) contrast(.92); }
-.carnet .coat-isabelle img { filter: hue-rotate(8deg) brightness(1.25) saturate(.75); }
-.carnet .coat-bai img { filter: brightness(.7) saturate(1.05); }
-.carnet .coat-pie img { filter: grayscale(.4) brightness(1.5) contrast(.9); }
 .carnet .ini { width: 40px; height: 40px; border-radius: 50%; background: var(--mist); color: var(--ink); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none; }
 .carnet .pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 12px; font-weight: 700; background: var(--mist); color: var(--ink2); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .carnet .pill.in { background: rgba(23, 96, 63, .08); color: var(--in); }
@@ -194,7 +180,6 @@
 .carnet .sheet-wrap.open { display: block; }
 .carnet .sheet-wrap .scrim { position: absolute; inset: 0; background: rgba(27, 18, 37, .35); animation: cn-fade .25s both; }
 .carnet .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 88%; overflow: auto; background: var(--paper); border-radius: 18px 18px 0 0; padding: 8px 0 28px; box-shadow: 0 -10px 30px rgba(27, 18, 37, .18); animation: cn-up .35s var(--ease) both; scrollbar-width: none; }
-.carnet .sheet.static { position: relative; max-height: none; border-radius: 0; box-shadow: none; animation: none; padding-top: 0; }
 .carnet .sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 10px; }
 .carnet .sheet .shd { display: flex; align-items: center; justify-content: space-between; padding: 0 18px 10px; }
 .carnet .sheet .shd b { font-size: 18px; font-weight: 720; letter-spacing: -.015em; }
@@ -203,12 +188,6 @@
 @keyframes cn-up { from { transform: translateY(40px); opacity: .5; } }
 @keyframes cn-fade { from { opacity: 0; } }
 .carnet [data-panel][hidden] { display: none !important; }
-.carnet .drawer { position: absolute; inset: 0 0 0 auto; width: 88%; background: var(--paper); padding: 54px 18px 24px; overflow: auto; scrollbar-width: none; box-shadow: -10px 0 30px rgba(27, 18, 37, .15); z-index: 41; }
-.carnet .drawer .grp { font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); margin: 18px 0 2px; }
-.carnet .drawer .it { display: flex; align-items: center; gap: 11px; padding: 10px 0; border-bottom: 1px solid var(--line2); font-size: 15px; font-weight: 550; }
-.carnet .drawer .it svg { width: 19px; height: 19px; fill: none; stroke: var(--ink2); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-.carnet .drawer .it em { margin-left: auto; font-style: normal; font-size: 12.5px; color: var(--ink3); font-variant-numeric: tabular-nums; }
-.carnet .drawer .it em.attn { color: #fff; background: var(--ink); padding: 1px 7px; border-radius: 10px; font-weight: 700; }
 .carnet .aide { position: relative; margin: 14px 14px 0; padding: 16px 16px 14px; border-radius: 8px; background: var(--ink); color: #fff; }
 .carnet .aide h5 { margin: 0; font-size: 18px; font-weight: 740; padding-right: 36px; letter-spacing: -.01em; }
 .carnet .aide ol { list-style: none; counter-reset: a; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
@@ -241,18 +220,6 @@
 .carnet .dots i { width: 22px; height: 3px; border-radius: 2px; background: var(--line); }
 .carnet .dots i.on { background: var(--ink); }
 .carnet .foot { margin-top: auto; padding: 16px 22px 30px; display: grid; gap: 10px; }
-.carnet .desk { position: relative; margin-top: 24px; border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px var(--rule), 0 30px 60px -20px rgba(27, 18, 37, .35); background: var(--paper); }
-.carnet .desk-in { position: absolute; top: 0; left: 0; width: 1280px; height: 800px; transform-origin: 0 0; display: grid; grid-template-columns: 232px 1fr; color: var(--ink); font-size: 14px; line-height: 1.45; }
-.carnet .side { background: var(--sheet); border-right: 1px solid var(--line2); padding: 22px 14px; display: grid; align-content: start; gap: 2px; font-size: 14px; }
-.carnet .side .wm { font-weight: 800; font-size: 21px; letter-spacing: -.035em; margin: 0 8px 14px; }
-.carnet .side .add { display: flex; align-items: center; justify-content: space-between; height: 38px; padding: 0 12px; border-radius: 6px; background: var(--ink); color: #fff; font-weight: 650; margin-bottom: 6px; }
-.carnet .side .find { display: flex; align-items: center; justify-content: space-between; height: 36px; padding: 0 12px; border-radius: 6px; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink3); margin-bottom: 4px; }
-.carnet .side kbd { font-family: var(--mono); font-size: 11px; color: inherit; opacity: .7; }
-.carnet .side span.n { display: flex; justify-content: space-between; padding: 7px 10px; border-radius: 6px; color: var(--ink2); }
-.carnet .side span.n em { font-style: normal; font-size: 12px; color: var(--ink3); font-variant-numeric: tabular-nums; }
-.carnet .side .on { background: var(--mist); color: var(--ink); font-weight: 600; }
-.carnet .side .grp { font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); margin: 14px 10px 4px; }
-.carnet .dmain { overflow: hidden; padding: 26px 30px; }
 .carnet .dhead { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
 .carnet .dhead h3 { margin: 0; font-size: 40px; font-weight: 760; letter-spacing: -.03em; line-height: 1; font-variation-settings: "wdth" 86; }
 .carnet .dhead p { margin: 8px 0 0; color: var(--ink2); font-size: 15px; }
@@ -280,13 +247,12 @@
 .carnet .hd { position: sticky; top: 0; z-index: 30; padding-top: calc(env(safe-area-inset-top) + 8px); }
 .carnet .hd .wm { color: var(--ink); text-decoration: none; }
 .carnet .hd .help, .carnet .hd .back { border: 0; background: none; padding: 0; cursor: pointer; }
-.carnet .hd .bilan { text-decoration: none; }
 .carnet .tb { position: fixed; display: block; left: 0; right: 0; bottom: 0; z-index: 35; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
 .carnet .tb > div { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 58px 1fr 1fr; align-items: center; }
 .carnet .tb a, .carnet .tb button { display: grid; justify-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--ink3); text-decoration: none; background: none; border: 0; padding: 4px 0; cursor: pointer; }
 .carnet .tb [aria-current="page"] { color: var(--ink); }
 .carnet .tb .plus { width: 46px; height: 46px; padding: 0; border-radius: 50%; background: var(--ink); color: #fff; display: flex; align-items: center; justify-content: center; margin: -18px auto 0; box-shadow: 0 8px 18px rgba(27, 18, 37, .25); }
-.carnet .tb svg, .carnet .hd svg, .carnet .drawer .it svg, .carnet .cn-ic { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.carnet .tb svg, .carnet .hd svg, .carnet .cn-ic { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .carnet .cn-ic.sm { width: 16px; height: 16px; }
 .carnet .tb .plus svg { width: 22px; height: 22px; stroke-width: 2; }
 .carnet .input { font: inherit; font-size: 15px; outline: none; }
@@ -296,8 +262,6 @@
 .carnet .input:focus { box-shadow: inset 0 0 0 1.5px var(--ink); }
 .carnet .sheet-wrap { position: fixed; z-index: 60; }
 .carnet .sheet { max-width: 480px; margin: 0 auto; padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
-.carnet .drawer { position: fixed; top: 0; bottom: 0; right: 0; left: auto; width: min(360px, 88vw); z-index: 61; padding-top: calc(env(safe-area-inset-top) + 18px); padding-bottom: calc(24px + env(safe-area-inset-bottom)); overscroll-behavior: contain; }
-.carnet .drawer-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(27, 18, 37, .35); animation: cn-fade .25s both; }
 .carnet .toast { position: fixed; left: 12px; right: 12px; bottom: calc(92px + env(safe-area-inset-bottom)); max-width: 456px; margin: 0 auto; z-index: 70; }
 .carnet .aide { margin-top: 14px; }
 .carnet .cn-side { display: none; }
