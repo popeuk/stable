@@ -8,6 +8,7 @@ import { Empty, Face, Ic, Money, Page as Ecran, Pill, Portrait, Sec, Seg, Tip, e
 import { COATS } from "@/components/bs/horse-face";
 import { useDesk } from "@/components/bs/desk";
 import { useParcours } from "@/components/bs/parcours";
+import { avecArticle } from "@/lib/domain/leviers";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { horseTicket, reconciledNets, type HorseTicket } from "@/lib/domain/ticket";
@@ -203,7 +204,7 @@ function Ticket({ horse }: { horse: Horse }) {
               say(`« ${rebill.label} » ajouté à ce que doit payer ${horse.ownerName || "son propriétaire"} : <strong>+${eur(rebill.amount)}</strong>.`, () => useDataStore.setState(snap));
             }}
           >
-            Faire payer « {rebill.label.toLowerCase()} » au propriétaire · +{eur(rebill.amount)}
+            Faire payer {avecArticle(rebill.label)} à {horse.ownerName || "son propriétaire"} · +{eur(rebill.amount)}
           </button>
         )}
         <button type="button" className="btn line full" onClick={() => openNoter({ horseIds: [horse.id] })}>

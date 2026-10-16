@@ -31,6 +31,17 @@ export interface Suggestion {
 
 const SOINS_REFACTURABLES = /orthop|ost[eé]o|compl[eé]ment|dentiste|parage/i;
 
+/** « les compléments », « l’ostéo », « le parage », « la ferrure orthopédique » : un libellé avec son article. */
+export function avecArticle(label: string): string {
+  const l = label.trim().toLowerCase();
+  const premier = l.split(/\s+/)[0] ?? l;
+  if (/[sx]$/.test(premier)) return `les ${l}`;
+  if (/^[aeiouyéèêh]/.test(l)) return `l’${l}`;
+  if (/(age|iste|isme|ment|é)$/.test(premier)) return `le ${l}`;
+  if (/e$/.test(premier)) return `la ${l}`;
+  return `le ${l}`;
+}
+
 export function suggestions(data: StableData, period: Period, capacity: number): Suggestion[] {
   const out: (Omit<Suggestion, "status" | "measured"> & { forced?: ActionState["status"] })[] = [];
   const horses = data.horses.filter((h) => !h.isArchived);
@@ -58,7 +69,7 @@ export function suggestions(data: StableData, period: Period, capacity: number):
     out.push({
       id: `rebill-${e.id}`,
       lever: "facturer",
-      title: `Faire payer « ${e.label.toLowerCase()} » de ${h.name}`,
+      title: `Faire payer ${avecArticle(e.label)} de ${h.name}${h.ownerName ? ` à ${h.ownerName}` : ""}`,
       sub: `tu l’as payé, mais d’habitude c’est ${h.ownerName ? `à ${h.ownerName}` : "au propriétaire"} de le régler. Ajoute-le à sa facture.`,
       gain: e.amount,
       unit: "une fois",

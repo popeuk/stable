@@ -472,7 +472,7 @@ function NoterInner() {
   );
   const soinTiles = (x: Draft) => (
     <Tiles
-      options={h.soins.slice(0, 5).map((s) => ({ key: s.kind, label: s.label, sub: [s.price ? eur(s.price) : "", s.provider].filter(Boolean).join(" · ") || hh(s.start) }))}
+      options={h.soins.slice(0, 5).map((s) => ({ key: s.kind, label: s.label, sub: [s.price ? eur(s.price) : "", s.provider].filter(Boolean).join(" · ") || `d’habitude à ${hh(s.start)}` }))}
       value={x.custom ? null : x.care}
       onPick={(k) => {
         setOther(false);
