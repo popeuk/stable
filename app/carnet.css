@@ -338,3 +338,10 @@
 .carnet .btn:disabled, .carnet .btn[aria-disabled="true"] { opacity: .4; cursor: default; pointer-events: none; }
 html:has(.carnet), body:has(.carnet) { background: #FCFBF9; }
 .carnet .tbl .n, .carnet .tbl th { white-space: nowrap; }
+
+/* Pas de zoom au doigt : pas de double tape, et des champs à 16 px minimum
+   pour que l'iPhone ne zoome pas tout seul quand on tape dedans. */
+html { touch-action: manipulation; }
+@media (max-width: 1023px) {
+  input, select, textarea { font-size: max(16px, 1em); }
+}
