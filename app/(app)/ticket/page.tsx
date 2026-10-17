@@ -18,6 +18,7 @@ import { localToday } from "@/lib/utils/local-date";
 import type { Horse } from "@/lib/domain/types";
 import { msgFairePayer } from "@/lib/utils/esc";
 import { Identite } from "@/components/bs/identite";
+import { SejourForm } from "@/components/bs/sejour-form";
 
 /**
  * La fiche d'un cheval : son portrait qui respire, puis le ticket du mois
@@ -83,8 +84,6 @@ const jour = (d: string, month: "short" | "long" = "short") => new Date(d + "T12
 function Ticket({ horse }: { horse: Horse }) {
   const router = useRouter();
   const data = useDataStore();
-  const archiveHorse = useDataStore((s) => s.archiveHorse);
-  const restoreHorse = useDataStore((s) => s.restoreHorse);
   const openNoter = useUiStore((s) => s.openNoter);
   const lastLine = useUiStore((s) => s.lastLine);
   const { pass, setupDone, parcours } = useParcours();
@@ -296,29 +295,7 @@ function Ticket({ horse }: { horse: Horse }) {
     </>
   );
 
-  const leave = horse.isArchived ? (
-    <div className="ch-leave">
-      <p className="note">{horse.exitDate ? `Parti le ${jour(horse.exitDate, "long")}. ` : "Parti. "}Son argent reste dans les mois où il était là.</p>
-      <button type="button" className="btn ghost" onClick={() => restoreHorse(horse.id)}>
-        {horse.name} revient à l’écurie
-      </button>
-    </div>
-  ) : (
-    <div className="ch-leave">
-      <button
-        type="button"
-        className="btn ghost"
-        onClick={() => {
-          if (window.confirm(`${horse.name} quitte l’écurie aujourd’hui ? Ce qu’il a rapporté et coûté reste dans les mois où il était là. Sa pension ne sera plus comptée les mois suivants. Tu le retrouves dans les chevaux partis.`)) {
-            archiveHorse(horse.id);
-            router.push("/chevaux");
-          }
-        }}
-      >
-        {horse.name} quitte l’écurie
-      </button>
-    </div>
-  );
+  const leave = <SejourForm key={`${horse.id}-${horse.stays?.length ?? 1}-${horse.isArchived}`} horse={horse} onDone={(parti) => parti && router.push("/chevaux?vue=chevaux")} />;
 
   if (desk) {
     return (

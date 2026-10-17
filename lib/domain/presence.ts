@@ -1,15 +1,17 @@
 import type { Horse, ISODate, Period, SharedExpense, SharedExpenseAllocation, StableData } from "@/lib/domain/types";
 import { distribute } from "@/lib/domain/distribution";
 import { dateInPeriod, periodEnd, periodStart } from "@/lib/utils/period";
+import { compteEntre, debutCompte, donnerSejours, finCompte, revenirLe, sejours } from "@/lib/domain/sejours";
 
 /**
- * Qui était là, et quand. Un cheval qui quitte l'écurie garde sa date de
- * départ (`exitDate`) : il compte dans les mois où il était là, plus après.
- * Son argent des mois passés ne bouge pas ; sa pension n'est plus postée ;
- * il ne prend plus de part des frais communs. Il reste retrouvable (les
- * chevaux partis) et peut revenir.
+ * Qui était là, et quand. Un cheval vit à l'écurie par séjours
+ * (lib/domain/sejours) : il compte dans les mois où il était là, plus
+ * entre deux séjours ni après son départ. Son argent des mois passés ne
+ * bouge pas ; sa pension n'est plus postée ; il ne prend plus de part des
+ * frais communs. Il reste retrouvable (les chevaux partis) et peut revenir :
+ * un retour ajoute un séjour sans toucher aux précédents.
  *
- * Un cheval archivé avant cette règle n'a pas de date de départ. La
+ * Un cheval archivé avant la règle des dates n'a pas de date de départ. La
  * migration douce (`dateDepartPresumee`) lui en donne une : le jour de sa
  * dernière ligne d'argent, sinon son jour d'arrivée. En attendant (données
  * reçues d'ailleurs), un cheval archivé sans date ne partage plus rien,
@@ -17,16 +19,19 @@ import { dateInPeriod, periodEnd, periodStart } from "@/lib/utils/period";
  * rien ne disparaît. Domaine pur.
  */
 
-/** Le cheval est-il parti avant ce jour ? (un cheval parti le 10 est encore là le 10) */
-export function partiAvant(h: Pick<Horse, "isArchived" | "exitDate">, date: ISODate): boolean {
-  if (h.exitDate) return h.exitDate < date;
-  return h.isArchived;
+type HorseLike = Parameters<typeof sejours>[0];
+
+/** Le cheval est-il parti avant ce jour, sans revenir depuis ? (un cheval parti le 10 est encore là le 10) */
+export function partiAvant(h: HorseLike, date: ISODate): boolean {
+  const s = sejours(h).filter((x) => debutCompte(x) <= date).at(-1);
+  if (!s) return false;
+  const f = finCompte(s);
+  return f !== null && f < date;
 }
 
-/** Était-il à l'écurie pendant ce mois, ne serait-ce qu'un jour ? */
-export function presentDans(h: Pick<Horse, "isArchived" | "exitDate" | "entryDate">, p: Period): boolean {
-  if (h.entryDate && h.entryDate > periodEnd(p)) return false;
-  return !partiAvant(h, periodStart(p));
+/** Comptait-il dans l'argent de ce mois, ne serait-ce qu'un jour ? */
+export function presentDans(h: HorseLike, p: Period): boolean {
+  return compteEntre(h, periodStart(p), periodEnd(p));
 }
 
 /** Les chevaux qui partagent les frais communs d'un mois : ceux qui étaient là. */
@@ -101,18 +106,29 @@ export function dateDepartPresumee(data: StableData, horseId: string): ISODate {
 
 /** La migration douce : chaque cheval archivé sans date de départ en reçoit une. */
 export function daterLesDeparts<T extends StableData>(data: T): T {
-  if (!data.horses?.some((h) => h.isArchived && !h.exitDate)) return data;
-  return { ...data, horses: data.horses.map((h) => (h.isArchived && !h.exitDate ? { ...h, exitDate: dateDepartPresumee(data, h.id) } : h)) };
+  if (!data.horses?.some((h) => h.isArchived && !h.exitDate && !h.stays?.length)) return data;
+  return { ...data, horses: data.horses.map((h) => (h.isArchived && !h.exitDate && !h.stays?.length ? { ...h, exitDate: dateDepartPresumee(data, h.id) } : h)) };
 }
 
 /**
- * Un cheval parti revient. Parti ce mois-ci (un départ noté par erreur) :
- * tout redevient comme avant. Parti un mois d'avant : il revient comme une
- * arrivée, aujourd'hui, pour que les mois où il n'était pas là ne bougent pas.
+ * La migration des séjours (version 5) : chaque cheval reçoit ses séjours,
+ * faits de ses dates d'arrivée et de départ et de son identité (provenance,
+ * destination, motifs) des versions d'avant. Rien d'autre ne change.
  */
-export function revenirALEcurie(h: Horse, today: ISODate): Horse {
-  const memeMois = !!h.exitDate && h.exitDate.slice(0, 7) === today.slice(0, 7);
-  return { ...h, isArchived: false, exitDate: null, entryDate: h.exitDate && !memeMois ? today : h.entryDate };
+export function migrerSejours<T extends StableData>(data: T): T {
+  const d = daterLesDeparts(data);
+  if (!d.horses?.some((h) => !h.stays?.length)) return d;
+  return { ...d, horses: d.horses.map((h) => donnerSejours(h)) };
+}
+
+/**
+ * Un cheval parti revient aujourd'hui (voir `revenirLe` pour une autre date) :
+ * un nouveau séjour commence, les précédents ne bougent pas. Revenu le jour
+ * même ou le lendemain d'un départ de ce mois-ci : le départ était une
+ * erreur, le séjour reprend comme avant.
+ */
+export function revenirALEcurie(h: Horse, today: ISODate, date: ISODate = today): Horse {
+  return revenirLe(h, date, today);
 }
 
 /**
@@ -134,6 +150,7 @@ function veille(d: ISODate): ISODate {
   t.setUTCDate(t.getUTCDate() - 1);
   return t.toISOString().slice(0, 10);
 }
+
 
 /** « frais partagés · entre 3 chevaux », ou sans cheval pour l'instant. */
 export function partageLabel(n: number): string {

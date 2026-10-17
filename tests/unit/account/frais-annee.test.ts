@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 const mem = new Map<string, string>();
 (globalThis as unknown as { localStorage: object }).localStorage = {
@@ -37,8 +37,11 @@ describe("les frais communs connus à l'année", () => {
   });
 
   it("un foin en 2 fois 1 500 € pèse 250 € sur chaque mois, juin compris", () => {
+    // Noté en janvier : un cheval compte dans l'argent à partir du mois où on l'ajoute.
+    vi.useFakeTimers({ now: new Date("2026-01-05T12:00:00"), toFake: ["Date"] });
     st().startEmpty();
     const hid = st().addHorse({ name: "Sirius", entryDate: "2026-01-01" });
+    vi.useRealTimers();
     st().addRecurringRevenue({ horseId: hid, amount: 500, frequency: "monthly", startDate: "2026-01-01", endDate: null, source: "manual" });
     const foin = st().expenseCategories.find((c) => c.name === "Foin")!;
     st().setMonthlyCharge(foin.id, "Foin", parMois("fois", 1500, 2), { year: 2026, month: 1 }, saisiDe("fois", 1500, 2));

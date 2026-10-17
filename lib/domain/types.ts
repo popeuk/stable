@@ -56,6 +56,11 @@ export interface Horse {
   destination?: string;
   /** Motif de départ : fin de pension, vente, prêt, décès… */
   exitReason?: string;
+  /**
+   * Ses séjours à l'écurie, du plus ancien au plus récent (lib/domain/sejours).
+   * Les champs d'arrivée et de départ ci-dessus reflètent le dernier.
+   */
+  stays?: Stay[];
 }
 
 export interface Category {
@@ -242,6 +247,7 @@ export interface Tariffs {
 import type { CareEvent } from "@/lib/domain/care";
 import type { Holding, HorseSex } from "@/lib/domain/registre";
 import type { Rhythm } from "@/lib/domain/rhythm";
+import type { Stay } from "@/lib/domain/sejours";
 
 /**
  * Une personne de l'écurie : propriétaire d'un cheval en pension ou

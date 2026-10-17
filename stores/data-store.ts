@@ -21,7 +21,7 @@ import type { Holding } from "@/lib/domain/registre";
 import { CARE_META } from "@/lib/domain/care";
 import type { Rhythm } from "@/lib/domain/rhythm";
 import { materializeRhythms } from "@/lib/domain/rhythm";
-import { ensurePensions } from "@/lib/domain/autopilot";
+import { ensurePensions, pensionRevenueId, premierMoisARattraper } from "@/lib/domain/autopilot";
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
@@ -32,7 +32,9 @@ import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
 import { avecProprio, changerProprio, nomConnu, renommerClient, retirerClient } from "@/lib/domain/proprio";
-import { arreterRecurrentes, daterLesDeparts, revenirALEcurie } from "@/lib/domain/presence";
+import { arreterRecurrentes, migrerSejours, presentDans } from "@/lib/domain/presence";
+import { avecSejours, changerArrivee, changerInfosSejour, compteDepuis, partirLe, revenirLe, type InfosEntree, type InfosSortie } from "@/lib/domain/sejours";
+import { currentPeriod } from "@/lib/utils/period";
 import { POSTES_VERSION, ajouterPostesManquants } from "@/lib/domain/postes-communs";
 import type { MontantSaisi } from "@/lib/domain/types";
 
@@ -51,6 +53,8 @@ interface DataState extends StableData {
   autopilotDismissed?: string[];
   /** La liste de postes communs déjà proposée à cette écurie (postes-communs.ts). */
   postesCommuns?: number;
+  /** Le dernier mois (AAAA-MM) où l'autopilote a posté les pensions : les mois d'après sont rattrapés. */
+  pensionsAu?: string;
   /** Un rythme hebdomadaire : planifié une fois, généré chaque semaine. */
   addRhythm: (r: Omit<Rhythm, "id" | "stableId">) => void;
   deleteRhythm: (id: string) => void;
@@ -87,9 +91,12 @@ interface DataState extends StableData {
    * son argent des mois où il était là, il ne compte plus après, sa pension
    * n'est plus postée. Il reste dans les chevaux partis.
    */
-  archiveHorse: (id: string, date?: string) => void;
-  /** Un cheval parti revient : il recompte à partir d'aujourd'hui. */
-  restoreHorse: (id: string, today?: string) => void;
+  archiveHorse: (id: string, date?: string, infos?: InfosSortie) => void;
+  /**
+   * Un cheval parti revient ce jour-là (aujourd'hui par défaut) : un nouveau
+   * séjour commence, les précédents ne bougent pas (lib/domain/sejours).
+   */
+  restoreHorse: (id: string, date?: string, infos?: InfosEntree) => void;
   deleteHorse: (id: string) => void;
   deleteRevenue: (id: string) => void;
   deleteDirectExpense: (id: string) => void;
@@ -198,6 +205,19 @@ interface DataState extends StableData {
 
 const STABLE_ID = "demo-stable";
 
+/**
+ * Les données d'une version d'avant, mises à la version d'aujourd'hui. Sert
+ * au chargement et à la reprise d'une sauvegarde. Rien n'est perdu.
+ */
+export function migrerDonnees(old: unknown, v: number): StableData {
+  if (v < 2) return { ...buildDemoData(), autopilotDismissed: [] } as StableData;
+  let d = migrerSejours(old as StableData);
+  if (v < 4 && getSession()?.kind !== "demo" && d.prestations) {
+    d = { ...d, prestations: sansPrixDExemple(d.prestations, buildDemoData().prestations ?? [], d.seances ?? []) };
+  }
+  return d;
+}
+
 function id(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -230,13 +250,12 @@ export const useDataStore = create<DataState>()(
         const s0 = get();
         const today = localToday();
         const owner = h.ownerName?.trim() ? nomConnu(s0, h.ownerName) : undefined;
-        const entity: Horse = {
-          ...h,
-          ownerName: owner,
-          id: id("horse"),
-          stableId: STABLE_ID,
-          isArchived: false,
-        };
+        const entry = h.entryDate || today;
+        // Arrivé avant ce mois-ci : il compte dans l'argent à partir de ce mois-ci, la vraie date va au registre.
+        const entity: Horse = avecSejours(
+          { ...h, ownerName: owner, id: id("horse"), stableId: STABLE_ID, isArchived: false, entryDate: entry, exitDate: null },
+          [{ entry, countFrom: compteDepuis(entry, today), origin: h.origin, entryReason: h.entryReason }],
+        );
         if (!owner) delete entity.ownerName;
         enqueueMutation("insert", "horses", { ...entity });
         set((s) => ({
@@ -260,29 +279,44 @@ export const useDataStore = create<DataState>()(
         if (!Object.keys(patch).length) return;
         set((s) => {
           const horse = s.horses.find((h) => h.id === horseId);
-          if (horse) {
-            enqueueMutation("update", "horses", { ...horse, ...patch, id: horseId });
-          }
-          return {
-            horses: s.horses.map((h) => (h.id === horseId ? { ...h, ...patch } : h)),
-          };
+          if (!horse) return s;
+          // L'arrivée, la provenance, la destination et les motifs sont ceux du séjour en cours.
+          const { entryDate, exitDate: _x, isArchived: _a, stays: _s, origin, entryReason, destination, exitReason, ...rest } = patch;
+          void _x;
+          void _a;
+          void _s;
+          let next: Horse = { ...horse, ...rest };
+          if (entryDate) next = changerArrivee(next, entryDate, localToday());
+          const infos = Object.fromEntries(Object.entries({ origin, entryReason, destination, exitReason }).filter(([k]) => k in patch));
+          if (Object.keys(infos).length) next = changerInfosSejour(next, infos);
+          enqueueMutation("update", "horses", { ...next });
+          return { horses: s.horses.map((h) => (h.id === horseId ? next : h)) };
         });
       },
 
-      archiveHorse: (horseId, date = localToday()) =>
+      archiveHorse: (horseId, date, infos) =>
         set((s) => {
           const horse = s.horses.find((h) => h.id === horseId);
           if (!horse) return s;
-          const next: Horse = { ...horse, isArchived: true, exitDate: date };
+          const today = localToday();
+          const next = partirLe(horse, date ?? today, today, infos);
           enqueueMutation("update", "horses", { ...next });
-          return { horses: s.horses.map((h) => (h.id === horseId ? next : h)) };
+          // Parti avant ce mois-ci : sa pension de ce mois, postée toute seule et pas encore facturée, s'en va.
+          const rid = pensionRevenueId(horseId, today.slice(0, 7));
+          const facturee = (s.invoices ?? []).some((i) => i.revenueIds.includes(rid));
+          const retirer = !presentDans(next, currentPeriod(new Date(`${today}T12:00:00`))) && !facturee && s.revenues.some((r) => r.id === rid);
+          return {
+            horses: s.horses.map((h) => (h.id === horseId ? next : h)),
+            ...(retirer ? { revenues: s.revenues.filter((r) => r.id !== rid) } : {}),
+          };
         }),
 
-      restoreHorse: (horseId, today = localToday()) => {
+      restoreHorse: (horseId, date, infos) => {
+        const today = localToday();
         set((s) => {
           const horse = s.horses.find((h) => h.id === horseId);
           if (!horse) return s;
-          const next = revenirALEcurie(horse, today);
+          const next = revenirLe(horse, date ?? today, today, infos);
           enqueueMutation("update", "horses", { ...next });
           return { horses: s.horses.map((h) => (h.id === horseId ? next : h)) };
         });
@@ -510,16 +544,20 @@ export const useDataStore = create<DataState>()(
 
       runAutopilot: (today) =>
         set((s) => {
-          const pensions = ensurePensions(s, today, s.autopilotDismissed ?? []);
+          // Les mois où l'app n'a pas été ouverte sont rattrapés, sans doublon.
+          const depuis = premierMoisARattraper(s, today, s.pensionsAu);
+          const pensions = ensurePensions(s, today, s.autopilotDismissed ?? [], depuis);
+          const pensionsAu = today.slice(0, 7);
           const { events, advanced } = materializeRhythms(
             s.rhythms ?? [],
             s.horses,
             today,
           );
-          if (pensions.length === 0 && events.length === 0 && advanced.length === 0) return s;
+          if (pensions.length === 0 && events.length === 0 && advanced.length === 0) return s.pensionsAu === pensionsAu ? s : { pensionsAu };
           for (const p of pensions) enqueueMutation("insert", "revenues", { ...p });
           const until = new Map(advanced.map((a) => [a.id, a.materializedUntil]));
           return {
+            pensionsAu,
             revenues: pensions.length ? [...s.revenues, ...pensions] : s.revenues,
             careEvents: events.length ? [...(s.careEvents ?? []), ...events] : s.careEvents,
             rhythms: advanced.length
@@ -935,7 +973,7 @@ export const useDataStore = create<DataState>()(
 
       removePayments: (payer, month) => set((s) => ({ payments: (s.payments ?? []).filter((p) => !(p.payer === payer && p.month === month)) })),
 
-      resetToDemo: () => set({ ...buildDemoData(), autopilotDismissed: [], postesCommuns: POSTES_VERSION }),
+      resetToDemo: () => set({ ...buildDemoData(), autopilotDismissed: [], postesCommuns: POSTES_VERSION, pensionsAu: undefined }),
 
       // Empty stable, keeping the default categories — the from-zero experience.
       startEmpty: () => {
@@ -963,6 +1001,7 @@ export const useDataStore = create<DataState>()(
           payments: [],
           autopilotDismissed: [],
           postesCommuns: POSTES_VERSION,
+          pensionsAu: undefined,
           revenueCategories: demo.revenueCategories,
           expenseCategories: demo.expenseCategories,
         });
@@ -970,21 +1009,15 @@ export const useDataStore = create<DataState>()(
     }),
     {
       name: "be-stable-data",
-      version: 4,
+      version: 5,
       // Un tiroir par compte, chiffré avec la clé du compte (lib/account/vault).
       storage: createJSONStorage(() => vault),
       // v2 : séances, personnes, tâches d'équipe, actions, paiements. Une
       // version 1 repart de la démo complète pour avoir des exemples cohérents.
       // v3 : les chevaux partis reçoivent une date de départ (presence.ts) ; leur passé revient.
       // v4 : une écurie à soi perd les prix d'exemple de ses cours, jamais saisis ni employés.
-      migrate: (old, v) => {
-        if (v < 2) return { ...buildDemoData(), autopilotDismissed: [] } as never;
-        const d = daterLesDeparts(old as StableData);
-        if (v < 4 && getSession()?.kind !== "demo" && d.prestations) {
-          return { ...d, prestations: sansPrixDExemple(d.prestations, buildDemoData().prestations ?? [], d.seances ?? []) } as never;
-        }
-        return d as never;
-      },
+      // v5 : chaque cheval reçoit ses séjours (arrivée, départ, provenance, destination) ;
+      migrate: (old, v) => migrerDonnees(old, v) as never,
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         // Un compte qui n'a encore rien sur cet appareil démarre vide, comme

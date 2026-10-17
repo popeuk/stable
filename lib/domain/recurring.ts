@@ -1,12 +1,12 @@
 import type { Period, RecurringSchedule, StableData } from "@/lib/domain/types";
 import { distribute } from "@/lib/domain/distribution";
 import { periodEnd, periodStart } from "@/lib/utils/period";
-import { chevauxPresents, partiAvant } from "@/lib/domain/presence";
+import { chevauxPresents, partiAvant, presentDans } from "@/lib/domain/presence";
 
-/** Un cheval parti avant ce mois ne reçoit plus ses récurrentes (pension, charge à lui). */
+/** Un cheval qui n'était pas là ce mois (parti avant, entre deux séjours) ne reçoit pas ses récurrentes (pension, charge à lui). */
 function encoreLa(data: StableData, horseId: string | undefined, period: Period): boolean {
   const h = horseId ? data.horses.find((x) => x.id === horseId) : undefined;
-  return !h || !partiAvant(h, periodStart(period));
+  return !h || presentDans(h, period) || !partiAvant(h, periodStart(period));
 }
 
 /** Is a recurring template due (and active) in a given month? */
