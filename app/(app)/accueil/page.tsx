@@ -19,7 +19,8 @@ import { Empty, Face, Ic, Page, Sec } from "@/components/carnet/ui";
  * ligne « Hier : … ont compté » qui ouvre la tournée du matin si on veut,
  * ta journée en pleine largeur, une seule chose à faire à la fois (fin du
  * mois, ou des chevaux à nommer), et l'encart mon-ecurie.fr réduit, tout en
- * bas. L'aide de la première visite tient en une ligne, sous le chiffre.
+ * bas. À la première visite, une bulle montre le + ; la carte d'aide
+ * complète s'ouvre sous le chiffre quand on touche le « ? ».
  * Sur ordinateur : le chiffre en grand à gauche, ta journée à droite et
  * l'équipe dessous.
  */

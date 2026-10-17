@@ -13,6 +13,7 @@ import { localToday } from "@/lib/utils/local-date";
 import { PayeSurPlaceSheet } from "@/components/bs/moyen-paiement";
 import { dernierMoyen, enMoyen } from "@/lib/domain/paiement";
 import type { PaymentMethod } from "@/lib/domain/types";
+import { vibrer } from "@/lib/utils/vibrer";
 
 /** Le pictogramme d'un élément de la journée (créneaux, semaine sur ordinateur). */
 export function iconOf(it: DayItem): string {
@@ -158,6 +159,7 @@ function PayeSurPlace({ seance: s }: { seance: NonNullable<DayItem["seance"]> })
   const payer = (name: string, method: PaymentMethod, chequeNumber: string) => {
     setQui1(null);
     const id = useDataStore.getState().addPayment(name, s.date.slice(0, 7), s.unitPrice, s.id, { method, chequeNumber });
+    vibrer();
     say(`${esc(prenom(name))} t’a payé <strong>${eur(s.unitPrice)}</strong> ${enMoyen(method)}.`, () => useDataStore.getState().removePayment(id));
   };
   return (

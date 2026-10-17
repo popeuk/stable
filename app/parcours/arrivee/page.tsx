@@ -37,7 +37,7 @@ function Reste() {
   const n = data.horses.filter((h) => !h.isArchived).length;
   return (
     <div className="ar-fin ar-reste">
-      <h1 className="ar-t1 rise">Trois étapes sur six.</h1>
+      <h1 className="ar-t1 rise">Voilà ton mois.</h1>
       <div className="perch es-perch rise" style={{ animationDelay: ".08s" }}>
         {net < 0 ? (
           <div className="es-bag">
@@ -105,7 +105,7 @@ function Fin() {
         <Ill n="rosette" alt="La gérante brandit une rosette." />
       </div>
       <h1 className="ar-t1 rise" style={{ animationDelay: ".08s" }}>
-        Six étapes sur six. Ton écurie est prête.
+        Ton écurie est prête.
       </h1>
       <Seuil horses={horses} capacity={capacity} seuil={m.seuil} />
       <p className="ar-say">

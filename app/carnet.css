@@ -215,6 +215,15 @@
 .carnet .aide .x svg { stroke: var(--sheet); }
 .carnet .toast { position: absolute; left: 12px; right: 12px; bottom: 92px; z-index: 30; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; background: var(--ink); color: var(--on-ink); font-size: 13.5px; box-shadow: 0 10px 26px color-mix(in srgb, var(--ink) 25%, transparent); }
 .carnet .toast button { margin-left: auto; border: 0; background: none; color: var(--on-ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+/* La bulle de la première visite (components/bs/nav.tsx, AideBulle) : encre et papier, comme le message du bas, avec sa pointe. Elle ne capte aucun toucher. */
+.carnet .aide-bulle { position: fixed; z-index: 75; max-width: min(300px, calc(100vw - 32px)); width: max-content; padding: 10px 14px; border-radius: 10px; background: var(--ink); color: var(--on-ink); font-size: 14.5px; font-weight: 600; line-height: 1.35; box-shadow: 0 10px 26px color-mix(in srgb, var(--ink) 25%, transparent); pointer-events: none; animation: aide-bulle .32s var(--ease) both; }
+.carnet .aide-bulle::after { content: ""; position: absolute; left: calc(var(--pointe, 50%) - 7px); width: 14px; height: 14px; background: inherit; border-radius: 2px; transform: rotate(45deg); }
+.carnet .aide-bulle.dessus::after { bottom: -6px; }
+.carnet .aide-bulle.dessous::after { top: -6px; }
+@keyframes aide-bulle { from { opacity: 0; transform: translateY(6px); } }
+.carnet .aide-bulle.dessous { animation-name: aide-bulle-h; }
+@keyframes aide-bulle-h { from { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .carnet .aide-bulle { animation: none; } }
 .carnet .stories { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; background: var(--paper); }
 .carnet .stories .bars { display: grid; grid-auto-flow: column; gap: 5px; padding: 54px 20px 0; }
 .carnet .stories .bars i { height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; }

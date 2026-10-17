@@ -21,9 +21,8 @@ import { localToday } from "@/lib/utils/local-date";
 import { currentPeriod } from "@/lib/utils/period";
 
 /**
- * Le + : « Ajouter ». Quatre gros boutons (Séance, Soin, Tâche ou
- * rendez-vous, Argent), puis, en second, « Ou dis-le à voix haute » (la
- * reconnaissance vocale n'existe pas partout). Rien ne démarre tout
+ * Le + : « Ajouter ». D'abord « Dis-le à voix haute », en grand, puis
+ * quatre gros boutons (Séance, Soin, Tâche ou rendez-vous, Argent). Rien ne démarre tout
  * seul. Après un bouton, deux questions avec les réponses habituelles déjà
  * cochées, chacune avec sa sortie libre ; « C’est bon » marche à tout moment
  * (seul l'argent demande un montant). À la voix, la phrase est comprise puis
@@ -597,6 +596,14 @@ function NoterInner() {
   if (screen === "grid") {
     body = (
       <>
+        {/* La voix d'abord, en grand : le geste le plus simple. Les quatre boutons suivent. */}
+        <button type="button" className="nt-dire nt-dire1" onClick={listen}>
+          <Ic n="mic" className="" />
+          <span>
+            <b>Dis-le à voix haute</b>
+            <small>une phrase, l’app prépare le reste</small>
+          </span>
+        </button>
         <div className="nt-four">
           {TYPES.map((t) => (
             <button key={t.id} type="button" onClick={() => choose(t.id)}>
@@ -608,13 +615,6 @@ function NoterInner() {
             </button>
           ))}
         </div>
-        <button type="button" className="nt-dire nt-dire2" onClick={listen}>
-          <Ic n="mic" className="" />
-          <span>
-            <b>Ou dis-le à voix haute</b>
-            <small>une phrase, l’app prépare le reste</small>
-          </span>
-        </button>
       </>
     );
   } else if (screen === "listen") {

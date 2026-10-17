@@ -49,7 +49,7 @@ export function useParcours() {
         setTimeout(() => router.push("/parcours/arrivee"), 1100);
         return true;
       }
-      say(passee ? `Mis de côté : <strong>${OBSTACLE_META[id].title}</strong>. Tu y reviens quand tu veux depuis Tes premiers pas.` : `C’est fait : <strong>${OBSTACLE_META[id].title}</strong>. ${after} ${after > 1 ? "étapes" : "étape"} sur 6.`);
+      say(passee ? `Mis de côté : <strong>${OBSTACLE_META[id].title}</strong>. Tu y reviens quand tu veux depuis Tes premiers pas.` : `C’est fait : <strong>${OBSTACLE_META[id].title}</strong>.`);
       return false;
     },
     [passObstacle, arrived, setArrived, say, router],

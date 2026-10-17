@@ -7,21 +7,25 @@ import { Ic, Ill, eur } from "@/components/carnet/ui";
 import { usePerso } from "@/components/bs/perso";
 import { getSession } from "@/lib/account/session";
 import type { ResumeEssai } from "@/lib/account/vault";
-import { useSettingsStore } from "@/stores/settings-store";
+import { useDataStore } from "@/stores/data-store";
+import { aDejaSaisi, nouvelleSaisie } from "@/lib/premiere-saisie";
 import { localToday } from "@/lib/utils/local-date";
 
 /**
  * « Tes chiffres sont sur ce téléphone seulement. Garde-les avec ton
  * e-mail. » : le bandeau discret de l'écurie essayée sans compte, qui dit
- * franchement où sont les chiffres tant qu'il n'y a pas de compte, au-dessus de la barre du bas. Il se montre une fois
- * les trois premiers obstacles passés (chevaux, tarifs, frais), pas avant,
- * et sur l'Accueil seulement (pas sur chaque onglet : le premier jour est
+ * franchement où sont les chiffres tant qu'il n'y a pas de compte, au-dessus de la barre du bas. Il se montre
+ * après la première vraie saisie du gérant (une séance, un soin, une
+ * dépense, un paiement, un cheval renommé…, lib/premiere-saisie.ts), pas
+ * juste après le parcours, et sur l'Accueil seulement (pas sur chaque onglet : le premier jour est
  * déjà assez chargé). Fermé, il revient le lendemain. Rien hors de la session locale.
  * À poser une fois dans app/(app)/layout.tsx.
  */
 const MEM = "be-stable-garder";
 interface Mem {
   ferme?: string;
+  /** La première vraie saisie a eu lieu dans cette écurie d'essai (la date d'ouverture de la session). */
+  saisi?: string;
 }
 const lire = (): Mem => {
   try {
@@ -38,10 +42,9 @@ const ecrire = (m: Mem) => {
 
 export function GarderBandeau() {
   const path = usePathname() ?? "";
-  const parcours = useSettingsStore((s) => s.parcours);
   const [local, setLocal] = useState(false);
   const [ferme, setFerme] = useState(false);
-  const voir = parcours.chevaux && parcours.tarifs && parcours.factures;
+  const voir = usePremiereSaisie(local);
 
   useEffect(() => {
     if (getSession()?.kind !== "locale") return;
@@ -74,6 +77,39 @@ export function GarderBandeau() {
       </button>
     </div>
   );
+}
+
+/**
+ * La première vraie saisie, retenue sur l'appareil pour cette écurie
+ * d'essai : déjà faite (le carnet en garde la trace), ou guettée à chaque
+ * changement du carnet tant que la coque est ouverte.
+ */
+function usePremiereSaisie(local: boolean) {
+  const [saisi, setSaisi] = useState(false);
+  useEffect(() => {
+    if (!local) return;
+    const sess = getSession();
+    const at = sess?.kind === "locale" ? sess.at : "";
+    const retenir = () => {
+      ecrire({ ...lire(), saisi: at });
+      setSaisi(true);
+    };
+    if (lire().saisi === at) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSaisi(true);
+      return;
+    }
+    const d0 = useDataStore.getState();
+    if (d0.hydrated && aDejaSaisi(d0)) return retenir();
+    const fin = useDataStore.subscribe((d, avant) => {
+      if (!d.hydrated) return;
+      if (!(avant.hydrated ? nouvelleSaisie(avant, d) : aDejaSaisi(d))) return;
+      fin();
+      retenir();
+    });
+    return fin;
+  }, [local]);
+  return saisi;
 }
 
 /** Ce qu'on garde : n chevaux, la pension, les frais, les séances notées. */

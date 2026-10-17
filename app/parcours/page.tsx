@@ -35,13 +35,11 @@ function Parcours() {
           <Ic n="x" className="" />
         </button>
       </div>
-      <h1 className="ar-t1 rise">
-        {n === 0 ? "Six étapes, trois ici." : `${n} étape${n > 1 ? "s" : ""} sur 6`}
-      </h1>
+      <h1 className="ar-t1 rise">Pour bien démarrer</h1>
       <p className="ar-sub rise" style={{ animationDelay: ".05s" }}>
-        Six étapes pour que l’app connaisse ton écurie. Les trois premières se font ici, en quelques minutes. Les trois autres viennent d’elles-mêmes, en utilisant l’app.
+        Trois questions pour que l’app connaisse ton écurie. Le reste vient en l’utilisant.
       </p>
-      <div className="bar ar-prog" role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n} aria-label={`${n} étapes sur 6`}>
+      <div className="bar ar-prog" role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n} aria-label="Tes premiers pas, où tu en es">
         <i style={{ width: `${(n / 6) * 100}%` }} />
       </div>
       <div className="ar-course rise" style={{ animationDelay: ".12s" }}>
@@ -74,7 +72,7 @@ function Parcours() {
       {current ? (
         <Link href={OBSTACLE_META[current].href} className="card ar-obc rise" style={{ animationDelay: ".2s" }}>
           <span style={{ flex: 1 }}>
-            <span className="k">Étape en cours</span>
+            <span className="k">À faire maintenant</span>
             <b>{OBSTACLE_META[current].todo}</b>
           </span>
           <Ic n="arrow" className="ar-ico" />
@@ -90,7 +88,7 @@ function Parcours() {
       )}
       {setupDone && current && (
         <>
-          <p className="ar-sub" style={{ marginTop: 12 }}>Les dernières étapes viennent d’elles-mêmes, en utilisant l’app à ton rythme.</p>
+          <p className="ar-sub" style={{ marginTop: 12 }}>Le reste vient de lui-même, en utilisant l’app à ton rythme.</p>
           <Link href="/parcours/arrivee" className="ar-alt">
             Revoir ce qu’il te reste ce mois
           </Link>

@@ -70,7 +70,11 @@ function Vues() {
     poser(vue);
     return () => poser(null);
   }, [vue, poser]);
-  return vue === "clients" ? <Clients bascule={bascule} /> : <Chevaux bascule={bascule} />;
+  const versChevaux = () => {
+    choisir("chevaux");
+    window.scrollTo({ top: 0 });
+  };
+  return vue === "clients" ? <Clients bascule={bascule} versChevaux={versChevaux} /> : <Chevaux bascule={bascule} />;
 }
 
 const moisDe = () => cap(new Date().toLocaleDateString("fr-FR", { month: "long" }));
@@ -196,6 +200,45 @@ function LigneClient({ c }: { c: ClientDue }) {
 }
 
 /**
+ * Les chevaux sans propriétaire, en une carte à toucher : leur tête, combien
+ * ils sont (ou le nom du seul), « À qui demander la pension ? » et ce qui
+ * attend. Un seul cheval ouvre sa fiche (le propriétaire s'y ajoute) ;
+ * plusieurs ouvrent l'onglet Chevaux.
+ */
+function SansProprio({ lignes, total, versChevaux }: { lignes: { horse?: string; horseId?: string }[]; total: number; versChevaux: () => void }) {
+  const horses = useDataStore((s) => s.horses);
+  const ids = [...new Set(lignes.map((l) => l.horseId ?? horses.find((h) => h.name === l.horse)?.id).filter((x): x is string => !!x))];
+  const noms = [...new Set(lignes.map((l) => l.horse).filter(Boolean))];
+  const nb = Math.max(ids.length, noms.length, 1);
+  const premier = horses.find((h) => h.id === ids[0]);
+  const corps = (
+    <>
+      {premier ? <Face horse={premier} /> : <span className="ini" aria-hidden="true"><Ic n="horse" className="" /></span>}
+      <span className="cl-rt">
+        <b>{nb === 1 ? `${premier?.name ?? noms[0] ?? "Un cheval"} sans propriétaire` : `${nb} chevaux sans propriétaire`}</b>
+        <small>À qui demander la pension ?</small>
+      </span>
+      <span className="cl-amt">
+        <small>en attente</small>
+        <b>{eur(total)}</b>
+      </span>
+      <Ic n="chev" className="chev" />
+    </>
+  );
+  if (nb === 1 && premier)
+    return (
+      <Link href={`/ticket?id=${premier.id}`} className="cl-row cl-orph">
+        {corps}
+      </Link>
+    );
+  return (
+    <button type="button" className="cl-row cl-orph" onClick={versChevaux}>
+      {corps}
+    </button>
+  );
+}
+
+/**
  * Ajouter un client : un nom, propriétaire ou cavalier, et sa fiche s'ouvre.
  * Un propriétaire : on choisit tout de suite ses chevaux (ou on en crée un).
  */
@@ -261,7 +304,7 @@ function AjouterClient({ onClose }: { onClose: () => void }) {
   );
 }
 
-function Clients({ bascule }: { bascule: React.ReactNode }) {
+function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versChevaux: () => void }) {
   const data = useDataStore();
   const desk = useDesk();
   const router = useRouter();
@@ -301,15 +344,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
     ) : null;
   // Les pensions des chevaux sans propriétaire : dites telles quelles, jamais comptées dans ce qu'on te doit.
   const orphan = useMemo(() => billsFor(data, period).find((b) => b.orphan), [data, period]);
-  const sansProprio = orphan && Math.round(orphan.total) > 0 ? (
-    <p className="cl-ras">
-      {(() => {
-        const noms = [...new Set(orphan.lines.map((l) => l.horse).filter(Boolean))];
-        const qui = noms.length > 3 ? `${noms.length} chevaux sans propriétaire` : `chevaux sans propriétaire (${noms.join(", ")})`;
-        return `${n ? "Et " : ""}${eur(orphan.total)} viennent de ${qui}. Ajoute leur propriétaire sur leur fiche pour savoir à qui les demander.`;
-      })()}
-    </p>
-  ) : null;
+  const sansProprio = orphan && Math.round(orphan.total) > 0 ? <SansProprio lignes={orphan.lines} total={orphan.total} versChevaux={versChevaux} /> : null;
   const search = (
     <label className="input ch-search">
       <Ic n="search" className="" />
