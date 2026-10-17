@@ -291,7 +291,7 @@ function NoterInner() {
           prestationId,
           title: format === "particulier" && hName ? `Cours de ${hName}` : name,
           format,
-          places: format === "collectif" ? (d.places ?? 6) : format === "particulier" ? 1 : (d.places ?? undefined),
+          places: format === "particulier" ? 1 : (d.places ?? undefined),
           participants,
           horseIds: d.horseIds,
           start,
@@ -480,7 +480,7 @@ function NoterInner() {
   );
   const soinTiles = (x: Draft) => (
     <Tiles
-      options={h.soins.slice(0, 5).map((s) => ({ key: s.kind, label: s.label, sub: [s.price ? eur(s.price) : "", s.provider].filter(Boolean).join(" · ") || `d’habitude à ${hh(s.start)}` }))}
+      options={h.soins.slice(0, 5).map((s) => ({ key: s.kind, label: s.label, sub: [s.price ? eur(s.price) : "", s.provider].filter(Boolean).join(" · ") || (s.habit ? `d’habitude à ${hh(s.start)}` : undefined) }))}
       value={x.custom ? null : x.care}
       onPick={(k) => {
         setOther(false);
@@ -500,7 +500,11 @@ function NoterInner() {
       placeholder="Tape le soin"
     />
   );
-  const habStart = (x: Draft) => (x.type === "seance" ? h.cours.find((c) => c.key === x.coursKey)?.start : x.type === "soin" ? h.soins.find((s) => s.kind === x.care)?.start : undefined);
+  // « comme d'habitude » : seulement quand l'heure en est vraiment une (lib/domain/ajouter.ts, habit).
+  const habStart = (x: Draft) => {
+    const c = x.type === "seance" ? h.cours.find((y) => y.key === x.coursKey) : x.type === "soin" ? h.soins.find((y) => y.kind === x.care) : undefined;
+    return c?.habit ? c.start : undefined;
+  };
   const habPrice = (x: Draft) => (x.type === "seance" ? h.cours.find((c) => c.key === x.coursKey)?.price : x.type === "soin" ? h.soins.find((s) => s.kind === x.care)?.price : undefined);
 
   const hourLine = (x: Draft) => {
@@ -552,9 +556,7 @@ function NoterInner() {
             <span>
               {x.type === "seance" ? (
                 <>
-                  <b>
-                    {eur(x.price)} la place
-                  </b>
+                  <b>{eur(x.price)} par cavalier</b>
                   {x.places ? ` · ${x.places} place${x.places > 1 ? "s" : ""}` : ""}.
                 </>
               ) : (
@@ -702,7 +704,7 @@ function NoterInner() {
             J,
             { k: "h", l: hh(x.start ?? "18:00") },
             ...(x.places ? [{ k: "pl" as PickK, l: `${x.places} place${x.places > 1 ? "s" : ""}` }] : []),
-            { k: "p", l: x.price ? `${eur(x.price)} la place` : "sans prix" },
+            { k: "p", l: x.price ? `${eur(x.price)} par cavalier` : "pas de prix pour l’instant" },
           ]
         : x.type === "soin"
           ? [
@@ -727,7 +729,7 @@ function NoterInner() {
       jour: "Quel jour ?",
       h: "À quelle heure ?",
       pl: "Combien de places ?",
-      p: x.type === "seance" ? "Combien la place ?" : "Combien ?",
+      p: x.type === "seance" ? "Combien par cavalier ?" : "Combien ?",
       soin: "Quel soin ?",
       cheval: "Quel cheval ?",
       quoi: "C’est quoi ?",

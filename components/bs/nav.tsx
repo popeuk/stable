@@ -77,7 +77,9 @@ export const useAideIci = create<{ ici: string | null; poser: (id: string | null
 function useAide() {
   const path = usePathname() ?? "";
   const ici = useAideIci((s) => s.ici);
-  return { path, aide: (ici && aideParId(ici)) || aidePour(path) };
+  // L'onglet visible d'abord ; sinon l'adresse, avec son ?vue= (Clients ou Chevaux), lue dans le navigateur.
+  const search = typeof window === "undefined" ? "" : window.location.search;
+  return { path, aide: (ici && aideParId(ici)) || aidePour(path + search) };
 }
 
 /** Le « ? » de l'en-tête : rouvre l'aide de l'écran, s'il en a une. */
@@ -206,7 +208,7 @@ export function RetourOrdinateur() {
 const TITRES: [string, string][] = [
   ["/valider", "Ce qui a compté"],
   ["/ticket", "Fiche du cheval"],
-  ["/part", "Le pot commun"],
+  ["/part", "Les frais partagés"],
   ["/argent", "Mon mois"],
   ["/pilotage", "Sur plusieurs mois"],
   ["/seuil", "Combien de chevaux"],

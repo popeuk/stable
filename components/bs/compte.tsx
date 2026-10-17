@@ -45,17 +45,26 @@ export function useMaintenant() {
 export function useDebutant(jours = 3) {
   const [debut, setDebut] = useState(true);
   useEffect(() => {
-    const today = localToday();
-    let premier = today;
-    try {
-      const k = scopedKey("be-stable-premier-jour");
-      premier = localStorage.getItem(k) ?? today;
-      if (premier === today) localStorage.setItem(k, today);
-    } catch {}
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDebut(addDays(premier, jours) > today);
+    setDebut(premiersJours(jours));
   }, [jours]);
   return debut;
+}
+
+/**
+ * Sommes-nous dans les `jours` premiers jours d'usage sur cet appareil ? Le
+ * premier jour est noté à la première lecture. Sans stockage possible, on
+ * fait comme si c'était le premier jour.
+ */
+export function premiersJours(jours: number): boolean {
+  const today = localToday();
+  let premier = today;
+  try {
+    const k = scopedKey("be-stable-premier-jour");
+    premier = localStorage.getItem(k) ?? today;
+    if (premier === today) localStorage.setItem(k, today);
+  } catch {}
+  return addDays(premier, jours) > today;
 }
 
 /** « Hier : +100 € ont compté » : la ligne de l'accueil qui ouvre la tournée du matin. Rien hier : rien. */

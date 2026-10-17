@@ -8,7 +8,6 @@ import { CARE_META, addDays, type CareEvent } from "@/lib/domain/care";
  */
 
 export const MAX_SEANCES = 60;
-export const MAX_PLACES = 6;
 export type Repeat = "once" | "weekly" | "biweekly" | "monthly";
 
 /** Les dates d'une série : au plus 60 séances, au plus 12 mois. */
@@ -96,6 +95,11 @@ export function revenuesForSeance(
   return out;
 }
 
+/** Une séance passée : faite, ou prévue dont l'heure de fin est passée. */
+export function seancePassee(s: Pick<Seance, "status" | "date" | "end">, today: ISODate, nowHHMM: string): boolean {
+  return s.status === "done" || (s.status === "planned" && (s.date < today || (s.date === today && s.end <= nowHHMM)));
+}
+
 /** Une séance prévue doit compter quand son heure de fin est passée (lib/domain/compte-auto.ts). */
 export function seanceToValidate(s: Seance, today: ISODate, nowHHMM: string): boolean {
   if (s.status !== "planned" || isEmptySeance(s)) return false;
@@ -140,14 +144,20 @@ export function dayItems(data: StableData, date: ISODate, today: ISODate, nowHHM
     const who = s.participants.length
       ? s.participants.map((p) => person(p.personId)).filter(Boolean)
       : s.horseIds.map(name);
-    const places = s.places ?? MAX_PLACES;
+    // Les places : seulement celles que le gérant a données, jamais un nombre par défaut.
+    const places = s.places;
+    const n = s.participants.length;
     const sub = [
       isEmptySeance(s)
-        ? s.format === "collectif"
-          ? `personne d’inscrit pour l’instant · ${places} place${places > 1 ? "s" : ""} libre${places > 1 ? "s" : ""}`
-          : "personne d’inscrit pour l’instant"
+        ? seancePassee(s, today, nowHHMM)
+          ? "personne d’inscrit, ajoute qui est venu"
+          : s.format === "collectif" && places
+            ? `personne d’inscrit pour l’instant · ${places} place${places > 1 ? "s" : ""} libre${places > 1 ? "s" : ""}`
+            : "personne d’inscrit pour l’instant"
         : s.format === "collectif"
-          ? `${s.participants.length} sur ${places}`
+          ? places
+            ? `${n} sur ${places}`
+            : `${n} inscrit${n > 1 ? "s" : ""}`
           : who.slice(0, 2).join(", "),
       s.lieu,
     ].filter(Boolean).join(" · ");

@@ -21,7 +21,7 @@ import { Identite } from "@/components/bs/identite";
 
 /**
  * La fiche d'un cheval : son portrait qui respire, puis le ticket du mois
- * qui s'imprime (ce qui est entré, ce qui est sorti, sa part du pot commun,
+ * qui s'imprime (ce qui est entré, ce qui est sorti, sa part des frais partagés,
  * le total), une idée concrète, son carnet et son planning.
  */
 export default function Page() {
@@ -156,7 +156,7 @@ function Ticket({ horse }: { horse: Horse }) {
     <>
       <Sec ill="sacoche" title={net >= 0 ? `Ce que ${horse.name} te laisse` : `Ce que ${horse.name} te coûte`} delay={0.3}>
         {t.lines.length === 0 ? (
-          <p className="note">Rien de noté ce mois-ci. Ajoute sa pension ou un soin pour voir son ticket.</p>
+          <p className="note">Rien de noté ce mois-ci. Ajoute sa pension ou un soin : sa fiche se remplit toute seule.</p>
         ) : (
           <p className="note ch-lead">
             {net >= 0 ? (
@@ -364,7 +364,7 @@ function Ticket({ horse }: { horse: Horse }) {
           onChange={setSeg}
           label={`Fiche de ${horse.name}`}
           options={[
-            ["ticket", "Ticket"],
+            ["ticket", "Argent"],
             ["carnet", "Carnet"],
             ["planning", "Planning"],
           ]}

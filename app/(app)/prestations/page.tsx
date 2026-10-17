@@ -173,7 +173,7 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
             {!p.active && <span className="pill">en pause</span>}
           </b>
           <small>
-            {eur(p.price)} {p.hasFormat ? "par cavalier · seul ou en groupe" : "la séance"}
+            {p.price > 0 ? `${eur(p.price)} ${p.hasFormat ? "par cavalier · seul ou en groupe" : "la séance"}` : `Pas de prix pour l’instant${p.hasFormat ? " · seul ou en groupe" : ""}`}
           </small>
           <small>{s.count ? `${s.count} séance${s.count > 1 ? "s" : ""}, ${s.riders} cavalier${s.riders > 1 ? "s" : ""}` : "rien ce mois-ci"}</small>
         </span>
@@ -204,7 +204,7 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
           <label className="lrow">
             <span>Prix</span>
             <span className="input">
-              <input inputMode="decimal" defaultValue={montantEnTexte(p.price)} style={{ fontWeight: 600 }} onChange={(e) => lireMontant(e.target.value) !== null && upd({ price: montantOuZero(e.target.value) })} />
+              <input inputMode="decimal" defaultValue={montantEnTexte(p.price)} placeholder="Ajouter un prix" aria-label={`Prix de ${p.label}`} style={{ fontWeight: 600 }} onChange={(e) => lireMontant(e.target.value) !== null && upd({ price: montantOuZero(e.target.value) })} />
               <span className="u">€</span>
             </span>
           </label>

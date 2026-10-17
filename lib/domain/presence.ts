@@ -135,8 +135,8 @@ function veille(d: ISODate): ISODate {
   return t.toISOString().slice(0, 10);
 }
 
-/** « pot commun · partagé entre 3 chevaux », ou sans cheval pour l'instant. */
+/** « frais partagés · entre 3 chevaux », ou sans cheval pour l'instant. */
 export function partageLabel(n: number): string {
-  if (n === 0) return "pot commun · aucun cheval ce mois-ci, compté quand même";
-  return `pot commun · partagé entre ${n} cheva${n > 1 ? "ux" : "l"}`;
+  if (n === 0) return "frais partagés · aucun cheval ce mois-ci, comptés quand même";
+  return `frais partagés · entre ${n} cheva${n > 1 ? "ux" : "l"}`;
 }
