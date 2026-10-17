@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useUiStore } from "@/stores/ui-store";
 import { ClientGate } from "@/components/ui/client-gate";
 import { CountUp, Face, Ic, Ill, Money, Steam, eurc, sg } from "@/components/carnet/ui";
 import { usePerso } from "@/components/bs/perso";
@@ -33,6 +35,7 @@ function Arrivee() {
 function Reste() {
   const data = useDataStore();
   const perso = usePerso();
+  const router = useRouter();
   const m = useMemo(() => monthBreakdown(data, currentPeriod()), [data]);
   const net = Math.round(m.net);
   // Les pensions à part des cours : tes chevaux à toi ne sont pas des pensions.
@@ -93,20 +96,31 @@ function Reste() {
       <p className="note rise" style={{ animationDelay: ".12s" }}>
         C’est une estimation, faite avec tes pensions et tes frais. Tes cours ne sont pas encore dedans.
       </p>
-      {/* La suite : les cours au planning, chacun fait monter le mois. */}
+      {/* La suite : le +, où tout se note. Chaque cours noté fait monter le mois. */}
       <div className="es-suite rise" style={{ animationDelay: ".16s" }}>
-        <b>La suite : tes cours au planning</b>
-        <p>
-          {prixCours && net < 0
-            ? `Chaque cours noté s’ajoute ici. À ${eurc(prixCours)} par cavalier, ${Math.ceil(-net / prixCours)} cavaliers dans le mois couvrent ce qui manque.`
-            : "Chaque cours noté s’ajoute ici. Tu vois ton mois monter."}
-        </p>
+        <span className="es-plus" aria-hidden="true">
+          <Ic n="plus" className="" />
+        </span>
+        <span>
+          <b>La suite : le +</b>
+          <p>
+            Une séance, un soin, une tâche, de l’argent : tout se note avec le +.
+            {prixCours && net < 0 ? ` Chaque cours noté s’ajoute ici. À ${eurc(prixCours).replace(/\s/g, "\u00a0")} par cavalier, ${Math.ceil(-net / prixCours)}\u00a0cavaliers dans le mois couvrent ce qui manque.` : " Chaque cours noté s’ajoute ici. Tu vois ton mois monter."}
+          </p>
+        </span>
       </div>
       <div className="foot rise" style={{ animationDelay: ".2s" }}>
-        <Link href="/planning" className="btn full">
-          Mettre mes cours au planning
+        <button
+          type="button"
+          className="btn full"
+          onClick={() => {
+            useUiStore.getState().setTutoPlus(true);
+            router.push("/accueil");
+          }}
+        >
+          Essayer le +
           <Ic n="arrow" className="" />
-        </Link>
+        </button>
         <Link href="/accueil" className="lnk">
           Voir mon écurie d’abord
         </Link>

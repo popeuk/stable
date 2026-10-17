@@ -95,7 +95,10 @@
 
 /* Voilà ton mois : les cours pas encore notés, puis la suite. */
 .carnet .es-calc .es-attente span:last-child { color: var(--ink3); font-style: italic; }
-.carnet .es-suite { margin: 14px 22px 0; padding: 14px 16px; border-radius: 10px; background: var(--mist); display: grid; gap: 4px; }
+.carnet .es-suite { margin: 14px 22px 0; padding: 14px 16px; border-radius: 10px; background: var(--mist); display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: start; }
+.carnet .es-suite > span:last-child { display: grid; gap: 4px; }
+.carnet .es-plus { width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: var(--on-ink); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 14px color-mix(in srgb, var(--ink) 22%, transparent); }
+.carnet .es-plus svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
 .carnet .es-suite b { font-size: 15.5px; font-weight: 720; }
 .carnet .es-suite p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink2); }
 .carnet .ar-reste .foot > .lnk { justify-self: center; font-size: 13.5px; font-weight: 600; color: var(--ink2); }

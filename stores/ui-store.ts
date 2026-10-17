@@ -44,6 +44,9 @@ interface UiState {
   openSeance: (id: string, view?: "fiche" | "presence" | "modifier") => void;
   closeSeance: () => void;
   openNoter: (p?: NoterPrefill) => void;
+  /** Le petit didacticiel du + (fin des premiers pas) : à montrer sur l'accueil. */
+  tutoPlus: boolean;
+  setTutoPlus: (v: boolean) => void;
   closeNoter: () => void;
   say: (html: string, undo?: () => void) => void;
   dismiss: () => void;
@@ -73,6 +76,8 @@ export const useUiStore = create<UiState>((set) => ({
   openSeance: (id, view = "fiche") => set({ seanceId: id, seanceView: view }),
   closeSeance: () => set({ seanceId: null }),
   openNoter: (p = {}) => set({ noterOpen: true, prefill: p }),
+  tutoPlus: false,
+  setTutoPlus: (v) => set({ tutoPlus: v }),
   closeNoter: () => set({ noterOpen: false }),
   say: (html, undo) => {
     const id = Date.now();

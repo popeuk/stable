@@ -9,6 +9,7 @@ import { SessionSync } from "@/components/bs/session-sync";
 import { AideCarte, RetourOrdinateur, TitreEcran } from "@/components/bs/nav";
 import { GarderBandeau } from "@/components/bs/garder";
 import { Secours } from "@/components/bs/secours";
+import { TutoPlus } from "@/components/bs/tuto-plus";
 
 /**
  * La coque de l'app, dans le carnet illustré. Au téléphone : une colonne au
@@ -50,6 +51,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <ClientGate>
         <TourneeDifferee />
         <ClavierBureau />
+        <TutoPlus />
       </ClientGate>
       <ToastHost />
       <PwaInstallPrompt />
