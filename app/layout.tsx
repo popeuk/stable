@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Mono } from "next/font/google";
 import { EARLY_INSTALL_SCRIPT, PwaRegister } from "@/components/pwa-register";
+import { TAILLE_TOT } from "@/lib/taille";
 import "./globals.css";
 import "./bs.css";
 import "./carnet.css";
@@ -68,9 +69,12 @@ export default function RootLayout({
     <html
       lang="fr"
       className={`${bricolage.variable} ${plex.variable} antialiased`}
+      // Le gros texte se pose sur <html> avant React (data-taille) : pas d'alerte au réveil.
+      suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: EARLY_INSTALL_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: TAILLE_TOT }} />
       </head>
       <body>
         {children}

@@ -329,6 +329,11 @@ html:has(.carnet), body:has(.carnet) { background: var(--paper); }
    double tape (manipulation garde le pincement), et les champs font 16 px
    minimum pour que l'iPhone ne zoome pas tout seul quand on tape dedans. */
 html { touch-action: manipulation; }
+/* Gros texte (Réglages, Mon téléphone ; lib/taille.ts) : tout l'écran grandit
+   d'environ 15 %, barre du bas et feuilles comprises. Le zoom tient sur body,
+   une seule fois : les feuilles sorties dans body (carnet-portal) suivent, et
+   les colonnes se replient comme sur un écran un peu plus étroit. */
+html[data-taille="grand"] body { zoom: 1.15; }
 @media (max-width: 1023px) {
   input, select, textarea { font-size: max(16px, 1em); }
 }
