@@ -31,6 +31,9 @@ const PARENTS: [string, string][] = [
   ["/pilotage", "/argent"],
   ["/parametres", "/moi"],
   ["/registre", "/moi"],
+  ["/facturation", "/moi"],
+  ["/facture", "/chevaux?vue=clients"],
+  ["/client", "/chevaux?vue=clients"],
   ["/saisie", "/accueil"],
 ];
 
@@ -49,12 +52,21 @@ export function useSuiviNavigation() {
   }, [path]);
 }
 
+/**
+ * Le parent que l'écran ouvert pose lui-même, quand son adresse ne suffit
+ * pas : la facture d'un client ramène à sa fiche.
+ */
+export const useParentIci = create<{ href: string | null; poser: (href: string | null) => void }>((set) => ({
+  href: null,
+  poser: (href) => set({ href }),
+}));
+
 export function useRetour() {
   const router = useRouter();
   const path = usePathname() ?? "";
   return () => {
     if (pile.length > 1) router.back();
-    else router.push(parentOf(path));
+    else router.push(useParentIci.getState().href ?? parentOf(path));
   };
 }
 

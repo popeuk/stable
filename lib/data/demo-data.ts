@@ -142,13 +142,14 @@ export function buildDemoData(now = new Date()): StableData {
         });
       }
 
-      // Direct variable costs (farrier / vet) most months.
+      // Direct variable costs (farrier / vet) most months. Chaque libellé dans sa catégorie (le CSV du comptable les range).
+      const marechal = rng() > 0.5;
       directExpenses.push({
         id: `dexp-${horse.id}-${monthDate}`,
         stableId: STABLE_ID,
         horseId: horse.id,
-        categoryId: DEFAULT_EXPENSE_CATEGORIES[0].id,
-        label: rng() > 0.5 ? "Maréchal-ferrant" : "Compléments",
+        categoryId: (DEFAULT_EXPENSE_CATEGORIES.find((c) => c.name === (marechal ? "Maréchal-ferrant" : "Compléments")) ?? DEFAULT_EXPENSE_CATEGORIES[0]).id,
+        label: marechal ? "Maréchal-ferrant" : "Compléments",
         amount: Math.round(base.variableCost * (0.7 + rng() * 0.5)),
         date: monthDate,
         source: "manual",

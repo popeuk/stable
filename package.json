@@ -10,6 +10,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:impression": "node scripts/test-impression.cjs",
     "typecheck": "tsc --noEmit",
     "icons": "node scripts/generate-icons.mjs"
   },

@@ -25,7 +25,10 @@ import { ensurePensions } from "@/lib/domain/autopilot";
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
-import { emettre, type Brouillon } from "@/lib/domain/facture";
+import { compteurMax, contenuAvoir, emettre, emettreAvoir, fusionFactures, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
+import { compteurAppareil, facturesEnregistrees, noterCompteur, sousVerrou } from "@/lib/account/factures-seq";
+import { ecrituresFaites } from "@/lib/account/vault";
+import { scopedKey } from "@/lib/account/session";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { sansPrixDExemple } from "@/lib/domain/ajouter";
 import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
@@ -185,10 +188,18 @@ interface DataState extends StableData {
   /** Les infos de facturation de l'écurie (nom, adresse, SIRET, TVA). */
   setBilling: (patch: Partial<BillingInfo>) => void;
   /**
-   * Émet une facture : le numéro suivant de l'année, jamais réutilisé, et
-   * un contenu figé. Rend la facture enregistrée.
+   * Émet des factures : chacune reçoit le numéro suivant de l'année, jamais
+   * réutilisé (lib/account/factures-seq), et un contenu figé. Une facture
+   * dont une ligne vient d'être facturée ailleurs (un autre onglet) n'est
+   * pas faite. Rend les factures enregistrées.
    */
-  issueInvoice: (contenu: NonNullable<Brouillon["facture"]>, today: string, stableName: string) => Invoice;
+  issueInvoices: (contenus: NonNullable<Brouillon["facture"]>[], today: string) => Promise<Invoice[]>;
+  /** Annule tout ou partie d'une facture par un avoir, numéroté dans la même suite. Rend l'avoir, ou null s'il n'y a rien à annuler. */
+  issueAvoir: (number: string, qtes: number[], today: string) => Promise<Invoice | null>;
+  /** Réunit les factures d'un autre carnet (sauvegarde reprise, autre onglet) : aucune ne se perd. */
+  mergeInvoices: (other: Pick<StableData, "invoices" | "invoiceSeq">) => void;
+  /** Ce que la facture d'un client demande : particulier ou professionnel, son adresse. */
+  setClientFacture: (name: string, role: PersonRole, patch: Pick<Partial<Person>, "statut" | "address">) => void;
   /** Retire un paiement précis (« Annuler »). */
   removePayment: (id: string) => void;
   removePayments: (payer: string, month: string) => void;
@@ -200,6 +211,32 @@ const STABLE_ID = "demo-stable";
 
 function id(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * Numéroter sous verrou : relire le carnet enregistré (un autre onglet a pu
+ * faire une facture), prendre le plus grand des compteurs (carnet, appareil),
+ * noter les numéros donnés sur l'appareil avant tout, puis attendre que le
+ * carnet soit écrit pour rendre la main au prochain onglet.
+ */
+async function numeroter(
+  get: () => DataState,
+  set: (p: Partial<DataState>) => void,
+  faire: (s: DataState, haut: Record<string, number>) => Invoice[],
+): Promise<Invoice[]> {
+  return sousVerrou(async () => {
+    const enregistrees = await facturesEnregistrees();
+    if (enregistrees) set(fusionFactures(get(), enregistrees));
+    const haut = compteurAppareil();
+    const out = faire(get(), haut);
+    if (!out.length) return out;
+    const donnes = compteurMax(...out.map((i) => ({ [String(i.year)]: i.seq })));
+    noterCompteur(donnes);
+    const s = get();
+    set({ invoices: [...(s.invoices ?? []), ...out], invoiceSeq: compteurMax(s.invoiceSeq, donnes) });
+    await ecrituresFaites("be-stable-data");
+    return out;
+  });
 }
 
 export const useDataStore = create<DataState>()(
@@ -500,7 +537,9 @@ export const useDataStore = create<DataState>()(
             if (t) next[k] = t;
             else delete next[k];
           }
-          return { holding: next };
+          // Le SIRET du lieu est celui des factures.
+          if (patch.siret === undefined) return { holding: next };
+          return { holding: next, billing: { ...(s.billing ?? {}), siret: next.siret?.replace(/\s+/g, "") || undefined } };
         }),
 
       setTariff: (key, value) =>
@@ -912,16 +951,47 @@ export const useDataStore = create<DataState>()(
         set((s) => {
           const b: BillingInfo = { ...(s.billing ?? {}), ...patch };
           if (patch.rates) b.rates = { ...(s.billing?.rates ?? {}), ...patch.rates };
-          return { billing: b };
+          // Le SIRET est le même pour les factures et le registre : saisi une fois, partagé.
+          if (patch.siret === undefined) return { billing: b };
+          const holding: Holding = { ...(s.holding ?? {}) };
+          if (patch.siret.trim()) holding.siret = patch.siret.trim();
+          else delete holding.siret;
+          return { billing: b, holding };
         }),
 
-      issueInvoice: (contenu, today, stableName) => {
-        let inv: Invoice | undefined;
-        set((s) => {
-          inv = emettre(s, contenu, today, stableName, id("inv"));
-          return { invoices: [...(s.invoices ?? []), inv], invoiceSeq: { ...(s.invoiceSeq ?? {}), [String(inv.year)]: inv.seq } };
+      issueInvoices: (contenus, today) =>
+        numeroter(get, set, (s, haut) => {
+          const pris = recettesFacturees(s.invoices);
+          const acc = { invoices: s.invoices ?? [], invoiceSeq: s.invoiceSeq, billing: s.billing, holding: s.holding };
+          const out: Invoice[] = [];
+          for (const c of contenus) {
+            if (!c.revenueIds.length || c.revenueIds.some((r) => pris.has(r))) continue;
+            const inv = emettre(acc, c, today, id("inv"), haut);
+            for (const r of c.revenueIds) pris.set(r, inv.number);
+            acc.invoices = [...acc.invoices, inv];
+            out.push(inv);
+          }
+          return out;
+        }),
+
+      issueAvoir: async (number, qtes, today) => {
+        const out = await numeroter(get, set, (s, haut) => {
+          const inv = (s.invoices ?? []).find((i) => i.number === number && i.kind !== "avoir");
+          const c = inv ? contenuAvoir(inv, qtes, s.invoices) : null;
+          return c ? [emettreAvoir(s, c, today, id("avo"), haut)] : [];
         });
-        return inv!;
+        return out[0] ?? null;
+      },
+
+      mergeInvoices: (other) => set((s) => fusionFactures(s, other, compteurAppareil())),
+
+      setClientFacture: (name, role, patch) => {
+        const found = personneDe(get(), name);
+        const pid = found?.id ?? get().ensurePerson(name, role);
+        const clean: Partial<Person> = {};
+        if (patch.statut) clean.statut = patch.statut;
+        if (patch.address !== undefined) clean.address = patch.address.trim() || undefined;
+        set((s) => ({ people: (s.people ?? []).map((p) => (p.id === pid ? { ...p, ...clean } : p)) }));
       },
 
       removePayment: (pid) => set((s) => ({ payments: (s.payments ?? []).filter((p) => p.id !== pid) })),
@@ -1000,3 +1070,18 @@ export const useDataStore = create<DataState>()(
     },
   ),
 );
+
+// Un autre onglet a fait une facture : elle arrive ici aussi, sans attendre
+// un rechargement, et son numéro compte pour la suivante.
+if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+  window.addEventListener("storage", (e) => {
+    if (e.key !== scopedKey("be-stable-data") || !useDataStore.getState().hydrated) return;
+    void facturesEnregistrees().then((st) => {
+      if (!st) return;
+      const cur = useDataStore.getState();
+      const ids = new Set((cur.invoices ?? []).map((i) => i.id));
+      const nouveau = (st.invoices ?? []).some((i) => !ids.has(i.id)) || Object.entries(st.invoiceSeq ?? {}).some(([y, n]) => n > (cur.invoiceSeq?.[y] ?? 0));
+      if (nouveau) cur.mergeInvoices(st);
+    });
+  });
+}

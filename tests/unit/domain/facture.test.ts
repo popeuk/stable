@@ -5,7 +5,7 @@ import { dernierMoyen, moyenDit } from "@/lib/domain/paiement";
 import type { BillingInfo, Invoice, StableData } from "@/lib/domain/types";
 
 const oct = { year: 2026, month: 10 };
-const TAUX: BillingInfo = { vat: "taux", rates: { pension: 20, cours: 5.5, soins: 20, autre: 10 }, address: "1 rue du Pré\n72000 Le Mans", siret: "123 456 789 00012" };
+const TAUX: BillingInfo = { legalName: "Les Pommiers", vat: "taux", rates: { pension: 20, cours: 5.5, soins: 20, autre: 10 }, address: "1 rue du Pré\n72000 Le Mans", siret: "123 456 789 00012", tvaIntra: "FR32123456789" };
 
 const base = (billing?: BillingInfo): StableData => ({
   horses: [{ id: "h1", stableId: "s", name: "Tonnerre", entryDate: "2024-01-01", exitDate: null, isArchived: false, ownerName: "Hugo L." }],
@@ -25,7 +25,7 @@ const base = (billing?: BillingInfo): StableData => ({
     { id: "em", name: "Maréchal", isDirect: true },
     { id: "ef", name: "Foin", isDirect: false },
   ],
-  people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true, address: "3 allée des Saules" }],
+  people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true, address: "3 allée des Saules", statut: "particulier" }],
   payments: [{ id: "pay", payer: "Hugo L.", month: "2026-10", amount: 100, at: "2026-10-05T10:00:00", method: "cheque", chequeNumber: "1234567" }],
   ...(billing ? { billing } : {}),
 });
@@ -48,14 +48,14 @@ describe("numérotation des factures", () => {
   it("deux factures émises de suite ont deux numéros qui se suivent, contenu figé", () => {
     const d = base(TAUX);
     const b = brouillon(d, "Hugo L.", oct);
-    const a = emettre(d, b.facture!, "2026-10-31", "Les Pommiers", "i1");
+    const a = emettre(d, b.facture!, "2026-10-31", "i1");
     const d2 = { ...d, invoices: [a], invoiceSeq: { "2026": a.seq } };
     const b2 = brouillon(d2, "Hugo L.", oct);
     expect(b2.vide).toBe(true);
     // Une recette ajoutée après : elle va sur une nouvelle facture, la première ne bouge pas.
     d2.revenues = [...d2.revenues, { id: "c3", stableId: "s", horseId: "h1", categoryId: "cc", amount: 25, date: "2026-10-30", source: "manual", payer: "Hugo L.", seanceId: "s3" }];
     const b3 = brouillon(d2, "Hugo L.", oct);
-    const c = emettre(d2, b3.facture!, "2026-11-02", "Les Pommiers", "i2");
+    const c = emettre(d2, b3.facture!, "2026-11-02", "i2");
     expect([a.number, c.number]).toEqual(["2026-0001", "2026-0002"]);
     expect(c.revenueIds).toEqual(["c3"]);
     expect(a.totalTTC).toBe(560);
@@ -109,9 +109,11 @@ describe("HT, TVA et TTC", () => {
     expect(tauxManquants({ vat: "franchise" })).toEqual([]);
   });
 
-  it("le vendeur : adresse et SIRET de 14 chiffres", () => {
-    expect(vendeurManque(undefined, "Les Pommiers")).toEqual(["adresse", "siret"]);
-    expect(vendeurManque(TAUX, "Les Pommiers")).toEqual([]);
+  it("le vendeur : son nom (jamais celui de l'écurie par défaut), adresse, SIRET de 14 chiffres, TVA intracommunautaire avec la TVA", () => {
+    expect(vendeurManque(undefined)).toEqual(["nom", "adresse", "siret"]);
+    expect(vendeurManque(TAUX)).toEqual([]);
+    expect(vendeurManque({ ...TAUX, tvaIntra: undefined })).toEqual(["tva"]);
+    expect(vendeurManque({ ...TAUX, vat: "franchise", tvaIntra: undefined })).toEqual([]);
     expect(siretValide("123 456 789 0001")).toBe(false);
   });
 
@@ -149,32 +151,35 @@ describe("moyen de paiement", () => {
 describe("le tableau du comptable", () => {
   const withInv = (): StableData => {
     const d = base(TAUX);
-    const inv: Invoice = emettre(d, brouillon(d, "Hugo L.", oct).facture!, "2026-10-31", "Les Pommiers", "i1");
+    const inv: Invoice = emettre(d, brouillon(d, "Hugo L.", oct).facture!, "2026-10-31", "i1");
     return { ...d, invoices: [inv] };
   };
 
-  it("BOM, point-virgule, en-tête, décimales à la virgule, CRLF", () => {
-    const csv = csvComptable(withInv(), 2026);
+  it("BOM, point-virgule, en-tête, décimales à la virgule, CRLF, chaque montant dans la colonne de sa nature", () => {
+    const csv = csvComptable(withInv(), 2026, "2026-10-31");
     expect(csv.charCodeAt(0)).toBe(0xfeff);
     const lines = csv.slice(1).split("\r\n");
     expect(lines[0]).toBe(COLONNES.join(";"));
-    expect(lines[0]).toBe("Date;Type;Catégorie;Libellé;Cheval;Client;Montant TTC;Moyen de paiement;N° de facture");
-    expect(csv).toContain("01/10/2026;Recette;Pension;Pension;Tonnerre;Hugo L.;450,00;chèque;2026-0001");
-    expect(csv).toContain('01/10/2026;Dépense;Foin;"Foin; luzerne";commun;;1234,50;;');
-    expect(csv).toContain("10/10/2026;Dépense;Maréchal;Maréchal;Tonnerre;;60,00;;");
-    expect(csv).toContain("05/10/2026;Encaissement;Paiement reçu;Paiement de octobre 2026;;Hugo L.;100,00;chèque n° 1234567;2026-0001");
+    expect(lines[0]).toBe("Date;Nature;Catégorie;Libellé;Cheval;Client;Recette TTC;Dépense TTC;Encaissement TTC;Avoir TTC;Moyen de paiement;N° de facture");
+    // Le libellé n'est pas la catégorie répétée.
+    expect(csv).toContain("01/10/2026;Recette;Pension;;Tonnerre;Hugo L.;450,00;;;;chèque;2026-0001");
+    expect(csv).toContain('01/10/2026;Dépense;Foin;"Foin; luzerne";commun;;;1234,50;;;;');
+    expect(csv).toContain("10/10/2026;Dépense;Maréchal;;Tonnerre;;;60,00;;;;");
+    expect(csv).toContain("05/10/2026;Encaissement;Paiement reçu;Paiement d’octobre 2026;;Hugo L.;;;100,00;;chèque n° 1234567;2026-0001");
     expect(csv.endsWith("\r\n")).toBe(true);
   });
 
-  it("une ligne par recette, dépense et paiement de l'année, rien des autres années", () => {
+  it("une ligne par recette, dépense et paiement de l'année, rien des autres années ni d'après aujourd'hui", () => {
     const d = withInv();
     d.revenues.push({ id: "old", stableId: "s", horseId: "h1", amount: 10, date: "2025-12-31", source: "manual" });
     d.recurringExpenses = [{ id: "r", stableId: "s", label: "Assurance", amount: 30, isShared: true, frequency: "quarterly", startDate: "2026-01-15", source: "manual" }];
-    const ls = lignesComptables(d, 2026);
+    const ls = lignesComptables(d, 2026, "2026-10-20");
     expect(ls.filter((l) => l.type === "Recette")).toHaveLength(4);
     expect(ls.filter((l) => l.libelle === "Assurance").map((l) => l.date)).toEqual(["2026-01-15", "2026-04-15", "2026-07-15", "2026-10-15"]);
     expect(ls.filter((l) => l.type === "Encaissement")).toHaveLength(1);
     expect(ls.some((l) => l.date.startsWith("2025"))).toBe(false);
+    // Le 14 octobre, l'assurance du 15 n'a pas encore eu lieu.
+    expect(lignesComptables(d, 2026, "2026-10-14").filter((l) => l.libelle === "Assurance")).toHaveLength(3);
   });
 
   it("les cellules à risque sont protégées, les nombres à la française", () => {

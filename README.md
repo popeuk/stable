@@ -26,6 +26,20 @@ npm run build        # build de production
 npm run icons        # régénère les icônes PWA
 ```
 
+Test d'impression (facture, avoir, registre en PDF ; un autre écran ne sort
+pas blanc), sur un export servi sous `/stable` ; il faut Playwright (Chromium
+et WebKit) et poppler (`pdftotext`, `pdfinfo`) :
+
+```bash
+DEPLOY_TARGET=pages PAGES_BASE=/stable NEXT_PUBLIC_BASE_PATH=/stable npm run build
+mkdir -p /tmp/site && cp -R out /tmp/site/stable && (cd /tmp/site && python3 -m http.server 4601 &)
+NODE_PATH=/chemin/vers/node_modules/de/playwright npm run test:impression
+```
+
+Il fait une facture par le parcours, l'imprime, l'annule par un avoir,
+imprime le registre et l'accueil, et lit le texte et le format des PDF
+(dossier `impression-test/`). Détails en tête de `scripts/test-impression.cjs`.
+
 ## Ce qui est construit
 
 - **Design system** (section 7) : tokens couleurs/typo/espacement en CSS,

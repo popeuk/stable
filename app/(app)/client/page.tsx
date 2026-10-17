@@ -10,16 +10,16 @@ import { retirer as retirerLigne } from "@/components/bs/retirer";
 import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
 import { CountUp, Empty, Face, Ic, Ill, Page as Ecran, Switch, eur, ini, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
-import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { billOf, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
-import { accord, messageDu, prenomDe } from "@/lib/domain/clients";
+import { accord, prenomDe } from "@/lib/domain/clients";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
 import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 import { MoyenChoix } from "@/components/bs/moyen-paiement";
 import { dernierMoyen, enMoyen, moyenDit } from "@/lib/domain/paiement";
-import { facturesDe } from "@/lib/domain/facture";
+import { brouillon, deMois, facturesDe, recettesFacturees } from "@/lib/domain/facture";
+import { FeuilleMoyen } from "@/components/bs/moyen-paiement";
 import type { PaymentMethod } from "@/lib/domain/types";
 
 /**
@@ -84,8 +84,6 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const data = useDataStore();
   const router = useRouter();
   const say = useUiStore((s) => s.say);
-  const signature = useSettingsStore((s) => s.gerant);
-  const stableName = useSettingsStore((s) => s.stableName);
   const now = useMemo(() => currentPeriod(), []);
   const period = mois ?? now;
   const mk = monthKey(period);
@@ -104,7 +102,6 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
 
   const qui = prenomDe(nom);
   const Il = accord(nom, "Il", "Elle");
-  const il = accord(nom, "il", "elle");
   const seance = !!person?.paieALaSeance;
   const due = bill.due;
   const phone = person?.phone?.trim();
@@ -137,30 +134,18 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
     });
   };
 
-  const retirer = (l: BillLine, row: HTMLElement | null) => {
+  const retirer = (l: BillLine, row: HTMLElement | null, malgre = false) => {
+    // Une ligne déjà sur une facture : la facture ne change pas, on le dit d'abord et on propose l'avoir.
+    const facture = recettesFacturees(data.invoices).get(l.id);
+    if (facture && !malgre) return setFacturee({ l, number: facture });
     // Tout compte, tu retires : la séance (ou ce client seul, dans un cours à plusieurs), le soin, ou la recette.
     const go = () => void retirerLigne({ revenueId: l.id, payer: nom, label: `${l.label}, ${jour(l.date)}` });
     if (calme() || !row?.animate) return go();
     row.animate([{ height: `${row.offsetHeight}px`, opacity: 1 }, { height: "0px", opacity: 0 }], { duration: 240, easing: "cubic-bezier(.22,1,.36,1)", fill: "forwards" }).onfinish = go;
   };
-
-  const envoyer = async () => {
-    const text = messageDu(bill, period, stableName, signature);
-    try {
-      if (navigator.share) {
-        await navigator.share({ text });
-        return;
-      }
-    } catch (e) {
-      if ((e as Error)?.name === "AbortError") return;
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-      say(`Message pour ${esc(qui)} copié. Colle-le dans ta messagerie.`);
-    } catch {
-      say(`Impossible de copier le message pour ${esc(qui)}.`);
-    }
-  };
+  const [facturee, setFacturee] = useState<{ l: BillLine; number: string } | null>(null);
+  const brouillonDuMois = useMemo(() => brouillon(data, nom, period), [data, nom, period]);
+  const faitesDuMois = facturesDe(data.invoices, nom, mk);
 
   const contact = (href: string | undefined, ic: ReactNode, label: string) =>
     href ? (
@@ -302,18 +287,18 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
             <span className="in">{sg(p.amount)}</span>
           </div>
         ))}
-        {bill.total > 0 && (
-          <Link className="btn line cl-sendb" href={`/facture?nom=${encodeURIComponent(nom)}&mois=${mk}`}>
-            <Ic n="doc" className="" />
-            {facturesDe(data.invoices, nom, mk).length ? "Sa facture du mois" : "Faire sa facture du mois"}
-          </Link>
-        )}
-        {due > 0 && (
-          <button type="button" className="btn line cl-sendb" onClick={envoyer}>
-            <Ic n="arrow" className="" />
-            Lui envoyer ce qu’{il} te doit
-          </button>
-        )}
+        {bill.total > 0 &&
+          (faitesDuMois.length && brouillonDuMois.vide ? (
+            <Link className="btn line cl-sendb" href={`/facture?n=${encodeURIComponent(faitesDuMois[faitesDuMois.length - 1].number)}`}>
+              <Ic n="arrow" className="" />
+              Lui envoyer sa facture
+            </Link>
+          ) : (
+            <Link className="btn line cl-sendb" href={`/facture?nom=${encodeURIComponent(nom)}&mois=${mk}`}>
+              <Ic n="doc" className="" />
+              Sa facture {deMois(mk).replace(/ \d{4}$/, "")}
+            </Link>
+          ))}
       </div>
 
       {avant.length > 0 && (
@@ -403,6 +388,38 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         />
       )}
       {feuille === "chevaux" && <ChevauxDuClient nom={nom} onClose={() => setFeuille(null)} />}
+      {facturee && (
+        <FeuilleMoyen titre="Cette ligne est sur une facture" onClose={() => setFacturee(null)}>
+          <div className="pad fa-avf">
+            <p className="fa-hint">
+              {facturee.l.label}, {jour(facturee.l.date)}, est sur la facture n° {facturee.number}. La retirer ici ne change pas la facture : annule-la par un avoir, pour que ta facture et tes comptes disent la même chose.
+            </p>
+            <button
+              type="button"
+              className="btn full"
+              onClick={() => {
+                const { l, number } = facturee;
+                setFacturee(null);
+                retirer(l, null, true);
+                router.push(`/facture?n=${encodeURIComponent(number)}&avoir=${encodeURIComponent(l.id)}`);
+              }}
+            >
+              La retirer et faire l’avoir
+            </button>
+            <button
+              type="button"
+              className="btn line full"
+              onClick={() => {
+                const { l } = facturee;
+                setFacturee(null);
+                retirer(l, null, true);
+              }}
+            >
+              La retirer sans avoir
+            </button>
+          </div>
+        </FeuilleMoyen>
+      )}
       {feuille === "notes" && (
         <NotesSheet
           qui={qui}

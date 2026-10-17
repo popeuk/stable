@@ -260,6 +260,13 @@ export interface Person {
   paieALaSeance?: boolean;
   /** Son adresse postale, imprimée sur ses factures quand elle est connue. */
   address?: string;
+  /**
+   * Particulier ou professionnel, dit par le gérant à sa première facture.
+   * Absent = pas encore dit : la facture le demande, l'app ne le devine pas.
+   * Un professionnel reçoit les mentions de paiement de la loi (échéance,
+   * pénalités, indemnité de 40 €).
+   */
+  statut?: "particulier" | "pro";
   active: boolean;
 }
 
@@ -393,18 +400,31 @@ export type VatRate = 5.5 | 10 | 20;
  * facture demande de choisir.
  */
 export interface BillingInfo {
-  /** Nom ou raison sociale. Vide = le nom de l'écurie. */
+  /** Nom ou raison sociale, obligatoire : l'app ne prend pas le nom de l'écurie à sa place. */
   legalName?: string;
+  /** Forme juridique, imprimée après le nom quand elle est notée : « EI », « EARL », « SARL »… */
+  forme?: string;
   address?: string;
+  /** Le SIRET, le même que celui du lieu de détention (Holding.siret) : saisi une fois. */
   siret?: string;
   /** « franchise » : pas de TVA (art. 293 B du CGI). « taux » : un taux par type. */
   vat?: "franchise" | "taux";
   rates?: Partial<Record<VatKind, VatRate>>;
+  /** Le numéro de TVA intracommunautaire, demandé dès qu'on facture la TVA. */
+  tvaIntra?: string;
+  /** Pour un client professionnel : le délai de paiement en jours (0 = à réception). */
+  delaiPro?: number;
+  /** Pour un client professionnel : le taux des pénalités de retard choisi. */
+  penalites?: "bce10" | "legal3";
 }
 
 /** Une ligne de facture, figée à l'émission. Les prix saisis dans l'app sont TTC. */
 export interface InvoiceLine {
   label: string;
+  /** Les recettes de la ligne (une par unité), pour qu'un avoir sache lesquelles il annule. */
+  revenueIds?: string[];
+  /** Sur un avoir : la ligne de la facture d'origine qu'il annule (son rang). */
+  de?: number;
   kind: VatKind;
   qty: number;
   /** Taux de TVA en % (0 en franchise). */
@@ -437,8 +457,17 @@ export interface Invoice {
   payer: string;
   /** Le mois facturé (AAAA-MM). */
   month: string;
-  seller: { name: string; address?: string; siret?: string };
-  buyer: { name: string; address?: string };
+  /** « avoir » : annule tout ou partie d'une facture ; ses montants sont négatifs. Absent = une facture. */
+  kind?: "avoir";
+  /** Sur un avoir : la facture qu'il annule. */
+  avoirDe?: { number: string; issuedAt: ISODate };
+  seller: { name: string; forme?: string; address?: string; siret?: string; tvaIntra?: string };
+  buyer: { name: string; address?: string; pro?: boolean };
+  /** Client professionnel : la date d'échéance et le taux des pénalités, figés à l'émission. */
+  echeance?: ISODate;
+  penalites?: "bce10" | "legal3";
+  /** Soldée à l'émission : le jour du dernier paiement et comment (« chèque »). */
+  reglee?: { date: ISODate; moyen?: string };
   franchise: boolean;
   lines: InvoiceLine[];
   totalHT: number;

@@ -92,6 +92,30 @@ export const vault: StateStorage = {
 };
 
 /**
+ * Relit un tiroir tel qu'il est enregistré maintenant (un autre onglet a pu
+ * l'écrire), déchiffré, sans rien changer à l'état du coffre.
+ */
+export async function relireTiroir(name: string): Promise<string | null> {
+  const s = getSession();
+  if (!s) return null;
+  const raw = localStorage.getItem(scopedKey(name, s));
+  if (raw === null || !raw.startsWith(PREFIX)) return raw;
+  const key = await accountKey();
+  if (!key) return null;
+  try {
+    return await open(raw, key);
+  } catch {
+    return null;
+  }
+}
+
+/** Attend que les écritures en cours d'un tiroir soient faites. */
+export function ecrituresFaites(name: string): Promise<void> {
+  const s = getSession();
+  return s ? (queue.get(scopedKey(name, s)) ?? Promise.resolve()) : Promise.resolve();
+}
+
+/**
  * Rattache au compte les données d'avant les comptes (un seul appareil, un
  * seul gérant) : elles sont chiffrées dans son tiroir puis effacées en clair.
  */

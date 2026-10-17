@@ -60,16 +60,24 @@
 /* La copie pour l'imprimante : invisible à l'écran. */
 .rg-print { display: none; }
 
+/*
+ * À l'impression, seulement quand la feuille du registre est là (l'écran du
+ * registre la pose sous body) : sinon ces règles ne touchent à rien, et la
+ * facture ou tout autre écran s'imprime normalement. La page A4 paysage est
+ * une page nommée ; l'écran du registre pose aussi le même format, le temps
+ * où il est ouvert, pour les navigateurs qui ne connaissent pas les pages
+ * nommées (components/bs/impression.tsx).
+ */
+@page registre {
+  size: A4 landscape;
+  margin: 12mm 12mm 14mm;
+  @bottom-right { content: "Page " counter(page) " sur " counter(pages); font-size: 9pt; }
+  @bottom-left { content: "Registre d’élevage"; font-size: 9pt; }
+}
 @media print {
-  @page {
-    size: A4 landscape;
-    margin: 12mm 12mm 14mm;
-    @bottom-right { content: "Page " counter(page) " sur " counter(pages); font-size: 9pt; }
-    @bottom-left { content: "Registre d’élevage"; font-size: 9pt; }
-  }
-  html, body { background: #fff !important; }
-  body > :not(.rg-print) { display: none !important; }
-  .rg-print { display: block; }
+  html:has(body > .rg-print), body:has(> .rg-print) { background: #fff !important; }
+  body:has(> .rg-print) > :not(.rg-print) { display: none !important; }
+  .rg-print { display: block; page: registre; }
   .rg-sheet { font-size: 9.5pt; }
   .rg-sheet h1 { font-size: 15pt; }
   .rg-sheet h2 { font-size: 11pt; break-after: avoid; }

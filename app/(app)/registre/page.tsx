@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Hello, Ic, Page as Ecran, Sec, Seg } from "@/components/carnet/ui";
 import { useDesk } from "@/components/bs/desk";
+import { PageImprimee, useTitreDocument } from "@/components/bs/impression";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { CARE_META } from "@/lib/domain/care";
@@ -28,6 +29,7 @@ import {
 } from "@/lib/domain/registre";
 import type { Horse } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
+import { siretDit } from "@/lib/domain/facture";
 
 /**
  * Le registre d'élevage, prêt à imprimer : le détenteur et le lieu, les
@@ -81,7 +83,10 @@ function Registre() {
   const horses = useDataStore((s) => s.horses);
   const careEvents = useDataStore((s) => s.careEvents);
   const people = useDataStore((s) => s.people);
-  const holding = useDataStore((s) => s.holding);
+  const lieu = useDataStore((s) => s.holding);
+  const siretFactures = useDataStore((s) => s.billing?.siret);
+  // Le SIRET est celui des factures quand il n'a été noté que là.
+  const holding = useMemo(() => (lieu?.siret || !siretFactures ? lieu : { ...(lieu ?? {}), siret: siretFactures }), [lieu, siretFactures]);
   const stableName = useSettingsStore((s) => s.stableName);
   const today = localToday();
   const cur = currentQuarter(today);
@@ -92,6 +97,7 @@ function Registre() {
   const period = useMemo(() => registerPeriod(kind, year, quarter), [kind, year, quarter]);
   const reg = useMemo(() => buildRegister({ horses, careEvents }, period, today), [horses, careEvents, period, today]);
   const isNow = kind === "trimestre" ? year === cur.year && quarter === cur.quarter : year === cur.year;
+  useTitreDocument(kind === "annee" ? `Registre d’élevage ${year}` : `Registre d’élevage ${year} T${quarter}`);
 
   // La feuille imprimée vit à part, sous body : la navigation n'y est pas.
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -222,6 +228,7 @@ function Registre() {
         <div className="rg-paper">{sheet}</div>
       </Sec>
       <div className="end" />
+      <PageImprimee page={`size: A4 landscape; margin: 12mm 12mm 14mm; @bottom-right { content: "Page " counter(page) " sur " counter(pages); font-size: 9pt; } @bottom-left { content: "Registre d’élevage"; font-size: 9pt; }`} />
       {printing && createPortal(<div className="rg-print" aria-hidden="true">{sheet}</div>, document.body)}
     </Ecran>
   );
@@ -254,7 +261,7 @@ function Feuille({ reg, holding, stableName, people, today }: { reg: Register; h
           <Kv k="Détenteur" v={h.holderName} />
           <Kv k="Adresse du détenteur" v={h.holderAddress} />
           <Kv k="Téléphone, courriel" v={[h.holderPhone, h.holderEmail].filter(Boolean).join(", ")} />
-          <Kv k="SIRET" v={h.siret} />
+          <Kv k="SIRET" v={h.siret ? siretDit(h.siret) : undefined} />
         </dl>
       </section>
 

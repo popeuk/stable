@@ -21,7 +21,8 @@ import { clientsAFairePayer } from "@/lib/domain/compte-auto";
 import { addMonths, currentPeriod, daysInMonth } from "@/lib/utils/period";
 import { CARE_META, upcomingDeadlines, type Deadline } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
-import type { Horse, Period, PersonRole } from "@/lib/domain/types";
+import type { Horse, Period, PersonRole, StableData } from "@/lib/domain/types";
+import { de, moisAFacturer } from "@/lib/domain/facture";
 import { Partis } from "@/components/bs/partis";
 
 /**
@@ -96,13 +97,20 @@ function Haut({ bascule }: { bascule: React.ReactNode }) {
 /* ------------------------------------------------------------------ */
 
 /** « d’octobre », « de mai ». */
-const deMoisDe = (p: Period) => {
-  const m = new Date(p.year, p.month - 1, 15).toLocaleDateString("fr-FR", { month: "long" });
-  return /^[aeiouyéè]/i.test(m) ? `d’${m}` : `de ${m}`;
-};
+const deMoisDe = (p: Period) => de(new Date(p.year, p.month - 1, 15).toLocaleDateString("fr-FR", { month: "long" }));
 const MOIS_COURT = (p: Period) => cap(new Date(p.year, p.month - 1, 15).toLocaleDateString("fr-FR", { month: "long" }));
-/** La facture du mois d'un client. */
-const factureDe = (name: string) => `/facture?nom=${encodeURIComponent(name)}`;
+/** « Faire les factures d'octobre » : toutes celles du mois, après un aperçu de la liste. */
+function FacturesDuMois({ data, today }: { data: StableData; today: string }) {
+  const { period, clients } = useMemo(() => moisAFacturer(data, today), [data, today]);
+  if (!clients.length) return null;
+  const mk = `${period.year}-${String(period.month).padStart(2, "0")}`;
+  return (
+    <Link href={`/facture?lot=${mk}`} className="btn line full cl-lot">
+      <Ic n="doc" className="" />
+      Faire les factures {deMoisDe(period)}
+    </Link>
+  );
+}
 const ficheDe = (name: string, mois?: string) => `/client?nom=${encodeURIComponent(name)}${mois ? `&mois=${mois}` : ""}`;
 
 /** Le bandeau de fin de mois : les 3 derniers jours, puis les 5 premiers du mois suivant. */
@@ -334,6 +342,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
             <p>{sub}</p>
             {rassure}
             {sansProprio}
+            <FacturesDuMois data={data} today={today} />
           </div>
           {ajouter}
         </div>
@@ -354,9 +363,6 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
                 <th className="n">Ce mois</th>
                 <th className="n">Payé</th>
                 <th className="n">Te doit</th>
-                <th>
-                  <span className="ch-sr">Facture</span>
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -374,13 +380,6 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
                   <td className="n">{c.total ? eur(c.total) : "·"}</td>
                   <td className="n m">{c.paid ? eur(c.paid) : "·"}</td>
                   <td className="n">{c.due > 0 ? <b>{eur(c.due)}</b> : <span className="m">à jour</span>}</td>
-                  <td>
-                    {c.total > 0 && (
-                      <Link href={factureDe(c.name)} className="lnk" onClick={(e) => e.stopPropagation()}>
-                        Facture
-                      </Link>
-                    )}
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -408,6 +407,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
         )}
         {rassure}
         {sansProprio}
+        <FacturesDuMois data={data} today={today} />
       </div>
       {rows.length > 6 && <div className="cl-find">{search}</div>}
       {owe.length > 0 && (
@@ -415,13 +415,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
           <p className="k cl-lk">Ils te doivent</p>
           <div className="cl-rows">
             {owe.map((c) => (
-              <div key={c.name} className="fa-crow">
-                <LigneClient c={c} />
-                <Link href={factureDe(c.name)} className="fa-clink" aria-label={`La facture du mois de ${c.name}`}>
-                  <Ic n="doc" className="" />
-                  Facture
-                </Link>
-              </div>
+              <LigneClient key={c.name} c={c} />
             ))}
           </div>
         </>
