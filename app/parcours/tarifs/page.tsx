@@ -63,7 +63,7 @@ function Tarifs() {
       <ObHead
         retour={retour}
         n={2}
-        title="Tes prix"
+        title={retour ? "Mes prix" : "Tes prix"}
         sub={commune !== null ? "Ta pension est fixée. Ajoute le prix de tes cours si tu en donnes." : "Ce que chaque propriétaire te paie par mois. Ensuite, elle est comptée chaque mois, sans que tu la notes."}
       />
       {commune !== null ? (

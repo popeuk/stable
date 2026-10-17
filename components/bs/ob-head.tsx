@@ -16,7 +16,7 @@ export function ObHead({ n, title, sub, retour }: { n: number; title: string; su
       <>
         <Link href={`/${retour}`} className="ar-obh">
           <Ic n="back" className="" />
-          {retour === "chevaux" ? "Mes chevaux" : "Moi"}
+          {({ chevaux: "Mes chevaux", ecurie: "Mon écurie", prestations: "Mes prix" } as Record<string, string>)[retour] ?? "Réglages"}
         </Link>
         <h1 className="ar-t1" style={{ marginTop: 14 }}>
           {title}

@@ -58,3 +58,32 @@
   .carnet .cn-side { background: var(--sheet); border-right: 1px solid var(--line); }
   .carnet .tb a[aria-current="page"]::before { display: none; }
 }
+
+/* ---------- Proposition de navigation (?nav=2) ---------- */
+/* L'en-tête : le retour dit où il mène ; à droite le bilan chiffré et la roue. */
+.carnet .hd2 { gap: 8px; min-height: 52px; padding-right: 12px; }
+.carnet .hd2-sp { flex: 1; }
+.carnet .hd2 .wm { white-space: nowrap; }
+.carnet .hd2-back { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; margin-left: -8px; padding-right: 6px; font-size: 14.5px; font-weight: 650; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.carnet .hd2-back svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .hd2-bilan { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px 0 12px; border-radius: 19px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); text-decoration: none; font-size: 13px; font-weight: 650; white-space: nowrap; }
+.carnet .hd2-bilan b { padding: 4px 9px; border-radius: 13px; background: var(--mist); font-size: 13.5px; font-weight: 780; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.carnet .hd2-bilan[aria-current="page"] { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .hd2-gear { width: 38px; height: 38px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); }
+.carnet .hd2-gear[aria-current="page"] { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .hd2-gear svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Mon écurie et Réglages : un titre, puis des cases de lignes qui disent ce qu'elles contiennent. */
+.carnet .ce { padding-bottom: 20px; }
+.carnet .ce-hd { padding: 18px 18px 4px; }
+.carnet .ce-hd h1 { margin: 0; font-size: 34px; font-weight: 760; letter-spacing: -.03em; line-height: 1; font-variation-settings: "wdth" 86; }
+.carnet .ce-hd p { margin: 6px 0 0; font-size: 14px; color: var(--ink2); }
+.carnet .ce-case { margin: 12px 12px 0; padding: 12px 14px 4px; border-radius: 16px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .ce-case h2 { margin: 0 0 2px; font-size: 13px; font-weight: 650; color: var(--ink3); }
+.carnet .ce-li { display: grid; grid-template-columns: 38px minmax(0, 1fr) 16px; gap: 12px; align-items: center; min-height: 60px; padding: 8px 0; border-bottom: 1px solid var(--line2); color: inherit; text-decoration: none; }
+.carnet .ce-li:last-child { border-bottom: 0; }
+.carnet .ce-ic { width: 38px; height: 38px; border-radius: 50%; background: var(--mist); display: flex; align-items: center; justify-content: center; }
+.carnet .ce-ic svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .ce-tx b { display: block; font-size: 16px; font-weight: 680; line-height: 1.2; }
+.carnet .ce-tx small { display: block; margin-top: 2px; font-size: 13px; line-height: 1.35; color: var(--ink2); }
+.carnet .ce-chev { width: 16px; height: 16px; fill: none; stroke: var(--ink3); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }

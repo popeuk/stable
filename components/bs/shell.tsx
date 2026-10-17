@@ -1,5 +1,6 @@
 "use client";
 
+import { ECURIE, isRoot2, useNav2, useRetour2 } from "@/components/bs/nav2";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -29,6 +30,50 @@ export function useInitiale() {
  * rond à l'initiale du gérant, qui ouvre tout ce qu'on règle rarement.
  */
 export function Header() {
+  const nav2 = useNav2();
+  return nav2 ? <Header2 /> : <Header1 />;
+}
+
+/**
+ * L'en-tête de la proposition (?nav=2) : à gauche le nom ou le retour, qui
+ * dit où il mène ; à droite « Voir mon bilan » et le chiffre du mois, puis
+ * la roue des réglages de l'app.
+ */
+function Header2() {
+  const path = usePathname() ?? "";
+  const retour = useRetour2();
+  const net = useNet();
+  const estime = useEstime();
+  const ready = useDataStore((s) => s.hydrated);
+  const tone = estime ? "" : Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "";
+  useSuiviNavigation();
+  const surBilan = under(path, BILAN);
+  const surReglages = path.startsWith("/reglages");
+  return (
+    <header className="hd hd2">
+      {isRoot2(path) ? (
+        <Link href="/accueil" className="wm">
+          be stable
+        </Link>
+      ) : (
+        <Link href={retour.href} className="hd2-back" onClick={(e) => (e.preventDefault(), retour.aller())}>
+          <Ic n="back" />
+          {retour.nom}
+        </Link>
+      )}
+      <span className="hd2-sp" />
+      <Link href="/argent" className="hd2-bilan" aria-current={surBilan ? "page" : undefined} aria-label={`Voir mon bilan : ${net < 0 ? "il te manque" : "il te reste"} ${sg(net)}`}>
+        <span>Voir mon bilan</span>
+        <b className={`num ${tone}`}>{ready ? sg(Math.round(net)) : "…"}</b>
+      </Link>
+      <Link href="/reglages" className="hd2-gear" aria-current={surReglages ? "page" : undefined} aria-label="Réglages de l’app">
+        <Ic n="gear" />
+      </Link>
+    </header>
+  );
+}
+
+function Header1() {
   const stableName = useSettingsStore((s) => s.stableName);
   const path = usePathname() ?? "";
   const retour = useRetour();
@@ -158,6 +203,7 @@ function useEstime() {
  * change, et un « +X € » qui s'envole quand de l'argent rentre).
  */
 export function TabBar() {
+  const nav2 = useNav2();
   const path = usePathname() ?? "";
   const openNoter = useUiStore((s) => s.openNoter);
   const ready = useDataStore((s) => s.hydrated);
@@ -203,7 +249,7 @@ export function TabBar() {
         >
           <Ic n="plus" />
         </button>
-        <Link href="/chevaux" aria-current={on(CLIENTS_CHEVAUX)} aria-label={`Clients${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
+        <Link href="/chevaux" aria-current={on(nav2 ? CLIENTS_CHEVAUX.filter((x) => x !== "/part" && x !== "/contacts") : CLIENTS_CHEVAUX)} aria-label={`Clients${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
           <span className="ac-ic">
             <Ic n="people" />
             {count > 0 && (
@@ -214,6 +260,12 @@ export function TabBar() {
           </span>
           <span aria-hidden="true">Clients</span>
         </Link>
+        {nav2 ? (
+          <Link href="/ecurie" aria-current={on(ECURIE)}>
+            <Ic n="horse" />
+            Mon écurie
+          </Link>
+        ) : (
         <Link href="/argent" aria-current={on(BILAN)} aria-label={`Mon mois : ${net < 0 ? "il te manque" : "il te reste"} ${sg(net)}`} className="ac-mois">
           <Ic n="chart" />
           <b className={`ac-net ${tone}`} aria-hidden="true">
@@ -225,6 +277,7 @@ export function TabBar() {
             </span>
           )}
         </Link>
+        )}
       </div>
     </nav>
   );
