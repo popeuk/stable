@@ -16,7 +16,8 @@
 .carnet .es-hero .disc { width: 200px; height: 200px; }
 .carnet .es-hero-d { display: none; }
 .carnet .es-scene { flex: 1 0 auto; display: flex; align-items: center; justify-content: center; padding: 22px 22px 8px; }
-.carnet .es-scene .ill { width: min(236px, 100%); height: auto; }
+/* L'image remplit la largeur jusqu'à 340 px, sans jamais pousser le bouton hors de l'écran (34 % de la hauteur au plus). */
+.carnet .es-scene .ill { width: min(100%, 340px, calc(34svh * 1.4)); height: auto; }
 
 /* ---------- Les chevaux ---------- */
 .carnet .es-count { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 46px; }

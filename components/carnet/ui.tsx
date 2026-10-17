@@ -137,7 +137,8 @@ export const COAT_FILTER: Record<string, string> = {
   noir: "brightness(.38) saturate(.55)",
   gris: "grayscale(1) brightness(1.32) contrast(.92)",
   isabelle: "hue-rotate(8deg) brightness(1.25) saturate(.75)",
-  pie: "grayscale(.4) brightness(1.5) contrast(.9)",
+  // Pie : presque sans teinte, pour ne pas virer au saumon, trop proche du rose de l’argent qui sort.
+  pie: "grayscale(.85) brightness(1.45) contrast(.9)",
 };
 export const coatFilter = (h?: Pick<Horse, "id"> & { coat?: string }) => COAT_FILTER[h ? coatOf(h) : "alezan"] ?? "none";
 export function Face({ horse, size, className = "" }: { horse?: Pick<Horse, "id" | "name"> & { coat?: string }; size?: number; className?: string }) {

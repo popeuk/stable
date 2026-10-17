@@ -249,7 +249,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
             <span className="cl-lab">{due > 0 ? `${qui} te doit` : `${Il} ne te doit plus rien.`}</span>
             <b className="cl-big">{due > 0 ? <CountUp value={due} fmt={eur} ms={700} /> : eur(0)}</b>
           </span>
-          {due <= 0 && <Ill fixe n={accord(nom, "gerant-rosette", "rosette")} className="cl-ros" />}
+          {due <= 0 && <Ill n="rosette" className="cl-ros" />}
         </div>
         {vientDePayer && <p className="cl-cnt">Déjà compté dans ton mois.</p>}
         {seance && due > 0 && ouvertes.length > 0 && (

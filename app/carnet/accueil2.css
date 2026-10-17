@@ -213,7 +213,10 @@
 
 /* L'encart mon-ecurie.fr réduit, en tout dernier (téléphone) */
 @media (max-width: 1023px) {
-  .carnet .ac-acc .ac-promo .promo.small .art { height: 96px; }
+  /* Bande de 120 px calée sur l'épingle, le visage et le téléphone : rien de coupé qui compte. */
+  .carnet .ac-acc .ac-promo .promo.small .art { height: 120px; }
+  .carnet .ac-acc .ac-promo .promo.small .art .ill { object-position: 50% 7%; transform-origin: 57% 12%; }
+  .carnet .ac-acc .ac-promo .promo.small .ping { left: 57%; top: 15%; }
   .carnet .ac-acc .ac-promo .promo.small strong { font-size: 17px; }
   .carnet .ac-acc .ac-promo .promo.small .bd { gap: 6px; padding: 12px 16px 14px; }
 }

@@ -220,9 +220,13 @@
 .carnet .stories .stage { position: relative; border: 0; background: none; padding: 0; cursor: pointer; text-align: left; overflow: hidden; }
 .carnet .stories .slide { position: absolute; inset: 0; display: grid; grid-template-rows: 1fr auto; padding: 14px 22px 0; opacity: 0; transition: opacity .6s var(--ease); }
 .carnet .stories .slide.on { opacity: 1; }
-.carnet .stories .art { position: relative; overflow: hidden; }
-.carnet .stories .art .ill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: bottom; transform: scale(1.02); transition: transform 7s var(--slow); }
-.carnet .stories .slide.on .art .ill { transform: scale(1.09); }
+/* L'image tient dans la scène sans dépasser (contain), posée en bas, avec un
+   souffle avant le titre ; .art-fit a le format exact de l'image, pour que la
+   lueur (soleil, lampe) se pose sur le dessin. */
+.carnet .stories .art { position: relative; overflow: hidden; container-type: size; margin-bottom: 14px; }
+.carnet .stories .art-fit { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; width: min(100cqw, calc(100cqh * var(--r))); aspect-ratio: var(--r); transform: scale(1.02); transform-origin: 50% 100%; transition: transform 7s var(--slow); }
+.carnet .stories .slide.on .art-fit { transform: scale(1.09); }
+.carnet .stories .art .ill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .carnet .stories strong { display: block; font-size: 32px; font-weight: 760; letter-spacing: -.03em; line-height: 1; font-variation-settings: "wdth" 86; color: var(--ink); text-wrap: balance; }
 .carnet .stories .tx span { display: block; font-size: 15.5px; line-height: 1.45; color: var(--ink2); margin-top: 10px; }
 .carnet .stories .tx > * { opacity: 0; transform: translateY(12px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
