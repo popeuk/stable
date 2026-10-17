@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
+import { SaFormule } from "@/components/bs/formule";
 import { ClientGate } from "@/components/ui/client-gate";
 import { esc } from "@/components/bs/ui";
 import { retirer as retirerLigne } from "@/components/bs/retirer";
@@ -267,6 +268,8 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           </button>
         </p>
       </div>
+
+      <SaFormule nom={nom} role={role} />
 
       <div className="cl-blk">
         <h3>

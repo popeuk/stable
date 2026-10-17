@@ -41,11 +41,12 @@ export function seriesDates(start: ISODate, repeat: Repeat, until?: ISODate): IS
  */
 export const isEmptySeance = (s: Pick<Seance, "participants" | "horseIds">) => s.participants.length === 0 && s.horseIds.length === 0;
 
-/** Combien de personnes paient : présentes, plus les absents facturés. */
+/** Combien de personnes paient : présentes, plus les absents facturés. Un cavalier au forfait a déjà payé. */
 export function payingCount(s: Seance): number {
   if (s.participants.length === 0) return s.horseIds.length;
-  if (s.status !== "done") return s.participants.length;
-  return s.participants.filter((p) => p.present !== false || s.chargeAbsent).length;
+  const aLaSeance = s.participants.filter((p) => !p.forfait);
+  if (s.status !== "done") return aLaSeance.length;
+  return aLaSeance.filter((p) => p.present !== false || s.chargeAbsent).length;
 }
 
 /** Ce que la séance rapporte : prévu tant qu'elle n'est pas faite, réel ensuite. */
@@ -74,7 +75,7 @@ export function revenuesForSeance(
     }
     return out;
   }
-  const paying = s.participants.filter((p) => p.present !== false || s.chargeAbsent);
+  const paying = s.participants.filter((p) => !p.forfait && (p.present !== false || s.chargeAbsent));
   paying.forEach((p, i) => {
     // Un cavalier sans cheval : la recette est à lui, hors des tickets des chevaux (horseId vide).
     const horseId = p.horseId ?? s.horseIds[i % Math.max(1, s.horseIds.length)] ?? "";

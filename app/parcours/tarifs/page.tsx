@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Face, Ic, Tip } from "@/components/carnet/ui";
 import { ObHead } from "@/components/bs/ob-head";
+import { ForfaitOffre } from "@/components/bs/formule";
 import { changerPensionCommune, estAMoi, pensionCommune, useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
@@ -108,7 +109,8 @@ function Tarifs() {
             ["entrainement", "Travail du cheval", "la séance"],
           ] as const
         ).map(([k, l, s]) => (
-          <div key={k} className="ar-ln">
+          <div key={k} className="ar-ln-g">
+            <div className="ar-ln">
             <span className="pic">
               <Ic n="clock" className="ar-ico" />
             </span>
@@ -118,13 +120,16 @@ function Tarifs() {
             </span>
             <input className="inl" inputMode="decimal" defaultValue={montantEnTexte(tariffs[k])} placeholder="0" aria-label={`${l}, euros`} onChange={(e) => setTariff(k, lireMontant(e.target.value) || undefined)} />
             <i>€</i>
+            </div>
+            <ForfaitOffre tarif={k} />
           </div>
         ))}
       </div>
       {autres.length > 0 && (
         <div className="ar-lines" style={{ marginTop: 0 }}>
           {autres.map((x) => (
-            <div key={x.id} className="ar-ln">
+            <div key={x.id} className="ar-ln-g">
+              <div className="ar-ln">
               <span className="pic">
                 <Ic n="clock" className="ar-ico" />
               </span>
@@ -136,6 +141,8 @@ function Tarifs() {
               <button type="button" className="ar-ln-x" aria-label={`Retirer ${x.label}`} onClick={() => (removePrestation(x.id), setAjoutees((a) => a.filter((i) => i !== x.id)))}>
                 <Ic n="x" className="" />
               </button>
+              </div>
+              <ForfaitOffre prestationId={x.id} />
             </div>
           ))}
         </div>

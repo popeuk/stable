@@ -342,3 +342,25 @@
 .carnet .ar-new .ar-mm-f { height: 52px; }
 .carnet .ar-new .ar-mm-f input { font-size: 22px; }
 .carnet .ar-new-go { display: flex; gap: 8px; }
+
+/* Les forfaits (components/bs/formule.tsx) : sous un cours, son prix au mois et à l'année. */
+.carnet .ar-ln-g { border-bottom: 1px solid var(--line2); padding-bottom: 6px; }
+.carnet .ar-ln-g .ar-ln { border-bottom: 0; }
+.carnet .fo-open { display: block; margin: -4px 0 0 48px; min-height: 36px; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 650; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
+.carnet .fo { margin: 0 0 6px 48px; display: grid; gap: 8px; }
+.carnet .fo-l { display: grid; grid-template-columns: minmax(0, 1fr) 150px; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 640; color: var(--ink2); }
+.carnet .fo-f { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 10px; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .fo-f:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
+.carnet .fo-f input { flex: 1; min-width: 0; width: 0; height: 100%; border: 0; background: none; padding: 0; outline: none; font: inherit; font-size: 15px; font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+.carnet .fo-f input::placeholder { color: var(--ink3); font-weight: 500; }
+.carnet .fo-f i { flex: none; font-style: normal; font-size: 12px; font-weight: 600; color: var(--ink3); }
+.carnet .fo-h { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--ink3); }
+
+/* Sa formule, sur la fiche d'un client. */
+.carnet .fo-row { padding: 12px 0 4px; border-bottom: 1px solid var(--line2); display: grid; gap: 8px; }
+.carnet .fo-row:last-child { border-bottom: 0; }
+.carnet .fo-row > b { font-size: 15px; font-weight: 680; }
+.carnet .fo-row .seg button { min-height: 44px; font-variant-numeric: tabular-nums; }
+.carnet .fo-row .cl-auto { margin: 0; }
+.carnet .fo-fois { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink2); }
+.carnet .fo-fois .chip { min-height: 40px; }

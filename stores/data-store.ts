@@ -30,6 +30,7 @@ import { compteurAppareil, facturesEnregistrees, noterCompteur, sousVerrou } fro
 import { ecrituresFaites } from "@/lib/account/vault";
 import { scopedKey } from "@/lib/account/session";
 import { revenuesForSeance } from "@/lib/domain/seances";
+import { SAISON_MOIS, couvreMois, ensureForfaits, marquerForfaits, moisPlus } from "@/lib/domain/forfaits";
 import { sansPrixDExemple } from "@/lib/domain/ajouter";
 import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
@@ -182,6 +183,13 @@ interface DataState extends StableData {
   updatePrestation: (id: string, patch: Partial<Omit<Prestation, "id">>) => void;
   /** Retire une prestation jamais utilisée ; sinon la met en pause (l'historique reste). */
   removePrestation: (id: string) => "supprimee" | "en_pause";
+  /**
+   * La formule d'un cavalier pour un cours, à partir du mois en cours : à la
+   * séance, au mois ou à l'année (en `fois` paiements), au prix du cours.
+   * Le forfait d'avant s'arrête le mois précédent ; commencé ce mois-ci, il
+   * est retiré avec ses échéances. Les séances à venir suivent.
+   */
+  setFormule: (personId: string, prestationId: string, choix: "seance" | { kind: "mois" } | { kind: "annee"; fois: number }, today?: string) => void;
   /** Crée une séance, ou une série (une séance par date). */
   addSeances: (base: Omit<Seance, "id" | "date" | "rev" | "status" | "seriesId">, dates: string[]) => void;
   /** Modifie une séance ; la portée reporte seulement ce qui a changé. */
@@ -416,7 +424,7 @@ export const useDataStore = create<DataState>()(
         set((s) => ({
           revenues: s.revenues.filter((r) => r.id !== rid),
           // Une pension auto-postée supprimée ne revient jamais.
-          autopilotDismissed: rid.startsWith("rev-pension-")
+          autopilotDismissed: rid.startsWith("rev-pension-") || rid.startsWith("rev-forfait-")
             ? [...(s.autopilotDismissed ?? []), rid]
             : s.autopilotDismissed,
         }));
@@ -622,7 +630,8 @@ export const useDataStore = create<DataState>()(
         set((s) => {
           // Les mois où l'app n'a pas été ouverte sont rattrapés, sans doublon.
           const depuis = premierMoisARattraper(s, today, s.pensionsAu);
-          const pensions = ensurePensions(s, today, s.autopilotDismissed ?? [], depuis);
+          // Les pensions des chevaux, puis les échéances des forfaits des cavaliers.
+          const pensions = [...ensurePensions(s, today, s.autopilotDismissed ?? [], depuis), ...ensureForfaits(s, today, STABLE_ID, s.autopilotDismissed ?? [], depuis)];
           const pensionsAu = today.slice(0, 7);
           const { events, advanced } = materializeRhythms(
             s.rhythms ?? [],
@@ -845,10 +854,37 @@ export const useDataStore = create<DataState>()(
         return "supprimee";
       },
 
+      setFormule: (personId, prestationId, choix, today = localToday()) => {
+        set((s) => {
+          const mk = today.slice(0, 7);
+          const prest = (s.prestations ?? []).find((p) => p.id === prestationId);
+          let abonnements = s.abonnements ?? [];
+          let revenues = s.revenues;
+          const cur = abonnements.find((a) => a.personId === personId && a.prestationId === prestationId && couvreMois(a, mk));
+          if (cur) {
+            if (cur.debut >= mk) {
+              abonnements = abonnements.filter((a) => a.id !== cur.id);
+              revenues = revenues.filter((r) => r.abonnementId !== cur.id);
+            } else abonnements = abonnements.map((a) => (a.id === cur.id ? { ...a, fin: moisPlus(mk, -1) } : a));
+          }
+          if (choix !== "seance" && prest) {
+            const amount = choix.kind === "mois" ? prest.forfaitMois : prest.forfaitAnnee;
+            if (amount && amount > 0)
+              abonnements = [
+                ...abonnements,
+                { id: id("abo"), personId, prestationId, kind: choix.kind, amount, debut: mk, ...(choix.kind === "annee" ? { fois: choix.fois, mois: prest.saisonMois ?? SAISON_MOIS } : {}) },
+              ];
+          }
+          const seances = (s.seances ?? []).map((x) => (x.status === "planned" && x.date.slice(0, 7) >= mk ? marquerForfaits(x, abonnements) : x));
+          return { abonnements, revenues, seances };
+        });
+        get().runAutopilot(today);
+      },
+
       addSeances: (base, dates) =>
         set((s) => {
           const seriesId = dates.length > 1 ? id("serie") : undefined;
-          const created: Seance[] = dates.map((date) => ({ ...base, id: id("seance"), date, status: "planned", seriesId, rev: 1 }));
+          const created: Seance[] = dates.map((date) => marquerForfaits({ ...base, id: id("seance"), date, status: "planned", seriesId, rev: 1 }, s.abonnements));
           return { seances: [...(s.seances ?? []), ...created] };
         }),
 
@@ -868,7 +904,7 @@ export const useDataStore = create<DataState>()(
               void _d;
               const next: Seance = { ...x, ...(x.id === sid ? patch : rest), rev: x.rev + 1 };
               if (shift && x.id !== sid) next.date = addDaysIso(x.date, shift);
-              return next;
+              return next.status === "planned" ? marquerForfaits(next, s.abonnements) : next;
             }),
           };
         }),
@@ -894,13 +930,13 @@ export const useDataStore = create<DataState>()(
           const all = s.seances ?? [];
           const target = all.find((x) => x.id === sid);
           if (!target) return s;
-          const done: Seance = {
+          const done: Seance = marquerForfaits({
             ...target,
             status: "done",
             chargeAbsent: !!chargeAbsent,
             participants: target.participants.map((p) => ({ ...p, present: presence[p.personId] ?? true })),
             rev: target.rev + 1,
-          };
+          }, s.abonnements);
           const revs = revenuesForSeance(done, s, () => id("rev"), STABLE_ID);
           for (const r of revs) enqueueMutation("insert", "revenues", { ...r });
           return {
@@ -1112,6 +1148,7 @@ export const useDataStore = create<DataState>()(
           people: [],
           // Les cours de l'exemple, sans leurs prix : seul le gérant fixe les siens.
           prestations: (demo.prestations ?? []).map((p) => ({ ...p, price: 0 })),
+          abonnements: [],
           seances: [],
           taskLists: demo.taskLists,
           tasks: [],

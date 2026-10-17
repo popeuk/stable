@@ -86,6 +86,8 @@ export interface Revenue {
   seanceId?: string;
   /** La dépense refacturée dont cette recette est le pendant. */
   rebillOf?: string;
+  /** L'échéance d'un forfait (lib/domain/forfaits) : postée seule, payée par le cavalier. */
+  abonnementId?: string;
 }
 
 export interface DirectExpense {
@@ -293,6 +295,34 @@ export interface Prestation {
   /** Seul le cours d'équitation a un format particulier ou collectif. */
   hasFormat?: boolean;
   active: boolean;
+  /** Le prix au mois, si le cours se vend aussi au forfait mensuel. */
+  forfaitMois?: number;
+  /** Le prix de la saison, si le cours se vend aussi à l'année. */
+  forfaitAnnee?: number;
+  /** Combien de mois dure la saison (10 par défaut, septembre à juin). */
+  saisonMois?: number;
+}
+
+/**
+ * La formule d'un cavalier pour un cours, quand il ne paie pas à la séance :
+ * au mois (montant par mois) ou à l'année (montant de la saison, en `fois`
+ * paiements). Sans abonnement, il paie à la séance.
+ */
+export interface Abonnement {
+  id: string;
+  personId: string;
+  prestationId: string;
+  kind: "mois" | "annee";
+  /** Au mois : par mois. À l'année : la saison entière. */
+  amount: number;
+  /** À l'année : en combien de fois. */
+  fois?: number;
+  /** À l'année : la durée de la saison, en mois. */
+  mois?: number;
+  /** Le premier mois (AAAA-MM). */
+  debut: string;
+  /** Le dernier mois inclus (AAAA-MM), quand le forfait s'arrête plus tôt. */
+  fin?: string;
 }
 
 export type SeanceStatus = "planned" | "done" | "cancelled";
@@ -304,6 +334,8 @@ export interface Participant {
   horseId?: string;
   /** Renseigné à la validation. Absent = pas encore pointé. */
   present?: boolean;
+  /** Au forfait pour ce cours : sa présence ne se paie pas en plus (lib/domain/forfaits). */
+  forfait?: boolean;
 }
 
 /**
@@ -510,6 +542,8 @@ export interface StableData {
   team?: TeamMember[];
   people?: Person[];
   prestations?: Prestation[];
+  /** Les forfaits des cavaliers (au mois, à l'année). */
+  abonnements?: Abonnement[];
   seances?: Seance[];
   taskLists?: TaskList[];
   tasks?: TeamTask[];
