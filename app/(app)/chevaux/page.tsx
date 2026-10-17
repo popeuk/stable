@@ -100,6 +100,8 @@ const deMoisDe = (p: Period) => {
   return /^[aeiouyéè]/i.test(m) ? `d’${m}` : `de ${m}`;
 };
 const MOIS_COURT = (p: Period) => cap(new Date(p.year, p.month - 1, 15).toLocaleDateString("fr-FR", { month: "long" }));
+/** La facture du mois d'un client. */
+const factureDe = (name: string) => `/facture?nom=${encodeURIComponent(name)}`;
 const ficheDe = (name: string, mois?: string) => `/client?nom=${encodeURIComponent(name)}${mois ? `&mois=${mois}` : ""}`;
 
 /** Le bandeau de fin de mois : les 3 derniers jours, puis les 5 premiers du mois suivant. */
@@ -351,6 +353,9 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
                 <th className="n">Ce mois</th>
                 <th className="n">Payé</th>
                 <th className="n">Te doit</th>
+                <th>
+                  <span className="ch-sr">Facture</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -368,6 +373,13 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
                   <td className="n">{c.total ? eur(c.total) : "·"}</td>
                   <td className="n m">{c.paid ? eur(c.paid) : "·"}</td>
                   <td className="n">{c.due > 0 ? <b>{eur(c.due)}</b> : <span className="m">à jour</span>}</td>
+                  <td>
+                    {c.total > 0 && (
+                      <Link href={factureDe(c.name)} className="lnk" onClick={(e) => e.stopPropagation()}>
+                        Facture
+                      </Link>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -402,7 +414,13 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
           <p className="k cl-lk">Ils te doivent</p>
           <div className="cl-rows">
             {owe.map((c) => (
-              <LigneClient key={c.name} c={c} />
+              <div key={c.name} className="fa-crow">
+                <LigneClient c={c} />
+                <Link href={factureDe(c.name)} className="fa-clink" aria-label={`La facture du mois de ${c.name}`}>
+                  <Ic n="doc" className="" />
+                  Facture
+                </Link>
+              </div>
             ))}
           </div>
         </>

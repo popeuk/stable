@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { esc } from "@/components/bs/ui";
 import { Check, Ic, eur, sg } from "@/components/carnet/ui";
@@ -10,6 +10,9 @@ import { useParcours } from "@/components/bs/parcours";
 import type { DayItem } from "@/lib/domain/seances";
 import { ligneDe, retirer } from "@/components/bs/retirer";
 import { localToday } from "@/lib/utils/local-date";
+import { PayeSurPlaceSheet } from "@/components/bs/moyen-paiement";
+import { dernierMoyen, enMoyen } from "@/lib/domain/paiement";
+import type { PaymentMethod } from "@/lib/domain/types";
 
 /** Le pictogramme d'un élément de la journée (créneaux, semaine sur ordinateur). */
 export function iconOf(it: DayItem): string {
@@ -136,6 +139,7 @@ function PayeSurPlace({ seance: s }: { seance: NonNullable<DayItem["seance"]> })
   const people = useDataStore((st) => st.people);
   const paid = useDataStore(useShallow((st) => (st.payments ?? []).filter((p) => p.seanceId === s.id).map((p) => p.payer)));
   const say = useUiStore((st) => st.say);
+  const [qui1, setQui1] = useState<string | null>(null);
   const today = localToday();
   const passee = s.status !== "cancelled" && (s.date < today || (s.date === today && s.end <= hhmmNow()));
   if (!passee || s.unitPrice <= 0) return null;
@@ -144,9 +148,10 @@ function PayeSurPlace({ seance: s }: { seance: NonNullable<DayItem["seance"]> })
     .map((p) => (people ?? []).find((x) => x.id === p.personId))
     .filter((p): p is NonNullable<typeof p> => !!p && !!p.paieALaSeance);
   if (!qui.length) return null;
-  const payer = (name: string) => {
-    const id = useDataStore.getState().addPayment(name, s.date.slice(0, 7), s.unitPrice, s.id);
-    say(`${esc(prenom(name))} t’a payé <strong>${eur(s.unitPrice)}</strong>.`, () => useDataStore.getState().removePayment(id));
+  const payer = (name: string, method: PaymentMethod, chequeNumber: string) => {
+    setQui1(null);
+    const id = useDataStore.getState().addPayment(name, s.date.slice(0, 7), s.unitPrice, s.id, { method, chequeNumber });
+    say(`${esc(prenom(name))} t’a payé <strong>${eur(s.unitPrice)}</strong> ${enMoyen(method)}.`, () => useDataStore.getState().removePayment(id));
   };
   return (
     <>
@@ -160,12 +165,20 @@ function PayeSurPlace({ seance: s }: { seance: NonNullable<DayItem["seance"]> })
               payé sur place
             </span>
           ) : (
-            <button type="button" className="btn line" onClick={() => payer(p.name)}>
+            <button type="button" className="btn line" onClick={() => setQui1(p.name)}>
               Payé sur place
             </button>
           )}
         </div>
       ))}
+      {qui1 && (
+        <PayeSurPlaceSheet
+          titre={`${prenom(qui1)} a payé ${eur(s.unitPrice)} sur place`}
+          defaut={dernierMoyen(useDataStore.getState().payments, qui1)}
+          onClose={() => setQui1(null)}
+          onOk={(m, chq) => payer(qui1, m, chq)}
+        />
+      )}
     </>
   );
 }

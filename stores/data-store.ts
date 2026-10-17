@@ -23,7 +23,8 @@ import { materializeRhythms } from "@/lib/domain/rhythm";
 import { ensurePensions } from "@/lib/domain/autopilot";
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
-import type { ActionState, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
+import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
+import { emettre, type Brouillon } from "@/lib/domain/facture";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
@@ -171,7 +172,14 @@ interface DataState extends StableData {
   moveTask: (id: string, listId: string) => void;
   deleteTask: (id: string) => void;
   /** Un paiement reçu (tout ou une partie du mois). Avec `seanceId` : payé sur place pour cette séance. Renvoie son id. */
-  addPayment: (payer: string, month: string, amount: number, seanceId?: string) => string;
+  addPayment: (payer: string, month: string, amount: number, seanceId?: string, how?: { method?: PaymentMethod; chequeNumber?: string }) => string;
+  /** Les infos de facturation de l'écurie (nom, adresse, SIRET, TVA). */
+  setBilling: (patch: Partial<BillingInfo>) => void;
+  /**
+   * Émet une facture : le numéro suivant de l'année, jamais réutilisé, et
+   * un contenu figé. Rend la facture enregistrée.
+   */
+  issueInvoice: (contenu: NonNullable<Brouillon["facture"]>, today: string, stableName: string) => Invoice;
   /** Retire un paiement précis (« Annuler »). */
   removePayment: (id: string) => void;
   removePayments: (payer: string, month: string) => void;
@@ -866,11 +874,33 @@ export const useDataStore = create<DataState>()(
 
       deleteTask: (tid) => set((s) => ({ tasks: (s.tasks ?? []).filter((x) => x.id !== tid) })),
 
-      addPayment: (payer, month, amount, seanceId) => {
+      addPayment: (payer, month, amount, seanceId, how) => {
         const pid = id("pay");
         const amt = Math.round(amount * 100) / 100;
-        set((s) => ({ payments: [...(s.payments ?? []), { id: pid, payer, month, amount: amt, at: new Date().toISOString(), ...(seanceId ? { seanceId } : {}) }] }));
+        const cheque = how?.method === "cheque" ? how.chequeNumber?.trim() : undefined;
+        set((s) => ({
+          payments: [
+            ...(s.payments ?? []),
+            { id: pid, payer, month, amount: amt, at: new Date().toISOString(), ...(seanceId ? { seanceId } : {}), ...(how?.method ? { method: how.method } : {}), ...(cheque ? { chequeNumber: cheque } : {}) },
+          ],
+        }));
         return pid;
+      },
+
+      setBilling: (patch) =>
+        set((s) => {
+          const b: BillingInfo = { ...(s.billing ?? {}), ...patch };
+          if (patch.rates) b.rates = { ...(s.billing?.rates ?? {}), ...patch.rates };
+          return { billing: b };
+        }),
+
+      issueInvoice: (contenu, today, stableName) => {
+        let inv: Invoice | undefined;
+        set((s) => {
+          inv = emettre(s, contenu, today, stableName, id("inv"));
+          return { invoices: [...(s.invoices ?? []), inv], invoiceSeq: { ...(s.invoiceSeq ?? {}), [String(inv.year)]: inv.seq } };
+        });
+        return inv!;
       },
 
       removePayment: (pid) => set((s) => ({ payments: (s.payments ?? []).filter((p) => p.id !== pid) })),
