@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useRef, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
+import { useParentIci } from "@/components/bs/nav";
 import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
@@ -24,13 +25,11 @@ import { localToday } from "@/lib/utils/local-date";
 import { useFeuille } from "@/components/bs/feuille";
 
 /**
- * Réglages, en six tuiles : Mon écurie (nom, boxes, équipe), Mes prix, Mes
- * frais, Mes papiers (factures, lieu, registre), Mon rappel, Mon téléphone
- * (compte, gros texte, l'app, revoir, catégories, données). Mes prix et Mes
- * frais mènent à leur écran ; les quatre autres ouvrent leur groupe seul
- * (?s=ecurie), et le retour du navigateur ramène aux tuiles. Rien qui ne fait
- * rien : pas de ligne « bientôt », pas de thème sombre, pas d'interrupteur
- * sans effet.
+ * Les pages de réglage, une par sujet (?s=…) : sous Mon écurie, Mes places,
+ * Mon équipe, Mes papiers ; sous Réglages, Mon compte, Mon rappel,
+ * Affichage, Revoir, Avancé. Le retour de l'en-tête mène à leur parent et
+ * le nomme. Sans sujet, l'adresse mène aux Réglages. Rien qui ne fait rien :
+ * pas de ligne « bientôt », pas d'interrupteur sans effet.
  */
 export default function Page() {
   return (
@@ -95,26 +94,32 @@ function Li({ title, sub, right, children }: { title: ReactNode; sub?: ReactNode
 }
 const chev = <Ic n="chev" className="chev" />;
 
-type Groupe = "ecurie" | "papiers" | "rappel" | "telephone";
-
-/** Les six tuiles : quatre ouvrent leur groupe, deux mènent à leur écran. */
-const TUILES: { id: string; g?: Groupe; href?: string; ic: string; t: string; s: string }[] = [
-  { id: "ecurie", g: "ecurie", ic: "home", t: "Mon écurie", s: "nom, places, équipe" },
-  { id: "prix", href: "/parcours/tarifs?retour=moi", ic: "euro", t: "Mes prix", s: "pension, cours" },
-  { id: "frais", href: "/parcours/factures?retour=moi", ic: "hay", t: "Mes frais", s: "foin, paille, loyer" },
-  { id: "papiers", g: "papiers", ic: "doc", t: "Mes papiers", s: "factures, registre" },
-  { id: "rappel", g: "rappel", ic: "bell", t: "Mon rappel", s: "chaque matin" },
-  { id: "telephone", g: "telephone", ic: "phone", t: "Mon téléphone", s: "garder, installer" },
-];
-const estGroupe = (x: string | null): x is Groupe => TUILES.some((t) => t.g && t.g === x);
+/**
+ * Les pages de réglages, chacune sous son parent : ce qui est l'écurie
+ * (ses places, son équipe, ses papiers) sous Mon écurie, ce qui est l'app
+ * sur ce téléphone (compte, rappel, affichage, revoir, avancé) sous Réglages.
+ */
+type Groupe = "ecurie" | "equipe" | "papiers" | "compte" | "rappel" | "affichage" | "revoir" | "avance";
+const GROUPES: Record<Groupe, { t: string; parent: "/ecurie" | "/reglages" }> = {
+  ecurie: { t: "Mes places", parent: "/ecurie" },
+  equipe: { t: "Mon équipe", parent: "/ecurie" },
+  papiers: { t: "Mes papiers", parent: "/ecurie" },
+  compte: { t: "Mon compte", parent: "/reglages" },
+  rappel: { t: "Mon rappel", parent: "/reglages" },
+  affichage: { t: "Affichage", parent: "/reglages" },
+  revoir: { t: "Revoir", parent: "/reglages" },
+  avance: { t: "Avancé", parent: "/reglages" },
+};
+/** Les anciens noms de groupe (avant la navigation du 17 octobre). */
+const ANCIENS: Record<string, Groupe> = { telephone: "compte" };
+const versGroupe = (x: string | null): Groupe | null => (x && x in GROUPES ? (x as Groupe) : x && ANCIENS[x] ? ANCIENS[x] : null);
 
 /**
- * Les anciennes adresses ouvrent la bonne tuile : /parametres/equipe, et les
- * ancres d'avant (« /moi#lieu » depuis le registre). La partie visée est
- * alors à l'écran, et l'ancienne page peut encore y faire défiler.
+ * Les anciennes adresses ouvrent la bonne page : /parametres/equipe, et les
+ * ancres d'avant (« /moi#lieu » depuis le registre).
  */
-const DEPUIS_ADRESSE: Record<string, Groupe> = { "/parametres/equipe": "ecurie", "/parametres/notifications": "rappel", "/parametres/categories": "telephone" };
-const DEPUIS_ANCRE: Record<string, Groupe> = { "#ecurie": "ecurie", "#equipe": "ecurie", "#lieu": "papiers", "#notifications": "rappel", "#categories": "telephone", "#revoir": "telephone" };
+const DEPUIS_ADRESSE: Record<string, Groupe> = { "/parametres/equipe": "equipe", "/parametres/notifications": "rappel", "/parametres/categories": "avance" };
+const DEPUIS_ANCRE: Record<string, Groupe> = { "#ecurie": "ecurie", "#equipe": "equipe", "#lieu": "papiers", "#notifications": "rappel", "#categories": "avance", "#revoir": "revoir" };
 
 function Moi() {
   const router = useRouter();
@@ -126,11 +131,19 @@ function Moi() {
   const openTournee = useUiStore((x) => x.openTournee);
   const desk = useDesk();
   const [perm, setPerm] = useState<string>(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
-  // Le groupe venu d'une ancienne adresse ; celui de ?s= passe devant.
-  const [ancre, setAncre] = useState<Groupe | null>(() => DEPUIS_ANCRE[window.location.hash] ?? DEPUIS_ADRESSE[path] ?? null);
-  const groupe = estGroupe(demande) ? demande : ancre;
-  // Ouvert depuis les tuiles : le retour revient en arrière, comme le navigateur.
-  const depuisTuiles = useRef(false);
+  // Le groupe de ?s= ; à défaut, celui d'une ancienne adresse ou ancre.
+  const [ancre] = useState<Groupe | null>(() => DEPUIS_ANCRE[window.location.hash] ?? DEPUIS_ADRESSE[path] ?? null);
+  const groupe = versGroupe(demande) ?? ancre;
+  // Le retour de l'en-tête va au parent du groupe, qu'il nomme : Mon écurie ou Réglages.
+  const poserParent = useParentIci((x) => x.poser);
+  useEffect(() => {
+    if (!groupe) {
+      router.replace("/reglages");
+      return;
+    }
+    poserParent(GROUPES[groupe].parent);
+    return () => poserParent(null);
+  }, [groupe, poserParent, router]);
   const [gros, setGros] = useState(grosTexte);
   const today = localToday();
   // L'aperçu du rappel compte comme l'accueil : séances, soins, tâches, rendez-vous.
@@ -139,28 +152,10 @@ function Moi() {
   const libres = Math.max(0, s.capacity - horses.length);
   const session = getSession();
 
-  const ouvrir = (g: Groupe) => {
-    depuisTuiles.current = true;
-    setAncre(null);
-    router.push(`${path}?s=${g}`);
-    window.scrollTo(0, 0);
-  };
-  const auxTuiles = () => {
-    setAncre(null);
-    if (depuisTuiles.current) {
-      depuisTuiles.current = false;
-      router.back();
-    } else router.replace("/moi");
-    window.scrollTo(0, 0);
-  };
-
   const ecurie = (
     <Sec delay={0.1} id="ecurie">
       <div className="li np">
-        <Li title={<label htmlFor="st-name">Nom</label>} sub="en haut de l’app" right={<input id="st-name" className="input sm" defaultValue={s.stableName} onChange={(e) => s.setIdentity({ stableName: e.target.value })} />} />
-      </div>
-      <div className="li np">
-        <Li title={<label htmlFor="st-gerant">Ton prénom</label>} sub="pour le bonjour" right={<input id="st-gerant" className="input sm" defaultValue={s.gerant} onChange={(e) => s.setIdentity({ gerant: e.target.value })} />} />
+        <Li title={<label htmlFor="st-name">Nom de l’écurie</label>} sub="si elle n’est pas encore sur mon-ecurie.fr" right={<input id="st-name" className="input sm" defaultValue={s.stableName} onChange={(e) => s.setIdentity({ stableName: e.target.value })} />} />
       </div>
       <div className="li np">
         <Li
@@ -171,7 +166,7 @@ function Moi() {
       </div>
     </Sec>
   );
-  // Les papiers de l'écurie : les factures, le lieu et le registre ; le titre de la tuile suffit.
+  // Les papiers de l'écurie : les factures, le lieu et le registre ; le titre de la page suffit.
   const papiers = (
     <LieuReglages title={null}>
       <Link href="/facturation" className="li np">
@@ -294,7 +289,7 @@ function Moi() {
           router.push("/accueil");
         }}
       >
-        <Li title="Les explications" sub="les petites bulles reviennent, et le « ? » en haut de chaque écran rouvre les explications" right={chev} />
+        <Li title="Les explications" sub="les petites bulles de chaque écran reviennent, une fois" right={chev} />
       </button>
       <button
         type="button"
@@ -312,6 +307,9 @@ function Moi() {
   const compte = (
     <Sec title="Ton compte" delay={0.1}>
       <Compte />
+      <div className="li np" style={{ marginTop: 8 }}>
+        <Li title={<label htmlFor="st-gerant">Ton prénom</label>} sub="pour le bonjour" right={<input id="st-gerant" className="input sm" defaultValue={s.gerant} onChange={(e) => s.setIdentity({ gerant: e.target.value })} />} />
+      </div>
     </Sec>
   );
   // Le gros texte vaut pour cet appareil (pas pour le compte) : il vit avec l'app du téléphone.
@@ -335,24 +333,23 @@ function Moi() {
 
   // Chaque groupe, partie par partie ; sur ordinateur, au-delà de deux parties, sur deux colonnes.
   const parties: Record<Groupe, ReactNode[]> = {
-    ecurie: [ecurie, <EquipeReglages key="equipe" />],
+    ecurie: [ecurie],
+    equipe: [<EquipeReglages key="equipe" />],
     papiers: [papiers],
+    compte: [compte],
     rappel: [rappel],
-    telephone: [compte, app, revoir, <CategoriesReglages key="categories" />, donnees],
+    affichage: [app],
+    revoir: [revoir],
+    avance: [<CategoriesReglages key="categories" />, donnees],
   };
 
   if (groupe) {
-    const tuile = TUILES.find((t) => t.g === groupe)!;
     const liste = parties[groupe].map((p, i) => <div key={i}>{p}</div>);
     const moitie = Math.ceil(liste.length / 2);
     return (
       <Screen wide={desk}>
         <div className="ec-pg">
-          <button type="button" className="lnk ec-ret" onClick={auxTuiles}>
-            <Ic n="chevL" className="" />
-            Tous les réglages
-          </button>
-          <Hello title={tuile.t} />
+          <Hello title={GROUPES[groupe].t} />
           {desk && liste.length > 2 ? (
             <div className="cols2 ec-cols">
               <div>{liste.slice(0, moitie)}</div>
@@ -367,44 +364,8 @@ function Moi() {
     );
   }
 
-  return (
-    <Screen wide={desk}>
-      <div className="ec-pg">
-        <Hello title="Réglages" />
-        <div className="ec-tuiles rise" style={{ animationDelay: "0.08s" }}>
-          {TUILES.map((t) => {
-            const dedans = (
-              <>
-                <Ic n={t.ic} className="" />
-                <span>
-                  <b>{t.t}</b>
-                  <small>{t.s}</small>
-                </span>
-              </>
-            );
-            return t.href ? (
-              <Link key={t.id} href={t.href}>
-                {dedans}
-              </Link>
-            ) : (
-              <button key={t.id} type="button" onClick={() => ouvrir(t.g!)}>
-                {dedans}
-              </button>
-            );
-          })}
-        </div>
-        {/* Sans compte, une seule ligne pour ne rien perdre ; avec un compte, rien. */}
-        {session?.kind === "locale" && (
-          <Link href="/compte/connexion?garder=1" className="ec-garde rise" style={{ animationDelay: "0.14s" }}>
-            <Ic n="user" className="" />
-            <span>Garder mes chiffres avec mon e‑mail</span>
-            {chev}
-          </Link>
-        )}
-        <div className="end" />
-      </div>
-    </Screen>
-  );
+  // Sans groupe : direction les Réglages (l'effet s'en charge).
+  return null;
 }
 
 /** Le compte : qui est connecté, sa fiche, se déconnecter. Dans la démo : créer son compte. */
@@ -431,7 +392,6 @@ function Compte() {
         </button>
       </>
     );
-  const etat = { validee: "validée", revendication_en_attente: "en vérification", creation_en_attente: "en vérification", refusee: "demande refusée", aucune: "" }[s.listing?.status ?? "aucune"];
   const qui = `${s.prenom ?? ""} ${s.nom ?? ""}`.trim();
   return (
     <>
@@ -444,9 +404,6 @@ function Compte() {
         </span>
         <span />
       </div>
-      <Link href="/ma-fiche" className="li np">
-        <Li title={s.listing ? s.listing.title : "Reprendre la fiche de mon écurie"} sub={s.listing ? `fiche mon-ecurie.fr · ${etat}` : "gratuit, 0 % de commission"} right={chev} />
-      </Link>
       <button
         type="button"
         className="li np"

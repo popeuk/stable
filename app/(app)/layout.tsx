@@ -6,12 +6,11 @@ import { AjouterDepuisIcone, BarreBureau, ClavierBureau, FeuillesDifferees, Tour
 import { ClientGate } from "@/components/ui/client-gate";
 import { MorningNudge } from "@/components/bs/morning-nudge";
 import { SessionSync } from "@/components/bs/session-sync";
-import { AideCarte, RetourOrdinateur, TitreEcran } from "@/components/bs/nav";
+import { AideCarte, TitreEcran } from "@/components/bs/nav";
+import { RetourOrdinateur } from "@/components/bs/navigation";
 import { GarderBandeau } from "@/components/bs/garder";
 import { Secours } from "@/components/bs/secours";
 import { TutoPlus } from "@/components/bs/tuto-plus";
-import { NavParam } from "@/components/bs/nav2";
-import { Suspense } from "react";
 
 /**
  * La coque de l'app, dans le carnet illustré. Au téléphone : une colonne au
@@ -54,9 +53,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <TourneeDifferee />
         <ClavierBureau />
         <TutoPlus />
-        <Suspense fallback={null}>
-          <NavParam />
-        </Suspense>
       </ClientGate>
       <ToastHost />
       <PwaInstallPrompt />

@@ -59,7 +59,7 @@
   .carnet .tb a[aria-current="page"]::before { display: none; }
 }
 
-/* ---------- Proposition de navigation (?nav=2) ---------- */
+/* ---------- La navigation : en-tête, Mon écurie, Réglages ---------- */
 /* L'en-tête : le retour dit où il mène ; à droite le bilan chiffré et la roue. */
 .carnet .hd2 { gap: 8px; min-height: 52px; padding-right: 12px; }
 .carnet .hd2-sp { flex: 1; }
@@ -111,3 +111,4 @@
 .carnet .ce-ent-ok b { font-size: 15.5px; color: var(--ink); }
 .carnet .ce-ent-ok small { font-size: 13px; }
 .carnet .ce-ent-ok .btn { justify-self: start; margin-top: 8px; }
+@media (min-width: 1024px) { .carnet .ce { max-width: 720px; } }

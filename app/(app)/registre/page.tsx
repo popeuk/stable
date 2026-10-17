@@ -180,7 +180,7 @@ function Registre() {
           <p className="note">La feuille s’imprime déjà. Ces cases resteront vides, tu pourras les remplir à la main ou ici.</p>
           <div className="rows">
             {hGaps.length > 0 && (
-              <Link href="/moi#lieu" className="li np">
+              <Link href="/moi?s=papiers" className="li np">
                 <span>
                   <b>Ton lieu de détention</b>
                   <small>{hGaps.map((g) => HOLDING_GAP_LABEL[g]).join(" · ")}</small>

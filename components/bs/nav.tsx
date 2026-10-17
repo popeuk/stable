@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { create } from "zustand";
@@ -14,44 +14,12 @@ import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
  * retour. Il revient à l'écran d'avant quand on vient de l'app, sinon au
  * parent logique (un ticket ramène aux chevaux, un réglage à « Moi »).
  */
-export const ROOTS = ["/accueil", "/planning", "/equipe", "/chevaux", "/argent"];
-
-/** Les écrans de Mon mois : l'onglet reste allumé sur chacun. */
-export const BILAN = ["/argent", "/pilotage", "/seuil", "/scenarios", "/mois"];
+/** Les écrans du bilan : « Voir mon bilan » reste cerné sur chacun. */
+export const BILAN = ["/argent", "/pilotage", "/seuil", "/scenarios", "/part", "/prestations"];
 /** Les écrans de l'onglet Clients (clients et leurs chevaux). */
-export const CLIENTS_CHEVAUX = ["/chevaux", "/clients", "/client", "/ticket", "/part", "/cheval", "/contacts"];
-export const under = (path: string, list: string[]) => list.some((m) => path === m || path.startsWith(m + "/") || path.startsWith(m + "?"));
-
-const PARENTS: [string, string][] = [
-  ["/ticket", "/chevaux"],
-  ["/part", "/chevaux"],
-  ["/valider", "/planning"],
-  ["/scenarios/nouveau", "/scenarios"],
-  ["/scenarios", "/argent"],
-  ["/seuil", "/argent"],
-  ["/pilotage", "/argent"],
-  ["/parametres", "/moi"],
-  ["/registre", "/moi"],
-  ["/facturation", "/moi"],
-  ["/facture", "/chevaux?vue=clients"],
-  ["/client", "/chevaux?vue=clients"],
-  ["/saisie", "/accueil"],
-];
-
+export const CLIENTS_CHEVAUX = ["/chevaux", "/clients", "/client", "/ticket", "/cheval", "/facture"];
 const clean = (p: string) => p.replace(/(.)\/$/, "$1");
-export const isRoot = (p: string) => ROOTS.includes(clean(p));
-const parentOf = (p: string) => PARENTS.find(([m]) => clean(p).startsWith(m))?.[1] ?? "/accueil";
-
-/** La pile des écrans visités dans l'app, pour un retour fidèle. */
-const pile: string[] = [];
-
-export function useSuiviNavigation() {
-  const path = usePathname() ?? "";
-  useEffect(() => {
-    if (pile[pile.length - 2] === path) pile.pop();
-    else if (pile[pile.length - 1] !== path) pile.push(path);
-  }, [path]);
-}
+export const under = (path: string, list: string[]) => list.some((m) => path === m || path.startsWith(m + "/") || path.startsWith(m + "?"));
 
 /**
  * Le parent que l'écran ouvert pose lui-même, quand son adresse ne suffit
@@ -61,15 +29,6 @@ export const useParentIci = create<{ href: string | null; poser: (href: string |
   href: null,
   poser: (href) => set({ href }),
 }));
-
-export function useRetour() {
-  const router = useRouter();
-  const path = usePathname() ?? "";
-  return () => {
-    if (pile.length > 1) router.back();
-    else router.push(useParentIci.getState().href ?? parentOf(path));
-  };
-}
 
 /* ---------- L'aide de l'écran ---------- */
 
@@ -87,7 +46,7 @@ export const useAideIci = create<{ ici: string | null; poser: (id: string | null
   ici: null,
   poser: (id) => set({ ici: id }),
 }));
-function useAide() {
+export function useAide() {
   const path = usePathname() ?? "";
   const ici = useAideIci((s) => s.ici);
   // L'onglet visible d'abord ; sinon l'adresse, avec son ?vue= (Clients ou Chevaux), lue dans le navigateur.
@@ -270,31 +229,12 @@ export function AideBulle() {
   );
 }
 
-/** Ordinateur : la ligne de retour au-dessus d'un écran qui n'est pas un onglet. */
-export function RetourOrdinateur() {
-  const { path, aide } = useAide();
-  const retour = useRetour();
-  const racine = isRoot(path);
-  if (racine && !aide) return null;
-  return (
-    <div className="cn-back-desk">
-      {!racine && (
-        <button type="button" onClick={retour}>
-          <Ic n="back" />
-          Retour
-        </button>
-      )}
-      <AideBouton className="help" />
-    </div>
-  );
-}
-
 /** Le titre court d'un écran, pour l'en-tête hors des onglets. */
 const TITRES: [string, string][] = [
   ["/valider", "Ce qui est fait"],
   ["/ticket", "Fiche du cheval"],
   ["/part", "Les frais de l’écurie"],
-  ["/argent", "Mon mois"],
+  ["/argent", "Mon bilan"],
   ["/pilotage", "Sur plusieurs mois"],
   ["/seuil", "Combien de chevaux"],
   ["/scenarios", "Et si… ?"],
@@ -306,6 +246,7 @@ const TITRES: [string, string][] = [
   ["/equipe", "Tâches de l’équipe"],
   ["/prestations", "Mes prix"],
   ["/ma-fiche", "Ma fiche"],
+  ["/reglages", "Réglages"],
   ["/moi", "Réglages"],
   ["/parametres", "Réglages"],
   ["/registre", "Registre d’élevage"],
@@ -325,8 +266,9 @@ const ONGLETS: [string, string][] = [
   ["/maintenant", "Accueil"],
   ["/planning", "Planning"],
   ["/chevaux", "Clients"],
-  ["/ecurie", "Clients"],
-  ["/mois", "Mon mois"],
+  ["/ecurie", "Mon écurie"],
+  ["/argent", "Mon bilan"],
+  ["/mois", "Mon bilan"],
 ];
 export function TitreEcran() {
   const path = usePathname() ?? "";
@@ -370,13 +312,9 @@ function useSessionKind() {
 }
 
 /**
- * La liste courte du rond en haut à droite au téléphone, et de « Ton
- * écurie » dans la barre latérale sur ordinateur : la fiche, les tarifs,
- * l'équipe, les réglages, et les premiers pas tant qu'ils ne sont pas finis
- * (en tête, « Garder mes chiffres » sans compte). Le reste de l'ancien Menu
- * a trouvé sa place : la loupe de l'en-tête pour chercher, séances à
- * ce qui a compté et tâches en bas du Planning, bilans dans Mon mois,
- * explications, tournée et guide dans Réglages.
+ * Les lignes de la barre latérale et de la palette, sur ordinateur, sous
+ * « Voir mon bilan » : les réglages, et les premiers pas tant qu'ils ne
+ * sont pas finis (en tête, « Garder mes chiffres » sans compte).
  */
 export function usePlusItems(): PlusItem[] {
   const parcours = useSettingsStore((s) => s.parcours);
@@ -385,10 +323,7 @@ export function usePlusItems(): PlusItem[] {
   const installe = parcours.chevaux && parcours.tarifs && parcours.factures;
   return useMemo(() => [
     ...(kind === "locale" ? [{ id: "garder", ic: "user", label: "Garder mes chiffres", sub: "Ton e-mail, un code, et tout passe dans ton compte", href: "/compte/connexion?garder=1", tone: "attn" as const }] : []),
-    { id: "fiche", ic: "flag", label: "Ma fiche mon-ecurie.fr", sub: "Ce que voient les cavaliers qui cherchent", href: "/ma-fiche" },
-    { id: "tarifs", ic: "euro", label: "Mes prix", sub: "Pensions, cours, balades, soins refacturés", href: "/prestations" },
-    { id: "equipe", ic: "people", label: "Mon équipe", sub: "Qui fait quoi", href: "/parametres/equipe" },
-    { id: "reglages", ic: "gear", label: "Réglages", sub: "Écurie, rappel du matin, explications, guide", href: "/moi" },
+    { id: "reglages", ic: "gear", label: "Réglages", sub: "Compte, rappel, affichage, explications", href: "/reglages" },
     // Sans compte d'étapes : ce qu'il reste à faire, dit simplement.
     ...(pas < 6 ? [{ id: "parcours", ic: "bulb", label: "Tes premiers pas", sub: installe ? "Le reste vient en utilisant l’app" : "Trois questions sur ton écurie", href: "/parcours", tone: "attn" as const }] : []),
   ], [kind, pas, installe]);

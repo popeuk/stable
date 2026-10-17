@@ -10,8 +10,7 @@ import { getSession, type Listing } from "@/lib/account/session";
 import { api, type StableHit } from "@/lib/account/api";
 
 /**
- * Proposition de navigation (?nav=2) : les deux écrans qui remplacent
- * « Réglages ». Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
+ * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
  * qu'elle paie, ses gens, ses papiers) ; Réglages ne parle que de l'app sur
  * ce téléphone. Chaque ligne dit ce qu'il y a dedans avant qu'on l'ouvre.
  */
@@ -200,7 +199,7 @@ export function MonEcurie() {
       <Case
         titre="Les gens"
         lignes={[
-          { href: "/moi?s=ecurie", ic: "people", t: "Mon équipe", s: noms(team.filter((m) => m.role === "employe").map((m) => m.name), "Ceux qui travaillent avec toi") },
+          { href: "/moi?s=equipe", ic: "people", t: "Mon équipe", s: noms(team.filter((m) => m.role === "employe").map((m) => m.name), "Ceux qui travaillent avec toi") },
           { href: "/contacts", ic: "user", t: "Les pros", s: noms(team.filter((m) => m.role === "prestataire").map((m) => m.name), "Maréchal, vétérinaire, dentiste…") },
         ]}
       />
@@ -233,16 +232,16 @@ export function Reglages() {
       <Case
         titre="Toi"
         lignes={[
-          { href: "/moi?s=telephone", ic: "key", t: "Mon compte", s: compte },
+          { href: "/moi?s=compte", ic: "key", t: "Mon compte", s: compte },
           { href: "/moi?s=rappel", ic: "bell", t: "Mon rappel", s: `${reminder ? reminder.replace(":", " h ") : "Le matin"}${evening ? ", et le soir s’il reste quelque chose" : ""}` },
         ]}
       />
       <Case
         titre="L’app"
         lignes={[
-          { href: "/moi?s=telephone", ic: "phone", t: "Affichage", s: "Gros texte, installer l’app sur l’écran d’accueil" },
-          { href: "/moi?s=telephone", ic: "help", t: "Revoir", s: "Les explications, la tournée du matin" },
-          { href: "/moi?s=telephone", ic: "gear", t: "Avancé", s: "Catégories, sauvegarde, tout effacer" },
+          { href: "/moi?s=affichage", ic: "phone", t: "Affichage", s: "Gros texte, installer l’app sur l’écran d’accueil" },
+          { href: "/moi?s=revoir", ic: "help", t: "Revoir", s: "Les explications, la tournée du matin" },
+          { href: "/moi?s=avance", ic: "gear", t: "Avancé", s: "Catégories, sauvegarde, tout effacer" },
         ]}
       />
     </div>
