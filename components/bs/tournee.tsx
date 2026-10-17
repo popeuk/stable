@@ -192,7 +192,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                 <div>
                   <p className="ac-dt">{dt}</p>
                   <h2>Aujourd’hui</h2>
-                  <p>Rien à faire, juste regarder.</p>
+                  <p>{restants.some((i) => i.type === "task") ? "Ce qui t’attend. Les tâches se cochent au planning." : "Rien à cocher, juste regarder."}</p>
                 </div>
               </div>
               <div className="ac-scene">
@@ -206,7 +206,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                       <b>{it.title}</b>
                       {it.sub && <small>{it.sub}</small>}
                     </span>
-                    <span className="amt">{it.money ? <Money v={it.money} /> : null}</span>
+                    <span className="amt">{it.money ? <Money v={it.money} prevu /> : null}</span>
                   </div>
                 ))}
               </div>
@@ -252,12 +252,12 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
 
 /** Le compteur de la tournée : la gérante assise dessus, il compte depuis la dernière tournée. */
 function MoisQuiCompte({ depuis }: { depuis: number }) {
-  const { net, objective } = useMois();
+  const { net, objective, estime } = useMois();
   // Rien n'a bougé depuis la dernière tournée : le chiffre compte depuis zéro.
   const [from] = useState(Math.round(net - depuis) === 0 ? 0 : depuis);
   const v = useCompte(from, net, { ms: 1400, delay: 350 });
   const vpct = objective > 0 ? Math.max(0, Math.min(100, (v / objective) * 100)) : 0;
-  const tone = Math.round(v) > 0 ? "in" : Math.round(v) < 0 ? "out" : "";
+  const tone = estime ? "" : Math.round(v) > 0 ? "in" : Math.round(v) < 0 ? "out" : "";
   return (
     <div className="perch ac-tperch">
       <div className="sitw">
@@ -265,7 +265,7 @@ function MoisQuiCompte({ depuis }: { depuis: number }) {
       </div>
       <div className="card moncard ac-cpt nobag" role="group" aria-label={`Ce mois, ${net < 0 ? "il te manque" : "il te reste"} ${sg(net)}`}>
         <span className="ac-tx">
-          <span className="k">{v < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"}</span>
+          <span className="k">{estime ? "Si tout est payé, ce mois" : v < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"}</span>
           <span className={`big ${tone}`}>
             <span className="num">{sg(v)}</span>
           </span>

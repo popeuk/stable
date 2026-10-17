@@ -10,6 +10,7 @@ import { eur, signed } from "@/components/bs/ui";
 import { useUiStore } from "@/stores/ui-store";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
+import { estEstimation } from "@/lib/domain/estimation";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { billTotals, billsFor } from "@/lib/domain/billing";
 import { suggestions } from "@/lib/domain/leviers";
@@ -53,6 +54,7 @@ export function useNavCounts() {
       due: billTotals(billsFor(data, period)).due,
       acts: suggestions(data, period, capacity).filter((x) => x.status !== "faite" && x.status !== "ecartee").length,
       net: monthBreakdown(data, period).net,
+      estime: estEstimation(data, period),
       tasks: (data.tasks ?? []).filter((t) => t.listId !== done).length,
       horses: data.horses.filter((h) => !h.isArchived).length,
       clients: (data.people ?? []).filter((p) => p.active).length,
@@ -88,7 +90,7 @@ export function Sidebar() {
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
     { href: "/planning", ic: "cal", label: "Planning", key: "P", on: under(path, ["/planning", "/valider", "/equipe"]) },
     { href: "/chevaux", ic: "people", label: "Clients", key: "C", on: under(path, CLIENTS_CHEVAUX), badge: count ? String(count) : undefined, cls: "attn" },
-    { href: "/argent", ic: "chart", label: "Mon mois", key: "M", on: under(path, BILAN) && !vue, badge: signed(c.net), cls: c.net > 0 ? "in" : c.net < 0 ? "out" : undefined },
+    { href: "/argent", ic: "chart", label: "Mon mois", key: "M", on: under(path, BILAN) && !vue, badge: signed(c.net), cls: c.estime ? undefined : c.net > 0 ? "in" : c.net < 0 ? "out" : undefined },
   ];
   return (
     <aside className="cn-side" aria-label="Navigation">
@@ -303,7 +305,7 @@ function PaletteInner() {
       { id: "g-accueil", group: "Aller à", label: "Accueil", ic: "home", hint: "G A", run: go("/accueil") },
       { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
       { id: "g-chevaux", group: "Aller à", label: "Clients", sub: "tes clients et leurs chevaux", ic: "people", hint: "G C", run: go("/chevaux") },
-      { id: "g-mois", group: "Aller à", label: "Mon mois", sub: signed(c.net), money: c.net, ic: "chart", hint: "G M", run: go("/argent") },
+      { id: "g-mois", group: "Aller à", label: "Mon mois", sub: signed(c.net), money: c.estime ? undefined : c.net, ic: "chart", hint: "G M", run: go("/argent") },
       ...plus.map((it) => ({ id: `r-${it.id}`, group: "Aller à", label: it.label, sub: it.sub, ic: it.ic, hint: HINTS[it.id], run: go(it.href ?? "/moi") })),
       { id: "g-recherche", group: "Aller à", label: "Chercher", sub: "un cheval, un client", ic: "search", run: go("/recherche") },
       { id: "g-valider", group: "Aller à", label: "Ce qui a compté", sub: "dans Planning", ic: "ck", hint: "G V", run: go("/valider") },

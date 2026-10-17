@@ -156,7 +156,7 @@ function Equipe() {
               {t.comments.length}
             </span>
           )}
-          {t.cost ? <span className="out">{sg(-t.cost)}</span> : null}
+          {t.cost ? <span className={isDone(t) ? "out" : ""}>{sg(-t.cost)}</span> : null}
           <span className="jr-ws">
             {t.forWho.map((w) => (
               <span key={w} className="jr-who" title={w}>
@@ -188,7 +188,7 @@ function Equipe() {
             )}
           </small>
         </span>
-        {t.cost ? <span className="pill out">{sg(-t.cost)}</span> : <Ic n="chev" className="cn-ic sm chev" />}
+        {t.cost ? <span className={`pill${isDone(t) ? " out" : ""}`}>{sg(-t.cost)}</span> : <Ic n="chev" className="cn-ic sm chev" />}
       </button>
     );
   };
@@ -203,7 +203,7 @@ function Equipe() {
           </div>
         )}
         <div className="over rise" style={{ animationDelay: ".02s" }}>
-          <span>{data.team?.length ? `${data.team.length + 1} personnes dans l’équipe` : "Toi et ton équipe"}</span>
+          <span>{data.team?.length ? `Toi et ${data.team.length} personne${data.team.length > 1 ? "s" : ""} dans l’équipe` : "Toi et ton équipe"}</span>
           <button type="button" className="lnk" style={{ fontSize: 12.5, textDecoration: "none" }} onClick={() => openNoter({ mode: "tache" })}>
             Ajouter une tâche
           </button>

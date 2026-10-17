@@ -8,7 +8,7 @@ import { WeekGrid } from "@/components/bs/week-grid";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
 import { Empty, Ic, Seg, Sec, sg, type IllName } from "@/components/carnet/ui";
-import { DayBlock, aCompte, iconOf, moneyCls } from "@/components/bs/day-block";
+import { DayBlock, aCompte, iconOf, moneyCls, moneyClsIt } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { dayItems, dayTones, seanceAmount, type DayItem } from "@/lib/domain/seances";
@@ -52,6 +52,8 @@ const hhmm = () => {
 const court = (n: number) => sg(n).replace(/\s€$/, "");
 /** Ce que la journée rapporte ou coûte : séances, soins, tâches avec un coût. */
 const dayMoney = (its: DayItem[]) => its.reduce((t, i) => t + (i.money ?? 0), 0);
+/** Le total d'un jour ne prend sa couleur que si tout ce qui le compose a compté ou est fait : sinon c'est du prévu, à l'encre. */
+const dayCls = (its: DayItem[]) => (its.every((i) => !i.money || aCompte(i) || i.done) ? moneyCls(dayMoney(its)) : "");
 
 function Planning() {
   const data = useDataStore();
@@ -237,7 +239,7 @@ function Planning() {
                     >
                       <span className="mn">
                         {Number(d.slice(8))}
-                        {money ? <span className={moneyCls(money)}>{sg(money)}</span> : null}
+                        {money ? <span className={dayCls(its)}>{sg(money)}</span> : null}
                       </span>
                       {its.slice(0, 3).map((it) => (
                         <i key={it.key}>
@@ -255,11 +257,12 @@ function Planning() {
           )}
           <p className="legend2">
             <span>
-              <span className="in">+</span> ce qui rapporte
+              <span className="in">+</span> en vert : rentré
             </span>
             <span>
-              <span className="out">−</span> ce qui coûte
+              <span className="out">−</span> en rose : sorti
             </span>
+            <span>± à l’encre : encore prévu</span>
             <span className="hint">Clique sur une heure libre pour ajouter quelque chose · Flèches ← → pour changer de {view === "semaine" ? "semaine" : "mois"} · T pour aujourd’hui</span>
           </p>
           <Taches />
@@ -374,7 +377,8 @@ function Planning() {
             <div className="jr-mgrid">
               {monthDays.map((d) => {
                 const inMonth = d.slice(0, 7) === sel.slice(0, 7);
-                const money = inMonth ? dayMoney(dayItems(data, d, today, now)) : 0;
+                const its = inMonth ? dayItems(data, d, today, now) : [];
+                const money = dayMoney(its);
                 return (
                   <button
                     key={d}
@@ -387,7 +391,7 @@ function Planning() {
                     aria-label={new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
                   >
                     <i>{Number(d.slice(8))}</i>
-                    {money ? <em className={moneyCls(money)}>{court(money)}</em> : <em />}
+                    {money ? <em className={dayCls(its)}>{court(money)}</em> : <em />}
                     <span className="jr-dots">
                       {inMonth &&
                         dayTones(data, d)
@@ -400,11 +404,12 @@ function Planning() {
             </div>
             <div className="jr-legend">
               <span>
-                <b className="in">+</b> la journée rapporte
+                <b className="in">+</b> rentré
               </span>
               <span>
-                <b className="out">−</b> elle coûte
+                <b className="out">−</b> sorti
               </span>
+              <span>± à l’encre : prévu</span>
               <span>
                 <span className="jr-dots">
                   <s />
@@ -580,7 +585,7 @@ function Creneaux({ items, isToday, now, onEmpty }: { items: DayItem[]; isToday:
                 <b>{it.title}</b>
                 <small>{sub}</small>
               </span>
-              {it.money ? <span className={moneyCls(it.money)}>{sg(it.money)}</span> : null}
+              {it.money ? <span className={moneyClsIt(it)}>{sg(it.money)}</span> : null}
             </button>
           );
         })}

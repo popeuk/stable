@@ -10,6 +10,7 @@ import { plannedRest } from "@/components/bs/goal-card";
 import { localToday } from "@/lib/utils/local-date";
 import { CountUp, Ic, Ill, sg } from "@/components/carnet/ui";
 import { phraseObjectif } from "@/lib/domain/objectif";
+import { estEstimation } from "@/lib/domain/estimation";
 
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -40,10 +41,12 @@ export function useMois() {
   const data = useDataStore();
   const objective = useSettingsStore((s) => s.objective);
   const net = useMemo(() => monthBreakdown(data, currentPeriod()).net, [data]);
+  // Une écurie neuve : le chiffre vient des tarifs, pas encore de clients. Il se dit comme une estimation.
+  const estime = useMemo(() => estEstimation(data, currentPeriod()), [data]);
   const prevu = useMemo(() => Math.max(0, plannedRest(data, localToday())), [data]);
   const pct = objective > 0 ? Math.max(0, Math.min(100, (net / objective) * 100)) : 0;
   const left = Math.max(0, objective - net);
-  return { net, objective, prevu, pct, left };
+  return { net, objective, prevu, pct, left, estime };
 }
 
 /** « Il te manque 448 € pour ton objectif de 1 000 €. » Sans objectif (0) : rien (lib/domain/objectif). */
@@ -64,18 +67,18 @@ export const dIciFin = () => {
  * sous la carte.
  */
 export function Compteur({ href, ill, className = "" }: { href?: string; ill?: boolean; className?: string }) {
-  const { net, objective, prevu, pct } = useMois();
-  const tone = Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "";
+  const { net, objective, prevu, pct, estime } = useMois();
+  const tone = estime ? "" : Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "";
   const phrase = phraseObjectif(net, objective);
   const prevuTxt = Math.round(prevu) > 0 ? `${sg(prevu)} encore prévu au planning ${dIciFin()}` : "";
   const inner: ReactNode = (
     <>
       <span className="ac-tx">
-        <span className="k">{net < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"}</span>
+        <span className="k">{estime ? "Si tout est payé, ce mois" : net < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"}</span>
         <span className={`big ${tone}`}>
           <CountUp value={net} ms={900} />
         </span>
-        <span className="ac-sub">{phrase || "Une fois tout payé : pensions, soins, frais communs."}</span>
+        <span className="ac-sub">{estime ? "Une estimation, faite avec tes tarifs. Elle devient réelle quand tes chevaux ont leur propriétaire." : phrase || "Une fois tout payé : pensions, soins, frais communs."}</span>
       </span>
       {ill && (
         <span className="ac-ill" aria-hidden="true">
@@ -101,7 +104,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
       )}
     </>
   );
-  const label = `${net < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"} ${sg(net)}. ${phrase}${prevuTxt ? ` ${prevuTxt}.` : ""}`;
+  const label = `${estime ? "Si tout est payé, ce mois, estimation :" : net < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"} ${sg(net)}. ${phrase}${prevuTxt ? ` ${prevuTxt}.` : ""}`;
   const card = href ? (
     <Link href={href} className={`card moncard ac-cpt${ill ? "" : " nobag"}`} aria-label={`${label} Voir d’où ça vient.`}>
       {inner}

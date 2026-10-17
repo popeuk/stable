@@ -188,6 +188,44 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         </div>
       </div>
 
+      <div className="card cl-due rise">
+        <div className="cl-dtop">
+          <span>
+            <span className="cl-lab">{due > 0 ? `${qui} te doit` : `${Il} ne te doit plus rien.`}</span>
+            <b className="cl-big">{due > 0 ? <CountUp value={due} fmt={eur} ms={700} /> : eur(0)}</b>
+          </span>
+          {due <= 0 && <Ill fixe n={accord(nom, "gerant-rosette", "rosette")} className="cl-ros" />}
+        </div>
+        {vientDePayer && <p className="cl-cnt">Déjà compté dans ton mois.</p>}
+        {seance && due > 0 && ouvertes.length > 0 && (
+          <p className="cl-cnt">
+            D’habitude, {qui} paie sur place. Là, {pl(ouvertes.length, "séance")} attend{ouvertes.length > 1 ? "ent" : ""}.
+          </p>
+        )}
+        {due > 0 && (
+          <MoyenChoix
+            value={moyen}
+            onChange={(m) => {
+              setMoyen(m);
+              setDemande(false);
+            }}
+            cheque={cheque}
+            onCheque={setCheque}
+            demande={demande}
+          />
+        )}
+        {due > 0 && (
+          <div className="cl-acts">
+            <button type="button" className="btn" onClick={() => payer(due)}>
+              {Il} a payé
+            </button>
+            <button type="button" className="btn line" onClick={() => setFeuille("part")}>
+              {Il} a payé une partie
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="cl-qa rise" role="group" aria-label={accord(nom, "Le contacter", "La contacter")}>
         {phone ? (
           <>
@@ -242,44 +280,6 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         </p>
       </div>
 
-      <div className="card cl-due rise">
-        <div className="cl-dtop">
-          <span>
-            <span className="cl-lab">{due > 0 ? `${qui} te doit` : `${Il} ne te doit plus rien.`}</span>
-            <b className="cl-big">{due > 0 ? <CountUp value={due} fmt={eur} ms={700} /> : eur(0)}</b>
-          </span>
-          {due <= 0 && <Ill fixe n={accord(nom, "gerant-rosette", "rosette")} className="cl-ros" />}
-        </div>
-        {vientDePayer && <p className="cl-cnt">Déjà compté dans ton mois.</p>}
-        {seance && due > 0 && ouvertes.length > 0 && (
-          <p className="cl-cnt">
-            D’habitude, {qui} paie sur place. Là, {pl(ouvertes.length, "séance")} attend{ouvertes.length > 1 ? "ent" : ""}.
-          </p>
-        )}
-        {due > 0 && (
-          <MoyenChoix
-            value={moyen}
-            onChange={(m) => {
-              setMoyen(m);
-              setDemande(false);
-            }}
-            cheque={cheque}
-            onCheque={setCheque}
-            demande={demande}
-          />
-        )}
-        {due > 0 && (
-          <div className="cl-acts">
-            <button type="button" className="btn" onClick={() => payer(due)}>
-              {Il} a payé
-            </button>
-            <button type="button" className="btn line" onClick={() => setFeuille("part")}>
-              {Il} a payé une partie
-            </button>
-          </div>
-        )}
-      </div>
-
       <div className="cl-blk">
         <h3>
           {nomMois(period)}
@@ -298,7 +298,8 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
               Payé le {jour(p.at || `${mk}-01`)}
               {p.method ? ` · ${moyenDit(p)}` : ""}
             </span>
-            <span className="num">{eur(p.amount)}</span>
+            {/* Le seul argent rentré de la fiche : en vert, avec son signe. */}
+            <span className="in">{sg(p.amount)}</span>
           </div>
         ))}
         {bill.total > 0 && (
@@ -430,7 +431,8 @@ function Ligne({ l, onRetirer }: { l: BillLine; onRetirer: (l: BillLine, row: HT
           {l.onSite ? " · payé sur place" : ""}
         </small>
       </span>
-      <span className="in">{sg(l.amount)}</span>
+      {/* Ce qui est dû n'est pas encore rentré : à l'encre, avec son signe. */}
+      <span className="num">{sg(l.amount)}</span>
       {rm ? (
         <button type="button" className="cl-rm" onClick={() => onRetirer(l, ref.current)} aria-label={`Retirer : ${l.label}, ${jour(l.date)}, n’a pas eu lieu`}>
           <Ic n="x" className="" />

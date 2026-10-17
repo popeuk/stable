@@ -9,6 +9,7 @@ import { CountUp, Ic, sg } from "@/components/carnet/ui";
 import { useUiStore } from "@/stores/ui-store";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
+import { estEstimation } from "@/lib/domain/estimation";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { useFinDuMois } from "@/components/bs/compte";
@@ -156,6 +157,11 @@ function useNet() {
   const data = useDataStore();
   return useMemo(() => monthBreakdown(data, currentPeriod()).net, [data]);
 }
+/** Le chiffre du mois n'est qu'une estimation (écurie neuve) : à l'encre. */
+function useEstime() {
+  const data = useDataStore();
+  return useMemo(() => estEstimation(data, currentPeriod()), [data]);
+}
 
 /**
  * La barre d'onglets : Accueil, Planning, +, Clients (les clients et leurs chevaux ; en fin de
@@ -184,7 +190,8 @@ export function TabBar() {
     return () => clearTimeout(t);
   }, [net, ready]);
   const on = (list: string[]) => (under(path, list) ? "page" : undefined);
-  const tone = Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "";
+  const estime = useEstime();
+  const tone = estime ? "" : Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "";
   return (
     <nav className="tb ac-tb" aria-label="Navigation principale">
       <div>

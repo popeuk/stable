@@ -79,8 +79,7 @@ export function LigneHier() {
   return (
     <button type="button" className="cp-hier rise" style={{ animationDelay: "0.08s" }} onClick={openTournee}>
       <span>
-        <b>Hier :</b> {Math.round(total) !== 0 ? <span className={moneyCls(total)}>{sg(total)}</span> : pl(n, "ligne")} {Math.round(total) !== 0 || n > 1 ? "ont" : "a"} compté
-        {Math.round(total) !== 0 && <small> · {pl(n, "ligne")}</small>}
+        <b>Hier :</b> {Math.round(total) !== 0 ? <span className={moneyCls(total)}>{sg(total)}</span> : pl(n, "chose")} {Math.round(total) !== 0 || n > 1 ? "ont" : "a"} compté
       </span>
       <span className="cp-revoir">
         Revoir
@@ -187,7 +186,7 @@ export function LigneAVenir({ it }: { it: DayItem }) {
       ) : (
         <span>{body}</span>
       )}
-      <span className={`amt ${moneyCls(it.money)}`}>{it.money ? sg(it.money) : ""}</span>
+      <span className="amt">{it.money ? sg(it.money) : ""}</span>
     </div>
   );
 }

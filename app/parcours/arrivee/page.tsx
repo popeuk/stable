@@ -55,31 +55,32 @@ function Reste() {
           </div>
         )}
         <div className="moncard">
-          <p className="es-say">{net >= 0 ? "Il te reste" : "Il te manque"}</p>
-          <p className={`big ${net > 0 ? "in" : net < 0 ? "out" : "num"}`}>
+          {/* Rien n'est encore rentré : c'est une estimation, à l'encre, dite comme telle. */}
+          <p className="es-say">{net >= 0 ? "Si tout est payé, il te restera environ" : "Si rien ne change, il te manquera environ"}</p>
+          <p className="big num">
             <CountUp value={net} ms={1200} />
           </p>
           <p className="es-say">par mois.</p>
           <div className="es-calc">
             <div>
-              <span>{n > 1 ? `${n} chevaux, ce qui rentre` : "Ce qui rentre"}</span>
-              <span className={m.revenue ? "in" : "num"}>{sg(m.revenue)}</span>
+              <span>{n > 1 ? `${n} chevaux, ce qui devrait rentrer` : "Ce qui devrait rentrer"}</span>
+              <span className="num">{sg(m.revenue)}</span>
             </div>
             {m.direct > 0 && (
               <div>
                 <span>Soins des chevaux</span>
-                <span className="out">{sg(-m.direct)}</span>
+                <span className="num">{sg(-m.direct)}</span>
               </div>
             )}
             <div>
-              <span>Foin, loyer, salaires</span>
-              <span className={m.sharedTotal ? "out" : "num"}>{sg(-m.sharedTotal)}</span>
+              <span>Frais communs</span>
+              <span className="num">{sg(-m.sharedTotal)}</span>
             </div>
           </div>
         </div>
       </div>
       <p className="note rise" style={{ animationDelay: ".12s" }}>
-        C’est une estimation. Plus tu notes, plus c’est juste. Les trois dernières étapes se franchissent en utilisant l’app.
+        C’est une estimation, faite avec tes tarifs. Plus tu notes, plus c’est juste. Les trois dernières étapes se franchissent en utilisant l’app.
       </p>
       <div className="foot rise" style={{ animationDelay: ".2s" }}>
         <Link href="/accueil" className="btn full">

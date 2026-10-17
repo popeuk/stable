@@ -7,7 +7,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore, type NoterPrefill } from "@/stores/ui-store";
 import { CoursTiles, F, HorseChips, InField, Jours, Keypad, MoneyField, Puces, Q, Quand, SeanceDetails, Tiles, Wheel, hh, jourLabel, type SetD } from "@/components/bs/seance-form";
 import { QuoiTiles, TaskDetails } from "@/components/bs/task-form";
-import { Ic, Money, eur } from "@/components/carnet/ui";
+import { Ic, Money, eur, sg, sgc } from "@/components/carnet/ui";
 import { applySoin, connuDe, draftFor, draftFromCompris, endOf, habitudes, manque, titre, type AjoutType, type Draft, type Habitudes, type Pour } from "@/lib/domain/ajouter";
 import { ChoixConnu, ChoixFois, SoitParMois } from "@/components/bs/montant-connu";
 import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
@@ -250,7 +250,7 @@ function NoterInner() {
     if (!d) return;
     if (manque(d)) {
       setTried(true);
-      if (screen === "card") setPick("m");
+      if (screen === "card") setPick(d.type === "soin" ? "soin" : "m");
       return;
     }
     const st = useDataStore.getState();
@@ -561,7 +561,8 @@ function NoterInner() {
                 </>
               ) : (
                 <>
-                  <Money v={-x.price} />
+                  {/* Un soin prévu n'est pas encore payé : à l'encre, avec son signe. */}
+                  <b>{sg(-x.price)}</b>
                   {habPrice(x) === x.price ? ", comme d’habitude" : ""}.
                 </>
               )}
@@ -583,7 +584,7 @@ function NoterInner() {
     <>
       {tried && d && manque(d) && (
         <p className="nt-miss" role="alert">
-          Il manque le montant.
+          {d.type === "soin" ? "Choisis d’abord le soin." : "Il manque le montant."}
         </p>
       )}
       <button type="button" className="btn full nt-ok" onClick={commit}>
@@ -708,11 +709,11 @@ function NoterInner() {
           ]
         : x.type === "soin"
           ? [
-              { k: "soin", l: titre(x, h) },
+              { k: "soin", l: x.care || x.custom.trim() ? titre(x, h) : "quel soin ?", ph: !x.care && !x.custom.trim() },
               { k: "cheval", l: horseName ? `pour ${horseName}` : "quel cheval ?", ph: !horseName },
               J,
               { k: "h", l: hh(x.start ?? "09:00") },
-              { k: "p", l: x.price ? <Money exact v={-x.price} /> : "sans prix" },
+              { k: "p", l: x.price ? sgc(-x.price) : "sans prix" },
             ]
           : x.type === "rdv"
             ? [{ k: "quoi", l: x.quoi.trim() || "c’est quoi ?", ph: !x.quoi.trim() }, J, { k: "h", l: x.start ? hh(x.start) : "sans heure" }]
@@ -888,13 +889,14 @@ function NoterInner() {
           {t.l}
         </button>
         {qs}
-        {okBtn()}
         <div className="nt-more2">
           <button type="button" className="lnk" onClick={() => (setPrev("q"), setPick(null), setScreen("more"))}>
             Plus de détails
           </button>
           <span>{MOREH[x.type]}</span>
         </div>
+        {/* « C'est bon » reste sous le pouce, même quand la feuille défile (iPhone de 844 px). */}
+        <div className="nt-stick">{okBtn()}</div>
       </>
     );
   }

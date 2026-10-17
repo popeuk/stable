@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { cap, signed } from "@/components/bs/ui";
 import { Ic, sg } from "@/components/carnet/ui";
-import { aCompte, moneyCls, useCheck } from "@/components/bs/day-block";
+import { aCompte, moneyCls, moneyClsIt, useCheck } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { dayItems, seanceAmount, type DayItem } from "@/lib/domain/seances";
@@ -78,7 +78,7 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
             <button key={d} type="button" className={`dh${d === today ? " td" : ""}`} onClick={() => onPickDay(d)} title="Ajouter quelque chose ce jour-là">
               {cap(new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", ""))}
               <b>{Number(d.slice(8))}</b>
-              <em className={moneyCls(money)}>{money ? sg(money) : perDay[i].length ? `${perDay[i].length} chose${perDay[i].length > 1 ? "s" : ""}` : " "}</em>
+              <em className={d < today ? moneyCls(money) : ""}>{money ? sg(money) : perDay[i].length ? `${perDay[i].length} chose${perDay[i].length > 1 ? "s" : ""}` : " "}</em>
             </button>
           );
         })}
@@ -141,7 +141,7 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
             {place(perDay[i]).map(({ it, s, e, col, cols }) => {
               const h = Math.max(24, ((e - s) / 60) * HOUR - 3);
               const short = h < 30;
-              const money = it.money ? <span className={moneyCls(it.money)}>{sg(it.money)}</span> : null;
+              const money = it.money ? <span className={moneyClsIt(it)}>{sg(it.money)}</span> : null;
               return (
                 <div
                   key={it.key}

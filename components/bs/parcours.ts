@@ -60,8 +60,14 @@ export function useParcours() {
 /* ---------- Installer vite : un nombre de chevaux, un total de frais ---------- */
 
 /** La charge commune « en un total » : une seule catégorie, un seul libellé. */
-export const FRAIS_CAT = "Frais fixes";
-export const FRAIS_LABEL = "Frais fixes (foin, loyer, salaires)";
+export const FRAIS_CAT = "Frais communs";
+export const FRAIS_LABEL = "Frais communs en un total";
+/** Les noms d'avant octobre 2026 (« Frais fixes ») : toujours retrouvés, lus sous le nouveau nom. */
+const ANCIENS_CAT = ["Frais fixes"];
+const ANCIENS_LABEL = ["Frais fixes (foin, loyer, salaires)"];
+export const estFraisCat = (name: string) => name === FRAIS_CAT || ANCIENS_CAT.includes(name);
+/** Un seul mot pour les frais de l'écurie : l'ancien libellé du total se lit « Frais communs en un total ». */
+export const libelleFrais = (label: string) => (ANCIENS_LABEL.includes(label) || ANCIENS_CAT.includes(label) ? FRAIS_LABEL : label);
 
 type Data = ReturnType<typeof useDataStore.getState>;
 type Per = { year: number; month: number };
@@ -124,7 +130,7 @@ export function posteTape(data: Pick<Data, "sharedExpenses" | "recurringExpenses
 /** Les frais communs du mois : le total « en un chiffre » et la somme des autres postes. */
 export function fraisDuMois(data: Pick<Data, "expenseCategories" | "sharedExpenses" | "recurringExpenses">, period: Per = currentPeriod()) {
   const cats = data.expenseCategories.filter((c) => !c.isDirect);
-  const fixe = cats.find((c) => c.name === FRAIS_CAT);
+  const fixe = cats.find((c) => estFraisCat(c.name));
   const total = fixe ? chargeDuMois(data, fixe.id, period) : 0;
   const postes = cats.filter((c) => c !== fixe).reduce((t, c) => t + chargeDuMois(data, c.id, period), 0);
   return { total, postes, cats: cats.filter((c) => c !== fixe) };
@@ -133,7 +139,7 @@ export function fraisDuMois(data: Pick<Data, "expenseCategories" | "sharedExpens
 /** « Un total » : foin, loyer, salaires en une seule charge commune mensuelle. 0 la retire. */
 export function fraisEnUnTotal(montant: number, period: Per = currentPeriod(), saisi?: MontantSaisi) {
   const d = useDataStore.getState();
-  let cat = d.expenseCategories.find((c) => c.name === FRAIS_CAT && !c.isDirect);
+  let cat = d.expenseCategories.find((c) => estFraisCat(c.name) && !c.isDirect);
   if (!cat && montant <= 0) return;
   if (!cat) {
     d.addExpenseCategory(FRAIS_CAT, false);

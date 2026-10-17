@@ -84,8 +84,8 @@
 .carnet .face img { position: absolute; left: 4%; bottom: -6%; width: 104%; }
 .carnet .ini { width: 40px; height: 40px; border-radius: 50%; background: var(--mist); color: var(--ink); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none; }
 .carnet .pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 12px; font-weight: 700; background: var(--mist); color: var(--ink2); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.carnet .pill.in { background: color-mix(in srgb, var(--in) 8%, transparent); color: var(--in); }
-.carnet .pill.out { background: color-mix(in srgb, var(--out) 8%, transparent); color: var(--out); }
+.carnet .pill.in { background: transparent; color: var(--in); padding-inline: 0; }
+.carnet .pill.out { background: transparent; color: var(--out); padding-inline: 0; }
 .carnet .pill.ink { background: var(--ink); color: var(--on-ink); }
 .carnet .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border: 0; border-radius: 6px; background: var(--ink); color: var(--on-ink); font-weight: 650; font-size: 14px; padding: 0 16px; cursor: pointer; text-decoration: none; }
 .carnet .btn.full { width: 100%; }

@@ -225,3 +225,11 @@ export function buildRegister(data: { horses: Horse[]; careEvents?: CareEvent[] 
     care: careInPeriod(data.careEvents, period.start, period.end, today).filter(ofPresent),
   };
 }
+
+/**
+ * L'accord d'un cheval : une jument au féminin, un mâle ou un hongre au
+ * masculin ; sexe inconnu : la tournure neutre (« ce cheval », ou son nom).
+ */
+export function selonSexe<T>(h: { sex?: HorseSex }, masc: T, fem: T, neutre: T): T {
+  return h.sex === "femelle" ? fem : h.sex ? masc : neutre;
+}

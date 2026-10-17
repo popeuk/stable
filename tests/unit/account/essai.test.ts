@@ -85,14 +85,14 @@ describe("le nombre de chevaux", () => {
 describe("le total des frais", () => {
   const period = currentPeriod();
 
-  it("crée une seule charge commune mensuelle « Frais fixes »", async () => {
+  it("crée une seule charge commune mensuelle « Frais communs »", async () => {
     fraisEnUnTotal(1300, period);
     fraisEnUnTotal(1400, period); // corriger ne double pas
     const frais = (useDataStore.getState().recurringExpenses ?? []).filter((r) => r.isShared);
     expect(frais).toHaveLength(1);
     expect(frais[0].label).toBe(FRAIS_LABEL);
     expect(frais[0].amount).toBe(1400);
-    expect(useDataStore.getState().expenseCategories.find((c) => c.id === frais[0].categoryId)?.name).toBe("Frais fixes");
+    expect(useDataStore.getState().expenseCategories.find((c) => c.id === frais[0].categoryId)?.name).toBe("Frais communs");
     expect(fraisDuMois(useDataStore.getState(), period)).toMatchObject({ total: 1400, postes: 0 });
     // Ce qui reste ce mois : 6 pensions à 450 moins 1 400 de frais.
     expect(Math.round(monthBreakdown(useDataStore.getState(), period).net)).toBe(6 * 450 - 1400);
@@ -103,7 +103,7 @@ describe("le total des frais", () => {
 
   it("poste par poste après un total : retirer le total ne compte rien deux fois", () => {
     const d = useDataStore.getState();
-    const foin = d.expenseCategories.find((c) => !c.isDirect && c.name !== "Frais fixes")!;
+    const foin = d.expenseCategories.find((c) => !c.isDirect && c.name !== "Frais communs")!;
     d.setMonthlyCharge(foin.id, foin.name, 800, period);
     expect(fraisDuMois(useDataStore.getState(), period)).toMatchObject({ total: 1400, postes: 800 });
     retirerTotal(period);

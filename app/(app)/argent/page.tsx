@@ -14,6 +14,8 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useUiStore } from "@/stores/ui-store";
+import { libelleFrais } from "@/components/bs/parcours";
+import { GAGNER_SA_VIE, estEstimation } from "@/lib/domain/estimation";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { suggestions, leverPotential, type Lever, type Suggestion } from "@/lib/domain/leviers";
 import { clientDues } from "@/lib/domain/clients";
@@ -150,14 +152,30 @@ function Mois() {
   const daysLeft = lastDay - now.getDate();
   const pct = objective > 0 ? Math.max(0, Math.min(100, (m.net / objective) * 100)) : 0;
   const restPct = objective > 0 ? Math.max(0, Math.min(100 - pct, (rest / objective) * 100)) : 0;
+  // Une écurie neuve : le chiffre vient des tarifs, pas encore de clients. Une estimation, à l'encre.
+  const estime = useMemo(() => estEstimation(data, active), [data, active]);
   const gagne = m.net > 0;
+  // « Tu gagnes ta vie » : sur de l'argent réel, et au-delà d'un smic à peu près.
+  const vie = !estime && m.net >= GAGNER_SA_VIE;
 
-  const titre = isNow ? (
-    gagne ? (
+  const titre = estime ? (
+    <>
+      Pour l’instant,
+      <br />
+      une estimation.
+    </>
+  ) : isNow ? (
+    vie ? (
       <>
         Oui. Ce mois,
         <br />
         tu gagnes ta vie.
+      </>
+    ) : gagne ? (
+      <>
+        Ce mois,
+        <br />
+        l’écurie gagne de l’argent.
       </>
     ) : (
       <>
@@ -166,11 +184,17 @@ function Mois() {
         l’écurie te coûte.
       </>
     )
-  ) : gagne ? (
+  ) : vie ? (
     <>
       Oui. En {mName},
       <br />
       tu as gagné ta vie.
+    </>
+  ) : gagne ? (
+    <>
+      En {mName},
+      <br />
+      l’écurie a gagné de l’argent.
     </>
   ) : (
     <>
@@ -180,7 +204,9 @@ function Mois() {
     </>
   );
 
-  const sub = isNow ? (
+  const sub = estime ? (
+    <>Tes chevaux n’ont pas encore de propriétaire : ce qui rentre vient de tes tarifs. Si tout est payé, il te restera environ {sg(m.net)} ce mois.</>
+  ) : isNow ? (
     <>
       Au {now.getDate()} {mName}, tout payé : pensions, soins, frais communs.{" "}
       {phraseObjectifMois(m.net, objective, true)}
@@ -191,8 +217,8 @@ function Mois() {
 
   const goal = (
     <div className="card ar-goal rise" style={{ animationDelay: ".18s" }}>
-      <p className="k">{isNow ? "Ce mois, il te reste" : `En ${mName}, il t’est resté`}</p>
-      <p className={`big ${m.net > 0 ? "in" : m.net < 0 ? "out" : ""}`}>
+      <p className="k">{estime ? "Si tout est payé, environ" : isNow ? "Ce mois, il te reste" : `En ${mName}, il t’est resté`}</p>
+      <p className={`big ${estime ? "" : m.net > 0 ? "in" : m.net < 0 ? "out" : ""}`}>
         <CountUp value={m.net} />
       </p>
       {isNow && (
@@ -242,28 +268,29 @@ function Mois() {
   const aria = `Séances de ${mName} par semaine : ${weeks.map((w) => `${eur(w.done + w.planned)}${w.planned ? ` dont ${eur(w.planned)} prévus` : ""}`).join(", ")}.`;
 
   const ceQuiRentre = (
-        <Sec title="Ce qui rentre" action={<span className="act in">{sg(m.revenue)}</span>} delay={0.2}>
+        <Sec title={estime ? "Ce qui devrait rentrer" : "Ce qui rentre"} action={<span className={`act${!estime && Math.round(m.revenue) ? " in" : ""}`}>{sg(m.revenue)}</span>} delay={0.2}>
           {m.ins.length === 0 && <p className="note">Rien n’est encore rentré ce mois-ci.</p>}
+          {estime && m.ins.length > 0 && <p className="note">Une estimation, faite avec tes tarifs.</p>}
           {m.ins.map((x) => (
             <div key={x.label} className="ar-post">
               <span className="ar-pic">
                 <Ic n={icFor(x.label)} className="ar-ic" />
               </span>
               <span>{x.label}</span>
-              <Money v={x.amount} />
+              <Money v={x.amount} prevu={estime} />
             </div>
           ))}
         </Sec>
   );
   const ceQuiSort = (
-        <Sec title="Ce qui sort" action={<span className="act out">{sg(-(m.direct + m.sharedTotal + m.outside))}</span>} delay={0.26}>
+        <Sec title="Ce qui sort" action={<span className={`act${!estime && Math.round(m.direct + m.sharedTotal + m.outside) ? " out" : ""}`}>{sg(-(m.direct + m.sharedTotal + m.outside))}</span>} delay={0.26}>
           {m.shared.map((x) => (
             <div key={x.label} className="ar-post">
               <span className="ar-pic">
                 <Ic n={icFor(x.label)} className="ar-ic" />
               </span>
-              <span>{x.label}</span>
-              <Money v={-x.amount} />
+              <span>{libelleFrais(x.label)}</span>
+              <Money v={-x.amount} prevu={estime} />
             </div>
           ))}
           <div className="ar-post">
@@ -274,7 +301,7 @@ function Mois() {
               Soins et frais des chevaux
               <small>maréchal, vétérinaire, compléments</small>
             </span>
-            <Money v={-m.direct} />
+            <Money v={-m.direct} prevu={estime} />
           </div>
           {m.outs.map((x) => (
             <div key={`hors-${x.label}`} className="ar-post">
@@ -285,7 +312,7 @@ function Mois() {
                 {x.label}
                 <small>hors chevaux</small>
               </span>
-              <Money v={-x.amount} />
+              <Money v={-x.amount} prevu={estime} />
             </div>
           ))}
         </Sec>
@@ -356,7 +383,7 @@ function Mois() {
             <Ic n="hay" className="ar-ic" />
           </span>
           <span>
-            <span className="k">Les frais partagés</span>
+            <span className="k">Les frais communs</span>
             <b>
               Comment le foin et le loyer se partagent entre {m.horseCount > 1 ? `tes ${m.horseCount} chevaux` : "tes chevaux"}
             </b>
@@ -546,7 +573,7 @@ function Mouvements() {
       .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: x.label, sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.rebillRevenueId ? "remis sur sa facture" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
     const s = data.sharedExpenses
       .filter((x) => x.periodYear === active.year && x.periodMonth === active.month)
-      .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: x.label, sub: partageLabel(repartition(data, x).length), amount: -x.totalAmount, horseId: "" }));
+      .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: libelleFrais(x.label), sub: partageLabel(repartition(data, x).length), amount: -x.totalAmount, horseId: "" }));
     return [...r, ...d, ...s]
       .filter((x) => (kind === "in" ? x.amount > 0 : kind === "out" ? x.amount < 0 : true))
       .filter((x) => !horse || x.horseId === horse)
@@ -720,7 +747,7 @@ function Mouvements() {
               <span style={{ minWidth: 0 }}>
                 <b>{r.label}</b>
                 <small>
-                  {freqLabel(r.frequency)} · {r.isShared ? "frais partagés" : `pour ${name(r.horseId ?? "") || "1 cheval"}`}
+                  {freqLabel(r.frequency)} · {r.isShared ? "frais communs" : `pour ${name(r.horseId ?? "") || "1 cheval"}`}
                   {r.endDate ? ` · jusqu’au ${shortDate(r.endDate)}` : ""}
                 </small>
               </span>

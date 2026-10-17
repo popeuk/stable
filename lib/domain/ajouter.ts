@@ -280,7 +280,8 @@ export function draftFor(type: AjoutType, h: Habitudes, today: ISODate, p: Draft
     else d.start = "18:00";
     if (p.start) d.start = p.start;
   } else if (type === "soin") {
-    const s = h.soins.find((x) => x.kind === p.care) ?? h.soins.find((x) => x.kind === "ferrure") ?? h.soins[0];
+    // Aucun soin coché d'avance : un vaccin noté par erreur en ferrure fausserait le carnet du cheval.
+    const s = p.care ? h.soins.find((x) => x.kind === p.care) : undefined;
     if (s) applySoin(d, s);
     if (p.care && !s) d.care = p.care;
     if (p.amount) d.price = p.amount;
@@ -347,7 +348,7 @@ export function draftFromCompris(c: Compris, h: Habitudes, today: ISODate): Draf
 }
 
 /** Seul l'argent exige quelque chose : un montant. */
-export const manque = (d: Draft) => d.type === "argent" && !(d.amount > 0);
+export const manque = (d: Draft) => (d.type === "argent" && !(d.amount > 0)) || (d.type === "soin" && !d.care && !d.custom.trim());
 
 /** Le nom de ce qu'on ajoute, tel qu'il apparaîtra au planning ou dans le mois. */
 export function titre(d: Draft, h: Habitudes): string {

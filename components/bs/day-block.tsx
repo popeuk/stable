@@ -27,8 +27,15 @@ export function iconOf(it: DayItem): string {
   return "horse";
 }
 
-/** La classe de l'argent : vert ce qui rentre, rose ce qui sort. */
+/** La classe de l'argent : vert ce qui rentre, rose ce qui sort. Seulement pour de l'argent réel. */
 export const moneyCls = (n?: number) => (!n ? "" : n > 0 ? "in" : "out");
+
+/**
+ * La classe d'une ligne de la journée : elle ne prend sa couleur qu'une fois
+ * qu'elle a compté (séance ou soin passé) ou qu'elle est faite (tâche cochée).
+ * Avant, c'est du prévu : à l'encre, le signe suffit.
+ */
+export const moneyClsIt = (it: DayItem) => (aCompte(it) || (it.type === "task" && it.done) ? moneyCls(it.money) : "");
 
 /**
  * Cocher une tâche faite, avec « Annuler » pendant 6 secondes. Les séances
@@ -110,7 +117,7 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
         ) : (
           <span>{body}</span>
         )}
-        <span className={`amt ${moneyCls(it.money)}`}>{it.money ? sg(it.money) : ""}</span>
+        <span className={`amt ${moneyClsIt(it)}`}>{it.money ? sg(it.money) : ""}</span>
         {it.task ? (
           <Check on={it.done} onClick={() => !it.done && check(it)} label={it.done ? `${it.title} : fait` : `C’est fait : ${it.title}`} />
         ) : compte ? (

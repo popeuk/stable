@@ -6,7 +6,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Ic, Seg, Tip, eur } from "@/components/carnet/ui";
 import { pictoForLabel } from "@/components/bs/picto";
 import { MontantMois, ObHead } from "@/components/bs/ob-head";
-import { FRAIS_CAT, fraisDuMois, fraisEnUnTotal, posteTape, retirerPostes, retirerTotal, useParcours } from "@/components/bs/parcours";
+import { estFraisCat, fraisDuMois, fraisEnUnTotal, posteTape, retirerPostes, retirerTotal, useParcours } from "@/components/bs/parcours";
 import { ChoixConnu, ChoixFois, SoitParMois, ligneConnu, uniteConnu } from "@/components/bs/montant-connu";
 import { useDataStore } from "@/stores/data-store";
 import { currentPeriod } from "@/lib/utils/period";
@@ -33,7 +33,7 @@ type Per = { year: number; month: number };
 /** Le total tel que tapé : par mois, par an ou en plusieurs fois. */
 function totalTape(period: Per) {
   const d = useDataStore.getState();
-  const cat = d.expenseCategories.find((c) => c.name === FRAIS_CAT && !c.isDirect);
+  const cat = d.expenseCategories.find((c) => estFraisCat(c.name) && !c.isDirect);
   return cat ? posteTape(d, cat.id, period) : { mode: "mois" as Connu, montant: 0, fois: 2 };
 }
 
@@ -110,7 +110,7 @@ function Poste({ c, period }: { c: Category; period: Per }) {
 
 /**
  * L'obstacle « frais communs ». Un total (un seul montant, une charge
- * « Frais fixes ») ou poste par poste (catégorie par catégorie). Passer de
+ * « Frais communs ») ou poste par poste (catégorie par catégorie). Passer de
  * l'un à l'autre propose de retirer l'autre : rien n'est compté deux fois.
  */
 function Factures() {
