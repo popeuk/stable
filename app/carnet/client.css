@@ -17,7 +17,6 @@
 .carnet .cl-key .cl-1l a { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .carnet .cl-1l { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
 .carnet .cl-note1 { display: block; width: 100%; padding: 12px 0; margin: -12px 0; border: 0; background: none; font: inherit; font-size: 14px; text-align: left; color: var(--ink2); cursor: pointer; }
-.carnet .cl-add { padding: 0; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 650; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; text-align: left; }
 
 /* ---------- Ce qu'il te doit ---------- */
 .carnet .cl-due { margin: 12px 14px 0; padding: 14px; }

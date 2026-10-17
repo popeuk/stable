@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { Picto, type PictoName } from "@/components/bs/picto";
 
@@ -38,11 +37,6 @@ export function Over({ left, right }: { left: ReactNode; right?: ReactNode }) {
       {right}
     </div>
   );
-}
-
-/** Le retour est dans l'en-tête (téléphone) ou au-dessus de l'écran (ordinateur). */
-export function Back(_: { href: string; children: ReactNode }) {
-  return null;
 }
 
 export function Title({ children, as = "h1" }: { children: ReactNode; as?: "h1" | "h2" }) {

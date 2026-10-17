@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Back, Screen } from "@/components/bs/ui";
+import { Screen } from "@/components/bs/ui";
 import { Hello, Ill, Money, Sec, type IllName } from "@/components/carnet/ui";
 import { LigneComptee, useMaintenant } from "@/components/bs/compte";
 import { useDataStore } from "@/stores/data-store";
@@ -41,7 +41,6 @@ function CeQuiACompte() {
 
   return (
     <Screen>
-      <Back href="/planning">Planning</Back>
       <div className="jr-valider">
         <Hello title="Ce qui a compté." sub="Ce qui était au planning et a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne." />
         <div className="pad rise" style={{ animationDelay: ".08s", marginTop: 8 }}>

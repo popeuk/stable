@@ -10,9 +10,9 @@ import { useCoachStore } from "@/stores/coach-store";
 import { cn } from "@/lib/utils/cn";
 
 /**
- * The didactic heart of the app (spec 1.2 — pédagogie en filigrane). Wrap any
+ * The didactic heart of the app (spec 1.2 : pédagogie en filigrane). Wrap any
  * métier term or number; tapping opens a short lesson computed on the user's
- * own data. Learning is never a separate section — it lives on every figure.
+ * own data. Learning is never a separate section: it lives on every figure.
  */
 export function Explain({
   k,

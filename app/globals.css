@@ -1,4 +1,8 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+/* Tailwind ne lit que le code de l'app : ni les maquettes, ni le prototype, ni la doc. */
+@source "../app";
+@source "../components";
+@source "../lib";
 
 /* ============================================================
    Be Stable : le seul jeu de couleurs de l'app (octobre 2026).
@@ -80,54 +84,11 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Tabular figures for any money / metric rendering */
-.tabnums {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
-}
-
 /* La carte : papier flottant, grand arrondi, ombre douce. */
 .card {
   background: var(--sheet);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
-}
-
-/* Le panneau d'encre. */
-.ink-panel {
-  background: var(--ink);
-  color: var(--on-ink);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-elevated);
-}
-
-/* Titre de section. */
-.title-serif {
-  font-family: var(--font-bricolage);
-  font-weight: 640;
-  letter-spacing: -0.022em;
-  font-variation-settings: "wdth" 90;
-}
-
-/* Bouton principal : pilule d'encre. */
-.btn-primary {
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--on-ink);
-  font-weight: 700;
-  box-shadow: var(--shadow-elevated);
-}
-.btn-primary:disabled {
-  opacity: 0.35;
-  box-shadow: none;
-}
-
-/* Pilule fantôme. */
-.btn-ghost {
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  color: var(--ink);
-  font-weight: 700;
 }
 
 /* ============================================================
@@ -171,55 +132,6 @@ h3 {
   text-wrap: balance;
 }
 
-@keyframes pulse-drift {
-  0% {
-    background-position:
-      12% 18%,
-      88% 82%;
-    background-size:
-      120% 120%,
-      130% 130%;
-  }
-  50% {
-    background-position:
-      28% 40%,
-      70% 55%;
-    background-size:
-      145% 145%,
-      115% 115%;
-  }
-  100% {
-    background-position:
-      8% 65%,
-      92% 30%;
-    background-size:
-      125% 125%,
-      140% 140%;
-  }
-}
-
-.pulse-field {
-  --pulse-a: rgba(27, 18, 37, .06);
-  --pulse-b: rgba(27, 18, 37, .04);
-  background-image:
-    radial-gradient(ellipse 90% 70% at 20% 20%, var(--pulse-a), transparent 62%),
-    radial-gradient(ellipse 85% 75% at 80% 80%, var(--pulse-b), transparent 60%);
-  background-repeat: no-repeat;
-  animation: pulse-drift 16s var(--ease-signature) infinite alternate;
-}
-
-/* Grain fin sur les aplats, l'anti-générique. */
-.grain {
-  position: relative;
-}
-.grain::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(23, 21, 13, 0.05) 1px, transparent 1px);
-  background-size: 4px 4px;
-  pointer-events: none;
-}
 ::-webkit-scrollbar {
   width: 0;
   height: 0;

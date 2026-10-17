@@ -145,12 +145,7 @@
 .carnet .ec-howto li > span { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 
 /* ---------- Tous les réglages ---------- */
-.carnet .ec-tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line2); }
-.carnet .ec-tr b { display: block; font-size: 14.5px; font-weight: 640; }
-.carnet .ec-tr small { display: block; font-size: 12px; color: var(--ink3); line-height: 1.35; margin-top: 2px; }
-.carnet .ec-stp .stepper { gap: 10px; }
-.carnet .ec-stp .stepper button { width: 44px; height: 44px; font-size: 17px; color: var(--ink); }
-.carnet .ec-stp .stepper b { font-size: 20px; min-width: 26px; }
+
 .carnet .ec-pg .li .x { width: 30px; height: 30px; }
 .carnet .ec-addp { margin-top: 10px; padding: 12px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 8px; }
 .carnet .ec-addp .k { margin-bottom: 2px; }
@@ -167,9 +162,6 @@
 .carnet .ec-cat .x svg { stroke: var(--ink3); }
 .carnet .ec-segw { margin-top: 10px; }
 .carnet .ec-segw .seg button { white-space: normal; line-height: 1.15; }
-.carnet .ec-sw2 .switch > span b { display: block; font-size: 14.5px; font-weight: 640; color: var(--ink); }
-.carnet .ec-sw2 .switch > span small { display: block; font-size: 12px; color: var(--ink3); line-height: 1.35; margin-top: 2px; }
-.carnet .ec-sw2 .switch { font: inherit; color: var(--ink); }
 
 /* ---------- Ordinateur ---------- */
 @media (min-width: 1024px) {

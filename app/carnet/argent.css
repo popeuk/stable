@@ -14,7 +14,7 @@
 /* Scène du Bilan : la gérante sur sa botte de foin, les pièces tombent dans la sacoche */
 .carnet .ar-compte { position: relative; overflow: hidden; height: 196px; }
 .carnet .ar-compte .ar-who { position: absolute; left: 8px; bottom: 4px; width: 236px; animation: ar-settle 6s var(--slow) infinite; }
-.carnet .ar-compte .ar-sac { position: absolute; right: 10px; bottom: 6px; width: 132px; }
+
 .carnet .ar-compte .coins { right: 52px; bottom: 92px; }
 @keyframes ar-settle { 50% { transform: translateY(-2px); } }
 .carnet .ar-goal { margin: 6px 14px 0; }
@@ -23,11 +23,7 @@
 .carnet .ar-goal .input input { border: 0; background: none; outline: none; width: 100%; font-weight: 650; text-align: right; font-size: 15px; padding: 0; }
 
 /* Mon mois : le compteur en tête, l'objectif dessous, la piste du moment */
-.carnet .ar-cpt { margin: 14px 0 0; }
-.carnet .ar-cptl { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; margin: 10px 18px 0; font-size: 12.5px; color: var(--ink3); }
-.carnet .ar-cptl .lnk { min-height: 32px; }
-.carnet .ar-goalf { display: block; margin: 12px 14px 0; }
-.carnet .ar-goalf .input input { border: 0; background: none; outline: none; width: 100%; font-weight: 650; text-align: right; font-size: 15px; padding: 0; }
+
 .carnet .ar-piste { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 10px 0 2px; color: inherit; text-decoration: none; min-height: 44px; }
 .carnet .ar-piste b { display: block; font-size: 15px; font-weight: 680; line-height: 1.25; }
 .carnet .ar-piste small { display: block; font-size: 12.5px; color: var(--ink2); line-height: 1.35; margin-top: 2px; }
@@ -90,26 +86,7 @@
 .carnet .pill.ar-ring { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
 
 /* Facturer */
-.carnet .ar-sum3 { margin: 12px 14px 0; }
-.carnet .ar-sum3 b { font-size: 16px; }
-.carnet .ar-payer { border-bottom: 1px solid var(--line2); }
-.carnet .ar-payer:last-child { border-bottom: 0; }
-.carnet .ar-prow { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 11px 0; }
-.carnet .ar-prow .ar-whob { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; border: 0; background: none; padding: 0; text-align: left; cursor: pointer; min-width: 0; color: inherit; }
-.carnet .ar-prow .ar-whob b { display: block; font-size: 14.5px; font-weight: 640; line-height: 1.2; }
-.carnet .ar-prow .ar-whob small { font-size: 12px; color: var(--ink3); display: block; overflow: hidden; text-overflow: ellipsis; }
-.carnet .ar-prow .ar-rt { text-align: right; display: grid; justify-items: end; gap: 4px; }
-.carnet .ar-prow .ar-rt > b { font-size: 15px; font-weight: 750; font-variant-numeric: tabular-nums; }
-.carnet .ar-prow .ar-rt small { font-size: 12px; color: var(--ink3); }
-.carnet .ar-prow .ar-rt button.pill { border: 0; cursor: pointer; }
-.carnet .ar-payer.open .ar-nm::after { content: " ▾"; color: var(--ink3); font-weight: 500; }
-.carnet .ar-payer.on { box-shadow: inset 2px 0 0 var(--ink); background: var(--sheet); padding-left: 10px; }
-.carnet .ar-pay { padding: 0 0 12px 52px; }
-.carnet .ar-pay .btn { height: 34px; font-size: 13px; padding: 0 12px; }
-.carnet .ar-payer .ticket { margin: 0 0 18px; }
-.carnet .ar-th { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; margin-bottom: 6px; border-bottom: 1px dashed var(--ink3); font-family: var(--f); font-size: 14px; font-weight: 650; }
-.carnet .ar-th .ini { width: 28px; height: 28px; font-size: 12px; }
-.carnet .ar-th > span:nth-child(2) { flex: 1; }
+
 .carnet .ar-side { display: none; }
 
 /* Historique */
@@ -202,29 +179,6 @@
 .carnet .ar-sld .ar-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink3); margin-top: 4px; font-variant-numeric: tabular-nums; }
 
 /* Pages sans maquette dédiée : plan, audit, conseiller, découvertes */
-.carnet .ar-cardm { margin: 12px 14px 0; }
-.carnet .ar-cardm .trio { margin-top: 12px; }
-.carnet .ar-swipe { position: relative; height: 56vh; min-height: 380px; margin: 14px 14px 0; }
-.carnet .ar-swipe > div { position: absolute; inset: 0; }
-.carnet .ar-swipe .card { height: 100%; display: flex; flex-direction: column; }
-.carnet .ar-swipe .ar-body { flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; }
-.carnet .ar-swipe .ar-body .face { width: 72px; height: 72px; }
-.carnet .ar-dots { display: flex; justify-content: center; gap: 6px; margin-top: 14px; }
-.carnet .ar-dots button { width: 22px; height: 14px; border: 0; background: none; padding: 5px 0; cursor: pointer; }
-.carnet .ar-dots button i { display: block; height: 3px; border-radius: 2px; background: var(--line); }
-.carnet .ar-dots button[aria-current="true"] i { background: var(--ink); }
-.carnet .ar-chat { display: grid; gap: 10px; padding: 14px 14px 0; }
-.carnet .ar-msg { max-width: 88%; padding: 10px 14px; font-size: 14px; line-height: 1.5; white-space: pre-line; }
-.carnet .ar-msg.me { justify-self: end; max-width: 80%; border-radius: 10px 10px 2px 10px; background: var(--ink); color: var(--on-ink); font-weight: 550; }
-.carnet .ar-msg.card { justify-self: start; border-radius: 10px 10px 10px 2px; }
-.carnet .ar-ask { position: sticky; bottom: calc(84px + env(safe-area-inset-bottom)); display: flex; gap: 8px; margin: 14px 14px 0; padding: 6px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px color-mix(in srgb, var(--ink) 8%, transparent); z-index: 4; }
-.carnet .ar-ask .input { box-shadow: none; }
-.carnet .ar-ask .btn { width: 44px; padding: 0; flex: none; }
-.carnet .ar-ins { display: block; margin: 10px 14px 0; color: inherit; text-decoration: none; }
-.carnet .ar-ins .mid { margin-top: 0; }
-.carnet .ar-ins .big { font-size: 34px; }
-.carnet .ar-ins p { margin: 6px 0 0; }
-.carnet .ar-ins .ar-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* Ordinateur */
 @media (min-width: 1024px) {
@@ -236,11 +190,11 @@
   .carnet .ar-side { display: block; position: sticky; top: 22px; padding-top: 22px; }
   .carnet .ar-side .ticket { margin-top: 0; }
   .carnet .ar-hero6 { max-width: 720px; margin-left: 0; }
-  .carnet .ar-goal, .carnet .ar-head, .carnet .ar-sum3, .carnet .ar-lcard, .carnet .ar-goalf { margin-left: 0; margin-right: 0; }
-  .carnet .ar-cptl { margin-left: 0; margin-right: 0; }
+  .carnet .ar-goal, .carnet .ar-head, .carnet .ar-lcard { margin-left: 0; margin-right: 0; }
+
   .carnet .ar-filt { padding-left: 0; }
   .carnet .ar-tbl-wrap { padding: 0; }
-  .carnet .ar-ask { bottom: 24px; }
+
 }
 
 /* Mon mois : une seule image (plus de sacoche), le chiffre, puis ce qui rentre et ce qui sort */

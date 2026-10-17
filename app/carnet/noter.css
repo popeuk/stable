@@ -4,20 +4,17 @@
 
 /* ---------- La feuille Noter ---------- */
 .carnet .nt-sheet .pad .seg { margin-bottom: 2px; }
-.carnet .nt-form .field > .chips, .carnet .nt-form .field > div { min-width: 0; }
-.carnet .nt-form .btn:disabled { opacity: .4; cursor: default; }
+
 .carnet .nt-faces { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: -18px; padding-right: 18px; }
 .carnet .nt-faces::-webkit-scrollbar { display: none; }
 .carnet .nt-faces.wrap { flex-wrap: wrap; overflow: visible; margin-right: 0; padding-right: 0; }
 .carnet .nt-fchip { display: inline-flex; align-items: center; gap: 7px; padding: 3px 12px 3px 3px; flex: none; }
 .carnet .nt-fchip .face { width: 28px; height: 28px; }
-.carnet .nt-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
-.carnet .nt-two > * { min-width: 0; }
+
 .carnet .nt-until { margin-top: 10px; }
 .carnet .nt-until .u b { color: var(--ink); font-weight: 650; white-space: nowrap; }
-.carnet .nt-opt { font-weight: 400; color: var(--ink3); }
+
 .carnet a.chip { text-decoration: none; display: inline-flex; align-items: center; }
-.carnet .chip.nt-dash { background: none; box-shadow: none; border: 1px dashed var(--ink3); }
 
 /* Un champ avec son vrai <input> dedans, l’unité à droite. */
 .carnet .nt-in { padding-right: 10px; }
@@ -46,7 +43,7 @@
 .carnet .nt-four b { display: block; font-size: 16.5px; font-weight: 720; line-height: 1.15; letter-spacing: -.01em; }
 .carnet .nt-four small { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--ink3); }
 .carnet .nt-dire:active, .carnet .nt-four button:active { transform: scale(.98); }
-.carnet .nt-later { margin: 10px 0 0; font-size: 13px; color: var(--ink2); }
+
 /* Je préfère le dire */
 .carnet .nt-micw { display: grid; justify-items: center; text-align: center; padding: 10px 0 2px; }
 .carnet .nt-bigmic { position: relative; width: 100px; height: 100px; border-radius: 50%; border: 0; background: var(--ink); color: var(--on-ink); display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -157,25 +154,8 @@
 }
 
 /* ---------- Les écrans de saisie ---------- */
-.carnet .nt-page .form { padding-top: 6px; }
-.carnet .nt-phrase { position: sticky; top: calc(env(safe-area-inset-top) + 52px); z-index: 20; margin: 10px 0 0; padding: 12px 18px; background: var(--paper); border-bottom: 1px solid var(--line2); font-size: 22px; font-weight: 650; letter-spacing: -.015em; line-height: 1.25; text-wrap: balance; }
-.carnet .nt-phrase .vide, .carnet .nt-phrase .faint { color: var(--ink3); font-weight: 500; }
-.carnet .nt-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; border-radius: 8px; overflow: hidden; background: var(--line); box-shadow: inset 0 0 0 1px var(--line); }
-.carnet .nt-keys button { height: 54px; border: 0; background: var(--sheet); font-size: 20px; font-weight: 650; color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
-.carnet .nt-keys button:active { background: var(--mist); }
-.carnet .nt-keys .cn-ic { width: 20px; height: 20px; }
-.carnet .nt-alloc { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line2); font-size: 14px; }
-.carnet .nt-alloc:last-child { border-bottom: 0; }
-.carnet .nt-alloc small { color: var(--ink3); font-size: 12px; margin-left: 4px; }
-.carnet .nt-alloc .out { font-weight: 700; font-variant-numeric: tabular-nums; }
+
 .carnet .nt-noh .ini .cn-ic { width: 18px; height: 18px; color: var(--ink2); }
-.carnet .nt-sw-txt b { display: block; font-weight: 650; }
-.carnet .nt-sw-txt small { display: block; font-size: 12px; color: var(--ink3); }
-.carnet .nt-cancel { justify-self: center; }
-@media (min-width: 1024px) {
-  .carnet .nt-page { max-width: 640px; }
-  .carnet .nt-phrase { top: 0; }
-}
 
 /* ---------- Palette (chercher, aller à, faire) ---------- */
 .carnet .nt-pal-scrim { position: fixed; inset: 0; z-index: 62; background: color-mix(in srgb, var(--ink) 35%, transparent); animation: cn-fade .2s both; }
@@ -213,10 +193,9 @@
 .carnet .nt-steps li { counter-increment: s; position: relative; padding-left: 32px; font-size: 14px; line-height: 1.45; color: var(--ink); }
 .carnet .nt-steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 12px; font-weight: 750; display: flex; align-items: center; justify-content: center; }
 .carnet .nt-lead { margin: 0 18px 4px; font-size: 14px; line-height: 1.45; color: var(--ink2); }
-.carnet .nt-noend { height: auto; min-height: 44px; padding: 6px 10px; font-size: 13px; line-height: 1.25; white-space: normal; text-align: center; }
+
 .carnet .nt-pin .x { flex: none; width: 30px; height: 30px; }
 @media (min-width: 1024px) { .carnet .nt-pin .x { display: none; } }
-.carnet .nt-two > * { min-width: 0; } .carnet .nt-two input { width: 100%; min-width: 0; }
 
 /* Le + : la saisie au toucher d'abord (les quatre boutons), la voix en second, en trait. */
 .carnet .nt-dire.nt-dire2 { margin: 10px 0 0; min-height: 56px; background: var(--sheet); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }

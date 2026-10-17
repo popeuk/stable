@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Back, dec1, ilEnFaut } from "@/components/bs/ui";
+import { dec1, ilEnFaut } from "@/components/bs/ui";
 import { SeuilGrid } from "@/components/bs/seuil-grid";
 import { useParcours } from "@/components/bs/parcours";
 import { Hello, Ic, Page, Tip, eur } from "@/components/carnet/ui";
@@ -35,7 +35,6 @@ function Seuil() {
   const above = ok && n >= m.seuil;
   return (
     <Page>
-      <Back href={parcours.seuil ? "/argent" : "/parcours"}>{parcours.seuil ? "Bilan" : "Ton parcours · étape 6 sur 6"}</Back>
       <h1 className="ar-sr">Combien de chevaux pour ne pas perdre d’argent ?</h1>
       {ok ? (
         <Hello
