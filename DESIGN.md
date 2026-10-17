@@ -30,6 +30,11 @@ colors:
   app-hay: "#E9C46A"
   money-in: "#17603F"
   money-out: "#A0285A"
+  print-black: "#000000"
+  print-ink: "#111111"
+  print-grey: "#444444"
+  print-rule: "#999999"
+  print-line: "#C9C9C9"
 typography:
   wordmark:
     fontFamily: "Bricolage Grotesque, sans-serif"
@@ -449,9 +454,13 @@ The app as it ships since 15 October 2026 (the carnet illustré, rules of 17 Oct
 - **Touch targets:** 44 by 44px minimum for anything a gloved thumb can press. When the drawing must stay small (the C'est fait check, a row's trash, back and help in the header, close crosses, week and month arrows, colour swatches, text links), a centred `::after` extends the hit area to 44px around it; segmented controls are 38px inside a 3px mist frame, extended to the frame's edge; chips, steppers, inputs and buttons are 44px tall. A field box is a label: a press anywhere in it puts the caret inside. The tab bar's centre + is a 56px ink disc raised 24px; tab labels are 12px 600.
 - **Headings:** one h1 per screen. The app shell reads the screen's name as a visually hidden h1 when the screen has no visible one; account, onboarding and trial screens show their question as the h1. Page titles and sections are h2, their sub-blocks h3. The help card opens on a paragraph, not a heading.
 - **Zoom:** pinch-zoom is never blocked (no maximum-scale, no gesture blocking); double-tap zoom is cut by `touch-action: manipulation`.
-- **Motion:** screens and lines rise in 0.3s to 0.7s on cubic-bezier(.22,1,.36,1); bars grow with `transform: scaleX`, never `width`. Under reduced motion every loop stops (one iteration, 0.001ms), the steam and the promo ping disappear, and framer-motion follows the system setting (`MotionConfig reducedMotion="user"`).
+- **Motion:** screens and lines rise in 0.3s to 0.7s on cubic-bezier(.22,1,.36,1); bars grow with `transform: scaleX`, never `width`. Entrance animations that move a block (`.rise`, the screen fade, the sheets) fill `backwards`, never `both`: once played, the block keeps no transform, so a fixed sheet or a 44px hit area inside it is neither trapped nor clipped. Everything is CSS (the app no longer ships framer-motion). Under reduced motion every loop stops (one iteration, 0.001ms), the steam and the promo ping disappear.
+- **Sheets:** every modal sheet (the +, a séance, a lesson, the rond, the forms of a fiche) is portalled to `body` inside `.carnet.carnet-portal` and uses `useFeuille` (`components/bs/feuille.ts`): focus enters on open (the first choice, never a text field, so the phone keyboard does not pop), Tab stays inside, Escape closes the top sheet only, focus returns to the control that opened it.
+- **Print colours:** the invoice and the breeding register print black on white, outside the screen palette on purpose: `#000` (register text and rules), `#111` (invoice ink), `#444` (invoice secondary text), `#999` (register inner rules), `#c9c9c9` (invoice hairlines), `#fff` (sheet ground). They live only in `app/carnet/facture.css` and `app/carnet/registre.css`; no screen uses them.
+- **Scrollbars:** thin, ink at 26 % on a transparent track, on whatever really scrolls (a long sheet, a row of horses, the week board); only controls drawn as a wheel hide theirs.
 - **Agenda (desktop week):** event cards are white with a 1px line ring and a 2px ink top rule (ink-3 once done, a dashed ink outline while waiting); never a coloured side stripe.
-- **Service worker:** the cache name changes with every build (`scripts/stamp-sw.mjs`), old caches are deleted on activation, build files are cache-first, images, icons and the manifest are served from cache and refreshed in the background.
+- **Service worker:** the cache name changes with every build (`scripts/stamp-sw.mjs`), old caches are deleted on activation, build files are cache-first, images, icons and the manifest are served from cache and refreshed in the background. On install the main screens and the build files they cite are stored ahead. Offline, a screen never opened on the device gets `public/hors-ligne.html` (illustrated, « Réessayer »), never another screen's page under its address.
+- **Document title:** each screen names its tab, « Planning · Be Stable ».
 
 ## Do's and Don'ts
 

@@ -132,9 +132,28 @@ h3 {
   text-wrap: balance;
 }
 
+/* Barres de défilement : fines, à l'encre, sur ce qui défile vraiment (une
+   feuille longue, une rangée de chevaux, la semaine). Sans elles, à la souris,
+   rien ne dit qu'il y a une suite. Sur téléphone, le système les montre
+   pendant le geste. */
+html {
+  scrollbar-color: color-mix(in srgb, var(--ink) 26%, transparent) transparent;
+}
+* {
+  scrollbar-width: thin;
+}
 ::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink) 26%, transparent);
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background-clip: padding-box;
 }
 
 @media (prefers-reduced-motion: reduce) {

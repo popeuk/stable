@@ -5,8 +5,7 @@
 /* ---------- La feuille Noter ---------- */
 .carnet .nt-sheet .pad .seg { margin-bottom: 2px; }
 
-.carnet .nt-faces { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: -18px; padding-right: 18px; }
-.carnet .nt-faces::-webkit-scrollbar { display: none; }
+.carnet .nt-faces { flex-wrap: nowrap; overflow-x: auto; margin-right: -18px; padding-right: 18px; }
 .carnet .nt-faces.wrap { flex-wrap: wrap; overflow: visible; margin-right: 0; padding-right: 0; }
 .carnet .nt-fchip { display: inline-flex; align-items: center; gap: 7px; padding: 3px 12px 3px 3px; flex: none; }
 .carnet .nt-fchip .face { width: 28px; height: 28px; }
@@ -84,8 +83,7 @@
 .carnet .nt-pl { margin: 0 0 8px; font-size: 13px; font-weight: 700; }
 .carnet .nt-cs { display: flex; flex-wrap: wrap; gap: 6px; }
 .carnet .nt-cs .chip, .carnet .nt-scroll .chip { min-height: 44px; font-size: 14px; }
-.carnet .nt-scroll { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
-.carnet .nt-scroll::-webkit-scrollbar { display: none; }
+.carnet .nt-scroll { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
 .carnet .nt-scroll .chip { flex: none; }
 .carnet .nt-pick .nt-scroll { margin: 0 -10px; padding: 0 10px; }
 .carnet .nt-gap { margin-top: 6px; }

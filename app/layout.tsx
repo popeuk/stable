@@ -34,7 +34,8 @@ const plex = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Be Stable",
+  // Chaque écran nomme son onglet : « Planning · Be Stable ».
+  title: { default: "Be Stable", template: "%s · Be Stable" },
   description: "Ce que ton écurie te rapporte vraiment. Cheval par cheval.",
   manifest: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/manifest.webmanifest`,
   icons: {

@@ -295,12 +295,25 @@ export function Promo({ href, ill = "promo", tag, title, text, cta, contain, sma
   );
 }
 
-/** Onglets en segment ; le panneau se choisit dehors avec la valeur. */
+/**
+ * Un choix en segment (« Semaine / Mois », « Un trimestre / Une année ») : un
+ * groupe de boutons radio. Tab entre dans le groupe sur le choix actif, les
+ * flèches passent d'un choix à l'autre.
+ */
 export function Seg<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: [T, ReactNode][]; label?: string }) {
+  const keys = options.map(([k]) => k);
+  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const d = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!d) return;
+    e.preventDefault();
+    const i = (keys.indexOf(value) + d + keys.length) % keys.length;
+    onChange(keys[i]);
+    (e.currentTarget.querySelectorAll("button")[i] as HTMLButtonElement | undefined)?.focus();
+  };
   return (
-    <div className="seg" role="tablist" aria-label={label}>
+    <div className="seg" role="radiogroup" aria-label={label} onKeyDown={onKey}>
       {options.map(([k, l]) => (
-        <button key={k} type="button" role="tab" aria-selected={value === k} className={value === k ? "on" : ""} onClick={() => onChange(k)}>
+        <button key={k} type="button" role="radio" aria-checked={value === k} tabIndex={value === k ? 0 : -1} className={value === k ? "on" : ""} onClick={() => onChange(k)}>
           {l}
         </button>
       ))}

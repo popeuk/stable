@@ -19,6 +19,9 @@ import { GarderBandeau } from "@/components/bs/garder";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="carnet">
+      <a className="cn-skip" href="#contenu">
+        Aller au contenu
+      </a>
       <OnboardingGate />
       <Autopilot />
       <MorningNudge />
@@ -36,6 +39,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <AideCarte />
           </div>
         </ClientGate>
+        {/* Où mène « Aller au contenu » : après l'en-tête, avant l'écran. */}
+        <span id="contenu" tabIndex={-1} className="cn-anchor" />
         {children}
       </main>
       <GarderBandeau />
