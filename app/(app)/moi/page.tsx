@@ -11,6 +11,7 @@ import { useDesk } from "@/components/bs/desk-hook";
 import { Hello, Ic, Sec, Switch, ini } from "@/components/carnet/ui";
 import { CategoriesReglages, EquipeReglages, LieuReglages } from "@/components/bs/reglages";
 import { api } from "@/lib/account/api";
+import { envoyer } from "@/lib/account/nuage";
 import { getSession, leave } from "@/lib/account/session";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { grosTexte, poserGrosTexte } from "@/lib/taille";
@@ -409,6 +410,8 @@ function Compte() {
         className="li np"
         onClick={async () => {
           if (!window.confirm("Te déconnecter de cet appareil ? Tes données restent ici, protégées. Tu les retrouveras à ta prochaine connexion.")) return;
+          // Ce qui attend part d'abord en ligne : l'autre appareil le verra sans attendre la prochaine connexion ici.
+          await envoyer().catch(() => {});
           try {
             await api.deconnexion();
           } catch {}

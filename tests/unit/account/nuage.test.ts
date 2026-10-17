@@ -62,7 +62,7 @@ function appareil() {
       g.localStorage = m;
       nuage._reinitialiser();
       setSession(compte);
-      m.setItem("bs-nuage", "1");
+      m.removeItem("bs-nuage");
     },
   };
 }
@@ -262,7 +262,7 @@ describe("la copie en ligne des tiroirs", () => {
   it("éteinte, la copie en ligne ne contacte pas le serveur", async () => {
     const pc = appareil();
     pc.entrer();
-    pc.m.removeItem("bs-nuage");
+    pc.m.setItem("bs-nuage", "0");
     await sync();
     await vault.setItem("be-stable-data", donnees(["Sirius"]));
     await attendre();

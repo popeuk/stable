@@ -28,7 +28,7 @@ export const TIROIRS = ["be-stable-data", "be-stable-settings"] as const;
 type Nom = (typeof TIROIRS)[number];
 const estNom = (n: string): n is Nom => (TIROIRS as readonly string[]).includes(n);
 
-/** L'essai de la copie en ligne : ?nuage=1 l'allume sur cet appareil, ?nuage=0 l'éteint. */
+/** Allumée pour tous les comptes. Interrupteur de secours : ?nuage=0 l'éteint sur cet appareil, ?nuage=1 la rallume. */
 const DRAPEAU = "bs-nuage";
 
 export interface Distant {
@@ -75,7 +75,7 @@ let derniere: { quand: string; ok: boolean } | null = null;
 
 export function nuageAllume(): boolean {
   try {
-    return localStorage.getItem(DRAPEAU) === "1";
+    return localStorage.getItem(DRAPEAU) !== "0";
   } catch {
     return false;
   }
@@ -85,8 +85,8 @@ export function nuageAllume(): boolean {
 export function lireDrapeau(search: string) {
   const v = new URLSearchParams(search).get("nuage");
   try {
-    if (v === "1") localStorage.setItem(DRAPEAU, "1");
-    if (v === "0") localStorage.removeItem(DRAPEAU);
+    if (v === "1") localStorage.removeItem(DRAPEAU);
+    if (v === "0") localStorage.setItem(DRAPEAU, "0");
   } catch {}
 }
 

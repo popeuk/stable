@@ -9,7 +9,7 @@ import { useSettingsStore } from "@/stores/settings-store";
  * La copie en ligne (lib/account/nuage), branchée sur l'app : on lit le
  * serveur à l'ouverture et à chaque retour sur l'app, on envoie ce qui
  * attend dès que le réseau revient. Si un autre appareil a écrit, les
- * données à l'écran sont relues. En essai : ?nuage=1 l'allume sur l'appareil.
+ * données à l’écran sont relues. Allumée pour tous ; ?nuage=0 l’éteint sur un appareil.
  */
 export function NuageSync() {
   useEffect(() => {
