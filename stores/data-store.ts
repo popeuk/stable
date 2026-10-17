@@ -30,6 +30,8 @@ import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
 import { avecProprio, changerProprio, nomConnu, renommerClient, retirerClient } from "@/lib/domain/proprio";
 import { arreterRecurrentes, daterLesDeparts, revenirALEcurie } from "@/lib/domain/presence";
+import { POSTES_VERSION, ajouterPostesManquants } from "@/lib/domain/postes-communs";
+import type { MontantSaisi } from "@/lib/domain/types";
 
 /**
  * Client-side data store. In the full product this is the IndexedDB-backed
@@ -44,6 +46,8 @@ interface DataState extends StableData {
    * recrée jamais (il sait pourquoi il les a enlevées).
    */
   autopilotDismissed?: string[];
+  /** La liste de postes communs déjà proposée à cette écurie (postes-communs.ts). */
+  postesCommuns?: number;
   /** Un rythme hebdomadaire : planifié une fois, généré chaque semaine. */
   addRhythm: (r: Omit<Rhythm, "id" | "stableId">) => void;
   deleteRhythm: (id: string) => void;
@@ -132,7 +136,8 @@ interface DataState extends StableData {
    * récurrente partagée à partir du mois donné, et remplace ce qui avait été
    * saisi pour ce mois-là dans la même catégorie.
    */
-  setMonthlyCharge: (categoryId: string, label: string, amount: number, period: { year: number; month: number }) => void;
+  /** `saisi` : le montant tel que tapé, quand il est connu à l'année ou en plusieurs fois ; `amount` est son équivalent par mois. */
+  setMonthlyCharge: (categoryId: string, label: string, amount: number, period: { year: number; month: number }, saisi?: MontantSaisi) => void;
 
   /* ---- Planning, validation, facturation, équipe (octobre 2026) ---- */
   /** Trouve une personne par son nom, ou la crée. Rend son identifiant. */
@@ -581,7 +586,7 @@ export const useDataStore = create<DataState>()(
           };
         }),
 
-      setMonthlyCharge: (categoryId, label, amount, period) =>
+      setMonthlyCharge: (categoryId, label, amount, period, saisi) =>
         set((s) => {
           const start = `${period.year}-${String(period.month).padStart(2, "0")}-01`;
           const value = Math.max(0, Math.round(amount * 100) / 100);
@@ -608,6 +613,7 @@ export const useDataStore = create<DataState>()(
               startDate: start,
               endDate: null,
               source: "manual",
+              ...(saisi ? { saisi } : {}),
             });
           }
           return { sharedExpenses, recurringExpenses };
@@ -884,7 +890,7 @@ export const useDataStore = create<DataState>()(
 
       removePayments: (payer, month) => set((s) => ({ payments: (s.payments ?? []).filter((p) => !(p.payer === payer && p.month === month)) })),
 
-      resetToDemo: () => set({ ...buildDemoData(), autopilotDismissed: [] }),
+      resetToDemo: () => set({ ...buildDemoData(), autopilotDismissed: [], postesCommuns: POSTES_VERSION }),
 
       // Empty stable, keeping the default categories — the from-zero experience.
       startEmpty: () => {
@@ -909,6 +915,7 @@ export const useDataStore = create<DataState>()(
           actions: [],
           payments: [],
           autopilotDismissed: [],
+          postesCommuns: POSTES_VERSION,
           revenueCategories: demo.revenueCategories,
           expenseCategories: demo.expenseCategories,
         });
@@ -929,6 +936,10 @@ export const useDataStore = create<DataState>()(
         // l'écurie essayée sans compte ; la démo garde son écurie d'exemple.
         const kind = getSession()?.kind;
         if (wasFresh("be-stable-data") && (kind === "compte" || kind === "locale")) state.startEmpty();
+        // Une écurie déjà enregistrée reçoit une fois les postes ajoutés depuis
+        // (emprunt, MSA…), sans rien perdre ; un poste retiré ensuite ne revient pas.
+        const cur = useDataStore.getState();
+        if ((cur.postesCommuns ?? 0) < POSTES_VERSION) useDataStore.setState({ expenseCategories: ajouterPostesManquants(cur.expenseCategories), postesCommuns: POSTES_VERSION });
         useDataStore.setState({ hydrated: true });
       },
     },

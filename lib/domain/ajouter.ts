@@ -2,6 +2,7 @@ import type { ISODate, Prestation, Seance, SeanceFormat, StableData } from "@/li
 import { addDays, type CareKind } from "@/lib/domain/care";
 import { norm } from "@/lib/domain/interpret";
 import type { Compris, Pour } from "@/lib/domain/dire";
+import { FOIS_PAR_DEFAUT, type Connu } from "@/lib/domain/montant-saisi";
 
 /**
  * Le + : ce que l'app propose d'avance. Les habitudes viennent des données
@@ -83,6 +84,18 @@ export interface Draft {
   catId?: string;
   comment: string;
   moneyRep: MoneyRep;
+  /** Une dépense de l'écurie qui revient : connue par mois, par an ou en plusieurs fois (montant-saisi.ts). Absent : par mois. */
+  connu?: Connu;
+  /** En plusieurs fois : combien de fois dans l'année. */
+  fois?: number;
+}
+
+/** Comment une dépense de l'écurie qui revient est connue. Un « chaque année » ou « chaque trimestre » d'avant se lit à l'année ou en 4 fois. */
+export function connuDe(d: Pick<Draft, "connu" | "fois" | "moneyRep">): { connu: Connu; fois: number } {
+  if (d.connu) return { connu: d.connu, fois: d.fois ?? FOIS_PAR_DEFAUT };
+  if (d.moneyRep === "yearly") return { connu: "an", fois: d.fois ?? FOIS_PAR_DEFAUT };
+  if (d.moneyRep === "quarterly") return { connu: "fois", fois: 4 };
+  return { connu: "mois", fois: d.fois ?? FOIS_PAR_DEFAUT };
 }
 
 export const SOIN_LIST: [CareKind, string][] = [

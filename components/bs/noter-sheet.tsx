@@ -8,7 +8,9 @@ import { useUiStore, type NoterPrefill } from "@/stores/ui-store";
 import { CoursTiles, F, HorseChips, InField, Jours, Keypad, MoneyField, Puces, Q, Quand, SeanceDetails, Tiles, Wheel, hh, jourLabel, type SetD } from "@/components/bs/seance-form";
 import { QuoiTiles, TaskDetails } from "@/components/bs/task-form";
 import { Ic, Money, eur } from "@/components/carnet/ui";
-import { applySoin, draftFor, draftFromCompris, endOf, habitudes, manque, titre, type AjoutType, type Draft, type Habitudes, type Pour } from "@/lib/domain/ajouter";
+import { applySoin, connuDe, draftFor, draftFromCompris, endOf, habitudes, manque, titre, type AjoutType, type Draft, type Habitudes, type Pour } from "@/lib/domain/ajouter";
+import { ChoixConnu, ChoixFois, SoitParMois } from "@/components/bs/montant-connu";
+import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
 import { comprendre } from "@/lib/domain/dire";
 import { norm } from "@/lib/domain/interpret";
 import { seriesDates } from "@/lib/domain/seances";
@@ -382,7 +384,12 @@ function NoterInner() {
     const freq: Frequency | null = d.moneyRep === "once" || pour === "hors" ? null : d.moneyRep;
     if (freq) {
       if (inn) chosen.forEach((horseId) => st.addRecurringRevenue({ horseId, categoryId: cat?.id, label: label || undefined, amount: v, frequency: freq, startDate: d.date, endDate: null, source: "manual" }));
-      else if (pour === "ecurie") st.addRecurringExpense({ label: label || cat?.name || "Frais communs", amount: v, categoryId: cat?.id, isShared: true, distributionMode: "equal", frequency: freq, startDate: d.date, endDate: null, source: "manual" });
+      else if (pour === "ecurie") {
+        // Connue par an ou en plusieurs fois : comptée chaque mois pour son équivalent par mois (montant-saisi.ts).
+        const { connu, fois } = connuDe(d);
+        const saisi = saisiDe(connu, v, fois);
+        st.addRecurringExpense({ label: label || cat?.name || "Frais communs", amount: parMois(connu, v, fois), categoryId: cat?.id, isShared: true, distributionMode: "equal", frequency: "monthly", startDate: d.date, endDate: null, source: "manual", ...(saisi ? { saisi } : {}) });
+      }
       else chosen.forEach((horseId) => st.addRecurringExpense({ label: label || cat?.name || "Dépense", amount: v, categoryId: cat?.id, isShared: false, horseId, frequency: freq, startDate: d.date, endDate: null, source: "manual" }));
     } else if (pour === "hors") {
       if (inn) st.addRevenue({ horseId: "", amount: v, date: d.date, note: label || note, source: "manual" });
@@ -963,7 +970,28 @@ function NoterInner() {
           <F label="Quel jour">
             <Jours date={x.date} today={today} onDate={(date) => set((y) => ({ ...y, date }))} />
           </F>
-          {x.pour !== "hors" && !(x.sens === "in" && x.pour !== "cheval") && (
+          {x.pour === "ecurie" && x.sens === "out" && (
+            <F label="Répétition">
+              <Puces
+                options={[
+                  ["once", "Une fois"],
+                  ["monthly", "Ça revient"],
+                ]}
+                value={x.moneyRep === "once" ? "once" : "monthly"}
+                onPick={(rep) => set((y) => (rep === "once" ? { ...y, moneyRep: "once" } : { ...y, moneyRep: y.moneyRep === "once" ? "monthly" : y.moneyRep }))}
+              />
+            </F>
+          )}
+          {x.pour === "ecurie" && x.sens === "out" && x.moneyRep !== "once" && (
+            <F label="Ce montant, c’est">
+              <div className="nt-mc">
+                <ChoixConnu sansTitre label="Ce montant, c’est" value={connuDe(x).connu} onChange={(connu) => set((y) => ({ ...y, connu, fois: connuDe(y).fois }))} />
+                {connuDe(x).connu === "fois" && <ChoixFois fois={connuDe(x).fois} onChange={(fois) => set((y) => ({ ...y, connu: "fois", fois }))} />}
+                <SoitParMois mode={connuDe(x).connu} montant={x.amount} fois={connuDe(x).fois} />
+              </div>
+            </F>
+          )}
+          {x.pour !== "hors" && x.pour !== "ecurie" && !(x.sens === "in" && x.pour !== "cheval") && (
             <F label="Répétition">
               <Puces
                 options={[

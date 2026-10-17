@@ -146,6 +146,20 @@ export interface RecurringExpense {
   startDate: ISODate;
   endDate?: ISODate | null;
   source: EntrySource;
+  /**
+   * Comment le gérant connaît ce frais, quand ce n'est pas « par mois » : ce
+   * qu'il paie sur l'année, ou en plusieurs fois (2 fois 1 500 €). `amount`
+   * reste l'équivalent par mois (lib/domain/montant-saisi.ts) ; ceci sert à
+   * lui remontrer son chiffre tel qu'il l'a tapé.
+   */
+  saisi?: MontantSaisi;
+}
+
+/** Un frais connu à l'année (`montant` sur l'année) ou en plusieurs fois (`fois` paiements de `montant`). */
+export interface MontantSaisi {
+  mode: "an" | "fois";
+  montant: number;
+  fois?: number;
 }
 
 /**

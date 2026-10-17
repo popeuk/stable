@@ -8,6 +8,8 @@ import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 import { currentPeriod } from "@/lib/utils/period";
 import { recurringDue } from "@/lib/domain/recurring";
+import { relire, type Connu } from "@/lib/domain/montant-saisi";
+import type { MontantSaisi } from "@/lib/domain/types";
 
 /**
  * Le parcours de démarrage : six obstacles. Les trois premiers installent
@@ -107,6 +109,18 @@ export function chargeDuMois(data: Pick<Data, "sharedExpenses" | "recurringExpen
   );
 }
 
+/**
+ * Comment remontrer un poste dans son champ : par mois, sur l'année ou en
+ * plusieurs fois, comme le gérant l'a tapé. Un poste fait d'une seule charge
+ * qui revient garde sa façon d'être tapé ; sinon, c'est son total du mois.
+ */
+export function posteTape(data: Pick<Data, "sharedExpenses" | "recurringExpenses">, catId: string, period: Per): { mode: Connu; montant: number; fois: number } {
+  const total = chargeDuMois(data, catId, period);
+  const recs = (data.recurringExpenses ?? []).filter((r) => r.isShared && r.categoryId === catId && recurringDue(r, period));
+  const seule = recs.length === 1 && recs[0].frequency === "monthly" && recs[0].amount === total ? recs[0] : undefined;
+  return relire(total, seule?.saisi);
+}
+
 /** Les frais communs du mois : le total « en un chiffre » et la somme des autres postes. */
 export function fraisDuMois(data: Pick<Data, "expenseCategories" | "sharedExpenses" | "recurringExpenses">, period: Per = currentPeriod()) {
   const cats = data.expenseCategories.filter((c) => !c.isDirect);
@@ -117,7 +131,7 @@ export function fraisDuMois(data: Pick<Data, "expenseCategories" | "sharedExpens
 }
 
 /** « Un total » : foin, loyer, salaires en une seule charge commune mensuelle. 0 la retire. */
-export function fraisEnUnTotal(montant: number, period: Per = currentPeriod()) {
+export function fraisEnUnTotal(montant: number, period: Per = currentPeriod(), saisi?: MontantSaisi) {
   const d = useDataStore.getState();
   let cat = d.expenseCategories.find((c) => c.name === FRAIS_CAT && !c.isDirect);
   if (!cat && montant <= 0) return;
@@ -125,7 +139,7 @@ export function fraisEnUnTotal(montant: number, period: Per = currentPeriod()) {
     d.addExpenseCategory(FRAIS_CAT, false);
     cat = useDataStore.getState().expenseCategories.find((c) => c.name === FRAIS_CAT && !c.isDirect);
   }
-  if (cat) useDataStore.getState().setMonthlyCharge(cat.id, FRAIS_LABEL, montant, period);
+  if (cat) useDataStore.getState().setMonthlyCharge(cat.id, FRAIS_LABEL, montant, period, saisi);
 }
 
 /** Passer poste par poste après un total : le total ne compte plus. */

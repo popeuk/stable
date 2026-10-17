@@ -39,13 +39,13 @@ export function ObHead({ n, title, sub, retour }: { n: number; title: string; su
  * Un montant par mois, en grand : un seul champ, chiffres et virgule
  * (« 450,50 »), clavier décimal sur téléphone, « € / mois » au bout.
  */
-export function MontantMois({ id, label, value, onChange, help }: { id: string; label: string; value: string; onChange: (v: string) => void; help?: string }) {
+export function MontantMois({ id, label, value, onChange, help, unit = "€ / mois" }: { id: string; label: string; value: string; onChange: (v: string) => void; help?: string; unit?: string }) {
   return (
     <div className="ar-mm">
       <label htmlFor={id}>{label}</label>
       <span className="ar-mm-f">
         <input id={id} inputMode="decimal" autoComplete="off" placeholder="0" value={value} onChange={(e) => onChange(saisieMontant(e.target.value))} aria-describedby={help ? `${id}-aide` : undefined} />
-        <span className="u">€ / mois</span>
+        <span className="u">{unit}</span>
       </span>
       {help && (
         <p id={`${id}-aide`} className="es-help">

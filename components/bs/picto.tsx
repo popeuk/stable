@@ -109,9 +109,9 @@ export function pictoForLabel(label: string): PictoName {
   if (/cours|monte|coaching|entrain|balade/.test(t)) return "cours";
   if (/concours/.test(t)) return "trophee";
   if (/foin|granul|litiere|paille|aliment/.test(t)) return "foin";
-  if (/personnel|salaire/.test(t)) return "personne";
+  if (/personnel|salaire|msa|cotisation/.test(t)) return "personne";
   if (/loyer|foncier|credit|emprunt/.test(t)) return "cle";
-  if (/transport|camion/.test(t)) return "camion";
+  if (/transport|camion|carburant|tracteur|gasoil/.test(t)) return "camion";
   if (/part de l.ecurie|frais communs/.test(t)) return "foin";
   return "euro";
 }

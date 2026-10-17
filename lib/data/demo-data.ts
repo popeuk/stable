@@ -18,6 +18,7 @@ import { weekdayOf } from "@/lib/domain/rhythm";
 import { distribute } from "@/lib/domain/distribution";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { addMonths, currentPeriod, periodStart } from "@/lib/utils/period";
+import { POSTES_AJOUTES, PREMIER_POSTE_AJOUTE } from "@/lib/domain/postes-communs";
 
 const STABLE_ID = "demo-stable";
 
@@ -62,6 +63,8 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
   ...["Foin", "Granulés", "Litière", "Personnel", "Loyer / foncier", "Eau", "Électricité", "Assurance", "Entretien", "Fournitures"].map(
     (name, i) => ({ id: `exp-s-${i}`, name, isDirect: false }),
   ),
+  // Emprunt, MSA, carburant, soins non refacturés : les mêmes pour une écurie déjà enregistrée (postes-communs.ts).
+  ...POSTES_AJOUTES.map((name, i) => ({ id: `exp-s-${PREMIER_POSTE_AJOUTE + i}`, name, isDirect: false })),
 ];
 
 /** A small deterministic pseudo-random generator so the demo is stable. */

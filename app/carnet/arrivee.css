@@ -228,3 +228,21 @@
 .carnet .ar-ln .ar-set { font-size: 12px; font-weight: 650; color: var(--ink2); }
 .carnet .ar-reste .es-perch { margin-top: 10px; padding: 0 22px; }
 .carnet .ar-reste .note { margin: 12px 22px 0; }
+
+/* Un frais connu par mois, par an ou en plusieurs fois (components/bs/montant-connu.tsx) */
+.carnet .mc { display: grid; gap: 8px; }
+.carnet .mc-k { margin: 0; font-size: 13.5px; font-weight: 650; color: var(--ink2); }
+.carnet .mc-3, .carnet .mc-4 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.carnet .mc-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.carnet .mc button { min-height: 52px; padding: 6px; border: 0; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font: inherit; font-size: 15px; font-weight: 650; line-height: 1.15; color: var(--ink); cursor: pointer; }
+.carnet .mc button.on { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.carnet .mc-soit { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink2); }
+.carnet .mc-soit b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.carnet .ar-mc { margin: 22px 22px 0; display: grid; gap: 12px; }
+.carnet .ar-mc + .ar-mm { margin-top: 14px; }
+.carnet .ar-mm + .ar-mc { margin-top: 12px; }
+.carnet .ar-ln-nm { display: block; min-height: 44px; padding: 2px 0; border: 0; background: none; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.carnet .ar-ln-nm small u { text-decoration: underline; text-underline-offset: 2px; }
+.carnet .ar-ln-mc { grid-column: 1 / -1; display: grid; gap: 10px; padding: 4px 0 6px; }
+.carnet .nt-mc { display: grid; gap: 12px; }
+.carnet .ar-ln .mc-soit b { display: inline; font-size: inherit; line-height: inherit; }
