@@ -64,7 +64,8 @@ function Bilans() {
 
   const months = useMemo(() => periods.map((p) => ({ p, m: monthBreakdown(data, p) })), [data, periods]);
   const revenue = months.reduce((t, x) => t + x.m.revenue, 0);
-  const charges = months.reduce((t, x) => t + x.m.direct + x.m.sharedTotal, 0);
+  // Tout ce qui est sorti, hors chevaux compris (tracteur, matériel…), comme dans Mon mois.
+  const charges = months.reduce((t, x) => t + x.m.direct + x.m.sharedTotal + x.m.outside, 0);
   const net = months.reduce((t, x) => t + x.m.net, 0);
   const avg = net / Math.max(1, months.length);
   const keep = revenue > 0 ? Math.round((net / revenue) * 100) : 0;
@@ -78,6 +79,7 @@ function Bilans() {
     for (const { m } of months) {
       for (const s of m.shared) map.set(s.label, (map.get(s.label) ?? 0) + s.amount);
       map.set("Soins et frais des chevaux", (map.get("Soins et frais des chevaux") ?? 0) + m.direct);
+      for (const o of m.outs) map.set(o.label, (map.get(o.label) ?? 0) + o.amount);
     }
     return [...map.entries()].map(([label, amount]) => ({ label, amount })).filter((x) => x.amount > 0).sort((a, b) => b.amount - a.amount);
   }, [months]);
@@ -101,8 +103,9 @@ function Bilans() {
   const horses = useMemo(() => {
     const sum: Record<string, number> = {};
     for (const p of periods) for (const [id, v] of Object.entries(reconciledNets(data, p))) sum[id] = (sum[id] ?? 0) + v;
+    // Les chevaux de la période, même partis depuis : ils ont compté dans ces mois.
     return data.horses
-      .filter((h) => !h.isArchived)
+      .filter((h) => !h.isArchived || sum[h.id] !== undefined)
       .map((h) => ({ h, net: sum[h.id] ?? 0 }))
       .sort((a, b) => b.net - a.net);
   }, [data, periods]);

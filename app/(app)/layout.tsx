@@ -12,6 +12,7 @@ import { SessionSync } from "@/components/bs/session-sync";
 import { AideCarte, RetourOrdinateur, TitreEcran } from "@/components/bs/nav";
 import { GarderBandeau } from "@/components/bs/garder";
 import { Tournee } from "@/components/bs/tournee";
+import { Secours } from "@/components/bs/secours";
 
 /**
  * La coque de l'app, dans le carnet illustré. Au téléphone : une colonne au
@@ -41,7 +42,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <AideCarte />
           </div>
         </ClientGate>
-        {children}
+        <Secours>{children}</Secours>
       </main>
       <GarderBandeau />
       <TabBar />

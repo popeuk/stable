@@ -42,11 +42,14 @@ describe("un cheval qui part garde son argent du passé (P1-4)", () => {
     expect(stablePnl(withNov, nov).sharedCosts).toBe(120);
   });
 
-  it("un cheval parti revient : même mois, tout redevient comme avant ; plus tard, il arrive à nouveau", () => {
+  it("un cheval parti revient : le lendemain, le départ était une erreur ; plus tard, un nouveau séjour commence", () => {
     const h = { id: "h", stableId: "s", name: "P", entryDate: "2024-01-01", exitDate: "2026-10-16", isArchived: true };
-    expect(revenirALEcurie(h, "2026-10-20")).toMatchObject({ isArchived: false, exitDate: null, entryDate: "2024-01-01" });
+    expect(revenirALEcurie(h, "2026-10-17")).toMatchObject({ isArchived: false, exitDate: null, entryDate: "2024-01-01" });
     const plusTard = revenirALEcurie(h, "2027-01-10");
     expect(plusTard).toMatchObject({ isArchived: false, exitDate: null, entryDate: "2027-01-10" });
+    // Le premier séjour reste entier.
+    expect(plusTard.stays?.[0]).toMatchObject({ entry: "2024-01-01", exit: "2026-10-16" });
+    expect(presentDans(plusTard, { year: 2026, month: 10 })).toBe(true);
     expect(presentDans(plusTard, { year: 2026, month: 12 })).toBe(false);
     expect(presentDans(plusTard, { year: 2027, month: 1 })).toBe(true);
   });

@@ -1,5 +1,6 @@
 import type { CareEvent, CareKind } from "@/lib/domain/care";
 import type { Horse, ISODate, Person } from "@/lib/domain/types";
+import { presentEntre, sejours } from "@/lib/domain/sejours";
 
 /**
  * Le registre d'élevage (arrêté du 5 juin 2000) : obligatoire pour tout
@@ -78,25 +79,33 @@ export function registerPeriod(kind: PeriodKind, year: number, quarter = 1): Reg
 export const currentQuarter = (today: ISODate) => registerPeriod("trimestre", Number(today.slice(0, 4)), quarterOf(today));
 
 /**
- * Le dernier jour où le cheval était là. Un cheval archivé sans date de
- * départ (ancienne donnée) est compté présent : mieux vaut une ligne de trop
- * qu'un cheval oublié dans un registre.
- */
-const lastPresent = (h: Horse): ISODate | null => h.exitDate || null;
-
-/**
- * Les équidés présents à un moment de la période : arrivés avant sa fin et
- * pas partis avant son début. Un cheval parti depuis reste dans le registre
- * de la période où il était là. Triés par date d'arrivée.
+ * Les équidés présents à un moment de la période : un de leurs séjours
+ * (lib/domain/sejours) la chevauche. Un cheval parti depuis reste dans le
+ * registre de la période où il était là ; un cheval parti puis revenu y
+ * garde toute son histoire. Un cheval archivé sans date de départ (ancienne
+ * donnée) est compté présent : mieux vaut une ligne de trop qu'un cheval
+ * oublié dans un registre.
+ *
+ * La ligne de chaque cheval dit sa première entrée et sa provenance, et sa
+ * sortie définitive à la fin de la période (s'il est parti sans revenir
+ * avant la fin) avec sa destination. Les allers et retours de la période
+ * sont dans les mouvements. Triés par première entrée.
  */
 export function horsesPresent(horses: Horse[], start: ISODate, end: ISODate): Horse[] {
   return horses
-    .filter((h) => {
-      if (!h.entryDate || h.entryDate > end) return false;
-      const out = lastPresent(h);
-      return !out || out >= start;
-    })
+    .filter((h) => presentEntre(h, start, end))
+    .map((h) => ligneDuRegistre(h, end))
     .sort((a, b) => (a.entryDate === b.entryDate ? a.name.localeCompare(b.name, "fr") : a.entryDate < b.entryDate ? -1 : 1));
+}
+
+/** Le cheval tel que sa ligne du registre le montre, à la fin de la période. */
+function ligneDuRegistre(h: Horse, end: ISODate): Horse {
+  const all = sejours(h);
+  const first = all[0];
+  const last = all.filter((s) => !s.entry || s.entry <= end).at(-1) ?? first;
+  const parti = !!last.exit && last.exit <= end;
+  const row: Horse = { ...h, entryDate: first.entry, origin: first.origin, entryReason: first.entryReason, exitDate: parti ? last.exit : null, destination: parti ? last.destination : undefined, exitReason: parti ? last.exitReason : undefined };
+  return row;
 }
 
 export interface Movement {
@@ -110,15 +119,14 @@ export interface Movement {
   place?: string;
 }
 
-/** Les entrées et sorties définitives datées dans la période, dans l'ordre. */
+/** Les entrées et sorties datées dans la période, séjour par séjour, dans l'ordre. */
 export function movementsIn(horses: Horse[], start: ISODate, end: ISODate): Movement[] {
   const out: Movement[] = [];
-  for (const h of horses) {
-    if (h.entryDate && h.entryDate >= start && h.entryDate <= end)
-      out.push({ date: h.entryDate, horseId: h.id, horseName: h.name, kind: "entree", reason: h.entryReason, place: h.origin });
-    if (h.exitDate && h.exitDate >= start && h.exitDate <= end)
-      out.push({ date: h.exitDate, horseId: h.id, horseName: h.name, kind: "sortie", reason: h.exitReason, place: h.destination });
-  }
+  for (const h of horses)
+    for (const s of sejours(h)) {
+      if (s.entry && s.entry >= start && s.entry <= end) out.push({ date: s.entry, horseId: h.id, horseName: h.name, kind: "entree", reason: s.entryReason, place: s.origin });
+      if (s.exit && s.exit >= start && s.exit <= end) out.push({ date: s.exit, horseId: h.id, horseName: h.name, kind: "sortie", reason: s.exitReason, place: s.destination });
+    }
   return out.sort((a, b) => (a.date === b.date ? (a.kind === b.kind ? a.horseName.localeCompare(b.horseName, "fr") : a.kind === "entree" ? -1 : 1) : a.date < b.date ? -1 : 1));
 }
 

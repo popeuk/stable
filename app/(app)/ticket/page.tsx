@@ -12,13 +12,14 @@ import { useParcours } from "@/components/bs/parcours";
 import { avecArticle } from "@/lib/domain/leviers";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { horseTicket, reconciledNets, type HorseTicket } from "@/lib/domain/ticket";
+import { horseTicket, partEnMots, reconciledNets, type HorseTicket } from "@/lib/domain/ticket";
 import { CARE_META, horseCareLog, upcomingDeadlines, type CareKind } from "@/lib/domain/care";
 import { currentPeriod, addMonths } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import type { Horse } from "@/lib/domain/types";
 import { msgFairePayer } from "@/lib/utils/esc";
 import { Identite } from "@/components/bs/identite";
+import { SejourForm } from "@/components/bs/sejour-form";
 
 /**
  * La fiche d'un cheval : son portrait qui respire, puis le ticket du mois
@@ -84,8 +85,6 @@ const jour = (d: string, month: "short" | "long" = "short") => new Date(d + "T12
 function Ticket({ horse }: { horse: Horse }) {
   const router = useRouter();
   const data = useDataStore();
-  const archiveHorse = useDataStore((s) => s.archiveHorse);
-  const restoreHorse = useDataStore((s) => s.restoreHorse);
   const openNoter = useUiStore((s) => s.openNoter);
   const lastLine = useUiStore((s) => s.lastLine);
   const { pass, setupDone, parcours } = useParcours();
@@ -105,7 +104,6 @@ function Ticket({ horse }: { horse: Horse }) {
     .sort((a, b) => a.daysLeft - b.daysLeft);
   const due = deadlines.filter((d) => d.status !== "ok");
   const monthName = new Date(period.year, period.month - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: offset ? "numeric" : undefined });
-  const nHorses = data.horses.filter((h) => !h.isArchived).length;
 
   // Le plus gros frais du mois pas encore refacturé au propriétaire.
   const rebill = data.directExpenses
@@ -180,7 +178,7 @@ function Ticket({ horse }: { horse: Horse }) {
                 ) : (
                   l.label
                 )}
-                {l.kind === "share" ? <small>foin, loyer, salaires… ÷ {nHorses}</small> : l.date && <small>{jour(l.date)}</small>}
+                {l.kind === "share" ? <small>foin, loyer, salaires… {partEnMots(data, horse.id, period)}</small> : l.date && <small>{jour(l.date)}</small>}
               </span>
               <Money v={l.amount} />
             </div>
@@ -197,7 +195,16 @@ function Ticket({ horse }: { horse: Horse }) {
             <b>{tipB}</b> {tipRest}
           </Tip>
         )}
-        {offset === 0 && t.lines.length > 0 && net < 0 && rebill && (
+        {offset === 0 && t.lines.length > 0 && net < 0 && rebill && !horse.ownerName && (
+          <p className="note">
+            Pour faire payer {avecArticle(rebill.label)} ({eur(rebill.amount)}), donne d’abord un propriétaire à {horse.name} :{" "}
+            <Link href={`/saisie/cheval?edit=${horse.id}`} className="lnk">
+              modifier sa fiche
+            </Link>
+            .
+          </p>
+        )}
+        {offset === 0 && t.lines.length > 0 && net < 0 && rebill && horse.ownerName && (
           <button
             type="button"
             className="btn full ch-tall"
@@ -208,7 +215,7 @@ function Ticket({ horse }: { horse: Horse }) {
               say(msgFairePayer(rebill.label, horse.ownerName, eur(rebill.amount)), () => useDataStore.setState(snap));
             }}
           >
-            Faire payer {avecArticle(rebill.label)} à {horse.ownerName || "son propriétaire"} · +{eur(rebill.amount)}
+            Faire payer {avecArticle(rebill.label)} à {horse.ownerName} · +{eur(rebill.amount)}
           </button>
         )}
         <button type="button" className="btn line full" onClick={() => openNoter({ horseIds: [horse.id] })}>
@@ -297,29 +304,7 @@ function Ticket({ horse }: { horse: Horse }) {
     </>
   );
 
-  const leave = horse.isArchived ? (
-    <div className="ch-leave">
-      <p className="note">{horse.exitDate ? `Parti le ${jour(horse.exitDate, "long")}. ` : "Parti. "}Son argent reste dans les mois où il était là.</p>
-      <button type="button" className="btn ghost" onClick={() => restoreHorse(horse.id)}>
-        {horse.name} revient à l’écurie
-      </button>
-    </div>
-  ) : (
-    <div className="ch-leave">
-      <button
-        type="button"
-        className="btn ghost"
-        onClick={() => {
-          if (window.confirm(`${horse.name} quitte l’écurie aujourd’hui ? ${selonSexe(horse, "Ce qu’il a rapporté et coûté reste dans les mois où il était là", "Ce qu’elle a rapporté et coûté reste dans les mois où elle était là", "Ce que ce cheval a rapporté et coûté reste dans les mois où il était là")}. Sa pension ne sera plus comptée les mois suivants. Tu ${selonSexe(horse, "le", "la", "le")} retrouves dans les chevaux partis.`)) {
-            archiveHorse(horse.id);
-            router.push("/chevaux");
-          }
-        }}
-      >
-        {horse.name} quitte l’écurie
-      </button>
-    </div>
-  );
+  const leave = <SejourForm key={`${horse.id}-${horse.stays?.length ?? 1}-${horse.isArchived}`} horse={horse} onDone={(parti) => parti && router.push("/chevaux?vue=chevaux")} />;
 
   if (desk) {
     return (

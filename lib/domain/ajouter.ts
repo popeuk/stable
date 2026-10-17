@@ -156,7 +156,7 @@ function coursLabel(p: Prestation, format?: SeanceFormat): string {
  * Le prix d'un cours : celui de la prestation s'il a été saisi, sinon celui
  * des tarifs (cours collectif, cours particulier, travail du cheval).
  */
-function prixDe(p: Prestation, format: SeanceFormat | undefined, tariffs: Tariffs | undefined): number | undefined {
+export function prixDe(p: Prestation, format: SeanceFormat | undefined, tariffs: Tariffs | undefined): number | undefined {
   if (p.price > 0) return p.price;
   const t = tariffs ?? {};
   const l = norm(p.label);
@@ -329,8 +329,11 @@ export function draftFromCompris(c: Compris, h: Habitudes, today: ISODate): Draf
     }
     if (c.places) d.places = c.places;
     if (c.amount) d.price = c.amount;
+    // « avec Emma » : la cavalière est inscrite, comme si on l'avait choisie.
+    if (c.cavaliers?.length) d.cav = [...new Set([...d.cav, ...c.cavaliers])];
   } else if (c.type === "soin") {
     if (c.amount) d.price = c.amount;
+    if (c.refacturer) d.refac = true;
   } else if (c.type === "rdv") {
     d.quoi = c.label ?? "";
     d.start = c.start ?? null;

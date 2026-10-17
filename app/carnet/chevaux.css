@@ -23,7 +23,9 @@
 .carnet .note.ch-lead { font-size: 15px; color: var(--ink); margin: 8px 0 12px; }
 .carnet .ticket .r a.lnk { font-size: 12.5px; font-family: var(--mono); }
 .carnet .ticket .r span:last-child { white-space: nowrap; }
-.carnet .ch-leave { display: flex; justify-content: center; padding: 22px 18px 0; }
+.carnet .ch-leave { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; padding: 22px 18px 0; }
+.carnet .ch-leave > .note { flex-basis: 100%; text-align: center; }
+.carnet .ch-sejour { max-width: 520px; margin: 0 auto; }
 .carnet .ch-leave .btn.ghost { color: var(--ink3); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .carnet .hello .ch-edit { display: inline-block; margin-top: 8px; }
 .carnet .ch-strip { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 8px; scrollbar-width: thin; }

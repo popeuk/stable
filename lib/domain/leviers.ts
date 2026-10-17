@@ -69,12 +69,13 @@ export function suggestions(data: StableData, period: Period, capacity: number):
   for (const e of data.directExpenses) {
     if (!dateInPeriod(e.date, period) || !SOINS_REFACTURABLES.test(e.label)) continue;
     const h = data.horses.find((x) => x.id === e.horseId);
-    if (!h || h.isArchived) continue;
+    // Sans propriétaire, personne à qui le faire payer : pas de piste.
+    if (!h || h.isArchived || !h.ownerName?.trim()) continue;
     out.push({
       id: `rebill-${e.id}`,
       lever: "facturer",
-      title: `Faire payer ${avecArticle(e.label)} de ${h.name}${h.ownerName ? ` à ${h.ownerName}` : ""}`,
-      sub: `tu l’as payé, mais d’habitude c’est ${h.ownerName ? `à ${h.ownerName}` : "au propriétaire"} de le régler. Ajoute-le à sa facture.`,
+      title: `Faire payer ${avecArticle(e.label)} de ${h.name} à ${h.ownerName}`,
+      sub: `tu l’as payé, mais d’habitude c’est à ${h.ownerName} de le régler. Ajoute-le à sa facture.`,
       gain: e.amount,
       unit: "une fois",
       apply: { type: "rebill", expenseId: e.id },

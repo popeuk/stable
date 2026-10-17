@@ -3,7 +3,7 @@ import { cleClient } from "@/lib/domain/billing";
 import { KIND_LABEL, deMois, kindOf, recettesFacturees } from "@/lib/domain/facture";
 import { moyenDit, nomMoyen } from "@/lib/domain/paiement";
 import { recurringDue } from "@/lib/domain/recurring";
-import { partiAvant } from "@/lib/domain/presence";
+import { jourDuCheval, recurrenteDuCheval } from "@/lib/domain/presence";
 import { daysInMonth, periodStart } from "@/lib/utils/period";
 
 /**
@@ -133,13 +133,14 @@ export function lignesComptables(data: StableData, year: number, today: string):
     const jour = (startDate: string) => `${start.slice(0, 8)}${String(Math.min(Number(startDate.slice(8, 10)) || 1, daysInMonth(p))).padStart(2, "0")}`;
     for (const rr of data.recurringRevenues ?? []) {
       const h = horse(rr.horseId);
-      if (!recurringDue(rr, p) || (h && partiAvant(h, start))) continue;
+      // Les séjours du cheval : rien entre deux séjours, et le jour de son retour s'il revient en cours de mois.
+      if (!recurringDue(rr, p) || (h && !recurrenteDuCheval(h, p))) continue;
       const cat = revCat(rr.categoryId) || "Pension";
-      out.push({ date: jour(rr.startDate), type: "Recette", categorie: cat, libelle: libelleDe(rr.label, cat), cheval: h?.name ?? "", client: h?.ownerName?.trim() ?? "", montant: rr.amount, moyen: "", facture: "" });
+      out.push({ date: h ? jourDuCheval(h, p, jour(rr.startDate)) : jour(rr.startDate), type: "Recette", categorie: cat, libelle: libelleDe(rr.label, cat), cheval: h?.name ?? "", client: h?.ownerName?.trim() ?? "", montant: rr.amount, moyen: "", facture: "" });
     }
     for (const re of data.recurringExpenses ?? []) {
       const h = horse(re.horseId);
-      if (!recurringDue(re, p) || (!re.isShared && h && partiAvant(h, start))) continue;
+      if (!recurringDue(re, p) || (!re.isShared && h && !recurrenteDuCheval(h, p))) continue;
       const cat = expCat(re.categoryId);
       out.push({ date: jour(re.startDate), type: "Dépense", categorie: cat, libelle: libelleDe(re.label, cat), cheval: re.isShared ? "commun" : (h?.name ?? ""), client: "", montant: partDuMois(re, m), moyen: "", facture: "" });
     }

@@ -252,7 +252,7 @@ describe("aucun message des écrans de facture n'injecte un texte saisi sans l'�
     "components/bs/retirer.ts",
   ];
   // Ce qui peut entrer dans un message sans échappement : des nombres, des montants formatés par l'app.
-  const sur = /^(esc\(|eur\(|eur2\(|enMoyen\(|an\b|n\b|out\.length\b|surFacture\(\))/;
+  const sur = /^(esc\(|eur\(|eurc\(|eur2\(|enMoyen\(|an\b|n\b|out\.length\b|surFacture\(\))/;
   it.each(fichiers)("%s", (f) => {
     const src = readFileSync(join(process.cwd(), f), "utf8");
     expect(src).not.toMatch(/innerHTML/);

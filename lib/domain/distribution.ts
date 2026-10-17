@@ -4,33 +4,16 @@ import type {
   Period,
   SharedExpenseAllocation,
 } from "@/lib/domain/types";
-import { daysInMonth, periodEnd, periodStart } from "@/lib/utils/period";
+import { joursDansLeMois } from "@/lib/domain/sejours";
 
 /**
  * Number of days a horse was present in the stable during a given month
- * (section 10.4 of the spec). Boundaries are inclusive on both ends.
+ * (section 10.4 of the spec). Boundaries are inclusive on both ends. Un
+ * cheval revenu après un départ additionne ses séjours du mois
+ * (lib/domain/sejours).
  */
 export function presenceDays(horse: Horse, p: Period): number {
-  const monthStart = periodStart(p);
-  const monthEnd = periodEnd(p);
-  const total = daysInMonth(p);
-
-  const entered = horse.entryDate;
-  const exited = horse.exitDate ?? null;
-
-  // Present for the whole month.
-  if (entered <= monthStart && (exited === null || exited >= monthEnd)) {
-    return total;
-  }
-
-  const from = entered > monthStart ? entered : monthStart;
-  const to = exited !== null && exited < monthEnd ? exited : monthEnd;
-
-  if (to < from) return 0;
-
-  // +1 because both endpoints are inclusive.
-  const ms = Date.parse(to + "T00:00:00Z") - Date.parse(from + "T00:00:00Z");
-  return Math.max(0, Math.round(ms / 86_400_000) + 1);
+  return joursDansLeMois(horse, p);
 }
 
 /**

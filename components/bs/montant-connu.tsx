@@ -1,6 +1,6 @@
 "use client";
 
-import { eur } from "@/components/carnet/ui";
+import { eurc } from "@/components/carnet/ui";
 import { FOIS_PROPOSES, parAn, parMois, type Connu } from "@/lib/domain/montant-saisi";
 
 /**
@@ -55,8 +55,8 @@ export function SoitParMois({ mode, montant, fois }: { mode: Connu; montant: num
   if (mode === "mois" || !(montant > 0)) return null;
   return (
     <p className="mc-soit" aria-live="polite">
-      {mode === "fois" && <>{fois} fois {eur(montant)}, c’est {eur(parAn(mode, montant, fois))} sur l’année. </>}
-      Soit <b>{eur(parMois(mode, montant, fois))} par mois</b> : l’app en compte un peu chaque mois, pour que chaque mois soit juste.
+      {mode === "fois" && <>{fois} fois {eurc(montant)}, c’est {eurc(parAn(mode, montant, fois))} sur l’année. </>}
+      Soit <b>{eurc(parMois(mode, montant, fois))} par mois</b> : l’app en compte un peu chaque mois, pour que chaque mois soit juste.
     </p>
   );
 }

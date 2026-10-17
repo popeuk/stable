@@ -7,6 +7,9 @@ import { useDataStore } from "@/stores/data-store";
 import type { TeamRole } from "@/lib/domain/types";
 import type { Holding } from "@/lib/domain/registre";
 import { localToday } from "@/lib/utils/local-date";
+import { categorieSysteme } from "@/lib/domain/categories";
+import { useUiStore } from "@/stores/ui-store";
+import { esc } from "@/components/bs/ui";
 
 /**
  * Deux parties de Réglages (app/(app)/moi) : l'équipe et les catégories.
@@ -95,6 +98,7 @@ type Tab = "revenus" | "directes" | "mutualisees";
 
 export function CategoriesReglages() {
   const data = useDataStore();
+  const say = useUiStore((x) => x.say);
   const addRevenueCategory = useDataStore((s) => s.addRevenueCategory);
   const addExpenseCategory = useDataStore((s) => s.addExpenseCategory);
   const deleteRevenueCategory = useDataStore((s) => s.deleteRevenueCategory);
@@ -112,9 +116,13 @@ export function CategoriesReglages() {
     setDraft("");
   }
 
-  function remove(catId: string) {
+  // Une catégorie retirée revient d'un geste (« Annuler ») ; celles dont l'app dépend ne se retirent pas.
+  function remove(catId: string, name: string) {
+    const snap = useDataStore.getState();
+    const back = { revenueCategories: snap.revenueCategories, expenseCategories: snap.expenseCategories };
     if (tab === "revenus") deleteRevenueCategory(catId);
     else deleteExpenseCategory(catId);
+    say(`« ${esc(name)} » est retirée. Ce qui était noté dedans reste compté.`, () => useDataStore.setState(back));
   }
 
   return (
@@ -141,14 +149,24 @@ export function CategoriesReglages() {
         </button>
       </div>
       <div style={{ marginTop: 6 }}>
-        {list.map((c) => (
-          <div key={c.id} className="ec-cat">
-            <span>{c.name}</span>
-            <button type="button" className="x" onClick={() => remove(c.id)} aria-label={`Retirer ${c.name}`}>
-              <Ic n="x" className="" />
-            </button>
-          </div>
-        ))}
+        {list.map((c) => {
+          const why = categorieSysteme(c, tab === "revenus" ? "recette" : "depense");
+          return (
+            <div key={c.id} className="ec-cat">
+              <span>
+                {c.name}
+                {why && <small className="ec-sys">Se garde : {why}.</small>}
+              </span>
+              {why ? (
+                <span />
+              ) : (
+                <button type="button" className="x" onClick={() => remove(c.id, c.name)} aria-label={`Retirer ${c.name}`}>
+                  <Ic n="x" className="" />
+                </button>
+              )}
+            </div>
+          );
+        })}
         {list.length === 0 && <p className="note">Aucune catégorie ici. Tape un nom au-dessus pour en ajouter une.</p>}
       </div>
     </Sec>

@@ -19,6 +19,7 @@ import { accord, clientDues, prenomDe, type ClientDue } from "@/lib/domain/clien
 import { billsFor, monthKey } from "@/lib/domain/billing";
 import { clientsAFairePayer } from "@/lib/domain/compte-auto";
 import { addMonths, currentPeriod, daysInMonth } from "@/lib/utils/period";
+import { chevauxDuMois, chevauxPresents } from "@/lib/domain/presence";
 import { CARE_META, upcomingDeadlines, type Deadline } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
 import type { Horse, Period, PersonRole, StableData } from "@/lib/domain/types";
@@ -506,7 +507,9 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
   const period = useMemo(() => currentPeriod(), []);
   const nets = useMemo(() => reconciledNets(data, period), [data, period]);
   const m = useMemo(() => monthBreakdown(data, period), [data, period]);
-  const horses = data.horses.filter((h) => !h.isArchived);
+  // Les chevaux du mois, comme Mon mois : un cheval parti dans le mois y garde son ticket.
+  const horses = useMemo(() => chevauxDuMois(data, period), [data, period]);
+  const partage = useMemo(() => chevauxPresents(data, period).length, [data, period]);
   // Ce que les chevaux laissent, à eux seuls : la somme de leurs tickets (l'argent hors chevaux n'y est pas).
   const net = horses.reduce((t, h) => t + (nets[h.id] ?? 0), 0);
   const anon = horses.filter(sansNom);
@@ -539,7 +542,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
       <Face horse={h} />
       <span style={{ minWidth: 0 }}>
         <b>{h.name}</b>
-        <small>{[formule(h), h.ownerName].filter(Boolean).join(" · ")}</small>
+        <small>{[h.isArchived && h.exitDate ? `parti le ${new Date(h.exitDate + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : "", formule(h), h.ownerName].filter(Boolean).join(" · ")}</small>
       </span>
       <NetPill v={nets[h.id] ?? 0} />
     </Link>
@@ -550,7 +553,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
     const rows = shown.map((h) => ({ h, t: horseTicket(data, h.id, period), net: nets[h.id] ?? 0, due: dues.filter((d) => d.horseId === h.id) }));
     const tot = rows.reduce((a, r) => ({ rev: a.rev + r.t.revenue, dir: a.dir + r.t.direct, share: a.share + r.t.share, net: a.net + r.net }), { rev: 0, dir: 0, share: 0, net: 0 });
     const nPos = rows.filter((r) => r.net > 0).length;
-    const each = horses.length ? m.sharedTotal / horses.length : 0;
+    const each = partage ? m.sharedTotal / partage : 0;
     return (
       <Ecran wide className="ch-desk">
         <div className="dhead rise">

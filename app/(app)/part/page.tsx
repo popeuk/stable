@@ -8,6 +8,8 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
+import { chevauxPresents } from "@/lib/domain/presence";
+import { horseSharedCosts } from "@/lib/domain/calculations";
 
 /** Les frais communs, expliqués une fois, avec les chiffres de l'écurie. */
 export default function Page() {
@@ -26,9 +28,12 @@ function Part() {
   const desk = useDesk();
   const period = useMemo(() => currentPeriod(), []);
   const m = useMemo(() => monthBreakdown(data, period), [data, period]);
-  const horses = data.horses.filter((h) => !h.isArchived);
+  // Ceux qui se partagent les frais de ce mois-ci, même un cheval parti dans le mois : le même diviseur que sa fiche.
+  const horses = chevauxPresents(data, period);
   const n = horses.length || 1;
-  const libres = Math.max(0, capacity - horses.length);
+  const parts = horses.map((h) => horseSharedCosts(data, h.id, period));
+  const egal = parts.every((x) => Math.abs(x - m.sharedTotal / n) < 0.5);
+  const libres = Math.max(0, capacity - data.horses.filter((h) => !h.isArchived).length);
   const mois = new Date(period.year, period.month - 1, 1).toLocaleDateString("fr-FR", { month: "long" });
   const du = /^[aeiouyéèh]/i.test(mois) ? `d’${mois}` : `de ${mois}`;
 
@@ -68,7 +73,7 @@ function Part() {
         </div>
         <p className="ch-div">
           {horses.length
-            ? `${eur(m.sharedTotal)} ÷ ${horses.length} ${horses.length > 1 ? "chevaux" : "cheval"} ≈ ${eur(m.sharedTotal / n)} chacun`
+            ? `${eur(m.sharedTotal)} ÷ ${horses.length} ${horses.length > 1 ? "chevaux" : "cheval"} ≈ ${eur(m.sharedTotal / n)} ${egal ? "chacun" : "en moyenne, au prorata des jours de chacun"}`
             : `Aucun cheval pour se partager ces ${eur(m.sharedTotal)} : ils comptent quand même dans ton mois.`}
         </p>
         {libres > 0 && (

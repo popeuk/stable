@@ -8,7 +8,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { esc } from "@/components/bs/ui";
 import { retirer as retirerLigne } from "@/components/bs/retirer";
 import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
-import { CountUp, Empty, Face, Ic, Ill, Page as Ecran, Switch, eur, ini, sg } from "@/components/carnet/ui";
+import { CountUp, Empty, Face, Ic, Ill, Page as Ecran, Switch, eur, eurc, ini, sgc } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { billOf, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
@@ -128,7 +128,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
     setMoyen(m);
     setCheque("");
     setDemande(false);
-    say(`${esc(qui)} t’a payé <strong>${eur(montant)}</strong> ${enMoyen(m)}.`, () => {
+    say(`${esc(qui)} t’a payé <strong>${eurc(montant)}</strong> ${enMoyen(m)}.`, () => {
       useDataStore.getState().removePayment(id);
       setVientDePayer(false);
     });
@@ -269,7 +269,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         <h3>
           {nomMois(period)}
           <span>
-            {eur(bill.total)} en tout · {eur(bill.paid)} payé{bill.paid > 1 ? "s" : ""}
+            {eurc(bill.total)} en tout · {eurc(bill.paid)} payé{bill.paid > 1 ? "s" : ""}
           </span>
         </h3>
         {lignes.length ? <p className="cl-auto">Ce qui a eu lieu s’ajoute tout seul.</p> : <p className="cl-auto">Rien ce mois pour l’instant.</p>}
@@ -284,7 +284,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
               {p.method ? ` · ${moyenDit(p)}` : ""}
             </span>
             {/* Le seul argent rentré de la fiche : en vert, avec son signe. */}
-            <span className="in">{sg(p.amount)}</span>
+            <span className="in">{sgc(p.amount)}</span>
           </div>
         ))}
         {bill.total > 0 &&
@@ -309,7 +309,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
               <>
                 <span>{nomMois(m.period)}</span>
                 <span>
-                  {eur(m.total)} · {m.due > 0 ? `${eur(m.paid)} payé${m.paid > 1 ? "s" : ""}, reste ${eur(m.due)}` : "payé"}
+                  {eurc(m.total)} · {m.due > 0 ? `${eurc(m.paid)} payé${m.paid > 1 ? "s" : ""}, reste ${eurc(m.due)}` : "payé"}
                 </span>
               </>
             );
@@ -449,7 +449,7 @@ function Ligne({ l, onRetirer }: { l: BillLine; onRetirer: (l: BillLine, row: HT
         </small>
       </span>
       {/* Ce qui est dû n'est pas encore rentré : à l'encre, avec son signe. */}
-      <span className="num">{sg(l.amount)}</span>
+      <span className="num">{sgc(l.amount)}</span>
       {rm ? (
         <button type="button" className="cl-rm" onClick={() => onRetirer(l, ref.current)} aria-label={`Retirer : ${l.label}, ${jour(l.date)}, n’a pas eu lieu`}>
           <Ic n="x" className="" />
@@ -503,7 +503,7 @@ function PartSheet({ qui, nom, due, moyen, onClose, onOk }: { qui: string; nom: 
     <Feuille titre={`${qui} a payé une partie`} onClose={onClose}>
       <div className="pad cl-pform">
         <p className="note">
-          {accord(nom, "Il", "Elle")} te doit {eur(due)}. Combien {accord(nom, "t’a-t-il", "t’a-t-elle")} payé ?
+          {accord(nom, "Il", "Elle")} te doit {eurc(due)}. Combien {accord(nom, "t’a-t-il", "t’a-t-elle")} payé ?
         </p>
         <label className="input cl-amtin">
           <input type="text" inputMode="decimal" value={v} autoFocus onChange={(e) => setV(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && val > 0 && ok()} aria-label="Montant payé" />

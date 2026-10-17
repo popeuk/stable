@@ -158,7 +158,8 @@
 .carnet .ec-cat > span:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .carnet .ec-cat .num { font-size: 13px; color: var(--ink2); }
 .carnet .ec-cat:last-child { border-bottom: 0; }
-.carnet .ec-cat .x { width: 26px; height: 26px; background: transparent; flex: none; }
+.carnet .ec-cat .x { width: 44px; height: 44px; margin: -9px -9px -9px 0; background: transparent; flex: none; }
+.carnet .ec-cat .ec-sys { display: block; font-size: 12px; color: var(--ink2); }
 .carnet .ec-cat .x svg { stroke: var(--ink3); }
 .carnet .ec-segw { margin-top: 10px; }
 .carnet .ec-segw .seg button { white-space: normal; line-height: 1.15; }
