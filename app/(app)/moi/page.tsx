@@ -397,7 +397,7 @@ function Moi() {
         {session?.kind === "locale" && (
           <Link href="/compte/connexion?garder=1" className="ec-garde rise" style={{ animationDelay: "0.14s" }}>
             <Ic n="user" className="" />
-            <span>Garder mes chiffres avec mon e-mail</span>
+            <span>Garder mes chiffres avec mon e‑mail</span>
             {chev}
           </Link>
         )}
