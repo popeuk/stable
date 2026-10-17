@@ -44,7 +44,7 @@ const TU: Record<string, string> = {
 const dire = (x: unknown, defaut: string) => (x instanceof ApiError ? TU[x.code] ?? x.message : defaut);
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { ficheId?: number; creer?: boolean; retrouver?: boolean }) {
+export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depuis = null }: { ficheId?: number; creer?: boolean; retrouver?: boolean; depuis?: string | null }) {
   const chiffres = useAnnuaire();
   const [etape, setEtape] = useState<Etape>(creer ? "creer" : ficheId ? "elle" : retrouver ? "nom" : "accueil");
   const [hist, setHist] = useState<Etape[]>([]);
@@ -243,6 +243,17 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
         <Link href="/ma-fiche" className="ar-back" aria-label="Revenir à ma fiche">
           <Ic n="back" className="" />
         </Link>
+      ) : (creer || ficheId > 0 || depuis) && etape !== "fait" && etape !== "envoi" ? (
+        // Arrivé directement sur une étape (ajouter son écurie, « C'est la mienne ») : on peut toujours repartir d'où l'on vient.
+        <button
+          type="button"
+          className={`ar-back${depuis === "ecurie" ? " ar-back-l" : ""}`}
+          aria-label={depuis === "ecurie" ? "Revenir à Mon écurie" : "Revenir"}
+          onClick={() => (depuis === "ecurie" ? window.location.assign(withBase("/ecurie")) : window.history.length > 1 ? window.history.back() : window.location.assign(withBase("/accueil")))}
+        >
+          <Ic n="back" className="" />
+          {depuis === "ecurie" && <span aria-hidden="true">Mon écurie</span>}
+        </button>
       ) : (
         <span className="ar-wm">be stable</span>
       )}

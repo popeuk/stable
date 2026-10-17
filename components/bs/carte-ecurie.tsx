@@ -123,7 +123,7 @@ function TonEcurie() {
             <ul className="ce-hits">
               {hits!.map((h) => (
                 <li key={h.id}>
-                  <Link href={`/compte/inscription?fiche=${h.id}`}>
+                  <Link href={`/compte/inscription?fiche=${h.id}&depuis=ecurie`}>
                     <b>{h.title}</b>
                     <small>{[h.commune, h.departement && `(${h.departement})`].filter(Boolean).join(" ")}</small>
                     <em>{h.statut === "libre" ? "C’est la mienne" : h.statut === "revendiquee" ? "déjà reprise" : "en vérification"}</em>
@@ -131,7 +131,7 @@ function TonEcurie() {
                 </li>
               ))}
               <li>
-                <Link href="/compte/inscription?creer=1" className="ce-ajout">
+                <Link href="/compte/inscription?creer=1&depuis=ecurie" className="ce-ajout">
                   <b>Elle n’y est pas ?</b>
                   <small>L’ajouter à l’annuaire, gratuitement</small>
                 </Link>
