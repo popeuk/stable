@@ -90,15 +90,13 @@
 
 /* Ton écurie : la fiche mon-ecurie.fr et le SIREN au même endroit. */
 .carnet .ce-fiche { padding-bottom: 14px; }
-.carnet .ce-cherche, .carnet .ce-siren { display: grid; gap: 6px; padding-top: 8px; }
-.carnet .ce-siren { margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line2); }
-.carnet .ce-cherche label, .carnet .ce-siren label { font-size: 16px; font-weight: 680; }
-.carnet .ce-cherche > p, .carnet .ce-siren > p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--ink2); }
+.carnet .ce-cherche { display: grid; gap: 6px; padding-top: 8px; }
+.carnet .ce-cherche label { font-size: 16px; font-weight: 680; }
+.carnet .ce-cherche > p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--ink2); }
 .carnet .ce-in { display: flex; align-items: center; gap: 8px; height: 50px; margin-top: 4px; padding: 0 14px; border-radius: 10px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .ce-in:focus-within { box-shadow: inset 0 0 0 1.5px var(--ink); }
 .carnet .ce-in svg { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--ink3); stroke-width: 1.8; stroke-linecap: round; }
 .carnet .ce-in input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; font: inherit; font-size: 16px; color: var(--ink); }
-.carnet #ce-siren { font-size: 20px; font-weight: 700; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
 .carnet .ce-hits { list-style: none; margin: 4px 0 0; padding: 0; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
 .carnet .ce-hits li + li { border-top: 1px solid var(--line2); }
 .carnet .ce-hits a { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; align-items: center; min-height: 54px; padding: 8px 12px; color: inherit; text-decoration: none; }
@@ -106,9 +104,4 @@
 .carnet .ce-hits small { grid-column: 1; font-size: 12.5px; color: var(--ink3); }
 .carnet .ce-hits em { grid-column: 2; grid-row: 1 / span 2; font-style: normal; font-size: 12.5px; font-weight: 650; }
 .carnet .ce-ajout { background: var(--mist); }
-.carnet .ce-ent { margin: 6px 0 0; font-size: 13.5px; color: var(--ink2); }
-.carnet .ce-ent-ok { display: grid; gap: 2px; padding: 12px; border-radius: 10px; box-shadow: inset 0 0 0 1.5px var(--ink); }
-.carnet .ce-ent-ok b { font-size: 15.5px; color: var(--ink); }
-.carnet .ce-ent-ok small { font-size: 13px; }
-.carnet .ce-ent-ok .btn { justify-self: start; margin-top: 8px; }
 @media (min-width: 1024px) { .carnet .ce { max-width: 720px; } }

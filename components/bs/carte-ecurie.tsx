@@ -38,23 +38,10 @@ function Case({ titre, lignes }: { titre: string; lignes: Ligne[] }) {
 
 const noms = (xs: string[], vide: string) => (xs.length ? (xs.length > 3 ? `${xs.slice(0, 3).join(", ")} et ${xs.length - 3} autre${xs.length > 4 ? "s" : ""}` : xs.join(", ")) : vide);
 
-/* ---------- Ton écurie : la fiche mon-ecurie.fr et le SIREN, au même endroit ---------- */
-
-/** Ce que dit le registre des entreprises pour un SIREN (recherche-entreprises.api.gouv.fr, public). */
-type Entreprise = { siren: string; nom: string; siret: string; adresse: string; ei: boolean };
-async function lireSiren(siren: string): Promise<Entreprise | null> {
-  const r = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${siren}&per_page=1`);
-  if (!r.ok) return null;
-  const d = (await r.json()) as { results?: { siren: string; nom_complet: string; nature_juridique?: string; siege?: { siret?: string; adresse?: string } }[] };
-  const e = d.results?.find((x) => x.siren === siren);
-  if (!e) return null;
-  return { siren: e.siren, nom: e.nom_complet, siret: e.siege?.siret ?? "", adresse: e.siege?.adresse ?? "", ei: e.nature_juridique === "1000" };
-}
-const espaces = (s: string) => s.replace(/(\d{3})(?=\d)/g, "$1 ");
+/* ---------- Ton écurie : sa fiche mon-ecurie.fr ---------- */
 
 function TonEcurie() {
   const stableName = useSettingsStore((s) => s.stableName);
-  const billing = useDataStore((s) => s.billing) ?? {};
   const [listing, setListing] = useState<Listing | null>(null);
   useEffect(() => {
     const s = getSession();
@@ -74,26 +61,6 @@ function TonEcurie() {
       clearTimeout(h);
     };
   }, [q]);
-  // Le SIREN : neuf chiffres, puis le registre dit qui c'est.
-  const siretConnu = billing.siret?.replace(/\s/g, "") ?? "";
-  const [siren, setSiren] = useState(siretConnu.slice(0, 9));
-  const [ent, setEnt] = useState<Entreprise | null | "cherche" | "rien">(null);
-  useEffect(() => {
-    if (siren.length !== 9 || siren === siretConnu.slice(0, 9)) return;
-    let fini = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setEnt("cherche");
-    lireSiren(siren).then((e) => !fini && setEnt(e ?? "rien"), () => !fini && setEnt("rien"));
-    return () => {
-      fini = true;
-    };
-  }, [siren, siretConnu]);
-  const garder = (e: Entreprise) => {
-    const d = useDataStore.getState();
-    d.setBilling({ legalName: e.nom, address: e.adresse || undefined, ...(e.ei ? { forme: "EI" } : {}) });
-    d.setHolding({ siret: e.siret, holderName: e.nom });
-    setEnt(null);
-  };
   const montreHits = q.trim().length >= 2 && hits;
 
   return (
@@ -139,30 +106,6 @@ function TonEcurie() {
           )}
         </div>
       )}
-      <div className="ce-siren">
-        <label htmlFor="ce-siren">Ton numéro SIREN</label>
-        <span className="ce-in">
-          <input id="ce-siren" inputMode="numeric" value={espaces(siren)} onChange={(e) => setSiren(e.target.value.replace(/\D/g, "").slice(0, 9))} placeholder="123 456 789" autoComplete="off" aria-describedby="ce-siren-aide" />
-        </span>
-        <p id="ce-siren-aide">Les 9 chiffres en haut de ton Kbis ou de ton avis de situation INSEE. Ils remplissent tes factures et ton registre.</p>
-        {ent === "cherche" && <p className="ce-ent">On regarde au registre des entreprises…</p>}
-        {ent === "rien" && <p className="ce-ent">Ce numéro n’est pas au registre. Vérifie les 9 chiffres.</p>}
-        {ent && typeof ent === "object" && (
-          <div className="ce-ent ce-ent-ok">
-            <b>{ent.nom}</b>
-            <small>{ent.adresse}</small>
-            <small>SIRET {espaces(ent.siret.slice(0, 9))} {ent.siret.slice(9)}</small>
-            <button type="button" className="btn" onClick={() => garder(ent)}>
-              C’est bien moi
-            </button>
-          </div>
-        )}
-        {!ent && billing.legalName && siretConnu && (
-          <p className="ce-ent">
-            <b>{billing.legalName}</b> · SIRET {espaces(siretConnu.slice(0, 9))} {siretConnu.slice(9)}
-          </p>
-        )}
-      </div>
     </section>
   );
 }
