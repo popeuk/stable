@@ -78,12 +78,16 @@ export function Essayer() {
               J’ai déjà un compte
             </Link>
           </div>
-          <div className="es-hero rise">
+          <div className="es-hero es-hero-d rise">
             <Portrait />
           </div>
           <div className="q rise" style={{ animationDelay: ".08s" }}>
             <h1>On regarde ce qu’il te reste ?</h1>
             <p>Quelques minutes, tes chiffres, pas de compte.</p>
+          </div>
+          {/* Au téléphone, la scène d'accueil remplit l'espace entre la question et le bouton. */}
+          <div className="es-scene rise" style={{ animationDelay: ".12s" }}>
+            <Ill n="accueil-premier" alt="La gérante t’accueille devant un box, un cheval à la porte." />
           </div>
           <div className="foot rise" style={{ animationDelay: ".16s" }}>
             <button type="button" className="btn full" disabled={busy} onClick={commencer}>

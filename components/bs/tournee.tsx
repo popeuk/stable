@@ -261,7 +261,7 @@ function MoisQuiCompte({ depuis }: { depuis: number }) {
   return (
     <div className="perch ac-tperch">
       <div className="sitw">
-        <Ill n="assise" alt="Une gérante assise sur le chiffre du mois, un café à la main." />
+        <Ill n="assise" alt="La gérante, assise sur le chiffre du mois, une tasse de café à la main." />
       </div>
       <div className="card moncard ac-cpt nobag" role="group" aria-label={`Ce mois, ${net < 0 ? "il te manque" : "il te reste"} ${sg(net)}`}>
         <span className="ac-tx">

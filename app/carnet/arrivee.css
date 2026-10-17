@@ -191,7 +191,7 @@
 
 /* ---------- Page introuvable ---------- */
 .carnet .ar-nf { justify-content: center; text-align: center; }
-.carnet .ar-nf .empty .ill { width: 180px; }
+.carnet .ar-nf .empty .ill { width: 150px; }
 
 @media (prefers-reduced-motion: reduce) {
   .carnet .ar-stwrap .ar-rays, .carnet .ar-stwrap .ar-lamp, .carnet .ar-hero .ill, .carnet .ar-caret, .carnet .ar-spin { animation: none; }

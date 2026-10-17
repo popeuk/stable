@@ -39,7 +39,7 @@ function TicketRoute() {
   if (!id || !horse) {
     return (
       <Ecran>
-        <Empty>Ce cheval n’est plus dans l’écurie.</Empty>
+        <Empty ill="introuvable">Ce cheval n’est plus dans l’écurie.</Empty>
         <div className="ch-after">
           <Link href="/chevaux" className="btn line full">
             Mes chevaux

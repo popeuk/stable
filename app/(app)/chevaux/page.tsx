@@ -623,7 +623,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
             </tfoot>
           )}
         </table>
-        {rows.length === 0 && <p className="note">{horses.length ? "Aucun cheval dans ce filtre." : "Aucun cheval pour l’instant. Ajoute le premier avec le bouton en haut."}</p>}
+        {rows.length === 0 && (horses.length ? <p className="note">Aucun cheval dans ce filtre.</p> : <Empty ill="vide-ecurie">Aucun cheval pour l’instant. Ajoute le premier avec le bouton en haut.</Empty>)}
         <Partis />
         <p className="ch-fn">
           «&nbsp;Ce qu’il te laisse&nbsp;» : ce qu’on te paie pour lui, moins ses soins et ses frais, moins sa part du pot commun (foin, salaires, loyer…){horses.length ? `, ${eur(each)} par cheval ce mois` : ""}.
@@ -658,7 +658,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
           {chips}
         </div>
       )}
-      {n === 0 && <Empty>Aucun cheval pour l’instant. Ajoute le premier ci-dessous.</Empty>}
+      {n === 0 && <Empty ill="vide-ecurie">Aucun cheval pour l’instant. Ajoute le premier ci-dessous.</Empty>}
 
       {f === "prevoir" && (
         <Sec blk ill="confirmer" title="Soins à prévoir" delay={0.1}>

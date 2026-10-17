@@ -93,7 +93,8 @@ export function Ic({ n, className = "cn-ic", label }: { n: string; className?: s
 export type IllName =
   | "assise" | "brouette" | "carnet-buste" | "carnet" | "cavaliere" | "confirmer" | "dodo" | "foin" | "guide"
   | "matin" | "piste" | "promo" | "rosette" | "sacoche" | "sereine" | "soir" | "tete-fondu" | "tete"
-  | "gerant-assise" | "gerant-buste" | "gerant-foin" | "gerant-rosette";
+  | "gerant-assise" | "gerant-buste" | "gerant-foin" | "gerant-rosette"
+  | "accueil-premier" | "vide-ecurie" | "vide-contacts" | "hors-ligne" | "introuvable" | "equipe";
 /**
  * Une illustration. Celles du personnage suivent le tirage de l'appareil
  * (gérante ou gérant, usePerso) ; fixe : l'image telle quelle (un client, pas
@@ -352,7 +353,7 @@ export function Tip({ ill = "piste", children }: { ill?: IllName; children: Reac
 export function Empty({ ill = "dodo", children }: { ill?: IllName; children: ReactNode }) {
   return (
     <div className="empty">
-      <Ill n={ill} />
+      <Ill n={ill} className={`e-${ill}`} />
       <p style={{ margin: 0 }}>{children}</p>
     </div>
   );

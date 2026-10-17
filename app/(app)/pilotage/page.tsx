@@ -225,7 +225,7 @@ function Bilans() {
               <Money v={-x.delta} />
             </div>
           ))}
-          <p className="note">En rose, ce qui t’a coûté plus qu’en {prev}. En vert, ce que tu as gardé en plus.</p>
+          <p className="note">Avec un moins, ce poste t’a coûté plus qu’en {prev}. Avec un plus, la différence te reste.</p>
         </Sec>
       )}
     </>

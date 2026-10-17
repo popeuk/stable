@@ -101,7 +101,7 @@ function MaFiche() {
     return (
       <Seul>
         <Hello title="Ta fiche ne répond pas." />
-        <Empty ill="dodo">mon-ecurie.fr ne répond pas pour le moment. Vérifie ta connexion internet. Le reste de l’app marche normalement.</Empty>
+        <Empty ill="hors-ligne">mon-ecurie.fr ne répond pas pour le moment. Vérifie ta connexion internet. Le reste de l’app marche normalement.</Empty>
       </Seul>
     );
   if (etat === "aucune" || !f)

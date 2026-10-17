@@ -4,7 +4,7 @@ import { Ill } from "@/components/carnet/ui";
 /**
  * Legacy deep-links put the id in the path (/cheval/<id>, /decouvertes/<id>).
  * Static hosting (GitHub Pages) can't serve a page per user-created id, so this
- * 404 page — exported as 404.html and served for any unmatched path — rewrites
+ * 404 page, exported as 404.html and served for any unmatched path, rewrites
  * those old paths to the query-param routes that work for any id. Old bookmarks,
  * shared URLs and cached clients all keep working. Les anciens prototypes
  * (/proto/…) ne sont plus publiés : leur adresse ramène à l'entrée de l'app.
@@ -25,7 +25,7 @@ export default function NotFound() {
       <main className="ar ar-v ar-nf">
         <script dangerouslySetInnerHTML={{ __html: LEGACY_REDIRECT }} />
         <div className="empty">
-          <Ill n="dodo" alt="" />
+          <Ill n="introuvable" className="e-introuvable" alt="" />
         </div>
         <div className="q" style={{ paddingTop: 6 }}>
           <h1>Page introuvable</h1>

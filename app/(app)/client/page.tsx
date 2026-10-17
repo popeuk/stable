@@ -59,7 +59,7 @@ function FicheRoute() {
   if (!connu) {
     return (
       <Ecran>
-        <Empty>Ce client n’est pas dans ton carnet.</Empty>
+        <Empty ill="introuvable">Ce client n’est pas dans ton carnet.</Empty>
         <div className="ch-after">
           <Link href="/chevaux?vue=clients" className="btn line full">
             Tes clients

@@ -69,7 +69,7 @@ function Contacts() {
       </div>
 
       {people.length === 0 ? (
-        <Empty>Personne pour l’instant. Indique le propriétaire d’un cheval, ou qui a fait un soin (maréchal, véto…). Ils apparaîtront ici tout seuls.</Empty>
+        <Empty ill="vide-contacts">Personne pour l’instant. Indique le propriétaire d’un cheval, ou qui a fait un soin (maréchal, véto…). Ils apparaîtront ici tout seuls.</Empty>
       ) : (
         <>
           {pros.length > 0 && (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Ic, Sec, Seg, ini } from "@/components/carnet/ui";
+import { Empty, Ic, Sec, Seg, ini } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import type { TeamRole } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
@@ -39,7 +39,7 @@ export function EquipeReglages() {
 
   return (
     <Sec title="Ton équipe" delay={0.2} id="equipe">
-      {team.length === 0 && <p className="note">Les gens qui travaillent avec toi : salariés, maréchal, véto…</p>}
+      {team.length === 0 && <Empty ill="equipe">Les gens qui travaillent avec toi : salariés, maréchal, véto…</Empty>}
       {team.map((m) => {
         const n = upcoming(m.name);
         return (

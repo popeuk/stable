@@ -36,8 +36,8 @@ export function usePerso(): Perso {
 
 /**
  * Les images du personnage. À gauche la gérante, à droite le gérant. Quand
- * la version gérant n'existe pas encore (brouette, carnet, matin, soir,
- * sereine), Ill retombe sur la gérante.
+ * la version gérant n'existe pas encore, Ill retombe sur la gérante.
+ * Sans personnage (introuvable) ou avec les deux (equipe) : l'image telle quelle.
  */
 const PAIRES: [string, string][] = [
   ["assise", "gerant-assise"],
@@ -49,6 +49,10 @@ const PAIRES: [string, string][] = [
   ["matin", "gerant-matin"],
   ["soir", "gerant-soir"],
   ["sereine", "gerant-sereine"],
+  ["accueil-premier", "gerant-accueil-premier"],
+  ["vide-ecurie", "gerant-vide-ecurie"],
+  ["vide-contacts", "gerant-vide-contacts"],
+  ["hors-ligne", "gerant-hors-ligne"],
 ];
 const VERS_M = new Map(PAIRES);
 const VERS_F = new Map(PAIRES.map(([f, m]) => [m, f]));

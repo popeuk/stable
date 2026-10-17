@@ -7,7 +7,7 @@ import { useDesk } from "@/components/bs/desk";
 import { WeekGrid } from "@/components/bs/week-grid";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
-import { CountUp, Empty, Ic, Seg, Sec, sg, type IllName } from "@/components/carnet/ui";
+import { Empty, Ic, Seg, Sec, sg, type IllName } from "@/components/carnet/ui";
 import { DayBlock, aCompte, iconOf, moneyCls } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -48,7 +48,6 @@ const hhmm = () => {
   const d = new Date();
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
-const nombre = (n: number) => String(Math.round(n));
 /** « +75 » sans l'euro, pour les cases du mois. */
 const court = (n: number) => sg(n).replace(/\s€$/, "");
 /** Ce que la journée rapporte ou coûte : séances, soins, tâches avec un coût. */
@@ -147,9 +146,8 @@ function Planning() {
   const trio = (soft: string) => (
     <div className="trio">
       <div>
-        <b>
-          <CountUp value={sum.count} fmt={nombre} />
-        </b>
+        {/* Le vrai nombre tout de suite : un compteur qui part de 0 se lisait « 0 séances ». */}
+        <b className="num">{sum.count}</b>
         <small>séance{sum.count > 1 ? "s" : ""} {portee}</small>
       </div>
       <div>
@@ -464,7 +462,7 @@ function Planning() {
               </div>
             )
           ) : (
-            <Creneaux items={items} isToday={sel === today} now={now} today={today} onEmpty={(h) => openNoter({ mode: "seance", date: sel, start: `${String(h).padStart(2, "0")}:00` })} />
+            <Creneaux items={items} isToday={sel === today} now={now} onEmpty={(h) => openNoter({ mode: "seance", date: sel, start: `${String(h).padStart(2, "0")}:00` })} />
           )}
         </>
       )}
@@ -510,7 +508,7 @@ function Taches() {
 }
 
 /** La journée en créneaux, de 6 h à 21 h (élargie si un bloc en sort). */
-function Creneaux({ items, isToday, now, today, onEmpty }: { items: DayItem[]; isToday: boolean; now: string; today: string; onEmpty: (h: number) => void }) {
+function Creneaux({ items, isToday, now, onEmpty }: { items: DayItem[]; isToday: boolean; now: string; onEmpty: (h: number) => void }) {
   const openSeance = useUiStore((s) => s.openSeance);
   const HOUR = 44;
   const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));

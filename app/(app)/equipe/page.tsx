@@ -7,7 +7,7 @@ import { Screen, esc, eur } from "@/components/bs/ui";
 import { LABELS } from "@/components/bs/task-form";
 import { PlanningTaches, PlanningTachesHaut } from "@/components/bs/planning-taches";
 import { useDesk } from "@/components/bs/desk";
-import { Check, Ic, Seg, ini, sg } from "@/components/carnet/ui";
+import { Check, Empty, Ic, Seg, ini, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -292,9 +292,7 @@ function Equipe() {
           )}
         </div>
         {tasks.length === 0 && (
-          <div className="pad">
-            <p className="note">{mine ? "Aucune tâche pour toi pour l’instant." : "Aucune tâche pour l’instant. Touche « Ajouter une tâche » en haut pour écrire la première."}</p>
-          </div>
+          <Empty ill="equipe">{mine ? "Aucune tâche pour toi pour l’instant." : "Aucune tâche pour l’instant. Touche « Ajouter une tâche » en haut pour écrire la première."}</Empty>
         )}
         <div className="pad rise" style={{ animationDelay: ".22s" }}>
           <p className="note jr-small">

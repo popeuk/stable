@@ -602,7 +602,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
 const SCENES: { ill: "matin" | "soir" | "sereine"; alt: string; t: string; s: string; fx?: "rays" | "lamp" }[] = [
   { ill: "matin", alt: "La gérante porte une botte de foin devant les boxes, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, les boxes, les sabots. Tu assures, même les yeux fermés.", fx: "rays" },
   { ill: "soir", alt: "La gérante, fatiguée, devant des tickets et une calculette.", t: "Le soir, les comptes te rattrapent.", s: "Les tickets s’empilent. Et une question revient : ton écurie te fait-elle vivre ?", fx: "lamp" },
-  { ill: "sereine", alt: "La gérante sourit à son téléphone, un cheval pose la tête sur son épaule.", t: "Avec Be Stable, tu tiens les rênes.", s: "Deux gestes pour noter ta journée. Un chiffre clair pour chaque cheval." },
+  { ill: "sereine", alt: "La gérante sourit à son téléphone, son cheval tout contre elle.", t: "Avec Be Stable, tu tiens les rênes.", s: "Deux gestes pour noter ta journée. Un chiffre clair pour chaque cheval." },
 ];
 const DUREE = 5000;
 
