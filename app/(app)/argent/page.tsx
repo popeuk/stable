@@ -526,6 +526,16 @@ function Leviers() {
 /* ---------------- Mouvements ---------------- */
 const freqLabel = (f: string) => (f === "monthly" ? "chaque mois" : f === "quarterly" ? "tous les 3 mois" : "chaque année");
 const shortDate = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+const moisEnCours = () => new Date().toLocaleDateString("fr-FR", { month: "long" });
+/**
+ * Une récurrente arrêtée en cours de mois compte ce mois-là en entier (une
+ * échéance par mois, pas au prorata des jours) : l'écran le dit.
+ */
+const finEnMots = (iso: string) => {
+  const mois = new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" });
+  const dernier = new Date(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)), 0).getDate() === Number(iso.slice(8, 10));
+  return dernier ? `jusqu’à fin ${mois}` : `arrêtée le ${shortDate(iso)}, ${mois} compte en entier`;
+};
 
 function Mouvements() {
   const data = useDataStore();
@@ -694,7 +704,7 @@ function Mouvements() {
                 </b>
                 <small>
                   rentre {freqLabel(r.frequency)}
-                  {r.endDate ? ` · jusqu’au ${shortDate(r.endDate)}` : " · sans date de fin"}
+                  {r.endDate ? ` · ${finEnMots(r.endDate)}` : " · sans date de fin"}
                 </small>
               </span>
               <span className="ar-rt">
@@ -704,7 +714,7 @@ function Mouvements() {
                     type="button"
                     className="lnk"
                     aria-label={`Arrêter ${r.label ?? "la pension"}`}
-                    onClick={() => confirm("Arrêter cette rentrée d’argent qui revient chaque mois ? Ce qu’elle a déjà rapporté reste dans les mois passés.") && useDataStore.getState().stopRecurringRevenue(r.id)}
+                    onClick={() => confirm(`Arrêter cette rentrée d’argent qui revient chaque mois ? ${cap(moisEnCours())} compte encore en entier, plus rien à partir du mois prochain. Ce qu’elle a déjà rapporté reste dans les mois passés.`) && useDataStore.getState().stopRecurringRevenue(r.id)}
                   >
                     Arrêter
                   </button>
@@ -721,7 +731,7 @@ function Mouvements() {
                 <b>{r.label}</b>
                 <small>
                   {freqLabel(r.frequency)} · {r.isShared ? "frais partagés" : `pour ${name(r.horseId ?? "") || "1 cheval"}`}
-                  {r.endDate ? ` · jusqu’au ${shortDate(r.endDate)}` : ""}
+                  {r.endDate ? ` · ${finEnMots(r.endDate)}` : ""}
                 </small>
               </span>
               <span className="ar-rt">
@@ -731,7 +741,7 @@ function Mouvements() {
                     type="button"
                     className="lnk"
                     aria-label={`Arrêter ${r.label}`}
-                    onClick={() => confirm(`Arrêter « ${r.label} » ? Elle ne sera plus comptée les mois suivants. Les mois passés ne bougent pas.`) && useDataStore.getState().stopRecurringExpense(r.id)}
+                    onClick={() => confirm(`Arrêter « ${r.label} » ? ${cap(moisEnCours())} compte encore en entier (pas au prorata des jours), plus rien à partir du mois prochain. Les mois passés ne bougent pas.`) && useDataStore.getState().stopRecurringExpense(r.id)}
                   >
                     Arrêter
                   </button>

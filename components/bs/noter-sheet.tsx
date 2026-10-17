@@ -7,7 +7,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore, type NoterPrefill } from "@/stores/ui-store";
 import { CoursTiles, F, HorseChips, InField, Jours, Keypad, MoneyField, Puces, Q, Quand, SeanceDetails, Tiles, Wheel, hh, jourLabel, type SetD } from "@/components/bs/seance-form";
 import { QuoiTiles, TaskDetails } from "@/components/bs/task-form";
-import { Ic, Money, eur } from "@/components/carnet/ui";
+import { Ic, Money, eurc } from "@/components/carnet/ui";
 import { applySoin, connuDe, draftFor, draftFromCompris, endOf, habitudes, manque, titre, type AjoutType, type Draft, type Habitudes, type Pour } from "@/lib/domain/ajouter";
 import { ChoixConnu, ChoixFois, SoitParMois } from "@/components/bs/montant-connu";
 import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
@@ -480,7 +480,7 @@ function NoterInner() {
   );
   const soinTiles = (x: Draft) => (
     <Tiles
-      options={h.soins.slice(0, 5).map((s) => ({ key: s.kind, label: s.label, sub: [s.price ? eur(s.price) : "", s.provider].filter(Boolean).join(" · ") || (s.habit ? `d’habitude à ${hh(s.start)}` : undefined) }))}
+      options={h.soins.slice(0, 5).map((s) => ({ key: s.kind, label: s.label, sub: [s.price ? eurc(s.price) : "", s.provider].filter(Boolean).join(" · ") || (s.habit ? `d’habitude à ${hh(s.start)}` : undefined) }))}
       value={x.custom ? null : x.care}
       onPick={(k) => {
         setOther(false);
@@ -556,12 +556,12 @@ function NoterInner() {
             <span>
               {x.type === "seance" ? (
                 <>
-                  <b>{eur(x.price)} par cavalier</b>
+                  <b>{eurc(x.price)} par cavalier</b>
                   {x.places ? ` · ${x.places} place${x.places > 1 ? "s" : ""}` : ""}.
                 </>
               ) : (
                 <>
-                  <Money v={-x.price} />
+                  <Money exact v={-x.price} />
                   {habPrice(x) === x.price ? ", comme d’habitude" : ""}.
                 </>
               )}
@@ -704,7 +704,7 @@ function NoterInner() {
             J,
             { k: "h", l: hh(x.start ?? "18:00") },
             ...(x.places ? [{ k: "pl" as PickK, l: `${x.places} place${x.places > 1 ? "s" : ""}` }] : []),
-            { k: "p", l: x.price ? `${eur(x.price)} par cavalier` : "pas de prix pour l’instant" },
+            { k: "p", l: x.price ? `${eurc(x.price)} par cavalier` : "pas de prix pour l’instant" },
           ]
         : x.type === "soin"
           ? [

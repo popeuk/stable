@@ -156,7 +156,7 @@ function coursLabel(p: Prestation, format?: SeanceFormat): string {
  * Le prix d'un cours : celui de la prestation s'il a été saisi, sinon celui
  * des tarifs (cours collectif, cours particulier, travail du cheval).
  */
-function prixDe(p: Prestation, format: SeanceFormat | undefined, tariffs: Tariffs | undefined): number | undefined {
+export function prixDe(p: Prestation, format: SeanceFormat | undefined, tariffs: Tariffs | undefined): number | undefined {
   if (p.price > 0) return p.price;
   const t = tariffs ?? {};
   const l = norm(p.label);

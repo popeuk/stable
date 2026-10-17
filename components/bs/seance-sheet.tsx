@@ -5,8 +5,8 @@ import { createPortal } from "react-dom";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
-import { eur, esc } from "@/components/bs/ui";
-import { Chips, Face, Ic, Money, Seg, ini } from "@/components/carnet/ui";
+import { esc } from "@/components/bs/ui";
+import { Chips, Face, Ic, Money, Seg, eurc, ini } from "@/components/carnet/ui";
 import { retirer } from "@/components/bs/retirer";
 import { localToday } from "@/lib/utils/local-date";
 import { isEmptySeance, seanceAmount, seancePassee } from "@/lib/domain/seances";
@@ -178,7 +178,7 @@ function Inner({ seance }: { seance: Seance }) {
       <>
         <div className="jr-pills">
           <span className={`pill${!passee && seance.status === "planned" ? " ink" : ""}`}>{etat}</span>
-          <span className="pill">{seance.unitPrice > 0 ? `${eur(seance.unitPrice)} ${parCheval ? "par cheval" : "par cavalier"}` : "Pas de prix pour l’instant"}</span>
+          <span className="pill">{seance.unitPrice > 0 ? `${eurc(seance.unitPrice)} ${parCheval ? "par cheval" : "par cavalier"}` : "Pas de prix pour l’instant"}</span>
           {seance.seriesId && <span className="pill">revient, {series.length} séances en tout</span>}
         </div>
         <p className="k jr-k">
@@ -229,7 +229,7 @@ function Inner({ seance }: { seance: Seance }) {
         <div className="card jr-tot">
           <span className="k">{passee ? (vide ? "Pour l’instant" : "A rapporté") : "Rapportera"}</span>
           <b className="mid">
-            <Money v={seance.status === "cancelled" ? 0 : seanceAmount(seance)} />
+            <Money exact v={seance.status === "cancelled" ? 0 : seanceAmount(seance)} />
           </b>
         </div>
         {passee && !vide && (

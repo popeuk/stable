@@ -77,14 +77,21 @@ export function tauxDe(b: BillingInfo | undefined, k: VatKind): number | undefin
 export const tauxDit = (n: number) => `${String(n).replace(".", ",")} %`;
 
 /** Totaux HT, TVA par taux, TTC. Le TTC reste exactement ce que paie le client. */
-export function totaux(lines: Pick<InvoiceLine, "rate" | "totalTTC">[]): { totalHT: number; vat: InvoiceVat[]; totalTTC: number } {
-  const byRate = new Map<number, number>();
-  for (const l of lines) byRate.set(l.rate, (byRate.get(l.rate) ?? 0) + l.totalTTC);
+export function totaux(lines: (Pick<InvoiceLine, "rate" | "totalTTC"> & { totalHT?: number })[]): { totalHT: number; vat: InvoiceVat[]; totalTTC: number } {
+  const byRate = new Map<number, { ttc: number; ht: number; sansHT: boolean }>();
+  for (const l of lines) {
+    const g = byRate.get(l.rate) ?? { ttc: 0, ht: 0, sansHT: false };
+    g.ttc += l.totalTTC;
+    if (l.totalHT === undefined) g.sansHT = true;
+    else g.ht += l.totalHT;
+    byRate.set(l.rate, g);
+  }
+  // La base de chaque taux est la somme des lignes telles qu'imprimées (4 x 23,70 € font 94,80 €) ; la TVA, le reste du TTC.
   const vat: InvoiceVat[] = [...byRate.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([rate, ttc]) => {
-      const t = r2(ttc);
-      const base = horsTaxes(t, rate);
+    .map(([rate, g]) => {
+      const t = r2(g.ttc);
+      const base = g.sansHT ? horsTaxes(t, rate) : r2(g.ht);
       return { rate, base, amount: r2(t - base) };
     });
   const totalTTC = r2(lines.reduce((t, l) => t + l.totalTTC, 0));
@@ -156,7 +163,9 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
   const lines: InvoiceLine[] = list.map((g) => {
     const rate = tauxDe(b, g.kind) ?? 0;
     const totalTTC = r2(g.unitTTC * g.qty);
-    return { label: g.label, kind: g.kind, qty: g.qty, rate, unitTTC: g.unitTTC, unitHT: horsTaxes(g.unitTTC, rate), totalTTC, totalHT: horsTaxes(totalTTC, rate) };
+    const unitHT = horsTaxes(g.unitTTC, rate);
+    // Le total hors taxes d'une ligne, c'est sa quantité fois le prix unitaire imprimé : le gérant refait la multiplication.
+    return { label: g.label, kind: g.kind, qty: g.qty, rate, unitTTC: g.unitTTC, unitHT, totalTTC, totalHT: r2(unitHT * g.qty) };
   });
   const t = totaux(lines);
   const dejaFacture = avant.reduce((s, i) => s + i.totalTTC, 0);

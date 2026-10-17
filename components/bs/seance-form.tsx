@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { Face, Ic, eur } from "@/components/carnet/ui";
+import { Face, Ic, eurc } from "@/components/carnet/ui";
 import { MAX_SEANCES, seriesDates } from "@/lib/domain/seances";
 import { addDays } from "@/lib/domain/care";
 import { applyCours, endOf, fromMin, type CoursHabit, type Draft, type Habitudes, type Rep } from "@/lib/domain/ajouter";
@@ -373,7 +373,7 @@ export function Repetition({ d, set, options = REPEATS }: { d: Draft; set: SetD;
 /** Les tuiles des cours : les habituels, puis « Autre cours… ». */
 export function CoursTiles({ d, set, h, other, setOther, onDone }: { d: Draft; set: SetD; h: Habitudes; other: boolean; setOther: (b: boolean) => void; onDone?: () => void }) {
   // Un prix jamais saisi n'apparaît pas ; l'heure, seulement si c'est une vraie habitude.
-  const opts = h.cours.slice(0, 5).map((c: CoursHabit) => ({ key: c.key, label: c.label, sub: [c.price ? eur(c.price) : "", c.habit ? hh(c.start) : ""].filter(Boolean).join(" · ") || undefined }));
+  const opts = h.cours.slice(0, 5).map((c: CoursHabit) => ({ key: c.key, label: c.label, sub: [c.price ? eurc(c.price) : "", c.habit ? hh(c.start) : ""].filter(Boolean).join(" · ") || undefined }));
   return (
     <Tiles
       options={opts}

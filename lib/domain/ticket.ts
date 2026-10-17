@@ -2,7 +2,10 @@ import type { Period, StableData } from "@/lib/domain/types";
 import { horsePnl, horseSharedCosts, isOutside, stablePnl } from "@/lib/domain/calculations";
 import { dateInPeriod } from "@/lib/utils/period";
 import { recurringList, recurringDue, recurringDirectDue, recurringRevenuesDue } from "@/lib/domain/recurring";
-import { chevauxDuMois, repartition } from "@/lib/domain/presence";
+import { chevauxDuMois, chevauxPresents, repartition } from "@/lib/domain/presence";
+import { presenceDays } from "@/lib/domain/distribution";
+import { daysInMonth, periodEnd, periodStart } from "@/lib/utils/period";
+import { debutCompte, finCompte, sejourDuMois } from "@/lib/domain/sejours";
 
 /**
  * Le ticket du mois d'un cheval, et le bilan du mois de l'écurie, dans la
@@ -75,6 +78,36 @@ export function horseTicket(data: StableData, horseId: string, period: Period): 
 
   const p = horsePnl(data, horseId, period);
   return { horseId, lines, revenue: p.revenue, direct: p.directCosts, share: p.sharedCosts, net: p.netResult };
+}
+
+/**
+ * Comment se dit la part des frais communs d'un cheval pour un mois, avec
+ * le même diviseur partout (fiche, frais communs, Chevaux) : les chevaux qui
+ * comptaient ce mois-là, pas ceux d'aujourd'hui. « ÷ 9 » quand sa part est
+ * la part égale ; sinon au prorata de ses jours (arrivé ou parti en cours de
+ * mois, réparti selon les jours), ou telle que fixée à la saisie.
+ */
+export function partEnMots(data: StableData, horseId: string, period: Period): string {
+  const presents = chevauxPresents(data, period);
+  const n = presents.length;
+  const mine = horseSharedCosts(data, horseId, period);
+  const total = presents.reduce((t, h) => t + horseSharedCosts(data, h.id, period), 0);
+  const h = data.horses.find((x) => x.id === horseId);
+  const jours = h ? presenceDays(h, period) : 0;
+  const plein = jours >= daysInMonth(period);
+  if (n > 0 && presents.some((x) => x.id === horseId) && Math.abs(mine - total / n) < 0.5) {
+    if (plein || !h) return `÷ ${n}`;
+    // Arrivé ou parti en cours de mois : une part entière, comme un mois plein (sa pension aussi est entière).
+    const s = sejourDuMois(h, period);
+    const ms = periodStart(period);
+    const me = periodEnd(period);
+    const j = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+    const f = s ? finCompte(s) : null;
+    const quand = s && debutCompte(s) > ms ? `arrivé le ${j(debutCompte(s))}` : f && f < me ? `parti le ${j(f)}` : "";
+    return quand ? `÷ ${n} : une part entière, même ${quand}` : `÷ ${n}`;
+  }
+  if (h && !plein) return `au prorata de ses ${jours} jour${jours > 1 ? "s" : ""} ici`;
+  return "sa part, fixée à la saisie";
 }
 
 /**

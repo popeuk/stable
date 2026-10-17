@@ -11,7 +11,7 @@ import { useParcours } from "@/components/bs/parcours";
 import { avecArticle } from "@/lib/domain/leviers";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { horseTicket, reconciledNets, type HorseTicket } from "@/lib/domain/ticket";
+import { horseTicket, partEnMots, reconciledNets, type HorseTicket } from "@/lib/domain/ticket";
 import { CARE_META, horseCareLog, upcomingDeadlines, type CareKind } from "@/lib/domain/care";
 import { currentPeriod, addMonths } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
@@ -105,7 +105,6 @@ function Ticket({ horse }: { horse: Horse }) {
     .sort((a, b) => a.daysLeft - b.daysLeft);
   const due = deadlines.filter((d) => d.status !== "ok");
   const monthName = new Date(period.year, period.month - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: offset ? "numeric" : undefined });
-  const nHorses = data.horses.filter((h) => !h.isArchived).length;
 
   // Le plus gros frais du mois pas encore refacturé au propriétaire.
   const rebill = data.directExpenses
@@ -180,7 +179,7 @@ function Ticket({ horse }: { horse: Horse }) {
                 ) : (
                   l.label
                 )}
-                {l.kind === "share" ? <small>foin, loyer, salaires… ÷ {nHorses}</small> : l.date && <small>{jour(l.date)}</small>}
+                {l.kind === "share" ? <small>foin, loyer, salaires… {partEnMots(data, horse.id, period)}</small> : l.date && <small>{jour(l.date)}</small>}
               </span>
               <Money v={l.amount} />
             </div>

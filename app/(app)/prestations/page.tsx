@@ -5,13 +5,14 @@ import { useMemo, useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap, esc, eur } from "@/components/bs/ui";
 import { useDesk } from "@/components/bs/desk";
-import { CountUp, Hello, Ic, Ill, Sec, Switch, Tip, sg } from "@/components/carnet/ui";
+import { CountUp, Hello, Ic, Ill, Sec, Switch, Tip, eurc, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useUiStore } from "@/stores/ui-store";
 import { payingCount, seanceAmount } from "@/lib/domain/seances";
 import { currentPeriod, samePeriod } from "@/lib/utils/period";
-import type { Prestation } from "@/lib/domain/types";
+import type { Prestation, Tariffs } from "@/lib/domain/types";
+import { prixDe } from "@/lib/domain/ajouter";
 import { lireMontant, montantEnTexte, montantOuZero, saisieMontant } from "@/lib/utils/montant";
 
 /**
@@ -63,6 +64,26 @@ function Prestations() {
   const tot = stats.reduce((a, s) => ({ count: a.count + s.count, done: a.done + s.done, planned: a.planned + s.planned }), { count: 0, done: 0, planned: 0 });
   const max = Math.max(1, ...stats.map((s) => s.done + s.planned));
   const best = stats.filter((s) => s.done + s.planned > 0)[0];
+
+  // Les pensions d'abord : le tarif fixé et ce que paient les chevaux, au centime.
+  const pensions = data.horses.filter((h) => !h.isArchived && (h.pension ?? 0) > 0).map((h) => h.pension!);
+  const pMin = pensions.length ? Math.min(...pensions) : 0;
+  const pMax = pensions.length ? Math.max(...pensions) : 0;
+  const pension = (
+    <Sec ill="sacoche" title="Tes pensions" delay={0.16}>
+      <Link href="/parcours/tarifs?retour=prestations" className="li np">
+        <span>
+          <b>{data.tariffs?.pension ? `${eurc(data.tariffs.pension)} par mois` : "Pas de tarif de pension pour l’instant"}</b>
+          <small>
+            {pensions.length
+              ? `${pensions.length} cheva${pensions.length > 1 ? "ux paient" : "l paie"} ${pMin === pMax ? eurc(pMin) : `de ${eurc(pMin)} à ${eurc(pMax)}`} par mois · comptée toute seule chaque mois`
+              : "le prix proposé pour un nouveau cheval"}
+          </small>
+        </span>
+        <Ic n="chev" className="chev" />
+      </Link>
+    </Sec>
+  );
 
   const list = (
     <Sec ill="carnet-buste" title={`Ce que tu proposes · ${stats.filter((s) => s.p.active).length}`} delay={0.2}>
@@ -141,11 +162,15 @@ function Prestations() {
 
         {desk ? (
           <div className="cols2 ec-cols">
-            <div>{list}</div>
+            <div>
+              {pension}
+              {list}
+            </div>
             <div className="ec-stick">{side}</div>
           </div>
         ) : (
           <>
+            {pension}
             {list}
             {side}
           </>
@@ -157,8 +182,27 @@ function Prestations() {
 }
 
 /** Une prestation : son prix, ce qu'elle a rapporté, et sa barre (fait plein, prévu hachuré). */
+/**
+ * Le prix d'une prestation tel que le + le proposera : le sien s'il a été
+ * saisi, sinon celui de tes tarifs (cours collectif, particulier, travail),
+ * au centime quand il y en a.
+ */
+function prixEnMots(p: Prestation, tariffs: Tariffs | undefined): string {
+  if (p.price > 0) return `${eurc(p.price)} ${p.hasFormat ? "par cavalier · seul ou en groupe" : "la séance"}`;
+  if (p.hasFormat) {
+    const g = prixDe(p, "collectif", tariffs);
+    const s = prixDe(p, "particulier", tariffs);
+    const parts = [g ? `${eurc(g)} en groupe` : "", s ? `${eurc(s)} seul` : ""].filter(Boolean);
+    if (parts.length) return `${parts.join(", ")} par cavalier · tes tarifs`;
+    return "Pas de prix pour l’instant · seul ou en groupe";
+  }
+  const t = prixDe(p, undefined, tariffs);
+  return t ? `${eurc(t)} la séance · tes tarifs` : "Pas de prix pour l’instant";
+}
+
 function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: boolean; onToggle: () => void; onPlan: () => void }) {
   const st = useDataStore.getState;
+  const tariffs = useDataStore((x) => x.tariffs);
   const say = useUiStore((x) => x.say);
   const { p } = s;
   const upd = (patch: Partial<Prestation>) => st().updatePrestation(p.id, patch);
@@ -172,9 +216,7 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
             {p.label}
             {!p.active && <span className="pill">en pause</span>}
           </b>
-          <small>
-            {p.price > 0 ? `${eur(p.price)} ${p.hasFormat ? "par cavalier · seul ou en groupe" : "la séance"}` : `Pas de prix pour l’instant${p.hasFormat ? " · seul ou en groupe" : ""}`}
-          </small>
+          <small>{prixEnMots(p, tariffs)}</small>
           <small>{s.count ? `${s.count} séance${s.count > 1 ? "s" : ""}, ${s.riders} cavalier${s.riders > 1 ? "s" : ""}` : "rien ce mois-ci"}</small>
         </span>
         <span className="am">

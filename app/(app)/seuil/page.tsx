@@ -12,6 +12,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
+import { chevauxDuMois } from "@/lib/domain/presence";
 
 /** Le seuil : combien de chevaux paient tous les frais communs. */
 export default function Page_() {
@@ -28,9 +29,10 @@ function Seuil() {
   const capacity = useSettingsStore((s) => s.capacity);
   const { parcours, pass } = useParcours();
   const m = useMemo(() => monthBreakdown(data, currentPeriod()), [data]);
-  const horses = data.horses.filter((h) => !h.isArchived);
+  // Les chevaux de ce mois, comme Mon mois (un cheval parti dans le mois y compte encore).
+  const horses = useMemo(() => chevauxDuMois(data, currentPeriod()), [data]);
   const n = horses.length;
-  const free = Math.max(0, capacity - n);
+  const free = Math.max(0, capacity - data.horses.filter((h) => !h.isArchived).length);
   const ok = isFinite(m.seuil);
   const above = ok && n >= m.seuil;
   return (
