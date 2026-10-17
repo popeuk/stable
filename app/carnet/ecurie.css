@@ -134,9 +134,6 @@
 .carnet .ec-lock .nh span { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
 .carnet .ec-lock .nt b { display: block; margin-top: 5px; font-size: 13.5px; font-weight: 700; }
 .carnet .ec-lock .nt p { margin: 2px 0 0; font-size: 12.5px; line-height: 1.4; opacity: .88; }
-.carnet .ec-steps { display: flex; gap: 4px; margin: 6px 0 2px; }
-.carnet .ec-steps i { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
-.carnet .ec-steps i.on { background: var(--ink); }
 .carnet .ec-danger { margin-top: 12px; }
 .carnet .ec-danger .btn { width: 100%; }
 .carnet .ec-danger small { display: block; text-align: center; margin-top: 6px; font-size: 12px; color: var(--ink3); }
@@ -145,6 +142,20 @@
 .carnet .ec-howto li > span { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 
 /* ---------- Tous les réglages ---------- */
+/* Les six tuiles : la forme des quatre gros boutons du + (.nt-four, noter.css),
+   pour des liens comme pour des boutons. Le picto dit le sujet, pas la couleur. */
+.carnet .ec-tuiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.carnet .ec-tuiles > * { display: grid; align-content: space-between; justify-items: start; gap: 10px; min-height: 104px; padding: 14px; border: 0; border-radius: 12px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent); text-align: left; text-decoration: none; cursor: pointer; color: var(--ink); font: inherit; }
+.carnet .ec-tuiles svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .ec-tuiles b { display: block; font-size: 16.5px; font-weight: 720; line-height: 1.15; letter-spacing: -.01em; }
+.carnet .ec-tuiles small { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--ink3); }
+.carnet .ec-tuiles > :active { transform: scale(.98); }
+/* Sans compte : la seule ligne sous les tuiles. */
+.carnet .ec-garde { display: grid; grid-template-columns: 22px minmax(0, 1fr) 18px; gap: 10px; align-items: center; min-height: 52px; margin-top: 12px; padding: 0 14px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font-size: 14.5px; font-weight: 650; text-decoration: none; }
+.carnet .ec-garde > svg:first-child { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+/* Un groupe ouvert : le retour aux tuiles, puis ses parties. */
+.carnet .ec-ret { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin-top: 4px; text-decoration: none; }
+.carnet .ec-ret svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 .carnet .ec-pg .li .x { width: 30px; height: 30px; }
 .carnet .ec-addp { margin-top: 10px; padding: 12px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 8px; }
@@ -174,4 +185,8 @@
   .carnet .ec-stick { position: sticky; top: 16px; }
   .carnet .ec-save.on { bottom: 16px; }
   .carnet .ec-pg .ec-stt { max-width: 720px; }
+  .carnet .ec-tuiles { grid-template-columns: repeat(3, 1fr); max-width: 760px; }
+  .carnet .ec-tuiles > * { min-height: 120px; }
+  .carnet .ec-garde { max-width: 760px; }
+  .carnet .ec-grp { max-width: 640px; }
 }

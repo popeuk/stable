@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
@@ -12,7 +12,7 @@ import { CategoriesReglages, EquipeReglages, LieuReglages } from "@/components/b
 import { api } from "@/lib/account/api";
 import { getSession, leave } from "@/lib/account/session";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
-import { useParcours } from "@/components/bs/parcours";
+import { grosTexte, poserGrosTexte } from "@/lib/taille";
 import { fusionFactures } from "@/lib/domain/facture";
 import { compteurAppareil } from "@/lib/account/factures-seq";
 import { migrerDonnees, useDataStore } from "@/stores/data-store";
@@ -24,15 +24,21 @@ import { localToday } from "@/lib/utils/local-date";
 import { useFeuille } from "@/components/bs/feuille";
 
 /**
- * Réglages, sur un seul niveau : le compte, l'écurie (nom, boxes, tarifs,
- * frais communs), l'équipe, les catégories, le rappel du matin, l'app, revoir
- * les explications et la tournée, les données. Rien qui ne fait rien : pas
- * de ligne « bientôt », pas de thème sombre, pas d'interrupteur sans effet.
+ * Réglages, en six tuiles : Mon écurie (nom, boxes, équipe), Mes prix, Mes
+ * frais, Mes papiers (factures, lieu, registre), Mon rappel, Mon téléphone
+ * (compte, gros texte, l'app, revoir, catégories, données). Mes prix et Mes
+ * frais mènent à leur écran ; les quatre autres ouvrent leur groupe seul
+ * (?s=ecurie), et le retour du navigateur ramène aux tuiles. Rien qui ne fait
+ * rien : pas de ligne « bientôt », pas de thème sombre, pas d'interrupteur
+ * sans effet.
  */
 export default function Page() {
   return (
     <ClientGate>
-      <Moi />
+      {/* L'adresse dit quel groupe est ouvert (?s=…) : lue sous Suspense. */}
+      <Suspense fallback={null}>
+        <Moi />
+      </Suspense>
     </ClientGate>
   );
 }
@@ -89,24 +95,67 @@ function Li({ title, sub, right, children }: { title: ReactNode; sub?: ReactNode
 }
 const chev = <Ic n="chev" className="chev" />;
 
+type Groupe = "ecurie" | "papiers" | "rappel" | "telephone";
+
+/** Les six tuiles : quatre ouvrent leur groupe, deux mènent à leur écran. */
+const TUILES: { id: string; g?: Groupe; href?: string; ic: string; t: string; s: string }[] = [
+  { id: "ecurie", g: "ecurie", ic: "home", t: "Mon écurie", s: "nom, boxes, équipe" },
+  { id: "prix", href: "/parcours/tarifs?retour=moi", ic: "euro", t: "Mes prix", s: "pension, cours" },
+  { id: "frais", href: "/parcours/factures?retour=moi", ic: "hay", t: "Mes frais", s: "foin, paille, loyer" },
+  { id: "papiers", g: "papiers", ic: "doc", t: "Mes papiers", s: "factures, registre" },
+  { id: "rappel", g: "rappel", ic: "bell", t: "Mon rappel", s: "chaque matin" },
+  { id: "telephone", g: "telephone", ic: "phone", t: "Mon téléphone", s: "garder, installer" },
+];
+const estGroupe = (x: string | null): x is Groupe => TUILES.some((t) => t.g && t.g === x);
+
+/**
+ * Les anciennes adresses ouvrent la bonne tuile : /parametres/equipe, et les
+ * ancres d'avant (« /moi#lieu » depuis le registre). La partie visée est
+ * alors à l'écran, et l'ancienne page peut encore y faire défiler.
+ */
+const DEPUIS_ADRESSE: Record<string, Groupe> = { "/parametres/equipe": "ecurie", "/parametres/notifications": "rappel", "/parametres/categories": "telephone" };
+const DEPUIS_ANCRE: Record<string, Groupe> = { "#ecurie": "ecurie", "#equipe": "ecurie", "#lieu": "papiers", "#notifications": "rappel", "#categories": "telephone", "#revoir": "telephone" };
+
 function Moi() {
   const router = useRouter();
+  const path = (usePathname() ?? "/moi").replace(/(.)\/$/, "$1");
+  const demande = useSearchParams().get("s");
   const s = useSettingsStore();
   const data = useDataStore();
   const say = useUiStore((x) => x.say);
   const openTournee = useUiStore((x) => x.openTournee);
   const desk = useDesk();
-  const { n } = useParcours();
   const [perm, setPerm] = useState<string>(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
+  // Le groupe venu d'une ancienne adresse ; celui de ?s= passe devant.
+  const [ancre, setAncre] = useState<Groupe | null>(() => DEPUIS_ANCRE[window.location.hash] ?? DEPUIS_ADRESSE[path] ?? null);
+  const groupe = estGroupe(demande) ? demande : ancre;
+  // Ouvert depuis les tuiles : le retour revient en arrière, comme le navigateur.
+  const depuisTuiles = useRef(false);
+  const [gros, setGros] = useState(grosTexte);
   const today = localToday();
   // L'aperçu du rappel compte comme l'accueil : séances, soins, tâches, rendez-vous.
   const jour = resumeJournee(dayItems(data, today, today, "00:00"));
   const horses = data.horses.filter((h) => !h.isArchived);
   const libres = Math.max(0, s.capacity - horses.length);
-  const won = n === 6;
+  const session = getSession();
+
+  const ouvrir = (g: Groupe) => {
+    depuisTuiles.current = true;
+    setAncre(null);
+    router.push(`${path}?s=${g}`);
+    window.scrollTo(0, 0);
+  };
+  const auxTuiles = () => {
+    setAncre(null);
+    if (depuisTuiles.current) {
+      depuisTuiles.current = false;
+      router.back();
+    } else router.replace("/moi");
+    window.scrollTo(0, 0);
+  };
 
   const ecurie = (
-    <Sec title="Ton écurie" delay={0.18} id="ecurie">
+    <Sec delay={0.1} id="ecurie">
       <div className="li np">
         <Li title={<label htmlFor="st-name">Nom</label>} sub="en haut de l’app" right={<input id="st-name" className="input sm" defaultValue={s.stableName} onChange={(e) => s.setIdentity({ stableName: e.target.value })} />} />
       </div>
@@ -120,17 +169,11 @@ function Moi() {
           right={<input id="st-cap" className="input xs" inputMode="numeric" placeholder="?" defaultValue={s.capacity || ""} onChange={(e) => Number(e.target.value) > 0 && s.setCapacity(Number(e.target.value))} />}
         />
       </div>
-      <Link href="/parcours/tarifs?retour=moi" className="li np">
-        <Li title="Tes prix" sub="pension, cours, travail" right={chev} />
-      </Link>
     </Sec>
   );
-  // Les papiers de l'écurie : un seul titre pour les frais, les factures, le lieu et le registre.
+  // Les papiers de l'écurie : les factures, le lieu et le registre ; le titre de la tuile suffit.
   const papiers = (
-    <LieuReglages>
-      <Link href="/parcours/factures?retour=moi" className="li np">
-        <Li title="Les frais de l’écurie" sub="foin, litière, loyer, salaires" right={chev} />
-      </Link>
+    <LieuReglages title={null}>
       <Link href="/facturation" className="li np">
         <Li title="Tes factures" sub="SIRET, adresse, TVA, le tableau du comptable" right={chev} />
       </Link>
@@ -138,7 +181,8 @@ function Moi() {
   );
 
   const rappel = (
-    <Sec title="Le rappel du matin" blk delay={0.26} id="notifications">
+    <Sec blk delay={0.1} id="notifications">
+      <p className="k">L’heure du matin</p>
       <div className="chips ec-bells" style={{ marginTop: 10 }}>
         {["6:30", "7:00", "7:45", "8:30"].map((t) => (
           <button key={t} type="button" className="chip" aria-pressed={s.reminder === t} onClick={() => s.setReminder(t)}>
@@ -186,22 +230,8 @@ function Moi() {
     </Sec>
   );
 
-  const premiers = (
-    <Sec title="Tes premiers pas" delay={desk ? 0.1 : 0.32}>
-      <Link href="/parcours" className="li np">
-        <Li title={won ? "Ton écurie est prête" : `${n} sur 6, c’est fait`} sub={won ? "Tout est fait" : "Continuer"} right={chev}>
-          <span className="ec-steps" aria-hidden="true">
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <i key={i} className={i < n ? "on" : ""} />
-            ))}
-          </span>
-        </Li>
-      </Link>
-    </Sec>
-  );
-
   const donnees = (
-    <Sec title="Tes données" delay={desk ? 0.26 : 0.44}>
+    <Sec title="Tes données" delay={0.3}>
       <p className="note">Tout est rangé sur cet appareil. Pour passer du téléphone à l’ordinateur, exporte tes données ici, puis ouvre le fichier sur l’autre appareil.</p>
       <button type="button" className="li np" onClick={exportData}>
         <Li title="Exporter mes données" sub="une sauvegarde de toute ton écurie" right={<Ic n="download" className="ec-ico" />} />
@@ -210,7 +240,7 @@ function Moi() {
         <Li title="Reprendre une sauvegarde" sub="remplace ce qui est sur cet appareil" right={<Ic n="upload" className="ec-ico" />} />
         <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
       </label>
-      {getSession()?.kind === "demo" && (
+      {session?.kind === "demo" && (
         <button
           type="button"
           className="li np"
@@ -249,13 +279,13 @@ function Moi() {
           <Ic n="trash" className="" />
           Tout effacer et recommencer
         </button>
-        <small>{getSession()?.kind === "demo" ? "Dans la démo, l’écurie d’exemple revient telle qu’au départ." : "Le parcours repart de zéro. On te le redemande avant."}</small>
+        <small>{session?.kind === "demo" ? "Dans la démo, l’écurie d’exemple revient telle qu’au départ." : "Le parcours repart de zéro. On te le redemande avant."}</small>
       </div>
     </Sec>
   );
 
   const revoir = (
-    <Sec title="Revoir" delay={desk ? 0.3 : 0.47} id="revoir">
+    <Sec title="Revoir" delay={0.22} id="revoir">
       <button
         type="button"
         className="li np"
@@ -284,46 +314,92 @@ function Moi() {
       <Compte />
     </Sec>
   );
+  // Le gros texte vaut pour cet appareil (pas pour le compte) : il vit avec l'app du téléphone.
   const app = (
-    <Sec title="L’app sur ton téléphone" delay={desk ? 0.18 : 0.38}>
+    <Sec title="L’app sur ton téléphone" delay={0.16}>
       <Install />
+      <div style={{ marginTop: 4 }}>
+        <Switch
+          on={gros}
+          onClick={() => {
+            poserGrosTexte(!gros);
+            setGros(!gros);
+          }}
+        >
+          Gros texte
+        </Switch>
+      </div>
+      <p className="ec-help">Tout le texte grandit un peu, sur cet appareil seulement.</p>
     </Sec>
   );
+
+  // Chaque groupe, partie par partie ; sur ordinateur, au-delà de deux parties, sur deux colonnes.
+  const parties: Record<Groupe, ReactNode[]> = {
+    ecurie: [ecurie, <EquipeReglages key="equipe" />],
+    papiers: [papiers],
+    rappel: [rappel],
+    telephone: [compte, app, revoir, <CategoriesReglages key="categories" />, donnees],
+  };
+
+  if (groupe) {
+    const tuile = TUILES.find((t) => t.g === groupe)!;
+    const liste = parties[groupe].map((p, i) => <div key={i}>{p}</div>);
+    const moitie = Math.ceil(liste.length / 2);
+    return (
+      <Screen wide={desk}>
+        <div className="ec-pg">
+          <button type="button" className="lnk ec-ret" onClick={auxTuiles}>
+            <Ic n="chevL" className="" />
+            Tous les réglages
+          </button>
+          <Hello title={tuile.t} />
+          {desk && liste.length > 2 ? (
+            <div className="cols2 ec-cols">
+              <div>{liste.slice(0, moitie)}</div>
+              <div>{liste.slice(moitie)}</div>
+            </div>
+          ) : (
+            <div className="ec-grp">{liste}</div>
+          )}
+          <div className="end" />
+        </div>
+      </Screen>
+    );
+  }
 
   return (
     <Screen wide={desk}>
       <div className="ec-pg">
-        <Hello title="Réglages" sub="Ce que tu règles une fois. Tu reviens ici si quelque chose change." />
-        {desk ? (
-          <div className="cols2 ec-cols">
-            <div>
-              {compte}
-              {ecurie}
-              {papiers}
-              <EquipeReglages />
-              <CategoriesReglages />
-            </div>
-            <div>
-              {premiers}
-              {rappel}
-              {app}
-              {revoir}
-              {donnees}
-            </div>
-          </div>
-        ) : (
-          <>
-            {compte}
-            {ecurie}
-            {papiers}
-            <EquipeReglages />
-            {rappel}
-            {premiers}
-            <CategoriesReglages />
-            {app}
-            {revoir}
-            {donnees}
-          </>
+        <Hello title="Réglages" />
+        <div className="ec-tuiles rise" style={{ animationDelay: "0.08s" }}>
+          {TUILES.map((t) => {
+            const dedans = (
+              <>
+                <Ic n={t.ic} className="" />
+                <span>
+                  <b>{t.t}</b>
+                  <small>{t.s}</small>
+                </span>
+              </>
+            );
+            return t.href ? (
+              <Link key={t.id} href={t.href}>
+                {dedans}
+              </Link>
+            ) : (
+              <button key={t.id} type="button" onClick={() => ouvrir(t.g!)}>
+                {dedans}
+              </button>
+            );
+          })}
+        </div>
+        {/* Sans compte, une seule ligne pour ne rien perdre ; avec un compte, rien. */}
+        {session?.kind === "locale" && (
+          <Link href="/compte/connexion?garder=1" className="ec-garde rise" style={{ animationDelay: "0.14s" }}>
+            <Ic n="user" className="" />
+            <span>Garder mes chiffres avec mon e-mail</span>
+            {chev}
+          </Link>
         )}
         <div className="end" />
       </div>

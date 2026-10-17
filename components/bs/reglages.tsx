@@ -12,9 +12,9 @@ import { useUiStore } from "@/stores/ui-store";
 import { esc } from "@/components/bs/ui";
 
 /**
- * Deux parties de Réglages (app/(app)/moi) : l'équipe et les catégories.
- * Tout se règle sur un seul écran ; les anciennes adresses /parametres/…
- * l'ouvrent sur leur partie.
+ * Des parties de Réglages (app/(app)/moi) : l'équipe, les catégories, les
+ * papiers. Chacune vit sous sa tuile (Mon écurie, Mon téléphone, Mes papiers) ;
+ * les anciennes adresses /parametres/… ouvrent la bonne tuile sur leur partie.
  */
 
 /* ---------- L'équipe ---------- */
@@ -195,10 +195,11 @@ const LIEU_CHAMPS: { k: HoldingKey; label: string; ph: string; type?: "tel" | "e
  * champ s'enregistre quand on le quitte.
  */
 /**
- * Les papiers de l'écurie : frais communs et factures (passés en enfants),
- * le lieu de détention et le registre d'élevage, sous un seul titre.
+ * Les papiers de l'écurie : les factures (passées en enfants), le lieu de
+ * détention et le registre d'élevage. Sous la tuile « Mes papiers », le titre
+ * de la tuile suffit : la partie n'en remet pas.
  */
-export function LieuReglages({ children }: { children?: ReactNode }) {
+export function LieuReglages({ title = "Les papiers de l’écurie", children }: { title?: ReactNode; children?: ReactNode }) {
   const lieu = useDataStore((s) => s.holding);
   const siretFactures = useDataStore((s) => s.billing?.siret);
   // Le SIRET est celui de tes factures : saisi d'un côté, il est déjà là de l'autre.
@@ -208,7 +209,7 @@ export function LieuReglages({ children }: { children?: ReactNode }) {
   const [open, setOpen] = useState(() => typeof window !== "undefined" && window.location.hash === "#lieu");
   const filled = LIEU_CHAMPS.filter((c) => holding[c.k]?.trim()).length;
   return (
-    <Sec title="Les papiers de l’écurie" delay={0.22} id="lieu">
+    <Sec title={title} delay={0.22} id="lieu">
       {children}
       <button type="button" className="li np" aria-expanded={open} onClick={() => setOpen(!open)}>
         <span>
