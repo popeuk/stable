@@ -9,7 +9,7 @@
 
 
 /* ---------- Écran ---------- */
-.bs-screen { animation: bs-in .28s var(--ease) both; }
+.bs-screen { animation: bs-in .28s var(--ease) backwards; }
 @keyframes bs-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 .bs-over { font-size: 12.5px; color: var(--ink3); margin-top: 10px; letter-spacing: .01em; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 22px; }
 .bs-over .bs-wm { font-size: 17px; color: var(--ink); }
@@ -98,6 +98,16 @@ kbd { font: 600 12px/1 var(--font-bricolage), sans-serif; font-variant-numeric: 
 .bs-install .tx { flex: 1; min-width: 0; }
 .bs-install .tx b { display: block; font-size: 14px; font-weight: 600; color: var(--ink); }
 .bs-install .tx span { font-size: 12.5px; color: var(--ink2); line-height: 1.35; }
+/* Au téléphone, la carte ne flotte plus sur l'écran : elle se pose en fin de
+   page, au-dessus de la barre d'onglets, et ne cache jamais une case ni un lien.
+   Une ligne (64 px). Sur ordinateur, elle reste en bas à droite. */
+@media (max-width: 1023.98px) {
+  .bs-install { position: relative; z-index: 1; left: auto; right: auto; bottom: auto; margin: calc(-100px - env(safe-area-inset-bottom) + 12px) 14px calc(96px + env(safe-area-inset-bottom)); max-width: 452px; padding: 8px 6px 8px 10px; gap: 10px; }
+  .bs-install .tx span { display: none; }
+}
+@media (min-width: 482px) and (max-width: 1023.98px) {
+  .bs-install { margin-left: auto; margin-right: auto; }
+}
 .bs-install .go { height: 44px; padding: 0 14px; border-radius: 6px; background: var(--ink); color: var(--on-ink); font-size: 13.5px; font-weight: 600; }
 .bs-install .go:hover { background: var(--ink2); }
 

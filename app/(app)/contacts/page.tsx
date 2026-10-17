@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Empty, Ic, Money, Page as Ecran, Sec, ini } from "@/components/carnet/ui";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { useDataStore } from "@/stores/data-store";
 import { derivePeople, type Person } from "@/lib/domain/people";
 import { formatEur } from "@/lib/utils/format-currency";

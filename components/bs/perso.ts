@@ -81,5 +81,10 @@ export function altPerso(alt: string, p: Perso): string {
     .replace(/\bla gérante\b/g, "le gérant")
     .replace(/\bune gérante\b/g, "un gérant")
     .replace(/\bassise\b/g, "assis")
-    .replace(/\bfatiguée\b/g, "fatigué");
+    .replace(/\bfatiguée\b/g, "fatigué")
+    // Les pronoms du personnage : « son cheval tout contre elle » devient « contre lui ».
+    .replace(/\b(contre|avec|pour|sur|derrière|devant|chez) elle\b/g, "$1 lui")
+    .replace(/\bd[’']elle\b/g, "de lui")
+    .replace(/\bElle\b/g, "Il")
+    .replace(/\belle\b/g, "il");
 }

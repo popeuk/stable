@@ -8,7 +8,7 @@ import { cap, esc, ilEnFaut } from "@/components/bs/ui";
 import { PORTEE_PREVU, plannedRest } from "@/components/bs/goal-card";
 import { hasObjective, phraseObjectifMois, phrasePistes } from "@/lib/domain/objectif";
 import { partageLabel, repartition } from "@/lib/domain/presence";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { Chips, CountUp, Empty, Hello, Ic, Ill, Money, Page, Sec, Seg, eur, sg, type IllName } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -331,7 +331,7 @@ function Mois() {
     <div className="ar-split">
       <div>
         <div className="ar-compte" aria-hidden="true">
-          <Ill n="foin" className="ar-who" />
+          <Ill n="foin" className="ar-who" prio />
         </div>
         <Hello title={titre} sub={sub} delay={0.1} />
         {goal}

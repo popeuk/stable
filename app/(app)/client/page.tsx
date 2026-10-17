@@ -21,6 +21,7 @@ import { dernierMoyen, enMoyen, moyenDit } from "@/lib/domain/paiement";
 import { brouillon, deMois, facturesDe, recettesFacturees } from "@/lib/domain/facture";
 import { FeuilleMoyen } from "@/components/bs/moyen-paiement";
 import type { PaymentMethod } from "@/lib/domain/types";
+import { useFeuille } from "@/components/bs/feuille";
 
 /**
  * La fiche d'un client (`/client?nom=Hugo L.`, `&mois=2026-10` pour un mois
@@ -179,7 +180,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
             <span className="cl-lab">{due > 0 ? `${qui} te doit` : `${Il} ne te doit plus rien.`}</span>
             <b className="cl-big">{due > 0 ? <CountUp value={due} fmt={eur} ms={700} /> : eur(0)}</b>
           </span>
-          {due <= 0 && <Ill fixe n={accord(nom, "gerant-rosette", "rosette")} className="cl-ros" />}
+          {due <= 0 && <Ill n="rosette" className="cl-ros" />}
         </div>
         {vientDePayer && <p className="cl-cnt">Déjà compté dans ton mois.</p>}
         {seance && due > 0 && ouvertes.length > 0 && (
@@ -470,12 +471,13 @@ function Bulle() {
 }
 
 function Feuille({ titre, onClose, children }: { titre: string; onClose: () => void; children: ReactNode }) {
+  const ref = useFeuille(onClose, { verrou: true });
   if (typeof document === "undefined") return null;
   return createPortal(
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
         <div className="scrim" onClick={onClose} />
-        <div className="sheet" role="dialog" aria-modal="true" aria-label={titre}>
+        <div className="sheet" role="dialog" aria-modal="true" aria-label={titre} ref={ref}>
           <div className="grab" />
           <div className="shd">
             <b>{titre}</b>

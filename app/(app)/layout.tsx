@@ -1,37 +1,35 @@
-import { Suspense } from "react";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { OnboardingGate } from "@/components/ed/onboarding-gate";
 import { Autopilot } from "@/components/ed/autopilot";
 import { Header, TabBar, ToastHost } from "@/components/bs/shell";
-import { CommandPalette, Shortcuts, ShortcutHelp, Sidebar } from "@/components/bs/desk";
+import { AjouterDepuisIcone, BarreBureau, ClavierBureau, FeuillesDifferees, TourneeDifferee } from "@/components/bs/coque-legere";
 import { ClientGate } from "@/components/ui/client-gate";
-import { NoterSheet } from "@/components/bs/noter-sheet";
-import { SeanceSheet } from "@/components/bs/seance-sheet";
 import { MorningNudge } from "@/components/bs/morning-nudge";
 import { SessionSync } from "@/components/bs/session-sync";
 import { AideCarte, RetourOrdinateur, TitreEcran } from "@/components/bs/nav";
 import { GarderBandeau } from "@/components/bs/garder";
-import { Tournee } from "@/components/bs/tournee";
 import { Secours } from "@/components/bs/secours";
 
 /**
  * La coque de l'app, dans le carnet illustré. Au téléphone : une colonne au
  * pouce, l'en-tête et la barre d'onglets. Sur ordinateur (1024 px et plus) :
  * la barre latérale blanche, la palette (Ctrl K) et les raccourcis clavier ;
- * les feuilles s'ouvrent en panneau à droite.
+ * les feuilles s'ouvrent en panneau à droite. Le bureau et les grandes
+ * feuilles se chargent à part (`coque-legere.tsx`).
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="carnet">
+      <a className="cn-skip" href="#contenu">
+        Aller au contenu
+      </a>
       <OnboardingGate />
       <Autopilot />
       <MorningNudge />
       <SessionSync />
       <ClientGate>
-        <Suspense fallback={null}>
-          <Sidebar />
-          <Shortcuts />
-        </Suspense>
+        <BarreBureau />
+        <AjouterDepuisIcone />
       </ClientGate>
       <main className="cn-main">
         <TitreEcran />
@@ -42,17 +40,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <AideCarte />
           </div>
         </ClientGate>
+        {/* Où mène « Aller au contenu » : après l'en-tête, avant l'écran. */}
+        <span id="contenu" tabIndex={-1} className="cn-anchor" />
         <Secours>{children}</Secours>
       </main>
       <GarderBandeau />
       <TabBar />
-      <NoterSheet />
-      <SeanceSheet />
+      <FeuillesDifferees />
       <ClientGate>
-        <Tournee />
+        <TourneeDifferee />
+        <ClavierBureau />
       </ClientGate>
-      <CommandPalette />
-      <ShortcutHelp />
       <ToastHost />
       <PwaInstallPrompt />
     </div>

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode }
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, esc } from "@/components/bs/ui";
 import { FicheApercu, FicheResultat } from "@/components/bs/account-ui";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { Empty, Hello, Ic, Sec } from "@/components/carnet/ui";
 import { useUiStore } from "@/stores/ui-store";
 import { api, ApiError, type Choix, type Fiche, type Formule } from "@/lib/account/api";

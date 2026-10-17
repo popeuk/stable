@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Face, Ic, Page as Ecran, Portrait, Sec } from "@/components/carnet/ui";
 import { COATS, COAT_KEYS, type Coat } from "@/components/bs/horse-face";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { ChoisirProprio } from "@/components/bs/choisir-proprio";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";

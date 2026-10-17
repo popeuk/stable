@@ -101,7 +101,8 @@ export type IllName =
  * (gérante ou gérant, usePerso) ; fixe : l'image telle quelle (un client, pas
  * le gérant). Une version gérant pas encore dessinée retombe sur la gérante.
  */
-export function Ill({ n, alt = "", className = "", style, fixe }: { n: IllName; alt?: string; className?: string; style?: CSSProperties; fixe?: boolean }) {
+/** prio : l'image principale de l'écran (souvent le plus grand élément affiché) se charge tout de suite, avant les autres. */
+export function Ill({ n, alt = "", className = "", style, fixe, prio }: { n: IllName; alt?: string; className?: string; style?: CSSProperties; fixe?: boolean; prio?: boolean }) {
   const perso = usePerso();
   const choix = fixe ? { n } : illPerso(n, perso);
   const repli = choix.repli;
@@ -114,7 +115,8 @@ export function Ill({ n, alt = "", className = "", style, fixe }: { n: IllName; 
       alt={fixe ? alt : altPerso(alt, perso)}
       style={style}
       draggable={false}
-      loading="lazy"
+      loading={prio ? "eager" : "lazy"}
+      fetchPriority={prio ? "high" : undefined}
       decoding="async"
       onError={
         repli
@@ -136,7 +138,8 @@ export const COAT_FILTER: Record<string, string> = {
   noir: "brightness(.38) saturate(.55)",
   gris: "grayscale(1) brightness(1.32) contrast(.92)",
   isabelle: "hue-rotate(8deg) brightness(1.25) saturate(.75)",
-  pie: "grayscale(.4) brightness(1.5) contrast(.9)",
+  // Pie : presque sans teinte, pour ne pas virer au saumon, trop proche du rose de l’argent qui sort.
+  pie: "grayscale(.85) brightness(1.45) contrast(.9)",
 };
 export const coatFilter = (h?: Pick<Horse, "id"> & { coat?: string }) => COAT_FILTER[h ? coatOf(h) : "alezan"] ?? "none";
 export function Face({ horse, size, className = "" }: { horse?: Pick<Horse, "id" | "name"> & { coat?: string }; size?: number; className?: string }) {
@@ -294,12 +297,25 @@ export function Promo({ href, ill = "promo", tag, title, text, cta, contain, sma
   );
 }
 
-/** Onglets en segment ; le panneau se choisit dehors avec la valeur. */
+/**
+ * Un choix en segment (« Semaine / Mois », « Un trimestre / Une année ») : un
+ * groupe de boutons radio. Tab entre dans le groupe sur le choix actif, les
+ * flèches passent d'un choix à l'autre.
+ */
 export function Seg<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: [T, ReactNode][]; label?: string }) {
+  const keys = options.map(([k]) => k);
+  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const d = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!d) return;
+    e.preventDefault();
+    const i = (keys.indexOf(value) + d + keys.length) % keys.length;
+    onChange(keys[i]);
+    (e.currentTarget.querySelectorAll("button")[i] as HTMLButtonElement | undefined)?.focus();
+  };
   return (
-    <div className="seg" role="tablist" aria-label={label}>
+    <div className="seg" role="radiogroup" aria-label={label} onKeyDown={onKey}>
       {options.map(([k, l]) => (
-        <button key={k} type="button" role="tab" aria-selected={value === k} className={value === k ? "on" : ""} onClick={() => onChange(k)}>
+        <button key={k} type="button" role="radio" aria-checked={value === k} tabIndex={value === k ? 0 : -1} className={value === k ? "on" : ""} onClick={() => onChange(k)}>
           {l}
         </button>
       ))}

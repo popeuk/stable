@@ -58,12 +58,6 @@ interface SettingsState {
   capacity: number;
   /** Has the user seen the intro onboarding? */
   onboarded: boolean;
-  /**
-   * Clé OpenRouter de l'UTILISATEUR (BYOK) pour l'assistant vocal. Stockée
-   * uniquement sur l'appareil, jamais dans le code ni le dépôt. Vide =
-   * interpréteur local seul.
-   */
-  openRouterKey: string;
   /** Le parcours de démarrage : six obstacles, gagnés une fois pour toutes. */
   parcours: Record<ObstacleId, boolean>;
   /** Le flot « Écurie prête » a été montré. */
@@ -92,7 +86,6 @@ interface SettingsState {
   resetParcours: () => void;
   toggle: (key: keyof NotificationPrefs) => void;
   setCapacity: (n: number) => void;
-  setOpenRouterKey: (k: string) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
 }
@@ -132,8 +125,6 @@ export const useSettingsStore = create<SettingsState>()(
       toggleEvening: () => set((s) => ({ evening: !s.evening })),
       setIdentity: (p) => set((s) => ({ stableName: p.stableName?.trim() || s.stableName, gerant: p.gerant?.trim() || s.gerant })),
       resetParcours: () => set({ parcours: { ...NO_OBSTACLE }, arrived: false, onboarded: false }),
-      openRouterKey: "",
-      setOpenRouterKey: (k) => set({ openRouterKey: k.trim() }),
       toggle: (key) =>
         set((s) => ({
           notifications: { ...s.notifications, [key]: !s.notifications[key] },
@@ -144,7 +135,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "be-stable-settings",
-      version: 6,
+      version: 7,
       storage: createJSONStorage(() => vault),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
@@ -157,8 +148,11 @@ export const useSettingsStore = create<SettingsState>()(
       },
       // v4 : le parcours de démarrage arrive ; les anciens réglages sont gardés.
       // v6 : les 12 boxes d'office n'étaient jamais demandés : hors démo, ils redeviennent « pas encore donné ».
+      // v7 : la clé OpenRouter n'est plus lue nulle part (l'interprète de la saisie est local) ; si elle avait été saisie, elle quitte l'appareil.
       migrate: (old, v) => {
-        const o = { objective: 0, capacity: 0, ...(old as object) } as { capacity: number };
+        const { openRouterKey: _cle, ...reste } = (old ?? {}) as { openRouterKey?: string };
+        void _cle;
+        const o = { objective: 0, capacity: 0, ...reste } as { capacity: number };
         const capacity = v < 6 && o.capacity === 12 && getSession()?.kind !== "demo" ? 0 : o.capacity;
         return { ...o, capacity, ...(v < 4 ? { parcours: { ...NO_OBSTACLE }, arrived: false } : {}) } as never;
       },

@@ -12,6 +12,7 @@ import { localToday } from "@/lib/utils/local-date";
 import { dIciFin, phraseObjectif, useCompte, useMois } from "@/components/bs/compteur";
 import { LigneComptee, useDebutant } from "@/components/bs/compte";
 import { Ill, Money, eur, sg } from "@/components/carnet/ui";
+import { useFeuille } from "@/components/bs/feuille";
 
 /**
  * La tournée du matin : 30 secondes en trois étapes, quand on la demande
@@ -76,7 +77,6 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
   const [etapes] = useState<Etape[]>(() => [...(veille.length ? (["hier"] as Etape[]) : []), ...(restants.length ? (["aujourdhui"] as Etape[]) : []), "mois"]);
   const [i, setI] = useState(0);
   const [fini, setFini] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
 
   const netRef = useRef(mois.net);
@@ -87,18 +87,8 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
     ecrire({ date: localToday(), net: netRef.current });
     onClose();
   }, [onClose]);
+  const ref = useFeuille(terminer, { verrou: true });
 
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === "Escape" && terminer();
-    window.addEventListener("keydown", k);
-    const avant = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    ref.current?.focus();
-    return () => {
-      window.removeEventListener("keydown", k);
-      document.body.style.overflow = avant;
-    };
-  }, [terminer]);
 
   const suivant = () => {
     stage.current?.scrollTo({ top: 0 });

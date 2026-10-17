@@ -53,7 +53,7 @@ function CeQuiACompte() {
         </div>
         {jours.length === 0 && (
           <div className="empty rise" style={{ animationDelay: ".14s" }}>
-            <Ill n="gerant-rosette" className="jr-rosette" alt="Le gérant brandit une rosette." />
+            <Ill n="dodo" className="e-dodo" />
             <p style={{ margin: 0 }}>
               <b className="jr-ok">Rien n’a compté ces 7 derniers jours.</b>
               <br />

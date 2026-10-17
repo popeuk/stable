@@ -14,6 +14,7 @@ import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { useFinDuMois } from "@/components/bs/compte";
 import { AideBouton, BILAN, CLIENTS_CHEVAUX, isRoot, titreDe, under, usePlusItems, useRetour, useSuiviNavigation, type PlusItem } from "@/components/bs/nav";
+import { useFeuille } from "@/components/bs/feuille";
 
 /** L'initiale du gérant, pour le rond en haut à droite. */
 export function useInitiale() {
@@ -108,19 +109,7 @@ export function RondSheet({ onClose }: { onClose: () => void }) {
   const s = useSettingsStore();
   const ini = useInitiale();
   const items = usePlusItems();
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", k);
-    // La page ne défile pas derrière la feuille ouverte.
-    const avant = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    ref.current?.focus();
-    return () => {
-      window.removeEventListener("keydown", k);
-      document.body.style.overflow = avant;
-    };
-  }, [onClose]);
+  const ref = useFeuille(onClose, { verrou: true });
   return (
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
-import { X, HelpCircle } from "lucide-react";
+import { useId, useState } from "react";
+import { createPortal } from "react-dom";
 import { LESSONS } from "@/content/lessons";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useCoachStore } from "@/stores/coach-store";
+import { useFeuille } from "@/components/bs/feuille";
+import { Ic } from "@/components/carnet/ui";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -28,8 +29,6 @@ export function Explain({
 }) {
   const [open, setOpen] = useState(false);
   const lesson = LESSONS[k];
-  const data = useDataStore();
-  const period = usePeriodStore((s) => s.active);
   const markSeen = useCoachStore((s) => s.markLessonSeen);
   const reveal = () => {
     markSeen(String(k));
@@ -41,25 +40,20 @@ export function Explain({
     variant === "chip" ? (
       <span className={cn("inline-flex items-center gap-1", className)}>
         {children}
-        <button
-          onClick={reveal}
-          aria-label={`Comprendre : ${lesson.title}`}
-          className="inline-flex size-[18px] items-center justify-center border border-[var(--line)] text-tertiary"
-        >
-          <HelpCircle size={11} />
+        <button type="button" onClick={reveal} aria-label={`Comprendre : ${lesson.title}`} aria-haspopup="dialog" className="cn-term-chip">
+          <Ic n="help" className="" />
         </button>
       </span>
     ) : variant === "plain" ? (
-      <button onClick={reveal} className={className}>
+      <button type="button" onClick={reveal} aria-haspopup="dialog" className={className}>
         {children}
       </button>
     ) : (
       <button
+        type="button"
         onClick={reveal}
-        className={cn(
-          "cn-term underline decoration-dotted decoration-[var(--ink)] underline-offset-[3px] transition-colors hover:text-[var(--ink)]",
-          className,
-        )}
+        aria-haspopup="dialog"
+        className={cn("cn-term underline decoration-dotted decoration-[var(--ink)] underline-offset-[3px]", className)}
       >
         {children}
       </button>
@@ -68,83 +62,62 @@ export function Explain({
   return (
     <>
       {trigger}
-      <MotionConfig reducedMotion="user">
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              className="fixed inset-0 z-[60] flex items-end justify-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <button
-                aria-label="Fermer"
-                className="absolute inset-0"
-                style={{ background: "var(--scrim)" }}
-                onClick={() => setOpen(false)}
-              />
-              <motion.div
-                role="dialog"
-                aria-label={lesson.title}
-                className="relative z-10 w-full max-w-[440px] rounded-t-[28px] bg-elevated px-6 pb-10 pt-3 shadow-[var(--shadow-floating)]"
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={{ type: "spring", stiffness: 380, damping: 34 }}
-              >
-                <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line)]" />
-                <div className="flex items-start justify-between">
-                  <span className="text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
-                    Notion · 2 min
-                  </span>
-                  <button onClick={() => setOpen(false)} aria-label="Fermer" className="text-tertiary">
-                    <X size={20} />
-                  </button>
-                </div>
-
-                <h2 className="mt-2 font-[family-name:var(--font-bricolage)] text-2xl text-primary">
-                  {lesson.title}
-                </h2>
-                <p className="mt-2 text-[15px] leading-relaxed text-secondary">
-                  {lesson.definition}
-                </p>
-
-                {lesson.yourData && (
-                  <div className="mt-4 border border-[var(--line)] bg-base p-4">
-                    <p className="text-[12px] font-bold uppercase tracking-wide text-[var(--ink)]">
-                      Pour toi, ce mois
-                    </p>
-                    <p className="mt-1.5 text-[15px] leading-relaxed text-primary">
-                      {lesson.yourData(data, period)}
-                    </p>
-                  </div>
-                )}
-
-                <p className="mt-5 text-[12px] font-bold uppercase tracking-wide text-tertiary">
-                  Ce que tu peux faire
-                </p>
-                <div className="mt-2 border-t border-[var(--line)]">
-                  {lesson.whatToDo.map((t, i) => (
-                    <div key={i} className="flex gap-3 border-b border-[var(--line)] py-3">
-                      <span className="text-[13px] font-bold tabular-nums text-tertiary">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <p className="text-[14px] leading-relaxed text-secondary">{t}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setOpen(false)}
-                  className="mt-6 w-full rounded-full bg-[var(--ink)] py-3.5 text-[15px] font-bold text-[var(--on-ink)]"
-                >
-                  J&apos;ai compris
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </MotionConfig>
+      {open && <LessonSheet k={String(k)} onClose={() => setOpen(false)} />}
     </>
+  );
+}
+
+/**
+ * La feuille d'une notion : la feuille du carnet, posée sur `body` (rien ne la
+ * rogne ni ne la décale, même sous un bloc animé), qui tient le focus.
+ */
+export function LessonSheet({ k, onClose }: { k: string; onClose: () => void }) {
+  const lesson = LESSONS[k];
+  const data = useDataStore();
+  const period = usePeriodStore((s) => s.active);
+  const ref = useFeuille(onClose, { verrou: true });
+  const id = useId();
+  if (!lesson || typeof document === "undefined") return null;
+  return createPortal(
+    <div className="carnet carnet-portal">
+      <div className="sheet-wrap open">
+        <div className="scrim" onClick={onClose} />
+        <div className="sheet cn-lesson" role="dialog" aria-modal="true" aria-labelledby={`${id}-t`} ref={ref}>
+          <div className="grab" />
+          <div className="shd">
+            <b id={`${id}-t`}>{lesson.title}</b>
+            <button type="button" className="x" onClick={onClose} aria-label="Fermer">
+              <Ic n="x" className="" />
+            </button>
+          </div>
+          <div className="pad">
+            <p className="cn-lesson-def">{lesson.definition}</p>
+            {lesson.yourData && (
+              <div className="tip cn-lesson-toi">
+                <span>
+                  <b>Pour toi, ce mois</b>
+                  <br />
+                  {lesson.yourData(data, period)}
+                </span>
+              </div>
+            )}
+            {lesson.whatToDo.length > 0 && (
+              <>
+                <h3 className="cn-lesson-h">Ce que tu peux faire</h3>
+                <ol className="nt-steps">
+                  {lesson.whatToDo.map((t, i) => (
+                    <li key={i}>{t}</li>
+                  ))}
+                </ol>
+              </>
+            )}
+            <button type="button" className="btn full" style={{ marginTop: 20 }} onClick={onClose}>
+              J’ai compris
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }

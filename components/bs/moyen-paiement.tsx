@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useFeuille } from "@/components/bs/feuille";
 import { Ic } from "@/components/carnet/ui";
 import { MOYENS, saisieCheque } from "@/lib/domain/paiement";
 import type { PaymentMethod } from "@/lib/domain/types";
@@ -47,7 +48,6 @@ export function MoyenChoix({
   );
 }
 
-const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Une petite feuille du bas, comme celles de la fiche client : posée sous
@@ -56,40 +56,9 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), textar
  * se ferme à Échap, et rend le focus à ce qui l'a ouverte.
  */
 export function FeuilleMoyen({ titre, onClose, children }: { titre: string; onClose: () => void; children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const fermer = useRef(onClose);
-  useEffect(() => {
-    fermer.current = onClose;
-  }, [onClose]);
-  useEffect(() => {
-    const avant = document.activeElement as HTMLElement | null;
-    const el = ref.current;
-    const premier = el?.querySelector<HTMLElement>('[aria-checked="true"]') ?? el?.querySelector<HTMLElement>(`.pad ${FOCUSABLE}`) ?? el?.querySelector<HTMLElement>(FOCUSABLE);
-    premier?.focus();
-    const touche = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        fermer.current();
-        return;
-      }
-      if (e.key !== "Tab" || !el) return;
-      const xs = [...el.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((x) => x.offsetParent !== null || x === document.activeElement);
-      if (!xs.length) return;
-      const [a, z] = [xs[0], xs[xs.length - 1]];
-      if (e.shiftKey && (document.activeElement === a || !el.contains(document.activeElement))) {
-        e.preventDefault();
-        z.focus();
-      } else if (!e.shiftKey && (document.activeElement === z || !el.contains(document.activeElement))) {
-        e.preventDefault();
-        a.focus();
-      }
-    };
-    document.addEventListener("keydown", touche);
-    return () => {
-      document.removeEventListener("keydown", touche);
-      if (avant?.isConnected) avant.focus();
-    };
-  }, []);
+  // La mécanique partagée des feuilles (focus, Tab, Échap de la seule feuille du dessus, retour du focus),
+  // avec le choix déjà fait comme premier arrêt.
+  const ref = useFeuille(onClose, { verrou: true, premier: '[aria-checked="true"]' });
   if (typeof document === "undefined") return null;
   return createPortal(
     <div className="carnet carnet-portal">

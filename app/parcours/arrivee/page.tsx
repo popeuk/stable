@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { CountUp, Face, Ic, Ill, Money, Steam, sg } from "@/components/carnet/ui";
-import { usePerso } from "@/components/bs/essayer";
+import { usePerso } from "@/components/bs/perso";
 import { useDataStore } from "@/stores/data-store";
 import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";

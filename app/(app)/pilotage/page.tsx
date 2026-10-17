@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { cap, dec1 } from "@/components/bs/ui";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { CountUp, Empty, Face, Hello, Ic, Ill, Money, Page, Sec, Seg, eur, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";

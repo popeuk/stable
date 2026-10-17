@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useFeuille } from "@/components/bs/feuille";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -62,11 +63,12 @@ function Inner({ seance }: { seance: Seance }) {
   const [notes, setNotes] = useState(seance.notes ?? "");
   const [scope, setScope] = useState<"one" | "following" | "all">("one");
 
+  const ref = useFeuille(close, { verrou: true });
+  // Changer de vue (présence, annuler, modifier) remplace les boutons : le focus reste dans la feuille.
   useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === "Escape" && close();
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
-  }, [close]);
+    const el = ref.current;
+    if (el && !el.contains(document.activeElement)) el.focus({ preventScroll: true });
+  }, [view, ref]);
 
   const person = (pid: string) => data.people?.find((p) => p.id === pid);
   const horse = (hid?: string) => data.horses.find((h) => h.id === hid);
@@ -339,7 +341,7 @@ function Inner({ seance }: { seance: Seance }) {
   return (
     <div className="sheet-wrap open">
       <div className="scrim" onClick={close} />
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={seance.title}>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={seance.title} ref={ref} tabIndex={-1}>
         <div className="grab" />
         <div className="shd">
           <span className="jr-over">{over}</span>

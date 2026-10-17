@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { withBase } from "@/components/bs/ui";
 import { nf, pwScore, useAnnuaire } from "@/components/bs/account-ui";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
 import { Ic, Ill } from "@/components/carnet/ui";
+import { illPerso, usePerso } from "@/components/bs/perso";
 import { api, ApiError, PW_MIN, type Fiche, type StableHit } from "@/lib/account/api";
 import { enter, getSession, hasAccountData, hasLegacyData, hasLocaleData, sessionFrom, setSession, updateAccount, type AccountSession, type Listing } from "@/lib/account/session";
 import { adoptLocale } from "@/lib/account/vault";
@@ -606,9 +607,28 @@ const SCENES: { ill: "matin" | "soir" | "sereine"; alt: string; t: string; s: st
 ];
 const DUREE = 5000;
 
+/**
+ * Le cadre de chaque image de scène, gérante et gérant (format largeur / hauteur),
+ * et où se pose la lueur (soleil du matin, lampe du soir), en % de l'image :
+ * la lueur suit le dessin, quel que soit l'écran et le personnage.
+ */
+const CADRES: Record<string, { r: number; x?: number; y?: number; d?: number }> = {
+  matin: { r: 638 / 627, x: 51, y: 34, d: 78 },
+  "gerant-matin": { r: 674 / 638, x: 51, y: 33, d: 74 },
+  soir: { r: 642 / 1198, x: 51, y: 27, d: 40 },
+  "gerant-soir": { r: 642 / 1200, x: 51, y: 27, d: 40 },
+  sereine: { r: 499 / 1072 },
+  "gerant-sereine": { r: 465 / 1113 },
+};
+const cadre = (n: string) => {
+  const c = CADRES[n] ?? { r: 1 };
+  return { "--r": c.r, "--sx": `${c.x ?? 50}%`, "--sy": `${c.y ?? 30}%`, "--sd": `${c.d ?? 60}%` } as CSSProperties;
+};
+
 /** Trois scènes qui défilent seules (5 s), toucher avance, la dernière attend. */
 function Stories({ onStart, onDemo, login }: { onStart: () => void; onDemo: () => void; login: boolean }) {
   const [i, setI] = useState(0);
+  const perso = usePerso();
   const bars = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
     const fill = (k: number) => bars.current.forEach((b, j) => b && (b.style.transform = `scaleX(${j < i ? 1 : j === i ? k : 0})`));
@@ -645,9 +665,11 @@ function Stories({ onStart, onDemo, login }: { onStart: () => void; onDemo: () =
           {SCENES.map((s, j) => (
             <span key={s.ill} className={`slide${j === i ? " on" : ""}`} aria-hidden={j !== i}>
               <span className="art">
-                {s.fx === "rays" && <span className="ar-rays" />}
-                {s.fx === "lamp" && <span className="ar-lamp" />}
-                <Ill n={s.ill} alt={s.alt} className="mul" />
+                <span className="art-fit" style={cadre(illPerso(s.ill, perso).n)}>
+                  {s.fx === "rays" && <span className="ar-rays" />}
+                  {s.fx === "lamp" && <span className="ar-lamp" />}
+                  <Ill n={s.ill} alt={s.alt} className="mul" />
+                </span>
               </span>
               <span className="tx" aria-live={j === i ? "polite" : undefined}>
                 <strong>{s.t}</strong>

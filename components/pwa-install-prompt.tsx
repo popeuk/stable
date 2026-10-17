@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Picto } from "@/components/bs/picto";
-import { InstallHowto } from "@/components/bs/desk";
+import { InstallHowto } from "@/components/bs/install-howto";
 import { useInstall } from "@/lib/pwa";
 
 /**

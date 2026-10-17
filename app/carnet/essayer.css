@@ -16,7 +16,8 @@
 .carnet .es-hero .disc { width: 200px; height: 200px; }
 .carnet .es-hero-d { display: none; }
 .carnet .es-scene { flex: 1 0 auto; display: flex; align-items: center; justify-content: center; padding: 22px 22px 8px; }
-.carnet .es-scene .ill { width: min(236px, 100%); height: auto; }
+/* L'image remplit la largeur jusqu'à 340 px, sans jamais pousser le bouton hors de l'écran (34 % de la hauteur au plus). */
+.carnet .es-scene .ill { width: min(100%, 340px, calc(34svh * 1.4)); height: auto; }
 
 /* ---------- Les chevaux ---------- */
 .carnet .es-count { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 46px; }
@@ -62,7 +63,7 @@
 .carnet .es-keep .es-x { flex: none; width: 44px; height: 44px; border: 0; background: none; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--ink3); cursor: pointer; }
 .carnet .es-keep .es-x svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 /* La fin de page passe au-dessus du bandeau : le dernier encart reste entier. */
-.carnet:has(> :is(.es-keep, .bs-install)) .cn-main { padding-bottom: calc(172px + env(safe-area-inset-bottom)); }
+.carnet:has(> .es-keep) .cn-main { padding-bottom: calc(172px + env(safe-area-inset-bottom)); }
 /* Les deux bandeaux ne s'empilent pas : garder ses chiffres passe avant installer l'app. */
 .carnet:has(> .es-keep) > .bs-install { display: none; }
 @keyframes es-up { from { opacity: 0; transform: translateY(100%); } }

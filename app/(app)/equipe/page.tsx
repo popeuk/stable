@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, esc, eur } from "@/components/bs/ui";
 import { LABELS } from "@/components/bs/task-form";
 import { PlanningTaches, PlanningTachesHaut } from "@/components/bs/planning-taches";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { Check, Empty, Ic, Seg, ini, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -14,6 +14,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { localToday } from "@/lib/utils/local-date";
 import type { TeamTask } from "@/lib/domain/types";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
+import { useFeuille } from "@/components/bs/feuille";
 
 /**
  * Le tableau de l'équipe : des colonnes (À faire, En cours, Fait), des
@@ -313,11 +314,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
   const t = (data.tasks ?? []).find((x) => x.id === id);
   const [item, setItem] = useState("");
   const [comment, setComment] = useState("");
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
-  }, [onClose]);
+  const ref = useFeuille(onClose, { verrou: true });
   if (!t) return null;
   const st = useDataStore.getState;
   const lists = data.taskLists ?? [];
@@ -343,7 +340,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
         <div className="scrim" onClick={onClose} />
-        <div className="sheet" role="dialog" aria-modal="true" aria-label={t.title}>
+        <div className="sheet" role="dialog" aria-modal="true" aria-label={t.title} ref={ref}>
           <div className="grab" />
           <div className="shd">
             <span className="jr-over">{t.createdBy ? `Créée par ${t.createdBy}` : "Tâche d’équipe"}</span>

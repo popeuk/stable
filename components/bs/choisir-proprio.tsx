@@ -10,6 +10,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { filtrerProprios, proprietaires } from "@/lib/domain/proprio";
 import { accord, prenomDe } from "@/lib/domain/clients";
 import type { Horse } from "@/lib/domain/types";
+import { useFeuille } from "@/components/bs/feuille";
 
 /**
  * Le lien cheval ↔ propriétaire, en deux pièces réutilisables.
@@ -113,12 +114,13 @@ export function ChoisirProprio({ value, onChange, label = "Son propriétaire" }:
 /* ---------- La feuille d'une fiche client ---------- */
 
 function Feuille({ titre, onClose, children }: { titre: string; onClose: () => void; children: ReactNode }) {
+  const ref = useFeuille(onClose, { verrou: true });
   if (typeof document === "undefined") return null;
   return createPortal(
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
         <div className="scrim" onClick={onClose} />
-        <div className="sheet" role="dialog" aria-modal="true" aria-label={titre}>
+        <div className="sheet" role="dialog" aria-modal="true" aria-label={titre} ref={ref}>
           <div className="grab" />
           <div className="shd">
             <b>{titre}</b>

@@ -201,6 +201,12 @@
 }
 
 /* Mon mois : une seule image (plus de sacoche), le chiffre, puis ce qui rentre et ce qui sort */
-.carnet .ar-compte { height: 150px; }
-.carnet .ar-compte .ar-who { width: 200px; }
+/* Le personnage se règle sur sa hauteur, pas sa largeur : la gérante (619x699) et
+   le gérant (595x757) n'ont pas le même format, chacun tient en entier, tête comprise. */
+.carnet .ar-compte { height: 200px; }
+.carnet .ar-compte .ar-who { width: auto; height: 194px; bottom: 2px; }
+@media (min-width: 1024px) {
+  .carnet .ar-compte { height: 236px; }
+  .carnet .ar-compte .ar-who { height: 230px; }
+}
 .carnet .ar-goalh { display: block; margin-top: 6px; font-size: 12.5px; color: var(--ink2); }
