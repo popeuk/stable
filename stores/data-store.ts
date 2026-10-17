@@ -25,6 +25,7 @@ import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
 import { revenuesForSeance } from "@/lib/domain/seances";
+import { sansPrixDExemple } from "@/lib/domain/ajouter";
 import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
@@ -902,7 +903,8 @@ export const useDataStore = create<DataState>()(
           services: [],
           team: [],
           people: [],
-          prestations: demo.prestations,
+          // Les cours de l'exemple, sans leurs prix : seul le gérant fixe les siens.
+          prestations: (demo.prestations ?? []).map((p) => ({ ...p, price: 0 })),
           seances: [],
           taskLists: demo.taskLists,
           tasks: [],
@@ -916,13 +918,21 @@ export const useDataStore = create<DataState>()(
     }),
     {
       name: "be-stable-data",
-      version: 3,
+      version: 4,
       // Un tiroir par compte, chiffré avec la clé du compte (lib/account/vault).
       storage: createJSONStorage(() => vault),
       // v2 : séances, personnes, tâches d'équipe, actions, paiements. Une
       // version 1 repart de la démo complète pour avoir des exemples cohérents.
       // v3 : les chevaux partis reçoivent une date de départ (presence.ts) ; leur passé revient.
-      migrate: (old, v) => (v < 2 ? { ...buildDemoData(), autopilotDismissed: [] } : daterLesDeparts(old as StableData)) as never,
+      // v4 : une écurie à soi perd les prix d'exemple de ses cours, jamais saisis ni employés.
+      migrate: (old, v) => {
+        if (v < 2) return { ...buildDemoData(), autopilotDismissed: [] } as never;
+        const d = daterLesDeparts(old as StableData);
+        if (v < 4 && getSession()?.kind !== "demo" && d.prestations) {
+          return { ...d, prestations: sansPrixDExemple(d.prestations, buildDemoData().prestations ?? [], d.seances ?? []) } as never;
+        }
+        return d as never;
+      },
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         // Un compte qui n'a encore rien sur cet appareil démarre vide, comme

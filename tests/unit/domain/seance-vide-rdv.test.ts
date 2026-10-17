@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayItems, isEmptySeance, revenuesForSeance, seanceAmount, seanceToValidate, toValidate } from "@/lib/domain/seances";
+import { dayItems, isEmptySeance, revenuesForSeance, seanceAmount, seancePassee, seanceToValidate, toValidate } from "@/lib/domain/seances";
 import { aCompter } from "@/lib/domain/compte-auto";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import type { Seance, StableData } from "@/lib/domain/types";
@@ -38,6 +38,28 @@ describe("séance sans cavalier ni cheval", () => {
     expect(it.sub).toContain("personne d’inscrit pour l’instant");
     expect(it.sub).toContain("6 places libres");
     expect(it.money).toBeUndefined();
+  });
+
+  it("sans places saisies, aucun nombre inventé", () => {
+    const [it] = dayItems(data([{ ...vide, places: undefined, date: "2026-10-12" }]), "2026-10-12", "2026-10-12", "12:00");
+    expect(it.sub).toBe("personne d’inscrit pour l’instant");
+    const [plein] = dayItems(data([{ ...vide, places: undefined, date: "2026-10-12", participants: [{ personId: "p1" }] }]), "2026-10-12", "2026-10-12", "12:00");
+    expect(plein.sub).toBe("1 inscrit");
+  });
+
+  it("passée sans personne : elle ne compte rien et invite à ajouter qui est venu", () => {
+    const [it] = dayItems(data([vide]), "2026-10-10", "2026-10-11", "08:00");
+    expect(it.sub).toBe("personne d’inscrit, ajoute qui est venu");
+    expect(it.done).toBe(false);
+    expect(it.late).toBe(false);
+    expect(seanceAmount(vide)).toBe(0);
+    expect(seancePassee(vide, "2026-10-11", "08:00")).toBe(true);
+    expect(seancePassee(vide, "2026-10-10", "18:30")).toBe(false);
+  });
+
+  it("un inscrit ajouté après coup compte au prix figé", () => {
+    const s: Seance = { ...vide, participants: [{ personId: "p1", present: true }], status: "done" };
+    expect(seanceAmount(s)).toBe(25);
   });
 
   it("un inscrit sans cheval : la recette est à lui, hors des tickets", () => {

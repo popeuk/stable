@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { draftFor, draftFromCompris, endOf, habitudes, habitues, manque, titre } from "@/lib/domain/ajouter";
+import { draftFor, draftFromCompris, endOf, habitudes, habitues, manque, sansPrixDExemple, titre } from "@/lib/domain/ajouter";
 import { comprendre } from "@/lib/domain/dire";
 import type { Prestation, Seance } from "@/lib/domain/types";
 import type { CareEvent } from "@/lib/domain/care";
@@ -45,14 +45,54 @@ describe("habitudes", () => {
     expect(coll).toMatchObject({ label: "Cours collectif", price: 25, start: "17:30", dur: 60, places: 8 });
     expect(h.cours[0].key).toBe("prest-cours:collectif"); // le plus utilisé d’abord
   });
-  it("sans passé, une valeur sûre", () => {
-    expect(h.cours.find((c) => c.prestationId === "prest-particulier")).toMatchObject({ start: "10:00", dur: 60, places: 1 });
+  it("sans passé, une heure proposée, mais pas une habitude", () => {
+    expect(h.cours.find((c) => c.prestationId === "prest-particulier")).toMatchObject({ start: "10:00", dur: 60, places: 1, habit: false });
+  });
+  it("deux séances passées à la même heure font une habitude, une seule non", () => {
+    expect(h.cours.find((c) => c.key === "prest-cours:collectif")).toMatchObject({ start: "17:30", habit: true });
+    expect(h.cours.find((c) => c.prestationId === "prest-balade")).toMatchObject({ start: "14:00", habit: false });
+  });
+  it("un rythme chaque semaine saisi fait une habitude, même sans passé", () => {
+    const serie = [se("w1", "2026-10-20", "19:00", "20:00", { status: "planned", seriesId: "x" }), se("w2", "2026-10-27", "19:00", "20:00", { status: "planned", seriesId: "x" })];
+    const hw = habitudes({ prestations, seances: serie, careEvents: [], tasks: [] }, TODAY);
+    expect(hw.cours.find((c) => c.key === "prest-cours:collectif")).toMatchObject({ start: "19:00", habit: true });
   });
   it("le dernier prix et le dernier maréchal", () => {
     expect(h.soins[0]).toMatchObject({ kind: "ferrure", price: 85, provider: "M. Roche", start: "09:30" });
   });
   it("des tâches sûres quand il n’y en a pas encore", () => {
     expect(h.quoi).toEqual(["Livraison du foin", "Visite du véto", "Réparer une clôture"]);
+  });
+});
+
+describe("rien d’inventé le premier jour", () => {
+  // Le gérant n'a saisi que le cours collectif à 25 € dans ses tarifs ; ses cours n'ont pas de prix.
+  const vides: Prestation[] = prestations.map((p) => ({ ...p, price: 0 })).concat({ id: "prest-travail", label: "Travail du cheval", price: 0, active: true });
+  const h = habitudes({ prestations: vides, seances: [], careEvents: [], tasks: [], tariffs: { cours_collectif: 25 } }, TODAY);
+  it("seul le prix saisi apparaît", () => {
+    expect(h.cours.find((c) => c.key === "prest-cours:collectif")?.price).toBe(25);
+    expect(h.cours.find((c) => c.prestationId === "prest-particulier")?.price).toBeUndefined();
+    expect(h.cours.find((c) => c.prestationId === "prest-travail")?.price).toBeUndefined();
+    expect(h.cours.find((c) => c.prestationId === "prest-balade")?.price).toBeUndefined();
+  });
+  it("ni places par défaut, ni habitude", () => {
+    const coll = h.cours.find((c) => c.key === "prest-cours:collectif")!;
+    expect(coll.places).toBeUndefined();
+    expect(coll.habit).toBe(false);
+    const d = draftFor("seance", h, TODAY);
+    expect(d).toMatchObject({ coursKey: "prest-cours:collectif", price: 25, places: null, start: "18:00" });
+    expect(h.soins.every((s) => !s.habit)).toBe(true);
+  });
+  it("les tarifs du cours particulier et du travail prennent le relais", () => {
+    const t = habitudes({ prestations: vides, seances: [], careEvents: [], tasks: [], tariffs: { cours_individuel: 40, entrainement: 30 } }, TODAY);
+    expect(t.cours.find((c) => c.prestationId === "prest-particulier")?.price).toBe(40);
+    expect(t.cours.find((c) => c.prestationId === "prest-travail")?.price).toBe(30);
+    expect(t.cours.find((c) => c.key === "prest-cours:collectif")?.price).toBeUndefined();
+  });
+  it("les prix d’exemple jamais employés s’effacent, les autres restent", () => {
+    const mine = [{ ...prestations[0] }, { ...prestations[1] }, { ...prestations[2], price: 22 }];
+    const out = sansPrixDExemple(mine, prestations, [{ prestationId: "prest-cours" }]);
+    expect(out.map((p) => p.price)).toEqual([25, 0, 22]);
   });
 });
 

@@ -9,7 +9,7 @@ import { eur, esc } from "@/components/bs/ui";
 import { Chips, Face, Ic, Money, Seg, ini } from "@/components/carnet/ui";
 import { retirer } from "@/components/bs/retirer";
 import { localToday } from "@/lib/utils/local-date";
-import { MAX_PLACES, isEmptySeance, seanceAmount } from "@/lib/domain/seances";
+import { isEmptySeance, seanceAmount, seancePassee } from "@/lib/domain/seances";
 import { HorseChips, InField } from "@/components/bs/seance-form";
 import { habitues } from "@/lib/domain/ajouter";
 import { norm } from "@/lib/domain/interpret";
@@ -20,6 +20,8 @@ import type { Seance } from "@/lib/domain/types";
  * modifier ou la supprimer avec une portée (cette séance, les suivantes,
  * toute la série). Passée : elle a compté toute seule avec tous ses
  * inscrits présents ; on retire un absent, ou « Elle n’a pas eu lieu ».
+ * Passée sans personne d'inscrit : elle ne compte rien (0 €) et invite à
+ * ajouter qui est venu ; chaque nom ajouté après coup compte tout de suite.
  * Chaque geste propose « Annuler » pendant 6 secondes. Feuille du carnet, rendue dans le body
  * (un parent flouté coupe les panneaux fixes sur iPhone).
  */
@@ -44,8 +46,6 @@ function snapshot() {
 
 const hhmm = (d = new Date()) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 
-/** Une séance passée : faite, ou prévue dont l'heure de fin est passée (elle compte toute seule). */
-const estPassee = (s: Seance, today: string, now: string) => s.status === "done" || (s.status === "planned" && (s.date < today || (s.date === today && s.end <= now)));
 
 function Inner({ seance }: { seance: Seance }) {
   const view0 = useUiStore((s) => s.seanceView);
@@ -76,7 +76,7 @@ function Inner({ seance }: { seance: Seance }) {
   const dateLabel = new Date(seance.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   const over = `${dateLabel.charAt(0).toUpperCase()}${dateLabel.slice(1)} · ${seance.start} à ${seance.end}${seance.lieu ? ` · ${seance.lieu}` : ""}`;
   const collectif = seance.format === "collectif";
-  const passee = estPassee(seance, localToday(), hhmm());
+  const passee = seancePassee(seance, localToday(), hhmm());
   const plusieurs = seance.participants.length > 1;
 
   function cancel() {
@@ -170,19 +170,20 @@ function Inner({ seance }: { seance: Seance }) {
   let body: ReactNode = null;
   if (view === "fiche" || view === "presence") {
     const rows = seance.participants.length ? seance.participants : seance.horseIds.map((h) => ({ personId: "", horseId: h, present: undefined as boolean | undefined }));
-    const etat = seance.status === "cancelled" ? `Retirée${seance.cancelReason ? ` · ${seance.cancelReason}` : ""}` : passee ? "A compté" : "Prévue";
+    // Passée sans personne : rien n'a compté, on invite à dire qui est venu.
+    const etat = seance.status === "cancelled" ? `Retirée${seance.cancelReason ? ` · ${seance.cancelReason}` : ""}` : passee ? (vide ? "Personne d’inscrit" : "A compté") : "Prévue";
+    // Un seul mot pour le prix : par cavalier (un participant est un cavalier) ; par cheval seulement pour un travail sans cavalier.
+    const parCheval = !seance.participants.length && seance.horseIds.length > 0;
     body = (
       <>
         <div className="jr-pills">
           <span className={`pill${!passee && seance.status === "planned" ? " ink" : ""}`}>{etat}</span>
-          <span className="pill">
-            {eur(seance.unitPrice)} {seance.participants.length ? "par cavalier" : "par cheval"}
-          </span>
+          <span className="pill">{seance.unitPrice > 0 ? `${eur(seance.unitPrice)} ${parCheval ? "par cheval" : "par cavalier"}` : "Pas de prix pour l’instant"}</span>
           {seance.seriesId && <span className="pill">revient, {series.length} séances en tout</span>}
         </div>
         <p className="k jr-k">
-          {passee && seance.participants.length ? "Qui était là" : seance.participants.length ? "Cavaliers" : "Chevaux"}
-          {!passee && (collectif || seance.places) ? ` · ${seance.participants.length} sur ${seance.places ?? MAX_PLACES}` : ""}
+          {passee && (seance.participants.length || vide) ? "Qui était là" : seance.participants.length || vide ? "Cavaliers" : "Chevaux"}
+          {!passee && seance.places ? ` · ${seance.participants.length} sur ${seance.places}` : ""}
         </p>
         {passee && plusieurs && <p className="note">Tout le monde compte. Retire seulement ceux qui ne sont pas venus.</p>}
         {rows.map((p, i) => {
@@ -214,12 +215,19 @@ function Inner({ seance }: { seance: Seance }) {
             </div>
           );
         })}
-        {vide && <p className="note">Personne d’inscrit pour l’instant{collectif ? ` · ${seance.places ?? MAX_PLACES} places libres` : ""}. Elle ne rapporte rien tant que personne n’y est inscrit.</p>}
-        {seance.status === "planned" && !passee && <Inscrire seance={seance} />}
+        {vide &&
+          (passee && seance.status !== "cancelled" ? (
+            <p className="note">Personne d’inscrit, elle ne compte rien. Ajoute qui est venu : elle comptera avec eux.</p>
+          ) : (
+            <p className="note">
+              Personne d’inscrit pour l’instant{collectif && seance.places ? ` · ${seance.places} place${seance.places > 1 ? "s" : ""} libre${seance.places > 1 ? "s" : ""}` : ""}. Elle ne rapporte rien tant que personne n’y est inscrit.
+            </p>
+          ))}
+        {seance.status !== "cancelled" && <Inscrire seance={seance} passee={passee} />}
         {seance.notes && <p className="note">{seance.notes}</p>}
         {seance.updatedBy && <p className="note" style={{ fontSize: 12 }}>Modifiée par {seance.updatedBy}</p>}
         <div className="card jr-tot">
-          <span className="k">{passee ? "A rapporté" : "Rapportera"}</span>
+          <span className="k">{passee ? (vide ? "Pour l’instant" : "A rapporté") : "Rapportera"}</span>
           <b className="mid">
             <Money v={seance.status === "cancelled" ? 0 : seanceAmount(seance)} />
           </b>
@@ -355,7 +363,7 @@ function Inner({ seance }: { seance: Seance }) {
  * un nom inconnu devient un nouveau cavalier. Les places et le montant prévu
  * suivent. Les chevaux s'ajoutent en dessous.
  */
-function Inscrire({ seance }: { seance: Seance }) {
+function Inscrire({ seance, passee }: { seance: Seance; passee: boolean }) {
   const data = useDataStore();
   const say = useUiStore((s) => s.say);
   const gerant = useSettingsStore((s) => s.gerant);
@@ -363,7 +371,7 @@ function Inscrire({ seance }: { seance: Seance }) {
   const horses = data.horses.filter((h) => !h.isArchived);
   const people = (data.people ?? []).filter((p) => p.active);
   const inscrits = new Set(seance.participants.map((p) => p.personId));
-  const max = seance.format === "collectif" ? (seance.places ?? MAX_PLACES) : seance.format === "particulier" ? 1 : (seance.places ?? Infinity);
+  const max = seance.format === "particulier" ? 1 : (seance.places ?? Infinity);
   const plein = seance.participants.length >= max;
   const habit = habitues(data.seances ?? [], seance)
     .map((pid) => people.find((p) => p.id === pid))
@@ -376,19 +384,26 @@ function Inscrire({ seance }: { seance: Seance }) {
     const v = nom.trim();
     if (!v || plein || v.includes(",")) return;
     const st = useDataStore.getState();
-    const snap = { seances: st.seances, people: st.people };
+    const snap = { seances: st.seances, people: st.people, revenues: st.revenues };
     const owner = horses.find((h) => h.ownerName === v);
     const personId = st.ensurePerson(v, owner ? "proprietaire" : "cavalier");
     setTyped("");
     if (inscrits.has(personId)) return;
     const horseId = owner?.id ?? (seance.horseIds.length ? seance.horseIds[seance.participants.length % seance.horseIds.length] : undefined);
-    st.updateSeance(seance.id, { participants: [...seance.participants, { personId, horseId }], updatedBy: gerant }, "one");
-    say(`<strong>${esc(v)}</strong> inscrit à ${esc(seance.title)}.`, () => useDataStore.setState(snap));
+    const participants = [...seance.participants, { personId, horseId }];
+    st.updateSeance(seance.id, { participants, updatedBy: gerant }, "one");
+    if (passee) recompter(participants);
+    say(passee ? `<strong>${esc(v)}</strong> ajouté à ${esc(seance.title)}, c’est compté.` : `<strong>${esc(v)}</strong> inscrit à ${esc(seance.title)}.`, () => useDataStore.setState(snap));
+  }
+  /** Ajouté après coup : la séance compte tout de suite, au prix figé, les absents restent absents. */
+  function recompter(participants: Seance["participants"]) {
+    const presence = Object.fromEntries(participants.map((p) => [p.personId, p.present !== false]));
+    useDataStore.getState().validateSeance(seance.id, presence, seance.chargeAbsent);
   }
 
   return (
     <div className="field" style={{ marginTop: 14 }}>
-      <span>{plein ? "C’est complet" : "Inscrire"}</span>
+      <span>{plein ? "C’est complet" : passee ? (seance.participants.length ? "Quelqu’un d’autre est venu ?" : "Ajoute qui est venu") : "Inscrire"}</span>
       {!plein && (
         <>
           {habit.length > 0 && (
@@ -425,8 +440,12 @@ function Inscrire({ seance }: { seance: Seance }) {
           value={seance.horseIds}
           onChange={(ids) => {
             const st = useDataStore.getState();
-            const snap = { seances: st.seances };
+            const snap = { seances: st.seances, revenues: st.revenues };
             st.updateSeance(seance.id, { horseIds: ids, updatedBy: gerant }, "one");
+            if (passee) {
+              if (seance.participants.length || ids.length) recompter(seance.participants);
+              else st.unvalidateSeance(seance.id);
+            }
             say(ids.length > seance.horseIds.length ? "Cheval ajouté à la séance." : "Cheval retiré de la séance.", () => useDataStore.setState(snap));
           }}
         />

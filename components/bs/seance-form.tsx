@@ -372,7 +372,8 @@ export function Repetition({ d, set, options = REPEATS }: { d: Draft; set: SetD;
 
 /** Les tuiles des cours : les habituels, puis « Autre cours… ». */
 export function CoursTiles({ d, set, h, other, setOther, onDone }: { d: Draft; set: SetD; h: Habitudes; other: boolean; setOther: (b: boolean) => void; onDone?: () => void }) {
-  const opts = h.cours.slice(0, 5).map((c: CoursHabit) => ({ key: c.key, label: c.label, sub: `${c.price ? eur(c.price) : "sans prix"} · ${hh(c.start)}` }));
+  // Un prix jamais saisi n'apparaît pas ; l'heure, seulement si c'est une vraie habitude.
+  const opts = h.cours.slice(0, 5).map((c: CoursHabit) => ({ key: c.key, label: c.label, sub: [c.price ? eur(c.price) : "", c.habit ? hh(c.start) : ""].filter(Boolean).join(" · ") || undefined }));
   return (
     <Tiles
       options={opts}
@@ -456,8 +457,8 @@ export function SeanceDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Ha
           </button>
         </div>
       </F>
-      <F label="Prix par place">
-        <MoneyField value={d.price} onChange={(price) => set((x) => ({ ...x, price }))} placeholder="Sans prix" label="Prix par place" />
+      <F label="Prix par cavalier">
+        <MoneyField value={d.price} onChange={(price) => set((x) => ({ ...x, price }))} placeholder="Ajouter un prix" label="Prix par cavalier" />
       </F>
       <F label="Répétition">
         <Repetition d={d} set={set} />

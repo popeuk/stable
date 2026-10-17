@@ -1,4 +1,4 @@
-import type { ISODate, Prestation, Seance, SeanceFormat, StableData } from "@/lib/domain/types";
+import type { ISODate, Prestation, Seance, SeanceFormat, StableData, Tariffs } from "@/lib/domain/types";
 import { addDays, type CareKind } from "@/lib/domain/care";
 import { norm } from "@/lib/domain/interpret";
 import type { Compris, Pour } from "@/lib/domain/dire";
@@ -6,7 +6,9 @@ import type { Compris, Pour } from "@/lib/domain/dire";
 /**
  * Le + : ce que l'app propose d'avance. Les habitudes viennent des données
  * (les cours et leurs prix, l'heure habituelle déduite des séances passées,
- * le dernier prix et le dernier maréchal d'un soin), sinon une valeur sûre.
+ * le dernier prix et le dernier maréchal d'un soin). Rien n'est inventé : un
+ * prix que le gérant n'a jamais saisi reste vide, un nombre de places aussi,
+ * et une heure n'est « habituelle » que si elle l'est vraiment (habit).
  * Le brouillon (Draft) est ce que la feuille montre et que « C’est bon »
  * enregistre. Domaine pur, testé.
  */
@@ -20,9 +22,14 @@ export interface CoursHabit {
   prestationId: string;
   format?: SeanceFormat;
   label: string;
-  price: number;
-  places: number;
+  /** Le prix saisi par le gérant (cours ou tarifs). Absent = pas de prix pour l'instant. */
+  price?: number;
+  /** Les places habituelles d'un cours collectif. Absent = rien de saisi. */
+  places?: number;
+  /** L'heure proposée : l'habituelle si elle existe, sinon une heure courante. */
   start: string;
+  /** Vrai seulement si l'heure est une vraie habitude (deux séances passées à cette heure, ou un rythme chaque semaine). */
+  habit: boolean;
   /** Durée habituelle, en minutes. */
   dur: number;
   lieu?: string;
@@ -34,6 +41,8 @@ export interface SoinHabit {
   label: string;
   price?: number;
   start: string;
+  /** Vrai seulement si au moins deux soins de ce type ont été notés à cette heure. */
+  habit: boolean;
   provider?: string;
   uses: number;
 }
@@ -130,7 +139,37 @@ function coursLabel(p: Prestation, format?: SeanceFormat): string {
   return isCours ? "Cours particulier" : `${p.label} seul`;
 }
 
-export function habitudes(data: Pick<StableData, "prestations" | "seances" | "careEvents" | "tasks">, today: ISODate): Habitudes {
+/**
+ * Le prix d'un cours : celui de la prestation s'il a été saisi, sinon celui
+ * des tarifs (cours collectif, cours particulier, travail du cheval).
+ */
+function prixDe(p: Prestation, format: SeanceFormat | undefined, tariffs: Tariffs | undefined): number | undefined {
+  if (p.price > 0) return p.price;
+  const t = tariffs ?? {};
+  const l = norm(p.label);
+  const v =
+    format === "collectif"
+      ? t.cours_collectif
+      : format === "particulier" || /particulier|individuel|prive/.test(l)
+        ? t.cours_individuel
+        : /travail|entrain/.test(l)
+          ? t.entrainement
+          : undefined;
+  return v && v > 0 ? v : undefined;
+}
+
+/** Une série posée chaque semaine : deux séances de la même série à sept jours d'écart. */
+function chaqueSemaine(xs: Seance[]): boolean {
+  const bySerie = new Map<string, ISODate[]>();
+  for (const s of xs) if (s.seriesId) bySerie.set(s.seriesId, [...(bySerie.get(s.seriesId) ?? []), s.date]);
+  for (const dates of bySerie.values()) {
+    const sorted = [...dates].sort();
+    for (let i = 1; i < sorted.length; i++) if (addDays(sorted[i - 1], 7) === sorted[i]) return true;
+  }
+  return false;
+}
+
+export function habitudes(data: Pick<StableData, "prestations" | "seances" | "careEvents" | "tasks"> & Partial<Pick<StableData, "tariffs">>, today: ISODate): Habitudes {
   const prestations = (data.prestations ?? []).filter((p) => p.active);
   const seances = (data.seances ?? []).filter((s) => s.status !== "cancelled").sort((a, b) => (a.date + a.start < b.date + b.start ? -1 : 1));
   const hasSolo = prestations.some((p) => !p.hasFormat && /particulier|individuel|prive/.test(norm(p.label)));
@@ -141,10 +180,13 @@ export function habitudes(data: Pick<StableData, "prestations" | "seances" | "ca
       const mine = seances.filter((s) => s.prestationId === p.id && (!p.hasFormat || (s.format ?? "collectif") === f));
       const past = mine.filter((s) => s.date <= today);
       const ref = past.length ? past : mine;
-      const start = mode(ref.map((s) => s.start)) ?? (f === "collectif" ? "18:00" : "10:00");
+      const usual = mode(ref.map((s) => s.start));
+      const start = usual ?? (f === "collectif" ? "18:00" : "10:00");
+      // Une habitude, une vraie : deux séances passées à cette heure, ou un rythme chaque semaine à cette heure.
+      const habit = !!usual && (past.filter((s) => s.start === usual).length >= 2 || chaqueSemaine(mine.filter((s) => s.start === usual)));
       const dur = mode(ref.map((s) => toMin(s.end) - toMin(s.start)).filter((d) => d > 0)) ?? 60;
-      const places = f === "collectif" ? (mode(ref.map((s) => s.places).filter((x): x is number => !!x)) ?? 6) : 1;
-      cours.push({ key: coursKey(p.id, f), prestationId: p.id, format: f, label: coursLabel(p, f), price: p.price, places, start, dur, lieu: mode(ref.map((s) => s.lieu).filter((x): x is string => !!x)), uses: mine.length });
+      const places = f === "collectif" ? mode(ref.map((s) => s.places).filter((x): x is number => !!x)) : 1;
+      cours.push({ key: coursKey(p.id, f), prestationId: p.id, format: f, label: coursLabel(p, f), price: prixDe(p, f, data.tariffs), places, start, habit, dur, lieu: mode(ref.map((s) => s.lieu).filter((x): x is string => !!x)), uses: mine.length });
     }
   }
   cours.sort((a, b) => b.uses - a.uses);
@@ -154,11 +196,13 @@ export function habitudes(data: Pick<StableData, "prestations" | "seances" | "ca
     const mine = events.filter((e) => e.kind === kind);
     const priced = mine.filter((e) => e.cost && e.cost > 0);
     const last = priced[priced.length - 1];
+    const usual = mode(mine.map((e) => e.start).filter((x): x is string => !!x));
     return {
       kind,
       label,
       price: last?.cost,
-      start: mode(mine.map((e) => e.start).filter((x): x is string => !!x)) ?? "09:00",
+      start: usual ?? "09:00",
+      habit: !!usual && mine.filter((e) => e.start === usual).length >= 2,
       provider: [...mine].reverse().find((e) => e.provider)?.provider,
       uses: mine.length,
     };
@@ -242,7 +286,7 @@ export function applyCours(d: Draft, c: CoursHabit) {
   d.coursKey = c.key;
   d.custom = "";
   d.price = c.price || null;
-  d.places = c.format === "particulier" ? 1 : c.format === "collectif" ? c.places : null;
+  d.places = c.format === "particulier" ? 1 : c.format === "collectif" ? (c.places ?? null) : null;
   d.start = c.start;
   d.dur = c.dur;
   d.lieu = c.lieu ?? d.lieu;
@@ -318,4 +362,19 @@ export function habitues(seances: Seance[], s: Seance, max = 6): string[] {
     }
   }
   return [...score.entries()].sort((a, b) => b[1] - a[1]).slice(0, max).map(([id]) => id);
+}
+
+/**
+ * Les cours d'une écurie partie de zéro venaient avec les prix de l'écurie
+ * d'exemple (35 € le cours particulier…), que le gérant n'avait jamais
+ * saisis. Une prestation encore à son prix d'exemple et jamais employée dans
+ * une séance perd ce prix : « Pas de prix pour l'instant ». Les tarifs saisis
+ * prennent alors le relais (prixDe).
+ */
+export function sansPrixDExemple(prestations: Prestation[], exemple: Prestation[], seances: Pick<Seance, "prestationId">[]): Prestation[] {
+  const used = new Set(seances.map((s) => s.prestationId));
+  return prestations.map((p) => {
+    const ex = exemple.find((e) => e.id === p.id);
+    return ex && ex.price === p.price && p.price > 0 && !used.has(p.id) ? { ...p, price: 0 } : p;
+  });
 }
