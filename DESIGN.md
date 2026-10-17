@@ -1,7 +1,7 @@
 ---
 titre: "DESIGN - Be Stable, Le Livret"
 created: 2026-09-30
-modified: 2026-10-17
+modified: 2026-10-18
 tags: [sujet/mon-ecurie]
 name: "Be Stable, Le Livret"
 description: "Every stable gets its livret: numbered fields, true prices, an earned flot."
@@ -28,7 +28,7 @@ colors:
   app-ink-3: "#6E6678"
   app-cream: "#FDF5E6"
   app-hay: "#E9C46A"
-  money-in: "#17603F"
+  money-in: "#134E3A"
   money-out: "#A0285A"
   print-black: "#000000"
   print-ink: "#111111"
@@ -154,7 +154,8 @@ rounded:
   frame: "14px"
   pill: "40px"
   sheet: "16px"
-  app-card: "8px"
+  app-card: "16px"
+  app-control: "10px"
 spacing:
   gap: "10px"
   block: "26px"
@@ -323,7 +324,7 @@ A restrained lilac-tinted neutral base with two saturated voices, a deep English
 
 **The Rose Legibility Rule.** Rose is never text on paper or white. It is text only on vert (figures, display lines), and a ground only under vert or vert-deep text.
 
-**The Money Colour Rule (app).** In the app the interface is paper and ink; buttons are ink. Green (money-in) means only money that has come in, rose (money-out) only money that has gone out, always written with its sign (+ or −). Nothing else is coloured: not focus, selection, deletion, errors, statuses, activity types, estimates, what is still planned, or a net of zero. Activity types are told apart by a pictogram. Vert anglais and Rose casaque stay the brand: the flots, the rosettes and the preview of a mon-ecurie.fr listing. The highlighter band, the Rose button and the Fait stamp belong to the boards and the site, not to the app.
+**The Brand Colour Rule (app, 18 October 2026).** The app speaks mon-ecurie.fr's colours. Vert anglais (`--acc`, #134E3A) carries the controls: primary buttons, the tab bar +, the active tab, checked boxes and chips, selected segments, progress fills, the help card; its deep shade (#0B3325) carries hover, toasts and tooltips. Rose casaque is a flat ground only (count badges, the sidebar's open screen, the remaining part of the goal bar) with vert-deep text, never text on white. Money keeps its sign: money in reads in vert anglais (+), money out in a readable dark rose drawn from the casaque (#A0285A, −). Delete stays an ink outline; data marks (charts), carets and the now line stay ink. Activity types are told apart by a pictogram.
 
 ## Typography
 
@@ -448,8 +449,8 @@ Added with the internal Operate tool "Base mon écurie" (visualiseur-base). Same
 
 ### App Be Stable (le carnet)
 The app as it ships since 15 October 2026 (the carnet illustré, rules of 17 October 2026). One token set, defined once in `:root` (`app/globals.css`) and used by every screen; the clickable prototype of 11 October lives on in `prototype/`.
-- **Tokens:** paper `#FCFBF9` (page), sheet `#FFFFFF` (raised surfaces), mist `#F4F1F5` (quiet fills, segmented controls), line `#E7E2EA` and line-2 `#F0ECF2` (hairlines), ink `#1B1225`, ink-2 `#5A5264`, ink-3 `#6E6678` (5.3:1 on paper, 4.9:1 on mist), cream `#FDF5E6` and hay `#E9C46A` (illustration grounds only), money-in `#17603F` (7.3:1 on paper), money-out `#A0285A` (6.9:1 on paper), scrim ink at 35 %. Brand tokens `--vert`, `--vert-deep`, `--rose`, `--on-vert` are reserved for flots, rosettes and the listing preview. Ink transparencies are written `color-mix(in srgb, var(--ink) n%, transparent)`, never as raw rgba.
-- **Colour:** see The Money Colour Rule. A figure that has come in reads `+120 €` in money-in, one that has gone out `−85 €` in money-out; what is still planned, an estimate or a potential reads in ink with its sign; zero is ink. Focus is a 2px ink outline (offset 2px); text selection is an ink mist (14 %); the delete button is an ink outline with a trash pictogram, its gravity carried by the words and the confirmation.
+- **Tokens:** paper `#FCFBF9` (page), sheet `#FFFFFF` (raised surfaces), mist `#F4F1F5` (quiet fills, segmented controls), line `#E7E2EA` and line-2 `#F0ECF2` (hairlines), ink `#1B1225`, ink-2 `#5A5264`, ink-3 `#6E6678` (5.3:1 on paper, 4.9:1 on mist), cream `#FDF5E6` and hay `#E9C46A` (illustration grounds only), money-in `#134E3A` (vert anglais, 9.6:1 on paper), money-out `#A0285A` (6.9:1 on paper), scrim ink at 35 %. Brand tokens `--vert`, `--vert-deep`, `--rose`, `--on-vert` feed `--acc`, `--acc-deep` and `--rose-soft`; radii are `--bloc-r` (16px) and `--ctl-r` (10px), the side gutter `--gut` (16px). Ink transparencies are written `color-mix(in srgb, var(--ink) n%, transparent)`, never as raw rgba.
+- **Colour:** The Brand Colour Rule. A figure that has come in reads `+120 €` in money-in, one that has gone out `−85 €` in money-out; what is still planned, an estimate or a potential reads in ink with its sign; zero is ink. Focus is a 2px ink outline (offset 2px); text selection is an ink mist (14 %); the delete button is an ink outline with a trash pictogram, its gravity carried by the words and the confirmation.
 - **Type ramp:** 14px body (1.45), 12px minimum anywhere in the app (labels, tab labels, captions, kickers), 13px meta, 14.5px 640 row titles, 15px leads, 16px in every field (so iOS never zooms on focus), 18px 700 section heads, 32px 760 width-86 hellos, 44px 780 width-86 tabular month figure. IBM Plex Mono only on the horse's ticket and its times.
 - **Touch targets:** 44 by 44px minimum for anything a gloved thumb can press. When the drawing must stay small (the C'est fait check, a row's trash, back and help in the header, close crosses, week and month arrows, colour swatches, text links), a centred `::after` extends the hit area to 44px around it; segmented controls are 38px inside a 3px mist frame, extended to the frame's edge; chips, steppers, inputs and buttons are 44px tall. A field box is a label: a press anywhere in it puts the caret inside. The tab bar's centre + is a 56px ink disc raised 24px; tab labels are 12px 600.
 - **Headings:** one h1 per screen. The app shell reads the screen's name as a visually hidden h1 when the screen has no visible one; account, onboarding and trial screens show their question as the h1. Page titles and sections are h2, their sub-blocks h3. The help card opens on a paragraph, not a heading.
@@ -472,7 +473,8 @@ The app as it ships since 15 October 2026 (the carnet illustré, rules of 17 Oct
 - **Do** keep the wordmark lowercase "be stable", 800, width 88, letter-spacing -0.004em, on one line.
 - **Do** award the flot only for a named status, tilted at most 8 degrees.
 - **Do** label fictitious stables, prices and portraits in mockups.
-- **Do** keep the app in paper and ink: green only for money that has come in, rose only for money that has gone out, always with + or −.
+- **Do** give app controls the vert anglais and use rose casaque only as a flat ground with vert-deep text; write money with its sign, vert in, dark rose out.
+- **Do** use two radii in the app: 16px for every block (cards, cases, panels) and 10px for every control (buttons, fields, segmented choices), on one 16px side gutter.
 - **Do** give every touch target 44px, extending the hit area around a small drawing rather than shrinking the target.
 - **Do** keep app text at 12px or more, and every field at 16px.
 
@@ -483,6 +485,6 @@ The app as it ships since 15 October 2026 (the carnet illustré, rules of 17 Oct
 - **Don't** round or frame photographs on their own.
 - **Don't** lift page content with shadows; only the search bar and presented artefacts float, softly.
 - **Don't** use the flot as ornament or change its geometry; it is a stamp, not a costume.
-- **Don't** use green or rose in the app for focus, selection, deletion, errors, statuses, estimates, what is still planned, or zero.
+- **Don't** set rose casaque as text on white, colour the delete button, or invent a third hue.
 - **Don't** block pinch-zoom, and don't mark a card with a coloured side stripe.
 - **Don't** carry the boards' filled index badges or specimen captions onto product surfaces; they annotate the planche.

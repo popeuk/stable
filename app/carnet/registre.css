@@ -23,7 +23,7 @@
 .carnet .rg-rot.on { transform: rotate(-90deg); }
 
 /* ---------- L'écran du registre ---------- */
-.carnet .rg-tools { display: grid; gap: 12px; padding: 14px 18px 0; }
+.carnet .rg-tools { display: grid; gap: 12px; padding: 14px var(--gut) 0; }
 .carnet .rg-tools .note { margin: 0; }
 .carnet .rg-nav { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; text-align: center; }
 .carnet .rg-nav b { display: block; font-size: 15px; font-weight: 700; }
@@ -36,7 +36,7 @@
 .carnet .rg-gaps .li small { white-space: normal; }
 .carnet .rg-det { margin-top: 6px; }
 .carnet .rg-det summary { display: flex; align-items: center; min-height: 44px; font-size: 13.5px; font-weight: 650; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-.carnet .rg-paper { margin-top: 12px; padding: 16px; border-radius: 8px; background: #fff; color: #000; box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+.carnet .rg-paper { margin-top: 12px; padding: 16px; border-radius: var(--bloc-r); background: #fff; color: #000; box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
 .carnet .rg-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
 /* ---------- La feuille (écran et papier) ---------- */

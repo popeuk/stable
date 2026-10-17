@@ -58,7 +58,7 @@ function Simulator() {
       <h1 className="ar-sr">Et si… ?</h1>
       <Hello title="Et si… ?" sub="Bouge les curseurs pour voir ce qu’il te resterait chaque mois. C’est un essai : tes vrais chiffres ne changent pas." />
 
-      <div className="card ar-res rise" style={{ animationDelay: ".12s", margin: "14px 14px 0" }} aria-live="polite">
+      <div className="card ar-res rise" style={{ animationDelay: ".12s", margin: "14px var(--gut) 0" }} aria-live="polite">
         <p className="k">Ce qu’il te resterait par mois</p>
         <p className={`big ${results.monthlyResult > 0 ? "in" : results.monthlyResult < 0 ? "out" : ""}`}>
           <CountUp value={results.monthlyResult} ms={500} />
@@ -82,7 +82,7 @@ function Simulator() {
         </div>
       </div>
 
-      <div className="card rise" style={{ animationDelay: ".2s", margin: "10px 14px 0" }}>
+      <div className="card rise" style={{ animationDelay: ".2s", margin: "10px var(--gut) 0" }}>
         <Slider
           label="Changer toutes les pensions de"
           value={pensionAdjustment}

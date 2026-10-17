@@ -55,7 +55,7 @@ function Seuil() {
         sub={phraseSeuil(m.seuil, n)}
       />
 
-      <div className="card rise" style={{ animationDelay: ".14s", margin: "16px 14px 0" }}>
+      <div className="card rise" style={{ animationDelay: ".14s", margin: "16px var(--gut) 0" }}>
         <p className="k">
           {capacity ? `Tes ${Math.max(capacity, n)} place${Math.max(capacity, n) > 1 ? "s" : ""}` : `Tes ${n} cheva${n > 1 ? "ux" : "l"}`}
         </p>
@@ -73,7 +73,7 @@ function Seuil() {
               Chaque mois, le foin, le loyer et les salaires tombent, que tu aies peu ou beaucoup de chevaux. Avec moins de {Math.ceil(m.seuil - 1e-9)} chevaux, tu perds de l’argent. À partir de là, chaque cheval en plus te rapporte presque toute sa pension.
             </p>
             <p className="ar-calc">
-              Tes frais de l’écurie font {eur(m.sharedTotal)} par mois. Une fois ses soins payés, chaque cheval te laisse en moyenne {eur(m.contribution)}. {eur(m.sharedTotal).replace(" €", "")} divisé par {eur(m.contribution).replace(" €", "")} : {dec1(m.seuil)}. Il t’en faut donc {Math.ceil(m.seuil - 1e-9)} pour tout payer. Tu en as {n}.
+              Tes frais de l’écurie font {eur(m.sharedTotal)} par mois. Une fois ses soins payés, chaque cheval te laisse en moyenne {eur(m.contribution)}. {eur(m.sharedTotal).replace(/\s€$/, "")} divisé par {eur(m.contribution).replace(/\s€$/, "")} : {dec1(m.seuil)}. Il t’en faut donc {Math.ceil(m.seuil - 1e-9)} pour tout payer. Tu en as {n}.
             </p>
           </>
         ) : (

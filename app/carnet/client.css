@@ -1,12 +1,12 @@
 /* Carnet · la fiche d'un client (/client) et « Payé sur place » dans la journée. Tout sous .carnet */
 
 /* ---------- En-tête : qui, et le contacter ---------- */
-.carnet .cl-id { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; padding: 12px 18px 0; }
+.carnet .cl-id { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; padding: 12px var(--gut) 0; }
 .carnet .cl-id .face, .carnet .cl-id .ini { width: 44px; height: 44px; }
 .carnet .cl-id :is(h2, h3) { margin: 0; font-size: 22px; font-weight: 760; letter-spacing: -.025em; line-height: 1.05; font-variation-settings: "wdth" 88; overflow-wrap: anywhere; }
 .carnet .cl-id p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink2); }
-.carnet .cl-qa { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 14px 0; }
-.carnet .cl-qa a, .carnet .cl-qa button { display: grid; justify-items: center; align-content: center; gap: 4px; min-height: 56px; padding: 4px 2px; border: 0; border-radius: 10px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font: inherit; font-size: 12px; font-weight: 650; color: var(--ink); text-decoration: none; cursor: pointer; }
+.carnet .cl-qa { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px var(--gut) 0; }
+.carnet .cl-qa a, .carnet .cl-qa button { display: grid; justify-items: center; align-content: center; gap: 4px; min-height: 56px; padding: 4px 2px; border: 0; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font: inherit; font-size: 12px; font-weight: 650; color: var(--ink); text-decoration: none; cursor: pointer; }
 .carnet .cl-qa svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .cl-qa .off { color: var(--ink3); box-shadow: inset 0 0 0 1px var(--line2); }
 .carnet .cl-qa a:active, .carnet .cl-qa button:active { transform: scale(.97); }
@@ -22,7 +22,7 @@
 .carnet .cl-note1 { display: block; width: 100%; padding: 12px 0; margin: -12px 0; border: 0; background: none; font: inherit; font-size: 14px; text-align: left; color: var(--ink2); cursor: pointer; }
 
 /* ---------- Ce qu'il te doit ---------- */
-.carnet .cl-due { margin: 12px 14px 0; padding: 14px; }
+.carnet .cl-due { margin: 12px var(--gut) 0; padding: 14px; }
 .carnet .cl-dtop { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
 .carnet .cl-lab { display: block; font-size: 14px; font-weight: 600; color: var(--ink2); }
 .carnet .cl-big { display: block; margin-top: 2px; font-size: 36px; font-weight: 780; letter-spacing: -.03em; line-height: 1; font-variation-settings: "wdth" 86; font-variant-numeric: tabular-nums; color: var(--ink); }
@@ -33,7 +33,7 @@
 .carnet .cl-acts .btn { padding: 0 8px; white-space: nowrap; }
 
 /* ---------- Le mois, ligne à ligne ---------- */
-.carnet .cl-blk { padding: 16px 18px 0; }
+.carnet .cl-blk { padding: 16px var(--gut) 0; }
 .carnet .cl-blk :is(h3, h4) { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 17px; font-weight: 700; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .carnet .cl-blk :is(h3, h4) span { font-size: 12px; font-weight: 600; color: var(--ink3); white-space: nowrap; }
 .carnet .cl-auto { margin: 8px 0 0; font-size: 12.5px; color: var(--ink3); }
@@ -83,5 +83,5 @@
 @keyframes cl-pop { from { opacity: 0; transform: scale(.8); } }
 /* Pas de numéro : un seul « Ajoute son numéro », large, à la place d'Appeler et Message grisés. */
 .carnet .cl-qa { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-.carnet .cl-qa .cl-addnum { grid-column: span 2; grid-auto-flow: column; justify-content: center; gap: 8px; font-size: 14px; box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .cl-qa .cl-addnum { grid-column: span 2; grid-auto-flow: column; justify-content: center; gap: 8px; font-size: 14px; box-shadow: inset 0 0 0 1.5px var(--acc); }
 .carnet .cl-pd .in { white-space: nowrap; }

@@ -7,12 +7,12 @@
 .carnet .pp-c { display: inline-flex; flex-direction: column; justify-content: center; align-items: flex-start; min-height: 44px; max-width: 100%; padding: 6px 14px; border: 0; border-radius: 22px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font: inherit; font-size: 14px; font-weight: 640; color: var(--ink); text-align: left; cursor: pointer; }
 .carnet .pp-c small { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 500; color: var(--ink3); }
 .carnet .pp-c:active { background: var(--mist); }
-.carnet .pp-new { flex-direction: row; align-items: center; gap: 6px; background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.carnet .pp-new { flex-direction: row; align-items: center; gap: 6px; background: var(--acc); color: var(--on-ink); box-shadow: none; }
 .carnet .pp-new svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-.carnet .pp-sel { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 52px; padding: 6px 6px 6px 8px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .pp-sel { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 52px; padding: 6px 6px 6px 8px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .pp-selt b { display: block; font-size: 15px; font-weight: 680; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .carnet .pp-selt small { display: block; font-size: 12px; color: var(--ink3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.carnet .pp-chg { height: 40px; padding: 0 12px; border: 0; border-radius: 6px; background: none; font: inherit; font-size: 13.5px; font-weight: 650; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
+.carnet .pp-chg { height: 40px; padding: 0 12px; border: 0; border-radius: var(--ctl-r); background: none; font: inherit; font-size: 13.5px; font-weight: 650; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
 
 /* ---------- La feuille « Les chevaux de … » ---------- */
 .carnet .pp-sheet { display: grid; gap: 0; }
@@ -26,7 +26,7 @@
 .carnet .pp-plus, .carnet .pp-x svg { width: 18px; height: 18px; justify-self: center; fill: none; stroke: var(--ink2); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .pp-x { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: none; cursor: pointer; }
 .carnet .pp-x:active { background: var(--mist); }
-.carnet .pp-conf { margin: 6px 0 4px; padding: 12px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .pp-conf { margin: 6px 0 4px; padding: 12px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .pp-conf p { margin: 0 0 10px; font-size: 14px; line-height: 1.4; color: var(--ink); }
 .carnet .pp-cacts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .carnet .pp-nouveau { margin-top: 14px; }
@@ -35,5 +35,5 @@
 /* ---------- La ligne « Ses chevaux » de la fiche client ---------- */
 .carnet .pp-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .carnet .pp-line .cl-1l { flex: 1 1 auto; min-width: 0; }
-.carnet .pp-add { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 16px; background: var(--mist); font: inherit; font-size: 13px; font-weight: 650; color: var(--ink); cursor: pointer; white-space: nowrap; }
+.carnet .pp-add { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 10px; border: 0; border-radius: var(--bloc-r); background: var(--mist); font: inherit; font-size: 13px; font-weight: 650; color: var(--ink); cursor: pointer; white-space: nowrap; }
 .carnet .cl-key .pp-add svg { width: 13px; height: 13px; color: var(--ink); stroke-width: 2; }

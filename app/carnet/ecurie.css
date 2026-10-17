@@ -19,7 +19,7 @@
 .carnet .ec-pg :is(span, label).input > input, .carnet .ec-pg :is(span, label).input > textarea, .carnet .ec-pg .stepper > input { flex: 1; min-width: 0; width: 100%; border: 0; background: none; padding: 0; margin: 0; font: inherit; color: inherit; outline: none; }
 .carnet .ec-pg :is(span, label).input > input::placeholder, .carnet .ec-pg :is(span, label).input > textarea::placeholder, .carnet .ec-pg .stepper > input::placeholder { color: var(--ink3); }
 .carnet .ec-pg :is(span, label).input > textarea { resize: vertical; min-height: 84px; line-height: 1.45; }
-.carnet .ec-pg :is(span, label).input:focus-within { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .ec-pg :is(span, label).input:focus-within { box-shadow: inset 0 0 0 1.5px var(--acc); }
 .carnet .ec-pg .field > span:not(.input) em { font-style: normal; font-weight: 500; font-size: 12px; color: var(--ink3); margin-left: 6px; }
 .carnet .ec-lab { display: grid; gap: 2px; font-size: 13px; font-weight: 650; margin: 12px 0 8px; }
 .carnet .ec-lab em { font-style: normal; font-weight: 500; font-size: 12px; color: var(--ink3); line-height: 1.4; }
@@ -27,15 +27,15 @@
 .carnet .ec-stk { display: grid; gap: 12px; margin-top: 10px; }
 
 /* ---------- Ma fiche : le statut ---------- */
-.carnet .ec-stt { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; margin: 14px 14px 0; padding: 12px 14px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font-size: 13.5px; line-height: 1.45; color: var(--ink2); }
-.carnet .ec-stt .okc { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--on-ink); display: flex; align-items: center; justify-content: center; }
+.carnet .ec-stt { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; margin: 14px var(--gut) 0; padding: 12px 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font-size: 13.5px; line-height: 1.45; color: var(--ink2); }
+.carnet .ec-stt .okc { width: 26px; height: 26px; border-radius: 50%; background: var(--acc); color: var(--on-ink); display: flex; align-items: center; justify-content: center; }
 .carnet .ec-stt .okc.line { background: var(--sheet); color: var(--ink); box-shadow: inset 0 0 0 1.4px var(--ink); }
 .carnet .ec-stt .okc svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ec-stt .okc.line svg { stroke-width: 2; }
 .carnet .ec-stt b { color: var(--ink); }
 
 /* ---------- Ma fiche : l'aperçu mon-ecurie.fr ---------- */
-.carnet .ec-fp { margin-top: 10px; border-radius: 8px; overflow: hidden; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .ec-fp { margin-top: 10px; border-radius: var(--bloc-r); overflow: hidden; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .ec-fp .ph { height: 112px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: var(--mist) center / cover no-repeat; color: var(--ink3); font-size: 12.5px; font-weight: 600; }
 .carnet .ec-fp .ph svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ec-fp .bd { padding: 12px 14px 14px; }
@@ -54,7 +54,7 @@
 .carnet .ec-rl { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line2); font-size: 13.5px; }
 .carnet .ec-rl:last-child { border-bottom: 0; }
 .carnet .ec-rl .n { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.4px var(--ink3); color: var(--ink3); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.carnet .ec-rl.ok .n { background: var(--ink); box-shadow: none; color: var(--on-ink); }
+.carnet .ec-rl.ok .n { background: var(--acc); box-shadow: none; color: var(--on-ink); }
 .carnet .ec-rl .n svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ec-rl em { font-style: normal; font-size: 12px; color: var(--ink3); }
 .carnet .ec-rl:not(.ok) em { color: var(--ink); font-weight: 650; }
@@ -75,7 +75,7 @@
 .carnet .ec-cg > span { display: block; font-size: 13px; font-weight: 650; margin-bottom: 7px; }
 .carnet .ec-cg .chip { padding: 6px 11px; font-size: 12.5px; }
 .carnet .ec-phs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
-.carnet .ec-phs > * { position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; }
+.carnet .ec-phs > * { position: relative; aspect-ratio: 1; border-radius: var(--ctl-r); overflow: hidden; }
 .carnet .ec-phs .pt { background: var(--mist) center / cover no-repeat; }
 .carnet .ec-phs .pill { position: absolute; left: 5px; top: 5px; font-size: 12px; padding: 2px 7px; }
 .carnet .ec-phs .x { position: absolute; right: 4px; top: 4px; width: 26px; height: 26px; background: color-mix(in srgb, var(--on-ink) 92%, transparent); }
@@ -104,7 +104,7 @@
 .carnet .ec-pr .bar { margin: 8px 0 0; height: 5px; }
 .carnet .ec-pr.off > .sum, .carnet .ec-pr.off .bar { opacity: .55; }
 .carnet .ec-pr .pill { margin-left: 6px; font-size: 12px; padding: 1px 7px; vertical-align: 1px; }
-.carnet .ec-pr .ed { margin: 10px 0 2px; padding: 4px 12px 12px; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line2); display: grid; gap: 8px; }
+.carnet .ec-pr .ed { margin: 10px 0 2px; padding: 4px 12px 12px; border-radius: var(--ctl-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line2); display: grid; gap: 8px; }
 .carnet .ec-pr .lrow { display: grid; grid-template-columns: 44px 1fr; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink3); font-weight: 600; padding-top: 8px; }
 .carnet .ec-pr .ed .input { height: 38px; font-size: 14px; }
 .carnet .ec-pr .ed .switch, .carnet .ec-sw .switch { font-size: 13px; padding: 8px 0; color: var(--ink); }
@@ -112,7 +112,7 @@
 .carnet .ec-pr .acts .lnk { font-size: 13px; }
 .carnet .ec-pg .lnk.mute { color: var(--ink2); }
 .carnet .ec-sw { margin-top: 6px; }
-.carnet .ec-lcard { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; margin: 14px 14px 0; padding: 14px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: inherit; text-decoration: none; }
+.carnet .ec-lcard { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; margin: 14px var(--gut) 0; padding: 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: inherit; text-decoration: none; }
 .carnet .ec-lcard .ill { width: 40px; height: 40px; object-fit: contain; }
 .carnet .ec-lcard b { display: block; font-size: 14.5px; line-height: 1.3; margin-top: 3px; }
 .carnet .ec-lcard .arr { width: 18px; height: 18px; fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -125,10 +125,10 @@
 .carnet .ec-pg .input.xs .u { font-weight: 500; font-size: 12px; margin-left: 2px; }
 .carnet .ec-bells .chip { display: inline-flex; align-items: center; gap: 6px; }
 .carnet .ec-bells .chip svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.carnet .ec-lock { margin-top: 12px; border-radius: 16px; padding: 16px 12px 14px; background: radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--on-ink) 14%, transparent), transparent 60%), var(--ink); color: var(--on-ink); text-align: center; }
+.carnet .ec-lock { margin-top: 12px; border-radius: var(--bloc-r); padding: 16px 12px 14px; background: radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--on-ink) 14%, transparent), transparent 60%), var(--ink); color: var(--on-ink); text-align: center; }
 .carnet .ec-lock .dt { font-size: 12px; opacity: .8; }
 .carnet .ec-lock .tm { font-size: 46px; font-weight: 300; letter-spacing: -.02em; line-height: 1.05; font-variant-numeric: tabular-nums; }
-.carnet .ec-lock .nt { margin-top: 12px; text-align: left; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--on-ink) 16%, transparent); }
+.carnet .ec-lock .nt { margin-top: 12px; text-align: left; padding: 10px 12px; border-radius: var(--ctl-r); background: color-mix(in srgb, var(--on-ink) 16%, transparent); }
 .carnet .ec-lock .nh { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; opacity: .85; }
 .carnet .ec-lock .nh i { width: 16px; height: 16px; border-radius: 4px; background: var(--cream); color: var(--ink); font-style: normal; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; letter-spacing: 0; text-transform: none; }
 .carnet .ec-lock .nh span { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
@@ -139,26 +139,26 @@
 .carnet .ec-danger small { display: block; text-align: center; margin-top: 6px; font-size: 12px; color: var(--ink3); }
 .carnet .ec-howto { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; font-size: 14px; line-height: 1.45; }
 .carnet .ec-howto li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; }
-.carnet .ec-howto li > span { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.carnet .ec-howto li > span { width: 26px; height: 26px; border-radius: 50%; background: var(--acc); color: var(--on-ink); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 
 /* ---------- Tous les réglages ---------- */
 /* Les six tuiles : la forme des quatre gros boutons du + (.nt-four, noter.css),
    pour des liens comme pour des boutons. Le picto dit le sujet, pas la couleur. */
 .carnet .ec-tuiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 18px 0; }
-.carnet .ec-tuiles > * { display: grid; align-content: space-between; justify-items: start; gap: 10px; min-height: 104px; padding: 14px; border: 0; border-radius: 12px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); text-align: left; text-decoration: none; cursor: pointer; color: var(--ink); font: inherit; }
+.carnet .ec-tuiles > * { display: grid; align-content: space-between; justify-items: start; gap: 10px; min-height: 104px; padding: 14px; border: 0; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); text-align: left; text-decoration: none; cursor: pointer; color: var(--ink); font: inherit; }
 .carnet .ec-tuiles svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ec-tuiles b { display: block; font-size: 16.5px; font-weight: 720; line-height: 1.15; letter-spacing: -.01em; }
 .carnet .ec-tuiles small { display: block; margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--ink3); }
 .carnet .ec-tuiles > :active { transform: scale(.98); }
 /* Sans compte : la seule ligne sous les tuiles. */
-.carnet .ec-garde { display: grid; grid-template-columns: 22px minmax(0, 1fr) 18px; gap: 10px; align-items: center; min-height: 52px; margin: 12px 18px 0; padding: 0 14px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font-size: 14.5px; font-weight: 650; text-decoration: none; }
+.carnet .ec-garde { display: grid; grid-template-columns: 22px minmax(0, 1fr) 18px; gap: 10px; align-items: center; min-height: 52px; margin: 12px 18px 0; padding: 0 14px; border-radius: var(--bloc-r); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font-size: 14.5px; font-weight: 650; text-decoration: none; }
 .carnet .ec-garde > svg:first-child { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 /* Un groupe ouvert : le retour aux tuiles, puis ses parties. */
 .carnet .ec-ret { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin-top: 4px; text-decoration: none; }
 .carnet .ec-ret svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 .carnet .ec-pg .li .x { width: 30px; height: 30px; }
-.carnet .ec-addp { margin-top: 10px; padding: 12px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 8px; }
+.carnet .ec-addp { margin-top: 10px; padding: 12px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 8px; }
 .carnet .ec-addp .k { margin-bottom: 2px; }
 .carnet .ec-addp .input { height: 44px; font-size: 14px; }
 .carnet .ec-cadd { display: grid; grid-template-columns: 1fr 44px; gap: 6px; margin-top: 10px; }

@@ -3,16 +3,16 @@
 .carnet .ar-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 /* Navigateur de mois et onglets du Bilan */
-.carnet .ar-mnav { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 18px 0; font-size: 14px; font-weight: 650; }
+.carnet .ar-mnav { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px var(--gut) 0; font-size: 14px; font-weight: 650; }
 .carnet .ar-mnav button { width: 30px; height: 30px; border: 0; border-radius: 50%; background: var(--mist); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); padding: 0; }
 .carnet .ar-mnav button[disabled] { opacity: .35; cursor: default; }
 .carnet .ar-mnav b { min-width: 90px; text-align: center; font-weight: 700; }
 .carnet .ar-mnav .ar-ic { width: 16px; height: 16px; }
-.carnet .ar-bseg { margin: 10px 14px 0; }
+.carnet .ar-bseg { margin: 10px var(--gut) 0; }
 .carnet .ar-bseg .seg button { font-size: 12px; padding: 8px 2px; }
 
 @keyframes ar-settle { 50% { transform: translateY(-2px); } }
-.carnet .ar-goal { margin: 14px 14px 0; display: grid; grid-template-columns: minmax(0, 1fr) clamp(88px, 28vw, 120px); column-gap: 8px; }
+.carnet .ar-goal { margin: 14px var(--gut) 0; display: grid; grid-template-columns: minmax(0, 1fr) clamp(88px, 28vw, 120px); column-gap: 8px; }
 .carnet .ar-goal > :not(.ar-gtx, .ar-gill) { grid-column: 1 / -1; }
 .carnet .ar-gtx { min-width: 0; align-self: center; }
 /* Le chiffre tient toujours à gauche de l'image, « −1 250 € » compris : il rétrécit avec l'écran. */
@@ -67,13 +67,13 @@
 .carnet .sec :is(h2, h4) .act.out { color: var(--out); font-weight: 700; font-size: 14px; }
 
 /* Cartes liens */
-.carnet .ar-lcard { display: grid; grid-template-columns: 34px 1fr 16px; gap: 12px; align-items: center; margin: 10px 14px 0; padding: 14px; color: inherit; text-decoration: none; }
+.carnet .ar-lcard { display: grid; grid-template-columns: 34px 1fr 16px; gap: 12px; align-items: center; margin: 10px var(--gut) 0; padding: 14px; color: inherit; text-decoration: none; }
 .carnet .ar-lcard .ar-pic { width: 34px; height: 34px; }
 .carnet .ar-lcard b { display: block; font-size: 14.5px; font-weight: 650; line-height: 1.3; margin-top: 3px; }
 .carnet .ar-lcard .k { font-size: 12px; line-height: 1.35; display: block; }
 /* Les liens du bas de Mon mois : une liste entre filets, plus quatre cartes (Hairline Grid Rule). */
 /* Pour aller plus loin : une carte, une ligne par écran, séparées d'un filet. */
-.carnet .ar-links { margin: 14px 14px 0; padding: 2px 14px; }
+.carnet .ar-links { margin: 14px var(--gut) 0; padding: 2px 14px; }
 .carnet .ar-lrow { display: grid; grid-template-columns: 34px minmax(0, 1fr) 16px; gap: 12px; align-items: center; min-height: 64px; padding: 12px 0; color: inherit; text-decoration: none; border-bottom: 1px solid var(--line2); }
 .carnet .ar-lrow:last-child { border-bottom: 0; }
 .carnet .ar-lrow .ar-pic { width: 34px; height: 34px; }
@@ -82,7 +82,7 @@
 .carnet .ar-lrow .chev { color: var(--ink3); }
 
 /* Gagner plus */
-.carnet .ar-head { margin: 12px 14px 0; position: relative; }
+.carnet .ar-head { margin: 12px var(--gut) 0; position: relative; }
 .carnet .ar-head .k { text-transform: none; letter-spacing: 0; font-size: 13.5px; font-weight: 600; color: var(--ink2); line-height: 1.4; padding-right: 64px; }
 .carnet .ar-head .big { font-size: 38px; }
 .carnet .ar-head .ar-u { font-size: 12.5px; color: var(--ink3); }
@@ -112,7 +112,7 @@
 .carnet .ar-horsesel { appearance: none; -webkit-appearance: none; padding-right: 28px; background-image: none; position: relative; }
 .carnet .ar-selw { position: relative; display: inline-flex; }
 .carnet .ar-selw .ar-ic { position: absolute; right: 10px; top: 50%; width: 13px; height: 13px; margin-top: -6.5px; transform: rotate(90deg); pointer-events: none; color: var(--ink2); }
-.carnet .ar-day { padding: 18px 18px 0; font-size: 12px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; color: var(--ink3); }
+.carnet .ar-day { padding: 18px var(--gut) 0; font-size: 12px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; color: var(--ink3); }
 .carnet .ar-mv { display: grid; grid-template-columns: 30px 1fr auto 30px; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line2); margin: 0 18px; }
 .carnet .ar-mv b { display: block; font-size: 14px; font-weight: 640; line-height: 1.2; }
 .carnet .ar-mv small { display: block; font-size: 12px; color: var(--ink3); line-height: 1.3; margin-top: 1px; }
@@ -130,7 +130,7 @@
 .carnet .ar-tbl-wrap .tbl .m { color: var(--ink3); }
 
 /* Plusieurs mois */
-.carnet .ar-hero6 { margin: 12px 14px 0; }
+.carnet .ar-hero6 { margin: 12px var(--gut) 0; }
 .carnet .ar-hero6 .big { white-space: nowrap; }
 .carnet .ar-hero6 .ar-avg { display: block; margin-top: 6px; font-size: 13.5px; color: var(--ink2); }
 .carnet .ar-hero6 .ar-avg .in, .carnet .ar-hero6 .ar-avg .out { font-size: 15px; }
@@ -171,7 +171,7 @@
 .carnet .ar-grid12 .face { width: 42px; height: 42px; }
 .carnet .ar-grid12 .ar-vide { width: 42px; height: 42px; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--line); }
 .carnet .ar-grid12 .ar-trait { position: absolute; height: 54px; width: 3px; background: var(--ink); border-radius: 2px; box-shadow: none; z-index: 1; }
-.carnet .ar-grid12 .ar-trait span { position: absolute; left: -2px; bottom: -26px; white-space: nowrap; font-size: 12px; font-weight: 700; color: var(--on-ink); background: var(--ink); padding: 2px 7px; border-radius: 10px; transform: translateX(-50%); }
+.carnet .ar-grid12 .ar-trait span { position: absolute; left: -2px; bottom: -26px; white-space: nowrap; font-size: 12px; font-weight: 700; color: var(--on-ink); background: var(--acc); padding: 2px 7px; border-radius: 10px; transform: translateX(-50%); }
 .carnet .ar-glab { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--ink3); margin-top: 12px; }
 .carnet .ar-glab b { color: var(--ink); display: inline-flex; align-items: center; gap: 4px; }
 .carnet .ar-glab b .ar-ic { width: 14px; height: 14px; }

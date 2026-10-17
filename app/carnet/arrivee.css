@@ -40,15 +40,15 @@
 @keyframes ar-flicker { 0%, 100% { opacity: .85; transform: scale(1); } 40% { opacity: .55; transform: scale(.94); } 60% { opacity: 1; transform: scale(1.04); } }
 
 /* ---------- Pourquoi ---------- */
-.carnet .ar-hero { margin: 8px 18px 0; height: 150px; border-radius: 10px; overflow: hidden; flex: none; }
+.carnet .ar-hero { margin: 8px 18px 0; height: 150px; border-radius: var(--bloc-r); overflow: hidden; flex: none; }
 .carnet .ar-hero .ill { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; transform-origin: 56% 30%; animation: cn-promo-drift 14s var(--slow) infinite alternate; }
 .carnet .ar-pts { list-style: none; margin: 16px 22px 0; padding: 0; display: grid; gap: 10px; }
 .carnet .ar-pts li { display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: center; font-size: 15px; font-weight: 640; }
-.carnet .ar-pts .pk { width: 24px; height: 24px; border-radius: 50%; background: var(--ink); display: flex; align-items: center; justify-content: center; }
+.carnet .ar-pts .pk { width: 24px; height: 24px; border-radius: 50%; background: var(--acc); display: flex; align-items: center; justify-content: center; }
 .carnet .ar-pts .pk svg { width: 13px; height: 13px; fill: none; stroke: var(--sheet); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------- Recherche et champs ---------- */
-.carnet .ar-in { width: auto; margin: 16px 22px 0; height: 52px; font-size: 17px; box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .ar-in { width: auto; margin: 16px 22px 0; height: 52px; font-size: 17px; box-shadow: inset 0 0 0 1.5px var(--acc); }
 .carnet .ar-in:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
 .carnet .ar-in .ar-ico { color: var(--ink3); }
 .carnet .ar-in input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; padding: 0; outline: none; font: inherit; font-size: 17px; color: var(--ink); }
@@ -73,10 +73,10 @@
 .carnet .ar-pw .u { position: absolute; right: 10px; top: 0; height: 44px; display: flex; align-items: center; border: 0; background: none; padding: 0 4px; font-size: 13px; font-weight: 600; color: var(--ink2); cursor: pointer; }
 .carnet .ar-meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
 .carnet .ar-meter i { height: 3px; border-radius: 2px; background: var(--line); }
-.carnet .ar-meter i.on { background: var(--ink); }
+.carnet .ar-meter i.on { background: var(--acc); }
 .carnet .ar-steps { list-style: none; counter-reset: s; margin: 16px 22px 0; padding: 0; display: grid; gap: 8px; }
 .carnet .ar-steps li { counter-increment: s; position: relative; padding-left: 30px; font-size: 14px; line-height: 1.45; color: var(--ink2); }
-.carnet .ar-steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 21px; height: 21px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 12px; font-weight: 750; display: flex; align-items: center; justify-content: center; }
+.carnet .ar-steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 21px; height: 21px; border-radius: 50%; background: var(--acc); color: var(--on-ink); font-size: 12px; font-weight: 750; display: flex; align-items: center; justify-content: center; }
 
 /* ---------- La fiche (aperçu, aujourd'hui et reprise) ---------- */
 .carnet .ar-fc { background: var(--sheet); }
@@ -89,13 +89,13 @@
 .carnet .ar-fc .px strong { font-size: 22px; font-weight: 760; color: var(--ink); letter-spacing: -.02em; margin: 0 3px; font-variant-numeric: tabular-nums; }
 .carnet .ar-fc .pl { font-size: 13px; color: var(--ink3); }
 .carnet .ar-fc .pl.ok { color: var(--ink); font-weight: 650; }
-.carnet .ar-apercu { margin: 18px 22px 0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .ar-apercu { margin: 18px 22px 0; border-radius: var(--bloc-r); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .ar-apercu .ar-fc { background: transparent; }
-.carnet .ar-ba { --x: 34%; position: relative; margin: 16px 22px 0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); background: var(--sheet); }
+.carnet .ar-ba { --x: 34%; position: relative; margin: 16px 22px 0; border-radius: var(--bloc-r); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); background: var(--sheet); }
 .carnet .ar-ba .calque { position: absolute; inset: 0; clip-path: inset(0 0 0 var(--x)); }
 .carnet .ar-ba .tag { position: absolute; top: 10px; z-index: 3; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: .04em; padding: 3px 7px; border-radius: 4px; background: color-mix(in srgb, var(--on-ink) 92%, transparent); color: var(--ink2); }
 .carnet .ar-ba .tag.a { left: 10px; }
-.carnet .ar-ba .tag.b { right: 10px; background: var(--ink); color: var(--on-ink); }
+.carnet .ar-ba .tag.b { right: 10px; background: var(--acc); color: var(--on-ink); }
 .carnet .ar-ba .knob { position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; margin-left: -1px; background: var(--ink); z-index: 3; pointer-events: none; }
 .carnet .ar-ba .knob::after { content: "‹ ›"; position: absolute; top: 50%; left: 50%; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; letter-spacing: 2px; box-shadow: none; }
 .carnet .ar-ba input { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
@@ -114,7 +114,7 @@
 /* ---------- Code ---------- */
 .carnet .ar-code { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; margin: 26px 22px 0; cursor: text; }
 .carnet .ar-code input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; font-size: 16px; z-index: 2; }
-.carnet .ar-code span { min-width: 0; height: 56px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 720; font-variant-numeric: tabular-nums; }
+.carnet .ar-code span { min-width: 0; height: 56px; border-radius: var(--ctl-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 720; font-variant-numeric: tabular-nums; }
 .carnet .ar-code span.full { box-shadow: inset 0 0 0 1px var(--ink3); }
 .carnet .ar-code:focus-within span.on { box-shadow: inset 0 0 0 2px var(--ink); }
 .carnet .ar-code span.on .ar-caret { height: 26px; display: none; }
@@ -137,7 +137,7 @@
 .carnet .ar-ob .jn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ar-ob b { display: block; font-size: 14.5px; font-weight: 650; line-height: 1.2; }
 .carnet .ar-ob small { display: block; font-size: 12px; color: var(--ink3); line-height: 1.35; }
-.carnet .ar-ob.done .jn { background: var(--ink); color: var(--on-ink); }
+.carnet .ar-ob.done .jn { background: var(--acc); color: var(--on-ink); }
 .carnet .ar-ob.done .jn svg { stroke-width: 2.6; }
 .carnet .ar-ob.done b { color: var(--ink2); }
 .carnet .ar-ob.now .jn { background: var(--sheet); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
@@ -156,7 +156,7 @@
 .carnet .ar-ln .face { width: 38px; height: 38px; }
 .carnet .ar-ln b { display: block; font-size: 14.5px; font-weight: 640; line-height: 1.2; }
 .carnet .ar-ln small { font-size: 12px; color: var(--ink3); }
-.carnet .ar-ln .inl { width: 86px; height: 44px; border: 0; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); padding: 0 10px; text-align: right; font: inherit; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--ink); outline: none; }
+.carnet .ar-ln .inl { width: 86px; height: 44px; border: 0; border-radius: var(--ctl-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); padding: 0 10px; text-align: right; font: inherit; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--ink); outline: none; }
 .carnet .ar-ln .inl:focus { box-shadow: inset 0 0 0 2px var(--ink); }
 .carnet .ar-ln .inl::placeholder { color: var(--ink3); font-weight: 500; }
 .carnet .ar-ln > i { font-style: normal; color: var(--ink3); font-size: 13px; }
@@ -214,7 +214,7 @@
 .carnet .ar-mm { margin: 22px 22px 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .carnet .ar-mm > label { font-size: 15px; font-weight: 680; color: var(--ink); }
 .carnet .ar-mm .es-help { margin: 0; }
-.carnet .ar-mm-f { height: 60px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: flex; align-items: center; gap: 8px; padding: 0 16px; transition: box-shadow .2s; }
+.carnet .ar-mm-f { height: 60px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: flex; align-items: center; gap: 8px; padding: 0 16px; transition: box-shadow .2s; }
 .carnet .ar-mm-f:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
 .carnet .ar-mm-f input { flex: 1; min-width: 0; width: 0; align-self: stretch; border: 0; background: none; padding: 0; outline: none; font: inherit; font-size: 28px; font-weight: 760; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--ink); }
 .carnet .ar-mm-f input::placeholder { color: var(--ink3); }
@@ -222,7 +222,7 @@
 .carnet .ar-alt { display: flex; align-items: center; width: fit-content; margin: 10px auto 0; min-height: 44px; padding: 0 12px; border: 0; background: none; font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
 .carnet .ar-pc .ar-seg { margin: 16px 22px 0; }
 .carnet .ar-pc .ar-seg .seg button { min-height: 40px; }
-.carnet .ar-warn { margin: 14px 22px 0; padding: 12px 14px; border-radius: 8px; background: var(--mist); display: grid; gap: 8px; font-size: 13.5px; line-height: 1.45; color: var(--ink2); }
+.carnet .ar-warn { margin: 14px 22px 0; padding: 12px 14px; border-radius: var(--bloc-r); background: var(--mist); display: grid; gap: 8px; font-size: 13.5px; line-height: 1.45; color: var(--ink2); }
 .carnet .ar-warn b { color: var(--ink); }
 .carnet .ar-warn .btn { justify-self: start; height: 40px; min-height: 40px; padding: 0 14px; font-size: 13.5px; }
 .carnet .ar-ln .ar-set { font-size: 12px; font-weight: 650; color: var(--ink2); }
@@ -234,8 +234,8 @@
 .carnet .mc-k { margin: 0; font-size: 13.5px; font-weight: 650; color: var(--ink2); }
 .carnet .mc-3, .carnet .mc-4 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .carnet .mc-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.carnet .mc button { min-height: 52px; padding: 6px; border: 0; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font: inherit; font-size: 15px; font-weight: 650; line-height: 1.15; color: var(--ink); cursor: pointer; }
-.carnet .mc button.on { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.carnet .mc button { min-height: 52px; padding: 6px; border: 0; border-radius: var(--ctl-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font: inherit; font-size: 15px; font-weight: 650; line-height: 1.15; color: var(--ink); cursor: pointer; }
+.carnet .mc button.on { background: var(--acc); color: var(--on-ink); box-shadow: none; }
 .carnet .mc-soit { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink2); }
 .carnet .mc-soit b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
 .carnet .ar-mc { margin: 22px 22px 0; display: grid; gap: 12px; }
@@ -258,19 +258,19 @@
 .carnet .pas-step { position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; padding-bottom: 14px; }
 /* Le tracé entre deux questions : pointillé à venir, plein une fois passé. */
 .carnet .pas-step::before { content: ""; position: absolute; left: 14px; top: 34px; bottom: 2px; width: 2px; border-radius: 1px; background: repeating-linear-gradient(var(--line) 0 5px, transparent 5px 10px); transform-origin: top; animation: pas-draw .8s var(--ease) backwards; animation-delay: inherit; }
-.carnet .pas-step.done::before { background: var(--ink); }
+.carnet .pas-step.done::before { background: var(--acc); }
 .carnet .pas-step:last-child { padding-bottom: 0; }
 .carnet .pas-step:last-child::before { display: none; }
 @keyframes pas-draw { from { transform: scaleY(0); } }
 .carnet .pas-pin { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--line); color: var(--ink3); font-size: 14px; font-weight: 760; font-variant-numeric: tabular-nums; position: relative; z-index: 1; margin-top: 2px; }
 .carnet .pas-pin svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.carnet .pas-step.now .pas-pin, .carnet .pas-step.done .pas-pin { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.carnet .pas-step.now .pas-pin, .carnet .pas-step.done .pas-pin { background: var(--acc); color: var(--on-ink); box-shadow: none; }
 .carnet .pas-step.now .pas-pin { box-shadow: 0 0 0 5px color-mix(in srgb, var(--ink) 10%, transparent); }
 .carnet .pas-fin .pas-pin svg { stroke-width: 1.9; }
 
 /* La question du moment : une grande carte, l'image qui déborde en bas à droite. */
-.carnet .pas-card { display: grid; grid-template-columns: minmax(0, 1fr) 118px; align-items: end; min-height: 158px; border-radius: 14px; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--ink); padding: 16px 0 0 16px; overflow: hidden; color: inherit; text-decoration: none; transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
-.carnet .pas-card:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .pas-card { display: grid; grid-template-columns: minmax(0, 1fr) 118px; align-items: end; min-height: 158px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--acc); padding: 16px 0 0 16px; overflow: hidden; color: inherit; text-decoration: none; transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
+.carnet .pas-card:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1.5px var(--acc); }
 .carnet .pas-card:active { transform: scale(.99); }
 .carnet .pas-card:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .carnet .pas-card-t { align-self: stretch; display: flex; flex-direction: column; gap: 6px; padding-bottom: 16px; min-width: 0; }
@@ -299,7 +299,7 @@
 .carnet .pas-mini { display: grid; grid-template-columns: 22px minmax(0, 1fr) 18px; gap: 10px; align-items: center; min-height: 52px; padding: 6px 0; border-bottom: 1px solid var(--line2); color: inherit; text-decoration: none; }
 .carnet .pas-mini:last-child { border-bottom: 0; }
 .carnet .pas-mini-k { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line); display: flex; align-items: center; justify-content: center; }
-.carnet .pas-mini.done .pas-mini-k { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.carnet .pas-mini.done .pas-mini-k { background: var(--acc); color: var(--on-ink); box-shadow: none; }
 .carnet .pas-mini-k svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .pas-mini b { display: block; font-size: 14.5px; font-weight: 650; line-height: 1.25; }
 .carnet .pas-mini small { display: block; font-size: 12.5px; line-height: 1.35; color: var(--ink3); }
@@ -311,7 +311,7 @@
 .carnet .ob-chap { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 6px 22px 0; }
 .carnet .ob-chap .dots { margin-bottom: 6px; }
 .carnet .ob-chap .dots i { width: 26px; height: 4px; }
-.carnet .ob-chap .dots i.on { background: var(--ink); }
+.carnet .ob-chap .dots i.on { background: var(--acc); }
 .carnet .ob-chap-ill { height: 84px; width: auto; max-width: 120px; object-fit: contain; object-position: right bottom; animation: cn-rise .7s var(--ease) backwards; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -337,8 +337,8 @@
 .carnet .ar-ln-x { width: 36px; height: 44px; border: 0; background: none; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--ink3); cursor: pointer; }
 .carnet .ar-ln-x svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .carnet .ar-add { display: flex; align-items: center; gap: 8px; margin: 6px 22px 0; min-height: 48px; padding: 0; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 680; color: var(--ink); cursor: pointer; }
-.carnet .ar-add svg { width: 20px; height: 20px; padding: 3px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink); fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
-.carnet .ar-new { margin: 12px 22px 0; padding: 14px; border-radius: 12px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 12px; }
+.carnet .ar-add svg { width: 20px; height: 20px; padding: 3px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--acc); fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.carnet .ar-new { margin: 12px 22px 0; padding: 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 12px; }
 .carnet .ar-new .ar-mm-f { height: 52px; }
 .carnet .ar-new .ar-mm-f input { font-size: 22px; }
 .carnet .ar-new-go { display: flex; gap: 8px; }
@@ -349,7 +349,7 @@
 .carnet .fo-open { display: block; margin: -4px 0 0 48px; min-height: 36px; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 650; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
 .carnet .fo { margin: 0 0 6px 48px; display: grid; gap: 8px; }
 .carnet .fo-l { display: grid; grid-template-columns: minmax(0, 1fr) 150px; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 640; color: var(--ink2); }
-.carnet .fo-f { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 10px; border-radius: 6px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .fo-f { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 10px; border-radius: var(--ctl-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .fo-f:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
 .carnet .fo-f input { flex: 1; min-width: 0; width: 0; height: 100%; border: 0; background: none; padding: 0; outline: none; font: inherit; font-size: 15px; font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
 .carnet .fo-f input::placeholder { color: var(--ink3); font-weight: 500; }

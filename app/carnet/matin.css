@@ -13,9 +13,9 @@
 .carnet .mt-sfind { gap: 10px; color: var(--ink3); padding-right: 6px; }
 .carnet .mt-sfind input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; font: inherit; font-size: 15px; color: var(--ink); padding: 0; }
 .carnet .mt-sfind input::placeholder { color: var(--ink3); }
-.carnet .mt-sfind:focus-within { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .mt-sfind:focus-within { box-shadow: inset 0 0 0 1.5px var(--acc); }
 .carnet .mt-sfind .x { width: 26px; height: 26px; flex: none; }
-.carnet .mt-rg { padding: 18px 18px 0; }
+.carnet .mt-rg { padding: 18px var(--gut) 0; }
 .carnet .mt-rg .k { padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .carnet .mt-rg .li { grid-template-columns: 40px 1fr auto; }
 .carnet .mt-rg .li small { display: block; }

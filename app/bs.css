@@ -29,17 +29,17 @@
 
 .bs-ck { flex: none; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-right: -8px; }
 .bs-ck i { width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line); display: flex; align-items: center; justify-content: center; color: transparent; transition: background .2s, box-shadow .2s; }
-.bs-ck:hover i { box-shadow: inset 0 0 0 1.5px var(--ink); color: var(--line); }
-.bs-ck.on i { background: var(--ink); box-shadow: none; color: var(--on-ink); }
+.bs-ck:hover i { box-shadow: inset 0 0 0 1.5px var(--acc); color: var(--line); }
+.bs-ck.on i { background: var(--acc); box-shadow: none; color: var(--on-ink); }
 .bs-ck svg { width: 15px; height: 15px; }
 
-.bs-card { display: flex; align-items: center; gap: 12px; border-radius: 12px; padding: 14px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); width: 100%; margin-top: 16px; text-align: left; }
+.bs-card { display: flex; align-items: center; gap: 12px; border-radius: var(--bloc-r); padding: 14px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); width: 100%; margin-top: 16px; text-align: left; }
 a.bs-card:hover, button.bs-card:hover { box-shadow: inset 0 0 0 1px var(--ink3); }
 .bs-card .k { font-size: 12.5px; color: var(--ink3); }
 .bs-card b { display: block; font-size: 14.5px; font-weight: 560; line-height: 1.3; color: var(--ink); }
 
 .bs-card > svg { flex: none; width: 20px; height: 20px; color: var(--ink3); }
-.bs-tip { display: flex; gap: 10px; align-items: flex-start; background: var(--mist); border-radius: 10px; padding: 11px 12px; margin-top: 14px; font-size: 13.5px; line-height: 1.45; color: var(--ink); }
+.bs-tip { display: flex; gap: 10px; align-items: flex-start; background: var(--mist); border-radius: var(--bloc-r); padding: 11px 12px; margin-top: 14px; font-size: 13.5px; line-height: 1.45; color: var(--ink); }
 .bs-tip .bs-pic { width: 28px; height: 28px; box-shadow: none; background: var(--sheet); color: var(--ink2); }
 .bs-tip .bs-pic svg { width: 16px; height: 16px; }
 
@@ -47,7 +47,7 @@ a.bs-card:hover, button.bs-card:hover { box-shadow: inset 0 0 0 1px var(--ink3);
 .bs-pill.g { background: color-mix(in srgb, var(--in) 8%, transparent); color: var(--in); }
 .bs-pill.r { background: color-mix(in srgb, var(--out) 8%, transparent); color: var(--out); }
 .bs-pill.n { background: var(--mist); color: var(--ink2); }
-.bs-pill.k { background: var(--ink); color: var(--on-ink); }
+.bs-pill.k { background: var(--acc); color: var(--on-ink); }
 .bs-pill svg { width: 12px; height: 12px; }
 .bs-face { flex: none; border-radius: 50%; overflow: hidden; display: inline-flex; }
 .bs-face svg { width: 100%; height: 100%; display: block; }
@@ -64,7 +64,7 @@ a.bs-card:hover, button.bs-card:hover { box-shadow: inset 0 0 0 1px var(--ink3);
 .bs-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 12px 0; border-bottom: 1px solid var(--line2); font-size: 14.5px; font-weight: 500; text-align: left; color: var(--ink); }
 .bs-switch { flex: none; width: 46px; height: 28px; border-radius: 28px; background: var(--line); position: relative; transition: background .2s; }
 .bs-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--sheet); box-shadow: 0 1px 3px color-mix(in srgb, var(--ink) 20%, transparent); transition: transform .25s var(--ease); }
-[aria-checked=true] .bs-switch { background: var(--ink); }
+[aria-checked=true] .bs-switch { background: var(--acc); }
 [aria-checked=true] .bs-switch::after { transform: translateX(18px); }
 
 @media (prefers-reduced-motion: reduce) {
@@ -75,7 +75,7 @@ a.bs-card:hover, button.bs-card:hover { box-shadow: inset 0 0 0 1px var(--ink3);
    Version définitive (11 octobre 2026) : coins resserrés, en-tête,
    menu, planning, validation, argent, équipe.
    ============================================================ */
-.bs-card, .bs-tip { border-radius: 6px; }
+.bs-card, .bs-tip { border-radius: var(--bloc-r); }
 .bs-pill { border-radius: 4px; }
 
 /* Actions, factures */
@@ -94,7 +94,7 @@ a.bs-card:hover, button.bs-card:hover { box-shadow: inset 0 0 0 1px var(--ink3);
 kbd { font: 600 12px/1 var(--font-bricolage), sans-serif; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 4px; background: var(--mist); color: var(--ink2); box-shadow: inset 0 -1px 0 var(--line); white-space: nowrap; }
 
 /* La proposition d'installer */
-.bs-install { position: fixed; z-index: 45; left: 12px; right: 12px; bottom: calc(80px + env(safe-area-inset-bottom)); max-width: 456px; margin: 0 auto; display: flex; align-items: center; gap: 12px; padding: 10px 6px 10px 12px; background: var(--sheet); border-radius: 6px; box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 10px 30px color-mix(in srgb, var(--ink) 14%, transparent), inset 0 0 0 1px var(--line); animation: bs-up .3s var(--ease) both; }
+.bs-install { position: fixed; z-index: 45; left: 12px; right: 12px; bottom: calc(80px + env(safe-area-inset-bottom)); max-width: 456px; margin: 0 auto; display: flex; align-items: center; gap: 12px; padding: 10px 6px 10px 12px; background: var(--sheet); border-radius: var(--bloc-r); box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 10px 30px color-mix(in srgb, var(--ink) 14%, transparent), inset 0 0 0 1px var(--line); animation: bs-up .3s var(--ease) both; }
 .bs-install .tx { flex: 1; min-width: 0; }
 .bs-install .tx b { display: block; font-size: 14px; font-weight: 600; color: var(--ink); }
 .bs-install .tx span { font-size: 12.5px; color: var(--ink2); line-height: 1.35; }
@@ -108,7 +108,7 @@ kbd { font: 600 12px/1 var(--font-bricolage), sans-serif; font-variant-numeric: 
 @media (min-width: 482px) and (max-width: 1023.98px) {
   .bs-install { margin-left: auto; margin-right: auto; }
 }
-.bs-install .go { height: 44px; padding: 0 14px; border-radius: 6px; background: var(--ink); color: var(--on-ink); font-size: 13.5px; font-weight: 600; }
+.bs-install .go { height: 44px; padding: 0 14px; border-radius: var(--ctl-r); background: var(--acc); color: var(--on-ink); font-size: 13.5px; font-weight: 600; }
 .bs-install .go:hover { background: var(--ink2); }
 
 @media (min-width: 1024px) {
@@ -138,13 +138,13 @@ kbd { font: 600 12px/1 var(--font-bricolage), sans-serif; font-variant-numeric: 
 .bs-lbl { display: block; margin-top: 14px; }
 .bs-lbl > span:not(.bs-in):not(.bs-pwbar) { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
 .bs-lbl > span:not(.bs-in) em { font-style: normal; font-weight: 500; color: var(--ink3); }
-.bs-in { display: flex; align-items: center; gap: 6px; background: var(--sheet); border-radius: 6px; box-shadow: inset 0 0 0 1px var(--line); padding: 0 6px 0 14px; min-height: 50px; transition: box-shadow .15s; }
+.bs-in { display: flex; align-items: center; gap: 6px; background: var(--sheet); border-radius: var(--ctl-r); box-shadow: inset 0 0 0 1px var(--line); padding: 0 6px 0 14px; min-height: 50px; transition: box-shadow .15s; }
 .bs-in:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
 .bs-in.err { box-shadow: inset 0 0 0 2px var(--ink); }
 .bs-in input, .bs-in textarea { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: 16px; color: var(--ink); min-height: 48px; }
 .bs-in textarea { padding: 12px 0; resize: vertical; min-height: 88px; line-height: 1.45; }
 .bs-in input::placeholder, .bs-in textarea::placeholder { color: var(--ink3); }
-.bs-in .eye { width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--ink3); font-size: 12.5px; font-weight: 600; }
+.bs-in .eye { width: 40px; height: 40px; border-radius: var(--ctl-r); display: flex; align-items: center; justify-content: center; color: var(--ink3); font-size: 12.5px; font-weight: 600; }
 .bs-in .eye:hover { color: var(--ink); background: var(--mist); }
 .bs-in .unit { color: var(--ink3); font-size: 14px; padding-right: 8px; }
 .bs-help { font-size: 12.5px; color: var(--ink3); margin-top: 6px; line-height: 1.4; }
@@ -165,7 +165,7 @@ kbd { font: 600 12px/1 var(--font-bricolage), sans-serif; font-variant-numeric: 
 .bs-hit .tx span { font-size: 12.5px; color: var(--ink3); }
 
 /* L'aperçu de la fiche, tel que les cavaliers la voient */
-.bs-prev { background: var(--sheet); border-radius: 6px; box-shadow: 0 2px 4px color-mix(in srgb, var(--ink) 5%, transparent), 0 18px 44px color-mix(in srgb, var(--ink) 10%, transparent), inset 0 0 0 1px var(--line); overflow: hidden; margin-top: 14px; }
+.bs-prev { background: var(--sheet); border-radius: var(--bloc-r); box-shadow: 0 2px 4px color-mix(in srgb, var(--ink) 5%, transparent), 0 18px 44px color-mix(in srgb, var(--ink) 10%, transparent), inset 0 0 0 1px var(--line); overflow: hidden; margin-top: 14px; }
 .bs-prev .img { aspect-ratio: 16 / 7; background: var(--mist) center/cover; display: flex; align-items: center; justify-content: center; color: var(--ink3); font-size: 12.5px; gap: 6px; }
 .bs-prev .img svg { width: 20px; height: 20px; }
 .bs-prev .bd { padding: 14px 16px 16px; }
@@ -174,13 +174,13 @@ kbd { font: 600 12px/1 var(--font-bricolage), sans-serif; font-variant-numeric: 
 .bs-prev .badge { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 4px; font-size: 12px; font-weight: 650; margin-top: 10px; }
 .bs-prev .badge.r { background: var(--rose); color: var(--vert-deep); box-shadow: inset 0 0 0 1.5px var(--vert-deep); }
 .bs-prev .badge.n { background: var(--mist); color: var(--ink2); }
-.bs-prev .price { display: flex; align-items: baseline; gap: 6px; margin-top: 12px; padding: 10px 12px; border-radius: 6px; background: var(--vert); color: var(--on-ink); }
+.bs-prev .price { display: flex; align-items: baseline; gap: 6px; margin-top: 12px; padding: 10px 12px; border-radius: var(--ctl-r); background: var(--vert); color: var(--on-ink); }
 .bs-prev .price b { font-size: 24px; font-weight: 800; font-variation-settings: "wdth" 88; color: var(--rose); font-variant-numeric: tabular-nums; }
 .bs-prev .price.empty { background: var(--mist); color: var(--ink3); font-size: 13.5px; }
 .bs-sheet-res { margin-top: 16px; }
 .bs-sheet-res .row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line2); font-size: 14.5px; color: var(--ink); }
-.bs-sheet-res .n { flex: none; width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
-.bs-sheet-res .row.ok .n { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.bs-sheet-res .n { flex: none; width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--acc); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+.bs-sheet-res .row.ok .n { background: var(--acc); color: var(--on-ink); box-shadow: none; }
 .bs-sheet-res .row span:nth-child(2) { flex: 1; }
 .bs-sheet-res .st { font-size: 12.5px; font-weight: 600; color: var(--ink); }
 .bs-sheet-res .row.ok .st { color: var(--ink); }

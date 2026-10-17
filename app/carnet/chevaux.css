@@ -9,21 +9,21 @@
 .carnet .ch-ico svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .carnet button.li { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--line2); text-align: left; cursor: pointer; font: inherit; color: inherit; }
 .carnet button.li:last-child { border-bottom: 0; }
-.carnet .ch-after { display: grid; gap: 10px; padding: 14px 18px 0; }
+.carnet .ch-after { display: grid; gap: 10px; padding: 14px var(--gut) 0; }
 .carnet .ch-after .btn { justify-self: stretch; }
 .carnet .btn.ch-tall { height: auto; min-height: 44px; padding: 11px 16px; text-align: center; line-height: 1.3; }
 
 /* ---------- Fiche d'un cheval ---------- */
-.carnet .ch-mnav { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px 0; }
+.carnet .ch-mnav { display: flex; align-items: center; justify-content: space-between; padding: 12px var(--gut) 0; }
 .carnet .ch-mnav b { font-size: 14px; font-weight: 650; }
 .carnet .ch-mnav button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--mist); display: flex; align-items: center; justify-content: center; color: var(--ink); cursor: pointer; padding: 0; }
 .carnet .ch-mnav button svg { width: 18px; height: 18px; }
 .carnet .ch-mnav button[disabled] { opacity: .3; cursor: default; }
-.carnet .ch-tabs { padding: 12px 18px 0; }
+.carnet .ch-tabs { padding: 12px var(--gut) 0; }
 .carnet .note.ch-lead { font-size: 15px; color: var(--ink); margin: 8px 0 12px; }
 .carnet .ticket .r a.lnk { font-size: 12.5px; font-family: var(--mono); }
 .carnet .ticket .r span:last-child { white-space: nowrap; }
-.carnet .ch-leave { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; padding: 22px 18px 0; }
+.carnet .ch-leave { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; padding: 22px var(--gut) 0; }
 .carnet .ch-leave > .note { flex-basis: 100%; text-align: center; }
 .carnet .ch-sejour { max-width: 520px; margin: 0 auto; }
 .carnet .ch-leave .btn.ghost { color: var(--ink3); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
@@ -31,7 +31,7 @@
 .carnet .ch-strip { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 8px; scrollbar-width: thin; }
 .carnet .ch-strip a { display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 24px; box-shadow: inset 0 0 0 1px var(--line); background: var(--sheet); text-decoration: none; font-size: 13.5px; font-weight: 600; white-space: nowrap; }
 .carnet .ch-strip a .face { width: 30px; height: 30px; }
-.carnet .ch-strip a[aria-current="page"] { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .ch-strip a[aria-current="page"] { box-shadow: inset 0 0 0 1.5px var(--acc); }
 .carnet .ch-strip a .pill { font-size: 12px; padding: 2px 7px; }
 
 /* ---------- Les frais communs ---------- */
@@ -49,7 +49,7 @@
 .carnet .ch-search { color: var(--ink3); }
 .carnet .ch-search svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 .carnet .ch-search input { border: 0; background: none; outline: none; font: inherit; font-size: 15px; color: var(--ink); flex: 1; min-width: 0; height: 100%; padding: 0; }
-.carnet .ch-search:focus-within { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .ch-search:focus-within { box-shadow: inset 0 0 0 1.5px var(--acc); }
 .carnet .ch-search input::placeholder { color: var(--ink3); }
 /* Les étiquettes-liens : 32 px de haut et 12 px entre deux rangées, pour que leurs zones de 44 px ne se recouvrent pas. */
 .carnet .ch-tags { display: flex; flex-wrap: wrap; gap: 12px 8px; margin-top: 8px; }
@@ -115,11 +115,11 @@
 .carnet .li .chev, .carnet .ch-mnav svg, .carnet .ch-down svg, .carnet .ch-ico svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 /* ---------- Tes clients : qui te doit quoi ---------- */
-.carnet .cl-ttl { padding: 10px 18px 0; }
+.carnet .cl-ttl { padding: 10px var(--gut) 0; }
 .carnet .cl-ttl :is(h2, h3) { margin: 0; font-size: 24px; font-weight: 760; letter-spacing: -.025em; line-height: 1.05; font-variation-settings: "wdth" 88; }
 .carnet .cl-ttl p { margin: 2px 0 0; font-size: 14px; color: var(--ink2); }
 .carnet .cl-ttl p b { color: var(--ink); font-weight: 760; font-variant-numeric: tabular-nums; }
-.carnet .cl-find { padding: 10px 18px 0; }
+.carnet .cl-find { padding: 10px var(--gut) 0; }
 .carnet .cl-find .ch-search { height: 44px; }
 .carnet .cl-lk { margin: 12px 18px 0; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
 .carnet .cl-rows { padding: 0 18px; }
@@ -134,16 +134,16 @@
 .carnet .cl-amt small { font-size: 12px; color: var(--ink3); }
 .carnet .cl-amt b { font-size: 17px; font-weight: 760; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 /* Les chevaux sans propriétaire : une carte à toucher, sous le titre de Clients. */
-.carnet .cl-row.cl-orph { width: 100%; margin: 12px 0 0; padding: 8px 12px; border: 0; border-radius: 12px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font: inherit; text-align: left; cursor: pointer; }
+.carnet .cl-row.cl-orph { width: 100%; margin: 12px 0 0; padding: 8px 12px; border: 0; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font: inherit; text-align: left; cursor: pointer; }
 .carnet .cl-row.cl-orph .ini svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; }
 .carnet .cl-row.cl-orph .cl-amt b { font-size: 15px; }
 .carnet .ch-desk .cl-row.cl-orph { max-width: 460px; }
 .carnet .cl-ok { font-size: 12.5px; color: var(--ink3); }
 .carnet .cl-vide { padding: 0 18px; }
-.carnet .cl-tools { display: grid; padding: 14px 18px 0; }
-.carnet .cl-fn { margin: 12px 18px 0; font-size: 12.5px; color: var(--ink3); line-height: 1.45; }
+.carnet .cl-tools { display: grid; padding: 14px var(--gut) 0; }
+.carnet .cl-fn { margin: 12px var(--gut) 0; font-size: 12.5px; color: var(--ink3); line-height: 1.45; }
 .carnet .cl-fn .lnk { font-size: 12.5px; }
-.carnet .cl-ban { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; margin: 10px 14px 0; padding: 10px 12px; border-radius: 8px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .cl-ban { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; margin: 10px var(--gut) 0; padding: 10px 12px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .cl-ban .ill { width: 44px; height: 44px; object-fit: contain; }
 .carnet .cl-ban b { display: block; font-size: 15.5px; font-weight: 720; line-height: 1.2; letter-spacing: -.01em; }
 .carnet .cl-ban span { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink2); line-height: 1.35; }
@@ -162,7 +162,7 @@
 .carnet .ch-desk .cl-ras { max-width: 560px; }
 
 /* Fiche du cheval au téléphone : portrait de 104 px à gauche du nom, plus de 180 px au-dessus. */
-.carnet .ch-mtop { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 14px; align-items: center; padding: 14px 18px 0; }
+.carnet .ch-mtop { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 14px; align-items: center; padding: 14px var(--gut) 0; }
 .carnet .ch-mtop .portrait { height: 104px; align-items: center; }
 .carnet .ch-mtop .portrait .disc { width: 104px; height: 104px; margin: 0; }
 .carnet .ch-mtop .hello { padding: 0; }
