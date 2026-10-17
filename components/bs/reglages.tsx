@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Empty, Ic, Sec, Seg, ini } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import type { TeamRole } from "@/lib/domain/types";
+import type { Holding } from "@/lib/domain/registre";
 import { localToday } from "@/lib/utils/local-date";
 
 /**
@@ -149,6 +151,68 @@ export function CategoriesReglages() {
         ))}
         {list.length === 0 && <p className="note">Aucune catégorie ici. Tape un nom au-dessus pour en ajouter une.</p>}
       </div>
+    </Sec>
+  );
+}
+
+/* ---------- Le lieu de détention ---------- */
+type HoldingKey = keyof Holding;
+const LIEU_CHAMPS: { k: HoldingKey; label: string; ph: string; type?: "tel" | "email"; ta?: boolean }[] = [
+  { k: "placeName", label: "Nom du lieu", ph: "le nom de ton écurie" },
+  { k: "placeAddress", label: "Adresse du lieu", ph: "où vivent les chevaux", ta: true },
+  { k: "activity", label: "Activité", ph: "pension, élevage, centre équestre…" },
+  { k: "holderName", label: "Le détenteur", ph: "ton nom ou celui de ta société" },
+  { k: "holderAddress", label: "Adresse du détenteur", ph: "si elle n’est pas celle du lieu", ta: true },
+  { k: "holderPhone", label: "Téléphone", ph: "06…", type: "tel" },
+  { k: "holderEmail", label: "Courriel", ph: "toi@exemple.fr", type: "email" },
+  { k: "holderNumber", label: "Numéro de détenteur", ph: "donné par le SIRE, si tu l’as" },
+  { k: "siret", label: "SIRET", ph: "si tu es professionnel" },
+  { k: "vetTraitant", label: "Vétérinaire traitant", ph: "nom, cabinet, téléphone" },
+  { k: "vetSanitaire", label: "Vétérinaire sanitaire", ph: "obligatoire dès 3 chevaux" },
+];
+
+/**
+ * « Ton lieu de détention » : ce que le registre d'élevage met en tête
+ * (le lieu, le détenteur, les vétérinaires). Tout est facultatif, chaque
+ * champ s'enregistre quand on le quitte.
+ */
+export function LieuReglages() {
+  const holding = useDataStore((s) => s.holding) ?? {};
+  const setHolding = useDataStore((s) => s.setHolding);
+  // Venu du registre (« Adresse du lieu à compléter ») : la partie s'ouvre.
+  const [open, setOpen] = useState(() => typeof window !== "undefined" && window.location.hash === "#lieu");
+  const filled = LIEU_CHAMPS.filter((c) => holding[c.k]?.trim()).length;
+  return (
+    <Sec title="Ton lieu de détention" delay={0.22} id="lieu">
+      <p className="note">Pour le registre d’élevage : le lieu où vivent les chevaux, qui en a la garde, et tes vétérinaires.</p>
+      <button type="button" className="li np" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <span>
+          <b>{open ? "Replier" : filled ? "Modifier" : "Remplir"}</b>
+          <small>{filled ? `${filled} info${filled > 1 ? "s" : ""} sur ${LIEU_CHAMPS.length}` : "rien de noté pour l’instant"}</small>
+        </span>
+        <Ic n="chev" className={`chev rg-rot${open ? " on" : ""}`} />
+      </button>
+      {open && (
+        <div className="rg-lieu">
+          {LIEU_CHAMPS.map((c) => (
+            <label key={c.k} className="field">
+              <span>{c.label}</span>
+              {c.ta ? (
+                <textarea className="input ta" rows={2} defaultValue={holding[c.k] ?? ""} placeholder={c.ph} onBlur={(e) => setHolding({ [c.k]: e.target.value })} />
+              ) : (
+                <input className="input" type={c.type ?? "text"} defaultValue={holding[c.k] ?? ""} placeholder={c.ph} autoComplete="off" onBlur={(e) => setHolding({ [c.k]: e.target.value })} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
+              )}
+            </label>
+          ))}
+        </div>
+      )}
+      <Link href="/registre" className="li np">
+        <span>
+          <b>Le registre d’élevage</b>
+          <small>à imprimer et garder chaque trimestre</small>
+        </span>
+        <Ic n="chev" className="chev" />
+      </Link>
     </Sec>
   );
 }

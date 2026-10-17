@@ -8,7 +8,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
 import { useDesk } from "@/components/bs/desk";
 import { Hello, Ic, Sec, Switch, ini } from "@/components/carnet/ui";
-import { CategoriesReglages, EquipeReglages } from "@/components/bs/reglages";
+import { CategoriesReglages, EquipeReglages, LieuReglages } from "@/components/bs/reglages";
 import { api } from "@/lib/account/api";
 import { getSession, leave } from "@/lib/account/session";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
@@ -277,6 +277,7 @@ function Moi() {
             <div>
               {compte}
               {ecurie}
+              <LieuReglages />
               <EquipeReglages />
               <CategoriesReglages />
             </div>
@@ -292,6 +293,7 @@ function Moi() {
           <>
             {compte}
             {ecurie}
+            <LieuReglages />
             <EquipeReglages />
             {rappel}
             {premiers}

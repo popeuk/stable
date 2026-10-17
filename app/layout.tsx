@@ -16,6 +16,7 @@ import "./carnet/accueil2.css";
 import "./carnet/client.css";
 import "./carnet/proprio.css";
 import "./carnet/facture.css";
+import "./carnet/registre.css";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
