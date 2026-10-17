@@ -55,3 +55,35 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # L'app pour le VPS (app.bestable.fr), servie à la racine du domaine. Le
+  # résultat part sur la branche « vps » ; le VPS la relit toutes les 2 minutes
+  # (/usr/local/bin/bestable-app-maj) et garde les 5 versions précédentes.
+  vps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Build static export (the app at the root of app.bestable.fr)
+        run: npm run build
+        env:
+          DEPLOY_TARGET: pages
+          PAGES_BASE: ""
+          NEXT_PUBLIC_BASE_PATH: ""
+      - name: Publish to the vps branch
+        run: |
+          cd out
+          echo "${GITHUB_SHA}" > VERSION
+          git init -q -b vps
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "App ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" vps
