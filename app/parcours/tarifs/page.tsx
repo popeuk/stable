@@ -31,7 +31,7 @@ function Tarifs() {
   const { pass } = useParcours();
   const month = localToday().slice(0, 7);
   const missing = horses.filter((h) => !h.pension).length;
-  // Des chevaux venus d'un nombre partagent une pension : elle est déjà réglée.
+  // Des chevaux venus d'un nombre partagent une pension : elle est déjà fixée.
   const [commune, setCommune] = useState(() => pensionCommune(useDataStore.getState()));
 
   return (
@@ -40,7 +40,7 @@ function Tarifs() {
         retour={retour}
         n={2}
         title="Tes tarifs"
-        sub={commune !== null ? "Ta pension est réglée. Ajoute le prix de tes cours, si tu en donnes." : "Ce que chaque propriétaire te paie par mois. Ensuite, la pension est comptée toute seule chaque mois."}
+        sub={commune !== null ? "Ta pension est fixée. Ajoute le prix de tes cours, si tu en donnes." : "Ce que chaque propriétaire te paie par mois. Ensuite, la pension est comptée toute seule chaque mois."}
       />
       {commune !== null ? (
         <>
@@ -51,14 +51,14 @@ function Tarifs() {
               </span>
               <span>
                 <b>La pension</b>
-                <small className="ar-set">Réglée pour {horses.length > 1 ? `tes ${horses.length} chevaux` : "ton cheval"}</small>
+                <small className="ar-set">Prix fixé pour {horses.length > 1 ? `tes ${horses.length} chevaux` : "ton cheval"}</small>
               </span>
               <input className="inl" inputMode="decimal" defaultValue={montantEnTexte(commune)} placeholder="0" aria-label="Pension de chaque cheval, euros par mois" onChange={(e) => changerPensionCommune(montantOuZero(e.target.value))} />
               <i>€</i>
             </div>
           </div>
           <button type="button" className="ar-alt" onClick={() => setCommune(null)}>
-            Régler la pension cheval par cheval
+            Fixer la pension cheval par cheval
           </button>
         </>
       ) : (

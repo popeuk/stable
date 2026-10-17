@@ -51,9 +51,9 @@ const AIDES: Record<string, Aide> = {
   },
   ticket: {
     id: "ticket",
-    titre: "Le ticket d’un cheval",
+    titre: "La fiche du cheval",
     points: [
-      "Comme un ticket de caisse : ce qu’on te paie pour lui en haut, ce qu’il coûte en dessous, ce qu’il te laisse tout en bas.",
+      "Ce qu’on te paie pour lui en haut, ce qu’il coûte en dessous, ce qu’il te laisse tout en bas.",
       "Sa part des frais communs, c’est le foin, la paille, le loyer… partagés entre tous tes chevaux.",
       "Son carnet garde ses soins et ce qui arrive bientôt : vermifuge, maréchal, vaccins.",
     ],
@@ -96,7 +96,7 @@ const AIDES: Record<string, Aide> = {
     titre: "Tes dépenses",
     points: [
       "Tout ce que tu as payé ce mois.",
-      "Une dépense pour un cheval va sur son ticket. Une dépense commune (foin, loyer…) se partage entre tous.",
+      "Une dépense pour un cheval va sur sa fiche. Une dépense commune (foin, loyer…) se partage entre tous.",
     ],
   },
   equipe: {
@@ -154,9 +154,14 @@ const AIDES: Record<string, Aide> = {
   },
 };
 
-/** L'aide d'un écran, d'après son adresse (« /argent?vue=… » compte comme « argent »). */
+/**
+ * L'aide d'un écran, d'après son adresse (« /argent?vue=… » compte comme
+ * « argent »). L'écran Clients a deux onglets : « /chevaux » ouvre Clients
+ * (son aide à lui), « /chevaux?vue=chevaux » ouvre Chevaux.
+ */
 export function aidePour(path: string): Aide | undefined {
   const seg = path.replace(/^\/+/, "").split(/[/?#]/)[0];
+  if (seg === "chevaux") return /[?&]vue=chevaux\b/.test(path) ? AIDES.chevaux : AIDES.clients;
   return AIDES[seg];
 }
 

@@ -356,7 +356,7 @@ function Mois() {
             <Ic n="hay" className="ar-ic" />
           </span>
           <span>
-            <span className="k">Le pot commun</span>
+            <span className="k">Les frais partagés</span>
             <b>
               Comment le foin et le loyer se partagent entre {m.horseCount > 1 ? `tes ${m.horseCount} chevaux` : "tes chevaux"}
             </b>
@@ -720,7 +720,7 @@ function Mouvements() {
               <span style={{ minWidth: 0 }}>
                 <b>{r.label}</b>
                 <small>
-                  {freqLabel(r.frequency)} · {r.isShared ? "pot commun" : `pour ${name(r.horseId ?? "") || "1 cheval"}`}
+                  {freqLabel(r.frequency)} · {r.isShared ? "frais partagés" : `pour ${name(r.horseId ?? "") || "1 cheval"}`}
                   {r.endDate ? ` · jusqu’au ${shortDate(r.endDate)}` : ""}
                 </small>
               </span>

@@ -3,13 +3,17 @@
 import { useState, type ReactNode } from "react";
 import { Promo } from "@/components/carnet/ui";
 import { getSession, type Session } from "@/lib/account/session";
+import { premiersJours } from "@/components/bs/compte";
 
 /**
  * L'encart mon-ecurie.fr de l'accueil : de la promo assumée, réduite et
  * toujours en dernier, jamais dans l'écurie d'exemple. Le message suit où en est le gérant : pas encore de fiche (la
  * reprendre), fiche en vérification (préparer la suite), fiche en ligne (la
  * tenir à jour). Rien de promis que le site ne tient pas : un annuaire,
- * gratuit, sans commission. « Plus tard » le cache quinze jours. En tête,
+ * gratuit, sans commission. « Plus tard » le cache quinze jours. Il attend
+ * les 30 premiers jours d'usage : le gérant découvre d'abord son écurie
+ * (le premier jour d'usage noté sur l'appareil, le même que celui de
+ * l'indice « Pas eu lieu ? », components/bs/compte.tsx). En tête,
  * la marque telle que sur le site : la rosette et « mon écurie, par Be Stable ».
  */
 const KEY = "be-stable-promo-mon-ecurie";
@@ -26,7 +30,11 @@ function enPause() {
 
 export function PromoMonEcurie({ small }: { small?: boolean }) {
   // L'accueil n'est rendu que dans le navigateur (ClientGate) : on lit tout de suite.
-  const [etat, setEtat] = useState<{ s: Session | null; cache: boolean }>(() => ({ s: getSession(), cache: enPause() }));
+  const [etat, setEtat] = useState<{ s: Session | null; cache: boolean }>(() => {
+    const s = getSession();
+    // L'écurie d'exemple ne lance pas le compte des 30 jours.
+    return { s, cache: enPause() || (s?.kind !== "demo" && premiersJours(30)) };
+  });
   // L'écurie d'exemple n'a pas de fiche à reprendre : pas d'encart.
   if (etat.cache || etat.s?.kind === "demo") return null;
 

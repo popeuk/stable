@@ -11,8 +11,9 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { localToday } from "@/lib/utils/local-date";
 
 /**
- * « Tes chiffres sont là. Garde-les. » : le bandeau discret de l'écurie
- * essayée sans compte, au-dessus de la barre du bas. Il se montre une fois
+ * « Tes chiffres sont sur ce téléphone seulement. Garde-les avec ton
+ * e-mail. » : le bandeau discret de l'écurie essayée sans compte, qui dit
+ * franchement où sont les chiffres tant qu'il n'y a pas de compte, au-dessus de la barre du bas. Il se montre une fois
  * les trois premiers obstacles passés (chevaux, tarifs, frais), pas avant.
  * Fermé, il revient le lendemain. Rien hors de la session locale.
  * À poser une fois dans app/(app)/layout.tsx.
@@ -52,7 +53,7 @@ export function GarderBandeau() {
   return (
     <div className="es-keep" role="region" aria-label="Garder mes chiffres">
       <span>
-        <b>Tes chiffres sont là.</b> Garde-les.
+        <b>Tes chiffres sont sur ce téléphone seulement.</b> Garde-les avec ton e-mail.
       </span>
       <Link href="/compte/connexion?garder=1" className="btn">
         Garder mes chiffres

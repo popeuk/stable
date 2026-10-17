@@ -569,7 +569,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
               <th>Propriétaire</th>
               <th className="n">Ce qu’on te paie</th>
               <th className="n">Soins et frais</th>
-              <th className="n">Part du pot commun</th>
+              <th className="n">Part des frais partagés</th>
               <th className="n">Ce qu’il te laisse</th>
               <th>À prévoir</th>
             </tr>
@@ -626,7 +626,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
         {rows.length === 0 && (horses.length ? <p className="note">Aucun cheval dans ce filtre.</p> : <Empty ill="vide-ecurie">Aucun cheval pour l’instant. Ajoute le premier avec le bouton en haut.</Empty>)}
         <Partis />
         <p className="ch-fn">
-          «&nbsp;Ce qu’il te laisse&nbsp;» : ce qu’on te paie pour lui, moins ses soins et ses frais, moins sa part du pot commun (foin, salaires, loyer…){horses.length ? `, ${eur(each)} par cheval ce mois` : ""}.
+          «&nbsp;Ce qu’il te laisse&nbsp;» : ce qu’on te paie pour lui, moins ses soins et ses frais, moins sa part des frais partagés (foin, salaires, loyer…){horses.length ? `, ${eur(each)} par cheval ce mois` : ""}.
         </p>
       </Ecran>
     );
@@ -648,7 +648,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
             </span>{" "}
             ce mois.
           </h2>
-          <p>Une fois leurs soins et leur part des frais communs payés. Touche un cheval pour voir son ticket.</p>
+          <p>Une fois leurs soins et leur part des frais communs payés. Touche un cheval pour ouvrir sa fiche.</p>
         </div>
       )}
       <ASurveiller delay={0.12} />

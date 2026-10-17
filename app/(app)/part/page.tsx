@@ -9,7 +9,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 
-/** Le pot commun, expliqué une fois, avec les chiffres de l'écurie. */
+/** Les frais partagés, expliqués une fois, avec les chiffres de l'écurie. */
 export default function Page() {
   return (
     <ClientGate>
@@ -35,10 +35,10 @@ function Part() {
   return (
     <Ecran wide={desk} className={desk ? "ch-desk ch-narrow" : undefined}>
       <div className="hello rise" style={{ animationDelay: ".04s" }}>
-        <h2>Le pot commun, c’est quoi&nbsp;?</h2>
+        <h2>Les frais partagés, c’est quoi&nbsp;?</h2>
         <p>Ce sont les dépenses qui servent à toute l’écurie (foin, paille, loyer, salaires…), pas à un cheval en particulier. Chaque cheval en paie un morceau : c’est sa part.</p>
       </div>
-      <Sec ill="brouette" title={`Le pot ${du}`} delay={0.12} />
+      <Sec ill="brouette" title={`Les frais partagés ${du}`} delay={0.12} />
       <div className="pad rise" style={{ animationDelay: ".18s", paddingTop: 12 }}>
         {m.shared.length === 0 ? (
           <p className="note">Aucun frais commun noté ce mois pour l’instant.</p>
