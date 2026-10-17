@@ -2,6 +2,7 @@
 
 import { getSession, scopedKey } from "@/lib/account/session";
 import { fusionFactures } from "@/lib/domain/facture";
+import { fusionner3 } from "@/lib/account/fusion";
 import type { StableData } from "@/lib/domain/types";
 
 /**
@@ -115,6 +116,17 @@ function majTiroir(nom: Nom, patch: Partial<EtatTiroir>) {
   ecrireEtat(e);
 }
 
+/**
+ * La dernière version commune avec le serveur, telle qu'elle est rangée
+ * (chiffrée) : c'est la base de la fusion quand les deux côtés ont changé.
+ */
+const cleBase = (nom: Nom) => scopedKey(`bs-nuage-base:${nom}`);
+function garderBase(nom: Nom, raw: string) {
+  try {
+    localStorage.setItem(cleBase(nom), raw);
+  } catch {}
+}
+
 function appareil(): string {
   try {
     let id = localStorage.getItem("bs-appareil");
@@ -154,8 +166,37 @@ async function appel(method: "GET" | "PUT" | "POST", body?: unknown): Promise<{ 
   }
 }
 
+/**
+ * Les tiroirs remplacés par la copie en ligne que l'écran n'a pas encore
+ * relus. Tant qu'ils ne sont pas relus, l'app a encore les anciennes données
+ * en mémoire : une écriture faite d'ici là (l'autopilote au retour sur
+ * l'app) effacerait ce qui vient d'arriver. Le coffre l'ignore donc
+ * (`ecritureBloquee`), jusqu'à la relecture (`relu`).
+ */
+const aRelire = new Set<string>();
+function marquerARelire(nom: Nom) {
+  aRelire.add(scopedKey(nom));
+}
+export function ecritureBloquee(nom: string): boolean {
+  return aRelire.has(scopedKey(nom));
+}
+export function relu(nom: string) {
+  aRelire.delete(scopedKey(nom));
+}
+
+/** Les écritures en train d'être notées (pour attendre qu'elles le soient). */
+const notes = new Set<Promise<void>>();
+export async function notesFaites(): Promise<void> {
+  while (notes.size) await Promise.all([...notes]);
+}
+
 /** Le coffre vient d'écrire un tiroir : s'il a changé, on l'enverra. */
-export async function noterEcriture(nom: string, clair: string): Promise<void> {
+export function noterEcriture(nom: string, clair: string): Promise<void> {
+  const p = noter(nom, clair).finally(() => notes.delete(p));
+  notes.add(p);
+  return p;
+}
+async function noter(nom: string, clair: string): Promise<void> {
   if (!estNom(nom) || !actif()) return;
   const h = await empreinte(clair);
   const e = lireEtat()[nom];
@@ -175,11 +216,21 @@ export function planifierEnvoi(ms = 4000) {
 
 /**
  * Le choix entre la copie de l'appareil et celle du serveur. Pur : rend
- * le contenu à garder, et qui a gagné. Les factures des deux côtés restent.
+ * le contenu à garder, et qui a gagné. Avec la dernière version commune,
+ * les deux côtés se fusionnent (lib/account/fusion) : ce que chacun a
+ * changé reste, le plus récent ne l'emporte que là où les deux ont changé
+ * la même chose. Sans elle (appareil jamais aligné), la copie en ligne
+ * gagne. Les factures des deux côtés restent toujours.
  */
-export function departager(nom: string, locale: { clair: string; modifie?: string; vu?: boolean }, distant: { clair: string; modifie: string }): { gagnant: "locale" | "distant"; clair: string } {
+export function departager(
+  nom: string,
+  locale: { clair: string; modifie?: string; vu?: boolean },
+  distant: { clair: string; modifie: string },
+  base: string | null = null,
+): { gagnant: "locale" | "distant"; clair: string; fusion: boolean } {
   const distantGagne = !locale.vu || !locale.modifie || Date.parse(distant.modifie) >= Date.parse(locale.modifie);
-  const [g, p] = distantGagne ? [distant.clair, locale.clair] : [locale.clair, distant.clair];
+  const fusion = locale.vu && base !== null ? fusionner3(base, locale.clair, distant.clair, !distantGagne) : null;
+  const [g, p] = fusion !== null ? [fusion, distant.clair] : distantGagne ? [distant.clair, locale.clair] : [locale.clair, distant.clair];
   let clair = g;
   if (nom === "be-stable-data") {
     try {
@@ -195,7 +246,8 @@ export function departager(nom: string, locale: { clair: string; modifie?: strin
       // Un des deux ne se lit pas : on garde le gagnant tel quel.
     }
   }
-  return { gagnant: distantGagne ? "distant" : "locale", clair };
+  if (fusion !== null) return { gagnant: clair === distant.clair ? "distant" : "locale", clair, fusion: true };
+  return { gagnant: distantGagne ? "distant" : "locale", clair, fusion: false };
 }
 
 /** Le serveur a une version que l'appareil n'a pas : on l'aligne. Rend true si l'appareil a changé. */
@@ -215,28 +267,36 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
   }
   const clairL = simple ? null : await coffre.lire(nom);
   if (clairL === null) {
+    marquerARelire(nom);
     try {
       localStorage.setItem(scopedKey(nom), d.contenu);
     } catch {
+      relu(nom);
       return false;
     }
+    garderBase(nom, d.contenu);
     const h = await empreinte(clairD);
     majTiroir(nom, { rev: d.rev, empreinte: h, locale: h, sale: false, vu: true, modifie: d.modifie });
     return true;
   }
-  const choix = departager(nom, { clair: clairL, modifie: e.modifie, vu: e.vu }, { clair: clairD, modifie: d.modifie });
+  const baseRaw = localStorage.getItem(cleBase(nom));
+  const base = baseRaw ? await coffre.ouvrir(baseRaw) : null;
+  const choix = departager(nom, { clair: clairL, modifie: e.modifie, vu: e.vu }, { clair: clairD, modifie: d.modifie }, base);
   if (choix.gagnant === "distant") {
-    // La copie de l'appareil est gardée sur le serveur avant d'être remplacée.
-    if (clairL !== clairD) {
+    // Sans fusion, la copie de l'appareil est gardée sur le serveur avant d'être remplacée.
+    if (!choix.fusion && clairL !== clairD) {
       const raw = localStorage.getItem(scopedKey(nom));
       if (raw) await appel("POST", { nom, contenu: raw, rev: e.rev, modifie: e.modifie, appareil: appareil(), garder: true });
     }
     if (choix.clair === clairD) {
+      marquerARelire(nom);
       try {
         localStorage.setItem(scopedKey(nom), d.contenu);
       } catch {
+        relu(nom);
         return false;
       }
+      garderBase(nom, d.contenu);
       const h = await empreinte(clairD);
       majTiroir(nom, { rev: d.rev, empreinte: h, locale: h, sale: false, vu: true, modifie: d.modifie });
       return true;
@@ -244,7 +304,11 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
   }
   // L'appareil gagne, ou la copie gagnante reçoit des factures de l'autre : on l'écrit et on l'envoie.
   majTiroir(nom, { rev: d.rev, vu: true, empreinte: await empreinte(clairD) });
-  if (choix.clair !== clairL) await coffre.ecrire(nom, choix.clair);
+  garderBase(nom, d.contenu);
+  if (choix.clair !== clairL) {
+    marquerARelire(nom);
+    await coffre.ecrire(nom, choix.clair);
+  }
   majTiroir(nom, { sale: true, locale: await empreinte(choix.clair), modifie: new Date().toISOString() });
   return choix.clair !== clairL;
 }
@@ -260,6 +324,7 @@ export async function envoyer(): Promise<void> {
     const envoye = e.locale;
     const r = await appel("PUT", { nom, contenu: raw, rev: e.rev, modifie: e.modifie ?? new Date().toISOString(), appareil: appareil() });
     if (r.status === 200 && typeof r.json.rev === "number") {
+      garderBase(nom, raw);
       const now = lireEtat()[nom];
       const toujours = now?.locale === envoye;
       majTiroir(nom, { rev: r.json.rev, vu: true, ...(toujours ? { sale: false, empreinte: envoye } : {}) });
@@ -343,6 +408,7 @@ function notifier(noms: Set<string>) {
 
 /** Pour les tests. */
 export function _reinitialiser() {
+  aRelire.clear();
   tire = false;
   enCours = null;
   derniere = null;

@@ -66,7 +66,13 @@ function appareil() {
     },
   };
 }
-const attendre = () => new Promise((r) => setTimeout(r, 0));
+const attendre = () => nuage.notesFaites();
+/** Une synchronisation suivie de la relecture des tiroirs par l'écran, comme dans l'app. */
+const sync = async () => {
+  const c = await nuage.synchroniser();
+  for (const n of nuage.TIROIRS) await vault.getItem(n);
+  return c;
+};
 const donnees = (horses: string[], invoices: { id: string; year: number; seq: number }[] = []) => JSON.stringify({ state: { horses, invoices, invoiceSeq: {} }, version: 5 });
 const lire = async () => JSON.parse((await vault.getItem("be-stable-data")) as string).state;
 
@@ -80,7 +86,7 @@ describe("la copie en ligne des tiroirs", () => {
   it("un téléphone neuf retrouve les chevaux de l'ordinateur", async () => {
     const pc = appareil();
     pc.entrer();
-    await nuage.synchroniser();
+    await sync();
     await vault.setItem("be-stable-data", donnees(["Sirius"]));
     await attendre();
     await nuage.envoyer();
@@ -90,7 +96,7 @@ describe("la copie en ligne des tiroirs", () => {
 
     const tel = appareil();
     tel.entrer();
-    const changes = await nuage.synchroniser();
+    const changes = await sync();
     expect(changes.has("be-stable-data")).toBe(true);
     expect((await lire()).horses).toEqual(["Sirius"]);
   });
@@ -107,7 +113,7 @@ describe("la copie en ligne des tiroirs", () => {
   it("un appareil neuf ne remplace jamais la copie en ligne, et sa version est gardée", async () => {
     const pc = appareil();
     pc.entrer();
-    await nuage.synchroniser();
+    await sync();
     await vault.setItem("be-stable-data", donnees(["Sirius", "Opale"]));
     await attendre();
     await nuage.envoyer();
@@ -117,7 +123,7 @@ describe("la copie en ligne des tiroirs", () => {
     // L'app ouverte écrit une écurie vide avant d'avoir lu le serveur.
     await vault.setItem("be-stable-data", donnees([]));
     await attendre();
-    await nuage.synchroniser();
+    await sync();
     expect((await lire()).horses).toEqual(["Sirius", "Opale"]);
     expect(serveur.tiroirs.get("be-stable-data")?.rev).toBe(1);
     expect(serveur.versions.some((v) => v.raison === "conflit")).toBe(true);
@@ -127,37 +133,37 @@ describe("la copie en ligne des tiroirs", () => {
     const pc = appareil();
     const tel = appareil();
     pc.entrer();
-    await nuage.synchroniser();
+    await sync();
     await vault.setItem("be-stable-data", donnees(["Sirius"]));
     await attendre();
     await nuage.envoyer();
     tel.entrer();
-    await nuage.synchroniser();
+    await sync();
 
     // Hors ligne : le PC modifie d'abord, le téléphone ensuite.
     pc.entrer();
     nuage._reinitialiser();
-    await nuage.synchroniser();
+    await sync();
     await vault.setItem("be-stable-data", donnees(["Sirius", "Opale"]));
     await attendre();
     await new Promise((r) => setTimeout(r, 5));
     tel.entrer();
-    await nuage.synchroniser();
+    await sync();
     await vault.setItem("be-stable-data", donnees(["Sirius", "Tango"]));
     await attendre();
 
     pc.entrer();
-    await nuage.synchroniser();
+    await sync();
     expect(serveur.tiroirs.get("be-stable-data")?.rev).toBe(2);
 
     tel.entrer();
-    await nuage.synchroniser();
+    await sync();
     expect((await lire()).horses).toEqual(["Sirius", "Tango"]);
     expect(serveur.tiroirs.get("be-stable-data")?.rev).toBe(3);
     expect(serveur.versions.length).toBeGreaterThan(0);
 
     pc.entrer();
-    await nuage.synchroniser();
+    await sync();
     expect((await lire()).horses).toEqual(["Sirius", "Tango"]);
   });
 
@@ -165,37 +171,99 @@ describe("la copie en ligne des tiroirs", () => {
     const pc = appareil();
     const tel = appareil();
     pc.entrer();
-    await nuage.synchroniser();
+    await sync();
     await vault.setItem("be-stable-data", donnees(["Sirius"]));
     await attendre();
     await nuage.envoyer();
     tel.entrer();
-    await nuage.synchroniser();
+    await sync();
 
     pc.entrer();
-    await nuage.synchroniser();
+    await sync();
     await vault.setItem("be-stable-data", donnees(["Sirius"], [{ id: "f-pc", year: 2026, seq: 1 }]));
     await attendre();
     await new Promise((r) => setTimeout(r, 5));
     tel.entrer();
-    await nuage.synchroniser();
+    await sync();
     await vault.setItem("be-stable-data", donnees(["Sirius"], [{ id: "f-tel", year: 2026, seq: 2 }]));
     await attendre();
 
     pc.entrer();
-    await nuage.synchroniser();
+    await sync();
     tel.entrer();
-    await nuage.synchroniser();
+    await sync();
     const st = await lire();
     expect(st.invoices.map((i: { id: string }) => i.id).sort()).toEqual(["f-pc", "f-tel"]);
     expect(st.invoiceSeq).toEqual({ "2026": 2 });
+  });
+
+  it("une écriture automatique sur un appareil en retard n'efface pas ce qui a été saisi ailleurs", async () => {
+    const pc = appareil();
+    const tel = appareil();
+    const etat = (horses: string[], extra: Record<string, unknown> = {}) => JSON.stringify({ state: { horses: horses.map((n) => ({ id: n, name: n })), invoices: [], invoiceSeq: {}, ...extra }, version: 5 });
+    const noms = async () => (await lire()).horses.map((h: { name: string }) => h.name);
+    pc.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", etat(["Sirius"], { compte: 0 }));
+    await attendre();
+    await nuage.envoyer();
+    tel.entrer();
+    await sync();
+
+    // Le téléphone ajoute un cheval et l'envoie.
+    await vault.setItem("be-stable-data", etat(["Sirius", "Opale"], { compte: 0 }));
+    await attendre();
+    await nuage.envoyer();
+
+    // Plus tard, l'ordinateur revient au premier plan : l'autopilote écrit sur ses données d'avant.
+    await new Promise((r) => setTimeout(r, 5));
+    pc.entrer();
+    await vault.setItem("be-stable-data", etat(["Sirius"], { compte: 1 }));
+    await attendre();
+    await sync();
+
+    expect(await noms()).toEqual(["Sirius", "Opale"]);
+    expect((await lire()).compte).toBe(1);
+    tel.entrer();
+    await sync();
+    expect(await noms()).toEqual(["Sirius", "Opale"]);
+    expect((await lire()).compte).toBe(1);
+  });
+
+  it("une écriture faite avant que l'écran ait relu la copie arrivée est ignorée", async () => {
+    const pc = appareil();
+    const tel = appareil();
+    const etat = (horses: string[]) => JSON.stringify({ state: { horses: horses.map((n) => ({ id: n, name: n })), invoices: [], invoiceSeq: {} }, version: 5 });
+    pc.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", etat(["Sirius"]));
+    await attendre();
+    await nuage.envoyer();
+    tel.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", etat(["Sirius", "Opale"]));
+    await attendre();
+    await nuage.envoyer();
+
+    pc.entrer();
+    await nuage.synchroniser();
+    // L'écran a encore l'ancienne écurie en mémoire et l'écrit avant de relire.
+    await vault.setItem("be-stable-data", etat(["Sirius"]));
+    await attendre();
+    await nuage.envoyer();
+    const st = await lire();
+    expect(st.horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
+    // Relue, l'écran écrit de nouveau normalement.
+    await vault.setItem("be-stable-data", etat(["Sirius", "Opale", "Tango"]));
+    await attendre();
+    expect((await lire()).horses.length).toBe(3);
   });
 
   it("éteinte, la copie en ligne ne contacte pas le serveur", async () => {
     const pc = appareil();
     pc.entrer();
     pc.m.removeItem("bs-nuage");
-    await nuage.synchroniser();
+    await sync();
     await vault.setItem("be-stable-data", donnees(["Sirius"]));
     await attendre();
     await nuage.envoyer();

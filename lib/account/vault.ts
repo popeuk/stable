@@ -2,7 +2,7 @@
 
 import type { StateStorage } from "zustand/middleware";
 import { getSession, LOCALE_SCOPE, scopedKey } from "@/lib/account/session";
-import { brancherCoffre, noterEcriture } from "@/lib/account/nuage";
+import { brancherCoffre, ecritureBloquee, noterEcriture, relu } from "@/lib/account/nuage";
 
 /**
  * Le coffre de l'appareil : le stockage des données de gestion, rangé par
@@ -55,41 +55,56 @@ export function wasFresh(name: string) {
   return fresh.has(name);
 }
 
+/** Écrit un tiroir (chiffré pour un compte), les écritures d'un même tiroir l'une après l'autre. */
+function ecrire(name: string, value: string): Promise<void> | undefined {
+  const s = getSession();
+  if (!s) return;
+  const k = scopedKey(name, s);
+  const run = async () => {
+    const key = s.kind === "compte" ? await accountKey() : null;
+    if (s.kind === "compte" && !key) return;
+    localStorage.setItem(k, key ? await seal(value, key) : value);
+    // Un compte : la copie en ligne suivra (lib/account/nuage).
+    if (key) void noterEcriture(name, value);
+  };
+  const next = (queue.get(k) ?? Promise.resolve()).then(run, run);
+  queue.set(k, next);
+  return next;
+}
+
+async function lire(name: string): Promise<string | null> {
+  const s = getSession();
+  if (!s) return null;
+  const raw = localStorage.getItem(scopedKey(name, s));
+  if (raw === null) {
+    fresh.add(name);
+    return null;
+  }
+  // Lu plein : il n'est plus « vide à l'ouverture » (une relecture ne doit pas le vider).
+  fresh.delete(name);
+  if (!raw.startsWith(PREFIX)) return raw;
+  const key = await accountKey();
+  if (!key) return null;
+  try {
+    return await open(raw, key);
+  } catch {
+    // Clé différente (autre compte, données abîmées) : on ne lit rien.
+    return null;
+  }
+}
+
 export const vault: StateStorage = {
   async getItem(name) {
-    const s = getSession();
-    if (!s) return null;
-    const raw = localStorage.getItem(scopedKey(name, s));
-    if (raw === null) {
-      fresh.add(name);
-      return null;
-    }
-    // Lu plein : il n'est plus « vide à l'ouverture » (une relecture ne doit pas le vider).
-    fresh.delete(name);
-    if (!raw.startsWith(PREFIX)) return raw;
-    const key = await accountKey();
-    if (!key) return null;
-    try {
-      return await open(raw, key);
-    } catch {
-      // Clé différente (autre compte, données abîmées) : on ne lit rien.
-      return null;
-    }
+    const v = await lire(name);
+    // L'écran relit ce tiroir : ses prochaines écritures partent des bonnes données.
+    relu(name);
+    return v;
   },
   setItem(name, value) {
-    const s = getSession();
-    if (!s) return;
-    const k = scopedKey(name, s);
-    const run = async () => {
-      const key = s.kind === "compte" ? await accountKey() : null;
-      if (s.kind === "compte" && !key) return;
-      localStorage.setItem(k, key ? await seal(value, key) : value);
-      // Un compte : la copie en ligne suivra (lib/account/nuage).
-      if (key) void noterEcriture(name, value);
-    };
-    const next = (queue.get(k) ?? Promise.resolve()).then(run, run);
-    queue.set(k, next);
-    return next;
+    // La copie en ligne vient de remplacer ce tiroir et l'écran ne l'a pas encore relu :
+    // cette écriture vient d'anciennes données, elle effacerait ce qui est arrivé.
+    if (ecritureBloquee(name)) return;
+    return ecrire(name, value);
   },
   removeItem(name) {
     localStorage.removeItem(scopedKey(name));
@@ -130,7 +145,7 @@ brancherCoffre({
   lire: relireTiroir,
   ouvrir: ouvrirScelle,
   ecrire: async (name, clair) => {
-    await vault.setItem(name, clair);
+    await ecrire(name, clair);
   },
 });
 
