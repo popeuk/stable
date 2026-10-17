@@ -141,3 +141,22 @@ describe("la voix : tous les chevaux, les centimes, les milliers (P2-11)", () =>
     expect(comprendre("Rendez-vous banque le 12", ctx2).amount).toBeUndefined();
   });
 });
+
+describe("la voix comprend le cavalier nommé et « à refacturer » (P3 recette 2)", () => {
+  const ctx = { ...CTX, people: [{ name: "Emma B." }, { name: "Hugo L." }, { name: "Pacha" }] };
+  it("« Cours collectif demain 18 h avec Emma » inscrit Emma", () => {
+    const c = comprendre("Cours collectif demain 18 h avec Emma", ctx);
+    expect(c).toMatchObject({ type: "seance", prestationId: "prest-cours", format: "collectif", cavaliers: ["Emma B."] });
+  });
+  it("un nom de cheval n'est pas un cavalier", () => {
+    expect(comprendre("Cours collectif avec Pacha", ctx).cavaliers).toBeUndefined();
+  });
+  it("« Véto Diva 120 € à refacturer » : le soin est refacturé, le nom reste propre", () => {
+    const c = comprendre("Véto Diva 120 € à refacturer", ctx);
+    expect(c).toMatchObject({ type: "soin", care: "veto", amount: 120, horseIds: ["h-diva"], refacturer: true });
+    expect(nomDit("Ostéo de Diva refacturé", CTX.horses)).toBe("Ostéo");
+  });
+  it("sans ces mots, rien ne change", () => {
+    expect(comprendre("Véto Diva 120 €", ctx).refacturer).toBeUndefined();
+  });
+});

@@ -173,7 +173,7 @@ function NoterInner() {
   function understand(text: string) {
     const t = text.trim();
     if (!t) return;
-    const c = comprendre(t, { today, horses: horses.map((x) => ({ id: x.id, name: x.name })), prestations: (data.prestations ?? []).filter((p) => p.active) });
+    const c = comprendre(t, { today, horses: horses.map((x) => ({ id: x.id, name: x.name })), prestations: (data.prestations ?? []).filter((p) => p.active), people: (data.people ?? []).filter((p) => p.active) });
     const nd = draftFromCompris(c, h, today);
     if (!nd.horseIds.length && carry.length && (nd.type === "soin" || nd.type === "argent")) {
       nd.horseIds = carry;

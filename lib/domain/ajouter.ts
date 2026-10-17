@@ -328,8 +328,11 @@ export function draftFromCompris(c: Compris, h: Habitudes, today: ISODate): Draf
     }
     if (c.places) d.places = c.places;
     if (c.amount) d.price = c.amount;
+    // « avec Emma » : la cavalière est inscrite, comme si on l'avait choisie.
+    if (c.cavaliers?.length) d.cav = [...new Set([...d.cav, ...c.cavaliers])];
   } else if (c.type === "soin") {
     if (c.amount) d.price = c.amount;
+    if (c.refacturer) d.refac = true;
   } else if (c.type === "rdv") {
     d.quoi = c.label ?? "";
     d.start = c.start ?? null;

@@ -33,12 +33,38 @@ export interface Compris {
   care?: CareKind;
   /** Ce que c'est, nettoyé des jours, heures, montants et chevaux. */
   label?: string;
+  /** Les cavaliers nommés (« avec Emma »), tels qu'ils sont notés dans les clients. */
+  cavaliers?: string[];
+  /** « à refacturer », « au propriétaire » : un soin que le propriétaire paie. */
+  refacturer?: boolean;
 }
 
 export interface DireContext {
   today: ISODate;
   horses: { id: string; name: string }[];
   prestations?: { id: string; label: string; hasFormat?: boolean }[];
+  /** Les clients, pour reconnaître un cavalier nommé. */
+  people?: { name: string }[];
+}
+
+/** « à refacturer », « refacturé », « au propriétaire », « faire payer au proprio ». */
+const REFACTURER = /\b(a refacturer|refactur\w*|au proprio(?:taire)?|faire payer)\b/;
+
+/**
+ * Les cavaliers nommés : un client dont le nom entier, ou le prénom (3 lettres
+ * au moins), est dit. Pas un nom de cheval.
+ */
+export function cavaliersDits(text: string, people: { name: string }[], horses: { name: string }[] = []): string[] {
+  const w = words(text);
+  const chevaux = new Set(horses.map((h) => words(h.name).trim()));
+  const out: string[] = [];
+  for (const p of people) {
+    const full = words(p.name).trim();
+    if (!full || chevaux.has(full)) continue;
+    const prenom = full.split(" ")[0];
+    if (w.includes(` ${full} `) || (prenom.length >= 3 && !chevaux.has(prenom) && w.includes(` ${prenom} `))) out.push(p.name);
+  }
+  return [...new Set(out)];
 }
 
 const SOINS: [RegExp, CareKind][] = [
@@ -133,6 +159,7 @@ export function nomDit(text: string, horses: { id: string; name: string }[] = []
   cut(/\brien à voir avec les chevaux\b|\brien a voir avec les chevaux\b|\bhors chevaux\b/gi);
   cut(/\bpour (?:toute )?l['’]\s*écurie\b|\bpour (?:toute )?l['’]\s*ecurie\b/gi);
   cut(/(?:^|\s)[çc]a (?:rentre|sort)\b/gi);
+  cut(/(?:^|\s)(?:à|a) refacturer(?![\p{L}])|\brefactur(?:é|e)e?s?(?![\p{L}])/giu);
   for (const h of horses) {
     const n = escRe(h.name);
     cut(new RegExp(`\\b(?:pour|avec|de|sur)\\s+${n}(?![\\p{L}])`, "giu"));
@@ -182,12 +209,16 @@ export function comprendre(text: string, ctx: DireContext): Compris {
   const base = { date: date ?? ctx.today, dateSaid: !!date, start, horseIds };
 
   const soin = SOINS.find(([re]) => re.test(t));
-  if (soin) return { ...base, type: "soin", care: soin[1], amount: nu };
+  if (soin) return { ...base, type: "soin", care: soin[1], amount: nu, ...(REFACTURER.test(t) ? { refacturer: true } : {}) };
+  const cavaliers = cavaliersDits(text, ctx.people ?? [], ctx.horses);
+  // Le nom du cours, sans « avec Emma ».
+  let sansCav = label;
+  for (const n of cavaliers) for (const part of [n, n.split(/\s+/)[0]]) sansCav = sansCav.replace(new RegExp(`\\s*(?:avec|pour|de)?\\s*${escRe(part)}(?![\\p{L}])`, "giu"), "").trim();
 
   const ps = ctx.prestations ?? [];
   const prestaWord = ps.some((p) => norm(p.label).split(/[^a-z0-9]+/).some((x) => x.length >= 4 && !STOP.has(x) && words(t).includes(` ${x} `)));
   if (SEANCE.test(t) || prestaWord) {
-    return { ...base, type: "seance", places, amount, ...prestationDite(t, places, label, ctx) };
+    return { ...base, type: "seance", places, amount, ...prestationDite(t, places, sansCav, ctx), ...(cavaliers.length ? { cavaliers } : {}) };
   }
 
   const argentMot = ENTREE.test(t) || SORTIE.test(t) || HORS.test(t);
