@@ -164,7 +164,7 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
   }
   const listed = [...shMap.values()].reduce((t, a) => t + a, 0);
   const rest = Math.round((s.sharedCosts - listed) * 100) / 100;
-  if (rest > 0.5) addSh("Autres charges communes", rest);
+  if (rest > 0.5) addSh("Autres frais communs", rest);
 
   // Ce que laisse un cheval : sans l'argent hors chevaux.
   const contribution = s.horseCount ? (s.horsesRevenue - s.horsesDirectCosts) / s.horseCount : 0;

@@ -208,7 +208,7 @@ export function RetourOrdinateur() {
 const TITRES: [string, string][] = [
   ["/valider", "Ce qui a compté"],
   ["/ticket", "Fiche du cheval"],
-  ["/part", "Les frais partagés"],
+  ["/part", "Les frais communs"],
   ["/argent", "Mon mois"],
   ["/pilotage", "Sur plusieurs mois"],
   ["/seuil", "Combien de chevaux"],

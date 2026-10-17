@@ -71,7 +71,7 @@ export function repartition(data: StableData, se: SharedExpense): SharedExpenseA
 
 /**
  * Les frais communs d'un mois qu'aucun cheval ne porte, parce qu'il n'y
- * avait aucun cheval : ils comptent quand même dans le mois (le pot commun
+ * avait aucun cheval : ils comptent quand même dans le mois (les frais communs
  * de l'écurie), ils ne disparaissent pas.
  */
 export function facturesSansCheval(data: StableData, p: Period, recurringShared: number): number {
@@ -135,8 +135,8 @@ function veille(d: ISODate): ISODate {
   return t.toISOString().slice(0, 10);
 }
 
-/** « frais partagés · entre 3 chevaux », ou sans cheval pour l'instant. */
+/** « frais communs · entre 3 chevaux », ou sans cheval pour l'instant. */
 export function partageLabel(n: number): string {
-  if (n === 0) return "frais partagés · aucun cheval ce mois-ci, comptés quand même";
-  return `frais partagés · entre ${n} cheva${n > 1 ? "ux" : "l"}`;
+  if (n === 0) return "frais communs · aucun cheval ce mois-ci, comptés quand même";
+  return `frais communs · entre ${n} cheva${n > 1 ? "ux" : "l"}`;
 }

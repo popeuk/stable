@@ -96,7 +96,7 @@ const AIDES: Record<string, Aide> = {
     titre: "Tes dépenses",
     points: [
       "Tout ce que tu as payé ce mois.",
-      "Une dépense pour un cheval va sur sa fiche. Une dépense commune (foin, loyer…) se partage entre tous.",
+      "Une dépense pour un cheval va sur sa fiche. Les frais communs (foin, loyer…) se partagent entre tous.",
     ],
   },
   equipe: {

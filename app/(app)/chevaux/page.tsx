@@ -1,5 +1,6 @@
 "use client";
 
+import { selonSexe } from "@/lib/domain/registre";
 import Link from "next/link";
 import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -470,10 +471,10 @@ function ASurveiller({ delay }: { delay: number }) {
       <Link href={`/ticket?id=${h.id}`} className="ch-watch">
         <Face horse={h} />
         <span style={{ minWidth: 0 }}>
-          <b>{h.name} mange plus qu’il ne paie.</b>
+          <b>{selonSexe(h, `${h.name} mange plus qu’il ne paie.`, `${h.name} mange plus qu’elle ne paie.`, `${h.name} coûte plus que sa pension.`)}</b>
           <small>
             {late && `${cap(CARE_META[late.kind].label.toLowerCase())} en retard de ${-late.daysLeft} jour${-late.daysLeft > 1 ? "s" : ""}. `}
-            {floor && h.pension ? `À ${eur(floor)} au lieu de ${eur(h.pension)}, sa pension couvrirait ses frais.` : "Ce mois, il te coûte plus qu’il ne te rapporte."}
+            {floor && h.pension ? `À ${eur(floor)} au lieu de ${eur(h.pension)}, sa pension couvrirait ses frais.` : selonSexe(h, "Ce mois, il te coûte plus qu’il ne te rapporte.", "Ce mois, elle te coûte plus qu’elle ne te rapporte.", "Ce mois, ce cheval te coûte plus qu’il ne te rapporte.")}
           </small>
         </span>
         <Money v={net} />
@@ -587,7 +588,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
               <th>Propriétaire</th>
               <th className="n">Ce qu’on te paie</th>
               <th className="n">Soins et frais</th>
-              <th className="n">Part des frais partagés</th>
+              <th className="n">Part des frais communs</th>
               <th className="n">Ce qu’il te laisse</th>
               <th>À prévoir</th>
             </tr>
@@ -644,7 +645,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
         {rows.length === 0 && (horses.length ? <p className="note">Aucun cheval dans ce filtre.</p> : <Empty ill="vide-ecurie">Aucun cheval pour l’instant. Ajoute le premier avec le bouton en haut.</Empty>)}
         <Partis />
         <p className="ch-fn">
-          «&nbsp;Ce qu’il te laisse&nbsp;» : ce qu’on te paie pour lui, moins ses soins et ses frais, moins sa part des frais partagés (foin, salaires, loyer…){horses.length ? `, ${eur(each)} par cheval ce mois` : ""}.
+          «&nbsp;Ce qu’il te laisse&nbsp;» : ce qu’on te paie pour lui, moins ses soins et ses frais, moins sa part des frais communs (foin, salaires, loyer…){horses.length ? `, ${eur(each)} par cheval ce mois` : ""}.
         </p>
       </Ecran>
     );

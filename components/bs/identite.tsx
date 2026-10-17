@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Ic } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
-import { GAP_LABEL, SEX_LABEL, horseGaps, type HorseSex } from "@/lib/domain/registre";
+import { GAP_LABEL, SEX_LABEL, horseGaps, selonSexe, type HorseSex } from "@/lib/domain/registre";
 import type { Horse } from "@/lib/domain/types";
 
 type TextKey = "sireNumber" | "chipNumber" | "origin" | "entryReason" | "destination" | "exitReason";
@@ -88,13 +88,13 @@ export function Identite({ horse }: { horse: Horse }) {
               {!horse.birthDate && horse.birthYear ? <em>Année connue : {horse.birthYear}.</em> : null}
             </label>
             <p className="k rg-id-k">Arrivée{horse.entryDate ? ` le ${jourLong(horse.entryDate)}` : ""}</p>
-            {text("origin", "D’où il vient", "adresse de provenance")}
-            {text("entryReason", "Pourquoi il est arrivé", "pension, achat, prêt, naissance…")}
+            {text("origin", selonSexe(horse, "D’où il vient", "D’où elle vient", "Provenance"), "adresse de provenance")}
+            {text("entryReason", selonSexe(horse, "Pourquoi il est arrivé", "Pourquoi elle est arrivée", "Motif d’arrivée"), "pension, achat, prêt, naissance…")}
             {horse.exitDate || horse.isArchived ? (
               <>
                 <p className="k rg-id-k">Départ{horse.exitDate ? ` le ${jourLong(horse.exitDate)}` : ""}</p>
-                {text("destination", "Où il est parti", "adresse de destination")}
-                {text("exitReason", "Pourquoi il est parti", "fin de pension, vente, prêt, décès…")}
+                {text("destination", selonSexe(horse, "Où il est parti", "Où elle est partie", "Destination"), "adresse de destination")}
+                {text("exitReason", selonSexe(horse, "Pourquoi il est parti", "Pourquoi elle est partie", "Motif de départ"), "fin de pension, vente, prêt, décès…")}
               </>
             ) : null}
             <Link href={`/registre?cheval=${horse.id}`} className="btn line full">

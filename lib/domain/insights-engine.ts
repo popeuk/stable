@@ -175,7 +175,7 @@ function ruleSharedExpenseImpact(
     {
       id: `shared_expense_impact-${heaviest.id}-${periodKey(period)}`,
       type: "shared_expense_impact",
-      title: `« ${heaviest.label} » est ta plus grosse dépense commune ce mois-ci`,
+      title: `« ${heaviest.label} » est ton plus gros frais commun ce mois-ci`,
       body: `${formatEur(heaviest.totalAmount)}, partagés entre tes chevaux. En tout, tes frais communs (foin, paille, loyer, salaires…) font ${formatEur(sharedTotal)} ce mois-ci.`,
       keyMetricValue: heaviest.totalAmount,
       keyMetricLabel: heaviest.label,

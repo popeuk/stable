@@ -100,7 +100,7 @@ export function horsePnl(
  * L'argent qui ne concerne aucun cheval (« rien à voir avec les chevaux ») :
  * une recette ou une dépense sans cheval (`horseId` vide). La PAC, la
  * réparation du tracteur… Elle compte dans le mois de l'écurie, jamais sur
- * un ticket ni dans le pot commun.
+ * un ticket ni dans les frais communs.
  */
 export const isOutside = (e: { horseId?: string | null }) => !e.horseId;
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { selonSexe } from "@/lib/domain/registre";
 import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -21,7 +22,7 @@ import { Identite } from "@/components/bs/identite";
 
 /**
  * La fiche d'un cheval : son portrait qui respire, puis le ticket du mois
- * qui s'imprime (ce qui est entré, ce qui est sorti, sa part des frais partagés,
+ * qui s'imprime (ce qui est entré, ce qui est sorti, sa part des frais communs,
  * le total), une idée concrète, son carnet et son planning.
  */
 export default function Page() {
@@ -66,16 +67,16 @@ const careIc = (k: CareKind) => CARE_IC[k] ?? "syringe";
 
 /** Le conseil du ticket : une phrase forte, puis la suite. */
 function tipFor(h: Horse, t: HorseTicket): [string, string] {
-  if (t.net >= 0) return [`${h.name} paie ses soins et sa part des frais communs.`, `Une fois tout payé, il te laisse ${eur(t.net)} ce mois.`];
+  if (t.net >= 0) return [`${h.name} paie ses soins et sa part des frais communs.`, `Une fois tout payé, ${selonSexe(h, "il", "elle", h.name)} te laisse ${eur(t.net)} ce mois.`];
   const soins = t.lines.filter((l) => l.kind === "out" && /orthop|ost|compl|dent|vaccin|vermif/i.test(l.label));
   const big = (soins.length ? soins : t.lines.filter((l) => l.kind === "out")).sort((a, b) => a.amount - b.amount)[0];
   if (big && -big.amount > 20)
     return [
       "Sa pension ne suffit pas à payer ses soins.",
-      `Si tu fais payer « ${big.label.toLowerCase()} »${h.ownerName ? ` à ${h.ownerName}` : " à son propriétaire"}, il te laisserait ${sg(t.net - big.amount)}.`,
+      `Si ${h.ownerName ?? "son propriétaire"} paie ${big.label.toLowerCase()}, ${h.name} ${Math.round(t.net - big.amount) < 0 ? `ne te coûtera plus que ${eur(-(t.net - big.amount))}` : Math.round(t.net - big.amount) > 0 ? `te laissera ${eur(t.net - big.amount)}` : "ne te coûtera plus rien"}.`,
     ];
   const breakeven = Math.ceil((t.direct + t.share - (t.revenue - (h.pension ?? 0))) / 10) * 10;
-  return [`Une pension à ${eur(breakeven)} au lieu de ${eur(h.pension ?? 0)} suffirait.`, "Sa pension est plus basse que ce qu’il te coûte. À ce prix, tu ne perdrais plus d’argent avec lui."];
+  return [`Une pension à ${eur(breakeven)} au lieu de ${eur(h.pension ?? 0)} suffirait.`, `Sa pension est plus basse que ce ${selonSexe(h, "qu’il", "qu’elle", "que ce cheval")} te coûte. À ce prix, tu ne perdrais plus d’argent.`];
 }
 
 const jour = (d: string, month: "short" | "long" = "short") => new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month });
@@ -164,7 +165,7 @@ function Ticket({ horse }: { horse: Horse }) {
                 Soins et foin payés, {horse.name} te laisse <Money v={net} /> ce mois.
               </>
             ) : (
-              `${horse.name} mange plus qu’il ne paie.`
+              selonSexe(horse, `${horse.name} mange plus qu’il ne paie.`, `${horse.name} mange plus qu’elle ne paie.`, `${horse.name} coûte plus que sa pension.`)
             )}
           </p>
         )}
@@ -309,7 +310,7 @@ function Ticket({ horse }: { horse: Horse }) {
         type="button"
         className="btn ghost"
         onClick={() => {
-          if (window.confirm(`${horse.name} quitte l’écurie aujourd’hui ? Ce qu’il a rapporté et coûté reste dans les mois où il était là. Sa pension ne sera plus comptée les mois suivants. Tu le retrouves dans les chevaux partis.`)) {
+          if (window.confirm(`${horse.name} quitte l’écurie aujourd’hui ? ${selonSexe(horse, "Ce qu’il a rapporté et coûté reste dans les mois où il était là", "Ce qu’elle a rapporté et coûté reste dans les mois où elle était là", "Ce que ce cheval a rapporté et coûté reste dans les mois où il était là")}. Sa pension ne sera plus comptée les mois suivants. Tu ${selonSexe(horse, "le", "la", "le")} retrouves dans les chevaux partis.`)) {
             archiveHorse(horse.id);
             router.push("/chevaux");
           }
