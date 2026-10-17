@@ -8,6 +8,7 @@ import { WeekGrid } from "@/components/bs/week-grid";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
 import { Empty, Ic, Seg, Sec, sg, type IllName } from "@/components/carnet/ui";
+import { PORTEE_PREVU, prevuSur } from "@/components/bs/goal-card";
 import { DayBlock, aCompte, iconOf, moneyCls, moneyClsIt } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -83,10 +84,11 @@ function Planning() {
     const done = ss.filter((s) => s.status === "done");
     // Les séances seules : les frais des soins vivent sur les tickets des chevaux.
     const validated = done.reduce((t, s) => t + seanceAmount(s), 0);
-    const planned = ss.filter((s) => s.status === "planned").reduce((t, s) => t + seanceAmount(s), 0);
+    // Le prévu : le même calcul que l'Accueil et Mon mois (séances, soins et tâches pas encore comptés).
+    const planned = prevuSur(data, days, today, now);
     return { count: ss.length, validated, planned };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, rangeKey, view]);
+  }, [data, rangeKey, view, today, now]);
   // Ce qui a compté : toujours à portée, en bas du planning (les tâches ont leur onglet en haut).
   const liens = (
     <nav className="jr-liens" aria-label="Aussi dans le planning">
@@ -158,7 +160,7 @@ function Planning() {
       </div>
       <div>
         <b className={soft}>{sg(sum.planned)}</b>
-        <small>encore prévus {portee}</small>
+        <small>encore prévus {portee} ({PORTEE_PREVU})</small>
       </div>
     </div>
   );

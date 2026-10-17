@@ -128,7 +128,7 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
         ) : formulaire ? (
           <div className="card fa-card rise">
             <b>Pour faire une facture, il faut {(champs.length ? champs : manque).map((m) => (m === "siret" ? "ton SIRET" : m === "adresse" ? "ton adresse" : "ton nom")).join(" et ")}.</b>
-            <p>Tu le notes une fois, il revient sur toutes tes factures.</p>
+            <p>Tu les notes une fois, ils reviennent sur toutes tes factures.</p>
             <InfosVendeur seulement={champs.length ? champs : manque} />
             <button type="button" className="btn full" disabled={manque.length > 0} onClick={() => setFini(true)}>
               Continuer
@@ -137,7 +137,7 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
         ) : draft.tvaAChoisir || draft.manquants.length ? (
           <div className="card fa-card rise">
             <b>{draft.tvaAChoisir ? "Choisis d’abord la TVA de tes factures." : "Choisis le taux de TVA de ce que tu factures."}</b>
-            <p>L’app ne le devine pas. Tu le choisis une fois, il sert pour toutes tes factures.</p>
+            <p>L’app ne la devine pas. Tu la choisis une fois, elle sert pour toutes tes factures.</p>
             <TvaReglage kinds={draft.kinds} />
           </div>
         ) : (

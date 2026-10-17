@@ -38,8 +38,9 @@ export function useParcours() {
   const current = OBSTACLES.find((o) => !parcours[o]) ?? null;
   const setupDone = parcours.chevaux && parcours.tarifs && parcours.factures;
 
+  /** `passee` : l'étape est sautée sans rien remplir. Le message le dit, sans bravo. */
   const pass = useCallback(
-    (id: ObstacleId) => {
+    (id: ObstacleId, passee = false) => {
       if (!passObstacle(id)) return false;
       const after = OBSTACLES.filter((o) => (o === id ? true : useSettingsStore.getState().parcours[o])).length;
       if (after === 6 && !arrived) {
@@ -48,7 +49,7 @@ export function useParcours() {
         setTimeout(() => router.push("/parcours/arrivee"), 1100);
         return true;
       }
-      say(`Étape franchie : <strong>${OBSTACLE_META[id].title}</strong>. ${after} ${after > 1 ? "étapes" : "étape"} sur 6.`);
+      say(passee ? `Étape passée : <strong>${OBSTACLE_META[id].title}</strong>. Tu y reviens quand tu veux depuis Tes premiers pas.` : `Étape franchie : <strong>${OBSTACLE_META[id].title}</strong>. ${after} ${after > 1 ? "étapes" : "étape"} sur 6.`);
       return false;
     },
     [passObstacle, arrived, setArrived, say, router],

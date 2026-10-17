@@ -22,7 +22,7 @@ export function ObHead({ n, title, sub, retour }: { n: number; title: string; su
     <>
       <Link href="/parcours" className="ar-obh">
         <Ic n="back" className="" />
-        Mes premiers pas · étape {n} sur 6
+        Tes premiers pas · étape {n} sur 6
       </Link>
       <div className="bar ar-prog" style={{ marginTop: 10 }} role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n - 1} aria-label={`Étape ${n} sur 6`}>
         <i style={{ width: `${Math.round(((n - 1) / 6) * 100 + 6)}%` }} />

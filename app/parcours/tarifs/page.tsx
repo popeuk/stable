@@ -106,11 +106,12 @@ function Tarifs() {
         className="btn ar-go"
         onClick={() => {
           (document.activeElement as HTMLElement | null)?.blur();
-          if (!retour) pass("tarifs");
+          // Rien de rempli : l'étape est passée, pas franchie (le message ne félicite pas).
+          if (!retour) pass("tarifs", !Object.values(useDataStore.getState().tariffs ?? {}).some(Boolean));
           router.push(retour ? `/${retour}` : "/parcours/factures");
         }}
       >
-        {retour ? "Enregistrer" : missing && commune === null ? `Continuer avec ${missing} pension${missing > 1 ? "s" : ""} à 0 €` : "Passer à l’étape suivante"}
+        {retour ? "Enregistrer" : missing && commune === null ? `Continuer avec ${missing} pension${missing > 1 ? "s" : ""} à 0 €` : "Continuer"}
         <Ic n="ck" className="" />
       </button>
     </>

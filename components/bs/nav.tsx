@@ -217,7 +217,7 @@ const TITRES: [string, string][] = [
   ["/client", "Fiche client"],
   ["/facturation", "Factures"],
   ["/facture", "Facture"],
-  ["/contacts", "Les pros"],
+  ["/contacts", "Contacts"],
   ["/equipe", "Tâches de l’équipe"],
   ["/prestations", "Mes tarifs"],
   ["/ma-fiche", "Ma fiche"],
@@ -303,6 +303,6 @@ export function usePlusItems(): PlusItem[] {
     { id: "tarifs", ic: "euro", label: "Mes tarifs", sub: "Pensions, cours, balades, soins refacturés", href: "/prestations" },
     { id: "equipe", ic: "people", label: "Mon équipe", sub: "Qui fait quoi", href: "/parametres/equipe" },
     { id: "reglages", ic: "gear", label: "Réglages", sub: "Écurie, rappel du matin, explications, guide", href: "/moi" },
-    ...(pas < 6 ? [{ id: "parcours", ic: "bulb", label: "Mes premiers pas", sub: `${pas} étape${pas > 1 ? "s" : ""} sur 6`, href: "/parcours", badge: `${pas}/6`, tone: "attn" as const }] : []),
+    ...(pas < 6 ? [{ id: "parcours", ic: "bulb", label: "Tes premiers pas", sub: `${pas} étape${pas > 1 ? "s" : ""} sur 6`, href: "/parcours", badge: `${pas}/6`, tone: "attn" as const }] : []),
   ], [kind, pas]);
 }

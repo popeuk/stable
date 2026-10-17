@@ -63,9 +63,9 @@ function Contacts() {
   return (
     <Ecran wide={desk} className={desk ? "ch-desk ch-narrow" : undefined}>
       <div className="hello rise" style={{ animationDelay: ".04s" }}>
-        <p className="ch-over0">{people.length} personnes</p>
+        {people.length > 0 && <p className="ch-over0">{people.length} personne{people.length > 1 ? "s" : ""}</p>}
         <h2>Contacts</h2>
-        <p>Les propriétaires de tes chevaux et les pros qui s’en occupent (maréchal, véto…). La liste se remplit toute seule.</p>
+        {people.length > 0 && <p>Les propriétaires de tes chevaux et les pros qui s’en occupent (maréchal, véto…). La liste se remplit toute seule.</p>}
       </div>
 
       {people.length === 0 ? (
@@ -79,7 +79,7 @@ function Contacts() {
             </Sec>
           )}
           {owners.length > 0 && (
-            <Sec ill="carnet-buste" title="Les propriétaires" action={<Link href="/clients">Mes clients</Link>} delay={0.2}>
+            <Sec ill="carnet-buste" title="Les propriétaires" action={<Link href="/clients">Tes clients</Link>} delay={0.2}>
               <div className="rows">{owners.map((p) => row(p, false))}</div>
             </Sec>
           )}

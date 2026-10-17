@@ -151,7 +151,7 @@ function Chevaux() {
               Ajouter {nombre > 1 ? `${nombre} chevaux` : "un cheval"}
             </button>
             <button type="button" className="btn ar-go" onClick={suite}>
-              Passer à l’étape suivante
+              Continuer
               <Ic n="ck" className="" />
             </button>
           </>
@@ -204,7 +204,7 @@ function Chevaux() {
 
       {troupeau}
       <button type="button" className="btn ar-go" style={{ marginTop: 22 }} disabled={horses.length === 0} onClick={suite}>
-        {retour ? "Terminé" : "Passer à l’étape suivante"}
+        {retour ? "Terminé" : "Continuer"}
         <Ic n="ck" className="" />
       </button>
       {!retour && (

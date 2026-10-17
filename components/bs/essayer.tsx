@@ -12,7 +12,7 @@ import { usePerso } from "@/components/bs/perso";
 
 /**
  * Essayer avant le compte : un premier écran, puis le même parcours que
- * tout le monde (« Mes premiers pas », /parcours), en plus simple : un
+ * tout le monde (« Tes premiers pas », /parcours), en plus simple : un
  * nombre de chevaux, une pension moyenne, un total de frais. L'écurie est
  * rangée sur cet appareil (session « locale ») ; le compte viendra pour la
  * garder.
@@ -82,7 +82,7 @@ export function Essayer() {
             <Portrait />
           </div>
           <div className="q rise" style={{ animationDelay: ".08s" }}>
-            <h1>On regarde ce qu’il te reste ?</h1>
+            <h1>On regarde ce qu’il te reste à la fin du mois ?</h1>
             <p>Quelques minutes, tes chiffres, pas de compte.</p>
           </div>
           {/* Au téléphone, la scène d'accueil remplit l'espace entre la question et le bouton. */}

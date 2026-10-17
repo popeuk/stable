@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { cap, esc, ilEnFaut } from "@/components/bs/ui";
-import { plannedRest } from "@/components/bs/goal-card";
+import { PORTEE_PREVU, plannedRest } from "@/components/bs/goal-card";
 import { hasObjective, phraseObjectifMois, phrasePistes } from "@/lib/domain/objectif";
 import { partageLabel, repartition } from "@/lib/domain/presence";
 import { useDesk } from "@/components/bs/desk";
@@ -145,6 +145,15 @@ function Mois() {
     return out;
   }, [data, active, today]);
   const max = Math.max(1, ...weeks.map((w) => w.done + w.planned));
+  // Le graphique se lit en une phrase : la semaine la plus forte et la plus calme, ou « chaque semaine » si elles se valent.
+  const parSemaine = weeks.map((w) => Math.round(w.done + w.planned));
+  const pleines = parSemaine.filter((v) => v > 0);
+  const forte = weeks[parSemaine.indexOf(Math.max(...parSemaine))];
+  const phraseSemaines = !pleines.length
+    ? ""
+    : pleines.length === parSemaine.length && new Set(pleines).size === 1
+      ? `Chaque semaine, tes séances font ${eur(pleines[0])}.`
+      : `La semaine la plus forte, celle du ${forte.label}, fait ${eur(Math.max(...parSemaine))} ; la plus calme, ${eur(Math.min(...parSemaine))}.`;
 
   const now = new Date();
   const mName = monthName(active.year, active.month);
@@ -225,7 +234,7 @@ function Mois() {
         <p className="note">
           {Math.round(rest) !== 0 && (
             <>
-              Encore {sg(rest)} prévus au planning d’ici le {lastDay}.{" "}
+              Encore {sg(rest)} prévus d’ici le {lastDay} ({PORTEE_PREVU}).{" "}
             </>
           )}
           Il reste {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
@@ -331,7 +340,9 @@ function Mois() {
       </div>
 
       <div>
+        {phraseSemaines && (
         <Sec title="Tes séances, semaine par semaine" delay={0.32}>
+          <p className="note">{phraseSemaines}</p>
           <div className="ar-wk" role="img" aria-label={aria} style={{ gridTemplateColumns: `repeat(${weeks.length}, 1fr)` }}>
             {weeks.map((w, i) => (
               <div key={w.label}>
@@ -355,6 +366,7 @@ function Mois() {
           </div>
           <p className="note">En euros. Sous chaque barre, le premier jour de la semaine.</p>
         </Sec>
+        )}
         {isNow && <Piste delay={0.48} />}
         {isNow && (
           <Link href="/chevaux?vue=clients" className="card ar-lcard rise" style={{ animationDelay: ".48s", marginTop: 18 }}>

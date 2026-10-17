@@ -6,7 +6,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
-import { plannedRest } from "@/components/bs/goal-card";
+import { PORTEE_PREVU, plannedRest } from "@/components/bs/goal-card";
 import { localToday } from "@/lib/utils/local-date";
 import { CountUp, Ic, Ill, sg } from "@/components/carnet/ui";
 import { phraseObjectif } from "@/lib/domain/objectif";
@@ -43,7 +43,7 @@ export function useMois() {
   const net = useMemo(() => monthBreakdown(data, currentPeriod()).net, [data]);
   // Une écurie neuve : le chiffre vient des tarifs, pas encore de clients. Il se dit comme une estimation.
   const estime = useMemo(() => estEstimation(data, currentPeriod()), [data]);
-  const prevu = useMemo(() => Math.max(0, plannedRest(data, localToday())), [data]);
+  const prevu = useMemo(() => plannedRest(data, localToday()), [data]);
   const pct = objective > 0 ? Math.max(0, Math.min(100, (net / objective) * 100)) : 0;
   const left = Math.max(0, objective - net);
   return { net, objective, prevu, pct, left, estime };
@@ -70,7 +70,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
   const { net, objective, prevu, pct, estime } = useMois();
   const tone = estime ? "" : Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "";
   const phrase = phraseObjectif(net, objective);
-  const prevuTxt = Math.round(prevu) > 0 ? `${sg(prevu)} encore prévu au planning ${dIciFin()}` : "";
+  const prevuTxt = Math.round(prevu) !== 0 ? `${sg(prevu)} encore prévus ${dIciFin()} (${PORTEE_PREVU})` : "";
   const inner: ReactNode = (
     <>
       <span className="ac-tx">
