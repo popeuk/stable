@@ -2,14 +2,24 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSettingsStore } from "@/stores/settings-store";
+import { useSettingsStore, type ObstacleId } from "@/stores/settings-store";
+import { useDataStore } from "@/stores/data-store";
 import { ClientGate } from "@/components/ui/client-gate";
-import { Ic } from "@/components/carnet/ui";
-import { OBSTACLE_META, useParcours } from "@/components/bs/parcours";
-import { OBSTACLES } from "@/stores/settings-store";
+import { Ic, Ill, eur, type IllName } from "@/components/carnet/ui";
+import { OBSTACLE_META, fraisDuMois, useParcours } from "@/components/bs/parcours";
 
-/** Les pictos du parcours, dans le jeu d'icônes du carnet. */
-const IC: Record<string, string> = { horse: "horse", euro: "euro", foin: "hay", cal: "cal", jump: "doc", flag: "flag" };
+/**
+ * Tes premiers pas : un chemin, pas une liste. Le personnage ouvre, trois
+ * questions illustrées se suivent sur un tracé (la question du moment en
+ * grand, les autres en attente), et le mois au bout. Les trois étapes qui
+ * viennent en utilisant l'app restent discrètes, sous le chemin.
+ */
+const CHAPITRES: { id: ObstacleId; ill: IllName; alt: string; dit: string }[] = [
+  { id: "chevaux", ill: "tete", alt: "Un cheval passe la tête.", dit: "Combien sont chez toi, et ce qu’ils paient." },
+  { id: "tarifs", ill: "sacoche", alt: "Une sacoche pleine de pièces.", dit: "La pension, et tes cours si tu en donnes." },
+  { id: "factures", ill: "brouette", alt: "La gérante pousse une brouette de foin.", dit: "Foin, paille, loyer… À peu près, ça suffit." },
+];
+const ENSUITE: ObstacleId[] = ["journee", "ticket", "seuil"];
 
 export default function Page() {
   return (
@@ -20,13 +30,29 @@ export default function Page() {
 }
 
 function Parcours() {
-  const { parcours, n, current, setupDone } = useParcours();
+  const { parcours, current, setupDone } = useParcours();
   const router = useRouter();
   const plusTard = useSettingsStore((s) => s.remettreParcours);
+  const presents = useDataStore((s) => s.horses.filter((h) => !h.isArchived).length);
+  const pension = useDataStore((s) => s.tariffs?.pension);
+  const totalFrais = useDataStore((s) => {
+    const f = fraisDuMois(s);
+    return f.total + f.postes;
+  });
   const sortir = () => {
     if (!setupDone) plusTard();
     router.push("/accueil");
   };
+  /** Ce que le gérant a déjà dit, en quelques mots, sous la question faite. */
+  const dejaDit: Partial<Record<ObstacleId, string>> = {
+    chevaux: presents ? `${presents} cheva${presents > 1 ? "ux" : "l"}` : undefined,
+    tarifs: pension ? `Pension à ${eur(pension)} par mois` : undefined,
+    factures: totalFrais ? `${eur(totalFrais)} par mois` : undefined,
+  };
+  const premiere = !parcours.chevaux && !parcours.tarifs && !parcours.factures;
+  const tout = !current;
+  const reste = CHAPITRES.filter((c) => !parcours[c.id]).length;
+
   return (
     <>
       <div className="ar-over">
@@ -35,67 +61,118 @@ function Parcours() {
           <Ic n="x" className="" />
         </button>
       </div>
-      <h1 className="ar-t1 rise">Pour bien démarrer</h1>
-      <p className="ar-sub rise" style={{ animationDelay: ".05s" }}>
-        Trois questions pour que l’app connaisse ton écurie. Le reste vient en l’utilisant.
-      </p>
-      <div className="bar ar-prog" role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n} aria-label="Tes premiers pas, où tu en es">
-        <i style={{ width: `${(n / 6) * 100}%` }} />
+
+      <div className="pas-hero">
+        <div className="pas-hero-t rise">
+          <h1 className="pas-t1">{setupDone ? "Ton écurie est prête." : premiere ? "Trois questions, et tu vois ton mois." : "On continue ?"}</h1>
+          <p className="pas-sub">
+            {setupDone
+              ? tout
+                ? "Tu as fait le tour. Ton mois t’attend."
+                : "Le reste vient tout seul, en utilisant l’app."
+              : premiere
+                ? "Trois minutes. Des chiffres à peu près, ça suffit. Tu changes tout plus tard."
+                : reste === 1
+                  ? "Encore une question, et tu vois ton mois."
+                  : "Encore deux questions, et tu vois ton mois."}
+          </p>
+        </div>
+        <Ill n={setupDone ? "rosette" : "carnet"} className="pas-hero-ill" prio alt={setupDone ? "La gérante brandit une rosette." : "La gérante, son carnet à la main."} />
       </div>
-      <div className="ar-course rise" style={{ animationDelay: ".12s" }}>
-        {OBSTACLES.map((o) => {
-          const m = OBSTACLE_META[o];
-          const st = parcours[o] ? "done" : current === o ? "now" : "";
-          const reachable = parcours[o] || st === "now" || (setupDone && ["journee", "ticket", "seuil"].includes(o));
-          const inner = (
-            <>
-              <span className="jn">
-                <Ic n={st === "done" ? "ck" : IC[m.picto] ?? "flag"} className="" />
+
+      <ol className="pas-path" aria-label="Les trois questions, puis ton mois">
+        {CHAPITRES.map((c, k) => {
+          const m = OBSTACLE_META[c.id];
+          const fait = parcours[c.id];
+          const now = current === c.id;
+          const st = fait ? "done" : now ? "now" : "next";
+          return (
+            <li key={c.id} className={`pas-step ${st} rise`} style={{ animationDelay: `${0.08 + k * 0.06}s` }}>
+              <span className="pas-pin" aria-hidden="true">
+                {fait ? <Ic n="ck" className="" /> : k + 1}
               </span>
-              <span>
-                <b>{m.title}</b>
-                <small>{parcours[o] ? "c’est fait" : m.todo}</small>
-              </span>
-            </>
-          );
-          return reachable ? (
-            <Link key={o} href={m.href} className={`ar-ob ${st}`}>
-              {inner}
-            </Link>
-          ) : (
-            <div key={o} className={`ar-ob ${st || "next"}`}>
-              {inner}
-            </div>
+              {now ? (
+                <Link href={m.href} className="pas-card">
+                  <span className="pas-card-t">
+                    <b>{m.title}</b>
+                    <span>{c.dit}</span>
+                    <span className="btn pas-go">
+                      {premiere ? "Commencer" : "Continuer"}
+                      <Ic n="arrow" className="ar-ico" />
+                    </span>
+                  </span>
+                  <Ill n={c.ill} alt={c.alt} className="pas-card-ill" />
+                </Link>
+              ) : fait ? (
+                <Link href={m.href} className="pas-row">
+                  <span className="pas-row-t">
+                    <b>{m.title}</b>
+                    <span>{dejaDit[c.id] ?? "C’est fait"}</span>
+                  </span>
+                  <Ill n={c.ill} alt="" className="pas-row-ill" />
+                </Link>
+              ) : (
+                <span className="pas-row">
+                  <span className="pas-row-t">
+                    <b>{m.title}</b>
+                    <span>{c.dit}</span>
+                  </span>
+                  <Ill n={c.ill} alt="" className="pas-row-ill" />
+                </span>
+              )}
+            </li>
           );
         })}
-      </div>
-      {current ? (
-        <Link href={OBSTACLE_META[current].href} className="card ar-obc rise" style={{ animationDelay: ".2s" }}>
-          <span style={{ flex: 1 }}>
-            <span className="k">À faire maintenant</span>
-            <b>{OBSTACLE_META[current].todo}</b>
+        <li className={`pas-step pas-fin ${setupDone ? "now" : "next"} rise`} style={{ animationDelay: ".26s" }}>
+          <span className="pas-pin" aria-hidden="true">
+            <Ic n="flag" className="" />
           </span>
-          <Ic n="arrow" className="ar-ico" />
-        </Link>
-      ) : (
-        <Link href="/parcours/arrivee" className="card ar-obc rise" style={{ animationDelay: ".2s" }}>
-          <span style={{ flex: 1 }}>
-            <span className="k">Parcours terminé</span>
-            <b>Voir où tu en es</b>
-          </span>
-          <Ic n="arrow" className="ar-ico" />
-        </Link>
+          {setupDone ? (
+            <Link href="/parcours/arrivee" className="pas-card">
+              <span className="pas-card-t">
+                <b>Ton mois</b>
+                <span>Ce qu’il te reste, cheval par cheval.</span>
+                <span className="btn pas-go">
+                  Voir mon mois
+                  <Ic n="arrow" className="ar-ico" />
+                </span>
+              </span>
+              <Ill n="assise" alt="La gérante assise, un café à la main." className="pas-card-ill pas-wide" />
+            </Link>
+          ) : (
+            <span className="pas-row">
+              <span className="pas-row-t">
+                <b>Ton mois</b>
+                <span>Ce qu’il te reste, cheval par cheval.</span>
+              </span>
+            </span>
+          )}
+        </li>
+      </ol>
+
+      {setupDone && !tout && (
+        <section className="pas-ensuite rise" style={{ animationDelay: ".32s" }} aria-labelledby="pas-ensuite-t">
+          <h2 id="pas-ensuite-t">Ensuite, en utilisant l’app</h2>
+          {ENSUITE.map((o) => {
+            const m = OBSTACLE_META[o];
+            return (
+              <Link key={o} href={m.href} className={`pas-mini${parcours[o] ? " done" : ""}`}>
+                <span className="pas-mini-k" aria-hidden="true">
+                  {parcours[o] && <Ic n="ck" className="" />}
+                </span>
+                <span>
+                  <b>{m.title}</b>
+                  {!parcours[o] && <small>{m.todo}</small>}
+                </span>
+                <Ic n="arrow" className="ar-ico" />
+              </Link>
+            );
+          })}
+        </section>
       )}
-      {setupDone && current && (
-        <>
-          <p className="ar-sub" style={{ marginTop: 12 }}>Le reste vient de lui-même, en utilisant l’app à ton rythme.</p>
-          <Link href="/parcours/arrivee" className="ar-alt">
-            Revoir ce qu’il te reste ce mois
-          </Link>
-        </>
-      )}
+
       {!setupDone && (
-        <button type="button" className="btn line ar-later" onClick={sortir}>
+        <button type="button" className="ar-alt pas-later" onClick={sortir}>
           Découvrir l’app d’abord, finir plus tard
         </button>
       )}

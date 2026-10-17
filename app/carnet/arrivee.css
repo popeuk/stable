@@ -246,3 +246,81 @@
 .carnet .ar-ln-mc { grid-column: 1 / -1; display: grid; gap: 10px; padding: 4px 0 6px; }
 .carnet .nt-mc { display: grid; gap: 12px; }
 .carnet .ar-ln .mc-soit b { display: inline; font-size: inherit; line-height: inherit; }
+
+/* ---------- Tes premiers pas : le chemin (app/parcours/page.tsx) ----------
+   Le personnage ouvre ; trois questions sur un tracé, la question du moment
+   en grande carte illustrée, les autres en attente ; le mois au bout. */
+.carnet .pas-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 6px; margin: 4px 22px 0; }
+.carnet .pas-t1 { margin: 0; font-size: 32px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; text-wrap: balance; }
+.carnet .pas-sub { margin: 10px 0 0; font-size: 14.5px; line-height: 1.45; color: var(--ink2); text-wrap: pretty; }
+.carnet .pas-hero-ill { height: 172px; width: auto; max-width: 132px; object-fit: contain; object-position: bottom; animation: cn-float 6s var(--slow) infinite; }
+.carnet .pas-path { list-style: none; margin: 22px 22px 0; padding: 0; display: grid; }
+.carnet .pas-step { position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; padding-bottom: 14px; }
+/* Le tracé entre deux questions : pointillé à venir, plein une fois passé. */
+.carnet .pas-step::before { content: ""; position: absolute; left: 14px; top: 34px; bottom: 2px; width: 2px; border-radius: 1px; background: repeating-linear-gradient(var(--line) 0 5px, transparent 5px 10px); transform-origin: top; animation: pas-draw .8s var(--ease) backwards; animation-delay: inherit; }
+.carnet .pas-step.done::before { background: var(--ink); }
+.carnet .pas-step:last-child { padding-bottom: 0; }
+.carnet .pas-step:last-child::before { display: none; }
+@keyframes pas-draw { from { transform: scaleY(0); } }
+.carnet .pas-pin { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--line); color: var(--ink3); font-size: 14px; font-weight: 760; font-variant-numeric: tabular-nums; position: relative; z-index: 1; margin-top: 2px; }
+.carnet .pas-pin svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .pas-step.now .pas-pin, .carnet .pas-step.done .pas-pin { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.carnet .pas-step.now .pas-pin { box-shadow: 0 0 0 5px color-mix(in srgb, var(--ink) 10%, transparent); }
+.carnet .pas-fin .pas-pin svg { stroke-width: 1.9; }
+
+/* La question du moment : une grande carte, l'image qui déborde en bas à droite. */
+.carnet .pas-card { display: grid; grid-template-columns: minmax(0, 1fr) 118px; align-items: end; min-height: 158px; border-radius: 14px; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--ink), 0 22px 40px -26px color-mix(in srgb, var(--ink) 45%, transparent); padding: 16px 0 0 16px; overflow: hidden; color: inherit; text-decoration: none; transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
+.carnet .pas-card:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1.5px var(--ink), 0 26px 44px -24px color-mix(in srgb, var(--ink) 50%, transparent); }
+.carnet .pas-card:active { transform: scale(.99); }
+.carnet .pas-card:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.carnet .pas-card-t { align-self: stretch; display: flex; flex-direction: column; gap: 6px; padding-bottom: 16px; min-width: 0; }
+.carnet .pas-card-t b { font-size: 23px; font-weight: 760; letter-spacing: -.025em; line-height: 1.05; font-variation-settings: "wdth" 90; }
+.carnet .pas-card-t > span:not(.btn) { font-size: 14px; line-height: 1.4; color: var(--ink2); }
+.carnet .pas-go { margin-top: auto; align-self: flex-start; white-space: nowrap; height: 46px; padding: 0 16px 0 18px; font-size: 15px; }
+.carnet .pas-go .ar-ico { width: 17px; height: 17px; stroke-width: 2; transition: transform .25s var(--ease); }
+.carnet .pas-card:hover .pas-go .ar-ico { transform: translateX(3px); }
+.carnet .pas-card-ill { width: 130px; height: 136px; max-width: none; object-fit: contain; object-position: right bottom; justify-self: end; margin-right: -4px; }
+.carnet .pas-card:has(.pas-wide) { grid-template-columns: minmax(0, 1fr) 132px; }
+.carnet .pas-card-ill.pas-wide { width: 132px; height: 92px; margin: 0 -6px 12px 0; }
+
+/* Les questions en attente ou passées : une ligne, l'image en petit. */
+.carnet .pas-row { display: grid; grid-template-columns: minmax(0, 1fr) 56px; align-items: center; gap: 10px; min-height: 52px; color: inherit; text-decoration: none; }
+.carnet .pas-row-t b { display: block; font-size: 16px; font-weight: 680; line-height: 1.2; }
+.carnet .pas-row-t span { display: block; margin-top: 2px; font-size: 13px; line-height: 1.35; color: var(--ink3); }
+.carnet .pas-row-ill { width: 56px; height: 52px; object-fit: contain; }
+.carnet .pas-step.next .pas-row-t b { color: var(--ink2); }
+.carnet .pas-step.next .pas-row-ill { opacity: .4; filter: grayscale(.6); }
+.carnet .pas-step.done .pas-row-t span { color: var(--ink2); font-weight: 620; font-variant-numeric: tabular-nums; }
+.carnet a.pas-row:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
+
+/* Ensuite, en utilisant l'app : discret, sous le chemin. */
+.carnet .pas-ensuite { margin: 28px 22px 0; }
+.carnet .pas-ensuite h2 { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
+.carnet .pas-mini { display: grid; grid-template-columns: 22px minmax(0, 1fr) 18px; gap: 10px; align-items: center; min-height: 52px; padding: 6px 0; border-bottom: 1px solid var(--line2); color: inherit; text-decoration: none; }
+.carnet .pas-mini:last-child { border-bottom: 0; }
+.carnet .pas-mini-k { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line); display: flex; align-items: center; justify-content: center; }
+.carnet .pas-mini.done .pas-mini-k { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.carnet .pas-mini-k svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .pas-mini b { display: block; font-size: 14.5px; font-weight: 650; line-height: 1.25; }
+.carnet .pas-mini small { display: block; font-size: 12.5px; line-height: 1.35; color: var(--ink3); }
+.carnet .pas-mini.done b { color: var(--ink2); }
+.carnet .pas-mini > .ar-ico { color: var(--ink3); }
+.carnet .pas-later { margin-top: 18px; }
+
+/* L'en-tête d'une question : où on en est (trois points) et son image. */
+.carnet .ob-chap { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 6px 22px 0; }
+.carnet .ob-chap .dots { margin-bottom: 6px; }
+.carnet .ob-chap .dots i { width: 26px; height: 4px; }
+.carnet .ob-chap .dots i.on { background: var(--ink); }
+.carnet .ob-chap-ill { height: 84px; width: auto; max-width: 120px; object-fit: contain; object-position: right bottom; animation: cn-rise .7s var(--ease) backwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .carnet .pas-hero-ill, .carnet .pas-step::before, .carnet .ob-chap-ill { animation: none; }
+  .carnet .pas-card, .carnet .pas-go .ar-ico { transition: none; }
+}
+@media (min-width: 1024px) {
+  .carnet .pas-t1 { font-size: 40px; }
+  .carnet .pas-hero-ill { height: 220px; max-width: 170px; }
+  .carnet .pas-card { min-height: 176px; grid-template-columns: minmax(0, 1fr) 150px; }
+  .carnet .pas-card-ill { width: 160px; height: 160px; }
+}

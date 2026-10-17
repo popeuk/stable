@@ -1,8 +1,15 @@
 import Link from "next/link";
-import { Ic } from "@/components/carnet/ui";
+import { Ic, Ill, type IllName } from "@/components/carnet/ui";
 import { saisieMontant } from "@/lib/utils/montant";
 
-/** L'en-tête d'un obstacle, sans compte d'étapes (la barre seule dit où on en est). Ouvert depuis l'app (retour=…), il redevient un simple réglage. */
+/** L'image de chaque question des premiers pas, la même que sur le chemin. */
+const CHAP: Record<number, { ill: IllName; alt: string }> = {
+  1: { ill: "tete-fondu", alt: "Un cheval passe la tête." },
+  2: { ill: "sacoche", alt: "Une sacoche pleine de pièces." },
+  3: { ill: "brouette", alt: "La gérante pousse une brouette de foin." },
+};
+
+/** L'en-tête d'un obstacle, trois points pour dire où on en est et l'image de la question. Ouvert depuis l'app (retour=…), il redevient un simple réglage. */
 export function ObHead({ n, title, sub, retour }: { n: number; title: string; sub: string; retour?: string | null }) {
   if (retour) {
     return (
@@ -18,16 +25,22 @@ export function ObHead({ n, title, sub, retour }: { n: number; title: string; su
       </>
     );
   }
+  const chap = CHAP[n];
   return (
     <>
       <Link href="/parcours" className="ar-obh">
         <Ic n="back" className="" />
         Tes premiers pas
       </Link>
-      <div className="bar ar-prog" style={{ marginTop: 10 }} role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n - 1} aria-label="Tes premiers pas, où tu en es">
-        <i style={{ width: `${Math.round(((n - 1) / 6) * 100 + 6)}%` }} />
+      <div className="ob-chap">
+        <span className="dots" role="img" aria-label={`Question ${n} sur 3`}>
+          {[1, 2, 3].map((k) => (
+            <i key={k} className={k <= n ? "on" : undefined} />
+          ))}
+        </span>
+        {chap && <Ill n={chap.ill} alt={chap.alt} className="ob-chap-ill" prio />}
       </div>
-      <h1 className="ar-t1" style={{ marginTop: 14 }}>
+      <h1 className="ar-t1" style={{ marginTop: 8 }}>
         {title}
       </h1>
       <p className="ar-sub">{sub}</p>

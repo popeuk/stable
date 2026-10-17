@@ -10,6 +10,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import type { Horse } from "@/lib/domain/types";
 import { usePerso } from "@/components/bs/perso";
 import { resumeLocale, type ResumeEssai } from "@/lib/account/vault";
+import { Stories } from "@/components/bs/histoire";
 
 /**
  * Essayer avant le compte : un premier écran, puis le même parcours que
@@ -79,6 +80,9 @@ export function Essayer() {
   };
   const reprendreEssai = () => enter({ kind: "locale", at: new Date().toISOString() });
 
+  // Un nouveau venu ouvre sur l'histoire (matin, soir, avec Be Stable) ; un essai déjà commencé, sur Reprendre.
+  if (!reprendre) return <Stories onStart={commencer} onDemo={() => enter({ kind: "demo" }, "/accueil")} login loginLabel="J’ai déjà un compte" busy={busy} />;
+
   return (
     <div className="ar ar-duo es-bien">
       <div className="ar-v">
@@ -93,28 +97,20 @@ export function Essayer() {
             <Portrait />
           </div>
           <div className="q rise" style={{ animationDelay: ".08s" }}>
-            <h1>On regarde ce qu’il te reste à la fin du mois ?</h1>
-            <p>Quelques minutes, tes vrais chiffres, et pas besoin de compte.</p>
+            <h1>Ton essai t’attend.</h1>
+            <p>Tes chiffres sont restés sur ce téléphone. Tu reprends où tu en étais.</p>
           </div>
           {/* Au téléphone, la scène d'accueil remplit l'espace entre la question et le bouton. */}
           <div className="es-scene rise" style={{ animationDelay: ".12s" }}>
             <Ill n="accueil-premier" prio alt="La gérante t’accueille devant un box, un cheval à la porte." />
           </div>
           <div className="foot rise" style={{ animationDelay: ".16s" }}>
-            {reprendre ? (
-              <>
-                <button type="button" className="btn full" disabled={busy} onClick={reprendreEssai}>
-                  Reprendre mon essai
-                </button>
-                <button type="button" className="btn line full" disabled={busy} onClick={repartir}>
-                  {busy ? "On prépare ton écurie…" : "Repartir de zéro"}
-                </button>
-              </>
-            ) : (
-              <button type="button" className="btn full" disabled={busy} onClick={commencer}>
-                {busy ? "On prépare ton écurie…" : "Commencer"}
-              </button>
-            )}
+            <button type="button" className="btn full" disabled={busy} onClick={reprendreEssai}>
+              Reprendre mon essai
+            </button>
+            <button type="button" className="btn line full" disabled={busy} onClick={repartir}>
+              {busy ? "On prépare ton écurie…" : "Repartir de zéro"}
+            </button>
             <button type="button" className="lnk" onClick={() => enter({ kind: "demo" }, "/accueil")}>
               Juste regarder l’écurie d’exemple
             </button>
