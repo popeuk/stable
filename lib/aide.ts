@@ -98,7 +98,7 @@ const AIDES: Record<string, Aide> = {
   seuil: {
     id: "seuil",
     titre: "Combien de chevaux pour ne pas perdre d’argent",
-    bulle: "Combien de chevaux pour tout payer",
+    bulle: "Le calcul est dans « Comment on le sait ? »",
     cible: "haut",
     points: [
       "Les frais de l’écurie (foin, loyer, salaires…) tombent chaque mois, quel que soit le nombre de chevaux.",

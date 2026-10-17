@@ -294,7 +294,7 @@ function Moi() {
           router.push("/accueil");
         }}
       >
-        <Li title="Les explications" sub="la ligne « Comment ça marche ici ? » revient sur l’accueil, et le « ? » en haut de chaque écran rouvre les explications" right={chev} />
+        <Li title="Les explications" sub="les petites bulles reviennent, et le « ? » en haut de chaque écran rouvre les explications" right={chev} />
       </button>
       <button
         type="button"

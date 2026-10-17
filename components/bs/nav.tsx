@@ -192,6 +192,8 @@ export function AideBulle() {
   const a = bulleAMontrer(aide, vues, ouverte);
   const [prete, setPrete] = useState<string | null>(null);
   const [pos, setPos] = useState<ReturnType<typeof placerBulle> | null>(null);
+  // Au téléphone, une bulle du haut cacherait le titre de l'écran : elle se pose en bas, au-dessus de la barre, sans pointe.
+  const [enBas, setEnBas] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const id = a?.id ?? null;
   const cible = a?.cible ?? "haut";
@@ -219,8 +221,11 @@ export function AideBulle() {
   useLayoutEffect(() => {
     if (!montree) return;
     const placer = () => {
-      const el = trouverCible(cible);
+      const barre = cible === "haut" ? document.querySelector(CIBLES.plus[0]) : null;
+      const bas = visible(barre);
+      const el = bas ? barre : trouverCible(cible);
       const b = ref.current;
+      setEnBas(bas);
       if (!el || !b) return setPos(null);
       setPos(placerBulle(el.getBoundingClientRect(), { width: b.offsetWidth }, { width: window.innerWidth, height: window.innerHeight }));
     };
@@ -253,7 +258,7 @@ export function AideBulle() {
     <div className="carnet carnet-portal">
       <div
         ref={ref}
-        className={`aide-bulle${pos ? (pos.dessus ? " dessus" : " dessous") : ""}`}
+        className={`aide-bulle${pos ? (pos.dessus ? " dessus" : " dessous") : ""}${enBas ? " sans-pointe" : ""}`}
         role="status"
         aria-live="polite"
         style={pos ? { left: pos.left, top: pos.top, bottom: pos.bottom, ["--pointe" as string]: `${pos.pointe}px` } : { visibility: "hidden" }}

@@ -237,8 +237,7 @@ function Mois() {
   const ceQuiRentre = (
         <Sec title={estime ? "Ce qui devrait rentrer" : "Ce qui rentre"} action={<span className={`act${!estime && Math.round(m.revenue) ? " in" : ""}`}>{sg(m.revenue)}</span>} delay={0.2}>
           {m.ins.length === 0 && <p className="note">Rien n’est encore rentré ce mois-ci.</p>}
-          {estime && m.ins.length > 0 && <p className="note">Une estimation, faite avec tes prix.</p>}
-          {m.ins.map((x) => (
+                    {m.ins.map((x) => (
             <div key={x.label} className="ar-post">
               <span className="ar-pic">
                 <Ic n={icFor(x.label)} className="ar-ic" />

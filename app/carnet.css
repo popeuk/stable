@@ -220,6 +220,7 @@
 .carnet .aide-bulle::after { content: ""; position: absolute; left: calc(var(--pointe, 50%) - 7px); width: 14px; height: 14px; background: inherit; border-radius: 2px; transform: rotate(45deg); }
 .carnet .aide-bulle.dessus::after { bottom: -6px; }
 .carnet .aide-bulle.dessous::after { top: -6px; }
+.carnet .aide-bulle.sans-pointe::after { display: none; }
 @keyframes aide-bulle { from { opacity: 0; transform: translateY(6px); } }
 .carnet .aide-bulle.dessous { animation-name: aide-bulle-h; }
 @keyframes aide-bulle-h { from { opacity: 0; transform: translateY(-6px); } }
