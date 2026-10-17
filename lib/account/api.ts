@@ -156,6 +156,8 @@ export const api = {
   deconnexion: () => call<{ ok: true }>("POST", "/deconnexion", {}),
   envoyerCode: (email: string) => call<{ ok: true; compte?: boolean }>("POST", "/code/envoyer", { email }),
   verifierCode: (email: string, code: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/code/verifier", { email, code }),
+  /** Google ou Apple : le jeton signé de Supabase ouvre le compte de cette adresse (lib/account/oauth). */
+  connexionSupabase: (accessToken: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/connexion/supabase", { access_token: accessToken }),
   majMoi: (p: { prenom?: string; nom?: string; telephone?: string }) => call<{ user: Me }>("PUT", "/moi", p),
   oubli: (email: string) => call<{ ok: true }>("POST", "/mot-de-passe/oubli", { email, retour: appUrl("/compte/nouveau-mot-de-passe/") }),
   nouveau: (p: { login: string; key: string; password: string }) => call<AuthResponse>("POST", "/mot-de-passe/nouveau", p),

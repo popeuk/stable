@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { withBase } from "@/components/bs/ui";
-import { nf, pwScore, useAnnuaire } from "@/components/bs/account-ui";
+import { nf, useAnnuaire } from "@/components/bs/account-ui";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
 import { Ic, Ill } from "@/components/carnet/ui";
 import { Stories } from "@/components/bs/histoire";
-import { api, ApiError, PW_MIN, type Fiche, type StableHit } from "@/lib/account/api";
+import { api, ApiError, type Fiche, type StableHit } from "@/lib/account/api";
 import { enter, getSession, hasAccountData, hasLegacyData, hasLocaleData, sessionFrom, setSession, updateAccount, type AccountSession, type Listing } from "@/lib/account/session";
 import { adoptLocale } from "@/lib/account/vault";
 
@@ -726,40 +726,6 @@ export function CodeInput({ value, onChange, disabled }: { value: string; onChan
         </span>
       ))}
     </label>
-  );
-}
-
-/** Le mot de passe, avec « Afficher » et, si on le crée, sa solidité en quatre crans d'encre. */
-export function PwInput({ label = "Mot de passe", value, onChange, error, autoComplete = "new-password", meter = true }: { label?: string; value: string; onChange: (v: string) => void; error?: ReactNode; autoComplete?: string; meter?: boolean }) {
-  const [show, setShow] = useState(false);
-  const sc = pwScore(value);
-  const words = ["Trop court", "Correct", "Bien", "Solide", "Très solide"];
-  return (
-    <div className="field">
-      <label htmlFor="ar-pw" style={{ fontSize: 13, fontWeight: 650 }}>
-        {label}
-      </label>
-      <span className="ar-pw">
-        <input id="ar-pw" className="input" type={show ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete} minLength={PW_MIN} required aria-invalid={!!error} aria-describedby="ar-pw-h" />
-        <button type="button" className="u" onClick={() => setShow(!show)} aria-label={show ? "Masquer le mot de passe" : "Afficher le mot de passe"} aria-pressed={show}>
-          {show ? "Masquer" : "Afficher"}
-        </button>
-      </span>
-      {meter && (
-        <span className="ar-meter" aria-hidden>
-          {[0, 1, 2, 3].map((i) => (
-            <i key={i} className={value && i < Math.max(1, sc) ? "on" : ""} />
-          ))}
-        </span>
-      )}
-      {error ? (
-        <em id="ar-pw-h" role="alert" style={{ color: "var(--ink)", fontWeight: 650 }}>
-          {error}
-        </em>
-      ) : (
-        <em id="ar-pw-h">{meter ? (value ? `${words[sc]}. ` : "") + `${PW_MIN} caractères minimum. Une petite phrase, c’est solide et facile à retenir.` : ""}</em>
-      )}
-    </div>
   );
 }
 

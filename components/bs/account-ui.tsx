@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { Picto } from "@/components/bs/picto";
 import { Ic } from "@/components/carnet/ui";
-import { api, PW_MIN, type Fiche, type StableHit } from "@/lib/account/api";
+import { api, type Fiche, type StableHit } from "@/lib/account/api";
 
 /** Le haut des écrans de compte : be stable, avec mon-ecurie.fr. */
 export function AccTop({ right }: { right?: ReactNode }) {
@@ -45,53 +45,6 @@ export function Field({ label, hint, error, optional, unit, ...input }: FieldPro
           {hint}
         </p>
       ) : null}
-    </div>
-  );
-}
-
-/** La force d'un mot de passe, en quatre crans, sans règle cachée. */
-export function pwScore(p: string) {
-  let s = 0;
-  if (p.length >= PW_MIN) s++;
-  if (p.length >= 14) s++;
-  if (/[a-z]/i.test(p) && /\d/.test(p)) s++;
-  if (/[^a-z0-9]/i.test(p) || p.length >= 16) s++;
-  return p.length < PW_MIN ? 0 : s;
-}
-
-export function PasswordField({ label = "Mot de passe", value, onChange, error, autoComplete = "new-password", meter = true }: { label?: string; value: string; onChange: (v: string) => void; error?: ReactNode; autoComplete?: string; meter?: boolean }) {
-  const id = useId();
-  const [show, setShow] = useState(false);
-  const sc = pwScore(value);
-  const words = ["Trop court", "Correct", "Bien", "Solide", "Très solide"];
-  const colors = ["var(--ink3)", "var(--ink2)", "var(--ink)", "var(--ink)", "var(--ink)"];
-  return (
-    <div className="bs-lbl">
-      <label htmlFor={id} className="bs-lbl-t">
-        {label}
-      </label>
-      <span className={`bs-in${error ? " err" : ""}`}>
-        <input id={id} type={show ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete} minLength={PW_MIN} required aria-invalid={!!error} aria-describedby={`${id}-h`} />
-        <button type="button" className="eye" onClick={() => setShow(!show)} aria-label={show ? "Masquer le mot de passe" : "Afficher le mot de passe"} aria-pressed={show}>
-          {show ? "Masquer" : "Voir"}
-        </button>
-      </span>
-      {meter && (
-        <span className="bs-pwbar" aria-hidden>
-          {[0, 1, 2, 3].map((i) => (
-            <i key={i} style={{ background: value && i < Math.max(1, sc) ? colors[sc] : undefined }} />
-          ))}
-        </span>
-      )}
-      {error ? (
-        <p className="bs-err" id={`${id}-h`} role="alert">
-          {error}
-        </p>
-      ) : (
-        <p className="bs-help" id={`${id}-h`}>
-          {meter ? (value ? `${words[sc]}. ` : "") + `${PW_MIN} caractères minimum. Une petite phrase, c’est solide et facile à retenir.` : ""}
-        </p>
-      )}
     </div>
   );
 }

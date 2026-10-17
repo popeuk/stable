@@ -4,15 +4,17 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
 import { GardeFait, GardeListe } from "@/components/bs/garder";
-import { ArTop, CodeInput, PwInput } from "@/components/bs/rejoindre";
+import { ArTop, CodeInput } from "@/components/bs/rejoindre";
 import { Ill } from "@/components/carnet/ui";
-import { api, ApiError, type AuthResponse } from "@/lib/account/api";
+import { api, ApiError, appUrl, type AuthResponse } from "@/lib/account/api";
+import { AVEC_APPLE, AVEC_GOOGLE, lireRetour, partirVers, revenirDe, type Fournisseur } from "@/lib/account/oauth";
 import { enter, getSession, hasAccountData, hasLegacyData, hasLocaleData, sessionFrom, setSession, type AccountSession } from "@/lib/account/session";
 import { adoptLocale, resumeLocale, type ResumeEssai } from "@/lib/account/vault";
 
 /**
- * Se connecter : l'e-mail, puis le code reçu. Pas de mot de passe à retenir.
- * Ceux qui en ont un sur mon-ecurie.fr peuvent toujours s'en servir.
+ * Se connecter : l'e-mail, puis le code reçu, ou « Continuer avec Google »
+ * (Apple quand il sera branché). Plus de mot de passe (décision du 18 octobre).
+ * Google revient ici avec ?code=… : le compte s'ouvre comme avec le code.
  *
  * Avec ?garder=1 (le bandeau « Garder mes chiffres ») ou depuis l'écurie
  * essayée sans compte : « On garde tout pour demain. », puis l'écurie de
@@ -20,10 +22,9 @@ import { adoptLocale, resumeLocale, type ResumeEssai } from "@/lib/account/vault
  * le gérant choisit laquelle garder.
  */
 export default function Page() {
-  const [mode, setMode] = useState<"email" | "code" | "mdp">("email");
+  const [mode, setMode] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [adopt, setAdopt] = useState<"legacy" | "locale" | null>(null);
@@ -34,7 +35,19 @@ export default function Page() {
     const voulu = new URLSearchParams(window.location.search).get("garder") === "1" || getSession()?.kind === "locale";
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (voulu && hasLocaleData()) setGarder(resumeLocale() ?? { chevaux: 0, pension: 0, frais: 0, seances: 0 });
+    // Retour de Google ou d'Apple.
+    const retour = lireRetour(window.location.search);
+    if (!retour) return;
+    window.history.replaceState(null, "", window.location.pathname + (voulu ? "?garder=1" : ""));
+    if (retour.erreur) return setErr("La connexion a été annulée. Réessaie, ou reçois un code par e-mail.");
+    void run(async () => ouvrir(await api.connexionSupabase(await revenirDe(retour.code!))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function avec(f: Fournisseur) {
+    const retour = appUrl(`/compte/connexion/${garder ? "?garder=1" : ""}`);
+    void run(() => partirVers(f, retour));
+  }
 
   async function ouvrir(r: AuthResponse) {
     const s = sessionFrom(r);
@@ -134,12 +147,17 @@ export default function Page() {
               <button className="btn full" disabled={busy || !email.trim()}>
                 {busy ? "Envoi…" : "Recevoir mon code"}
               </button>
-              <p className="ar-proof">
-                Le même compte que sur mon-ecurie.fr.{" "}
-                <button type="button" className="lnk" onClick={() => (setMode("mdp"), setErr(""))}>
-                  J’ai un mot de passe
+              {AVEC_GOOGLE && (
+                <button type="button" className="btn line full" disabled={busy} onClick={() => avec("google")}>
+                  Continuer avec Google
                 </button>
-              </p>
+              )}
+              {AVEC_APPLE && (
+                <button type="button" className="btn line full" disabled={busy} onClick={() => avec("apple")}>
+                  Continuer avec Apple
+                </button>
+              )}
+              <p className="ar-proof">Le même compte que sur mon-ecurie.fr. Pas de mot de passe.</p>
             </div>
           </form>
         )}
@@ -170,33 +188,6 @@ export default function Page() {
                   renvoie le code
                 </button>
                 .
-              </p>
-            </div>
-          </form>
-        )}
-
-        {mode === "mdp" && (
-          <form className="ar-v" noValidate onSubmit={(e) => (e.preventDefault(), run(async () => ouvrir(await api.connexion({ email: email.trim(), password: pw }))))}>
-            {top}
-            <div className="q">
-              <h1>Avec ton mot de passe.</h1>
-            </div>
-            <div className="ar-form">
-              <label className="field">
-                <span>E-mail</span>
-                <input className="input" autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.fr" />
-              </label>
-              <PwInput value={pw} onChange={setPw} meter={false} autoComplete="current-password" />
-            </div>
-            {erreur}
-            <div className="foot">
-              <button className="btn full" disabled={busy || !email.trim() || !pw}>
-                {busy ? "Connexion…" : "Me connecter"}
-              </button>
-              <p className="ar-proof">
-                <Link href={`/compte/oubli${email ? `?email=${encodeURIComponent(email.trim())}` : ""}`} className="lnk">
-                  Mot de passe oublié ?
-                </Link>
               </p>
             </div>
           </form>

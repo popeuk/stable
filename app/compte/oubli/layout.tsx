@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-/** Le titre de l'onglet (et le nom proposé à l'enregistrement en PDF) : « Mot de passe oublié · Be Stable ». */
-export const metadata: Metadata = { title: "Mot de passe oublié" };
+/** Ancienne adresse du mot de passe oublié : elle mène à la connexion. */
+export const metadata: Metadata = { title: "Connexion" };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return children;
