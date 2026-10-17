@@ -6,10 +6,13 @@ import { Ill } from "@/components/carnet/ui";
  * Static hosting (GitHub Pages) can't serve a page per user-created id, so this
  * 404 page — exported as 404.html and served for any unmatched path — rewrites
  * those old paths to the query-param routes that work for any id. Old bookmarks,
- * shared URLs and cached clients all keep working.
+ * shared URLs and cached clients all keep working. Les anciens prototypes
+ * (/proto/…) ne sont plus publiés : leur adresse ramène à l'entrée de l'app.
  */
 const LEGACY_REDIRECT = `(function(){try{
 var p=location.pathname.replace(/\\/+$/,'');
+var x=p.match(/\\/proto(\\/|$)/);
+if(x){location.replace(p.slice(0,x.index)+'/');return;}
 var m=p.match(/\\/cheval\\/([^\\/]+)$/);
 if(m){location.replace(p.slice(0,m.index)+'/cheval?id='+m[1]+location.search.replace(/^\\?/,'&')+location.hash);return;}
 var d=p.match(/\\/decouvertes\\/([^\\/]+)$/);
