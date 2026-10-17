@@ -12,7 +12,9 @@
 .carnet .hd { background: var(--mist); border-bottom: 1px solid var(--line); }
 .carnet .tb { background: var(--sheet); border-top: 1px solid var(--line); }
 .carnet .tb a[aria-current="page"] { color: var(--ink); }
-.carnet .tb a[aria-current="page"]::before { content: ""; position: absolute; top: -7px; left: 50%; width: 22px; height: 2px; margin-left: -11px; border-radius: 0 0 2px 2px; background: var(--ink); }
+/* L'onglet actif se lit à l'encre et au trait plein de son picto ; plus de barrette posée sur le filet, qui faisait un trait parasite. */
+.carnet .tb a[aria-current="page"] span, .carnet .tb a[aria-current="page"] { font-weight: 700; }
+.carnet .tb a[aria-current="page"] svg { stroke-width: 2; }
 /* Le + : un rond d'encre cerclé de brume, net, sans halo. */
 .carnet .tb .plus { box-shadow: 0 0 0 5px var(--mist), 0 0 0 6px var(--line); }
 
@@ -35,6 +37,7 @@
 /* ---------- Les petites choses ---------- */
 .carnet .row:has(> time) { grid-template-columns: 50px minmax(0, 1fr) auto 28px; }
 .carnet .row time { justify-self: start; padding: 3px 6px; border-radius: 6px; background: var(--mist); color: var(--ink2); font-weight: 600; }
+.carnet .row time:empty { visibility: hidden; }
 .carnet .cp-hier { width: calc(100% - 24px); margin: 12px 12px 0; padding-inline: 14px; border-radius: 14px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
 /* Les choix : le choix cerné d'encre sur un rail de brume. */
 .carnet .seg { background: color-mix(in srgb, var(--line) 60%, var(--mist)); }

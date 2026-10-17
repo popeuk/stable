@@ -15,15 +15,16 @@ import type { Horse } from "@/lib/domain/types";
  */
 
 /* ---------- Format ---------- */
+/* Le symbole reste collé au chiffre (insécable) : jamais un « € » seul en début de ligne. */
 /* Espace insécable ordinaire : la fine (U+202F) ne s’affiche pas dans nos polices. */
 const nf0 = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 const nf = { format: (n: number) => nf0.format(n).replace(/\u202f/g, "\u00a0") };
 /** À l'euro, symétrique : 500,5 donne 501 et −500,5 donne −501 (le même chiffre, rentré ou sorti). */
 const arrondi = (n: number) => Math.sign(n) * Math.round(Math.abs(n)) || 0;
-export const eur = (n: number) => `${nf.format(arrondi(n))} €`;
+export const eur = (n: number) => `${nf.format(arrondi(n))}\u00a0€`;
 export const sg = (n: number) => {
   const r = arrondi(n);
-  return `${r > 0 ? "+" : r < 0 ? "−" : ""}${nf.format(Math.abs(r))} €`;
+  return `${r > 0 ? "+" : r < 0 ? "−" : ""}${nf.format(Math.abs(r))}\u00a0€`;
 };
 /** Au centime quand il y en a (« 12,50 € »), à l'euro sinon : pour un montant saisi, jamais pour un total. */
 const nf2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -31,10 +32,10 @@ const auCentime = (n: number) => {
   const a = Math.round(Math.abs(n) * 100) / 100;
   return Number.isInteger(a) ? nf.format(a) : nf2.format(a).replace(/\u202f/g, "\u00a0");
 };
-export const eurc = (n: number) => `${auCentime(n)} €`;
+export const eurc = (n: number) => `${auCentime(n)}\u00a0€`;
 export const sgc = (n: number) => {
   const r = Math.round(n * 100) / 100;
-  return `${r > 0 ? "+" : r < 0 ? "−" : ""}${auCentime(r)} €`;
+  return `${r > 0 ? "+" : r < 0 ? "−" : ""}${auCentime(r)}\u00a0€`;
 };
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

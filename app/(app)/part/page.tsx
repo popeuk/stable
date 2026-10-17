@@ -44,12 +44,11 @@ function Part() {
         <h2>Les frais de l’écurie, c’est quoi&nbsp;?</h2>
         <p>Ce sont les dépenses qui servent à toute l’écurie : le foin, la paille, le loyer, les salaires… Chaque cheval en paie un morceau, c’est sa part des frais.</p>
       </div>
-      <Sec ill="brouette" title={`Les frais de l’écurie ${du}`} delay={0.12} />
-      <div className="pad rise" style={{ animationDelay: ".18s", paddingTop: 12 }}>
+      <Sec ill="brouette" title={`Les frais de l’écurie ${du}`} delay={0.12}>
         {m.shared.length === 0 ? (
           <p className="note">Pas encore de frais de l’écurie notés ce mois-ci.</p>
         ) : (
-          <div className="ticket ch-mini print">
+          <div className="ticket ch-mini print pt-ticket">
             {m.shared.map((x) => (
               <div key={x.label} className="r">
                 <span>{libelleFrais(x.label)}</span>
@@ -62,7 +61,7 @@ function Part() {
             </div>
           </div>
         )}
-      </div>
+      </Sec>
       <div className="pad ch-sum rise" style={{ animationDelay: ".3s" }}>
         <div className="ch-down">
           <Ic n="arrow" className="" />

@@ -167,3 +167,19 @@
 .carnet .ch-mtop .portrait .disc { width: 104px; height: 104px; margin: 0; }
 .carnet .ch-mtop .hello { padding: 0; }
 .carnet .ch-mtop .hello p { margin-top: 6px; font-size: 14px; }
+
+/* Contacts : l'initiale et le picto restent en face du nom quand les chevaux passent sur plusieurs lignes. */
+.carnet .li.ct-row { align-items: start; }
+.carnet .li.ct-row > :first-child { margin-top: 1px; }
+.carnet .li.ct-row > :last-child { align-self: center; }
+
+/* Tableau des chevaux : les en-têtes passent sur deux lignes plutôt que d'écraser « À prévoir », une échéance par ligne. */
+@media (min-width: 1024px) {
+  .carnet .ch-desk .tbl th { white-space: normal; vertical-align: bottom; line-height: 1.3; }
+  .carnet .ch-desk .tbl th.n { min-width: 92px; }
+  .carnet .ch-desk .tbl .due { min-width: 190px; line-height: 1.4; }
+  .carnet .ch-desk .tbl .due > span { display: block; }
+  .carnet .ch-desk .tbl .due > span::first-letter { text-transform: uppercase; }
+}
+/* La part des frais : le ticket vit dans sa section, sous le titre. */
+.carnet .pt-ticket { margin: 12px 0 18px; }

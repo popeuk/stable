@@ -31,7 +31,7 @@ function Contacts() {
   const owners = people.filter((p) => p.roles.includes("proprietaire"));
 
   const row = (p: Person, pro: boolean) => (
-    <div key={p.name} className="li">
+    <div key={p.name} className="li ct-row">
       {pro ? (
         <span className="ch-ico">
           <Ic n="syringe" className="" />

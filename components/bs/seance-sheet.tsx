@@ -19,8 +19,10 @@ import type { Seance } from "@/lib/domain/types";
 /**
  * La fiche d'une séance. À venir : inscrire, l'annuler avec un motif, la
  * modifier ou la supprimer avec une portée (cette séance, les suivantes,
- * toute la série). Passée : elle a compté toute seule avec tous ses
- * inscrits présents ; on retire un absent, ou « Elle n’a pas eu lieu ».
+ * toute la série). Commencée ou passée : l'appel. Chaque inscrit a sa case,
+ * cochée par défaut ; on décoche les absents et « Valider les présents »
+ * compte la séance (une passée a déjà compté avec tout le monde). Ou
+ * « Elle n’a pas eu lieu ».
  * Passée sans personne d'inscrit : elle ne compte rien (0 €) et invite à
  * ajouter qui est venu ; chaque nom ajouté après coup compte tout de suite.
  * Chaque geste propose « Annuler » pendant 6 secondes. Feuille du carnet, rendue dans le body
@@ -62,6 +64,8 @@ function Inner({ seance }: { seance: Seance }) {
   const [end, setEnd] = useState(seance.end);
   const [notes, setNotes] = useState(seance.notes ?? "");
   const [scope, setScope] = useState<"one" | "following" | "all">("one");
+  // L'appel : seuls les changements sont gardés ici, le reste vient de la séance.
+  const [appelLocal, setAppelLocal] = useState<Record<string, boolean>>({});
 
   const ref = useFeuille(close, { verrou: true });
   // Changer de vue (présence, annuler, modifier) remplace les boutons : le focus reste dans la feuille.
@@ -78,8 +82,18 @@ function Inner({ seance }: { seance: Seance }) {
   const dateLabel = new Date(seance.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   const over = `${dateLabel.charAt(0).toUpperCase()}${dateLabel.slice(1)} · ${seance.start} à ${seance.end}${seance.lieu ? ` · ${seance.lieu}` : ""}`;
   const collectif = seance.format === "collectif";
-  const passee = seancePassee(seance, localToday(), hhmm());
+  const today = localToday();
+  const now = hhmm();
+  const passee = seancePassee(seance, today, now);
+  // Le cours a commencé : on peut faire l'appel sans attendre la fin.
+  const commencee = passee || (seance.status === "planned" && seance.date === today && seance.start <= now);
+  const appel = commencee && seance.status !== "cancelled" && seance.participants.length > 0;
   const plusieurs = seance.participants.length > 1;
+  const estLa = (p: Seance["participants"][number]) => appelLocal[p.personId] ?? p.present !== false;
+  const nLa = seance.participants.filter(estLa).length;
+  const aChange = seance.status !== "done" || seance.participants.some((p) => estLa(p) !== (p.present !== false));
+  // Ce que l'appel ferait compter : les présents, plus les absents si la séance les facture. Un forfait a déjà payé.
+  const montantAppel = Math.round(seance.unitPrice * seance.participants.filter((p) => !p.forfait && (estLa(p) || seance.chargeAbsent)).length * 100) / 100;
 
   function cancel() {
     const snap = snapshot();
@@ -98,17 +112,14 @@ function Inner({ seance }: { seance: Seance }) {
     }
     close();
   }
-  /** Un absent dans un cours à plusieurs : il ne paie plus, les autres restent comptés. */
-  function retirerAbsent(name: string) {
-    retirer({ seanceId: seance.id, payer: name, label: seance.title });
-  }
-  /** Il était là finalement : il compte de nouveau. */
-  function remettre(pid: string) {
+  /** Valider les présents : la séance compte pour ceux qui sont cochés. */
+  function validerAppel() {
     const snap = snapshot();
-    const presence = Object.fromEntries(seance.participants.map((x) => [x.personId, x.personId === pid ? true : x.present !== false]));
-    const absents = seance.participants.some((x) => x.personId !== pid && x.present === false);
-    st().validateSeance(seance.id, presence, absents ? seance.chargeAbsent : false);
-    say(`${esc(person(pid)?.name ?? "")} compte de nouveau.`, () => useDataStore.setState(snap));
+    const presence = Object.fromEntries(seance.participants.map((p) => [p.personId, estLa(p)]));
+    st().validateSeance(seance.id, presence, seance.chargeAbsent);
+    const total = seance.participants.length;
+    say(`${esc(seance.title)} : ${nLa === total ? (total > 1 ? "tout le monde était là" : "présent") : `${nLa} sur ${total} présent${nLa > 1 ? "s" : ""}`}, c’est compté.`, () => useDataStore.setState(snap));
+    close();
   }
   function saveEdit() {
     const patch: Partial<Seance> = { updatedBy: gerant };
@@ -184,39 +195,62 @@ function Inner({ seance }: { seance: Seance }) {
           {seance.seriesId && <span className="pill">revient, {series.length} séances en tout</span>}
         </div>
         <p className="k jr-k">
-          {passee && (seance.participants.length || vide) ? "Qui était là" : seance.participants.length || vide ? "Cavaliers" : "Chevaux"}
-          {!passee && seance.places ? ` · ${seance.participants.length} sur ${seance.places}` : ""}
+          {appel ? `Qui ${passee ? "était" : "est"} là · ${nLa} sur ${seance.participants.length}` : passee && vide ? "Qui était là" : seance.participants.length || vide ? "Cavaliers" : "Chevaux"}
+          {!commencee && seance.places ? ` · ${seance.participants.length} sur ${seance.places}` : ""}
         </p>
-        {passee && plusieurs && <p className="note">Tout le monde est compté. Retire seulement ceux qui ne sont pas venus.</p>}
+        {appel && (
+          <p className="note">
+            {seance.status === "done" ? "Tout le monde est compté. Décoche ceux qui ne sont pas venus, puis valide." : "Tout le monde est coché. Décoche ceux qui ne sont pas là, puis valide."}
+          </p>
+        )}
         {rows.map((p, i) => {
           const h = horse(p.horseId);
           const who = person(p.personId)?.name;
-          const absent = p.present === false;
+          const sur = h && p.personId ? `sur ${h.name}` : "";
+          if (appel && who) {
+            const la = estLa(p as Seance["participants"][number]);
+            return (
+              <button
+                key={p.personId}
+                type="button"
+                className={`li jr-appel${la ? "" : " off"}`}
+                aria-pressed={la}
+                onClick={() => setAppelLocal((m) => ({ ...m, [p.personId]: !la }))}
+              >
+                <span className="ini">{ini(who)}</span>
+                <span>
+                  <b>{who}</b>
+                  <small>{[sur, la ? "présent" : "absent"].filter(Boolean).join(" · ")}</small>
+                </span>
+                <span className={`ck${la ? " on" : ""}`} aria-hidden="true">
+                  <Ic n="ck" className="" />
+                </span>
+              </button>
+            );
+          }
           return (
             <div key={p.personId || p.horseId || i} className="li">
               {who ? <span className="ini">{ini(who)}</span> : <Face horse={h} />}
               <span>
                 <b>{who ?? h?.name}</b>
-                <small>{[h && p.personId ? `sur ${h.name}` : "", passee && who ? (absent ? "absent" : "présent") : ""].filter(Boolean).join(" · ")}</small>
+                {sur && <small>{sur}</small>}
               </span>
-              {passee && seance.status !== "cancelled" && who && plusieurs ? (
-                absent ? (
-                  <button type="button" className="btn line" onClick={() => remettre(p.personId)}>
-                    Remettre
-                  </button>
-                ) : (
-                  <button type="button" className="cp-rm" onClick={() => retirerAbsent(who)} aria-label={`Pas venu ? Retirer ${who}`}>
-                    <Ic n="x" className="" />
-                  </button>
-                )
-              ) : h && who ? (
-                <Face horse={h} className="jr-sm" />
-              ) : (
-                <span />
-              )}
+              {h && who ? <Face horse={h} className="jr-sm" /> : <span />}
             </div>
           );
         })}
+        {appel &&
+          (aChange ? (
+            <button type="button" className="btn full jr-btn-top" onClick={validerAppel}>
+              <Ic n="ck" className="" />
+              Valider les présents · {nLa} sur {seance.participants.length}
+            </button>
+          ) : (
+            <p className="jr-valide">
+              <Ic n="ck" className="" />
+              Présents validés : {nLa} sur {seance.participants.length}
+            </p>
+          ))}
         {vide &&
           (passee && seance.status !== "cancelled" ? (
             <p className="note">Personne d’inscrit, donc rien à compter. Ajoute qui est venu, et la séance comptera pour eux.</p>
@@ -229,9 +263,9 @@ function Inner({ seance }: { seance: Seance }) {
         {seance.notes && <p className="note">{seance.notes}</p>}
         {seance.updatedBy && <p className="note" style={{ fontSize: 12 }}>Modifiée par {seance.updatedBy}</p>}
         <div className="card jr-tot">
-          <span className="k">{passee ? (vide ? "Pour l’instant" : "A rapporté") : "Rapportera"}</span>
+          <span className="k">{appel && aChange ? "Comptera" : passee ? (vide ? "Pour l’instant" : "A rapporté") : "Rapportera"}</span>
           <b className="mid">
-            <Money exact v={seance.status === "cancelled" ? 0 : seanceAmount(seance)} />
+            <Money exact v={seance.status === "cancelled" ? 0 : appel ? montantAppel : seanceAmount(seance)} />
           </b>
         </div>
         {passee && !vide && (
@@ -350,7 +384,7 @@ function Inner({ seance }: { seance: Seance }) {
           </button>
         </div>
         <div className="pad">
-          <h2 className="jr-sh">{view === "presence" && plusieurs ? `${seance.title} · qui était là ?` : seance.title}</h2>
+          <h2 className="jr-sh">{view === "presence" && appel ? `${seance.title} · qui ${passee ? "était" : "est"} là ?` : seance.title}</h2>
           {body}
         </div>
       </div>
@@ -436,6 +470,7 @@ function Inscrire({ seance, passee }: { seance: Seance; passee: boolean }) {
           )}
         </>
       )}
+      {horses.length > 0 && <span className="jr-sub">Les chevaux de la séance</span>}
       {horses.length > 0 && (
         <HorseChips
           horses={horses}

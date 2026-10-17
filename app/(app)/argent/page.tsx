@@ -321,50 +321,52 @@ function Mois() {
         </Sec>
         )}
         {isNow && <Piste delay={0.48} />}
-        {isNow && (
-          <Link href="/chevaux?vue=clients" className="ar-lcard ar-lrow rise" style={{ animationDelay: ".48s", marginTop: 18 }}>
+        <nav className="card ar-links rise" style={{ animationDelay: ".48s" }} aria-label="Pour aller plus loin">
+          {isNow && (
+            <Link href="/chevaux?vue=clients" className="ar-lrow">
+              <span className="ar-pic">
+                <Ic n="people" className="ar-ic" />
+              </span>
+              <span>
+                <span className="k">Qui te doit quoi</span>
+                <b>{dues.length ? `${dues.length} client${dues.length > 1 ? "s" : ""} te ${dues.length > 1 ? "doivent" : "doit"} ${eur(duTotal)}. Tu les retrouves dans Clients.` : "Tout le monde t’a payé ce mois-ci."}</b>
+              </span>
+              <Ic n="chev" className="chev" />
+            </Link>
+          )}
+          <Link href="/seuil" className="ar-lrow">
             <span className="ar-pic">
-              <Ic n="people" className="ar-ic" />
+              <Ic n="flag" className="ar-ic" />
             </span>
             <span>
-              <span className="k">Qui te doit quoi</span>
-              <b>{dues.length ? `${dues.length} client${dues.length > 1 ? "s" : ""} te ${dues.length > 1 ? "doivent" : "doit"} ${eur(duTotal)}. Tu les retrouves dans Clients.` : "Tout le monde t’a payé ce mois-ci."}</b>
+              <span className="k">Combien de chevaux pour ne pas perdre d’argent</span>
+              <b>{isFinite(m.seuil) ? `${ilEnFaut(m.seuil)} Tu en as ${m.horseCount}.` : "Tes pensions ne paient pas encore les soins des chevaux"}</b>
             </span>
             <Ic n="chev" className="chev" />
           </Link>
-        )}
-        <Link href="/seuil" className="ar-lcard ar-lrow rise" style={{ animationDelay: ".5s", marginTop: isNow ? 0 : 18 }}>
-          <span className="ar-pic">
-            <Ic n="flag" className="ar-ic" />
-          </span>
-          <span>
-            <span className="k">Combien de chevaux pour ne pas perdre d’argent</span>
-            <b>{isFinite(m.seuil) ? `${ilEnFaut(m.seuil)} Tu en as ${m.horseCount}.` : "Tes pensions ne paient pas encore les soins des chevaux"}</b>
-          </span>
-          <Ic n="chev" className="chev" />
-        </Link>
-        <Link href="/part" className="ar-lcard ar-lrow rise" style={{ animationDelay: ".56s" }}>
-          <span className="ar-pic">
-            <Ic n="hay" className="ar-ic" />
-          </span>
-          <span>
-            <span className="k">Les frais de l’écurie</span>
-            <b>
-              Comment le foin et le loyer se partagent entre {m.horseCount > 1 ? `tes ${m.horseCount} chevaux` : "tes chevaux"}
-            </b>
-          </span>
-          <Ic n="chev" className="chev" />
-        </Link>
-        <Link href="/pilotage" className="ar-lcard ar-lrow rise" style={{ animationDelay: ".62s" }}>
-          <span className="ar-pic">
-            <Ic n="chart" className="ar-ic" />
-          </span>
-          <span>
-            <span className="k">Sur plusieurs mois</span>
-            <b>Ton argent sur 3, 6 ou 12 mois</b>
-          </span>
-          <Ic n="chev" className="chev" />
-        </Link>
+          <Link href="/part" className="ar-lrow">
+            <span className="ar-pic">
+              <Ic n="hay" className="ar-ic" />
+            </span>
+            <span>
+              <span className="k">Les frais de l’écurie</span>
+              <b>
+                Comment le foin et le loyer se partagent entre {m.horseCount > 1 ? `tes ${m.horseCount} chevaux` : "tes chevaux"}
+              </b>
+            </span>
+            <Ic n="chev" className="chev" />
+          </Link>
+          <Link href="/pilotage" className="ar-lrow">
+            <span className="ar-pic">
+              <Ic n="chart" className="ar-ic" />
+            </span>
+            <span>
+              <span className="k">Sur plusieurs mois</span>
+              <b>Ton argent sur 3, 6 ou 12 mois</b>
+            </span>
+            <Ic n="chev" className="chev" />
+          </Link>
+        </nav>
       </div>
     </div>
   );

@@ -38,7 +38,7 @@ const EXEMPLE = `Cours collectif demain 18${NB}h, 6 places`;
 const TYPES: { id: AjoutType; l: string; s: string; i: string }[] = [
   { id: "seance", l: "Séance", s: "cours, balade, stage", i: "cal" },
   { id: "soin", l: "Soin", s: "maréchal, véto, vaccin", i: "syringe" },
-  { id: "rdv", l: "Tâche ou rendez-vous", s: "avec ou sans heure", i: "clock" },
+  { id: "rdv", l: "Tâche ou rendez\u2060-\u2060vous", s: "avec ou sans heure", i: "clock" },
   { id: "argent", l: "Argent", s: "ça rentre, ça sort", i: "euro" },
 ];
 const MOREH: Record<AjoutType, string> = {

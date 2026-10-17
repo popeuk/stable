@@ -132,6 +132,13 @@ h3 {
   text-wrap: balance;
 }
 
+/* Ni mot ni montant seul sur la dernière ligne d'un paragraphe. */
+p,
+li,
+small {
+  text-wrap: pretty;
+}
+
 /* Barres de défilement : fines, à l'encre, sur ce qui défile vraiment (une
    feuille longue, une rangée de chevaux, la semaine). Sans elles, à la souris,
    rien ne dit qu'il y a une suite. Sur téléphone, le système les montre

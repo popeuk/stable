@@ -110,7 +110,7 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
   return (
     <>
       <div className={`row${it.done && it.task ? " done" : ""}${showTime ? "" : " jr-notime"}`}>
-        <time>{showTime ? (it.start ?? "·") : ""}</time>
+        <time>{showTime ? (it.start ?? "") : ""}</time>
         {it.seance ? (
           <button type="button" className="jr-open" onClick={open} title="Ouvrir la séance">
             {body}

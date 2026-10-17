@@ -117,6 +117,8 @@ kbd { font: 600 12px/1 var(--font-bricolage), sans-serif; font-variant-numeric: 
   .bs-t1 { font-size: 30px; }
   .bs-over { margin-top: 0; }
   .bs-install { left: auto; right: 24px; bottom: 24px; margin: 0; max-width: 420px; }
+  /* Un bouton seul sous un texte : à la taille d’un bouton, pas d’une bannière. */
+  .carnet .pad > .btn.full:only-child { max-width: 380px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

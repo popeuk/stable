@@ -645,14 +645,11 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
                   <NetPill v={net} />
                 </td>
                 <td className="due">
-                  {due.map((d, i) => {
+                  {due.map((d) => {
                     const late = d.status === "overdue";
                     const txt = `${CARE_META[d.kind].label.toLowerCase()}${late ? ", " : " "}${quand(d)}`;
                     return (
-                      <span key={d.kind}>
-                        {i > 0 && ", "}
-                        {late ? <b>{txt}</b> : txt}
-                      </span>
+                      <span key={d.kind}>{late ? <b>{txt}</b> : txt}</span>
                     );
                   })}
                 </td>
