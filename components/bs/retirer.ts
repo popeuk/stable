@@ -4,6 +4,7 @@ import { esc } from "@/components/bs/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { estCollectif } from "@/lib/domain/compte-auto";
+import { recettesFacturees } from "@/lib/domain/facture";
 import type { DayItem } from "@/lib/domain/seances";
 
 /**
@@ -45,6 +46,7 @@ const snapshot = () => {
 
 export function retirer(l: LigneARetirer, opts: { silent?: boolean } = {}): { fait: Retrait; undo: () => void } {
   const st = useDataStore.getState();
+  avant = recettesFacturees(st.invoices);
   const rien = { fait: "rien" as Retrait, undo: () => {} };
   let { seanceId, careIds, payer } = l;
 
@@ -81,7 +83,7 @@ export function retirer(l: LigneARetirer, opts: { silent?: boolean } = {}): { fa
       const presence = Object.fromEntries(s.participants.map((x) => [x.personId, x === p ? false : x.present !== false]));
       const autres = s.participants.some((x) => x !== p && x.present === false);
       st.validateSeance(s.id, presence, autres ? s.chargeAbsent : false);
-      if (!opts.silent) useUiStore.getState().say(`${esc(label)} : plus rien pour ${esc(payer!)}.`, undo);
+      if (!opts.silent) useUiStore.getState().say(`${esc(label)} : plus rien pour ${esc(payer!)}.${surFacture()}`, undo);
       return { fait: "retire", undo };
     }
     const undo = snapshot();
@@ -104,7 +106,21 @@ export function retirer(l: LigneARetirer, opts: { silent?: boolean } = {}): { fa
   return rien;
 }
 
+/** Les recettes facturées juste avant le geste. */
+let avant = new Map<string, string>();
+
+/**
+ * Une ligne retirée qui était sur une facture : la facture, elle, ne change
+ * pas. Le message le dit et dit comment l'annuler.
+ */
+function surFacture(): string {
+  const reste = new Set(useDataStore.getState().revenues.map((r) => r.id));
+  const nums = [...new Set([...avant].filter(([id]) => !reste.has(id)).map(([, n]) => n))];
+  if (!nums.length) return "";
+  return ` Cette ligne est sur la facture n° ${nums.map(esc).join(", ")}, qui ne change pas : annule-la par un avoir depuis la facture.`;
+}
+
 function dire(label: string, undo: () => void, opts: { silent?: boolean }): { fait: Retrait; undo: () => void } {
-  if (!opts.silent) useUiStore.getState().say(`${esc(label)} : retiré.`, undo);
+  if (!opts.silent) useUiStore.getState().say(`${esc(label)} : retiré.${surFacture()}`, undo);
   return { fait: "retire", undo };
 }
