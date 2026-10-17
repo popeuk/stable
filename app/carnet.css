@@ -195,6 +195,13 @@
 .carnet .x svg { width: 14px; height: 14px; stroke: var(--ink); stroke-width: 2; fill: none; stroke-linecap: round; }
 @keyframes cn-up { from { transform: translateY(40px); opacity: .5; } }
 @keyframes cn-fade { from { opacity: 0; } }
+/* La feuille d'une notion (Explain, LessonTerm) */
+.carnet .cn-lesson-def { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink); }
+.carnet .cn-lesson-toi { grid-template-columns: 1fr; margin-top: 14px; color: var(--ink); }
+.carnet .cn-lesson-h { margin: 20px 0 0; font-size: 14px; font-weight: 720; color: var(--ink); }
+.carnet .cn-term-chip { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: var(--mist); color: var(--ink); cursor: pointer; }
+.carnet .cn-term-chip svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.carnet .cn-term-chip::after { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
 .carnet [data-panel][hidden] { display: none !important; }
 .carnet .aide { position: relative; margin: 14px 14px 0; padding: 16px 16px 14px; border-radius: 8px; background: var(--ink); color: var(--on-ink); }
 .carnet .aide .aide-t { margin: 0; font-size: 18px; font-weight: 740; padding-right: 36px; letter-spacing: -.01em; }
@@ -250,6 +257,7 @@
 .carnet button, .carnet input, .carnet select, .carnet textarea { font: inherit; color: inherit; }
 .carnet a { color: inherit; }
 .carnet :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.carnet [role="dialog"][tabindex="-1"]:focus-visible { outline: none; }
 .carnet ::selection { background: color-mix(in srgb, var(--ink) 14%, transparent); color: var(--ink); }
 .carnet .cn-main { max-width: 480px; margin: 0 auto; padding-bottom: calc(100px + env(safe-area-inset-bottom)); min-height: 100dvh; }
 .carnet .hd { position: sticky; top: 0; z-index: 30; padding-top: calc(env(safe-area-inset-top) + 8px); }

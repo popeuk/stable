@@ -10,7 +10,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { reconciledNets, monthBreakdown, horseTicket } from "@/lib/domain/ticket";
 import { suggestions } from "@/lib/domain/leviers";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { useAideIci } from "@/components/bs/nav";
 import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,6 +22,7 @@ import { CARE_META, upcomingDeadlines, type Deadline } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
 import type { Horse, Period, PersonRole } from "@/lib/domain/types";
 import { Partis } from "@/components/bs/partis";
+import { useFeuille } from "@/components/bs/feuille";
 
 /**
  * Clients : un onglet, deux vues.
@@ -193,6 +194,7 @@ function AjouterClient({ onClose }: { onClose: () => void }) {
   const [nom, setNom] = useState("");
   const [role, setRole] = useState<PersonRole>("cavalier");
   const [chevauxDe, setChevauxDe] = useState<string | null>(null);
+  const ref = useFeuille(onClose, { verrou: true });
   const ok = () => {
     const n = nom.trim();
     if (!n) return;
@@ -219,7 +221,7 @@ function AjouterClient({ onClose }: { onClose: () => void }) {
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
         <div className="scrim" onClick={onClose} />
-        <div className="sheet" role="dialog" aria-modal="true" aria-label="Ajouter un client">
+        <div className="sheet" role="dialog" aria-modal="true" aria-label="Ajouter un client" ref={ref}>
           <div className="grab" />
           <div className="shd">
             <b>Ajouter un client</b>

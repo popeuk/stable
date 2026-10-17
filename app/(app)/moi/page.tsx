@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { Hello, Ic, Sec, Switch, ini } from "@/components/carnet/ui";
 import { CategoriesReglages, EquipeReglages, LieuReglages } from "@/components/bs/reglages";
 import { api } from "@/lib/account/api";
@@ -18,6 +18,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
+import { useFeuille } from "@/components/bs/feuille";
 
 /**
  * Réglages, sur un seul niveau : le compte, l'écurie (nom, boxes, tarifs,
@@ -389,21 +390,12 @@ function Install() {
 function InstallSheet({ onClose }: { onClose: () => void }) {
   const install = useInstall();
   const steps = INSTALL_HOWTO[install.way === "bouton" ? "autre" : install.way];
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", k);
-    const o = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", k);
-      document.body.style.overflow = o;
-    };
-  }, [onClose]);
+  const ref = useFeuille(onClose, { verrou: true });
   return createPortal(
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
         <div className="scrim" onClick={onClose} />
-        <div className="sheet" role="dialog" aria-modal="true" aria-label="Installer Be Stable">
+        <div className="sheet" role="dialog" aria-modal="true" aria-label="Installer Be Stable" ref={ref}>
           <div className="grab" />
           <div className="shd">
             <b>Installer Be Stable</b>

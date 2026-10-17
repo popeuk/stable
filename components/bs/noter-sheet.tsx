@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useFeuille } from "@/components/bs/feuille";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore, type NoterPrefill } from "@/stores/ui-store";
@@ -133,17 +134,11 @@ function NoterInner() {
   const [typing, setTyping] = useState(false);
   const [voiceMsg, setVoiceMsg] = useState("");
   const [typed, setTyped] = useState("");
-  const sheetRef = useRef<HTMLDivElement>(null);
+  // Focus, Tab, Échap et page figée derrière : la feuille partagée.
+  const sheetRef = useFeuille(close, { verrou: true });
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
-    window.addEventListener("keydown", onKey);
-    // La page derrière ne défile pas tant que la feuille est ouverte.
-    const avant = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = avant;
       const r = recRef.current;
       if (r) {
         r.onend = null;
@@ -154,8 +149,12 @@ function NoterInner() {
 
   // Chaque écran repart du haut ; seul « Plus de détails » défile.
   useEffect(() => {
-    if (sheetRef.current) sheetRef.current.scrollTop = 0;
-  }, [screen]);
+    const el = sheetRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+    // L'écran d'avant a emporté le focus : il revient dans la feuille.
+    if (!el.contains(document.activeElement)) el.focus({ preventScroll: true });
+  }, [screen, sheetRef]);
 
   const set: SetD = (f) => setD((x) => (x ? f(x) : x));
   const carry = prefill.horseIds ?? [];
@@ -1033,7 +1032,7 @@ function NoterInner() {
   return (
     <div className="sheet-wrap open">
       <div className="scrim" onClick={close} />
-      <div ref={sheetRef} className={`sheet nt-add${screen === "more" ? " nt-scrolls" : ""}`} role="dialog" aria-modal="true" aria-label="Ajouter">
+      <div ref={sheetRef} className={`sheet nt-add${screen === "more" ? " nt-scrolls" : ""}`} role="dialog" aria-modal="true" aria-label="Ajouter" tabIndex={-1}>
         <div className="grab" />
         <div className="shd">
           <b>Ajouter</b>
