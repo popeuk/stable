@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Be Stable a déménagé</title>
+<script>
+  // L'app vit sur app.bestable.fr depuis le 18 octobre 2026 : on garde la page demandée.
+  var chemin = location.pathname.replace(/^\/stable/, "") || "/";
+  location.replace("https://app.bestable.fr" + chemin + location.search + location.hash);
+</script>
+<style>body{font:16px/1.5 system-ui,sans-serif;margin:0;padding:48px 16px;text-align:center;background:#fff;color:#1a1a1a}a{color:inherit}</style>
+</head>
+<body>
+<p>Be Stable a déménagé : <a href="https://app.bestable.fr/">app.bestable.fr</a></p>
+</body>
+</html>

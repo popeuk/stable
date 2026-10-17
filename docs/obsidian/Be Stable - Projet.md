@@ -22,7 +22,7 @@ Ceci est la note d'entrée (MOC). Les détails sont dans :
 |---|---|
 | Dépôt GitHub | `popeuk/stable` → https://github.com/popeuk/stable |
 | Branche de travail | `claude/be-stable-v2-spec-k62ji2` (~54 commits, tout y est poussé) |
-| **App en ligne (prod)** | https://popeuk.github.io/stable |
+| **App en ligne (prod)** | https://app.bestable.fr (VPS, depuis le 18 octobre 2026 ; popeuk.github.io/stable y renvoie) |
 | Déploiement | GitHub Actions, workflow « Deploy prototype to GitHub Pages », déclenché à chaque push sur la branche |
 | Netlify | Prêt (fichier `netlify.toml` à la racine) : importer le repo sur app.netlify.com, zéro config à faire |
 | Cette documentation | `docs/obsidian/` dans le dépôt |

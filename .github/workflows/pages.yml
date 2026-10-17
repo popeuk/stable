@@ -19,26 +19,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - name: Install
-        run: npm ci
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
-      - name: Build static export (the app, served at /stable)
-        run: npm run build
-        env:
-          DEPLOY_TARGET: pages
-          PAGES_BASE: /stable
-          NEXT_PUBLIC_BASE_PATH: /stable
-      - name: Assemble site (the app at the root, the clickable prototype in prototype/)
+      - name: Assemble site (redirect to app.bestable.fr, the clickable prototype in prototype/)
         run: |
-          mv out site
+          # Depuis le 18 octobre 2026, l'app vit sur app.bestable.fr (job vps).
+          # Cette adresse renvoie vers elle et retire l'ancien service worker.
           mkdir -p site/prototype
+          cp pages-redirection/index.html pages-redirection/404.html pages-redirection/sw.js site/
           cp -R prototype/. site/prototype/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
