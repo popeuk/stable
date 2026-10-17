@@ -16,7 +16,7 @@ import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
 export const ROOTS = ["/accueil", "/planning", "/equipe", "/chevaux", "/argent"];
 
 /** Les écrans de Mon mois : l'onglet reste allumé sur chacun. */
-export const BILAN = ["/argent", "/pilotage", "/seuil", "/scenarios", "/depenses", "/plan", "/audit", "/decouvertes", "/conseiller", "/mois"];
+export const BILAN = ["/argent", "/pilotage", "/seuil", "/scenarios", "/mois"];
 /** Les écrans de l'onglet Clients (clients et leurs chevaux). */
 export const CLIENTS_CHEVAUX = ["/chevaux", "/clients", "/client", "/ticket", "/part", "/cheval", "/contacts"];
 export const under = (path: string, list: string[]) => list.some((m) => path === m || path.startsWith(m + "/") || path.startsWith(m + "?"));
@@ -29,7 +29,6 @@ const PARENTS: [string, string][] = [
   ["/scenarios", "/argent"],
   ["/seuil", "/argent"],
   ["/pilotage", "/argent"],
-  ["/depenses", "/argent"],
   ["/parametres", "/moi"],
   ["/saisie", "/accueil"],
 ];
@@ -211,7 +210,6 @@ const TITRES: [string, string][] = [
   ["/pilotage", "Sur plusieurs mois"],
   ["/seuil", "Combien de chevaux"],
   ["/scenarios", "Et si… ?"],
-  ["/depenses", "Entrées et sorties"],
   ["/clients", "Mes clients"],
   ["/client", "Fiche client"],
   ["/contacts", "Les pros"],
@@ -222,11 +220,6 @@ const TITRES: [string, string][] = [
   ["/parametres", "Réglages"],
   ["/recherche", "Chercher"],
   ["/saisie/cheval", "Ajouter un cheval"],
-  ["/saisie", "Noter"],
-  ["/decouvertes", "Ce qu’on a remarqué"],
-  ["/plan", "Mon plan"],
-  ["/audit", "Audit du mois"],
-  ["/conseiller", "Pose une question"],
 ];
 export const titreDe = (p: string) => TITRES.find(([m]) => p.replace(/(.)\/$/, "$1").startsWith(m))?.[1] ?? "";
 
@@ -240,8 +233,8 @@ const ONGLETS: [string, string][] = [
   ["/aujourdhui", "Accueil"],
   ["/maintenant", "Accueil"],
   ["/planning", "Planning"],
-  ["/chevaux", "Clients et chevaux"],
-  ["/ecurie", "Clients et chevaux"],
+  ["/chevaux", "Clients"],
+  ["/ecurie", "Clients"],
   ["/mois", "Mon mois"],
 ];
 export function TitreEcran() {

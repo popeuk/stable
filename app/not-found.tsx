@@ -14,9 +14,9 @@ var p=location.pathname.replace(/\\/+$/,'');
 var x=p.match(/\\/proto(\\/|$)/);
 if(x){location.replace(p.slice(0,x.index)+'/');return;}
 var m=p.match(/\\/cheval\\/([^\\/]+)$/);
-if(m){location.replace(p.slice(0,m.index)+'/cheval?id='+m[1]+location.search.replace(/^\\?/,'&')+location.hash);return;}
+if(m){location.replace(p.slice(0,m.index)+'/ticket?id='+m[1]+location.search.replace(/^\\?/,'&')+location.hash);return;}
 var d=p.match(/\\/decouvertes\\/([^\\/]+)$/);
-if(d&&d[1]!=='detail'){location.replace(p.slice(0,d.index)+'/decouvertes/detail?id='+d[1]+location.hash);return;}
+if(d&&d[1]!=='detail'){location.replace(p.slice(0,d.index)+'/argent?vue=leviers');return;}
 }catch(e){}})();`;
 
 export default function NotFound() {

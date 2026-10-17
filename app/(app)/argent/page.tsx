@@ -531,6 +531,7 @@ function Mouvements() {
   const data = useDataStore();
   const active = usePeriodStore((s) => s.active);
   const say = useUiStore((s) => s.say);
+  const openNoter = useUiStore((s) => s.openNoter);
   const [kind, setKind] = useState<"tout" | "in" | "out">("tout");
   const desk = useDesk();
   const [horse, setHorse] = useState("");
@@ -680,7 +681,7 @@ function Mouvements() {
           ill="gerant-assise"
           delay={0.15}
           title="Compté tout seul, chaque mois"
-          action={<Link href="/saisie">+ Ajouter</Link>}
+          action={<button type="button" className="act" onClick={() => openNoter({ kind: "depense" })}>+ Ajouter</button>}
         >
           {recRevs.map((r) => (
             <div key={r.id} className="ar-rec">
