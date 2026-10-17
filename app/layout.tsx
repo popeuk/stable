@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Mono } from "next/font/google";
 import { EARLY_INSTALL_SCRIPT, PwaRegister } from "@/components/pwa-register";
+import { SANS_ZOOM } from "@/lib/sans-zoom";
 import { TAILLE_TOT } from "@/lib/taille";
 import "./globals.css";
 import "./bs.css";
@@ -57,6 +58,9 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  // Pas de zoom : ni au pincement, ni quand on touche un champ sur iPhone.
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 
@@ -75,6 +79,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: EARLY_INSTALL_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: TAILLE_TOT }} />
+        <script dangerouslySetInnerHTML={{ __html: SANS_ZOOM }} />
       </head>
       <body>
         {children}
