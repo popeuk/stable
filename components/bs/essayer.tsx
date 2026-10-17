@@ -9,6 +9,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { Horse } from "@/lib/domain/types";
 import { usePerso } from "@/components/bs/perso";
+import { resumeLocale, type ResumeEssai } from "@/lib/account/vault";
 
 /**
  * Essayer avant le compte : un premier écran, puis le même parcours que
@@ -54,12 +55,14 @@ export function Essayer() {
   const perso = usePerso();
   const [busy, setBusy] = useState(false);
   const [reprendre, setReprendre] = useState(false);
+  const [essai, setEssai] = useState<ResumeEssai | null>(null);
 
   useEffect(() => {
     // Un compte connecté n'a rien à essayer : il retrouve son écurie.
     if (getSession()?.kind === "compte") return router.replace("/accueil");
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setReprendre(hasLocaleData());
+    setEssai(resumeLocale());
   }, [router]);
 
   const commencer = async () => {
@@ -67,6 +70,14 @@ export function Essayer() {
     setBusy(true);
     await ouvrirEssai();
   };
+  // Un essai déjà rempli ne s'efface jamais sans le dire : on le reprend, ou on repart de zéro après confirmation.
+  const repartir = async () => {
+    if (busy) return;
+    const quoi = essai?.chevaux ? `Ton essai (${essai.chevaux} cheva${essai.chevaux > 1 ? "ux" : "l"})` : "Ton essai";
+    if (!window.confirm(`${quoi} sera effacé de cet appareil. Repartir de zéro ?`)) return;
+    await commencer();
+  };
+  const reprendreEssai = () => enter({ kind: "locale", at: new Date().toISOString() });
 
   return (
     <div className="ar ar-duo">
@@ -90,12 +101,18 @@ export function Essayer() {
             <Ill n="accueil-premier" alt="La gérante t’accueille devant un box, un cheval à la porte." />
           </div>
           <div className="foot rise" style={{ animationDelay: ".16s" }}>
-            <button type="button" className="btn full" disabled={busy} onClick={commencer}>
-              {busy ? "On prépare ton écurie…" : "Commencer"}
-            </button>
-            {reprendre && (
-              <button type="button" className="btn line full" onClick={() => enter({ kind: "locale", at: new Date().toISOString() })}>
-                Reprendre mon écurie
+            {reprendre ? (
+              <>
+                <button type="button" className="btn full" disabled={busy} onClick={reprendreEssai}>
+                  Reprendre mon essai
+                </button>
+                <button type="button" className="btn line full" disabled={busy} onClick={repartir}>
+                  {busy ? "On prépare ton écurie…" : "Repartir de zéro"}
+                </button>
+              </>
+            ) : (
+              <button type="button" className="btn full" disabled={busy} onClick={commencer}>
+                {busy ? "On prépare ton écurie…" : "Commencer"}
               </button>
             )}
             <button type="button" className="lnk" onClick={() => enter({ kind: "demo" }, "/accueil")}>

@@ -13,7 +13,8 @@ import { api } from "@/lib/account/api";
 import { getSession, leave } from "@/lib/account/session";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { useParcours } from "@/components/bs/parcours";
-import { useDataStore } from "@/stores/data-store";
+import { migrerDonnees, useDataStore } from "@/stores/data-store";
+import { lireSauvegarde } from "@/lib/domain/valider";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { dayItems, resumeJournee } from "@/lib/domain/seances";
@@ -47,17 +48,19 @@ function exportData() {
 }
 
 async function importData(file: File) {
-  try {
-    const json = JSON.parse(await file.text());
-    if (json?.app !== "be-stable" || !json["be-stable-data"]) throw new Error("format");
-    if (!window.confirm("Remplacer les données de ce compte, sur cet appareil, par celles du fichier ?")) return;
-    // Les stores réécrivent tout seuls dans le coffre du compte (chiffré).
-    useDataStore.setState({ ...json["be-stable-data"].state, hydrated: true });
-    if (json["be-stable-settings"]?.state) useSettingsStore.setState(json["be-stable-settings"].state);
-    setTimeout(() => window.location.reload(), 400);
-  } catch {
-    window.alert("Ce fichier n’est pas une sauvegarde Be Stable. Choisis le fichier créé avec « Exporter mes données ».");
+  // Un fichier abîmé ou d'un autre format est refusé avec la raison : rien n'est remplacé.
+  const lu = lireSauvegarde(await file.text());
+  if (!lu.ok) {
+    window.alert(lu.raison);
+    return;
   }
+  if (!window.confirm("Remplacer les données de ce compte, sur cet appareil, par celles du fichier ?")) return;
+  // Une sauvegarde d'une version d'avant passe par la même mise à jour qu'au chargement.
+  const data = migrerDonnees(lu.data, 4);
+  // Les stores réécrivent tout seuls dans le coffre du compte (chiffré).
+  useDataStore.setState({ ...(data as Partial<ReturnType<typeof useDataStore.getState>>), secours: undefined, hydrated: true });
+  if (lu.settings) useSettingsStore.setState(lu.settings);
+  setTimeout(() => window.location.reload(), 400);
 }
 
 /** « 7:45 » devient « 7 h 45 », « 7:00 » devient « 7 h ». */
@@ -217,6 +220,15 @@ function Moi() {
           type="button"
           className="btn danger"
           onClick={() => {
+            // Dans la démo, tout effacer remet l'écurie d'exemple : elle ne se vide jamais pour de bon.
+            if (getSession()?.kind === "demo") {
+              if (window.confirm("Effacer ce que tu as noté et remettre l’écurie d’exemple ?")) {
+                data.resetToDemo();
+                s.setIdentity({ stableName: "Les Trois Pommiers" });
+                router.push("/bienvenue");
+              }
+              return;
+            }
             if (window.confirm("Tout effacer et refaire le parcours depuis le début ?")) {
               data.startEmpty();
               s.resetParcours();
@@ -227,7 +239,7 @@ function Moi() {
           <Ic n="trash" className="" />
           Tout effacer et recommencer
         </button>
-        <small>Le parcours repart de zéro. On te le redemande avant.</small>
+        <small>{getSession()?.kind === "demo" ? "Dans la démo, l’écurie d’exemple revient telle qu’au départ." : "Le parcours repart de zéro. On te le redemande avant."}</small>
       </div>
     </Sec>
   );

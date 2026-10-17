@@ -63,6 +63,8 @@ export const vault: StateStorage = {
       fresh.add(name);
       return null;
     }
+    // Lu plein : il n'est plus « vide à l'ouverture » (une relecture ne doit pas le vider).
+    fresh.delete(name);
     if (!raw.startsWith(PREFIX)) return raw;
     const key = await accountKey();
     if (!key) return null;

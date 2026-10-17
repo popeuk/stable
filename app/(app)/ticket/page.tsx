@@ -73,7 +73,9 @@ function tipFor(h: Horse, t: HorseTicket): [string, string] {
   if (big && -big.amount > 20)
     return [
       "Sa pension ne suffit pas à payer ses soins.",
-      `Si tu fais payer « ${big.label.toLowerCase()} »${h.ownerName ? ` à ${h.ownerName}` : " à son propriétaire"}, il te laisserait ${sg(t.net - big.amount)}.`,
+      h.ownerName
+        ? `Si tu fais payer « ${big.label.toLowerCase()} » à ${h.ownerName}, il te laisserait ${sg(t.net - big.amount)}.`
+        : `Si son propriétaire payait « ${big.label.toLowerCase()} », il te laisserait ${sg(t.net - big.amount)}.`,
     ];
   const breakeven = Math.ceil((t.direct + t.share - (t.revenue - (h.pension ?? 0))) / 10) * 10;
   return [`Une pension à ${eur(breakeven)} au lieu de ${eur(h.pension ?? 0)} suffirait.`, "Sa pension est plus basse que ce qu’il te coûte. À ce prix, tu ne perdrais plus d’argent avec lui."];
@@ -195,7 +197,16 @@ function Ticket({ horse }: { horse: Horse }) {
             <b>{tipB}</b> {tipRest}
           </Tip>
         )}
-        {offset === 0 && t.lines.length > 0 && net < 0 && rebill && (
+        {offset === 0 && t.lines.length > 0 && net < 0 && rebill && !horse.ownerName && (
+          <p className="note">
+            Pour faire payer {avecArticle(rebill.label)} ({eur(rebill.amount)}), donne d’abord un propriétaire à {horse.name} :{" "}
+            <Link href={`/saisie/cheval?edit=${horse.id}`} className="lnk">
+              modifier sa fiche
+            </Link>
+            .
+          </p>
+        )}
+        {offset === 0 && t.lines.length > 0 && net < 0 && rebill && horse.ownerName && (
           <button
             type="button"
             className="btn full ch-tall"
@@ -206,7 +217,7 @@ function Ticket({ horse }: { horse: Horse }) {
               say(msgFairePayer(rebill.label, horse.ownerName, eur(rebill.amount)), () => useDataStore.setState(snap));
             }}
           >
-            Faire payer {avecArticle(rebill.label)} à {horse.ownerName || "son propriétaire"} · +{eur(rebill.amount)}
+            Faire payer {avecArticle(rebill.label)} à {horse.ownerName} · +{eur(rebill.amount)}
           </button>
         )}
         <button type="button" className="btn line full" onClick={() => openNoter({ horseIds: [horse.id] })}>
