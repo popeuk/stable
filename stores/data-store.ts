@@ -17,6 +17,7 @@ import type {
   TeamMember,
 } from "@/lib/domain/types";
 import type { CareEvent } from "@/lib/domain/care";
+import type { Holding } from "@/lib/domain/registre";
 import { CARE_META } from "@/lib/domain/care";
 import type { Rhythm } from "@/lib/domain/rhythm";
 import { materializeRhythms } from "@/lib/domain/rhythm";
@@ -47,6 +48,8 @@ interface DataState extends StableData {
   /** Un rythme hebdomadaire : planifié une fois, généré chaque semaine. */
   addRhythm: (r: Omit<Rhythm, "id" | "stableId">) => void;
   deleteRhythm: (id: string) => void;
+  /** Le lieu de détention et son détenteur (registre d'élevage). Un champ vide s'efface. */
+  setHolding: (patch: Partial<Holding>) => void;
   /** Un tarif de la grille (vide = pas de prix par défaut). */
   setTariff: (key: keyof Tariffs, value: number | undefined) => void;
   /** Une prestation libre (balade, transport…) avec son prix par défaut. */
@@ -475,6 +478,17 @@ export const useDataStore = create<DataState>()(
       deleteTeamMember: (mid) =>
         set((s) => ({ team: (s.team ?? []).filter((x) => x.id !== mid) })),
 
+      setHolding: (patch) =>
+        set((s) => {
+          const next: Holding = { ...(s.holding ?? {}) };
+          for (const [k, v] of Object.entries(patch) as [keyof Holding, string | undefined][]) {
+            const t = v?.trim();
+            if (t) next[k] = t;
+            else delete next[k];
+          }
+          return { holding: next };
+        }),
+
       setTariff: (key, value) =>
         set((s) => ({
           tariffs: { ...(s.tariffs ?? {}), [key]: value && value > 0 ? value : undefined },
@@ -899,6 +913,7 @@ export const useDataStore = create<DataState>()(
           careEvents: [],
           rhythms: [],
           tariffs: {},
+          holding: {},
           services: [],
           team: [],
           people: [],

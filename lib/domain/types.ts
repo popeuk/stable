@@ -40,6 +40,22 @@ export interface Horse {
   coat?: string;
   /** Une liste en tête : le détail du portrait. */
   blaze?: boolean;
+  /* ---- Identité, pour le registre d'élevage (tout est facultatif) ---- */
+  /** Numéro SIRE ou UELN, noté sur son document d'identification. */
+  sireNumber?: string;
+  /** Numéro de transpondeur (la puce). */
+  chipNumber?: string;
+  sex?: HorseSex;
+  /** Date de naissance complète, quand on la connaît (l'année reste dans birthYear). */
+  birthDate?: ISODate;
+  /** Adresse de provenance à l'arrivée. */
+  origin?: string;
+  /** Motif d'arrivée : pension, achat, prêt, naissance… */
+  entryReason?: string;
+  /** Adresse de destination au départ. */
+  destination?: string;
+  /** Motif de départ : fin de pension, vente, prêt, décès… */
+  exitReason?: string;
 }
 
 export interface Category {
@@ -210,6 +226,7 @@ export interface Tariffs {
 }
 
 import type { CareEvent } from "@/lib/domain/care";
+import type { Holding, HorseSex } from "@/lib/domain/registre";
 import type { Rhythm } from "@/lib/domain/rhythm";
 
 /**
@@ -371,4 +388,6 @@ export interface StableData {
   tasks?: TeamTask[];
   actions?: ActionState[];
   payments?: Payment[];
+  /** Le lieu de détention et son détenteur, pour le registre d'élevage. */
+  holding?: Holding;
 }

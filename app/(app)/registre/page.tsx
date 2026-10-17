@@ -1,0 +1,316 @@
+"use client";
+
+import { Suspense, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { createPortal } from "react-dom";
+import { useSearchParams } from "next/navigation";
+import { ClientGate } from "@/components/ui/client-gate";
+import { Hello, Ic, Page as Ecran, Sec, Seg } from "@/components/carnet/ui";
+import { useDesk } from "@/components/bs/desk";
+import { useDataStore } from "@/stores/data-store";
+import { useSettingsStore } from "@/stores/settings-store";
+import { CARE_META } from "@/lib/domain/care";
+import {
+  GAP_LABEL,
+  HOLDING_GAP_LABEL,
+  SEX_LABEL,
+  birthLabel,
+  buildRegister,
+  currentQuarter,
+  holdingGaps,
+  horseGaps,
+  ownerLine,
+  registerPeriod,
+  type Holding,
+  type PeriodKind,
+  type Register,
+} from "@/lib/domain/registre";
+import type { Horse } from "@/lib/domain/types";
+import { localToday } from "@/lib/utils/local-date";
+
+/**
+ * Le registre d'élevage, prêt à imprimer : le détenteur et le lieu, les
+ * équidés présents, leurs mouvements et leurs soins sur la période, selon
+ * les rubriques du modèle de l'IFCE. Rien à ressaisir : tout vient des
+ * fiches, des réglages et du carnet. Ce qui manque est dit à l'écran,
+ * jamais sur la feuille.
+ */
+export default function Page() {
+  return (
+    <ClientGate>
+      <Suspense fallback={null}>
+        <Registre />
+      </Suspense>
+    </ClientGate>
+  );
+}
+
+const dmy = (d?: string | null) => (d ? new Date(d + "T12:00:00").toLocaleDateString("fr-FR") : "");
+
+function Registre() {
+  const cheval = useSearchParams().get("cheval");
+  const desk = useDesk();
+  const horses = useDataStore((s) => s.horses);
+  const careEvents = useDataStore((s) => s.careEvents);
+  const people = useDataStore((s) => s.people);
+  const holding = useDataStore((s) => s.holding);
+  const stableName = useSettingsStore((s) => s.stableName);
+  const today = localToday();
+  const cur = currentQuarter(today);
+  const [kind, setKind] = useState<PeriodKind>("trimestre");
+  const [year, setYear] = useState(cur.year);
+  const [quarter, setQuarter] = useState(cur.quarter ?? 1);
+  const [printing, setPrinting] = useState(false);
+  const period = useMemo(() => registerPeriod(kind, year, quarter), [kind, year, quarter]);
+  const reg = useMemo(() => buildRegister({ horses, careEvents }, period, today), [horses, careEvents, period, today]);
+  const isNow = kind === "trimestre" ? year === cur.year && quarter === cur.quarter : year === cur.year;
+
+  // La feuille imprimée vit à part, sous body : la navigation n'y est pas.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setPrinting(true), []);
+
+  const step = (d: -1 | 1) => {
+    if (kind === "annee") return setYear(year + d);
+    const q = quarter + d;
+    if (q < 1) {
+      setQuarter(4);
+      setYear(year - 1);
+    } else if (q > 4) {
+      setQuarter(1);
+      setYear(year + 1);
+    } else setQuarter(q);
+  };
+
+  const hGaps = holdingGaps(holding, reg.horses.length);
+  const gapsByHorse = reg.horses
+    .map((h) => ({ h, g: horseGaps(h) }))
+    .filter((x) => x.g.length > 0)
+    .sort((a, b) => (a.h.id === cheval ? -1 : b.h.id === cheval ? 1 : 0));
+  const focus = cheval ? horses.find((h) => h.id === cheval) : undefined;
+
+  const sheet = <Feuille reg={reg} holding={holding} stableName={stableName} people={people} today={today} />;
+
+  return (
+    <Ecran wide={desk} className="rg-pg">
+      <Hello title="Registre d’élevage" sub="À imprimer et garder chaque trimestre." />
+      <div className="rg-tools rise" style={{ animationDelay: ".1s" }}>
+        <p className="note">
+          Tu le dois pour tout lieu où vivent des chevaux, même un seul. Imprime-le aussi à chaque visite du vétérinaire, et garde les feuilles 5 ans avec les ordonnances.
+        </p>
+        <div className="rg-seg">
+          <Seg<PeriodKind>
+            value={kind}
+            onChange={setKind}
+            label="Période du registre"
+            options={[
+              ["trimestre", "Un trimestre"],
+              ["annee", "Une année"],
+            ]}
+          />
+        </div>
+        <div className="rg-nav">
+          <button type="button" onClick={() => step(-1)} aria-label={kind === "annee" ? "Année précédente" : "Trimestre précédent"}>
+            <Ic n="back" className="" />
+          </button>
+          <span>
+            <b>{period.label}</b>
+            <small>
+              du {dmy(period.start)} au {dmy(period.end)}
+              {isNow ? " · en cours" : ""}
+            </small>
+          </span>
+          <button type="button" onClick={() => step(1)} aria-label={kind === "annee" ? "Année suivante" : "Trimestre suivant"}>
+            <Ic n="chev" className="" />
+          </button>
+        </div>
+        {!isNow && (
+          <button
+            type="button"
+            className="lnk rg-now"
+            onClick={() => {
+              setYear(cur.year);
+              setQuarter(cur.quarter ?? 1);
+            }}
+          >
+            Revenir {kind === "annee" ? "à cette année" : "au trimestre en cours"}
+          </button>
+        )}
+        <button type="button" className="btn full" onClick={() => window.print()}>
+          <Ic n="download" className="" />
+          Imprimer ou enregistrer en PDF
+        </button>
+      </div>
+
+      {(hGaps.length > 0 || gapsByHorse.length > 0) && (
+        <Sec title="À compléter quand tu peux" delay={0.16} className="rg-gaps">
+          <p className="note">La feuille s’imprime déjà. Ces cases resteront vides, tu pourras les remplir à la main ou ici.</p>
+          <div className="rows">
+            {hGaps.length > 0 && (
+              <Link href="/moi#lieu" className="li np">
+                <span>
+                  <b>Ton lieu de détention</b>
+                  <small>{hGaps.map((g) => HOLDING_GAP_LABEL[g]).join(" · ")}</small>
+                </span>
+                <Ic n="chev" className="chev" />
+              </Link>
+            )}
+            {gapsByHorse.map(({ h, g }) => (
+              <Link key={h.id} href={`/ticket?id=${h.id}#identite`} className="li np">
+                <span>
+                  <b>{h.name}</b>
+                  <small>{g.map((x) => GAP_LABEL[x]).join(" · ")}</small>
+                </span>
+                <Ic n="chev" className="chev" />
+              </Link>
+            ))}
+          </div>
+        </Sec>
+      )}
+      {focus && !reg.horses.some((h) => h.id === focus.id) && (
+        <p className="note rg-pad">{focus.name} n’était pas à l’écurie pendant cette période : il n’apparaît pas sur cette feuille.</p>
+      )}
+
+      <Sec title="La feuille" delay={0.2}>
+        <p className="note">Voici ce qui sera imprimé, en noir sur blanc, au format A4.</p>
+        <div className="rg-paper">{sheet}</div>
+      </Sec>
+      <div className="end" />
+      {printing && createPortal(<div className="rg-print" aria-hidden="true">{sheet}</div>, document.body)}
+    </Ecran>
+  );
+}
+
+/* ---------- La feuille imprimée ---------- */
+
+function Feuille({ reg, holding, stableName, people, today }: { reg: Register; holding?: Holding; stableName: string; people: Parameters<typeof ownerLine>[1]; today: string }) {
+  const h = holding ?? {};
+  const byId = new Map(reg.horses.map((x) => [x.id, x]));
+  const nom = (id: string) => byId.get(id)?.name ?? "";
+  const du = `du ${dmy(reg.period.start)} au ${dmy(reg.period.end)}`;
+  return (
+    <article className="rg-sheet" aria-label={`Registre d’élevage, ${reg.period.label}`}>
+      <header className="rg-head">
+        <h1>Registre d’élevage</h1>
+        <p>
+          Détenteur d’équidés · {h.placeName || stableName} · {reg.period.label}, {du}
+        </p>
+        <p>Imprimé le {dmy(today)}</p>
+      </header>
+
+      <section>
+        <h2>1. Caractéristiques du lieu de détention</h2>
+        <dl className="rg-kv">
+          <Kv k="Dénomination" v={h.placeName || stableName} />
+          <Kv k="Adresse du lieu" v={h.placeAddress} />
+          <Kv k="Type d’activité" v={h.activity} />
+          <Kv k="Numéro de détenteur (SIRE)" v={h.holderNumber} />
+          <Kv k="Détenteur" v={h.holderName} />
+          <Kv k="Adresse du détenteur" v={h.holderAddress} />
+          <Kv k="Téléphone, courriel" v={[h.holderPhone, h.holderEmail].filter(Boolean).join(", ")} />
+          <Kv k="SIRET" v={h.siret} />
+        </dl>
+      </section>
+
+      <section>
+        <h2>2. Encadrement zootechnique, sanitaire et médical</h2>
+        <dl className="rg-kv">
+          <Kv k="Espèce et type de production" v={`Équidés${h.activity ? `, ${h.activity}` : ""}`} />
+          <Kv k="Vétérinaire traitant" v={h.vetTraitant} />
+          <Kv k="Vétérinaire sanitaire" v={h.vetSanitaire} />
+        </dl>
+      </section>
+
+      <section>
+        <h2>3. Présence et caractéristiques des animaux</h2>
+        <p className="rg-sub">Équidés présents {du} : {reg.horses.length}</p>
+        <Table
+          cols={["N°", "Nom", "N° SIRE ou UELN", "N° transpondeur", "Sexe", "Naissance", "Propriétaire et coordonnées", "Première entrée", "Provenance", "Sortie définitive", "Destination"]}
+          rows={reg.horses.map((x: Horse, i) => [String(i + 1), x.name, x.sireNumber, x.chipNumber, x.sex ? SEX_LABEL[x.sex] : "", birthLabel(x), ownerLine(x, people), dmy(x.entryDate), x.origin, dmy(x.exitDate), x.destination])}
+          empty="Aucun équidé présent sur la période."
+        />
+      </section>
+
+      <section>
+        <h2>4. Entrées et sorties définitives</h2>
+        <Table
+          cols={["Date", "Équidé", "Mouvement", "Motif", "Provenance ou destination"]}
+          rows={reg.movements.map((m) => [dmy(m.date), m.horseName, m.kind === "entree" ? "Entrée" : "Sortie", m.reason, m.place])}
+          empty="Aucune entrée ni sortie sur la période."
+        />
+      </section>
+
+      <section>
+        <h2>5. Mouvements temporaires</h2>
+        <Table
+          cols={["Date de sortie", "Équidé", "Motif", "Lieu de destination (adresse)", "Date de retour"]}
+          rows={[...reg.temporary.map((e) => [dmy(e.date), nom(e.horseId), [CARE_META[e.kind].label, e.label].filter(Boolean).join(", "), e.provider, ""]), ...blank(3, 5)]}
+        />
+      </section>
+
+      <section>
+        <h2>6. Interventions et soins courants</h2>
+        <p className="rg-sub">Dans l’ordre chronologique, tous les équidés ensemble.</p>
+        <Table
+          cols={["Date", "Équidé", "Type d’intervention", "Intervenant", "Traitement ou produit", "N° d’ordonnance", "Délai d’attente"]}
+          rows={reg.care.map((e) => [dmy(e.date), nom(e.horseId), CARE_META[e.kind].label, e.provider, e.label, "", ""])}
+          empty="Aucun soin noté dans l’app sur la période."
+        />
+      </section>
+
+      <section>
+        <h2>7. Contrôles du registre</h2>
+        <Table cols={["Date", "Organisme de contrôle", "Motif du contrôle", "Nom du contrôleur", "Cachet et signature"]} rows={blank(2, 5)} />
+      </section>
+
+      <footer className="rg-foot">
+        <p>Ordonnances, bilans sanitaires, résultats d’analyses et bons d’enlèvement sont classés avec ce registre et gardés 5 ans.</p>
+      </footer>
+    </article>
+  );
+}
+
+const blank = (n: number, cols: number) => Array.from({ length: n }, () => Array.from({ length: cols }, () => ""));
+
+function Kv({ k, v }: { k: string; v?: string }) {
+  return (
+    <div>
+      <dt>{k}</dt>
+      <dd>{v || " "}</dd>
+    </div>
+  );
+}
+
+function Table({ cols, rows, empty }: { cols: string[]; rows: (string | undefined)[][]; empty?: string }) {
+  return (
+    <div className="rg-scroll">
+      <table className="rg-t">
+        <thead>
+          <tr>
+            {cols.map((c) => (
+              <th key={c} scope="col">
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={cols.length} className="rg-none">
+                {empty}
+              </td>
+            </tr>
+          ) : (
+            rows.map((r, i) => (
+              <tr key={i}>
+                {r.map((c, j) => (
+                  <td key={j}>{c || " "}</td>
+                ))}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}

@@ -30,6 +30,7 @@ const PARENTS: [string, string][] = [
   ["/seuil", "/argent"],
   ["/pilotage", "/argent"],
   ["/parametres", "/moi"],
+  ["/registre", "/moi"],
   ["/saisie", "/accueil"],
 ];
 
@@ -218,6 +219,7 @@ const TITRES: [string, string][] = [
   ["/ma-fiche", "Ma fiche"],
   ["/moi", "Réglages"],
   ["/parametres", "Réglages"],
+  ["/registre", "Registre d’élevage"],
   ["/recherche", "Chercher"],
   ["/saisie/cheval", "Ajouter un cheval"],
 ];

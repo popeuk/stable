@@ -17,6 +17,7 @@ import { currentPeriod, addMonths } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import type { Horse } from "@/lib/domain/types";
 import { msgFairePayer } from "@/lib/utils/esc";
+import { Identite } from "@/components/bs/identite";
 
 /**
  * La fiche d'un cheval : son portrait qui respire, puis le ticket du mois
@@ -335,6 +336,7 @@ function Ticket({ horse }: { horse: Horse }) {
             {carnet}
           </div>
         </div>
+        <Identite key={horse.id} horse={horse} />
         {leave}
         <div className="end" />
       </Ecran>
@@ -369,6 +371,7 @@ function Ticket({ horse }: { horse: Horse }) {
         />
       </div>
       <div role="tabpanel">{panels[seg]}</div>
+      <Identite key={horse.id} horse={horse} />
       {leave}
       <div className="end" />
     </Ecran>

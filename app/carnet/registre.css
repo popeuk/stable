@@ -1,0 +1,79 @@
+/* =====================================================================
+   Le registre d'élevage (app/(app)/registre) et l'identité du cheval
+   (components/bs/identite.tsx). À l'écran : papier et encre, comme le
+   reste. À l'impression : une feuille A4 sobre, noir sur blanc, sans la
+   navigation, lisible par un contrôleur.
+   ===================================================================== */
+
+/* ---------- L'identité, repliée sur la fiche ---------- */
+.carnet .rg-id { grid-template-columns: 1fr; scroll-margin-top: 72px; }
+.carnet .rg-id summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 4px 0 8px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.carnet .rg-id summary::-webkit-details-marker { display: none; }
+.carnet .rg-id summary b { display: block; font-size: 18px; font-weight: 700; letter-spacing: -.015em; }
+.carnet .rg-id summary small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink3); }
+.carnet .rg-id summary .chev { transform: rotate(90deg); transition: transform .25s var(--ease); }
+.carnet .rg-id details[open] summary .chev { transform: rotate(-90deg); }
+.carnet .rg-id-body { display: grid; gap: 14px; padding-top: 12px; }
+.carnet .rg-id-body .note { margin: 0; }
+.carnet .rg-id-k { margin-top: 6px !important; }
+
+/* ---------- Le lieu de détention, dans les réglages ---------- */
+.carnet .rg-lieu { display: grid; gap: 12px; padding: 4px 0 14px; }
+.carnet .rg-rot { transform: rotate(90deg); transition: transform .25s var(--ease); }
+.carnet .rg-rot.on { transform: rotate(-90deg); }
+
+/* ---------- L'écran du registre ---------- */
+.carnet .rg-tools { display: grid; gap: 12px; padding: 14px 18px 0; }
+.carnet .rg-tools .note { margin: 0; }
+.carnet .rg-nav { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; text-align: center; }
+.carnet .rg-nav b { display: block; font-size: 15px; font-weight: 700; }
+.carnet .rg-nav small { display: block; font-size: 12px; color: var(--ink3); margin-top: 2px; }
+.carnet .rg-nav button { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--mist); display: flex; align-items: center; justify-content: center; color: var(--ink); cursor: pointer; padding: 0; }
+.carnet .rg-nav button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .rg-now { justify-self: center; min-height: 44px; }
+.carnet .rg-pad { padding: 0 18px; }
+.carnet .rg-gaps .li.np { grid-template-columns: minmax(0, 1fr) auto; }
+.carnet .rg-gaps .li small { white-space: normal; }
+.carnet .rg-paper { margin-top: 12px; padding: 16px; border-radius: 8px; background: #fff; color: #000; box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent); overflow: hidden; }
+.carnet .rg-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---------- La feuille (écran et papier) ---------- */
+.rg-sheet { font-family: var(--font-bricolage), "Bricolage Grotesque", system-ui, sans-serif; color: #000; background: #fff; font-size: 12px; line-height: 1.35; }
+.rg-sheet h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
+.rg-sheet h2 { margin: 18px 0 6px; font-size: 14px; font-weight: 700; padding-bottom: 3px; border-bottom: 1.5px solid #000; }
+.rg-sheet .rg-head p { margin: 3px 0 0; font-size: 12px; }
+.rg-sheet .rg-sub { margin: 0 0 6px; font-size: 12px; }
+.rg-sheet .rg-kv { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 18px; }
+.rg-sheet .rg-kv div { display: grid; grid-template-columns: 11em 1fr; gap: 8px; padding: 5px 0; border-bottom: 1px solid #999; }
+.rg-sheet .rg-kv dt { font-weight: 600; }
+.rg-sheet .rg-kv dd { margin: 0; white-space: pre-line; min-height: 1.35em; }
+.rg-sheet .rg-t { width: 100%; border-collapse: collapse; font-size: 12px; }
+.rg-sheet .rg-t th, .rg-sheet .rg-t td { border: 1px solid #000; padding: 4px 5px; text-align: left; vertical-align: top; }
+.rg-sheet .rg-t th { font-weight: 700; background: #fff; }
+.rg-sheet .rg-t td { height: 1.6em; }
+.rg-sheet .rg-none { font-style: italic; }
+.rg-sheet .rg-foot p { margin: 18px 0 0; font-size: 12px; }
+.carnet .rg-paper .rg-t { min-width: 640px; }
+
+/* La copie pour l'imprimante : invisible à l'écran. */
+.rg-print { display: none; }
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 12mm 12mm 14mm;
+    @bottom-right { content: "Page " counter(page) " sur " counter(pages); font-size: 9pt; }
+    @bottom-left { content: "Registre d’élevage"; font-size: 9pt; }
+  }
+  html, body { background: #fff !important; }
+  body > :not(.rg-print) { display: none !important; }
+  .rg-print { display: block; }
+  .rg-sheet { font-size: 9.5pt; }
+  .rg-sheet h1 { font-size: 15pt; }
+  .rg-sheet h2 { font-size: 11pt; break-after: avoid; }
+  .rg-sheet .rg-t { font-size: 9pt; }
+  .rg-sheet .rg-t thead { display: table-header-group; }
+  .rg-sheet .rg-t tr { break-inside: avoid; }
+  .rg-sheet section { break-inside: auto; }
+  .rg-sheet .rg-kv { grid-template-columns: 1fr 1fr; }
+}
