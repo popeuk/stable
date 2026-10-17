@@ -92,3 +92,10 @@
   .carnet .es-bien .es-scene .ill { width: min(360px, 100%); }
   .carnet .es-bien .foot { grid-area: foot; align-self: start; padding-top: 28px; }
 }
+
+/* Voilà ton mois : les cours pas encore notés, puis la suite. */
+.carnet .es-calc .es-attente span:last-child { color: var(--ink3); font-style: italic; }
+.carnet .es-suite { margin: 14px 22px 0; padding: 14px 16px; border-radius: 10px; background: var(--mist); display: grid; gap: 4px; }
+.carnet .es-suite b { font-size: 15.5px; font-weight: 720; }
+.carnet .es-suite p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink2); }
+.carnet .ar-reste .foot > .lnk { justify-self: center; font-size: 13.5px; font-weight: 600; color: var(--ink2); }

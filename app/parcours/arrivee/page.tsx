@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { CountUp, Face, Ic, Ill, Money, Steam, sg } from "@/components/carnet/ui";
+import { CountUp, Face, Ic, Ill, Money, Steam, eurc, sg } from "@/components/carnet/ui";
 import { usePerso } from "@/components/bs/perso";
+import { estAMoi } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
@@ -34,7 +35,13 @@ function Reste() {
   const perso = usePerso();
   const m = useMemo(() => monthBreakdown(data, currentPeriod()), [data]);
   const net = Math.round(m.net);
-  const n = data.horses.filter((h) => !h.isArchived).length;
+  // Les pensions à part des cours : tes chevaux à toi ne sont pas des pensions.
+  const n = data.horses.filter((h) => !h.isArchived && !estAMoi(h)).length;
+  const pensions = m.ins.filter((l) => /^pension/i.test(l.label)).reduce((t, l) => t + l.amount, 0);
+  const cours = Math.max(0, Math.round((m.revenue - pensions) * 100) / 100);
+  const prixPension = data.tariffs?.pension;
+  /** Le prix d'un cours, pour dire ce qu'un cours noté ajoutera. */
+  const prixCours = data.tariffs?.cours_collectif || data.tariffs?.cours_individuel || data.prestations?.find((p) => p.active && p.price > 0)?.price;
   return (
     <div className="ar-fin ar-reste">
       <h1 className="ar-t1 rise">Voilà ton mois.</h1>
@@ -63,8 +70,12 @@ function Reste() {
           <p className="es-say">par mois.</p>
           <div className="es-calc">
             <div>
-              <span>{n > 1 ? `${n} pensions, si payées` : "Ce qui devrait rentrer"}</span>
-              <span className="num">{sg(m.revenue)}</span>
+              <span>{n ? `${n} pension${n > 1 ? "s" : ""}${prixPension ? ` à ${eurc(prixPension)}` : ""}` : "Pensions"}</span>
+              <span className="num">{sg(pensions)}</span>
+            </div>
+            <div className={cours ? undefined : "es-attente"}>
+              <span>Tes cours</span>
+              <span className="num">{cours ? sg(cours) : "à noter"}</span>
             </div>
             {m.direct > 0 && (
               <div>
@@ -80,12 +91,24 @@ function Reste() {
         </div>
       </div>
       <p className="note rise" style={{ animationDelay: ".12s" }}>
-        C’est une estimation, faite avec tes prix. Plus tu notes, plus c’est juste.
+        C’est une estimation, faite avec tes pensions et tes frais. Tes cours ne sont pas encore dedans.
       </p>
+      {/* La suite : les cours au planning, chacun fait monter le mois. */}
+      <div className="es-suite rise" style={{ animationDelay: ".16s" }}>
+        <b>La suite : tes cours au planning</b>
+        <p>
+          {prixCours && net < 0
+            ? `Chaque cours noté s’ajoute ici. À ${eurc(prixCours)} par cavalier, ${Math.ceil(-net / prixCours)} cavaliers dans le mois couvrent ce qui manque.`
+            : "Chaque cours noté s’ajoute ici. Tu vois ton mois monter."}
+        </p>
+      </div>
       <div className="foot rise" style={{ animationDelay: ".2s" }}>
-        <Link href="/accueil" className="btn full">
-          Voir mon écurie
+        <Link href="/planning" className="btn full">
+          Mettre mes cours au planning
           <Ic n="arrow" className="" />
+        </Link>
+        <Link href="/accueil" className="lnk">
+          Voir mon écurie d’abord
         </Link>
       </div>
     </div>
