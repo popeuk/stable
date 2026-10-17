@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { dayItems } from "@/lib/domain/seances";
 import { Compteur } from "@/components/bs/compteur";
 import { BandeauFinDuMois, LigneHier, LigneJour, useDebutant, useFinDuMois, useMaintenant } from "@/components/bs/compte";

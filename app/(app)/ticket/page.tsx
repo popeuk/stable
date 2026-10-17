@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Empty, Face, Ic, Money, Page as Ecran, Pill, Portrait, Sec, Seg, Tip, eur, sg } from "@/components/carnet/ui";
 import { COATS } from "@/components/bs/horse-face";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { useParcours } from "@/components/bs/parcours";
 import { avecArticle } from "@/lib/domain/leviers";
 import { useDataStore } from "@/stores/data-store";

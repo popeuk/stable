@@ -100,7 +100,8 @@ export type IllName =
  * (gérante ou gérant, usePerso) ; fixe : l'image telle quelle (un client, pas
  * le gérant). Une version gérant pas encore dessinée retombe sur la gérante.
  */
-export function Ill({ n, alt = "", className = "", style, fixe }: { n: IllName; alt?: string; className?: string; style?: CSSProperties; fixe?: boolean }) {
+/** prio : l'image principale de l'écran (souvent le plus grand élément affiché) se charge tout de suite, avant les autres. */
+export function Ill({ n, alt = "", className = "", style, fixe, prio }: { n: IllName; alt?: string; className?: string; style?: CSSProperties; fixe?: boolean; prio?: boolean }) {
   const perso = usePerso();
   const choix = fixe ? { n } : illPerso(n, perso);
   const repli = choix.repli;
@@ -113,7 +114,8 @@ export function Ill({ n, alt = "", className = "", style, fixe }: { n: IllName; 
       alt={fixe ? alt : altPerso(alt, perso)}
       style={style}
       draggable={false}
-      loading="lazy"
+      loading={prio ? "eager" : "lazy"}
+      fetchPriority={prio ? "high" : undefined}
       decoding="async"
       onError={
         repli

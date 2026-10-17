@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Ic, Ill, eur } from "@/components/carnet/ui";
-import { usePerso } from "@/components/bs/essayer";
+import { usePerso } from "@/components/bs/perso";
 import { getSession } from "@/lib/account/session";
 import type { ResumeEssai } from "@/lib/account/vault";
 import { useSettingsStore } from "@/stores/settings-store";

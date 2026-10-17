@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Hello, Ic, Page as Ecran, Sec, Seg } from "@/components/carnet/ui";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { CARE_META } from "@/lib/domain/care";

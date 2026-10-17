@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap, esc, eur } from "@/components/bs/ui";
-import { useDesk } from "@/components/bs/desk";
+import { useDesk } from "@/components/bs/desk-hook";
 import { CountUp, Hello, Ic, Ill, Sec, Switch, Tip, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { usePeriodStore } from "@/stores/period-store";

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Face, Ic, Ill, Money } from "@/components/carnet/ui";
+import { Face, Ic, Money } from "@/components/carnet/ui";
 import { Picto } from "@/components/bs/picto";
 import { eur, signed } from "@/components/bs/ui";
 import { useUiStore } from "@/stores/ui-store";
@@ -15,30 +15,16 @@ import { billTotals, billsFor } from "@/lib/domain/billing";
 import { suggestions } from "@/lib/domain/leviers";
 import { OBSTACLES } from "@/stores/settings-store";
 import { currentPeriod } from "@/lib/utils/period";
-import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
+import { useInstall } from "@/lib/pwa";
+import { useFeuille } from "@/components/bs/feuille";
+import { InstallHowto } from "@/components/bs/install-howto";
+import { modKey } from "@/components/bs/desk-hook";
 import { useFinDuMois } from "@/components/bs/compte";
 import { BILAN, CLIENTS_CHEVAUX, under, usePlusItems } from "@/components/bs/nav";
 
 /* ------------------------------------------------------------------ */
 /* L'écran large                                                        */
 /* ------------------------------------------------------------------ */
-
-const DESK = "(min-width: 1024px)";
-/** Vrai sur un écran d'ordinateur (1024 px et plus). */
-export function useDesk() {
-  return useSyncExternalStore(
-    (f) => {
-      const m = window.matchMedia(DESK);
-      m.addEventListener("change", f);
-      return () => m.removeEventListener("change", f);
-    },
-    () => window.matchMedia(DESK).matches,
-    () => false,
-  );
-}
-
-const isMac = () => typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-export const modKey = () => (isMac() ? "⌘" : "Ctrl");
 
 /** Les compteurs de la navigation : à facturer, actions, tâches. */
 export function useNavCounts() {
@@ -160,46 +146,6 @@ export function Sidebar() {
 /* Installer l'app                                                      */
 /* ------------------------------------------------------------------ */
 
-export function InstallHowto({ onClose }: { onClose: () => void }) {
-  const install = useInstall();
-  const steps = INSTALL_HOWTO[install.way === "bouton" ? "autre" : install.way];
-  useEscape(onClose);
-  return createPortal(
-    <div className="carnet carnet-portal">
-      <div className="sheet-wrap open">
-        <div className="scrim" onClick={onClose} />
-        <div className="sheet nt-sheet" role="dialog" aria-modal="true" aria-labelledby="bs-install-t">
-          <div className="grab" />
-          <div className="shd">
-            <b id="bs-install-t">Installer Be Stable</b>
-            <button type="button" className="x" onClick={onClose} aria-label="Fermer">
-              <Ic n="x" className="" />
-            </button>
-          </div>
-          <div className="pad">
-            <p className="note" style={{ marginTop: 0 }}>
-              Une icône sur ton bureau ou ton écran d’accueil, une fenêtre à part, et l’app s’ouvre même sans réseau.
-            </p>
-            <ol className="nt-steps">
-              {steps.map((s, i) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ol>
-            <div className="tip" style={{ marginTop: 16 }}>
-              <Ill n="guide" />
-              <span>Tes données restent dans cet appareil : l’app installée sur l’ordinateur et celle du téléphone ne se partagent pas encore leurs saisies.</span>
-            </div>
-            <button type="button" className="btn full" style={{ marginTop: 16 }} onClick={onClose}>
-              J’ai compris
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
 /** Le bloc « Installer » des réglages, sur tous les écrans. */
 export function InstallCard() {
   const install = useInstall();
@@ -246,14 +192,6 @@ const norm = (s: string) =>
 
 type Cmd = { id: string; group: string; label: string; sub?: string; ic?: string; money?: number; face?: string; hint?: string; run: () => void };
 
-function useEscape(f: () => void) {
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === "Escape" && f();
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
-  }, [f]);
-}
-
 export function CommandPalette() {
   const open = useUiStore((s) => s.paletteOpen);
   if (!open) return null;
@@ -270,7 +208,7 @@ function PaletteInner() {
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
   const list = useRef<HTMLDivElement>(null);
-  useEscape(close);
+  const ref = useFeuille(close);
 
   const go = (href: string) => () => {
     close();
@@ -340,7 +278,7 @@ function PaletteInner() {
   return createPortal(
     <div className="carnet carnet-portal">
       <div className="nt-pal-scrim" onClick={close} />
-      <div className="nt-pal" role="dialog" aria-modal="true" aria-label="Chercher ou faire">
+      <div className="nt-pal" role="dialog" aria-modal="true" aria-label="Chercher ou faire" ref={ref}>
         <label className="nt-pin">
           <Ic n="search" />
           <input
@@ -493,13 +431,6 @@ export function Shortcuts() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [router]);
-
-  // Raccourci d'icône de l'app (manifeste) : « ?ajouter=seance » ouvre l'ajout.
-  const params = useSearchParams();
-  useEffect(() => {
-    const m = params.get("ajouter");
-    if (m === "seance" || m === "soin" || m === "tache" || m === "depense") useUiStore.getState().openNoter({ mode: m });
-  }, [params]);
   return null;
 }
 
@@ -511,7 +442,7 @@ export function ShortcutHelp() {
 }
 
 function HelpInner({ close }: { close: () => void }) {
-  useEscape(close);
+  const ref = useFeuille(close);
   const rows: [string, string[]][] = [
     ["Chercher, aller à, faire", [modKey(), "K"]],
     ["Ajouter (séance, soin, tâche, argent)", ["N"]],
@@ -536,7 +467,7 @@ function HelpInner({ close }: { close: () => void }) {
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
         <div className="scrim" onClick={close} />
-        <div className="sheet nt-sheet" role="dialog" aria-modal="true" aria-labelledby="bs-help-t">
+        <div className="sheet nt-sheet" role="dialog" aria-modal="true" aria-labelledby="bs-help-t" ref={ref}>
           <div className="grab" />
           <div className="shd">
             <b id="bs-help-t">Raccourcis clavier</b>

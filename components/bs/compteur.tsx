@@ -79,7 +79,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
       </span>
       {ill && (
         <span className="ac-ill" aria-hidden="true">
-          <Ill n="assise" />
+          <Ill n="assise" prio />
         </span>
       )}
       {objective > 0 && (
