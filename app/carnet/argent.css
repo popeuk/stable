@@ -11,14 +11,23 @@
 .carnet .ar-bseg { margin: 10px 14px 0; }
 .carnet .ar-bseg .seg button { font-size: 12px; padding: 8px 2px; }
 
-/* Scène du Bilan : la gérante sur sa botte de foin, les pièces tombent dans la sacoche */
-.carnet .ar-compte { position: relative; overflow: hidden; height: 196px; }
-.carnet .ar-compte .ar-who { position: absolute; left: 8px; bottom: 4px; width: 236px; animation: ar-settle 6s var(--slow) infinite; }
-
-.carnet .ar-compte .coins { right: 52px; bottom: 92px; }
 @keyframes ar-settle { 50% { transform: translateY(-2px); } }
-.carnet .ar-goal { margin: 6px 14px 0; }
+.carnet .ar-goal { margin: 14px 14px 0; display: grid; grid-template-columns: minmax(0, 1fr) clamp(88px, 28vw, 120px); column-gap: 8px; }
+.carnet .ar-goal > :not(.ar-gtx, .ar-gill) { grid-column: 1 / -1; }
+.carnet .ar-gtx { min-width: 0; align-self: center; }
+/* Le chiffre tient toujours à gauche de l'image, « −1 250 € » compris : il rétrécit avec l'écran. */
+.carnet .ar-goal .big { white-space: nowrap; font-size: clamp(32px, 10vw, 44px); }
 .carnet .ar-goal .ar-lnks { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; }
+/* La gérante (619x699) ou le gérant (595x757) dans la carte, entier : réglé par contain, pas par la largeur. */
+.carnet .ar-gill { grid-column: 2; grid-row: 1; align-self: end; display: flex; justify-content: flex-end; margin: -4px -6px 0 0; pointer-events: none; }
+.carnet .ar-gill .ar-who { width: 100%; height: clamp(100px, 34vw, 135px); object-fit: contain; object-position: right bottom; animation: ar-settle 6s var(--slow) infinite; }
+/* La barre du mois : fine, à l'encre pâle, pour ne pas se confondre avec celle de l'objectif. */
+.carnet .ar-mois { margin-top: 12px; }
+.carnet .ar-mtr { position: relative; height: 3px; border-radius: 2px; background: var(--line2); }
+.carnet .ar-mtr i { position: absolute; inset: 0 auto 0 0; background: var(--ink3); border-radius: 2px; transform-origin: left; animation: ar-growx .9s var(--ease) both; }
+.carnet .ar-mtr i::after { content: ""; position: absolute; right: -4px; top: -2.5px; width: 8px; height: 8px; border-radius: 50%; background: var(--ink2); }
+.carnet .ar-mlab { position: relative; display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--ink3); font-variant-numeric: tabular-nums; }
+.carnet .ar-mlab .ar-auj { position: absolute; top: 0; transform: translateX(-50%); color: var(--ink2); font-weight: 600; white-space: nowrap; }
 .carnet .ar-goal .field { margin-top: 12px; }
 .carnet .ar-goal .input input { border: 0; background: none; outline: none; width: 100%; font-weight: 650; text-align: right; font-size: 15px; padding: 0; }
 
@@ -160,7 +169,14 @@
 .carnet .ar-glab { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--ink3); margin-top: 12px; }
 .carnet .ar-glab b { color: var(--ink); display: inline-flex; align-items: center; gap: 4px; }
 .carnet .ar-glab b .ar-ic { width: 14px; height: 14px; }
-.carnet .ar-calc { margin: 16px 18px 0; font-size: 15px; font-weight: 560; line-height: 1.5; }
+.carnet .ar-calc { margin: 8px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--ink2); }
+.carnet .ar-calc + .ar-calc { margin-top: 10px; }
+/* « Comment on le sait ? » : un lien souligné et un chevron, fermé par défaut. */
+.carnet .ar-how { margin: 14px 18px 0; }
+.carnet .ar-how summary { list-style: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; font-weight: 650; color: var(--ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.carnet .ar-how summary::-webkit-details-marker { display: none; }
+.carnet .ar-how summary .ar-ic { width: 14px; height: 14px; transform: rotate(90deg); transition: transform .25s var(--ease); }
+.carnet .ar-how[open] summary .ar-ic { transform: rotate(-90deg); }
 
 /* Et si… ? */
 .carnet .ar-res .big { font-size: 46px; }
@@ -200,13 +216,9 @@
 
 }
 
-/* Mon mois : une seule image (plus de sacoche), le chiffre, puis ce qui rentre et ce qui sort */
-/* Le personnage se règle sur sa hauteur, pas sa largeur : la gérante (619x699) et
-   le gérant (595x757) n'ont pas le même format, chacun tient en entier, tête comprise. */
-.carnet .ar-compte { height: 200px; }
-.carnet .ar-compte .ar-who { width: auto; height: 194px; bottom: 2px; }
 @media (min-width: 1024px) {
-  .carnet .ar-compte { height: 236px; }
-  .carnet .ar-compte .ar-who { height: 230px; }
+  .carnet .ar-goal { grid-template-columns: minmax(0, 1fr) 120px; }
+  .carnet .ar-goal .big { font-size: 44px; }
+  .carnet .ar-gill .ar-who { height: 135px; }
 }
 .carnet .ar-goalh { display: block; margin-top: 6px; font-size: 12.5px; color: var(--ink2); }

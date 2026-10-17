@@ -13,6 +13,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { chevauxDuMois } from "@/lib/domain/presence";
+import { phraseSeuil } from "@/lib/domain/lecture";
 
 /** Le seuil : combien de chevaux paient tous les frais communs. */
 export default function Page_() {
@@ -38,20 +39,21 @@ function Seuil() {
   return (
     <Page>
       <h1 className="ar-sr">Combien de chevaux pour ne pas perdre d’argent ?</h1>
-      {ok ? (
-        <Hello
-          title={
+      {/* La réponse en une phrase ; le pourquoi et le calcul attendent dans « Comment on le sait ? ». */}
+      <Hello
+        title={
+          ok ? (
             <>
               {ilEnFaut(m.seuil)}
               <br />
               Tu en as {n}.
             </>
-          }
-          sub={`Chaque mois, le foin, le loyer et les salaires tombent, que tu aies peu ou beaucoup de chevaux. Avec moins de ${Math.ceil(m.seuil - 1e-9)} chevaux, tu perds de l’argent. À partir de là, chaque cheval en plus te rapporte presque toute sa pension.`}
-        />
-      ) : (
-        <Hello title="Pas encore atteignable." sub="Chaque mois, tu paies les frais de l’écurie : foin, paille, loyer, salaires… Il faut assez de pensions pour les payer. Pour l’instant, les pensions ne paient même pas les soins des chevaux." />
-      )}
+          ) : (
+            "Pas encore atteignable."
+          )
+        }
+        sub={phraseSeuil(m.seuil, n)}
+      />
 
       <div className="card rise" style={{ animationDelay: ".14s", margin: "16px 14px 0" }}>
         <p className="k">
@@ -60,11 +62,24 @@ function Seuil() {
         <SeuilGrid horses={horses} capacity={capacity} seuil={m.seuil} />
       </div>
 
-      <p className="ar-calc rise" style={{ animationDelay: ".22s" }}>
-        {ok
-          ? `Tes frais de l’écurie font ${eur(m.sharedTotal)} par mois. Une fois ses soins payés, chaque cheval te laisse en moyenne ${eur(m.contribution)}. ${eur(m.sharedTotal).replace(" €", "")} divisé par ${eur(m.contribution).replace(" €", "")} : ${dec1(m.seuil)}. Il t’en faut donc ${Math.ceil(m.seuil - 1e-9)} pour tout payer. Tu en as ${n}.`
-          : "Pour l’instant, les pensions ne paient même pas les soins des chevaux. Avec plus de chevaux, tu perdrais encore plus. C’est le prix des pensions qu’il faut revoir."}
-      </p>
+      <details className="ar-how rise" style={{ animationDelay: ".22s" }}>
+        <summary>
+          Comment on le sait ?
+          <Ic n="chev" className="ar-ic" />
+        </summary>
+        {ok ? (
+          <>
+            <p className="ar-calc">
+              Chaque mois, le foin, le loyer et les salaires tombent, que tu aies peu ou beaucoup de chevaux. Avec moins de {Math.ceil(m.seuil - 1e-9)} chevaux, tu perds de l’argent. À partir de là, chaque cheval en plus te rapporte presque toute sa pension.
+            </p>
+            <p className="ar-calc">
+              Tes frais de l’écurie font {eur(m.sharedTotal)} par mois. Une fois ses soins payés, chaque cheval te laisse en moyenne {eur(m.contribution)}. {eur(m.sharedTotal).replace(" €", "")} divisé par {eur(m.contribution).replace(" €", "")} : {dec1(m.seuil)}. Il t’en faut donc {Math.ceil(m.seuil - 1e-9)} pour tout payer. Tu en as {n}.
+            </p>
+          </>
+        ) : (
+          <p className="ar-calc">Chaque mois, tu paies les frais de l’écurie : foin, paille, loyer, salaires… Il faut assez de pensions pour les payer. Avec plus de chevaux, tu perdrais encore plus. C’est le prix des pensions qu’il faut revoir.</p>
+        )}
+      </details>
 
       <div className="pad rise" style={{ animationDelay: ".3s", marginTop: 16 }}>
         {above && free > 0 && (
@@ -77,7 +92,7 @@ function Seuil() {
         )}
         {ok && !above && (
           <Tip ill="piste">
-            <b>Tu n’as pas encore assez de pensions pour tout payer.</b> Remplir un box ou revoir tes pensions te fait passer au-dessus.
+            <b>Remplir un box ou revoir tes pensions</b> te fait passer au-dessus.
           </Tip>
         )}
         <Link href="/argent?vue=leviers" className="btn line full" style={{ marginTop: 12 }}>

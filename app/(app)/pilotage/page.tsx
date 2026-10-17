@@ -14,6 +14,7 @@ import { seanceAmount } from "@/lib/domain/seances";
 import { addMonths, currentPeriod, lastNPeriods, samePeriod } from "@/lib/utils/period";
 import type { Period } from "@/lib/domain/types";
 import { hasObjective } from "@/lib/domain/objectif";
+import { montantCommun } from "@/lib/domain/lecture";
 
 /**
  * Bilan sur plusieurs mois : les mois mis bout à bout. Les mêmes calculs que « Le mois »
@@ -140,7 +141,8 @@ function Bilans() {
   const rangeLabel = periods.length > 1 ? `De ${mName(first)} à ${mName(now)}.` : `${cap(mName(now))}.`;
   const losers = horses.filter((x) => x.net < 0);
   const prev = mName(addMonths(now, -1));
-  const daysLeft = new Date(now.year, now.month, 0).getDate() - new Date().getDate();
+  // Tous les chevaux ont laissé la même chose : une ligne au lieu de neuf pareilles.
+  const commun = montantCommun(horses.map((x) => x.net));
 
   const hero = (
     <div className="card ar-hero6 rise" style={{ animationDelay: ".05s" }}>
@@ -154,25 +156,25 @@ function Bilans() {
       <p className="note">
         {rangeLabel} {net >= 0 ? `Sur 100 € qui rentrent, il t’en reste ${keep}.` : "Sur ces mois-là, l’écurie t’a coûté plus qu’elle ne t’a rapporté. Beaucoup d’écuries passent par là. Regarde juste en dessous où part l’argent."}
       </p>
-      <div className="ar-reach">
-        {reached > 0 && <Ill n="rosette" />}
-        <span>
-          {reached > 0 ? (
-            <>
-              <b>
-                Objectif atteint {reached} mois sur {months.length}
-              </b>{" "}
-              : {reachedList.map((x) => mName(x.p)).join(", ").replace(/, ([^,]*)$/, " et $1")}.
-            </>
-          ) : hasObjective(objective) ? (
-            <>
-              <b>Objectif de {eur(objective)} pas encore atteint</b> sur ces {months.length} mois.
-            </>
-          ) : (
-            <>Pas d’objectif pour l’instant.</>
-          )}
-        </span>
-      </div>
+      {hasObjective(objective) && (
+        <div className="ar-reach">
+          {reached > 0 && <Ill n="rosette" />}
+          <span>
+            {reached > 0 ? (
+              <>
+                <b>
+                  Objectif atteint {reached} mois sur {months.length}
+                </b>{" "}
+                : {reachedList.map((x) => mName(x.p)).join(", ").replace(/, ([^,]*)$/, " et $1")}.
+              </>
+            ) : (
+              <>
+                <b>Objectif de {eur(objective)} pas encore atteint</b> sur ces {months.length} mois.
+              </>
+            )}
+          </span>
+        </div>
+      )}
       <div className="trio">
         <div>
           <b className="in">{sg(revenue)}</b>
@@ -194,9 +196,7 @@ function Bilans() {
     <>
       <Sec ill="carnet-buste" title="Mois par mois" action={<Link href="/argent">Ce mois-ci</Link>} delay={0.14}>
         <MonthChart months={months.map((x) => ({ p: x.p, net: x.m.net }))} objective={objective} />
-        <p className="note">
-          En euros.{hasObjective(objective) ? ` Le pointillé montre ton objectif de ${eur(objective)}.` : ""} {cap(mName(now))} n’est pas fini : encore {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
-        </p>
+        <p className="note">{hasObjective(objective) ? `Pointillé : ton objectif de ${eur(objective)}. ` : ""}{cap(mName(now))} est en cours.</p>
       </Sec>
       <Sec ill="brouette" title="Où va ton argent" action={<span className="act out">{sg(-charges)}</span>} delay={0.22}>
         {weights.slice(0, 7).map((w, i) => (
@@ -229,7 +229,6 @@ function Bilans() {
               <Money v={-x.delta} />
             </div>
           ))}
-          <p className="note">Avec un moins, ce poste t’a coûté plus qu’en {prev}. Avec un plus, la différence te reste.</p>
         </Sec>
       )}
     </>
@@ -246,16 +245,29 @@ function Bilans() {
             sur ces {months.length} mois : {losers.map((x) => x.h.name).join(", ")}.
           </p>
         )}
-        {horses.map(({ h, net: n }) => (
-          <Link key={h.id} href={`/ticket?id=${h.id}`} className="li">
-            <Face horse={h} />
-            <span>
-              <b>{h.name}</b>
-              <small>{sg(n / Math.max(1, months.length))} par mois en moyenne</small>
+        {commun !== null ? (
+          <Link href="/chevaux" className="li">
+            <span className="ar-pic">
+              <Ic n="horse" className="ar-ic" />
             </span>
-            <span className={`pill${Math.round(n) > 0 ? " in" : Math.round(n) < 0 ? " out" : ""}`}>{sg(n)}</span>
+            <span>
+              <b>Tes {horses.length} chevaux</b>
+              <small>{sg(commun / Math.max(1, months.length))} par mois en moyenne</small>
+            </span>
+            <span className={`pill${commun > 0 ? " in" : commun < 0 ? " out" : ""}`}>{sg(commun)} chacun</span>
           </Link>
-        ))}
+        ) : (
+          horses.map(({ h, net: n }) => (
+            <Link key={h.id} href={`/ticket?id=${h.id}`} className="li">
+              <Face horse={h} />
+              <span>
+                <b>{h.name}</b>
+                <small>{sg(n / Math.max(1, months.length))} par mois en moyenne</small>
+              </span>
+              <span className={`pill${Math.round(n) > 0 ? " in" : Math.round(n) < 0 ? " out" : ""}`}>{sg(n)}</span>
+            </Link>
+          ))
+        )}
       </Sec>
       <Sec ill="confirmer" title="Ce que rapportent tes cours" action={<Link href="/prestations">Tes prestations</Link>} delay={0.46}>
         {prests.length === 0 ? (

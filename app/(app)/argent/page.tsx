@@ -6,16 +6,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { cap, esc, ilEnFaut } from "@/components/bs/ui";
 import { PORTEE_PREVU, plannedRest } from "@/components/bs/goal-card";
-import { hasObjective, phraseObjectifMois, phrasePistes } from "@/lib/domain/objectif";
+import { phrasePistes } from "@/lib/domain/objectif";
 import { partageLabel, repartition } from "@/lib/domain/presence";
 import { useDesk } from "@/components/bs/desk-hook";
-import { Chips, CountUp, Empty, Hello, Ic, Ill, Money, Page, Sec, Seg, eur, sg, type IllName } from "@/components/carnet/ui";
+import { Chips, CountUp, Empty, Ic, Ill, Money, Page, Sec, Seg, eur, sg, type IllName } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { usePeriodStore } from "@/stores/period-store";
 import { useUiStore } from "@/stores/ui-store";
 import { libelleFrais } from "@/components/bs/parcours";
-import { GAGNER_SA_VIE, estEstimation } from "@/lib/domain/estimation";
+import { estEstimation } from "@/lib/domain/estimation";
+import { barreDuMois } from "@/lib/domain/lecture";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { suggestions, leverPotential, type Lever, type Suggestion } from "@/lib/domain/leviers";
 import { clientDues } from "@/lib/domain/clients";
@@ -147,98 +148,55 @@ function Mois() {
   const max = Math.max(1, ...weeks.map((w) => w.done + w.planned));
   // Le graphique se lit en une phrase : la semaine la plus forte et la plus calme, ou « chaque semaine » si elles se valent.
   const parSemaine = weeks.map((w) => Math.round(w.done + w.planned));
-  const pleines = parSemaine.filter((v) => v > 0);
+  const pleines = parSemaine.filter((v) => v !== 0);
   const forte = weeks[parSemaine.indexOf(Math.max(...parSemaine))];
+  // Le graphique ne se montre que si une semaine au moins a rapporté quelque chose.
   const phraseSemaines = !pleines.length
     ? ""
     : pleines.length === parSemaine.length && new Set(pleines).size === 1
       ? `Chaque semaine, tes séances rapportent ${eur(pleines[0])}.`
       : `La meilleure semaine, celle du ${forte.label}, rapporte ${eur(Math.max(...parSemaine))} ; la plus calme, ${eur(Math.min(...parSemaine))}.`;
 
-  const now = new Date();
   const mName = monthName(active.year, active.month);
   const lastDay = new Date(active.year, active.month, 0).getDate();
-  const daysLeft = lastDay - now.getDate();
   const pct = objective > 0 ? Math.max(0, Math.min(100, (m.net / objective) * 100)) : 0;
   const restPct = objective > 0 ? Math.max(0, Math.min(100 - pct, (rest / objective) * 100)) : 0;
   // Une écurie neuve : le chiffre vient des tarifs, pas encore de clients. Une estimation, à l'encre.
   const estime = useMemo(() => estEstimation(data, active), [data, active]);
-  const gagne = m.net > 0;
-  // « Tu gagnes ta vie » : sur de l'argent réel, et au-delà d'un smic à peu près.
-  const vie = !estime && m.net >= GAGNER_SA_VIE;
+  // Le mois en cours se montre en une barre, du 1er au dernier jour, plutôt qu'en phrase.
+  const mois = isNow ? barreDuMois(today) : null;
 
-  const titre = estime ? (
-    <>
-      Pour l’instant,
-      <br />
-      une estimation.
-    </>
-  ) : isNow ? (
-    vie ? (
-      <>
-        Oui, ce mois-ci,
-        <br />
-        tu gagnes ta vie.
-      </>
-    ) : gagne ? (
-      <>
-        Ce mois,
-        <br />
-        l’écurie gagne de l’argent.
-      </>
-    ) : (
-      <>
-        Pas encore. Ce mois-ci,
-        <br />
-        l’écurie te coûte de l’argent.
-      </>
-    )
-  ) : vie ? (
-    <>
-      Oui. En {mName},
-      <br />
-      tu as gagné ta vie.
-    </>
-  ) : gagne ? (
-    <>
-      En {mName},
-      <br />
-      l’écurie a gagné de l’argent.
-    </>
-  ) : (
-    <>
-      Non. En {mName},
-      <br />
-      l’écurie t’a coûté de l’argent.
-    </>
-  );
-
-  const sub = estime ? (
-    <>Tes chevaux n’ont pas encore de propriétaire. Ce chiffre est fait avec tes prix, en comptant que tout le monde paie.</>
-  ) : isNow ? (
-    <>
-      Au {now.getDate()} {mName}, tout payé : pensions, soins, frais de l’écurie.{" "}
-      {phraseObjectifMois(m.net, objective, true)}
-    </>
-  ) : (
-    <>Tout payé : pensions, soins, frais de l’écurie.{hasObjective(objective) ? ` ${phraseObjectifMois(m.net, objective, false)}` : ""}</>
-  );
-
+  // Le chiffre d'abord : pas de titre ni de phrase au-dessus, la gérante est dans la carte.
   const goal = (
-    <div className="card ar-goal rise" style={{ animationDelay: ".18s" }}>
-      <p className="k">{estime ? "Si tout est payé, environ" : isNow ? "Ce mois, il te reste" : `En ${mName}, il t’est resté`}</p>
-      <p className={`big ${estime ? "" : m.net > 0 ? "in" : m.net < 0 ? "out" : ""}`}>
-        <CountUp value={m.net} />
-      </p>
-      {isNow && (
-        <p className="note">
-          {Math.round(rest) !== 0 && (
-            <>
-              Encore {sg(rest)} prévus d’ici le {lastDay} ({PORTEE_PREVU}).{" "}
-            </>
-          )}
-          Le mois se termine dans {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
+    <div className="card ar-goal rise" style={{ animationDelay: ".1s" }}>
+      <div className="ar-gtx">
+        <p className="k">{estime ? "Si tout est payé, environ" : isNow ? "Ce mois, il te reste" : `En ${mName}, il t’est resté`}</p>
+        <p className={`big ${estime ? "" : m.net > 0 ? "in" : m.net < 0 ? "out" : ""}`}>
+          <CountUp value={m.net} />
         </p>
+        {estime && <p className="note">Une estimation : tes chevaux n’ont pas encore de propriétaire.</p>}
+        {isNow && Math.round(rest) !== 0 && (
+          <p className="note">
+            Encore {sg(rest)} prévus d’ici le {lastDay} ({PORTEE_PREVU}).
+          </p>
+        )}
+      </div>
+      <span className="ar-gill" aria-hidden="true">
+        <Ill n="foin" className="ar-who" prio />
+      </span>
+      {mois && (
+        <div className="ar-mois" role="img" aria-label={mois.aria}>
+          <div className="ar-mtr">
+            <i style={{ width: `${mois.pct}%` }} />
+          </div>
+          <div className="ar-mlab" aria-hidden="true">
+            <span>{mois.debut}</span>
+            <span className="ar-auj" style={{ left: `${Math.max(22, Math.min(78, mois.pct))}%` }}>
+              aujourd’hui
+            </span>
+            <span>{mois.fin}</span>
+          </div>
+        </div>
       )}
       {objective > 0 && (
         <>
@@ -330,10 +288,6 @@ function Mois() {
   return (
     <div className="ar-split">
       <div>
-        <div className="ar-compte" aria-hidden="true">
-          <Ill n="foin" className="ar-who" prio />
-        </div>
-        <Hello title={titre} sub={sub} delay={0.1} />
         {goal}
         {ceQuiRentre}
         {ceQuiSort}
