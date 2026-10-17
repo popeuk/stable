@@ -159,7 +159,7 @@
 
 /* ---------- Palette (chercher, aller à, faire) ---------- */
 .carnet .nt-pal-scrim { position: fixed; inset: 0; z-index: 62; background: color-mix(in srgb, var(--ink) 35%, transparent); animation: cn-fade .2s both; }
-.carnet .nt-pal { position: fixed; z-index: 63; top: calc(env(safe-area-inset-top) + 12px); left: 12px; right: 12px; max-width: 640px; margin: 0 auto; border-radius: 12px; background: var(--paper); box-shadow: 0 30px 70px -10px color-mix(in srgb, var(--ink) 45%, transparent), 0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent); overflow: hidden; display: flex; flex-direction: column; max-height: calc(100dvh - 24px); animation: cn-up .3s var(--ease) both; }
+.carnet .nt-pal { position: fixed; z-index: 63; top: calc(env(safe-area-inset-top) + 12px); left: 12px; right: 12px; max-width: 640px; margin: 0 auto; border-radius: 12px; background: var(--paper); box-shadow: 0 30px 70px -10px color-mix(in srgb, var(--ink) 45%, transparent), 0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent); overflow: hidden; display: flex; flex-direction: column; max-height: calc(100dvh - 24px); animation: cn-up .3s var(--ease) backwards; }
 .carnet .nt-pin { display: flex; align-items: center; gap: 10px; height: 58px; padding: 0 14px 0 18px; border-bottom: 1px solid var(--line); background: var(--sheet); font-size: 16px; color: var(--ink3); flex: none; }
 .carnet .nt-pin .cn-ic { width: 19px; height: 19px; color: var(--ink2); }
 .carnet .nt-pin input { flex: 1; min-width: 0; border: 0; background: none; outline: none; font: inherit; font-size: 16px; color: var(--ink); }

@@ -16,6 +16,9 @@
 .carnet .cl-key a { color: var(--ink); text-decoration: none; }
 .carnet .cl-key .cl-1l a { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .carnet .cl-1l { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+/* Une ligne qui porte un lien ou un bouton fait 44 px : la ligne coupe le texte trop long (ellipse), elle ne peut pas laisser déborder une zone d'appui. */
+.carnet .cl-key p:has(a, button) { min-height: 44px; }
+.carnet .cl-key .cl-1l a { display: inline-flex; align-items: center; min-height: 44px; vertical-align: middle; }
 .carnet .cl-note1 { display: block; width: 100%; padding: 12px 0; margin: -12px 0; border: 0; background: none; font: inherit; font-size: 14px; text-align: left; color: var(--ink2); cursor: pointer; }
 
 /* ---------- Ce qu'il te doit ---------- */
@@ -24,7 +27,7 @@
 .carnet .cl-lab { display: block; font-size: 14px; font-weight: 600; color: var(--ink2); }
 .carnet .cl-big { display: block; margin-top: 2px; font-size: 36px; font-weight: 780; letter-spacing: -.03em; line-height: 1; font-variation-settings: "wdth" 86; font-variant-numeric: tabular-nums; color: var(--ink); }
 .carnet .cl-big .num { color: inherit; }
-.carnet .cl-ros { width: 56px; height: 56px; object-fit: contain; animation: cl-pop .5s var(--ease) both; }
+.carnet .cl-ros { width: 56px; height: 56px; object-fit: contain; animation: cl-pop .5s var(--ease) backwards; }
 .carnet .cl-cnt { margin: 8px 0 0; font-size: 13px; font-weight: 600; color: var(--ink); }
 .carnet .cl-acts { display: grid; grid-template-columns: 1fr 1.2fr; gap: 8px; margin-top: 12px; }
 .carnet .cl-acts .btn { padding: 0 8px; white-space: nowrap; }

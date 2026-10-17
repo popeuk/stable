@@ -9,7 +9,7 @@
 
 
 /* ---------- Écran ---------- */
-.bs-screen { animation: bs-in .28s var(--ease) both; }
+.bs-screen { animation: bs-in .28s var(--ease) backwards; }
 @keyframes bs-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 .bs-over { font-size: 12.5px; color: var(--ink3); margin-top: 10px; letter-spacing: .01em; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 22px; }
 .bs-over .bs-wm { font-size: 17px; color: var(--ink); }

@@ -169,9 +169,8 @@
 .carnet .ac-bars b { display: block; height: 100%; width: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .6s var(--ease); }
 .carnet .ac-steps { display: grid; gap: 5px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 12px; font-weight: 650; color: var(--ink3); }
 .carnet .ac-steps .on { color: var(--ink); }
-.carnet .ac-stage { flex: 1; overflow: hidden auto; scrollbar-width: none; overscroll-behavior: contain; }
-.carnet .ac-stage::-webkit-scrollbar { display: none; }
-.carnet .ac-step { width: 100%; max-width: 480px; min-height: 100%; margin: 0 auto; display: flex; flex-direction: column; padding: 14px 18px calc(26px + env(safe-area-inset-bottom)); animation: ac-in .5s var(--ease) both; }
+.carnet .ac-stage { flex: 1; overflow: hidden auto; overscroll-behavior: contain; }
+.carnet .ac-step { width: 100%; max-width: 480px; min-height: 100%; margin: 0 auto; display: flex; flex-direction: column; padding: 14px 18px calc(26px + env(safe-area-inset-bottom)); animation: ac-in .5s var(--ease) backwards; }
 @keyframes ac-in { from { opacity: 0; transform: translateX(26px); } }
 .carnet .ac-dt { margin: 0 0 4px; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
 .carnet .ac-h { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }

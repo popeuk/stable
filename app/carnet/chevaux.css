@@ -49,14 +49,15 @@
 .carnet .ch-search input { border: 0; background: none; outline: none; font: inherit; font-size: 15px; color: var(--ink); flex: 1; min-width: 0; height: 100%; padding: 0; }
 .carnet .ch-search:focus-within { box-shadow: inset 0 0 0 1.5px var(--ink); }
 .carnet .ch-search input::placeholder { color: var(--ink3); }
-.carnet .ch-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-.carnet .ch-tags > * { font-size: 12px; font-weight: 600; color: var(--ink2); padding: 2px 8px; border-radius: 20px; box-shadow: inset 0 0 0 1px var(--line); text-decoration: none; }
+/* Les étiquettes-liens : 32 px de haut et 12 px entre deux rangées, pour que leurs zones de 44 px ne se recouvrent pas. */
+.carnet .ch-tags { display: flex; flex-wrap: wrap; gap: 12px 8px; margin-top: 8px; }
+.carnet .ch-tags > * { display: inline-flex; align-items: center; min-height: 32px; font-size: 12px; font-weight: 600; color: var(--ink2); padding: 0 12px; border-radius: 20px; box-shadow: inset 0 0 0 1px var(--line); text-decoration: none; }
 
 /* ---------- Ajouter un cheval ---------- */
 .carnet .ch-preview { display: flex; justify-content: center; padding-top: 12px; }
 .carnet .ch-preview .portrait { height: 132px; }
 .carnet .ch-preview .portrait .disc { width: 124px; height: 124px; }
-.carnet .ch-sws { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.carnet .ch-sws { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .carnet .ch-sw { width: 34px; height: 34px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent); }
 .carnet .ch-sw[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
 .carnet .ch-opt { font-weight: 400; color: var(--ink3); }

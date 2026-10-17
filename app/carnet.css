@@ -129,7 +129,7 @@
 .carnet .ticket .r.new { background: color-mix(in srgb, var(--hay) 18%, transparent); margin: 0 -8px; padding: 4px 8px; border-radius: 3px; }
 .carnet .ticket .tot { border-top: 1px dashed var(--ink3); margin-top: 8px; padding-top: 10px; font-weight: 600; font-size: 14px; }
 .carnet .ticket .tot span:first-child { color: var(--ink); }
-.carnet .ticket.print .r { animation: cn-line .4s var(--ease) both; }
+.carnet .ticket.print .r { animation: cn-line .4s var(--ease) backwards; }
 .carnet .ticket.print .r:nth-child(2) { animation-delay: .12s; }
 .carnet .ticket.print .r:nth-child(3) { animation-delay: .24s; }
 .carnet .ticket.print .r:nth-child(4) { animation-delay: .36s; }
@@ -174,7 +174,7 @@
 .carnet .coins i:nth-child(2) { animation-delay: .8s; margin-left: -2px; }
 .carnet .coins i:nth-child(3) { animation-delay: 1.6s; margin-left: -13px; }
 @keyframes cn-coin { 0% { transform: translateY(0); opacity: 0; } 12% { opacity: 1; } 78% { transform: translateY(104px); opacity: 1; } 100% { transform: translateY(104px); opacity: 0; } }
-.carnet .rise { animation: cn-rise .7s var(--ease) both; }
+.carnet .rise { animation: cn-rise .7s var(--ease) backwards; }
 @keyframes cn-rise { from { opacity: 0; transform: translateY(14px); } }
 .carnet .empty { display: grid; justify-items: center; text-align: center; gap: 8px; padding: 18px 18px 6px; color: var(--ink2); font-size: 14px; }
 .carnet .empty .ill { width: 150px; }
@@ -187,7 +187,7 @@
 .carnet .sheet-wrap { position: absolute; inset: 0; z-index: 40; display: none; }
 .carnet .sheet-wrap.open { display: block; }
 .carnet .sheet-wrap .scrim { position: absolute; inset: 0; background: color-mix(in srgb, var(--ink) 35%, transparent); animation: cn-fade .25s both; }
-.carnet .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 88%; overflow: auto; background: var(--paper); border-radius: 18px 18px 0 0; padding: 8px 0 28px; box-shadow: 0 -10px 30px color-mix(in srgb, var(--ink) 18%, transparent); animation: cn-up .35s var(--ease) both; scrollbar-width: none; }
+.carnet .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 88%; overflow: auto; background: var(--paper); border-radius: 18px 18px 0 0; padding: 8px 0 28px; box-shadow: 0 -10px 30px color-mix(in srgb, var(--ink) 18%, transparent); animation: cn-up .35s var(--ease) backwards; }
 .carnet .sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 10px; }
 .carnet .sheet .shd { display: flex; align-items: center; justify-content: space-between; padding: 0 18px 10px; }
 .carnet .sheet .shd b { font-size: 18px; font-weight: 720; letter-spacing: -.015em; }
@@ -302,7 +302,7 @@
   .carnet .cn-side .ft { margin-top: 10px; display: grid; gap: 2px; }
   .carnet .cn-main { max-width: none; margin: 0 0 0 232px; padding: 0 0 60px; }
   .carnet .cn-page { max-width: 1120px; margin: 0 auto; padding: 22px 30px 0; }
-  .carnet .sheet-wrap .sheet { left: auto; right: 0; top: 0; bottom: 0; max-height: none; width: 440px; border-radius: 0; animation: cn-slide .3s var(--ease) both; }
+  .carnet .sheet-wrap .sheet { left: auto; right: 0; top: 0; bottom: 0; max-height: none; width: 440px; border-radius: 0; animation: cn-slide .3s var(--ease) backwards; }
   .carnet .toast { left: auto; right: 24px; bottom: 24px; width: 420px; }
   .carnet .cn-back-desk { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; }
   .carnet .cn-back-desk button { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 9px; border-radius: 6px; border: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink2); font-size: 13.5px; font-weight: 550; cursor: pointer; }
