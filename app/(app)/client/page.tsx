@@ -22,6 +22,7 @@ import { brouillon, deMois, facturesDe, recettesFacturees } from "@/lib/domain/f
 import { FeuilleMoyen } from "@/components/bs/moyen-paiement";
 import type { PaymentMethod } from "@/lib/domain/types";
 import { useFeuille } from "@/components/bs/feuille";
+import { vibrer } from "@/lib/utils/vibrer";
 
 /**
  * La fiche d'un client (`/client?nom=Hugo L.`, `&mois=2026-10` pour un mois
@@ -125,6 +126,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
     if (montant <= 0) return;
     if (!m) return setDemande(true);
     const id = useDataStore.getState().addPayment(nom, mk, montant, undefined, { method: m, chequeNumber: chq });
+    vibrer();
     setVientDePayer(true);
     setMoyen(m);
     setCheque("");

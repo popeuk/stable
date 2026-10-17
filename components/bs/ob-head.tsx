@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Ic } from "@/components/carnet/ui";
 import { saisieMontant } from "@/lib/utils/montant";
 
-/** L'en-tête d'un obstacle. Ouvert depuis l'app (retour=…), il redevient un simple réglage. */
+/** L'en-tête d'un obstacle, sans compte d'étapes (la barre seule dit où on en est). Ouvert depuis l'app (retour=…), il redevient un simple réglage. */
 export function ObHead({ n, title, sub, retour }: { n: number; title: string; sub: string; retour?: string | null }) {
   if (retour) {
     return (
@@ -22,9 +22,9 @@ export function ObHead({ n, title, sub, retour }: { n: number; title: string; su
     <>
       <Link href="/parcours" className="ar-obh">
         <Ic n="back" className="" />
-        Tes premiers pas · étape {n} sur 6
+        Tes premiers pas
       </Link>
-      <div className="bar ar-prog" style={{ marginTop: 10 }} role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n - 1} aria-label={`Étape ${n} sur 6`}>
+      <div className="bar ar-prog" style={{ marginTop: 10 }} role="progressbar" aria-valuemin={0} aria-valuemax={6} aria-valuenow={n - 1} aria-label="Tes premiers pas, où tu en es">
         <i style={{ width: `${Math.round(((n - 1) / 6) * 100 + 6)}%` }} />
       </div>
       <h1 className="ar-t1" style={{ marginTop: 14 }}>

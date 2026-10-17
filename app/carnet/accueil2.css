@@ -22,16 +22,10 @@
 /* Pas d'objectif : la proposition, discrète, sous la carte. */
 .carnet .ac-fixer { display: inline-flex; align-items: center; min-height: 44px; margin: 2px 2px 0; font-size: 13.5px; font-weight: 600; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; }
 
-/* L'aide de la première visite, en une ligne sous le chiffre (components/bs/nav.tsx, AideCarte compact). */
+/* L'aide de l'accueil, ouverte par le « ? », sous le chiffre (components/bs/nav.tsx, AideCarte compact). */
 /* Un seul objet encadré par écran (le compteur) : l'aide et l'invite se rangent entre deux filets (Hairline Grid Rule). */
 .carnet .aide.compact { margin: 10px 18px 0; padding: 0 44px 0 2px; color: var(--ink); background: none; border-radius: 0; border-bottom: 1px solid var(--line); }
 .carnet .aide.compact.open { padding: 0 44px 0 2px; }
-.carnet .aide.compact .aide-l { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; border: 0; background: none; padding: 0; font: inherit; font-size: 14.5px; font-weight: 650; color: var(--ink); text-align: left; cursor: pointer; }
-.carnet .aide.compact .aide-l svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-.carnet .aide.compact .aide-l .chev { margin-left: auto; width: 15px; height: 15px; transition: transform .2s var(--ease); }
-.carnet .aide.compact .aide-l[aria-expanded="true"] .chev { transform: rotate(90deg); }
-.carnet .aide.compact .aide-x { position: absolute; right: 2px; top: 2px; width: 44px; height: 44px; border: 0; background: none; color: var(--ink2); display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; }
-.carnet .aide.compact .aide-x svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .carnet .aide.compact ol { margin: 2px 0 0; }
 .carnet .aide.compact li { color: var(--ink2); }
 .carnet .aide.compact li::before { background: var(--ink); color: var(--on-ink); }
