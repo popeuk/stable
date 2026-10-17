@@ -1,0 +1,7 @@
+[Unit]
+Description=Be Stable : mise à jour de l'app (branche vps)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/bestable-app-maj

@@ -1,0 +1,16 @@
+#!/bin/bash
+# Retour arrière de l'app Be Stable sur le VPS.
+#   bestable-app-retour            liste les versions gardées
+#   bestable-app-retour <version>  sert cette version et bloque les mises à jour
+#   bestable-app-retour --relacher reprend les mises à jour automatiques
+set -euo pipefail
+BASE=/srv/bestable-app
+case "${1:-}" in
+  "") echo "En ligne : $(basename "$(readlink -f "$BASE/courant")")"; ls -1t "$BASE/versions"; [ -f "$BASE/epingle" ] && echo "(mises à jour bloquées)"; exit 0 ;;
+  --relacher) rm -f "$BASE/epingle"; /usr/local/bin/bestable-app-maj; exit 0 ;;
+esac
+[ -d "$BASE/versions/$1" ] || { echo "Version inconnue : $1" >&2; exit 1; }
+ln -sfn "$BASE/versions/$1" "$BASE/courant.nouveau"
+mv -T "$BASE/courant.nouveau" "$BASE/courant"
+echo "$1" > "$BASE/epingle"
+echo "En ligne : $1 (mises à jour bloquées ; --relacher pour reprendre)"

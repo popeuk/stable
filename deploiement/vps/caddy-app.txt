@@ -1,0 +1,26 @@
+# L'app Be Stable (18 octobre 2026) : fichiers statiques, mis à jour par
+# bestable-app-maj depuis la branche « vps ». Le micro est permis (saisie à la voix).
+app.bestable.fr, app.187-7-74-179.sslip.io {
+	encode zstd gzip
+	# Les en-têtes de (securite), sauf le micro, permis à l app elle-même.
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(self), geolocation=()"
+		Content-Security-Policy "frame-ancestors 'none'"
+		-Server
+	}
+	root * /srv/bestable-app/courant
+	@immuable path /_next/static/*
+	header @immuable Cache-Control "public, max-age=31536000, immutable"
+	@frais path / /sw.js /manifest.webmanifest *.html */
+	header @frais Cache-Control "no-cache"
+	try_files {path} {path}/index.html {path}.html
+	file_server
+	handle_errors {
+		rewrite * /404.html
+		file_server
+	}
+}

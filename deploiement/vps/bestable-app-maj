@@ -1,0 +1,29 @@
+#!/bin/bash
+# Met à jour l'app Be Stable servie par Caddy (app.bestable.fr) depuis la
+# branche « vps » du dépôt public popeuk/stable, construite par GitHub.
+# Chaque version va dans son dossier ; « courant » bascule d'un coup. On garde
+# les 5 dernières. Si /srv/bestable-app/epingle existe (bestable-app-retour),
+# on ne bouge pas.
+set -euo pipefail
+BASE=/srv/bestable-app
+DEPOT=$BASE/depot
+mkdir -p "$BASE/versions"
+[ -f "$BASE/epingle" ] && exit 0
+if [ ! -d "$DEPOT/.git" ]; then
+  git clone -q --depth 1 --branch vps https://github.com/popeuk/stable.git "$DEPOT"
+else
+  git -C "$DEPOT" fetch -q --depth 1 origin vps
+  git -C "$DEPOT" reset -q --hard FETCH_HEAD
+fi
+V=$(tr -dc 'a-f0-9' < "$DEPOT/VERSION" | cut -c1-12)
+[ -n "$V" ] || { echo "VERSION illisible" >&2; exit 1; }
+[ "$(readlink -f "$BASE/courant" 2>/dev/null || true)" = "$BASE/versions/$V" ] && exit 0
+[ -f "$DEPOT/index.html" ] || { echo "version $V sans index.html" >&2; exit 1; }
+if [ ! -d "$BASE/versions/$V" ]; then
+  rsync -a --delete --exclude .git "$DEPOT/" "$BASE/versions/$V.part/"
+  mv "$BASE/versions/$V.part" "$BASE/versions/$V"
+fi
+ln -sfn "$BASE/versions/$V" "$BASE/courant.nouveau"
+mv -T "$BASE/courant.nouveau" "$BASE/courant"
+ls -1dt "$BASE"/versions/*/ | tail -n +6 | xargs -r rm -rf
+echo "$(date -u +%FT%TZ) en ligne : $V"
