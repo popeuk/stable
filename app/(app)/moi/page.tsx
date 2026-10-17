@@ -118,6 +118,9 @@ function Moi() {
       <Link href="/parcours/factures?retour=moi" className="li np">
         <Li title="Tes frais communs" sub="foin, litière, loyer, salaires" right={chev} />
       </Link>
+      <Link href="/facturation" className="li np">
+        <Li title="Tes factures" sub="SIRET, adresse, TVA, le tableau du comptable" right={chev} />
+      </Link>
     </Sec>
   );
 

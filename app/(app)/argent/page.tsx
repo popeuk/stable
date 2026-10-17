@@ -741,6 +741,16 @@ function Mouvements() {
           ))}
         </Sec>
       )}
+      <Link href="/facturation#comptable" className="card ar-lcard rise" style={{ animationDelay: ".2s", marginTop: 18 }}>
+        <span className="ar-pic">
+          <Ic n="download" className="ar-ic" />
+        </span>
+        <span>
+          <span className="k">Pour ton comptable</span>
+          <b>Le tableau de l’année, à télécharger pour Excel</b>
+        </span>
+        <Ic n="chev" className="chev" />
+      </Link>
     </>
   );
 }

@@ -17,6 +17,10 @@ import { accord, messageDu, prenomDe } from "@/lib/domain/clients";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
 import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
+import { MoyenChoix } from "@/components/bs/moyen-paiement";
+import { dernierMoyen, enMoyen, moyenDit } from "@/lib/domain/paiement";
+import { facturesDe } from "@/lib/domain/facture";
+import type { PaymentMethod } from "@/lib/domain/types";
 
 /**
  * La fiche d'un client (`/client?nom=Hugo L.`, `&mois=2026-10` pour un mois
@@ -92,6 +96,10 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const avant = monthsBefore(data, nom, now, 3);
   const [feuille, setFeuille] = useState<Ouverte>(null);
   const [vientDePayer, setVientDePayer] = useState(false);
+  // Comment il paie : le dernier moyen noté pour lui, changé d'un toucher.
+  const [moyen, setMoyen] = useState<PaymentMethod | undefined>(() => dernierMoyen(data.payments, nom));
+  const [cheque, setCheque] = useState("");
+  const [demande, setDemande] = useState(false);
   const infos = useRef<HTMLDivElement>(null);
 
   const qui = prenomDe(nom);
@@ -115,11 +123,15 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
     setTimeout(() => infos.current?.querySelector("input")?.focus(), calme() ? 0 : 350);
   };
 
-  const payer = (montant: number) => {
+  const payer = (montant: number, m = moyen, chq = cheque) => {
     if (montant <= 0) return;
-    const id = useDataStore.getState().addPayment(nom, mk, montant);
+    if (!m) return setDemande(true);
+    const id = useDataStore.getState().addPayment(nom, mk, montant, undefined, { method: m, chequeNumber: chq });
     setVientDePayer(true);
-    say(`${esc(qui)} t’a payé <strong>${eur(montant)}</strong>.`, () => {
+    setMoyen(m);
+    setCheque("");
+    setDemande(false);
+    say(`${esc(qui)} t’a payé <strong>${eur(montant)}</strong> ${enMoyen(m)}.`, () => {
       useDataStore.getState().removePayment(id);
       setVientDePayer(false);
     });
@@ -245,6 +257,18 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           </p>
         )}
         {due > 0 && (
+          <MoyenChoix
+            value={moyen}
+            onChange={(m) => {
+              setMoyen(m);
+              setDemande(false);
+            }}
+            cheque={cheque}
+            onCheque={setCheque}
+            demande={demande}
+          />
+        )}
+        {due > 0 && (
           <div className="cl-acts">
             <button type="button" className="btn" onClick={() => payer(due)}>
               {Il} a payé
@@ -270,10 +294,19 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         {ouvertes.length > 0 && <p className="cl-hint">Pas eu lieu ? Retire la ligne.</p>}
         {paiements.map((p) => (
           <div key={p.id} className="cl-pd">
-            <span>Payé le {jour(p.at || `${mk}-01`)}</span>
+            <span>
+              Payé le {jour(p.at || `${mk}-01`)}
+              {p.method ? ` · ${moyenDit(p)}` : ""}
+            </span>
             <span className="num">{eur(p.amount)}</span>
           </div>
         ))}
+        {bill.total > 0 && (
+          <Link className="btn line cl-sendb" href={`/facture?nom=${encodeURIComponent(nom)}&mois=${mk}`}>
+            <Ic n="doc" className="" />
+            {facturesDe(data.invoices, nom, mk).length ? "Sa facture du mois" : "Faire sa facture du mois"}
+          </Link>
+        )}
         {due > 0 && (
           <button type="button" className="btn line cl-sendb" onClick={envoyer}>
             <Ic n="arrow" className="" />
@@ -344,6 +377,10 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           <span>E-mail</span>
           <input key={`m-${person?.id}`} className="input" type="email" inputMode="email" defaultValue={person?.email ?? ""} placeholder="Son e-mail" onBlur={(e) => e.target.value.trim() !== (person?.email ?? "") && maj({ email: e.target.value.trim() || undefined })} />
         </label>
+        <label className="field">
+          <span>Adresse</span>
+          <textarea key={`a-${person?.id}`} className="input ta fa-adr" rows={2} defaultValue={person?.address ?? ""} placeholder="Pour ses factures, facultatif" onBlur={(e) => e.target.value.trim() !== (person?.address ?? "") && maj({ address: e.target.value.trim() || undefined })} />
+        </label>
         <Switch on={seance} onClick={() => maj({ paieALaSeance: !seance })}>
           Paie à la séance
           <small className="cl-sw">Cours et balades réglés sur place. Sinon, tout se paie au mois.</small>
@@ -357,9 +394,10 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           nom={nom}
           due={due}
           onClose={() => setFeuille(null)}
-          onOk={(v) => {
+          moyen={moyen}
+          onOk={(v, m, chq) => {
             setFeuille(null);
-            payer(Math.min(v, due));
+            payer(Math.min(v, due), m, chq);
           }}
         />
       )}
@@ -434,10 +472,14 @@ function Feuille({ titre, onClose, children }: { titre: string; onClose: () => v
   );
 }
 
-function PartSheet({ qui, nom, due, onClose, onOk }: { qui: string; nom: string; due: number; onClose: () => void; onOk: (v: number) => void }) {
+function PartSheet({ qui, nom, due, moyen, onClose, onOk }: { qui: string; nom: string; due: number; moyen?: PaymentMethod; onClose: () => void; onOk: (v: number, m: PaymentMethod, cheque: string) => void }) {
   const sug = due > 100 ? 100 : Math.max(1, Math.round(due / 2));
   const [v, setV] = useState(String(sug));
+  const [m, setM] = useState<PaymentMethod | undefined>(moyen);
+  const [chq, setChq] = useState("");
+  const [demande, setDemande] = useState(false);
   const val = montantOuZero(v);
+  const ok = () => (m ? onOk(val, m, chq) : setDemande(true));
   return (
     <Feuille titre={`${qui} a payé une partie`} onClose={onClose}>
       <div className="pad cl-pform">
@@ -445,7 +487,7 @@ function PartSheet({ qui, nom, due, onClose, onOk }: { qui: string; nom: string;
           {accord(nom, "Il", "Elle")} te doit {eur(due)}. Combien {accord(nom, "t’a-t-il", "t’a-t-elle")} payé ?
         </p>
         <label className="input cl-amtin">
-          <input type="text" inputMode="decimal" value={v} autoFocus onChange={(e) => setV(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && val > 0 && onOk(val)} aria-label="Montant payé" />
+          <input type="text" inputMode="decimal" value={v} autoFocus onChange={(e) => setV(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && val > 0 && ok()} aria-label="Montant payé" />
           <span className="u">€</span>
         </label>
         <div className="chips">
@@ -457,7 +499,8 @@ function PartSheet({ qui, nom, due, onClose, onOk }: { qui: string; nom: string;
               </button>
             ))}
         </div>
-        <button type="button" className="btn full" disabled={val <= 0} onClick={() => onOk(val)}>
+        <MoyenChoix value={m} onChange={(x) => (setM(x), setDemande(false))} cheque={chq} onCheque={setChq} demande={demande} />
+        <button type="button" className="btn full" disabled={val <= 0} onClick={ok}>
           C’est noté
         </button>
         <p className="cl-hint">Le reste, {accord(nom, "il", "elle")} te le doit encore.</p>

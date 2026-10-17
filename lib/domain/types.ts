@@ -241,6 +241,8 @@ export interface Person {
   notes?: PersonNote[];
   /** Il paie ses cours et balades sur place, à la séance (sinon au mois). */
   paieALaSeance?: boolean;
+  /** Son adresse postale, imprimée sur ses factures quand elle est connue. */
+  address?: string;
   active: boolean;
 }
 
@@ -354,6 +356,82 @@ export interface Payment {
   at: string;
   /** Payé sur place : la séance réglée (avec `payer`, elle désigne sa ligne). */
   seanceId?: string;
+  /** Comment il a payé. Absent sur les paiements d'avant (non noté). */
+  method?: PaymentMethod;
+  /** Le numéro du chèque, facultatif. */
+  chequeNumber?: string;
+}
+
+/** Les moyens de paiement que le comptable veut voir. */
+export type PaymentMethod = "cheque" | "especes" | "virement" | "autre";
+
+/** Les types de prestation, chacun avec son taux de TVA. */
+export type VatKind = "pension" | "cours" | "soins" | "autre";
+/** Les taux que le gérant peut choisir (en %). */
+export type VatRate = 5.5 | 10 | 20;
+
+/**
+ * Les infos de facturation de l'écurie, réglées une fois. La TVA n'est
+ * jamais devinée : tant que `vat` est absent (ou qu'un taux manque), la
+ * facture demande de choisir.
+ */
+export interface BillingInfo {
+  /** Nom ou raison sociale. Vide = le nom de l'écurie. */
+  legalName?: string;
+  address?: string;
+  siret?: string;
+  /** « franchise » : pas de TVA (art. 293 B du CGI). « taux » : un taux par type. */
+  vat?: "franchise" | "taux";
+  rates?: Partial<Record<VatKind, VatRate>>;
+}
+
+/** Une ligne de facture, figée à l'émission. Les prix saisis dans l'app sont TTC. */
+export interface InvoiceLine {
+  label: string;
+  kind: VatKind;
+  qty: number;
+  /** Taux de TVA en % (0 en franchise). */
+  rate: number;
+  unitTTC: number;
+  unitHT: number;
+  totalTTC: number;
+  totalHT: number;
+}
+
+export interface InvoiceVat {
+  rate: number;
+  base: number;
+  amount: number;
+}
+
+/**
+ * Une facture émise : numéro unique et chronologique par année (2026-0001),
+ * jamais réutilisé. Tout ce qu'elle dit est figé à l'émission : la rouvrir
+ * la montre telle qu'elle est partie.
+ */
+export interface Invoice {
+  id: string;
+  /** « 2026-0001 ». */
+  number: string;
+  year: number;
+  seq: number;
+  /** Date d'émission (AAAA-MM-JJ). */
+  issuedAt: ISODate;
+  payer: string;
+  /** Le mois facturé (AAAA-MM). */
+  month: string;
+  seller: { name: string; address?: string; siret?: string };
+  buyer: { name: string; address?: string };
+  franchise: boolean;
+  lines: InvoiceLine[];
+  totalHT: number;
+  vat: InvoiceVat[];
+  totalTTC: number;
+  /** Déjà payé à l'émission, et ce qui restait dû. */
+  paid: number;
+  due: number;
+  /** Les recettes facturées : elles ne repassent pas sur une autre facture. */
+  revenueIds: string[];
 }
 
 /** The full bundle of data the domain functions operate on. */
@@ -385,4 +463,10 @@ export interface StableData {
   tasks?: TeamTask[];
   actions?: ActionState[];
   payments?: Payment[];
+  /** Les infos imprimées sur les factures (nom, adresse, SIRET, TVA). */
+  billing?: BillingInfo;
+  /** Les factures émises, figées. */
+  invoices?: Invoice[];
+  /** Le dernier numéro utilisé, par année : un numéro ne revient jamais. */
+  invoiceSeq?: Record<string, number>;
 }
