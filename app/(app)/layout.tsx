@@ -6,6 +6,7 @@ import { AjouterDepuisIcone, BarreBureau, ClavierBureau, FeuillesDifferees, Tour
 import { ClientGate } from "@/components/ui/client-gate";
 import { MorningNudge } from "@/components/bs/morning-nudge";
 import { SessionSync } from "@/components/bs/session-sync";
+import { NuageSync } from "@/components/bs/nuage-sync";
 import { AideCarte, TitreEcran } from "@/components/bs/nav";
 import { RetourOrdinateur } from "@/components/bs/navigation";
 import { GarderBandeau } from "@/components/bs/garder";
@@ -29,6 +30,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Autopilot />
       <MorningNudge />
       <SessionSync />
+      <NuageSync />
       <ClientGate>
         <BarreBureau />
         <AjouterDepuisIcone />

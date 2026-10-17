@@ -2,6 +2,7 @@
 
 import type { StateStorage } from "zustand/middleware";
 import { getSession, LOCALE_SCOPE, scopedKey } from "@/lib/account/session";
+import { brancherCoffre, noterEcriture } from "@/lib/account/nuage";
 
 /**
  * Le coffre de l'appareil : le stockage des données de gestion, rangé par
@@ -83,6 +84,8 @@ export const vault: StateStorage = {
       const key = s.kind === "compte" ? await accountKey() : null;
       if (s.kind === "compte" && !key) return;
       localStorage.setItem(k, key ? await seal(value, key) : value);
+      // Un compte : la copie en ligne suivra (lib/account/nuage).
+      if (key) void noterEcriture(name, value);
     };
     const next = (queue.get(k) ?? Promise.resolve()).then(run, run);
     queue.set(k, next);
@@ -110,6 +113,26 @@ export async function relireTiroir(name: string): Promise<string | null> {
     return null;
   }
 }
+
+/** Déchiffre un contenu scellé avec la clé du compte (null si elle ne l'ouvre pas). */
+async function ouvrirScelle(raw: string): Promise<string | null> {
+  if (!raw.startsWith(PREFIX)) return raw;
+  const key = await accountKey();
+  if (!key) return null;
+  try {
+    return await open(raw, key);
+  } catch {
+    return null;
+  }
+}
+
+brancherCoffre({
+  lire: relireTiroir,
+  ouvrir: ouvrirScelle,
+  ecrire: async (name, clair) => {
+    await vault.setItem(name, clair);
+  },
+});
 
 /** Attend que les écritures en cours d'un tiroir soient faites. */
 export function ecrituresFaites(name: string): Promise<void> {
