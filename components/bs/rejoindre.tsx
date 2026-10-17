@@ -195,7 +195,6 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
   const prixN = Number(prix);
   const apercu: Partial<Fiche> = { ...fiche, places_libres: places, prix_min: prix || fiche.prix_min };
   const statut = fiche.statut;
-  const demo = () => enter({ kind: "demo" }, "/accueil");
   const erreur = err ? (
     <p className="ar-err" role="alert">
       {err}
@@ -229,7 +228,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
   if (etape === "accueil")
     return (
       <div className="ar ar-duo">
-        <Stories onStart={() => aller("pourquoi")} onDemo={demo} login={!compte} />
+        <Stories onStart={() => aller("pourquoi")} login={!compte} />
         {panneau}
       </div>
     );
@@ -348,9 +347,6 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false }: { f
             <p className="ar-proof">
               <b className="num">{chiffres ? nf(chiffres.ecuries) : "7 681"}</b> écuries · gratuit · 0 % de commission
             </p>
-            <button type="button" className="lnk" onClick={demo}>
-              Juste regarder ? La démo
-            </button>
           </div>
         </form>
       )}

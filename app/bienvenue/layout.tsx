@@ -8,7 +8,7 @@ export default function BienvenueLayout({ children }: { children: React.ReactNod
   return (
     <div className="carnet">
       {children}
-      <ToastHost />
+      <ToastHost haut />
     </div>
   );
 }

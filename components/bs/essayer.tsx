@@ -47,7 +47,7 @@ export async function ouvrirEssai(to = "/parcours") {
 }
 
 /* ---------- Les chevaux encore sans nom ---------- */
-const SANS_NOM = /^Cheval \d+$/;
+const SANS_NOM = /^(Mon cheval|Cheval) \d+$/;
 export const chevauxSansNom = (horses: Pick<Horse, "name" | "isArchived">[]) => horses.filter((h) => !h.isArchived && SANS_NOM.test(h.name.trim())).length;
 
 /* ---------- Le premier écran ---------- */
@@ -81,7 +81,7 @@ export function Essayer() {
   const reprendreEssai = () => enter({ kind: "locale", at: new Date().toISOString() });
 
   // Un nouveau venu ouvre sur l'histoire (matin, soir, avec Be Stable) ; un essai déjà commencé, sur Reprendre.
-  if (!reprendre) return <Stories onStart={commencer} onDemo={() => enter({ kind: "demo" }, "/accueil")} login loginLabel="J’ai déjà un compte" busy={busy} />;
+  if (!reprendre) return <Stories onStart={commencer} login loginLabel="J’ai déjà un compte" busy={busy} />;
 
   return (
     <div className="ar ar-duo es-bien">
@@ -110,9 +110,6 @@ export function Essayer() {
             </button>
             <button type="button" className="btn line full" disabled={busy} onClick={repartir}>
               {busy ? "On prépare ton écurie…" : "Repartir de zéro"}
-            </button>
-            <button type="button" className="lnk" onClick={() => enter({ kind: "demo" }, "/accueil")}>
-              Juste regarder l’écurie d’exemple
             </button>
           </div>
         </div>

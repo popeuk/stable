@@ -238,41 +238,43 @@ const PIEDS = ".tb, .foot, .es-keep, .nt-stick, .ch-stick, .sheet .btn.full";
  * du plus haut pied d'action visible en bas de l'écran : il ne recouvre
  * jamais un bouton.
  */
-export function ToastHost() {
+/**
+ * Le message d'une action faite : court, sur une ligne, avec sa croix.
+ * `haut` (premiers pas, bienvenue : pas de barre en bas) : posé en haut, il ne
+ * bouge plus. Ailleurs, posé une fois au-dessus du pied d'action, sans suivre
+ * l'écran qui change sous lui (il sautait d'un écran à l'autre).
+ */
+export function ToastHost({ haut = false }: { haut?: boolean }) {
   const toast = useUiStore((s) => s.toast);
   const dismiss = useUiStore((s) => s.dismiss);
   const [bas, setBas] = useState<number | null>(null);
   useEffect(() => {
-    if (!toast) return;
+    if (!toast || haut) return;
     const placer = () => {
       const h = window.innerHeight;
-      let haut = h;
+      let top = h;
       document.querySelectorAll<HTMLElement>(PIEDS).forEach((el) => {
         const r = el.getBoundingClientRect();
         if (!r.width || !r.height || r.bottom <= h * 0.45 || r.top >= h) return;
-        haut = Math.min(haut, r.top);
+        top = Math.min(top, r.top);
       });
-      setBas(haut < h ? h - haut + 10 : null);
+      setBas(top < h ? h - top + 10 : null);
     };
     const raf = requestAnimationFrame(placer);
-    // L'écran peut changer sous le message (un écran suivant, une feuille qui s'ouvre) : on replace.
-    const t = setInterval(placer, 200);
-    window.addEventListener("scroll", placer, { passive: true });
     window.addEventListener("resize", placer);
     return () => {
       cancelAnimationFrame(raf);
-      clearInterval(t);
-      window.removeEventListener("scroll", placer);
       window.removeEventListener("resize", placer);
     };
-  }, [toast]);
+  }, [toast, haut]);
   if (!toast) return null;
   return (
-    <div className="toast" role="status" aria-live="polite" key={toast.id} style={bas != null ? { bottom: bas } : undefined}>
+    <div className={`toast${haut ? " haut" : ""}`} role="status" aria-live="polite" key={toast.id} style={!haut && bas != null ? { bottom: bas } : undefined}>
       <p dangerouslySetInnerHTML={{ __html: toast.html }} />
       {toast.undo && (
         <button
           type="button"
+          className="toast-undo"
           onClick={() => {
             toast.undo?.();
             dismiss();
@@ -281,6 +283,11 @@ export function ToastHost() {
           Annuler
         </button>
       )}
+      <button type="button" className="toast-x" onClick={dismiss} aria-label="Fermer le message">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6 6 18" />
+        </svg>
+      </button>
     </div>
   );
 }

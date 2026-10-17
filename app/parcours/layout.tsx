@@ -10,7 +10,7 @@ export default function ParcoursLayout({ children }: { children: React.ReactNode
     <div className="carnet">
       <OnboardingGate />
       <main className="ar-pc">{children}</main>
-      <ToastHost />
+      <ToastHost haut />
     </div>
   );
 }

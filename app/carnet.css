@@ -213,8 +213,14 @@
 .carnet .aide .ok { margin-top: 12px; height: 44px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--sheet); color: var(--ink); font-weight: 650; font-size: 14px; }
 .carnet .aide .x { position: absolute; right: 8px; top: 8px; background: color-mix(in srgb, var(--on-ink) 12%, transparent); }
 .carnet .aide .x svg { stroke: var(--sheet); }
-.carnet .toast { position: absolute; left: 12px; right: 12px; bottom: 92px; z-index: 30; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; background: var(--ink); color: var(--on-ink); font-size: 13.5px; box-shadow: 0 10px 26px color-mix(in srgb, var(--ink) 25%, transparent); }
-.carnet .toast button { margin-left: auto; border: 0; background: none; color: var(--on-ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.carnet .toast { position: absolute; left: 12px; right: 12px; bottom: 92px; z-index: 30; display: flex; align-items: center; gap: 8px; padding: 10px 12px 10px 14px; border-radius: 10px; background: var(--ink); color: var(--on-ink); font-size: 13.5px; box-shadow: 0 10px 26px color-mix(in srgb, var(--ink) 25%, transparent); }
+.carnet .toast button { border: 0; background: none; color: var(--on-ink); cursor: pointer; }
+/* Une ligne, sa croix : le message dit ce qui est fait et se laisse fermer. */
+.carnet .toast p { margin: 0; flex: 1; min-width: 0; line-height: 1.35; }
+.carnet .toast .toast-undo { flex: none; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; padding: 0 4px; min-height: 36px; }
+.carnet .toast .toast-x { flex: none; width: 36px; height: 36px; margin: -8px -6px -8px 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: .75; }
+.carnet .toast .toast-x:hover, .carnet .toast .toast-x:focus-visible { opacity: 1; background: color-mix(in srgb, var(--on-ink) 12%, transparent); }
+.carnet .toast .toast-x svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 /* La bulle de la première visite (components/bs/nav.tsx, AideBulle) : encre et papier, comme le message du bas, avec sa pointe. Elle ne capte aucun toucher. */
 .carnet .aide-bulle { position: fixed; z-index: 75; max-width: min(300px, calc(100vw - 32px)); width: max-content; padding: 10px 14px; border-radius: 10px; background: var(--ink); color: var(--on-ink); font-size: 14.5px; font-weight: 600; line-height: 1.35; box-shadow: 0 10px 26px color-mix(in srgb, var(--ink) 25%, transparent); pointer-events: none; animation: aide-bulle .32s var(--ease) both; }
 .carnet .aide-bulle::after { content: ""; position: absolute; left: calc(var(--pointe, 50%) - 7px); width: 14px; height: 14px; background: inherit; border-radius: 2px; transform: rotate(45deg); }
@@ -295,6 +301,8 @@
 .carnet .sheet-wrap { position: fixed; z-index: 60; }
 .carnet .sheet { max-width: 480px; margin: 0 auto; padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
 .carnet .toast { position: fixed; left: 12px; right: 12px; bottom: calc(92px + env(safe-area-inset-bottom)); max-width: 456px; margin: 0 auto; z-index: 70; }
+.carnet .toast.haut { top: calc(env(safe-area-inset-top) + 10px); bottom: auto; animation: toast-haut .35s var(--ease) backwards; }
+@keyframes toast-haut { from { opacity: 0; transform: translateY(-8px); } }
 .carnet .aide { margin-top: 14px; }
 .carnet .cn-side { display: none; }
 @media (min-width: 1024px) {

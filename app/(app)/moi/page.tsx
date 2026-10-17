@@ -99,7 +99,7 @@ type Groupe = "ecurie" | "papiers" | "rappel" | "telephone";
 
 /** Les six tuiles : quatre ouvrent leur groupe, deux mènent à leur écran. */
 const TUILES: { id: string; g?: Groupe; href?: string; ic: string; t: string; s: string }[] = [
-  { id: "ecurie", g: "ecurie", ic: "home", t: "Mon écurie", s: "nom, boxes, équipe" },
+  { id: "ecurie", g: "ecurie", ic: "home", t: "Mon écurie", s: "nom, places, équipe" },
   { id: "prix", href: "/parcours/tarifs?retour=moi", ic: "euro", t: "Mes prix", s: "pension, cours" },
   { id: "frais", href: "/parcours/factures?retour=moi", ic: "hay", t: "Mes frais", s: "foin, paille, loyer" },
   { id: "papiers", g: "papiers", ic: "doc", t: "Mes papiers", s: "factures, registre" },
@@ -164,8 +164,8 @@ function Moi() {
       </div>
       <div className="li np">
         <Li
-          title={<label htmlFor="st-cap">Nombre de boxes</label>}
-          sub={s.capacity ? `${horses.length} occupé${horses.length > 1 ? "s" : ""}, ${libres} libre${libres > 1 ? "s" : ""}` : `${horses.length} occupé${horses.length > 1 ? "s" : ""}, combien en tout ?`}
+          title={<label htmlFor="st-cap">Nombre de places</label>}
+          sub={s.capacity ? `${horses.length} prise${horses.length > 1 ? "s" : ""}, ${libres} libre${libres > 1 ? "s" : ""}` : `${horses.length} prise${horses.length > 1 ? "s" : ""}, combien en tout ?`}
           right={<input id="st-cap" className="input xs" inputMode="numeric" placeholder="?" defaultValue={s.capacity || ""} onChange={(e) => Number(e.target.value) > 0 && s.setCapacity(Number(e.target.value))} />}
         />
       </div>

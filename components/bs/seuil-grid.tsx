@@ -19,7 +19,7 @@ export function SeuilGrid({ horses, capacity, seuil }: { horses: Horse[]; capaci
   const free = Math.max(0, capacity - horses.length);
   return (
     <>
-      <div className="ar-grid12" role="img" aria-label={isFinite(seuil) ? `${horses.length} chevaux sur ${cap} boxes. Il en faut ${Math.ceil(seuil - 1e-9)} pour ne pas perdre d’argent.` : `${horses.length} chevaux. Les pensions ne paient pas encore les soins.`}>
+      <div className="ar-grid12" role="img" aria-label={isFinite(seuil) ? `${horses.length} chevaux sur ${cap} places. Il en faut ${Math.ceil(seuil - 1e-9)} pour ne pas perdre d’argent.` : `${horses.length} chevaux. Les pensions ne paient pas encore les soins.`}>
         {Array.from({ length: cap }, (_, i) => (horses[i] ? <Face key={i} horse={horses[i]} /> : <span key={i} className="ar-vide" />))}
         {isFinite(seuil) && (
           <span className="ar-trait" style={{ left: `calc(${((col / cols) * 100).toFixed(2)}% + 1px)`, top: row * ROW - 6 }}>
@@ -29,7 +29,7 @@ export function SeuilGrid({ horses, capacity, seuil }: { horses: Horse[]; capaci
       </div>
       <div className="ar-glab">
         <span>
-          {horses.length} cheva{horses.length > 1 ? "ux" : "l"} · {free} box{free > 1 ? "es" : ""} libre{free > 1 ? "s" : ""}
+          {horses.length} cheva{horses.length > 1 ? "ux" : "l"} · {free} place{free > 1 ? "s" : ""} libre{free > 1 ? "s" : ""}
         </span>
         <b>
           <Ic n="flag" className="ar-ic" />

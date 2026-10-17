@@ -69,7 +69,7 @@ function Simulator() {
         <div className="ar-two">
           <div>
             <small>
-              <LessonTerm lessonKey="seuil_rentabilite">Minimum par box pour ne pas perdre</LessonTerm>
+              <LessonTerm lessonKey="seuil_rentabilite">Minimum par place pour ne pas perdre</LessonTerm>
             </small>
             <b>{eur(results.breakEvenPerSlot)}</b>
           </div>

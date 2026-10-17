@@ -72,6 +72,15 @@ export const estFraisCat = (name: string) => name === FRAIS_CAT || ANCIENS_CAT.i
 export const libelleFrais = (label: string) => (label === FRAIS_LABEL || ANCIENS_LABEL.includes(label) || ANCIENS_CAT.includes(label) ? "Frais de l’écurie, en un total" : label);
 
 type Data = ReturnType<typeof useDataStore.getState>;
+
+/**
+ * Les chevaux du gérant : ils prennent une place et leur part des frais de
+ * l'écurie, sans pension. Marqués par leur formule (« À moi », synchronisée
+ * comme les autres formules), ils ne sont jamais comptés comme une pension
+ * qui manque.
+ */
+export const A_MOI = "À moi";
+export const estAMoi = (h: { pensionType?: string }) => h.pensionType === A_MOI;
 type Per = { year: number; month: number };
 const NUMERO = /^Cheval (\d+)$/;
 
@@ -93,9 +102,18 @@ export function ajouterChevaux(nombre: number, pension: number, today = localTod
   return n;
 }
 
+/** Tes chevaux à toi, d'un coup : « Mon cheval 1 » … « Mon cheval N », sans pension. Rend le nombre ajouté. */
+export function ajouterMiens(nombre: number, today = localToday()): number {
+  const d = useDataStore.getState();
+  const n = Math.max(0, Math.min(30, Math.round(nombre)));
+  const deja = d.horses.reduce((m, h) => Math.max(m, Number(/^Mon cheval (\d+)$/.exec(h.name.trim())?.[1] ?? 0)), 0);
+  for (let i = 1; i <= n; i++) d.addHorse({ name: `Mon cheval ${deja + i}`, pensionType: A_MOI, entryDate: `${today.slice(0, 7)}-01` });
+  return n;
+}
+
 /** La pension commune : tous les chevaux présents paient le tarif de pension. Sinon null. */
 export function pensionCommune(data: Pick<Data, "horses" | "tariffs">): number | null {
-  const act = data.horses.filter((h) => !h.isArchived);
+  const act = data.horses.filter((h) => !h.isArchived && !estAMoi(h));
   const p = data.tariffs?.pension;
   if (!act.length || !p) return null;
   return act.every((h) => h.pension === p) ? p : null;
@@ -106,7 +124,7 @@ export function changerPensionCommune(pension: number, today = localToday()) {
   const d = useDataStore.getState();
   const p = Math.max(0, Math.round(pension * 100) / 100);
   d.setTariff("pension", p || undefined);
-  for (const h of d.horses) if (!h.isArchived) d.setPension(h.id, p, today.slice(0, 7));
+  for (const h of d.horses) if (!h.isArchived && !estAMoi(h)) d.setPension(h.id, p, today.slice(0, 7));
 }
 
 /** Ce qu'une catégorie de frais communs pèse sur le mois : saisies du mois et charges récurrentes. */

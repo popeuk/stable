@@ -6,7 +6,7 @@ import { useSettingsStore, type ObstacleId } from "@/stores/settings-store";
 import { useDataStore } from "@/stores/data-store";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Ic, Ill, eur, type IllName } from "@/components/carnet/ui";
-import { OBSTACLE_META, fraisDuMois, useParcours } from "@/components/bs/parcours";
+import { OBSTACLE_META, estAMoi, fraisDuMois, useParcours } from "@/components/bs/parcours";
 
 /**
  * Tes premiers pas : un chemin, pas une liste. Le personnage ouvre, trois
@@ -33,7 +33,8 @@ function Parcours() {
   const { parcours, current, setupDone } = useParcours();
   const router = useRouter();
   const plusTard = useSettingsStore((s) => s.remettreParcours);
-  const presents = useDataStore((s) => s.horses.filter((h) => !h.isArchived).length);
+  const presents = useDataStore((s) => s.horses.filter((h) => !h.isArchived && !estAMoi(h)).length);
+  const miens = useDataStore((s) => s.horses.filter((h) => !h.isArchived && estAMoi(h)).length);
   const pension = useDataStore((s) => s.tariffs?.pension);
   const totalFrais = useDataStore((s) => {
     const f = fraisDuMois(s);
@@ -45,7 +46,7 @@ function Parcours() {
   };
   /** Ce que le gérant a déjà dit, en quelques mots, sous la question faite. */
   const dejaDit: Partial<Record<ObstacleId, string>> = {
-    chevaux: presents ? `${presents} cheva${presents > 1 ? "ux" : "l"}` : undefined,
+    chevaux: presents || miens ? [presents && `${presents} en pension`, miens && `${miens} à toi`].filter(Boolean).join(" · ") : undefined,
     tarifs: pension ? `Pension à ${eur(pension)} par mois` : undefined,
     factures: totalFrais ? `${eur(totalFrais)} par mois` : undefined,
   };

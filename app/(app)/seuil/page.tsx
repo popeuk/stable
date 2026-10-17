@@ -57,7 +57,7 @@ function Seuil() {
 
       <div className="card rise" style={{ animationDelay: ".14s", margin: "16px 14px 0" }}>
         <p className="k">
-          {capacity ? `Tes ${Math.max(capacity, n)} box${Math.max(capacity, n) > 1 ? "es" : ""}` : `Tes ${n} cheva${n > 1 ? "ux" : "l"}`}
+          {capacity ? `Tes ${Math.max(capacity, n)} place${Math.max(capacity, n) > 1 ? "s" : ""}` : `Tes ${n} cheva${n > 1 ? "ux" : "l"}`}
         </p>
         <SeuilGrid horses={horses} capacity={capacity} seuil={m.seuil} />
       </div>
@@ -85,14 +85,14 @@ function Seuil() {
         {above && free > 0 && (
           <Tip ill="piste">
             <b>
-              Tes {free} box{free > 1 ? "es" : ""} libre{free > 1 ? "s sont" : " est"} ta plus grosse piste.
+              Tes {free} place{free > 1 ? "s" : ""} libre{free > 1 ? "s sont" : " est"} ta plus grosse piste.
             </b>{" "}
             Tu as passé le trait : chaque cheval en plus, c’est presque toute sa pension qui te reste.
           </Tip>
         )}
         {ok && !above && (
           <Tip ill="piste">
-            <b>Remplir un box ou revoir tes pensions</b> te fait passer au-dessus.
+            <b>Remplir une place ou revoir tes pensions</b> te fait passer au-dessus.
           </Tip>
         )}
         <Link href="/argent?vue=leviers" className="btn line full" style={{ marginTop: 12 }}>

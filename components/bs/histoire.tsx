@@ -13,7 +13,7 @@ import { illPerso, usePerso } from "@/components/bs/perso";
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const SCENES: { ill: "matin" | "soir" | "sereine"; alt: string; t: string; s: string; fx?: "rays" | "lamp" }[] = [
-  { ill: "matin", alt: "La gérante porte une botte de foin devant les boxes, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, les boxes, les sabots. Tu assures, même les yeux fermés.", fx: "rays" },
+  { ill: "matin", alt: "La gérante porte une botte de foin devant les boxes, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, le crottin, les sabots. Tu assures, même les yeux fermés.", fx: "rays" },
   { ill: "soir", alt: "La gérante, fatiguée, devant des papiers et une calculette.", t: "Le soir, les comptes te rattrapent.", s: "Les papiers s’empilent. Et une question revient : ton écurie te fait-elle vivre ?", fx: "lamp" },
   { ill: "sereine", alt: "La gérante sourit à son téléphone, son cheval tout contre elle.", t: "Avec Be Stable, tu tiens les rênes.", s: "Deux gestes pour noter ta journée. Un chiffre clair pour chaque cheval." },
 ];
@@ -40,13 +40,11 @@ const cadre = (n: string) => {
 /** Trois scènes qui défilent seules (5 s), toucher avance, la dernière attend. */
 export function Stories({
   onStart,
-  onDemo,
   login,
   loginLabel = "Me connecter",
   busy = false,
 }: {
   onStart: () => void;
-  onDemo: () => void;
   login: boolean;
   loginLabel?: string;
   busy?: boolean;
@@ -105,9 +103,6 @@ export function Stories({
         <div className="cta">
           <button type="button" className="btn" disabled={busy} onClick={onStart}>
             {busy ? "On prépare ton écurie…" : "Commencer"}
-          </button>
-          <button type="button" className="lnk" onClick={onDemo}>
-            Juste regarder l’écurie d’exemple
           </button>
         </div>
       </div>

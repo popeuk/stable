@@ -6,7 +6,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Chips, Face, Ic, Portrait } from "@/components/carnet/ui";
 import { MontantMois, ObHead } from "@/components/bs/ob-head";
 import { COATS, COAT_KEYS, type Coat } from "@/components/bs/horse-face";
-import { ajouterChevaux, useParcours } from "@/components/bs/parcours";
+import { A_MOI, ajouterChevaux, ajouterMiens, useParcours } from "@/components/bs/parcours";
 import { ChoisirProprio } from "@/components/bs/choisir-proprio";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -15,7 +15,7 @@ import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { esc } from "@/components/bs/ui";
 import { useSettingsStore } from "@/stores/settings-store";
 
-const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"] as const;
+const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Écurie active", "Retraite", "Pré", A_MOI] as const;
 
 export default function Page() {
   return (
@@ -56,10 +56,12 @@ function Chevaux() {
   const [tick, setTick] = useState(0);
   const [pension, setPension] = useState(montantEnTexte(tariffs?.pension));
   const p = montantOuZero(pension);
-  // Le nombre de boxes, facultatif : sans lui, aucune estimation de boxes vides.
+  // Le nombre de places, facultatif : sans lui, aucune estimation de places libres.
   const capacity = useSettingsStore((s) => s.capacity);
   const setCapacity = useSettingsStore((s) => s.setCapacity);
-  const [boxes, setBoxes] = useState(capacity ? String(capacity) : "");
+  const [places, setPlaces] = useState(capacity ? String(capacity) : "");
+  // Les chevaux du gérant : une place et leur part des frais, sans pension.
+  const [miens, setMiens] = useState(0);
 
   const suite = () => {
     if (!retour) pass("chevaux");
@@ -70,7 +72,7 @@ function Chevaux() {
   function add() {
     const n = name.trim();
     if (!n) return;
-    addHorse({ name: n, ownerName: owner.trim() || undefined, coat, blaze, pensionType: formule, pension: tariffs?.pension, entryDate: localToday() });
+    addHorse({ name: n, ownerName: owner.trim() || undefined, coat, blaze, pensionType: formule, pension: formule === A_MOI ? undefined : tariffs?.pension, entryDate: localToday() });
     say(`<strong>${esc(n)}</strong> rejoint l’écurie.`);
     setName("");
     setOwner(proprietaire);
@@ -78,10 +80,11 @@ function Chevaux() {
 
   function parNombre() {
     if (!p) return;
-    const b = Number(boxes);
-    if (b > 0) setCapacity(Math.max(b, horses.length + nombre));
+    const b = Number(places);
+    if (b > 0) setCapacity(Math.max(b, horses.length + nombre + miens));
     const vide = horses.length === 0;
     const n = ajouterChevaux(nombre, p);
+    if (miens) ajouterMiens(miens);
     if (vide) return suite();
     say(n > 1 ? `<strong>${n} chevaux</strong> rejoignent l’écurie.` : "<strong>Un cheval</strong> rejoint l’écurie.");
     setNombre(1);
@@ -114,8 +117,8 @@ function Chevaux() {
         <ObHead
           retour={retour}
           n={1}
-          title={deja ? "Tes chevaux" : "Combien de chevaux chez toi ?"}
-          sub={deja ? `${deja > 1 ? `${deja} chevaux sont` : "Un cheval est"} déjà dans ton écurie. Tu peux en ajouter, ou passer.` : "Ceux qui sont chez toi aujourd’hui. Les noms, tu les mettras plus tard."}
+          title={deja ? "Tes chevaux" : "Combien de chevaux en pension ?"}
+          sub={deja ? `${deja > 1 ? `${deja} chevaux sont` : "Un cheval est"} déjà dans ton écurie. Tu peux en ajouter, ou passer.` : "Ceux dont on te paie la pension. Les noms, tu les mettras plus tard."}
         />
         {deja > 0 && troupeau}
         {deja > 0 && <p className="ar-h5">En ajouter</p>}
@@ -133,16 +136,33 @@ function Chevaux() {
         <p className="es-count-lab">{deja ? (nombre > 1 ? "chevaux de plus" : "cheval de plus") : nombre > 1 ? "chevaux" : "cheval"}</p>
         <MontantMois id="h-pension" label="Une pension, c’est combien par mois ?" value={pension} onChange={setPension} help="En moyenne, toutes formules confondues." />
         {!deja && (
-          <div className="ar-mm">
-            <label htmlFor="h-boxes">Combien de boxes en tout ?</label>
-            <span className="ar-mm-f">
-              <input id="h-boxes" inputMode="numeric" autoComplete="off" placeholder="?" value={boxes} onChange={(e) => setBoxes(e.target.value.replace(/\D/g, "").slice(0, 2))} aria-describedby="h-boxes-aide" />
-              <span className="u">boxes</span>
-            </span>
-            <p id="h-boxes-aide" className="es-help">
-              Facultatif. Avec, tu vois ce que rapporteraient tes boxes vides.
-            </p>
-          </div>
+          <>
+            <div className="ar-mm">
+              <span className="ar-mm-l" id="h-miens-l">
+                Et à toi, combien de chevaux ?
+              </span>
+              <div className="es-count es-count-s" role="group" aria-labelledby="h-miens-l">
+                <button type="button" aria-label="Un cheval à toi de moins" disabled={miens <= 0} onClick={() => setMiens((v) => Math.max(0, v - 1))}>
+                  −
+                </button>
+                <b aria-live="polite">{miens}</b>
+                <button type="button" aria-label="Un cheval à toi de plus" disabled={miens >= 30} onClick={() => setMiens((v) => Math.min(30, v + 1))}>
+                  +
+                </button>
+              </div>
+              <p className="es-help">Ils prennent une place et leur part des frais, sans pension. Tu vois ce qu’ils te coûtent.</p>
+            </div>
+            <div className="ar-mm">
+              <label htmlFor="h-places">Combien de places en tout ?</label>
+              <span className="ar-mm-f">
+                <input id="h-places" inputMode="numeric" autoComplete="off" placeholder="?" value={places} onChange={(e) => setPlaces(e.target.value.replace(/\D/g, "").slice(0, 2))} aria-describedby="h-places-aide" />
+                <span className="u">places</span>
+              </span>
+              <p id="h-places-aide" className="es-help">
+                Box, pré ou écurie active, une place est une place. Facultatif : avec, tu vois ce que rapporteraient tes places libres.
+              </p>
+            </div>
+          </>
         )}
         {deja ? (
           <>
@@ -170,7 +190,7 @@ function Chevaux() {
 
   return (
     <>
-      <ObHead retour={retour} n={1} title={retour ? "Ajouter un cheval" : "Tes chevaux"} sub="Commence par les chevaux en pension chez toi. Tu pourras ajouter les tiens plus tard." />
+      <ObHead retour={retour} n={1} title={retour ? "Ajouter un cheval" : "Tes chevaux"} sub="Ceux en pension, et les tiens avec la formule « À moi »." />
       <Portrait horse={{ id: "apercu", name: name.trim() || "Ton cheval", coat }} />
       <div className="ar-form">
         <label className="field" htmlFor="h-name">
@@ -193,7 +213,7 @@ function Chevaux() {
           </div>
         </div>
         <div className="field">
-          <span>Sa formule de pension</span>
+          <span>Sa formule</span>
           <Chips value={formule} onChange={setFormule} options={FORMULES.map((f) => [f, f] as [string, string])} />
         </div>
         <button type="button" className="btn line full" disabled={!name.trim()} onClick={add}>

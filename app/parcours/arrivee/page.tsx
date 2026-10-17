@@ -112,7 +112,7 @@ function Fin() {
         {need ? (
           <>
             Il te faut {need} chevaux pour ne pas perdre d’argent. Tu en as {horses.length}
-            {horses.length >= need ? ", c’est bon" : `, il en manque ${need - horses.length}`}. Chaque box loué en plus te laisse environ <Money v={m.contribution} /> de plus par mois.
+            {horses.length >= need ? ", c’est bon" : `, il en manque ${need - horses.length}`}. Chaque place louée en plus te laisse environ <Money v={m.contribution} /> de plus par mois.
           </>
         ) : (
           "Pour l’instant, les pensions ne suffisent pas à payer les soins des chevaux. Commence par revoir le prix de tes pensions."
@@ -149,7 +149,7 @@ function Seuil({ horses, capacity, seuil }: { horses: Horse[]; capacity: number;
       <div className="ar-seuil-lab">
         <span>
           {horses.length} cheva{horses.length > 1 ? "ux" : "l"}
-          {capacity > 0 && ` · ${vides} box vide${vides > 1 ? "s" : ""}`}
+          {capacity > 0 && ` · ${vides} place${vides > 1 ? "s" : ""} libre${vides > 1 ? "s" : ""}`}
         </span>
         <b>
           <Ic n="flag" className="ar-ico" />

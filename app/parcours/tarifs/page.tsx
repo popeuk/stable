@@ -5,10 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Face, Ic, Tip } from "@/components/carnet/ui";
 import { ObHead } from "@/components/bs/ob-head";
-import { changerPensionCommune, pensionCommune, useParcours } from "@/components/bs/parcours";
+import { changerPensionCommune, estAMoi, pensionCommune, useParcours } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 import { lireMontant, montantEnTexte, montantOuZero } from "@/lib/utils/montant";
+
+/** Les trois cours de base, déjà dans la grille : on ne les redemande pas en prestation. */
+const BASE = /^(cours d.equitation|cours particulier|cours collectif|travail du cheval)$/;
+const norm = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
 export default function Page() {
   return (
@@ -24,13 +28,32 @@ function Tarifs() {
   const router = useRouter();
   const retour = useSearchParams().get("retour");
   const allHorses = useDataStore((s) => s.horses);
-  const horses = allHorses.filter((h) => !h.isArchived);
+  // Tes chevaux à toi n'ont pas de pension : ils ne sont ni listés ici, ni comptés comme une pension qui manque.
+  const horses = allHorses.filter((h) => !h.isArchived && !estAMoi(h));
   const setPension = useDataStore((s) => s.setPension);
   const tariffs = useDataStore((s) => s.tariffs) ?? {};
   const setTariff = useDataStore((s) => s.setTariff);
   const { pass } = useParcours();
   const month = localToday().slice(0, 7);
   const missing = horses.filter((h) => !h.pension).length;
+  const prestations = useDataStore((s) => s.prestations) ?? [];
+  const addPrestation = useDataStore((s) => s.addPrestation);
+  const updatePrestation = useDataStore((s) => s.updatePrestation);
+  const removePrestation = useDataStore((s) => s.removePrestation);
+  // Les prestations en plus des trois cours : celles qui ont un prix, et celles ajoutées ici.
+  const [ajoutees, setAjoutees] = useState<string[]>([]);
+  const autres = prestations.filter((x) => x.active && !BASE.test(norm(x.label)) && (x.price > 0 || ajoutees.includes(x.id)));
+  const [nouvelle, setNouvelle] = useState<{ nom: string; prix: string } | null>(null);
+  const ajouter = () => {
+    if (!nouvelle?.nom.trim()) return;
+    const nom = nouvelle.nom.trim();
+    const prix = lireMontant(nouvelle.prix) || 0;
+    // Déjà dans la liste sans prix (« Balade encadrée » pour « balade ») : on la reprend plutôt que d'en faire une deuxième.
+    const deja = prestations.find((x) => x.active && !BASE.test(norm(x.label)) && norm(x.label).startsWith(norm(nom)));
+    const id = deja ? (updatePrestation(deja.id, { label: nom, price: prix }), deja.id) : addPrestation({ label: nom, price: prix });
+    setAjoutees((a) => [...a, id]);
+    setNouvelle(null);
+  };
   // Des chevaux venus d'un nombre partagent une pension : elle est déjà fixée.
   const [commune, setCommune] = useState(() => pensionCommune(useDataStore.getState()));
 
@@ -51,7 +74,7 @@ function Tarifs() {
               </span>
               <span>
                 <b>La pension</b>
-                <small className="ar-set">Prix fixé pour {horses.length > 1 ? `tes ${horses.length} chevaux` : "ton cheval"}</small>
+                <small className="ar-set">Prix fixé pour {horses.length > 1 ? `tes ${horses.length} chevaux en pension` : "ton cheval en pension"}</small>
               </span>
               <input className="inl" inputMode="decimal" defaultValue={montantEnTexte(commune)} placeholder="0" aria-label="Pension de chaque cheval, euros par mois" onChange={(e) => changerPensionCommune(montantOuZero(e.target.value))} />
               <i>€</i>
@@ -98,6 +121,54 @@ function Tarifs() {
           </div>
         ))}
       </div>
+      {autres.length > 0 && (
+        <div className="ar-lines" style={{ marginTop: 0 }}>
+          {autres.map((x) => (
+            <div key={x.id} className="ar-ln">
+              <span className="pic">
+                <Ic n="clock" className="ar-ico" />
+              </span>
+              <span>
+                <b>{x.label}</b>
+                <small>par cavalier ou la séance</small>
+              </span>
+              <input className="inl" inputMode="decimal" defaultValue={montantEnTexte(x.price || undefined)} placeholder="0" aria-label={`${x.label}, euros`} onChange={(e) => updatePrestation(x.id, { price: lireMontant(e.target.value) || 0 })} />
+              <button type="button" className="ar-ln-x" aria-label={`Retirer ${x.label}`} onClick={() => (removePrestation(x.id), setAjoutees((a) => a.filter((i) => i !== x.id)))}>
+                <Ic n="x" className="" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {nouvelle ? (
+        <div className="ar-new">
+          <label className="field" htmlFor="pr-nom">
+            <span>Ce que tu proposes</span>
+            <input id="pr-nom" className="input" autoFocus placeholder="Ex. Balade, longe, débourrage" value={nouvelle.nom} autoComplete="off" onChange={(e) => setNouvelle({ ...nouvelle, nom: e.target.value })} onKeyDown={(e) => e.key === "Enter" && ajouter()} />
+          </label>
+          <label className="field" htmlFor="pr-prix">
+            <span>Son prix, par cavalier ou la séance</span>
+            <span className="ar-mm-f">
+              <input id="pr-prix" inputMode="decimal" autoComplete="off" placeholder="0" value={nouvelle.prix} onChange={(e) => setNouvelle({ ...nouvelle, prix: e.target.value })} onKeyDown={(e) => e.key === "Enter" && ajouter()} />
+              <span className="u">€</span>
+            </span>
+          </label>
+          <div className="ar-new-go">
+            <button type="button" className="btn" disabled={!nouvelle.nom.trim()} onClick={ajouter}>
+              <Ic n="plus" className="" />
+              Ajouter
+            </button>
+            <button type="button" className="btn ghost" onClick={() => setNouvelle(null)}>
+              Annuler
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" className="ar-add" onClick={() => setNouvelle({ nom: "", prix: "" })}>
+          <Ic n="plus" className="" />
+          Ajouter une prestation
+        </button>
+      )}
       <Tip ill="carnet-buste">
         <b>Ces prix se remplissent tout seuls</b> quand tu notes un cours. Tu peux toujours les changer juste pour une fois.
       </Tip>

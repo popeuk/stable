@@ -395,7 +395,7 @@ function Piste({ delay }: { delay: number }) {
 
 /* ---------------- Leviers ---------------- */
 const LEVERS: { id: Lever; title: string; ill: IllName }[] = [
-  { id: "remplir", title: "Remplir les boxes", ill: "tete-fondu" },
+  { id: "remplir", title: "Remplir les places", ill: "tete-fondu" },
   { id: "facturer", title: "Te faire payer ce qu’on te doit", ill: "sacoche" },
   { id: "depenser", title: "Dépenser moins", ill: "foin" },
 ];

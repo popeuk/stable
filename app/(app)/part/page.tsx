@@ -79,14 +79,14 @@ function Part() {
         </p>
         {libres > 0 && (
           <>
-            <div className="ch-heads" style={{ marginTop: 14 }} role="img" aria-label={`Les ${libres} boxes libres`}>
+            <div className="ch-heads" style={{ marginTop: 14 }} role="img" aria-label={`Les ${libres} places libres`}>
               {Array.from({ length: Math.min(libres, 24) }, (_, i) => (
                 <span key={i} className="free" />
               ))}
             </div>
             <p className="ch-div" style={{ marginTop: 6 }}>
               <small>
-                Si {libres > 1 ? `tes ${libres} boxes libres étaient pleins` : "ton box libre était plein"}, chacun paierait {eur(m.sharedTotal / capacity)}.
+                Si {libres > 1 ? `tes ${libres} places libres étaient prises` : "ta place libre était prise"}, chacun paierait {eur(m.sharedTotal / capacity)}.
               </small>
             </p>
           </>
