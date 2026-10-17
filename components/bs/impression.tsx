@@ -19,7 +19,17 @@ export function useTitreDocument(titre: string | undefined) {
     if (!titre) return;
     const avant = document.title;
     document.title = titre;
+    // Le titre de l'écran (métadonnées « Facture · Be Stable ») arrive parfois
+    // après, au premier chargement : il ne doit pas reprendre la place du nom du PDF.
+    const garder = () => {
+      if (document.title !== titre) document.title = titre;
+    };
+    const obs = new MutationObserver(garder);
+    obs.observe(document.head, { childList: true, subtree: true, characterData: true });
+    window.addEventListener("beforeprint", garder);
     return () => {
+      obs.disconnect();
+      window.removeEventListener("beforeprint", garder);
       document.title = avant;
     };
   }, [titre]);
