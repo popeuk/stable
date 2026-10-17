@@ -154,7 +154,7 @@ rounded:
   frame: "14px"
   pill: "40px"
   sheet: "16px"
-  app-card: "16px"
+  app-card: "12px"
   app-control: "10px"
 spacing:
   gap: "10px"
@@ -449,7 +449,7 @@ Added with the internal Operate tool "Base mon écurie" (visualiseur-base). Same
 
 ### App Be Stable (le carnet)
 The app as it ships since 15 October 2026 (the carnet illustré, rules of 17 October 2026). One token set, defined once in `:root` (`app/globals.css`) and used by every screen; the clickable prototype of 11 October lives on in `prototype/`.
-- **Tokens:** paper `#FCFBF9` (page), sheet `#FFFFFF` (raised surfaces), mist `#F4F1F5` (quiet fills, segmented controls), line `#E7E2EA` and line-2 `#F0ECF2` (hairlines), ink `#1B1225`, ink-2 `#5A5264`, ink-3 `#6E6678` (5.3:1 on paper, 4.9:1 on mist), cream `#FDF5E6` and hay `#E9C46A` (illustration grounds only), money-in `#134E3A` (vert anglais, 9.6:1 on paper), money-out `#A0285A` (6.9:1 on paper), scrim ink at 35 %. Brand tokens `--vert`, `--vert-deep`, `--rose`, `--on-vert` feed `--acc`, `--acc-deep` and `--rose-soft`; radii are `--bloc-r` (16px) and `--ctl-r` (10px), the side gutter `--gut` (16px). Ink transparencies are written `color-mix(in srgb, var(--ink) n%, transparent)`, never as raw rgba.
+- **Tokens:** paper `#FCFBF9` (page), sheet `#FFFFFF` (raised surfaces), mist `#F4F1F5` (quiet fills, segmented controls), line `#E7E2EA` and line-2 `#F0ECF2` (hairlines), ink `#1B1225`, ink-2 `#5A5264`, ink-3 `#6E6678` (5.3:1 on paper, 4.9:1 on mist), cream `#FDF5E6` and hay `#E9C46A` (illustration grounds only), money-in `#134E3A` (vert anglais, 9.6:1 on paper), money-out `#A0285A` (6.9:1 on paper), scrim ink at 35 %. Brand tokens `--vert`, `--vert-deep`, `--rose`, `--on-vert` feed `--acc`, `--acc-deep` and `--rose-soft`; radii are `--bloc-r` (12px) and `--ctl-r` (10px), the side gutter `--gut` (16px). Ink transparencies are written `color-mix(in srgb, var(--ink) n%, transparent)`, never as raw rgba.
 - **Colour:** The Brand Colour Rule. A figure that has come in reads `+120 €` in money-in, one that has gone out `−85 €` in money-out; what is still planned, an estimate or a potential reads in ink with its sign; zero is ink. Focus is a 2px ink outline (offset 2px); text selection is an ink mist (14 %); the delete button is an ink outline with a trash pictogram, its gravity carried by the words and the confirmation.
 - **Type ramp:** 14px body (1.45), 12px minimum anywhere in the app (labels, tab labels, captions, kickers), 13px meta, 14.5px 640 row titles, 15px leads, 16px in every field (so iOS never zooms on focus), 18px 700 section heads, 32px 760 width-86 hellos, 44px 780 width-86 tabular month figure. IBM Plex Mono only on the horse's ticket and its times.
 - **Touch targets:** 44 by 44px minimum for anything a gloved thumb can press. When the drawing must stay small (the C'est fait check, a row's trash, back and help in the header, close crosses, week and month arrows, colour swatches, text links), a centred `::after` extends the hit area to 44px around it; segmented controls are 38px inside a 3px mist frame, extended to the frame's edge; chips, steppers, inputs and buttons are 44px tall. A field box is a label: a press anywhere in it puts the caret inside. The tab bar's centre + is a 56px ink disc raised 24px; tab labels are 12px 600.
@@ -474,7 +474,7 @@ The app as it ships since 15 October 2026 (the carnet illustré, rules of 17 Oct
 - **Do** award the flot only for a named status, tilted at most 8 degrees.
 - **Do** label fictitious stables, prices and portraits in mockups.
 - **Do** give app controls the vert anglais and use rose casaque only as a flat ground with vert-deep text; write money with its sign, vert in, dark rose out.
-- **Do** use two radii in the app: 16px for every block (cards, cases, panels) and 10px for every control (buttons, fields, segmented choices), on one 16px side gutter.
+- **Do** use two radii in the app: 12px for every block (cards, cases, panels) and 10px for every control (buttons, fields, segmented choices), on one 16px side gutter.
 - **Do** give every touch target 44px, extending the hit area around a small drawing rather than shrinking the target.
 - **Do** keep app text at 12px or more, and every field at 16px.
 
