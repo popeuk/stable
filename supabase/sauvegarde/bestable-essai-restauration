@@ -1,0 +1,16 @@
+#!/bin/bash
+# Recharge la dernière sauvegarde Supabase dans une base jetable et compare
+# le nombre de lignes avec la base en ligne. Sortie : « identique » ou « ÉCART ».
+set -euo pipefail
+Q="select format('%s %s %s', (select count(*) from public.tiroirs), (select count(*) from public.tiroirs_versions), (select count(*) from public.waitlist))"
+EN_LIGNE=$(docker run --rm --network host --env-file /etc/bestable-sauvegarde-supabase.conf postgres:17-alpine psql -tAc "$Q")
+docker rm -f essai-restauration >/dev/null 2>&1 || true
+docker run -d --name essai-restauration -e POSTGRES_PASSWORD=essai postgres:17-alpine >/dev/null
+trap 'docker rm -f essai-restauration >/dev/null 2>&1' EXIT
+for i in $(seq 1 30); do docker exec essai-restauration pg_isready -U postgres -q && break; sleep 1; done
+sleep 2
+docker exec -i essai-restauration pg_restore -U postgres -d postgres --no-owner --no-privileges < /var/backups/supabase-bestable/derniere.dump 2>/dev/null || true
+RESTAUREE=$(docker exec essai-restauration psql -U postgres -tAc "$Q")
+echo "en ligne : $EN_LIGNE (tiroirs, versions, liste d'attente)"
+echo "restaurée : $RESTAUREE"
+[ "$EN_LIGNE" = "$RESTAUREE" ] && echo identique || { echo ÉCART; exit 1; }

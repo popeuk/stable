@@ -1,0 +1,6 @@
+# Be Stable : copie de la base Supabase « bestable » chaque nuit, essai de restauration chaque dimanche.
+# Journal : /var/log/bestable-sauvegarde-supabase.log (une ligne « ok » ou l'erreur).
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+15 3 * * * root { date -u +\%FT\%TZ; /usr/local/bin/bestable-sauvegarde-supabase || echo "ÉCHEC de la sauvegarde"; } >> /var/log/bestable-sauvegarde-supabase.log 2>&1
+45 4 * * 0 root { date -u +\%FT\%TZ; /usr/local/bin/bestable-essai-restauration || echo "ÉCHEC de l'essai de restauration"; } >> /var/log/bestable-sauvegarde-supabase.log 2>&1

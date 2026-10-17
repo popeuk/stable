@@ -1,0 +1,22 @@
+#!/bin/bash
+# Copie de chaque nuit de la base Supabase « bestable » (schéma public :
+# tiroirs chiffrés de l'app, versions, liste d'attente) vers le VPS.
+# Lecture seule (rôle « sauvegarde »). On garde 30 jours.
+# Quand le stockage externe existera, envoyer aussi DEST vers lui (voir la note
+# « Be Stable - Copie en ligne des données » du vault).
+set -euo pipefail
+DEST=/var/backups/supabase-bestable
+CONF=/etc/bestable-sauvegarde-supabase.conf
+mkdir -p "$DEST"
+chmod 700 "$DEST"
+QUAND=$(date -u +%Y-%m-%dT%H%MZ)
+FICHIER="$DEST/bestable-$QUAND.dump"
+docker run --rm --network host --env-file "$CONF" postgres:17-alpine \
+  pg_dump --schema=public --format=custom --no-owner --no-privileges > "$FICHIER.part"
+# Une copie vide ou tronquée ne remplace rien.
+if [ ! -s "$FICHIER.part" ]; then rm -f "$FICHIER.part"; echo "sauvegarde vide" >&2; exit 1; fi
+mv "$FICHIER.part" "$FICHIER"
+chmod 600 "$FICHIER"
+ln -sfn "$FICHIER" "$DEST/derniere.dump"
+find "$DEST" -name 'bestable-*.dump' -mtime +30 -delete
+echo "ok $FICHIER $(stat -c %s "$FICHIER") octets"
