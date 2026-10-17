@@ -14,7 +14,7 @@
 /* ---------- La facture : les outils autour ---------- */
 .carnet .fa-tools { padding-left: 16px; padding-right: 16px; }
 .carnet .fa-head { padding: 12px 0 0; }
-.carnet .fa-head h2 { margin: 4px 0 0; font-size: 22px; font-weight: 760; letter-spacing: -.025em; line-height: 1.05; font-variation-settings: "wdth" 88; overflow-wrap: anywhere; }
+.carnet .fa-head h2 { margin: 4px 0 0; font-size: 24px; font-weight: 760; letter-spacing: -.025em; line-height: 1.05; font-variation-settings: "wdth" 88; overflow-wrap: anywhere; }
 .carnet .fa-head p:not(.k) { margin: 4px 0 0; font-size: 13px; color: var(--ink2); }
 .carnet .fa-card { display: grid; gap: 8px; margin-top: 14px; }
 .carnet .fa-card > b { font-size: 15px; font-weight: 700; line-height: 1.3; }
@@ -31,12 +31,38 @@
 .carnet .fa-more .lnk { display: inline-flex; align-items: center; min-height: 44px; }
 .carnet .fa-adr { height: auto; min-height: 64px; padding: 10px 12px; resize: vertical; font: inherit; font-size: 15px; line-height: 1.4; }
 
-/* Depuis la liste des clients : la facture à côté de chaque ligne */
-.carnet .fa-crow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: center; border-bottom: 1px solid var(--line2); }
-.carnet .fa-crow:last-child { border-bottom: 0; }
-.carnet .fa-crow .cl-row { border-bottom: 0; }
-.carnet .fa-clink { display: grid; justify-items: center; align-content: center; gap: 2px; min-width: 52px; min-height: 48px; font-size: 12px; font-weight: 650; color: var(--ink2); text-decoration: none; }
-.carnet .fa-clink svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+/* Le client, une ligne au-dessus de l'aperçu ; « Continuer » qui dit ce qui manque */
+.carnet .fa-who { margin: 14px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--ink2); }
+.carnet .fa-suite { margin-top: 6px; white-space: normal; height: auto; min-height: 48px; padding: 8px 16px; line-height: 1.25; text-align: center; }
+.carnet .fr-form .input::placeholder { font-style: italic; }
+
+/* « Faire la facture » : sous l'aperçu, collé en bas au-dessus de la barre d'onglets */
+.carnet .fa-go { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 6; display: grid; gap: 8px; margin: -24px 0 24px; padding: 18px 16px 12px; background: linear-gradient(to bottom, color-mix(in srgb, var(--paper) 0%, transparent), var(--paper) 22px); }
+.carnet .fa-go p { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--ink2); }
+.carnet .fa-go .btn { height: 52px; font-size: 15px; }
+.carnet .fa-annuler { margin-top: 16px; }
+
+/* L'avoir : toute la facture ou une partie, ligne par ligne */
+.carnet .fa-avf { display: grid; gap: 14px; padding-bottom: 4px; }
+.carnet .fa-avf .fa-hint { margin: 0; color: var(--ink2); }
+.carnet .fa-avl { display: grid; }
+.carnet .fa-avr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 56px; border-bottom: 1px solid var(--line2); }
+.carnet .fa-avr b { display: block; font-size: 14.5px; font-weight: 650; }
+.carnet .fa-avr small { display: block; font-size: 12px; color: var(--ink3); }
+.carnet .fa-step { display: inline-grid; grid-template-columns: 44px 32px 44px; align-items: center; text-align: center; }
+.carnet .fa-step button { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--mist); color: var(--ink); font-size: 20px; font-weight: 600; cursor: pointer; }
+.carnet .fa-step button:disabled { opacity: .4; cursor: default; }
+.carnet .fa-step output { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Les factures du mois : particulier ou pro, dit d'un toucher dans la liste */
+.carnet .fa-lotq { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 60px; padding: 6px 0; border-bottom: 1px solid var(--line2); }
+.carnet .fa-lotq:last-child { border-bottom: 0; }
+.carnet .fa-lotq b { display: block; font-size: 14.5px; font-weight: 660; }
+.carnet .fa-lotq small { display: block; font-size: 12px; color: var(--ink3); }
+.carnet .fa-lotq .chip { min-height: 44px; padding: 0 12px; }
+
+/* Clients : les factures du mois en un geste */
+.carnet .cl-lot { margin-top: 14px; }
 
 /* ---------- La feuille A4, à l'écran ---------- */
 .carnet .fa-print {
@@ -90,6 +116,11 @@
   .carnet .fa-page { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 28px; align-items: start; padding: 0 30px; }
   .carnet .fa-page > .cn-page { padding: 22px 0 0; margin: 0; max-width: none; }
   .carnet .fa-print { margin: 22px 0 60px; padding: 44px 46px 40px; max-width: 760px; font-size: 13px; }
+  .carnet .fa-page { grid-template-areas: "tools sheet" "go sheet"; grid-template-rows: auto 1fr; }
+  .carnet .fa-page > .cn-page { grid-area: tools; }
+  .carnet .fa-page > .fa-print { grid-area: sheet; }
+  .carnet .fa-go { grid-area: go; align-self: start; position: sticky; top: 22px; margin: 18px 0 0; padding: 0; background: none; }
+  .carnet .fa-page.fa-lot { grid-template-columns: minmax(0, 560px); grid-template-areas: "tools" "go"; justify-content: center; }
 }
 
 /* ---------- Tes factures et le comptable ---------- */
@@ -112,11 +143,18 @@
 .carnet .fr-amt { font-weight: 650; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .carnet .fr-inv .chev { width: 14px; height: 14px; }
 .carnet .fr-exp { display: grid; gap: 10px; }
+.carnet .fr-fold { width: 100%; }
+.carnet .fr-reg { display: grid; gap: 14px; padding: 4px 0 6px; }
+.carnet .fr-sub { margin: 14px 0 0; font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
 .carnet .fr-exp .btn[disabled], .carnet .fa-card .btn[disabled] { opacity: .4; cursor: default; }
 
-/* ---------- À l'impression : la feuille seule, noir sur blanc ---------- */
+/* ---------- À l'impression : la feuille seule, noir sur blanc ----------
+   Tout est conditionné à la feuille de la facture (body:has(.fa-print)) :
+   ailleurs, ces règles ne s'appliquent pas. La page A4 portrait est une
+   page nommée ; l'écran de la facture pose aussi le format pendant qu'il est
+   ouvert (components/bs/impression.tsx). */
+@page facture { size: A4; margin: 16mm 14mm; }
 @media print {
-  @page { size: A4; margin: 16mm 14mm; }
   html:has(.fa-print), body:has(.fa-print) { background: #fff !important; }
   body:has(.fa-print) > :not(.carnet:has(.fa-print)) { display: none !important; }
   .carnet:has(.fa-print) { background: #fff !important; min-height: 0 !important; }
@@ -125,7 +163,7 @@
   .carnet .cn-main:has(.fa-print) > :not(.fa-page) { display: none !important; }
   .carnet .fa-page { display: block !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
   .carnet .fa-page > :not(.fa-print) { display: none !important; }
-  .carnet .fa-print { margin: 0 !important; padding: 0 !important; max-width: none !important; box-shadow: none !important; font-size: 10.5pt; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .carnet .fa-print { page: facture; margin: 0 !important; padding: 0 !important; max-width: none !important; box-shadow: none !important; font-size: 10.5pt; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .carnet .fa-print .fa-tbl tr { break-inside: avoid; }
   .carnet .fa-tot, .carnet .fa-foot { break-inside: avoid; }
 }

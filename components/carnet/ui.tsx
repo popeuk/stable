@@ -68,6 +68,7 @@ const P: Record<string, string> = {
   camera: "M4 8h3l2-3h6l2 3h3v11H4zM12 9.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z",
   bell: "M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5h4",
   download: "M12 4v11M7 10l5 5 5-5M5 20h14",
+  print: "M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M7 14h10v6H7z",
   upload: "M12 20V9M7 14l5-5 5 5M5 4h14",
   hay: "M4 9.5A1.5 1.5 0 0 1 5.5 8h13A1.5 1.5 0 0 1 20 9.5v7a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5zM4 12h16M9 8v10M15 8v10",
   shoe: "M7 20V11a5 5 0 0 1 10 0v9M5 20h4M15 20h4",

@@ -166,7 +166,7 @@ const LIEU_CHAMPS: { k: HoldingKey; label: string; ph: string; type?: "tel" | "e
   { k: "holderPhone", label: "Téléphone", ph: "06…", type: "tel" },
   { k: "holderEmail", label: "Courriel", ph: "toi@exemple.fr", type: "email" },
   { k: "holderNumber", label: "Numéro de détenteur", ph: "donné par le SIRE, si tu l’as" },
-  { k: "siret", label: "SIRET", ph: "si tu es professionnel" },
+  { k: "siret", label: "SIRET", ph: "si tu es professionnel, le même que sur tes factures" },
   { k: "vetTraitant", label: "Vétérinaire traitant", ph: "nom, cabinet, téléphone" },
   { k: "vetSanitaire", label: "Vétérinaire sanitaire", ph: "obligatoire dès 3 chevaux" },
 ];
@@ -177,7 +177,10 @@ const LIEU_CHAMPS: { k: HoldingKey; label: string; ph: string; type?: "tel" | "e
  * champ s'enregistre quand on le quitte.
  */
 export function LieuReglages() {
-  const holding = useDataStore((s) => s.holding) ?? {};
+  const lieu = useDataStore((s) => s.holding);
+  const siretFactures = useDataStore((s) => s.billing?.siret);
+  // Le SIRET est celui de tes factures : saisi d'un côté, il est déjà là de l'autre.
+  const holding = { ...(lieu ?? {}), ...(!lieu?.siret && siretFactures ? { siret: siretFactures } : {}) };
   const setHolding = useDataStore((s) => s.setHolding);
   // Venu du registre (« Adresse du lieu à compléter ») : la partie s'ouvre.
   const [open, setOpen] = useState(() => typeof window !== "undefined" && window.location.hash === "#lieu");

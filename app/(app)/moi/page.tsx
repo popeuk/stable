@@ -13,6 +13,8 @@ import { api } from "@/lib/account/api";
 import { getSession, leave } from "@/lib/account/session";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { useParcours } from "@/components/bs/parcours";
+import { fusionFactures } from "@/lib/domain/facture";
+import { compteurAppareil } from "@/lib/account/factures-seq";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -52,7 +54,10 @@ async function importData(file: File) {
     if (json?.app !== "be-stable" || !json["be-stable-data"]) throw new Error("format");
     if (!window.confirm("Remplacer les données de ce compte, sur cet appareil, par celles du fichier ?")) return;
     // Les stores réécrivent tout seuls dans le coffre du compte (chiffré).
-    useDataStore.setState({ ...json["be-stable-data"].state, hydrated: true });
+    // Les factures faites depuis la sauvegarde restent, et le compteur ne recule jamais.
+    const avant = useDataStore.getState();
+    const repris = json["be-stable-data"].state;
+    useDataStore.setState({ ...repris, ...fusionFactures(repris, avant, compteurAppareil()), hydrated: true });
     if (json["be-stable-settings"]?.state) useSettingsStore.setState(json["be-stable-settings"].state);
     setTimeout(() => window.location.reload(), 400);
   } catch {
