@@ -29,8 +29,8 @@ export function Screen({ children, wide }: { children: ReactNode; wide?: boolean
   return <div className={`cn-page bs-screen${wide ? " wide" : ""}`}>{children}</div>;
 }
 
-/** « Il en faut 8 (7,5 pile). » : un demi-cheval ne se loge pas, on arrondit au-dessus. */
+/** « Il en faut 8. » : un demi-cheval ne se loge pas, on arrondit au-dessus, sans montrer la décimale. */
 export const ilEnFaut = (seuil: number) => {
   const n = Math.ceil(seuil - 1e-9);
-  return Math.abs(n - seuil) < 0.05 ? `Il en faut ${n}.` : `Il en faut ${n} (${dec1(seuil)} pile).`;
+  return `Il en faut ${n}.`;
 };

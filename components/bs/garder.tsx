@@ -54,7 +54,7 @@ export function GarderBandeau() {
   return (
     <div className="es-keep" role="region" aria-label="Garder mes chiffres">
       <span>
-        <b>Tes chiffres sont sur ce téléphone seulement.</b> Garde-les avec ton e-mail.
+        <b>Tout est dans ce téléphone.</b> Ajoute ton e-mail pour le garder.
       </span>
       <Link href="/compte/connexion?garder=1" className="btn">
         Garder mes chiffres
@@ -82,7 +82,7 @@ export function GardeListe({ r }: { r: ResumeEssai | null }) {
   const items: string[] = [];
   if (r.chevaux) items.push(r.chevaux > 1 ? `${r.chevaux} chevaux en pension` : "1 cheval en pension");
   if (r.pension) items.push(`Pension à ${eur(r.pension)} par mois`);
-  if (r.frais) items.push(`Frais communs à ${eur(r.frais)} par mois`);
+  if (r.frais) items.push(`Frais de l’écurie à ${eur(r.frais)} par mois`);
   if (r.seances) items.push(r.seances > 1 ? `${r.seances} séances notées` : "1 séance notée");
   if (!items.length) items.push("Ton écurie, telle que tu l’as laissée");
   return (

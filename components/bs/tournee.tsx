@@ -106,7 +106,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
     ...(etapes.includes("hier") ? [veille.length ? `Hier, ${pl(veille.length, "ligne")} ${veille.length > 1 ? "ont" : "a"} compté : ${sg(totalHier)}.` : "Hier, plus rien ne compte."] : []),
     // Toutes les choses du jour, comme l'accueil : séances, soins, tâches, rendez-vous.
     ...(resumeJournee(items).ligne ? [resumeJournee(items).ligne!] : []),
-    `Ce mois, ${mois.net < 0 ? "il te manque" : "il te reste"} ${sg(mois.net)}.`,
+    `Ce mois-ci, ${mois.net < 0 ? "il te manque" : "il te reste"} ${sg(mois.net)}.`,
   ];
 
   return createPortal(
@@ -157,8 +157,8 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
               <div className="ac-h">
                 <div>
                   <p className="ac-dt">Ce qui a eu lieu</p>
-                  <h2>Hier, ce qui a compté</h2>
-                  <p>{veille.length ? <>Ça a compté tout seul : <Money v={totalHier} />.</> : "Plus rien hier : tu as tout retiré."}</p>
+                  <h2>Hier, ce qui a été fait</h2>
+                  <p>{veille.length ? <>Déjà compté : <Money v={totalHier} />.</> : "Plus rien hier : tu as tout retiré."}</p>
                 </div>
                 <Ill n="gerant-buste" alt="" />
               </div>
@@ -169,7 +169,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                       <LigneComptee key={it.key} it={it} />
                     ))}
                   </div>
-                  {debutant && <p className="ac-mnote cp-hint">Pas eu lieu ? Retire la ligne.</p>}
+                  {debutant && <p className="ac-mnote cp-hint">Si ça n’a pas eu lieu, retire la ligne.</p>}
                 </>
               )}
               <button type="button" className="btn full" onClick={suivant}>
@@ -182,7 +182,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                 <div>
                   <p className="ac-dt">{dt}</p>
                   <h2>Aujourd’hui</h2>
-                  <p>{restants.some((i) => i.type === "task") ? "Ce qui t’attend. Les tâches se cochent au planning." : "Rien à cocher, juste regarder."}</p>
+                  <p>{restants.some((i) => i.type === "task") ? "Ce qui t’attend aujourd’hui. Les tâches se cochent dans le planning." : "Rien à cocher. Juste un coup d’œil."}</p>
                 </div>
               </div>
               <div className="ac-scene">
@@ -255,7 +255,7 @@ function MoisQuiCompte({ depuis }: { depuis: number }) {
       </div>
       <div className="card moncard ac-cpt nobag" role="group" aria-label={`Ce mois, ${net < 0 ? "il te manque" : "il te reste"} ${sg(net)}`}>
         <span className="ac-tx">
-          <span className="k">{estime ? "Si tout est payé, ce mois" : v < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"}</span>
+          <span className="k">{estime ? "Si tout est payé, ce mois" : v < 0 ? "Ce mois, il te manque" : "Ce mois-ci, il te reste"}</span>
           <span className={`big ${tone}`}>
             <span className="num">{sg(v)}</span>
           </span>

@@ -19,8 +19,8 @@ import type { MontantSaisi } from "@/lib/domain/types";
  */
 export const OBSTACLE_META: Record<ObstacleId, { title: string; todo: string; href: string; picto: string }> = {
   chevaux: { title: "Tes chevaux", todo: "Combien de chevaux sont chez toi", href: "/parcours/chevaux", picto: "horse" },
-  tarifs: { title: "Tes tarifs", todo: "Le prix de la pension et de tes cours", href: "/parcours/tarifs", picto: "euro" },
-  factures: { title: "Tes frais communs", todo: "Foin, paille, loyer, salaires… à peu près, ça suffit", href: "/parcours/factures", picto: "foin" },
+  tarifs: { title: "Tes prix", todo: "Le prix de la pension et de tes cours", href: "/parcours/tarifs", picto: "euro" },
+  factures: { title: "Les frais de l’écurie", todo: "Foin, paille, loyer, salaires… à peu près, ça suffit", href: "/parcours/factures", picto: "foin" },
   journee: { title: "Ta première journée", todo: "Trois choses qui comptent dans ta journée", href: "/planning", picto: "cal" },
   ticket: { title: "Ta première fiche du cheval", todo: "Ouvre la fiche d’un cheval : ce qu’il rapporte et ce qu’il coûte", href: "/chevaux", picto: "jump" },
   seuil: { title: "Combien de chevaux il te faut", todo: "Découvre combien de chevaux il te faut pour ne pas perdre d’argent", href: "/seuil", picto: "flag" },
@@ -45,11 +45,11 @@ export function useParcours() {
       const after = OBSTACLES.filter((o) => (o === id ? true : useSettingsStore.getState().parcours[o])).length;
       if (after === 6 && !arrived) {
         setArrived();
-        say(`Étape franchie : <strong>${OBSTACLE_META[id].title}</strong>. C’était la dernière.`);
+        say(`C’est fait : <strong>${OBSTACLE_META[id].title}</strong>. C’était la dernière.`);
         setTimeout(() => router.push("/parcours/arrivee"), 1100);
         return true;
       }
-      say(passee ? `Étape passée : <strong>${OBSTACLE_META[id].title}</strong>. Tu y reviens quand tu veux depuis Tes premiers pas.` : `Étape franchie : <strong>${OBSTACLE_META[id].title}</strong>. ${after} ${after > 1 ? "étapes" : "étape"} sur 6.`);
+      say(passee ? `Mis de côté : <strong>${OBSTACLE_META[id].title}</strong>. Tu y reviens quand tu veux depuis Tes premiers pas.` : `C’est fait : <strong>${OBSTACLE_META[id].title}</strong>. ${after} ${after > 1 ? "étapes" : "étape"} sur 6.`);
       return false;
     },
     [passObstacle, arrived, setArrived, say, router],
@@ -68,7 +68,8 @@ const ANCIENS_CAT = ["Frais fixes"];
 const ANCIENS_LABEL = ["Frais fixes (foin, loyer, salaires)"];
 export const estFraisCat = (name: string) => name === FRAIS_CAT || ANCIENS_CAT.includes(name);
 /** Un seul mot pour les frais de l'écurie : l'ancien libellé du total se lit « Frais communs en un total ». */
-export const libelleFrais = (label: string) => (ANCIENS_LABEL.includes(label) || ANCIENS_CAT.includes(label) ? FRAIS_LABEL : label);
+/** Le libellé affiché : les anciens noms enregistrés et celui du parcours se lisent « frais de l'écurie ». */
+export const libelleFrais = (label: string) => (label === FRAIS_LABEL || ANCIENS_LABEL.includes(label) || ANCIENS_CAT.includes(label) ? "Frais de l’écurie, en un total" : label);
 
 type Data = ReturnType<typeof useDataStore.getState>;
 type Per = { year: number; month: number };

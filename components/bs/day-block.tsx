@@ -97,7 +97,7 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
         <small>
           {compte && (
             <span className="cp-ok">
-              <Ic n="ck" className="" />a compté
+              <Ic n="ck" className="" />fait
             </span>
           )}
           {compte && sub ? " · " : ""}

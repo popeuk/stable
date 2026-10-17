@@ -9,7 +9,7 @@ describe("objectif du mois : 0 veut dire « pas d'objectif »", () => {
     expect(phraseObjectif(64, 0)).toBe("");
     expect(phraseObjectifMois(64, 0, true)).toBe("");
     expect(phraseObjectifMois(64, 0, false)).toBe("");
-    expect(phrasePistes(64, 0)).toBe("Avec ces pistes, jusqu’à");
+    expect(phrasePistes(64, 0)).toBe("Avec ces idées, jusqu’à");
   });
   it("avec un objectif, le manque et l'atteinte", () => {
     expect(objectifManque(64, 1000)).toBe(936);

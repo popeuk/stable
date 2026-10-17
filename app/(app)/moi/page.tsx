@@ -121,7 +121,7 @@ function Moi() {
         />
       </div>
       <Link href="/parcours/tarifs?retour=moi" className="li np">
-        <Li title="Tes tarifs" sub="pension, cours, travail" right={chev} />
+        <Li title="Tes prix" sub="pension, cours, travail" right={chev} />
       </Link>
     </Sec>
   );
@@ -129,7 +129,7 @@ function Moi() {
   const papiers = (
     <LieuReglages>
       <Link href="/parcours/factures?retour=moi" className="li np">
-        <Li title="Tes frais communs" sub="foin, litière, loyer, salaires" right={chev} />
+        <Li title="Les frais de l’écurie" sub="foin, litière, loyer, salaires" right={chev} />
       </Link>
       <Link href="/facturation" className="li np">
         <Li title="Tes factures" sub="SIRET, adresse, TVA, le tableau du comptable" right={chev} />
@@ -149,7 +149,7 @@ function Moi() {
       </div>
       <div style={{ marginTop: 4 }}>
         <Switch on={s.evening} onClick={s.toggleEvening}>
-          Un rappel le soir s’il reste quelque chose
+          Un rappel le soir s’il reste quelque chose à faire
         </Switch>
       </div>
       <div className="ec-lock" role="img" aria-label="Aperçu de la notification du matin">
@@ -189,7 +189,7 @@ function Moi() {
   const premiers = (
     <Sec title="Tes premiers pas" delay={desk ? 0.1 : 0.32}>
       <Link href="/parcours" className="li np">
-        <Li title={won ? "Flot « Écurie prête » gagné" : `${n} étape${n > 1 ? "s" : ""} sur 6 franchie${n > 1 ? "s" : ""}`} sub={won ? "toutes les étapes sont faites" : "passer à l’étape suivante"} right={chev}>
+        <Li title={won ? "Ton écurie est prête" : `${n} sur 6, c’est fait`} sub={won ? "Tout est fait" : "Continuer"} right={chev}>
           <span className="ec-steps" aria-hidden="true">
             {[0, 1, 2, 3, 4, 5].map((i) => (
               <i key={i} className={i < n ? "on" : ""} />
@@ -202,9 +202,9 @@ function Moi() {
 
   const donnees = (
     <Sec title="Tes données" delay={desk ? 0.26 : 0.44}>
-      <p className="note">Tout est enregistré sur cet appareil. Pour passer du téléphone à l’ordinateur, exporte ici puis reprends le fichier sur l’autre appareil.</p>
+      <p className="note">Tout est rangé sur cet appareil. Pour passer du téléphone à l’ordinateur, exporte tes données ici, puis ouvre le fichier sur l’autre appareil.</p>
       <button type="button" className="li np" onClick={exportData}>
-        <Li title="Exporter mes données" sub="un fichier de sauvegarde avec toute ton écurie" right={<Ic n="download" className="ec-ico" />} />
+        <Li title="Exporter mes données" sub="une sauvegarde de toute ton écurie" right={<Ic n="download" className="ec-ico" />} />
       </button>
       <label className="li np">
         <Li title="Reprendre une sauvegarde" sub="remplace ce qui est sur cet appareil" right={<Ic n="upload" className="ec-ico" />} />
@@ -264,7 +264,7 @@ function Moi() {
           router.push("/accueil");
         }}
       >
-        <Li title="Les explications" sub="la ligne « Comment ça marche ici ? » revient sur l’accueil ; le « ? » en haut de chaque écran les rouvre" right={chev} />
+        <Li title="Les explications" sub="la ligne « Comment ça marche ici ? » revient sur l’accueil, et le « ? » en haut de chaque écran rouvre les explications" right={chev} />
       </button>
       <button
         type="button"
@@ -293,7 +293,7 @@ function Moi() {
   return (
     <Screen wide={desk}>
       <div className="ec-pg">
-        <Hello title="Réglages" sub="Ce qui se règle une fois, et qu’on retrouve ici quand ça change. Tout est sur cette page." />
+        <Hello title="Réglages" sub="Ce que tu règles une fois. Tu reviens ici si quelque chose change." />
         {desk ? (
           <div className="cols2 ec-cols">
             <div>
@@ -337,7 +337,7 @@ function Compte() {
   if (s?.kind === "locale")
     return (
       <>
-        <p className="note">Ton écurie est sur ce téléphone, sans compte. Crée ton accès pour la retrouver partout et ne rien perdre.</p>
+        <p className="note">Ton écurie est rangée dans ce téléphone, sans compte. Crée ton accès pour la retrouver ailleurs et ne rien perdre.</p>
         <Link href="/compte/connexion?garder=1" className="btn full" style={{ marginTop: 12 }}>
           Garder mes chiffres
         </Link>
@@ -375,7 +375,7 @@ function Compte() {
         type="button"
         className="li np"
         onClick={async () => {
-          if (!window.confirm("Te déconnecter de cet appareil ? Tes données y restent, protégées. Tu les retrouves à ta prochaine connexion.")) return;
+          if (!window.confirm("Te déconnecter de cet appareil ? Tes données restent ici, protégées. Tu les retrouveras à ta prochaine connexion.")) return;
           try {
             await api.deconnexion();
           } catch {}
@@ -424,7 +424,7 @@ function InstallSheet({ onClose }: { onClose: () => void }) {
               <Ic n="x" className="" />
             </button>
           </div>
-          <p className="note">Une icône sur ton bureau ou ton écran d’accueil, une fenêtre à part, et l’app s’ouvre même sans réseau.</p>
+          <p className="note">Une icône sur ton bureau ou ton écran d’accueil. L’app s’ouvre dans sa propre fenêtre, même sans réseau.</p>
           <ol className="ec-howto">
             {steps.map((x, i) => (
               <li key={i}>
@@ -434,7 +434,7 @@ function InstallSheet({ onClose }: { onClose: () => void }) {
             ))}
           </ol>
           <p className="note" style={{ fontSize: 12.5 }}>
-            Tes données restent dans cet appareil : l’app installée sur l’ordinateur et celle du téléphone ne se partagent pas encore leurs saisies.
+            Tes données restent sur chaque appareil : l’ordinateur et le téléphone ne se partagent pas encore ce que tu notes.
           </p>
         </div>
       </div>

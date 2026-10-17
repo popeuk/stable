@@ -15,10 +15,10 @@ const AIDES: Record<string, Aide> = {
     id: "accueil",
     titre: "Ton accueil, chaque matin",
     points: [
-      "En haut, ce qu’il te reste ce mois une fois tout payé. Touche-le pour voir d’où ça vient.",
+      "En haut, ce qu’il te reste ce mois, une fois tout payé. Touche-le pour voir d’où ça vient.",
       "Ta journée : les séances, les soins et les tâches prévus aujourd’hui.",
-      "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
-      "Le + en bas de l’écran sert à tout ajouter : une séance, un soin, une tâche, de l’argent.",
+      "Tout ce qui était prévu compte. Si quelque chose n’a pas eu lieu, retire la ligne.",
+      "Le + en bas sert à tout ajouter : une séance, un soin, une tâche, de l’argent.",
     ],
   },
   planning: {
@@ -26,26 +26,26 @@ const AIDES: Record<string, Aide> = {
     titre: "Ton planning",
     points: [
       "Tout ce qui est prévu, jour par jour : séances, soins, tâches.",
-      "Sous les jours, la journée choisie en une ligne : ce qui a déjà compté, ce qui est encore prévu.",
+      "Sous les jours, un résumé de la journée choisie : ce qui est fait et ce qui reste prévu.",
       "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
       "En bas, les tâches de l’équipe.",
     ],
   },
   valider: {
     id: "valider",
-    titre: "Ce qui a compté",
+    titre: "Ce qui est fait",
     points: [
       "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
-      "Une séance compte dans ton mois et dans ce que le client te doit.",
-      "Un cours à plusieurs : tout le monde compte. Ouvre la séance pour retirer un absent.",
+      "Une séance faite compte dans ton mois et dans ce que le client te doit.",
+      "Un cours à plusieurs : chaque cavalier compte. Ouvre la séance pour retirer un absent.",
     ],
   },
   chevaux: {
     id: "chevaux",
     titre: "Ce que chaque cheval te laisse",
     points: [
-      "Pour chaque cheval : ce qu’on te paie pour lui, moins ses soins, moins sa part des frais communs (foin, paille, loyer…).",
-      "Le signe le dit : + il te laisse de l’argent, − il t’en coûte.",
+      "Pour chaque cheval : ce qu’on te paie, moins ses soins et sa part des frais de l’écurie (foin, paille, loyer…).",
+      "Le signe te le dit : + il te laisse de l’argent, − il t’en coûte.",
       "Passe sur « Clients » pour voir qui te doit encore.",
     ],
   },
@@ -53,25 +53,25 @@ const AIDES: Record<string, Aide> = {
     id: "ticket",
     titre: "La fiche du cheval",
     points: [
-      "Ce qu’on te paie pour lui en haut, ce qu’il coûte en dessous, ce qu’il te laisse tout en bas.",
-      "Sa part des frais communs, c’est le foin, la paille, le loyer… partagés entre tous tes chevaux.",
+      "En haut, ce qu’on te paie pour lui. En dessous, ce qu’il coûte. Tout en bas, ce qu’il te laisse.",
+      "Sa part des frais, c’est son morceau du foin, de la paille, du loyer… de tout ce qui sert à l’écurie.",
       "Son carnet garde ses soins et ce qui arrive bientôt : vermifuge, maréchal, vaccins.",
     ],
   },
   argent: {
     id: "argent",
-    titre: "Ton bilan du mois",
+    titre: "Mon mois",
     points: [
       "Ce qui est rentré, ce qui est sorti, et ce qu’il te reste.",
-      "Il se remplit tout seul avec ce que tu notes : pensions, séances, soins, dépenses. Personne ne fait de comptabilité.",
-      "Plus bas : tes séances de la semaine, des pistes pour gagner plus. Qui te doit quoi, c’est dans Clients.",
+      "Il se remplit tout seul avec ce que tu notes : pensions, séances, soins, dépenses. Pas besoin de faire les comptes.",
+      "Plus bas : tes séances de la semaine et des idées pour gagner plus. Qui te doit quoi, c’est dans Clients.",
     ],
   },
   pilotage: {
     id: "pilotage",
-    titre: "Ton bilan sur plusieurs mois",
+    titre: "Sur plusieurs mois",
     points: [
-      "Les mêmes chiffres que le bilan du mois, sur 3, 6 ou 12 mois.",
+      "Les mêmes chiffres que dans Mon mois, sur 3, 6 ou 12 mois.",
       "Pour voir si ça s’améliore, et ce qui pèse le plus.",
     ],
   },
@@ -79,8 +79,8 @@ const AIDES: Record<string, Aide> = {
     id: "seuil",
     titre: "Combien de chevaux pour ne pas perdre d’argent",
     points: [
-      "Les frais communs (foin, loyer, salaires…) tombent chaque mois, quel que soit le nombre de chevaux.",
-      "Ce chiffre te dit à partir de combien de chevaux ils sont payés.",
+      "Les frais de l’écurie (foin, loyer, salaires…) tombent chaque mois, quel que soit le nombre de chevaux.",
+      "Ce chiffre te dit combien de chevaux il te faut pour les payer.",
     ],
   },
   scenarios: {
@@ -96,7 +96,7 @@ const AIDES: Record<string, Aide> = {
     titre: "Tes dépenses",
     points: [
       "Tout ce que tu as payé ce mois.",
-      "Une dépense pour un cheval va sur sa fiche. Les frais communs (foin, loyer…) se partagent entre tous.",
+      "Une dépense pour un cheval va sur sa fiche. Les frais de l’écurie (foin, loyer…) se partagent entre tous.",
     ],
   },
   equipe: {
@@ -104,7 +104,7 @@ const AIDES: Record<string, Aide> = {
     titre: "Les tâches de l’équipe",
     points: [
       "Ce qu’il y a à faire à l’écurie, et qui s’en occupe.",
-      "Ajoute une tâche, donne-la à quelqu’un, fais-la avancer jusqu’au bout.",
+      "Ajoute une tâche, confie-la à quelqu’un, puis indique quand elle est faite.",
     ],
   },
   clients: {
@@ -114,7 +114,7 @@ const AIDES: Record<string, Aide> = {
       "Les propriétaires des chevaux en pension et les cavaliers qui prennent des cours.",
       "En haut, ceux qui te doivent le plus. Touche un nom pour ouvrir sa fiche.",
       "Un nom noté dans une séance devient un client tout seul.",
-      "Passe sur « Chevaux » pour voir ce que chaque cheval te laisse.",
+      "Va dans « Chevaux » pour voir ce que chaque cheval te laisse.",
     ],
   },
   client: {
@@ -128,10 +128,10 @@ const AIDES: Record<string, Aide> = {
   },
   prestations: {
     id: "prestations",
-    titre: "Tes cours, services et prix",
+    titre: "Tes prix",
     points: [
       "Pension, cours, balades… avec leur prix.",
-      "Quand tu notes une séance, son prix se remplit tout seul.",
+      "Quand tu notes une séance, son prix se met tout seul.",
       "Tu vois aussi ce que chacune t’a rapporté ce mois.",
     ],
   },
@@ -149,7 +149,7 @@ const AIDES: Record<string, Aide> = {
     titre: "Ton écurie et tes réglages",
     points: [
       "Le nom de ton écurie, ton équipe, le rappel du matin.",
-      "Tes chiffres restent sur ton téléphone, chiffrés. Tu peux en garder une copie.",
+      "Tes chiffres restent sur ton téléphone. Tu peux en garder une copie.",
     ],
   },
 };

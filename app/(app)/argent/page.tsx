@@ -39,7 +39,7 @@ const VUES: [Vue, string][] = [
   ["leviers", "Gagner plus"],
   ["mouvements", "Historique"],
 ];
-const TITRES: Record<Vue, string> = { mois: "Mon mois", leviers: "Pistes pour gagner plus", mouvements: "Entrées et sorties d’argent" };
+const TITRES: Record<Vue, string> = { mois: "Mon mois", leviers: "Idées pour gagner plus", mouvements: "Ce qui rentre et ce qui sort" };
 
 /** Le pictogramme d'une ligne d'argent, d'après son libellé. */
 function icFor(label: string): string {
@@ -152,8 +152,8 @@ function Mois() {
   const phraseSemaines = !pleines.length
     ? ""
     : pleines.length === parSemaine.length && new Set(pleines).size === 1
-      ? `Chaque semaine, tes séances font ${eur(pleines[0])}.`
-      : `La semaine la plus forte, celle du ${forte.label}, fait ${eur(Math.max(...parSemaine))} ; la plus calme, ${eur(Math.min(...parSemaine))}.`;
+      ? `Chaque semaine, tes séances rapportent ${eur(pleines[0])}.`
+      : `La meilleure semaine, celle du ${forte.label}, rapporte ${eur(Math.max(...parSemaine))} ; la plus calme, ${eur(Math.min(...parSemaine))}.`;
 
   const now = new Date();
   const mName = monthName(active.year, active.month);
@@ -176,7 +176,7 @@ function Mois() {
   ) : isNow ? (
     vie ? (
       <>
-        Oui. Ce mois,
+        Oui, ce mois-ci,
         <br />
         tu gagnes ta vie.
       </>
@@ -188,9 +188,9 @@ function Mois() {
       </>
     ) : (
       <>
-        Pas encore. Ce mois,
+        Pas encore. Ce mois-ci,
         <br />
-        l’écurie te coûte.
+        l’écurie te coûte de l’argent.
       </>
     )
   ) : vie ? (
@@ -209,19 +209,19 @@ function Mois() {
     <>
       Non. En {mName},
       <br />
-      l’écurie t’a coûté.
+      l’écurie t’a coûté de l’argent.
     </>
   );
 
   const sub = estime ? (
-    <>Tes chevaux n’ont pas encore de propriétaire : ce qui rentre vient de tes tarifs. Si tout est payé, il te restera environ {sg(m.net)} ce mois.</>
+    <>Tes chevaux n’ont pas encore de propriétaire. Ce chiffre est fait avec tes prix, en comptant que tout le monde paie.</>
   ) : isNow ? (
     <>
-      Au {now.getDate()} {mName}, tout payé : pensions, soins, frais communs.{" "}
+      Au {now.getDate()} {mName}, tout payé : pensions, soins, frais de l’écurie.{" "}
       {phraseObjectifMois(m.net, objective, true)}
     </>
   ) : (
-    <>Tout payé : pensions, soins, frais communs.{hasObjective(objective) ? ` ${phraseObjectifMois(m.net, objective, false)}` : ""}</>
+    <>Tout payé : pensions, soins, frais de l’écurie.{hasObjective(objective) ? ` ${phraseObjectifMois(m.net, objective, false)}` : ""}</>
   );
 
   const goal = (
@@ -237,7 +237,7 @@ function Mois() {
               Encore {sg(rest)} prévus d’ici le {lastDay} ({PORTEE_PREVU}).{" "}
             </>
           )}
-          Il reste {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
+          Le mois se termine dans {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
         </p>
       )}
       {objective > 0 && (
@@ -247,7 +247,7 @@ function Mois() {
             <i style={{ width: `${pct}%` }} />
           </div>
           <div className="bar-lab">
-            <span>{m.net >= objective ? "objectif atteint" : `${Math.round(pct)} % du chemin`}</span>
+            <span>{m.net >= objective ? "objectif atteint" : `${Math.round(pct)} % de ton objectif`}</span>
             <span>objectif : {eur(objective)}</span>
           </div>
         </>
@@ -259,7 +259,7 @@ function Mois() {
             <input inputMode="decimal" defaultValue={montantEnTexte(objective)} placeholder="0" onChange={(e) => setObjective(montantOuZero(e.target.value))} onBlur={() => setEditGoal(false)} autoFocus />
             <span className="u">€</span>
           </span>
-          <small className="ar-goalh">Laisse vide pour ne pas avoir d’objectif.</small>
+          <small className="ar-goalh">Laisse vide si tu n’as pas d’objectif.</small>
         </label>
       ) : (
         <div className="ar-lnks">
@@ -267,7 +267,7 @@ function Mois() {
             {objective > 0 ? "Changer l’objectif" : "Te fixer un objectif"}
           </button>
           <Link className="lnk" href="/argent?vue=leviers">
-            Voir les pistes
+            Voir les idées
           </Link>
         </div>
       )}
@@ -279,7 +279,7 @@ function Mois() {
   const ceQuiRentre = (
         <Sec title={estime ? "Ce qui devrait rentrer" : "Ce qui rentre"} action={<span className={`act${!estime && Math.round(m.revenue) ? " in" : ""}`}>{sg(m.revenue)}</span>} delay={0.2}>
           {m.ins.length === 0 && <p className="note">Rien n’est encore rentré ce mois-ci.</p>}
-          {estime && m.ins.length > 0 && <p className="note">Une estimation, faite avec tes tarifs.</p>}
+          {estime && m.ins.length > 0 && <p className="note">Une estimation, faite avec tes prix.</p>}
           {m.ins.map((x) => (
             <div key={x.label} className="ar-post">
               <span className="ar-pic">
@@ -375,7 +375,7 @@ function Mois() {
             </span>
             <span>
               <span className="k">Qui te doit quoi</span>
-              <b>{dues.length ? `${dues.length} client${dues.length > 1 ? "s" : ""} te ${dues.length > 1 ? "doivent" : "doit"} ${eur(duTotal)}. Encaisse dans Clients.` : "Personne ne te doit rien ce mois."}</b>
+              <b>{dues.length ? `${dues.length} client${dues.length > 1 ? "s" : ""} te ${dues.length > 1 ? "doivent" : "doit"} ${eur(duTotal)}. Tu les retrouves dans Clients.` : "Tout le monde t’a payé ce mois-ci."}</b>
             </span>
             <Ic n="chev" className="chev" />
           </Link>
@@ -395,7 +395,7 @@ function Mois() {
             <Ic n="hay" className="ar-ic" />
           </span>
           <span>
-            <span className="k">Les frais communs</span>
+            <span className="k">Les frais de l’écurie</span>
             <b>
               Comment le foin et le loyer se partagent entre {m.horseCount > 1 ? `tes ${m.horseCount} chevaux` : "tes chevaux"}
             </b>
@@ -408,7 +408,7 @@ function Mois() {
           </span>
           <span>
             <span className="k">Sur plusieurs mois</span>
-            <b>Ton bilan sur 3, 6 ou 12 mois</b>
+            <b>Ton argent sur 3, 6 ou 12 mois</b>
           </span>
           <Ic n="chev" className="chev" />
         </Link>
@@ -425,7 +425,7 @@ function Piste({ delay }: { delay: number }) {
   const action = list.find((s) => s.lever === "facturer") ?? list[0];
   if (!action) return null;
   return (
-    <Sec ill="piste" title="Une piste pour gagner plus" action={<Link href="/argent?vue=leviers">{list.length > 1 ? `Les ${list.length} pistes` : "Voir"}</Link>} delay={delay}>
+    <Sec ill="piste" title="Une idée pour gagner plus" action={<Link href="/argent?vue=leviers">{list.length > 1 ? `Les ${list.length} idées` : "Voir"}</Link>} delay={delay}>
       <Link href="/argent?vue=leviers" className="ar-piste">
         <span style={{ minWidth: 0 }}>
           <b>{action.title}</b>
@@ -443,8 +443,8 @@ function Piste({ delay }: { delay: number }) {
 /* ---------------- Leviers ---------------- */
 const LEVERS: { id: Lever; title: string; ill: IllName }[] = [
   { id: "remplir", title: "Remplir les boxes", ill: "tete-fondu" },
-  { id: "facturer", title: "Faire payer ce qui est dû", ill: "sacoche" },
-  { id: "depenser", title: "Payer moins cher", ill: "foin" },
+  { id: "facturer", title: "Te faire payer ce qu’on te doit", ill: "sacoche" },
+  { id: "depenser", title: "Dépenser moins", ill: "foin" },
 ];
 const STATUS: Record<Suggestion["status"], [string, string]> = {
   proposee: ["idée", "pill"],
@@ -552,7 +552,7 @@ function Leviers() {
         })}
       </div>
       <div className="pad rise" style={{ animationDelay: ".36s" }}>
-        <p className="note">Ces montants bougent dès que tu notes quelque chose. Ce sont des estimations, pas des promesses.</p>
+        <p className="note">Ce sont des estimations, pas des promesses. Elles bougent dès que tu notes quelque chose.</p>
         <Link href="/scenarios" className="btn line full" style={{ marginTop: 12 }}>
           <Ic n="chart" className="" />
           Et si j’augmentais mes pensions ?
@@ -647,7 +647,7 @@ function Mouvements() {
           <Ic n="chev" className="ar-ic" />
         </span>
       </div>
-      {rows.length === 0 && <Empty>Rien de noté ici pour l’instant. Ce que tu ajoutes avec le bouton + apparaîtra dans cette liste.</Empty>}
+      {rows.length === 0 && <Empty>Rien de noté ici pour l’instant. Ce que tu ajoutes avec le + arrive ici.</Empty>}
       {desk && rows.length > 0 && (
         <div className="ar-tbl-wrap rise" style={{ animationDelay: ".05s" }}>
           <table className="tbl">
@@ -729,7 +729,7 @@ function Mouvements() {
           blk
           ill="gerant-assise"
           delay={0.15}
-          title="Compté tout seul, chaque mois"
+          title="Compté chaque mois"
           action={<button type="button" className="act" onClick={() => openNoter({ kind: "depense" })}>+ Ajouter</button>}
         >
           {recRevs.map((r) => (
@@ -753,7 +753,7 @@ function Mouvements() {
                     type="button"
                     className="lnk"
                     aria-label={`Arrêter ${r.label ?? "la pension"}`}
-                    onClick={() => confirm(`Arrêter cette rentrée d’argent qui revient chaque mois ? ${cap(moisEnCours())} compte encore en entier, plus rien à partir du mois prochain. Ce qu’elle a déjà rapporté reste dans les mois passés.`) && useDataStore.getState().stopRecurringRevenue(r.id)}
+                    onClick={() => confirm(`Arrêter cette rentrée d’argent qui revient chaque mois ? ${cap(moisEnCours())} compte en entier. À partir du mois prochain, elle ne rapportera plus rien. Ce qu’elle a déjà rapporté reste dans les mois passés.`) && useDataStore.getState().stopRecurringRevenue(r.id)}
                   >
                     Arrêter
                   </button>
@@ -769,7 +769,7 @@ function Mouvements() {
               <span style={{ minWidth: 0 }}>
                 <b>{r.label}</b>
                 <small>
-                  {freqLabel(r.frequency)} · {r.isShared ? "frais communs" : `pour ${name(r.horseId ?? "") || "1 cheval"}`}
+                  {freqLabel(r.frequency)} · {r.isShared ? "frais de l’écurie" : `pour ${name(r.horseId ?? "") || "1 cheval"}`}
                   {r.endDate ? ` · ${finEnMots(r.endDate)}` : ""}
                 </small>
               </span>
@@ -780,7 +780,7 @@ function Mouvements() {
                     type="button"
                     className="lnk"
                     aria-label={`Arrêter ${r.label}`}
-                    onClick={() => confirm(`Arrêter « ${r.label} » ? ${cap(moisEnCours())} compte encore en entier (pas au prorata des jours), plus rien à partir du mois prochain. Les mois passés ne bougent pas.`) && useDataStore.getState().stopRecurringExpense(r.id)}
+                    onClick={() => confirm(`Arrêter « ${r.label} » ? ${cap(moisEnCours())} compte en entier, même si tu arrêtes en cours de mois. À partir du mois prochain, plus rien ne sera ajouté. Les mois passés ne changent pas.`) && useDataStore.getState().stopRecurringExpense(r.id)}
                   >
                     Arrêter
                   </button>

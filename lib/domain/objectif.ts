@@ -43,6 +43,6 @@ export function phraseObjectifMois(net: number, objective: number, enCours: bool
 /** L'en-tête des pistes : le manque n'apparaît que s'il y a un objectif. */
 export function phrasePistes(net: number, objective: number): string {
   const left = objectifManque(net, objective);
-  if (left === null) return "Avec ces pistes, jusqu’à";
-  return left > 0 ? `Il te manque ${eur(left)} pour ton objectif. Avec ces pistes, jusqu’à` : "Objectif atteint. Avec ces pistes, encore jusqu’à";
+  if (left === null) return "Avec ces idées, jusqu’à";
+  return left > 0 ? `Il te manque ${eur(left)} pour ton objectif. Avec ces idées, jusqu’à` : "Objectif atteint. Avec ces idées, encore jusqu’à";
 }

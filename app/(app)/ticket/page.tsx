@@ -68,7 +68,7 @@ const careIc = (k: CareKind) => CARE_IC[k] ?? "syringe";
 
 /** Le conseil du ticket : une phrase forte, puis la suite. */
 function tipFor(h: Horse, t: HorseTicket): [string, string] {
-  if (t.net >= 0) return [`${h.name} paie ses soins et sa part des frais communs.`, `Une fois tout payé, ${selonSexe(h, "il", "elle", h.name)} te laisse ${eur(t.net)} ce mois.`];
+  if (t.net >= 0) return [`${h.name} paie ses soins et sa part des frais de l’écurie.`, `Une fois tout payé, ${selonSexe(h, "il", "elle", h.name)} te laisse ${eur(t.net)} ce mois.`];
   const soins = t.lines.filter((l) => l.kind === "out" && /orthop|ost|compl|dent|vaccin|vermif/i.test(l.label));
   const big = (soins.length ? soins : t.lines.filter((l) => l.kind === "out")).sort((a, b) => a.amount - b.amount)[0];
   if (big && -big.amount > 20)
@@ -155,7 +155,7 @@ function Ticket({ horse }: { horse: Horse }) {
     <>
       <Sec ill="sacoche" title={net >= 0 ? `Ce que ${horse.name} te laisse` : `Ce que ${horse.name} te coûte`} delay={0.3}>
         {t.lines.length === 0 ? (
-          <p className="note">Rien de noté ce mois-ci. Ajoute sa pension ou un soin : sa fiche se remplit toute seule.</p>
+          <p className="note">Rien de noté ce mois-ci. Ajoute sa pension ou un soin pour remplir sa fiche.</p>
         ) : (
           <p className="note ch-lead">
             {net >= 0 ? (
@@ -244,7 +244,7 @@ function Ticket({ horse }: { horse: Horse }) {
           </button>
         ))}
       </div>
-      {due.length === 0 && <p className="note">Rien d’urgent. Touche un soin pour le noter quand il est fait.</p>}
+      {due.length === 0 && <p className="note">Rien d’urgent. Touche un soin pour le noter une fois fait.</p>}
     </Sec>
   );
 

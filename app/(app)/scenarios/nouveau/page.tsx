@@ -94,7 +94,7 @@ function Simulator() {
           onChange={setPensionAdjustment}
         />
         <Slider
-          label="Frais communs par mois"
+          label="Frais de l’écurie par mois"
           hint="foin, paille, loyer, salaires…"
           value={fixedCosts}
           min={500}

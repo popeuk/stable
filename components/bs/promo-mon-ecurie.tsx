@@ -52,13 +52,13 @@ export function PromoMonEcurie({ small }: { small?: boolean }) {
       ? {
           etat: "ta fiche est en ligne",
           title: small ? "Les cavaliers te trouvent. Montre-leur la bonne écurie." : <>Les cavaliers te trouvent.<br />Montre-leur la bonne écurie.</>,
-          text: "Une photo, tes places libres et tes formules : c’est ce qu’ils regardent avant d’écrire.",
+          text: "Une photo, tes places libres et tes formules : c’est ce que les cavaliers regardent avant de t’écrire.",
           cta: "Mettre ma fiche à jour",
         }
       : statut === "revendication_en_attente" || statut === "creation_en_attente"
         ? {
             etat: "en vérification",
-            title: "Ta fiche arrive. Prépare ta vitrine.",
+            title: "Ta fiche arrive. Prépare tes photos.",
             text: `On vérifie ${listing?.title ?? "ton écurie"}. En attendant, choisis ta plus belle photo et compte tes places libres.`,
             cta: "Voir ma fiche",
           }

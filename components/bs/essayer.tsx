@@ -94,7 +94,7 @@ export function Essayer() {
           </div>
           <div className="q rise" style={{ animationDelay: ".08s" }}>
             <h1>On regarde ce qu’il te reste à la fin du mois ?</h1>
-            <p>Quelques minutes, tes chiffres, pas de compte.</p>
+            <p>Quelques minutes, tes vrais chiffres, et pas besoin de compte.</p>
           </div>
           {/* Au téléphone, la scène d'accueil remplit l'espace entre la question et le bouton. */}
           <div className="es-scene rise" style={{ animationDelay: ".12s" }}>

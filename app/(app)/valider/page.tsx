@@ -42,7 +42,7 @@ function CeQuiACompte() {
   return (
     <Screen>
       <div className="jr-valider">
-        <Hello title="Ce qui a compté." sub="Ce qui était au planning et a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne." />
+        <Hello title="Ce qui est fait." sub="Tout ce qui était prévu compte. Si quelque chose n’a pas eu lieu, retire la ligne." />
         <div className="pad rise" style={{ animationDelay: ".08s", marginTop: 8 }}>
           <div className="card jr-wait">
             <span>
@@ -55,7 +55,7 @@ function CeQuiACompte() {
           <div className="empty rise" style={{ animationDelay: ".14s" }}>
             <Ill n="dodo" className="e-dodo" />
             <p style={{ margin: 0 }}>
-              <b className="jr-ok">Rien n’a compté ces 7 derniers jours.</b>
+              <b className="jr-ok">Rien de noté ces 7 derniers jours.</b>
               <br />
               Ce qui est au planning comptera tout seul, une fois passé.
             </p>

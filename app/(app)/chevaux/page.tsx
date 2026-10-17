@@ -281,7 +281,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
       {n} client{n > 1 ? "s" : ""} te {n > 1 ? "doivent" : "doit"} <b>{eur(total)}</b>
     </>
   ) : (
-    "Personne ne te doit rien."
+    rows.length ? "Tout le monde t’a payé." : "Pas encore de client."
   );
   // En milieu de mois, ce qui est dû est surtout la pension du mois en cours : on le dit, pour rassurer.
   const finDuMois = useMemo(() => clientsAFairePayer(data, today), [data, today]);
@@ -306,7 +306,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
       {(() => {
         const noms = [...new Set(orphan.lines.map((l) => l.horse).filter(Boolean))];
         const qui = noms.length > 3 ? `${noms.length} chevaux sans propriétaire` : `chevaux sans propriétaire (${noms.join(", ")})`;
-        return `${n ? "Et " : ""}${eur(orphan.total)} viennent de ${qui} : personne à qui les demander pour l’instant. Ajoute leur propriétaire sur leur fiche.`;
+        return `${n ? "Et " : ""}${eur(orphan.total)} viennent de ${qui}. Ajoute leur propriétaire sur leur fiche pour savoir à qui les demander.`;
       })()}
     </p>
   ) : null;
@@ -324,14 +324,14 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
   );
   const pros = (
     <p className="cl-fn">
-      Le maréchal et le vétérinaire sont dans{" "}
+      Le maréchal et le véto sont dans{" "}
       <Link className="lnk" href="/contacts">
-        tes contacts
-      </Link>{" "}
-      : ce sont des pros, pas des clients.
+        les pros
+      </Link>
+      .
     </p>
   );
-  const vide = rows.length === 0 ? <p className="note cl-vide">Personne pour l’instant. Un nom noté dans une séance devient un client tout seul.</p> : !owe.length && !ok.length ? <p className="note cl-vide">Personne à ce nom.</p> : null;
+  const vide = rows.length === 0 ? <p className="note cl-vide">Un nom noté dans une séance devient un client tout seul.</p> : !owe.length && !ok.length ? <p className="note cl-vide">Personne à ce nom.</p> : null;
   const feuille = ajout && <AjouterClient onClose={() => setAjout(false)} />;
 
   if (desk) {
@@ -406,7 +406,7 @@ function Clients({ bascule }: { bascule: React.ReactNode }) {
             {n} te {n > 1 ? "doivent" : "doit"} <span className="num">{eur(total)}</span>
           </h2>
         ) : (
-          <h2>Personne ne te doit rien.</h2>
+          <h2>{rows.length ? "Tout le monde t’a payé." : "Pas encore de client."}</h2>
         )}
         {rassure}
         {sansProprio}
@@ -587,7 +587,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
               <th>Propriétaire</th>
               <th className="n">Ce qu’on te paie</th>
               <th className="n">Soins et frais</th>
-              <th className="n">Part des frais communs</th>
+              <th className="n">Sa part des frais</th>
               <th className="n">Ce qu’il te laisse</th>
               <th>À prévoir</th>
             </tr>
@@ -644,7 +644,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
         {rows.length === 0 && (horses.length ? <p className="note">Aucun cheval dans ce filtre.</p> : <Empty ill="vide-ecurie">Aucun cheval pour l’instant. Ajoute le premier avec le bouton en haut.</Empty>)}
         <Partis />
         <p className="ch-fn">
-          «&nbsp;Ce qu’il te laisse&nbsp;» : ce qu’on te paie pour lui, moins ses soins et ses frais, moins sa part des frais communs (foin, salaires, loyer…){horses.length ? `, ${eur(each)} par cheval ce mois` : ""}.
+          «&nbsp;Ce qu’il te laisse&nbsp;» : ce qu’on te paie pour lui, moins ses soins et ses frais, moins sa part des frais de l’écurie (foin, salaires, loyer…){horses.length ? `, ${eur(each)} par cheval ce mois` : ""}.
         </p>
       </Ecran>
     );
@@ -666,7 +666,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
             </span>{" "}
             ce mois.
           </h2>
-          <p>Une fois leurs soins et leur part des frais communs payés. Touche un cheval pour ouvrir sa fiche.</p>
+          <p>Une fois payés leurs soins et leur part des frais. Touche un cheval pour ouvrir sa fiche.</p>
         </div>
       )}
       <ASurveiller delay={0.12} />

@@ -78,7 +78,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
         <span className={`big ${tone}`}>
           <CountUp value={net} ms={900} />
         </span>
-        <span className="ac-sub">{estime ? "Une estimation, faite avec tes tarifs. Elle devient réelle quand tes chevaux ont leur propriétaire." : phrase || "Une fois tout payé : pensions, soins, frais communs."}</span>
+        <span className="ac-sub">{estime ? "Une estimation, faite avec tes prix. Elle devient réelle quand tes chevaux ont leur propriétaire." : phrase || "Une fois tout payé : pensions, soins, frais de l’écurie."}</span>
       </span>
       {ill && (
         <span className="ac-ill" aria-hidden="true">

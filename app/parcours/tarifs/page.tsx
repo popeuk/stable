@@ -39,8 +39,8 @@ function Tarifs() {
       <ObHead
         retour={retour}
         n={2}
-        title="Tes tarifs"
-        sub={commune !== null ? "Ta pension est fixée. Ajoute le prix de tes cours, si tu en donnes." : "Ce que chaque propriétaire te paie par mois. Ensuite, la pension est comptée toute seule chaque mois."}
+        title="Tes prix"
+        sub={commune !== null ? "Ta pension est fixée. Ajoute le prix de tes cours si tu en donnes." : "Ce que chaque propriétaire te paie par mois. Ensuite, elle est comptée chaque mois, sans que tu la notes."}
       />
       {commune !== null ? (
         <>
@@ -58,7 +58,7 @@ function Tarifs() {
             </div>
           </div>
           <button type="button" className="ar-alt" onClick={() => setCommune(null)}>
-            Fixer la pension cheval par cheval
+            Fixer la pension pour chaque cheval
           </button>
         </>
       ) : (

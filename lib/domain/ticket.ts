@@ -66,7 +66,7 @@ export function horseTicket(data: StableData, horseId: string, period: Period): 
     lines.push({ key: rec.id, label: rec.label, amount: -rec.amount, kind: "out" });
   }
   const share = horseSharedCosts(data, horseId, period);
-  if (share > 0) lines.push({ key: "share", label: "Part des frais communs", amount: -share, kind: "share" });
+  if (share > 0) lines.push({ key: "share", label: "Sa part des frais", amount: -share, kind: "share" });
 
   // Ce qui rentre d'abord (pension en tête), puis ce qui sort, la part en dernier.
   lines.sort((a, b) => {
@@ -197,7 +197,7 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
   }
   const listed = [...shMap.values()].reduce((t, a) => t + a, 0);
   const rest = Math.round((s.sharedCosts - listed) * 100) / 100;
-  if (rest > 0.5) addSh("Autres frais communs", rest);
+  if (rest > 0.5) addSh("Autres frais de l’écurie", rest);
 
   // Ce que laisse un cheval : sans l'argent hors chevaux.
   const contribution = s.horseCount ? (s.horsesRevenue - s.horsesDirectCosts) / s.horseCount : 0;

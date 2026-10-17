@@ -1,5 +1,6 @@
 "use client";
 
+import { libelleFrais } from "@/components/bs/parcours";
 import { Suspense, useMemo } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Face, Ic, Money, Page as Ecran, Sec, Tip, eur } from "@/components/carnet/ui";
@@ -40,18 +41,18 @@ function Part() {
   return (
     <Ecran wide={desk} className={desk ? "ch-desk ch-narrow" : undefined}>
       <div className="hello rise" style={{ animationDelay: ".04s" }}>
-        <h2>Les frais communs, c’est quoi&nbsp;?</h2>
-        <p>Ce sont les dépenses qui servent à toute l’écurie (foin, paille, loyer, salaires…), pas à un cheval en particulier. Chaque cheval en paie un morceau : c’est sa part.</p>
+        <h2>Les frais de l’écurie, c’est quoi&nbsp;?</h2>
+        <p>Ce sont les dépenses qui servent à toute l’écurie : le foin, la paille, le loyer, les salaires… Chaque cheval en paie un morceau, c’est sa part des frais.</p>
       </div>
-      <Sec ill="brouette" title={`Les frais communs ${du}`} delay={0.12} />
+      <Sec ill="brouette" title={`Les frais de l’écurie ${du}`} delay={0.12} />
       <div className="pad rise" style={{ animationDelay: ".18s", paddingTop: 12 }}>
         {m.shared.length === 0 ? (
-          <p className="note">Aucun frais commun noté ce mois pour l’instant.</p>
+          <p className="note">Pas encore de frais de l’écurie notés ce mois-ci.</p>
         ) : (
           <div className="ticket ch-mini print">
             {m.shared.map((x) => (
               <div key={x.label} className="r">
-                <span>{x.label}</span>
+                <span>{libelleFrais(x.label)}</span>
                 <Money v={-x.amount} />
               </div>
             ))}
@@ -74,7 +75,7 @@ function Part() {
         <p className="ch-div">
           {horses.length
             ? `${eur(m.sharedTotal)} ÷ ${horses.length} ${horses.length > 1 ? "chevaux" : "cheval"} ≈ ${eur(m.sharedTotal / n)} ${egal ? "chacun" : "en moyenne, au prorata des jours de chacun"}`
-            : `Aucun cheval pour se partager ces ${eur(m.sharedTotal)} : ils comptent quand même dans ton mois.`}
+            : `Aucun cheval pour se partager ces ${eur(m.sharedTotal)}. Cette somme compte quand même dans ton mois.`}
         </p>
         {libres > 0 && (
           <>
@@ -93,7 +94,7 @@ function Part() {
       </div>
       <div className="ch-after rise" style={{ animationDelay: ".4s" }}>
         <Tip>
-          <b>Une pension doit payer au moins sa part et les soins du cheval.</b> Sinon, chaque mois, ce cheval te coûte de l’argent.
+          <b>Une pension doit payer au moins sa part des frais et les soins du cheval.</b> Sinon, chaque mois, ce cheval te coûte de l’argent.
         </Tip>
       </div>
       <div className="end" />

@@ -177,7 +177,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       <div className="card cl-due rise">
         <div className="cl-dtop">
           <span>
-            <span className="cl-lab">{due > 0 ? `${qui} te doit` : `${Il} ne te doit plus rien.`}</span>
+            <span className="cl-lab">{due > 0 ? `${qui} te doit` : `${Il} a tout payé.`}</span>
             <b className="cl-big">{due > 0 ? <CountUp value={due} fmt={eur} ms={700} /> : eur(0)}</b>
           </span>
           {due <= 0 && <Ill n="rosette" className="cl-ros" />}
@@ -277,7 +277,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         {lignes.map((l) => (
           <Ligne key={l.id} l={l} onRetirer={retirer} />
         ))}
-        {ouvertes.length > 0 && <p className="cl-hint">Pas eu lieu ? Retire la ligne.</p>}
+        {ouvertes.length > 0 && <p className="cl-hint">Si ça n’a pas eu lieu, retire la ligne.</p>}
         {paiements.map((p) => (
           <div key={p.id} className="cl-pd">
             <span>
@@ -370,7 +370,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         </label>
         <Switch on={seance} onClick={() => maj({ paieALaSeance: !seance })}>
           Paie à la séance
-          <small className="cl-sw">Cours et balades réglés sur place. Sinon, tout se paie au mois.</small>
+          <small className="cl-sw">Les cours et les balades se paient sur place. Le reste se paie au mois.</small>
         </Switch>
       </div>
       <div className="end" />

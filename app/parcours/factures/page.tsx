@@ -140,7 +140,7 @@ function Factures() {
 
   return (
     <>
-      <ObHead retour={retour} n={3} title="Tes frais communs" sub="Les dépenses qui servent à toute l’écurie : foin, paille, loyer, salaires… Elles sont comptées chaque mois et partagées entre tes chevaux." />
+      <ObHead retour={retour} n={3} title="Les frais de l’écurie" sub="Ce qui sert à toute l’écurie : foin, paille, loyer, salaires… C’est compté chaque mois et partagé entre tes chevaux." />
       <div className="ar-seg">
         <Seg<Mode>
           label="Comment noter tes frais"

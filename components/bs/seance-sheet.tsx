@@ -187,7 +187,7 @@ function Inner({ seance }: { seance: Seance }) {
           {passee && (seance.participants.length || vide) ? "Qui était là" : seance.participants.length || vide ? "Cavaliers" : "Chevaux"}
           {!passee && seance.places ? ` · ${seance.participants.length} sur ${seance.places}` : ""}
         </p>
-        {passee && plusieurs && <p className="note">Tout le monde compte. Retire seulement ceux qui ne sont pas venus.</p>}
+        {passee && plusieurs && <p className="note">Tout le monde est compté. Retire seulement ceux qui ne sont pas venus.</p>}
         {rows.map((p, i) => {
           const h = horse(p.horseId);
           const who = person(p.personId)?.name;
@@ -219,7 +219,7 @@ function Inner({ seance }: { seance: Seance }) {
         })}
         {vide &&
           (passee && seance.status !== "cancelled" ? (
-            <p className="note">Personne d’inscrit, elle ne compte rien. Ajoute qui est venu : elle comptera avec eux.</p>
+            <p className="note">Personne d’inscrit, donc rien à compter. Ajoute qui est venu, et la séance comptera pour eux.</p>
           ) : (
             <p className="note">
               Personne d’inscrit pour l’instant{collectif && seance.places ? ` · ${seance.places} place${seance.places > 1 ? "s" : ""} libre${seance.places > 1 ? "s" : ""}` : ""}. Elle ne rapporte rien tant que personne n’y est inscrit.
@@ -273,7 +273,7 @@ function Inner({ seance }: { seance: Seance }) {
     body = (
       <>
         {tabs}
-        <p className="note">Elle ne comptera pas dans ton argent. La raison reste notée sur la séance.</p>
+        <p className="note">Elle ne comptera pas dans ton argent. La raison reste notée.</p>
         <div style={{ marginTop: 12 }}>
           <Chips value={REASONS.includes(reason) ? reason : ""} onChange={(r) => setReason(r)} options={REASONS.map((r) => [r, r] as [string, string])} />
         </div>
@@ -313,7 +313,7 @@ function Inner({ seance }: { seance: Seance }) {
           </label>
         </div>
         {scopePicker}
-        <p className="note">Seul ce que tu changes est modifié. Si tu changes la date, les autres séances choisies bougent du même nombre de jours.</p>
+        <p className="note">Seul ce que tu changes bouge. Si tu changes la date, les autres séances choisies se décalent d’autant de jours.</p>
         <button type="button" className="btn full jr-btn-top" disabled={end <= start} onClick={saveEdit}>
           Enregistrer
         </button>
@@ -326,7 +326,7 @@ function Inner({ seance }: { seance: Seance }) {
     body = (
       <>
         {scopePicker}
-        <p className="note">L’argent compté pour ces séances est retiré aussi.</p>
+        <p className="note">L’argent de ces séances est retiré aussi.</p>
         <button type="button" className="btn danger full jr-btn-top" onClick={remove}>
           <Ic n="trash" className="" />
           Supprimer

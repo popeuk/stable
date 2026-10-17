@@ -73,14 +73,14 @@ function Reste() {
               </div>
             )}
             <div>
-              <span>Frais communs</span>
+              <span>Frais de l’écurie</span>
               <span className="num">{sg(-m.sharedTotal)}</span>
             </div>
           </div>
         </div>
       </div>
       <p className="note rise" style={{ animationDelay: ".12s" }}>
-        C’est une estimation, faite avec tes tarifs. Plus tu notes, plus c’est juste. Les trois dernières étapes se franchissent en utilisant l’app.
+        C’est une estimation, faite avec tes prix. Plus tu notes, plus c’est juste.
       </p>
       <div className="foot rise" style={{ animationDelay: ".2s" }}>
         <Link href="/accueil" className="btn full">
@@ -105,7 +105,7 @@ function Fin() {
         <Ill n="rosette" alt="La gérante brandit une rosette." />
       </div>
       <h1 className="ar-t1 rise" style={{ animationDelay: ".08s" }}>
-        Six étapes sur six. Ton flot est gagné.
+        Six étapes sur six. Ton écurie est prête.
       </h1>
       <Seuil horses={horses} capacity={capacity} seuil={m.seuil} />
       <p className="ar-say">

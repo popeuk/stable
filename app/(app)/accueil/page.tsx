@@ -107,7 +107,7 @@ function Journee({ delay, max }: { delay: number; max: number }) {
   return (
     <Sec title="Ta journée" action={<Link href="/planning">Tout le planning</Link>} delay={delay} className="ac-jour">
       {!items.length ? (
-        <p className="note ac-jnote">Rien de prévu aujourd’hui. Touche le + pour prévoir une séance, un soin ou une tâche.</p>
+        <p className="note ac-jnote">Rien de prévu aujourd’hui. Touche le + pour ajouter une séance, un soin ou une tâche.</p>
       ) : !shown.length ? (
         <Empty ill="dodo">
           <b>Tout est fait pour aujourd’hui.</b>

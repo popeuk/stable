@@ -96,7 +96,7 @@ function Recherche() {
         id: e.id,
         date: `${e.periodYear}-${String(e.periodMonth).padStart(2, "0")}-01`,
         label: e.label,
-        sub: "Frais communs",
+        sub: "Frais de l’écurie",
         amount: e.totalAmount,
         isIn: false,
       })),

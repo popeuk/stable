@@ -387,7 +387,7 @@ function NoterInner() {
         // Connue par an ou en plusieurs fois : comptée chaque mois pour son équivalent par mois (montant-saisi.ts).
         const { connu, fois } = connuDe(d);
         const saisi = saisiDe(connu, v, fois);
-        st.addRecurringExpense({ label: label || cat?.name || "Frais communs", amount: parMois(connu, v, fois), categoryId: cat?.id, isShared: true, distributionMode: "equal", frequency: "monthly", startDate: d.date, endDate: null, source: "manual", ...(saisi ? { saisi } : {}) });
+        st.addRecurringExpense({ label: label || cat?.name || "Frais de l’écurie", amount: parMois(connu, v, fois), categoryId: cat?.id, isShared: true, distributionMode: "equal", frequency: "monthly", startDate: d.date, endDate: null, source: "manual", ...(saisi ? { saisi } : {}) });
       }
       else chosen.forEach((horseId) => st.addRecurringExpense({ label: label || cat?.name || "Dépense", amount: v, categoryId: cat?.id, isShared: false, horseId, frequency: freq, startDate: d.date, endDate: null, source: "manual" }));
     } else if (pour === "hors") {
@@ -978,7 +978,7 @@ function NoterInner() {
               <Puces
                 options={[
                   ["once", "Une fois"],
-                  ["monthly", "Ça revient"],
+                  ["monthly", "Tous les mois"],
                 ]}
                 value={x.moneyRep === "once" ? "once" : "monthly"}
                 onPick={(rep) => set((y) => (rep === "once" ? { ...y, moneyRep: "once" } : { ...y, moneyRep: y.moneyRep === "once" ? "monthly" : y.moneyRep }))}
@@ -1000,7 +1000,7 @@ function NoterInner() {
                 options={[
                   ["once", "Une fois"],
                   ["monthly", "Chaque mois"],
-                  ["quarterly", "Chaque trimestre"],
+                  ["quarterly", "Tous les trois mois"],
                   ["yearly", "Chaque année"],
                 ]}
                 value={x.moneyRep}

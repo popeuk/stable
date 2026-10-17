@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { libelleFrais } from "@/components/bs/parcours";
 import { useMemo, useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { cap, dec1 } from "@/components/bs/ui";
@@ -125,8 +126,8 @@ function Bilans() {
   if (!data.horses.some((h) => !h.isArchived))
     return (
       <Page>
-        <Hello title="Bilan sur plusieurs mois" />
-        <Empty ill="dodo">Rien à montrer pour l’instant. Ajoute tes chevaux et note tes premières séances. Ce bilan se remplira tout seul, mois après mois.</Empty>
+        <Hello title="Sur plusieurs mois" />
+        <Empty ill="dodo">Pas encore grand-chose à montrer. Ajoute tes chevaux et note tes premières séances : les mois vont se remplir petit à petit.</Empty>
         <div className="pad" style={{ marginTop: 14 }}>
           <Link href="/parcours" className="btn full">
             Reprendre le parcours
@@ -151,7 +152,7 @@ function Bilans() {
         soit <Money v={avg} /> par mois en moyenne
       </span>
       <p className="note">
-        {rangeLabel} {net >= 0 ? `Sur 100 € encaissés, il t’en reste ${keep}.` : "Sur cette période, l’écurie t’a coûté plus qu’elle n’a rapporté."}
+        {rangeLabel} {net >= 0 ? `Sur 100 € qui rentrent, il t’en reste ${keep}.` : "Sur ces mois-là, l’écurie t’a coûté plus qu’elle ne t’a rapporté. Beaucoup d’écuries passent par là. Regarde juste en dessous où part l’argent."}
       </p>
       <div className="ar-reach">
         {reached > 0 && <Ill n="rosette" />}
@@ -168,7 +169,7 @@ function Bilans() {
               <b>Objectif de {eur(objective)} pas encore atteint</b> sur ces {months.length} mois.
             </>
           ) : (
-            <>Pas d’objectif pour l’instant : tu peux t’en fixer un dans Mon mois.</>
+            <>Pas d’objectif pour l’instant.</>
           )}
         </span>
       </div>
@@ -182,8 +183,8 @@ function Bilans() {
           <small>ce qui est sorti</small>
         </div>
         <div>
-          <b>{cur && isFinite(cur.seuil) ? dec1(cur.seuil) : "pas encore"}</b>
-          <small>chevaux pour ne pas perdre</small>
+          <b>{cur && isFinite(cur.seuil) ? Math.ceil(cur.seuil - 1e-9) : "pas encore"}</b>
+          <small>chevaux pour tout payer</small>
         </div>
       </div>
     </div>
@@ -194,14 +195,14 @@ function Bilans() {
       <Sec ill="carnet-buste" title="Mois par mois" action={<Link href="/argent">Ce mois-ci</Link>} delay={0.14}>
         <MonthChart months={months.map((x) => ({ p: x.p, net: x.m.net }))} objective={objective} />
         <p className="note">
-          En euros.{hasObjective(objective) ? ` Le pointillé, c’est ton objectif de ${eur(objective)}.` : ""} {cap(mName(now))} est en cours, il reste {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
+          En euros.{hasObjective(objective) ? ` Le pointillé montre ton objectif de ${eur(objective)}.` : ""} {cap(mName(now))} n’est pas fini : encore {daysLeft} jour{daysLeft > 1 ? "s" : ""}.
         </p>
       </Sec>
-      <Sec ill="brouette" title="Où part ton argent" action={<span className="act out">{sg(-charges)}</span>} delay={0.22}>
+      <Sec ill="brouette" title="Où va ton argent" action={<span className="act out">{sg(-charges)}</span>} delay={0.22}>
         {weights.slice(0, 7).map((w, i) => (
           <div key={w.label} className="ar-wgt">
             <div className="ar-t">
-              <span>{w.label}</span>
+              <span>{libelleFrais(w.label)}</span>
               <em>{Math.round((w.amount / Math.max(1, charges)) * 100)} %</em>
               <Money v={-w.amount} />
             </div>
@@ -220,7 +221,7 @@ function Bilans() {
                 <Ic n="arrow" className="ar-ic" />
               </span>
               <span>
-                {x.label}
+                {libelleFrais(x.label)}
                 <small>
                   {eur(x.cur)} ce mois-ci, {eur(Math.abs(x.delta))} de {x.delta > 0 ? "plus" : "moins"}
                 </small>
@@ -258,7 +259,7 @@ function Bilans() {
       </Sec>
       <Sec ill="confirmer" title="Ce que rapportent tes cours" action={<Link href="/prestations">Tes prestations</Link>} delay={0.46}>
         {prests.length === 0 ? (
-          <p className="note">Aucune séance passée sur cette période. Note tes séances dans le planning : elles comptent toutes seules une fois passées.</p>
+          <p className="note">Pas encore de séance sur ces mois-là. Note-les dans le planning : une fois passées, elles comptent toutes seules.</p>
         ) : (
           prests.map((x) => (
             <div key={x.p.id} className="ar-post">
@@ -280,7 +281,7 @@ function Bilans() {
         {(
           [
             ["/seuil", "flag", "Combien de chevaux pour ne pas perdre d’argent", "le nombre de pensions qui paient tout"],
-            ["/scenarios/nouveau", "chart", "Et si… ?", "essayer une hausse de pension, sans rien toucher"],
+            ["/scenarios/nouveau", "chart", "Et si… ?", "voir ce que donnerait une pension plus chère, sans rien changer"],
             ["/argent?vue=mouvements", "list", "Toutes les entrées et sorties d’argent", "chaque ligne, une par une"],
           ] as const
         ).map(([href, pic, t, s]) => (
@@ -301,7 +302,7 @@ function Bilans() {
 
   return (
     <Page wide={desk}>
-      <h1 className="ar-sr">Bilan sur plusieurs mois</h1>
+      <h1 className="ar-sr">Sur plusieurs mois</h1>
       <div className="ar-bseg" style={{ marginTop: 12 }}>
         <Seg value={span} onChange={setSpan} options={SPANS} label="Période" />
       </div>

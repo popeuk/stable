@@ -47,10 +47,10 @@ function Seuil() {
               Tu en as {n}.
             </>
           }
-          sub={`Chaque mois, le foin, le loyer et les salaires se paient, quel que soit le nombre de chevaux. En dessous de ${dec1(m.seuil)} pensions, tu perds de l’argent. Au-dessus, chaque cheval en plus te rapporte presque toute sa pension.`}
+          sub={`Chaque mois, le foin, le loyer et les salaires tombent, que tu aies peu ou beaucoup de chevaux. Avec moins de ${Math.ceil(m.seuil - 1e-9)} chevaux, tu perds de l’argent. À partir de là, chaque cheval en plus te rapporte presque toute sa pension.`}
         />
       ) : (
-        <Hello title="Pas encore atteignable." sub="Chaque mois, tu paies des frais communs : foin, paille, loyer, salaires… Il faut un certain nombre de pensions pour les couvrir. Pour l’instant, les pensions ne paient même pas les soins des chevaux." />
+        <Hello title="Pas encore atteignable." sub="Chaque mois, tu paies les frais de l’écurie : foin, paille, loyer, salaires… Il faut assez de pensions pour les payer. Pour l’instant, les pensions ne paient même pas les soins des chevaux." />
       )}
 
       <div className="card rise" style={{ animationDelay: ".14s", margin: "16px 14px 0" }}>
@@ -62,8 +62,8 @@ function Seuil() {
 
       <p className="ar-calc rise" style={{ animationDelay: ".22s" }}>
         {ok
-          ? `Tes frais communs font ${eur(m.sharedTotal)} par mois. Une fois ses soins payés, chaque cheval te laisse en moyenne ${eur(m.contribution)}. ${eur(m.sharedTotal).replace(" €", "")} divisé par ${eur(m.contribution).replace(" €", "")} : ${dec1(m.seuil)}. Un demi-cheval ne se loge pas : il t’en faut donc ${Math.ceil(m.seuil - 1e-9)} pour tout payer. Tu en as ${n}.`
-          : "Pour l’instant, les pensions ne paient même pas les soins des chevaux. Peu importe leur nombre, tu perds de l’argent. La piste : revoir le prix des pensions."}
+          ? `Tes frais de l’écurie font ${eur(m.sharedTotal)} par mois. Une fois ses soins payés, chaque cheval te laisse en moyenne ${eur(m.contribution)}. ${eur(m.sharedTotal).replace(" €", "")} divisé par ${eur(m.contribution).replace(" €", "")} : ${dec1(m.seuil)}. Il t’en faut donc ${Math.ceil(m.seuil - 1e-9)} pour tout payer. Tu en as ${n}.`
+          : "Pour l’instant, les pensions ne paient même pas les soins des chevaux. Avec plus de chevaux, tu perdrais encore plus. C’est le prix des pensions qu’il faut revoir."}
       </p>
 
       <div className="pad rise" style={{ animationDelay: ".3s", marginTop: 16 }}>
@@ -72,16 +72,16 @@ function Seuil() {
             <b>
               Tes {free} box{free > 1 ? "es" : ""} libre{free > 1 ? "s sont" : " est"} ta plus grosse piste.
             </b>{" "}
-            Tu es déjà au-dessus du trait : un cheval de plus, c’est presque toute sa pension qui te reste.
+            Tu as passé le trait : chaque cheval en plus, c’est presque toute sa pension qui te reste.
           </Tip>
         )}
         {ok && !above && (
           <Tip ill="piste">
-            <b>Tu es encore sous le trait.</b> Remplir un box ou revoir tes pensions te fait passer au-dessus.
+            <b>Tu n’as pas encore assez de pensions pour tout payer.</b> Remplir un box ou revoir tes pensions te fait passer au-dessus.
           </Tip>
         )}
         <Link href="/argent?vue=leviers" className="btn line full" style={{ marginTop: 12 }}>
-          Voir les pistes pour gagner plus
+          Voir les idées pour gagner plus
         </Link>
         {!parcours.seuil && (
           <button
@@ -93,7 +93,7 @@ function Seuil() {
               if (!last) router.push("/parcours");
             }}
           >
-            J’ai compris, étape franchie
+            Compris
             <Ic n="ck" className="" />
           </button>
         )}

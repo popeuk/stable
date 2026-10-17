@@ -56,7 +56,7 @@ export function EquipeReglages() {
                 {m.job ? ` · ${m.job}` : ""}
               </b>
               <small>
-                {m.role === "employe" ? "Salarié" : "Pro extérieur"}
+                {m.role === "employe" ? "Salarié" : "Pro"}
                 {n > 0 ? ` · ${n} tâche${n > 1 ? "s" : ""} à venir` : ""}
               </small>
             </span>
@@ -88,7 +88,7 @@ export function EquipeReglages() {
           Ajouter à l’équipe
         </button>
       </div>
-      <p className="ec-help">Quand tu ajoutes une séance ou un rendez-vous, tu choisis qui s’en occupe en un geste.</p>
+      <p className="ec-help">Quand tu ajoutes une séance ou un rendez-vous, tu choisis qui s’en occupe.</p>
     </Sec>
   );
 }
@@ -136,7 +136,7 @@ export function CategoriesReglages() {
           options={[
             ["revenus", "Ce qui rentre"],
             ["directes", "Pour un cheval"],
-            ["mutualisees", "Frais communs"],
+            ["mutualisees", "Frais de l’écurie"],
           ]}
         />
       </div>

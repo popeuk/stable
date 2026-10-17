@@ -60,7 +60,7 @@ export function Header() {
         </Link>
       )}
       <AideBouton className="help" />
-      <button type="button" className="ac-me" onClick={() => setRond(true)} aria-haspopup="dialog" aria-expanded={rond} aria-label="Ta fiche, tes tarifs, ton équipe, tes réglages">
+      <button type="button" className="ac-me" onClick={() => setRond(true)} aria-haspopup="dialog" aria-expanded={rond} aria-label="Ta fiche, tes prix, ton équipe, tes réglages">
         <span aria-hidden="true">{ini}</span>
       </button>
       {/* La feuille sort de l'en-tête : sur iPhone, une barre floutée l'enfermerait dedans. */}

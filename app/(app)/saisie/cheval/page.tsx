@@ -24,8 +24,8 @@ function arriveeEnMots(entry: string, editing?: Horse): string {
   const today = localToday();
   const nom = new Date(today + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" });
   const mois = /^[aeiouy]/i.test(nom) ? `d’${nom}` : `de ${nom}`;
-  if (editing && debutCompte(dernierSejour(editing)) < `${today.slice(0, 7)}-01`) return "Cette date va au registre d’élevage. Tes chiffres des mois passés ne bougent pas.";
-  if (entry && entry.slice(0, 7) < today.slice(0, 7)) return `Cette date va au registre d’élevage. Dans tes chiffres, il compte à partir ${mois} (sa pension et sa part des frais) : les mois d’avant sont déjà comptés, ils ne bougent pas.`;
+  if (editing && debutCompte(dernierSejour(editing)) < `${today.slice(0, 7)}-01`) return "Cette date est inscrite au registre d’élevage. Les chiffres des mois passés ne changent pas.";
+  if (entry && entry.slice(0, 7) < today.slice(0, 7)) return `Cette date est inscrite au registre d’élevage. Il compte dans tes chiffres à partir de ${mois}, pour sa pension et sa part des frais. Les mois d’avant ne changent pas.`;
   return "Sa pension et sa part des frais comptent à partir de ce jour-là.";
 }
 
@@ -116,7 +116,7 @@ function SaisieCheval() {
         <label className="field">
           <span>Son nom</span>
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Pacha" autoComplete="off" />
-          {!editing && <em>Seul son nom est obligatoire. Tu pourras compléter plus tard.</em>}
+          {!editing && <em>Son nom suffit pour commencer. Tu pourras compléter le reste plus tard.</em>}
         </label>
         <ChoisirProprio value={ownerName} onChange={setOwnerName} />
         <div className="field" role="group" aria-label="Sa robe">
@@ -155,7 +155,7 @@ function SaisieCheval() {
             />
             <span className="u">€ / mois</span>
           </span>
-          <em>Comptée toute seule chaque mois dans ce qui rentre. Tu la notes une fois.</em>
+          <em>Comptée chaque mois dans ce qui rentre. Tu ne la notes qu’une fois.</em>
         </label>
         <label className="field">
           <span>

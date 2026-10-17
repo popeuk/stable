@@ -144,7 +144,7 @@ export function LigneComptee({ it, time }: { it: DayItem; time?: string }) {
         <b>{it.title}</b>
         <small>
           <span className="cp-ok">
-            <Ic n="ck" className="" />a compté
+            <Ic n="ck" className="" />fait
           </span>
           {it.sub ? ` · ${it.sub}` : ""}
         </small>

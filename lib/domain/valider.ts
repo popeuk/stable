@@ -25,7 +25,7 @@ const NOMS: Record<string, string> = {
   horses: "les chevaux",
   revenues: "ce qui rentre",
   directExpenses: "les dépenses des chevaux",
-  sharedExpenses: "les frais communs",
+  sharedExpenses: "les frais de l’écurie",
   revenueCategories: "les catégories de recettes",
   expenseCategories: "les catégories de dépenses",
   recurringExpenses: "les frais de chaque mois",
@@ -39,7 +39,7 @@ const NOMS: Record<string, string> = {
   seances: "le planning",
   taskLists: "les colonnes des tâches",
   tasks: "les tâches",
-  actions: "les pistes suivies",
+  actions: "les idées suivies",
   payments: "les paiements",
   invoices: "les factures",
   tariffs: "les tarifs",
@@ -152,7 +152,7 @@ export function lireSauvegarde(texte: string): Lecture {
   const state = (json["be-stable-data"] as Record<string, unknown>).state as Record<string, unknown>;
   const n = nettoyer(state);
   if (n.problemes.length) {
-    return { ok: false, raison: `Cette sauvegarde est abîmée (${n.problemes.join(", ")}). Rien n’a été remplacé : tes données sur cet appareil restent telles quelles.` };
+    return { ok: false, raison: `Cette sauvegarde est abîmée (${n.problemes.join(", ")}). Rien n’a été remplacé. Tes données sur cet appareil sont toujours là.` };
   }
   const st = json["be-stable-settings"];
   const settings = estObjet(st) && estObjet(st.state) ? (st.state as Record<string, unknown>) : undefined;

@@ -115,7 +115,7 @@ function Chevaux() {
           retour={retour}
           n={1}
           title={deja ? "Tes chevaux" : "Combien de chevaux chez toi ?"}
-          sub={deja ? `${deja > 1 ? `${deja} chevaux sont` : "Un cheval est"} déjà dans ton écurie. Tu peux en ajouter, ou passer.` : "Ceux qui sont dans ton écurie aujourd’hui. Tu leur donneras un nom plus tard."}
+          sub={deja ? `${deja > 1 ? `${deja} chevaux sont` : "Un cheval est"} déjà dans ton écurie. Tu peux en ajouter, ou passer.` : "Ceux qui sont chez toi aujourd’hui. Les noms, tu les mettras plus tard."}
         />
         {deja > 0 && troupeau}
         {deja > 0 && <p className="ar-h5">En ajouter</p>}
@@ -140,7 +140,7 @@ function Chevaux() {
               <span className="u">boxes</span>
             </span>
             <p id="h-boxes-aide" className="es-help">
-              Facultatif. Avec, l’app te dit ce que rapporteraient tes boxes vides.
+              Facultatif. Avec, tu vois ce que rapporteraient tes boxes vides.
             </p>
           </div>
         )}

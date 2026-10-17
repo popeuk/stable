@@ -65,17 +65,17 @@ function Contacts() {
       <div className="hello rise" style={{ animationDelay: ".04s" }}>
         {people.length > 0 && <p className="ch-over0">{people.length} personne{people.length > 1 ? "s" : ""}</p>}
         <h2>Contacts</h2>
-        {people.length > 0 && <p>Les propriétaires de tes chevaux et les pros qui s’en occupent (maréchal, véto…). La liste se remplit toute seule.</p>}
+        {people.length > 0 && <p>Les propriétaires de tes chevaux et les pros qui s’en occupent, comme le maréchal ou le véto. La liste se remplit au fur et à mesure.</p>}
       </div>
 
       {people.length === 0 ? (
-        <Empty ill="vide-contacts">Personne pour l’instant. Indique le propriétaire d’un cheval, ou qui a fait un soin (maréchal, véto…). Ils apparaîtront ici tout seuls.</Empty>
+        <Empty ill="vide-contacts">Personne pour l’instant. Note le propriétaire d’un cheval, ou un soin fait par un pro : son nom arrivera ici.</Empty>
       ) : (
         <>
           {pros.length > 0 && (
             <Sec ill="piste" title="Les pros" delay={0.12}>
               <div className="rows">{pros.map((p) => row(p, true))}</div>
-              <p className="note">Chaque soin noté avec un pro l’ajoute ici, avec ce qu’il t’a coûté.</p>
+              <p className="note">Chaque soin noté avec un pro apparaît ici, avec son coût.</p>
             </Sec>
           )}
           {owners.length > 0 && (

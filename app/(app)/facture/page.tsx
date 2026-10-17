@@ -224,7 +224,7 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
                   </Link>
                 </span>
               ))}
-              . Ce qui a compté depuis va sur une nouvelle facture.
+              . Ce qui est fait depuis va sur une nouvelle facture.
             </p>
           </div>
         )}

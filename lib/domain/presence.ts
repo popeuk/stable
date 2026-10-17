@@ -169,6 +169,6 @@ function veille(d: ISODate): ISODate {
 
 /** « frais communs · entre 3 chevaux », ou sans cheval pour l'instant. */
 export function partageLabel(n: number): string {
-  if (n === 0) return "frais communs · aucun cheval ce mois-ci, comptés quand même";
-  return `frais communs · entre ${n} cheva${n > 1 ? "ux" : "l"}`;
+  if (n === 0) return "frais de l’écurie · aucun cheval ce mois-ci, comptés quand même";
+  return `frais de l’écurie · entre ${n} cheva${n > 1 ? "ux" : "l"}`;
 }

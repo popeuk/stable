@@ -94,7 +94,7 @@ function Planning() {
     <nav className="jr-liens" aria-label="Aussi dans le planning">
       <Link href="/valider">
         <Ic n="ck" />
-        <span>Ce qui a compté</span>
+        <span>Ce qui est fait</span>
         <Ic n="chev" className="chev" />
       </Link>
     </nav>

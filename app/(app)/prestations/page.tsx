@@ -73,10 +73,10 @@ function Prestations() {
     <Sec ill="sacoche" title="Tes pensions" delay={0.16}>
       <Link href="/parcours/tarifs?retour=prestations" className="li np">
         <span>
-          <b>{data.tariffs?.pension ? `${eurc(data.tariffs.pension)} par mois` : "Pas de tarif de pension pour l’instant"}</b>
+          <b>{data.tariffs?.pension ? `${eurc(data.tariffs.pension)} par mois` : "Pas encore de prix de pension"}</b>
           <small>
             {pensions.length
-              ? `${pensions.length} cheva${pensions.length > 1 ? "ux paient" : "l paie"} ${pMin === pMax ? eurc(pMin) : `de ${eurc(pMin)} à ${eurc(pMax)}`} par mois · comptée toute seule chaque mois`
+              ? `${pensions.length} cheva${pensions.length > 1 ? "ux paient" : "l paie"} ${pMin === pMax ? eurc(pMin) : `de ${eurc(pMin)} à ${eurc(pMax)}`} par mois · comptée chaque mois`
               : "le prix proposé pour un nouveau cheval"}
           </small>
         </span>
@@ -107,7 +107,7 @@ function Prestations() {
       <Link href="/argent?vue=leviers" className="ec-lcard rise" style={{ animationDelay: ".42s" }}>
         <Ill n="piste" />
         <span>
-          <span className="k">Pistes pour gagner plus</span>
+          <span className="k">Idées pour gagner plus</span>
           <b>Des idées pour qu’il te reste plus à la fin du mois</b>
         </span>
         <Ic n="arrow" className="arr" />
@@ -131,7 +131,7 @@ function Prestations() {
           {isNow && <span>au {auJour}</span>}
         </div>
         <div className="ec-hrow">
-          <Hello title={best ? `${best.p.label} rapporte le plus ce mois-ci.` : "Cours et services"} sub="Cours, balades, travail du cheval : tout ce que tu vends en plus des pensions." delay={0.06} />
+          <Hello title={best ? `${best.p.label} rapporte le plus ce mois-ci.` : "Cours et services"} sub="Cours, balades, travail du cheval : ce que tu proposes en plus des pensions." delay={0.06} />
           {desk && (
             <button type="button" className="btn" onClick={() => openNoter({ mode: "seance" })}>
               <Ic n="plus" className="" />
@@ -193,11 +193,11 @@ function prixEnMots(p: Prestation, tariffs: Tariffs | undefined): string {
     const g = prixDe(p, "collectif", tariffs);
     const s = prixDe(p, "particulier", tariffs);
     const parts = [g ? `${eurc(g)} en groupe` : "", s ? `${eurc(s)} seul` : ""].filter(Boolean);
-    if (parts.length) return `${parts.join(", ")} par cavalier · tes tarifs`;
+    if (parts.length) return `${parts.join(", ")} par cavalier · tes prix`;
     return "Pas de prix pour l’instant · seul ou en groupe";
   }
   const t = prixDe(p, undefined, tariffs);
-  return t ? `${eurc(t)} la séance · tes tarifs` : "Pas de prix pour l’instant";
+  return t ? `${eurc(t)} la séance · tes prix` : "Pas de prix pour l’instant";
 }
 
 function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: boolean; onToggle: () => void; onPlan: () => void }) {
@@ -269,7 +269,7 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
                 const snap = st().prestations;
                 const r = st().removePrestation(p.id);
                 say(
-                  r === "supprimee" ? `Retiré : ${esc(p.label)}.` : `${esc(p.label)} a déjà des séances. On la met en pause pour garder ton historique.`,
+                  r === "supprimee" ? `Retiré : ${esc(p.label)}.` : `${esc(p.label)} a déjà des séances. Mets-la en pause pour garder l’historique.`,
                   () => useDataStore.setState({ prestations: snap }),
                 );
               }}

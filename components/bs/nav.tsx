@@ -218,9 +218,9 @@ export function RetourOrdinateur() {
 
 /** Le titre court d'un écran, pour l'en-tête hors des onglets. */
 const TITRES: [string, string][] = [
-  ["/valider", "Ce qui a compté"],
+  ["/valider", "Ce qui est fait"],
   ["/ticket", "Fiche du cheval"],
-  ["/part", "Les frais communs"],
+  ["/part", "Les frais de l’écurie"],
   ["/argent", "Mon mois"],
   ["/pilotage", "Sur plusieurs mois"],
   ["/seuil", "Combien de chevaux"],
@@ -229,15 +229,15 @@ const TITRES: [string, string][] = [
   ["/client", "Fiche client"],
   ["/facturation", "Factures"],
   ["/facture", "Facture"],
-  ["/contacts", "Contacts"],
+  ["/contacts", "Les pros"],
   ["/equipe", "Tâches de l’équipe"],
-  ["/prestations", "Mes tarifs"],
+  ["/prestations", "Mes prix"],
   ["/ma-fiche", "Ma fiche"],
   ["/moi", "Réglages"],
   ["/parametres", "Réglages"],
   ["/registre", "Registre d’élevage"],
   ["/recherche", "Chercher"],
-  ["/saisie/cheval", "Ajouter un cheval"],
+  ["/saisie/cheval", "Ton cheval"],
 ];
 export const titreDe = (p: string) => TITRES.find(([m]) => p.replace(/(.)\/$/, "$1").startsWith(m))?.[1] ?? "";
 
@@ -312,7 +312,7 @@ export function usePlusItems(): PlusItem[] {
   return useMemo(() => [
     ...(kind === "locale" ? [{ id: "garder", ic: "user", label: "Garder mes chiffres", sub: "Ton e-mail, un code, et tout passe dans ton compte", href: "/compte/connexion?garder=1", tone: "attn" as const }] : []),
     { id: "fiche", ic: "flag", label: "Ma fiche mon-ecurie.fr", sub: "Ce que voient les cavaliers qui cherchent", href: "/ma-fiche" },
-    { id: "tarifs", ic: "euro", label: "Mes tarifs", sub: "Pensions, cours, balades, soins refacturés", href: "/prestations" },
+    { id: "tarifs", ic: "euro", label: "Mes prix", sub: "Pensions, cours, balades, soins refacturés", href: "/prestations" },
     { id: "equipe", ic: "people", label: "Mon équipe", sub: "Qui fait quoi", href: "/parametres/equipe" },
     { id: "reglages", ic: "gear", label: "Réglages", sub: "Écurie, rappel du matin, explications, guide", href: "/moi" },
     ...(pas < 6 ? [{ id: "parcours", ic: "bulb", label: "Tes premiers pas", sub: `${pas} étape${pas > 1 ? "s" : ""} sur 6`, href: "/parcours", badge: `${pas}/6`, tone: "attn" as const }] : []),

@@ -35,7 +35,7 @@ function Facturation() {
   const pro = !conditionsProManquent(b);
   return (
     <Ecran className="fr-pg">
-      <Hello title="Tes factures" sub="Tes factures faites, ce qui s’imprime sur chacune, et le tableau de l’année pour ton comptable." />
+      <Hello title="Tes factures" sub="Tes factures, ce qui est imprimé dessus, et le tableau de l’année pour ton comptable." />
       <Sec title="Tes factures faites" blk delay={0.08}>
         {list.length ? (
           <div className="fr-list">
@@ -61,9 +61,9 @@ function Facturation() {
             .
           </p>
         )}
-        <p className="fr-hint">Une facture faite ne change plus : pour la corriger, ouvre-la et annule-la par un avoir. Les numéros se suivent sans jamais revenir.</p>
+        <p className="fr-hint">Une facture faite ne se modifie plus. Pour la corriger, ouvre-la et annule-la avec un avoir. Les numéros se suivent, on ne revient jamais en arrière.</p>
         <p className="fr-hint">
-          Fais tes factures depuis un seul appareil. Tant que l’app ne partage pas tes factures entre ton téléphone et ton ordinateur, chacun compterait ses numéros de son côté, et deux factures pourraient porter le même.
+          Fais tes factures toujours sur le même appareil. Pour l’instant, le téléphone et l’ordinateur ne se les partagent pas : tu risquerais d’avoir deux factures avec le même numéro.
         </p>
       </Sec>
       <Sec title="Sur tes factures" blk delay={0.14}>

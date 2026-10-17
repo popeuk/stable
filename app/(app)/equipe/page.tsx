@@ -77,7 +77,7 @@ function Equipe() {
     st.moveTask(t.id, listId);
     const l = lists.find((x) => x.id === listId);
     say(
-      l?.isDone && t.cost ? `C’est fait. <strong>${eur(t.cost)}</strong> ajoutés aux frais communs, partagés entre les chevaux.` : `Tâche rangée dans <strong>${esc(l?.title ?? "")}</strong>.`,
+      l?.isDone && t.cost ? `C’est fait. <strong>${eur(t.cost)}</strong> ajoutés aux frais de l’écurie, partagés entre les chevaux.` : `Tâche rangée dans <strong>${esc(l?.title ?? "")}</strong>.`,
       () => useDataStore.setState(snap),
     );
   }
@@ -359,7 +359,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
                 const l = lists.find((x) => x.id === lid);
                 const undo = snap();
                 st().moveTask(t.id, lid);
-                say(l?.isDone && t.cost ? `C’est fait. <strong>${eur(t.cost)}</strong> ajoutés aux frais communs, partagés entre les chevaux.` : `Tâche rangée dans <strong>${esc(l?.title ?? "")}</strong>.`, undo);
+                say(l?.isDone && t.cost ? `C’est fait. <strong>${eur(t.cost)}</strong> ajoutés aux frais de l’écurie, partagés entre les chevaux.` : `Tâche rangée dans <strong>${esc(l?.title ?? "")}</strong>.`, undo);
               }}
               options={lists.map((l) => [l.id, l.title] as [string, string])}
             />
@@ -409,7 +409,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
                 />
                 <span className="u">€</span>
               </span>
-              {t.costExpenseId ? <em>Déjà compté dans les frais communs du mois, partagé entre les chevaux.</em> : <em>Passe dans les frais communs quand la tâche est faite.</em>}
+              {t.costExpenseId ? <em>Déjà compté dans les frais de l’écurie du mois.</em> : <em>Le coût passe dans les frais de l’écurie quand la tâche est faite.</em>}
             </label>
             <p className="k jr-k">Notes</p>
             <textarea className="input ta" rows={3} defaultValue={t.notes ?? ""} onChange={(e) => upd({ notes: e.target.value })} aria-label="Notes" />
