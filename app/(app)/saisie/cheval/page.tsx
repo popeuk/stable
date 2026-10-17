@@ -22,9 +22,10 @@ const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "P
  */
 function arriveeEnMots(entry: string, editing?: Horse): string {
   const today = localToday();
-  const mois = new Date(today + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" });
+  const nom = new Date(today + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" });
+  const mois = /^[aeiouy]/i.test(nom) ? `d’${nom}` : `de ${nom}`;
   if (editing && debutCompte(dernierSejour(editing)) < `${today.slice(0, 7)}-01`) return "Cette date va au registre d’élevage. Tes chiffres des mois passés ne bougent pas.";
-  if (entry && entry.slice(0, 7) < today.slice(0, 7)) return `Cette date va au registre d’élevage. Dans tes chiffres, il compte à partir de ${mois} (sa pension et sa part des frais) : les mois d’avant sont déjà comptés, ils ne bougent pas.`;
+  if (entry && entry.slice(0, 7) < today.slice(0, 7)) return `Cette date va au registre d’élevage. Dans tes chiffres, il compte à partir ${mois} (sa pension et sa part des frais) : les mois d’avant sont déjà comptés, ils ne bougent pas.`;
   return "Sa pension et sa part des frais comptent à partir de ce jour-là.";
 }
 
