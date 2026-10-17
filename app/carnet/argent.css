@@ -164,7 +164,7 @@
 .carnet .ar-grid12 { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px 4px; justify-items: center; margin: 14px 0 38px; }
 .carnet .ar-grid12 .face { width: 42px; height: 42px; }
 .carnet .ar-grid12 .ar-vide { width: 42px; height: 42px; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--line); }
-.carnet .ar-grid12 .ar-trait { position: absolute; height: 54px; width: 3px; background: var(--ink); border-radius: 2px; box-shadow: -2px 0 0 var(--sheet), 2px 0 0 var(--sheet); z-index: 1; }
+.carnet .ar-grid12 .ar-trait { position: absolute; height: 54px; width: 3px; background: var(--ink); border-radius: 2px; box-shadow: none; z-index: 1; }
 .carnet .ar-grid12 .ar-trait span { position: absolute; left: -2px; bottom: -26px; white-space: nowrap; font-size: 12px; font-weight: 700; color: var(--on-ink); background: var(--ink); padding: 2px 7px; border-radius: 10px; transform: translateX(-50%); }
 .carnet .ar-glab { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: var(--ink3); margin-top: 12px; }
 .carnet .ar-glab b { color: var(--ink); display: inline-flex; align-items: center; gap: 4px; }
@@ -193,8 +193,8 @@
 .carnet .ar-range::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(var(--ink), var(--ink)) 0 0 / var(--p) 100% no-repeat, var(--line); }
 .carnet .ar-range::-moz-range-track { height: 4px; border-radius: 2px; background: var(--line); }
 .carnet .ar-range::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--ink); }
-.carnet .ar-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -9px; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 2px var(--ink), 0 2px 6px color-mix(in srgb, var(--ink) 20%, transparent); }
-.carnet .ar-range::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 2px var(--ink), 0 2px 6px color-mix(in srgb, var(--ink) 20%, transparent); }
+.carnet .ar-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -9px; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 2px var(--ink); }
+.carnet .ar-range::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 2px var(--ink); }
 .carnet .ar-sld .ar-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink3); margin-top: 4px; font-variant-numeric: tabular-nums; }
 
 /* Pages sans maquette dédiée : plan, audit, conseiller, découvertes */

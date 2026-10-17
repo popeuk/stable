@@ -19,7 +19,7 @@ import "./carnet/client.css";
 import "./carnet/proprio.css";
 import "./carnet/facture.css";
 import "./carnet/registre.css";
-import "./carnet/vie.css";
+import "./carnet/livret.css";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",

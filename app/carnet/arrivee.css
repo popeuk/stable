@@ -89,15 +89,15 @@
 .carnet .ar-fc .px strong { font-size: 22px; font-weight: 760; color: var(--ink); letter-spacing: -.02em; margin: 0 3px; font-variant-numeric: tabular-nums; }
 .carnet .ar-fc .pl { font-size: 13px; color: var(--ink3); }
 .carnet .ar-fc .pl.ok { color: var(--ink); font-weight: 650; }
-.carnet .ar-apercu { margin: 18px 22px 0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px color-mix(in srgb, var(--ink) 5%, transparent); }
+.carnet .ar-apercu { margin: 18px 22px 0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .ar-apercu .ar-fc { background: transparent; }
-.carnet .ar-ba { --x: 34%; position: relative; margin: 16px 22px 0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line), 0 10px 26px -14px color-mix(in srgb, var(--ink) 30%, transparent); background: var(--sheet); }
+.carnet .ar-ba { --x: 34%; position: relative; margin: 16px 22px 0; border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); background: var(--sheet); }
 .carnet .ar-ba .calque { position: absolute; inset: 0; clip-path: inset(0 0 0 var(--x)); }
 .carnet .ar-ba .tag { position: absolute; top: 10px; z-index: 3; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: .04em; padding: 3px 7px; border-radius: 4px; background: color-mix(in srgb, var(--on-ink) 92%, transparent); color: var(--ink2); }
 .carnet .ar-ba .tag.a { left: 10px; }
 .carnet .ar-ba .tag.b { right: 10px; background: var(--ink); color: var(--on-ink); }
 .carnet .ar-ba .knob { position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; margin-left: -1px; background: var(--ink); z-index: 3; pointer-events: none; }
-.carnet .ar-ba .knob::after { content: "‹ ›"; position: absolute; top: 50%; left: 50%; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; letter-spacing: 2px; box-shadow: 0 4px 12px color-mix(in srgb, var(--ink) 30%, transparent); }
+.carnet .ar-ba .knob::after { content: "‹ ›"; position: absolute; top: 50%; left: 50%; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; letter-spacing: 2px; box-shadow: none; }
 .carnet .ar-ba input { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
 .carnet .ar-ex { margin: 8px 22px 0; font-size: 12px; color: var(--ink3); }
 
@@ -202,7 +202,7 @@
   .carnet .ar.ar-duo { max-width: 1040px; display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 420px); justify-content: center; gap: 72px; }
   .carnet .ar-duo .ar-side { display: flex; flex-direction: column; justify-content: center; position: sticky; top: 0; height: 100dvh; }
   .carnet .ar-side .k { margin-bottom: 12px; }
-  .carnet .ar-side .ar-apercu { margin: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line), 0 24px 50px -24px color-mix(in srgb, var(--ink) 30%, transparent); }
+  .carnet .ar-side .ar-apercu { margin: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
   .carnet .ar-side .ar-ex { margin: 10px 0 0; }
   .carnet .ar-side .ar-big { margin: 14px 0 0; font-size: 40px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; }
   .carnet .ar-side .hero-ill { height: 260px; justify-content: flex-start; }
@@ -269,8 +269,8 @@
 .carnet .pas-fin .pas-pin svg { stroke-width: 1.9; }
 
 /* La question du moment : une grande carte, l'image qui déborde en bas à droite. */
-.carnet .pas-card { display: grid; grid-template-columns: minmax(0, 1fr) 118px; align-items: end; min-height: 158px; border-radius: 14px; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--ink), 0 22px 40px -26px color-mix(in srgb, var(--ink) 45%, transparent); padding: 16px 0 0 16px; overflow: hidden; color: inherit; text-decoration: none; transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
-.carnet .pas-card:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1.5px var(--ink), 0 26px 44px -24px color-mix(in srgb, var(--ink) 50%, transparent); }
+.carnet .pas-card { display: grid; grid-template-columns: minmax(0, 1fr) 118px; align-items: end; min-height: 158px; border-radius: 14px; background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--ink); padding: 16px 0 0 16px; overflow: hidden; color: inherit; text-decoration: none; transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
+.carnet .pas-card:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1.5px var(--ink); }
 .carnet .pas-card:active { transform: scale(.99); }
 .carnet .pas-card:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .carnet .pas-card-t { align-self: stretch; display: flex; flex-direction: column; gap: 6px; padding-bottom: 16px; min-width: 0; }
