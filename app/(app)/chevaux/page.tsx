@@ -487,7 +487,7 @@ function ASurveiller({ delay }: { delay: number }) {
 function ANommer({ horses, delay }: { horses: Horse[]; delay: number }) {
   if (!horses.length) return null;
   return (
-    <Sec blk ill="carnet-buste" title="Donne un nom à tes chevaux" delay={delay}>
+    <Sec ill="carnet-buste" title="Donne un nom à tes chevaux" delay={delay}>
       <p className="note ch-cnt">Tu les as comptés en essayant l’app. Un nom, une robe : tu les reconnais tout de suite.</p>
       <div className="rows">
         {horses.map((h) => (

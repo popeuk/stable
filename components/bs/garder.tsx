@@ -14,8 +14,9 @@ import { localToday } from "@/lib/utils/local-date";
  * « Tes chiffres sont sur ce téléphone seulement. Garde-les avec ton
  * e-mail. » : le bandeau discret de l'écurie essayée sans compte, qui dit
  * franchement où sont les chiffres tant qu'il n'y a pas de compte, au-dessus de la barre du bas. Il se montre une fois
- * les trois premiers obstacles passés (chevaux, tarifs, frais), pas avant.
- * Fermé, il revient le lendemain. Rien hors de la session locale.
+ * les trois premiers obstacles passés (chevaux, tarifs, frais), pas avant,
+ * et sur l'Accueil seulement (pas sur chaque onglet : le premier jour est
+ * déjà assez chargé). Fermé, il revient le lendemain. Rien hors de la session locale.
  * À poser une fois dans app/(app)/layout.tsx.
  */
 const MEM = "be-stable-garder";
@@ -49,7 +50,7 @@ export function GarderBandeau() {
     if (lire().ferme === localToday()) setFerme(true);
   }, []);
 
-  if (!local || !voir || ferme || path.startsWith("/compte")) return null;
+  if (!local || !voir || ferme || !/^\/accueil\/?$/.test(path)) return null;
   return (
     <div className="es-keep" role="region" aria-label="Garder mes chiffres">
       <span>

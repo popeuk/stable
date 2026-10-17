@@ -116,7 +116,7 @@ export function BandeauFinDuMois({ className = "" }: { className?: string }) {
   const reste = dernier - jour;
   const quand = fin.enCours ? `${cap(fin.mois)} se termine ${reste === 0 ? "aujourd’hui" : reste === 1 ? "demain" : `dans ${reste} jours`}.` : `${cap(fin.mois)} est fini.`;
   return (
-    <Link href="/chevaux?vue=clients" className={`card cp-ban rise ${className}`}>
+    <Link href="/chevaux?vue=clients" className={`cp-ban rise ${className}`}>
       <Ill n="gerant-buste" alt="" />
       <span>
         <b>Fin du mois : {pl(fin.count, "client")} à faire payer</b>

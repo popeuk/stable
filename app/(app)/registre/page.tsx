@@ -19,6 +19,7 @@ import {
   currentQuarter,
   holdingGaps,
   horseGaps,
+  type HorseGap,
   ownerLine,
   registerPeriod,
   type Holding,
@@ -35,6 +36,33 @@ import { localToday } from "@/lib/utils/local-date";
  * fiches, des réglages et du carnet. Ce qui manque est dit à l'écran,
  * jamais sur la feuille.
  */
+/** Les rubriques à compléter, dans l'ordre du registre, dites en une phrase. */
+const RUBRIQUES: HorseGap[] = ["sire", "puce", "proprietaire", "provenance", "destination"];
+const RUBRIQUE_DIT: Record<HorseGap, string> = {
+  sire: "numéro SIRE",
+  puce: "numéro de puce",
+  proprietaire: "propriétaire noté",
+  provenance: "provenance",
+  destination: "destination de départ",
+};
+/** « sans numéro SIRE, numéro de puce ni provenance ». */
+const direManque = (ks: HorseGap[]) => {
+  const m = ks.map((k) => RUBRIQUE_DIT[k]);
+  return `sans ${m.length > 1 ? `${m.slice(0, -1).join(", ")} ni ${m[m.length - 1]}` : m[0]}`;
+};
+/** Les rubriques qui manquent aux mêmes chevaux se disent ensemble, en une ligne. */
+function groupesManquants(list: { h: Horse; g: HorseGap[] }[]) {
+  const out: { ks: HorseGap[]; qui: Horse[] }[] = [];
+  for (const k of RUBRIQUES) {
+    const qui = list.filter((x) => x.g.includes(k)).map((x) => x.h);
+    if (!qui.length) continue;
+    const meme = out.find((o) => o.qui.length === qui.length && o.qui.every((h, i) => h.id === qui[i].id));
+    if (meme) meme.ks.push(k);
+    else out.push({ ks: [k], qui });
+  }
+  return out;
+}
+
 export default function Page() {
   return (
     <ClientGate>
@@ -154,20 +182,39 @@ function Registre() {
                 <Ic n="chev" className="chev" />
               </Link>
             )}
-            {gapsByHorse.map(({ h, g }) => (
-              <Link key={h.id} href={`/ticket?id=${h.id}#identite`} className="li np">
+            {/* Une ligne par rubrique, pas une par cheval : « 9 chevaux sans numéro SIRE » ouvre le premier. */}
+            {groupesManquants(gapsByHorse).map(({ ks, qui }) => (
+              <Link key={ks.join("-")} href={`/ticket?id=${qui[0].id}#identite`} className="li np">
                 <span>
-                  <b>{h.name}</b>
-                  <small>{g.map((x) => GAP_LABEL[x]).join(" · ")}</small>
+                  <b>
+                    {qui.length > 1 ? `${qui.length} chevaux` : qui[0].name} {direManque(ks)}
+                  </b>
+                  <small>{qui.length > 1 ? `${qui.slice(0, 4).map((h) => h.name).join(", ")}${qui.length > 4 ? "…" : ""} · commencer par ${qui[0].name}` : "ouvrir sa fiche"}</small>
                 </span>
                 <Ic n="chev" className="chev" />
               </Link>
             ))}
           </div>
+          {gapsByHorse.length > 1 && (
+            <details className="rg-det">
+              <summary>Voir cheval par cheval ({gapsByHorse.length})</summary>
+              <div className="rows">
+                {gapsByHorse.map(({ h, g }) => (
+                  <Link key={h.id} href={`/ticket?id=${h.id}#identite`} className="li np">
+                    <span>
+                      <b>{h.name}</b>
+                      <small>{g.map((x) => GAP_LABEL[x]).join(" · ")}</small>
+                    </span>
+                    <Ic n="chev" className="chev" />
+                  </Link>
+                ))}
+              </div>
+            </details>
+          )}
         </Sec>
       )}
       {focus && !reg.horses.some((h) => h.id === focus.id) && (
-        <p className="note rg-pad">{focus.name} n’était pas à l’écurie pendant cette période : il n’apparaît pas sur cette feuille.</p>
+        <p className="note rg-pad">{focus.name} n’était pas à l’écurie pendant cette période, donc pas sur cette feuille.</p>
       )}
 
       <Sec title="La feuille" delay={0.2}>

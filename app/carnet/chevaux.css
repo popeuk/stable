@@ -152,3 +152,10 @@
 .carnet .cl-ttl :is(h2, h3) .num { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .carnet .cl-ras { margin: 6px 0 0; font-size: 14px; line-height: 1.45; color: var(--ink2); }
 .carnet .ch-desk .cl-ras { max-width: 560px; }
+
+/* Fiche du cheval au téléphone : portrait de 104 px à gauche du nom, plus de 180 px au-dessus. */
+.carnet .ch-mtop { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 14px; align-items: center; padding: 14px 18px 0; }
+.carnet .ch-mtop .portrait { height: 104px; align-items: center; }
+.carnet .ch-mtop .portrait .disc { width: 104px; height: 104px; margin: 0; }
+.carnet .ch-mtop .hello { padding: 0; }
+.carnet .ch-mtop .hello p { margin-top: 6px; font-size: 14px; }

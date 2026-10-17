@@ -117,7 +117,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
   return (
     <div className={`ac-cptw rise ${className}`} style={{ animationDelay: "0.04s" }}>
       {card}
-      {objective <= 0 && href && (
+      {objective <= 0 && href && !estime && (
         <Link href="/argent?objectif=1" className="ac-fixer">
           Te fixer un objectif pour le mois ?
         </Link>

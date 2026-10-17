@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Empty, Ic, Sec, Seg, ini } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import type { TeamRole } from "@/lib/domain/types";
@@ -176,19 +176,25 @@ const LIEU_CHAMPS: { k: HoldingKey; label: string; ph: string; type?: "tel" | "e
  * (le lieu, le détenteur, les vétérinaires). Tout est facultatif, chaque
  * champ s'enregistre quand on le quitte.
  */
-export function LieuReglages() {
+/**
+ * Les papiers de l'écurie : frais communs et factures (passés en enfants),
+ * le lieu de détention et le registre d'élevage, sous un seul titre.
+ */
+export function LieuReglages({ children }: { children?: ReactNode }) {
   const holding = useDataStore((s) => s.holding) ?? {};
   const setHolding = useDataStore((s) => s.setHolding);
   // Venu du registre (« Adresse du lieu à compléter ») : la partie s'ouvre.
   const [open, setOpen] = useState(() => typeof window !== "undefined" && window.location.hash === "#lieu");
   const filled = LIEU_CHAMPS.filter((c) => holding[c.k]?.trim()).length;
   return (
-    <Sec title="Ton lieu de détention" delay={0.22} id="lieu">
-      <p className="note">Pour le registre d’élevage : le lieu où vivent les chevaux, qui en a la garde, et tes vétérinaires.</p>
+    <Sec title="Les papiers de l’écurie" delay={0.22} id="lieu">
+      {children}
       <button type="button" className="li np" aria-expanded={open} onClick={() => setOpen(!open)}>
         <span>
-          <b>{open ? "Replier" : filled ? "Modifier" : "Remplir"}</b>
-          <small>{filled ? `${filled} info${filled > 1 ? "s" : ""} sur ${LIEU_CHAMPS.length}` : "rien de noté pour l’instant"}</small>
+          <b>Ton lieu de détention</b>
+          <small>
+            {open ? "pour le registre : le lieu, qui en a la garde, tes vétérinaires" : filled ? `${filled} info${filled > 1 ? "s" : ""} sur ${LIEU_CHAMPS.length} · modifier` : "pour le registre · rien de noté pour l’instant"}
+          </small>
         </span>
         <Ic n="chev" className={`chev rg-rot${open ? " on" : ""}`} />
       </button>

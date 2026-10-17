@@ -69,7 +69,7 @@ export function Essayer() {
   };
 
   return (
-    <div className="ar ar-duo">
+    <div className="ar ar-duo es-bien">
       <div className="ar-v">
         <div className="es-st">
           <div className="es-top es-top-w">

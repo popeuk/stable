@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { getSession, leave } from "@/lib/account/session";
 import { ClientGate } from "@/components/ui/client-gate";
 import { useDesk } from "@/components/bs/desk";
 import { dayItems } from "@/lib/domain/seances";
@@ -36,6 +37,7 @@ function Accueil() {
   if (!desk)
     return (
       <Page className="ac-acc">
+        <BandeauExemple />
         <Compteur href="/argent" ill />
         <AideCarte compact />
         <LigneHier />
@@ -47,6 +49,7 @@ function Accueil() {
     );
   return (
     <Page wide className="ac-acc ac-desk">
+      <BandeauExemple />
       <div className="ac-dtop">
         <div>
           <Compteur href="/argent" ill />
@@ -62,6 +65,22 @@ function Accueil() {
       <PromoMonEcurie small />
       <div className="end" />
     </Page>
+  );
+}
+
+/** La démo se dit : une ligne ténue en tête, « Écurie d'exemple », et la porte pour en sortir. */
+function BandeauExemple() {
+  const [demo] = useState(() => getSession()?.kind === "demo");
+  if (!demo) return null;
+  return (
+    <p className="ac-ex rise">
+      <span>
+        <b>Écurie d’exemple</b> · rien n’est à ton nom
+      </span>
+      <button type="button" className="lnk" onClick={() => leave("/bienvenue")}>
+        Quitter l’exemple
+      </button>
+    </p>
   );
 }
 
@@ -121,11 +140,11 @@ function NommerChevaux() {
   if (!sansNom.length) return null;
   const first = sansNom[0];
   return (
-    <Link href={sansNom.length > 1 ? "/chevaux?vue=chevaux" : `/ticket?id=${first.id}`} className="card ac-nom rise" style={{ animationDelay: "0.1s" }}>
+    <Link href={sansNom.length > 1 ? "/chevaux?vue=chevaux" : `/ticket?id=${first.id}`} className="ac-nom rise" style={{ animationDelay: "0.1s" }}>
       <Face horse={first} />
       <span>
         <b>Donne un nom à tes chevaux</b>
-        <small>{sansNom.length > 1 ? `${sansNom.length} s’appellent encore « ${first.name} », « ${sansNom[1].name} »…` : `« ${first.name} » attend son vrai nom.`}</small>
+        <small>{sansNom.length > 1 ? `${sansNom.length} chevaux portent encore un numéro : ${first.name}, ${sansNom[1].name}…` : `« ${first.name} » attend son vrai nom.`}</small>
       </span>
       <Ic n="chev" className="chev" />
     </Link>

@@ -115,13 +115,18 @@ function Moi() {
       <Link href="/parcours/tarifs?retour=moi" className="li np">
         <Li title="Tes tarifs" sub="pension, cours, travail" right={chev} />
       </Link>
+    </Sec>
+  );
+  // Les papiers de l'écurie : un seul titre pour les frais, les factures, le lieu et le registre.
+  const papiers = (
+    <LieuReglages>
       <Link href="/parcours/factures?retour=moi" className="li np">
         <Li title="Tes frais communs" sub="foin, litière, loyer, salaires" right={chev} />
       </Link>
       <Link href="/facturation" className="li np">
         <Li title="Tes factures" sub="SIRET, adresse, TVA, le tableau du comptable" right={chev} />
       </Link>
-    </Sec>
+    </LieuReglages>
   );
 
   const rappel = (
@@ -277,7 +282,7 @@ function Moi() {
             <div>
               {compte}
               {ecurie}
-              <LieuReglages />
+              {papiers}
               <EquipeReglages />
               <CategoriesReglages />
             </div>
@@ -293,7 +298,7 @@ function Moi() {
           <>
             {compte}
             {ecurie}
-            <LieuReglages />
+            {papiers}
             <EquipeReglages />
             {rappel}
             {premiers}

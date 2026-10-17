@@ -73,7 +73,7 @@ function tipFor(h: Horse, t: HorseTicket): [string, string] {
   if (big && -big.amount > 20)
     return [
       "Sa pension ne suffit pas à payer ses soins.",
-      `Si ${h.ownerName ?? "son propriétaire"} paie ${big.label.toLowerCase()}, ${h.name} ${Math.round(t.net - big.amount) < 0 ? `ne te coûtera plus que ${eur(-(t.net - big.amount))}` : Math.round(t.net - big.amount) > 0 ? `te laissera ${eur(t.net - big.amount)}` : "ne te coûtera plus rien"}.`,
+      `Si ${h.ownerName ?? "son propriétaire"} paie aussi ce poste (${big.label.toLowerCase()}), ${h.name} ${Math.round(t.net - big.amount) < 0 ? `ne te coûtera plus que ${eur(-(t.net - big.amount))}` : Math.round(t.net - big.amount) > 0 ? `te laissera ${eur(t.net - big.amount)}` : "ne te coûtera plus rien"}.`,
     ];
   const breakeven = Math.ceil((t.direct + t.share - (t.revenue - (h.pension ?? 0))) / 10) * 10;
   return [`Une pension à ${eur(breakeven)} au lieu de ${eur(h.pension ?? 0)} suffirait.`, `Sa pension est plus basse que ce ${selonSexe(h, "qu’il", "qu’elle", "que ce cheval")} te coûte. À ce prix, tu ne perdrais plus d’argent.`];
@@ -186,7 +186,7 @@ function Ticket({ horse }: { horse: Horse }) {
             </div>
           ))}
           <div className="r tot">
-            <span>{net >= 0 ? "Il te laisse" : "Il te coûte"}</span>
+            <span>{net >= 0 ? selonSexe(horse, "Il te laisse", "Elle te laisse", "Il te reste") : selonSexe(horse, "Il te coûte", "Elle te coûte", "Coût du mois")}</span>
             <Money v={net} />
           </div>
         </div>
@@ -357,7 +357,8 @@ function Ticket({ horse }: { horse: Horse }) {
 
   return (
     <Ecran>
-      {top}
+      {/* Le portrait à côté du nom, plus au-dessus : le chiffre du mois tient dans le premier écran. */}
+      <div className="ch-mtop">{top}</div>
       {mnav}
       <div className="ch-tabs rise" style={{ animationDelay: ".24s" }}>
         <Seg

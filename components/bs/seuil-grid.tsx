@@ -12,7 +12,8 @@ export function SeuilGrid({ horses, capacity, seuil }: { horses: Horse[]; capaci
   const cap = Math.max(capacity, horses.length, isFinite(seuil) ? Math.ceil(seuil) : 0);
   const cols = 6;
   const ROW = 54; // une tête de 42 px et 12 px d'écart
-  const sc = Math.min(isFinite(seuil) ? seuil : cap, cap);
+  // Le trait passe entre deux têtes, au cheval entier : à 7,5 il coupait la 8e tête en deux.
+  const sc = Math.min(isFinite(seuil) ? Math.ceil(seuil - 1e-9) : cap, cap);
   const row = Math.min(Math.floor(sc / cols), Math.ceil(cap / cols) - 1);
   const col = sc - row * cols;
   const free = Math.max(0, capacity - horses.length);
@@ -32,7 +33,7 @@ export function SeuilGrid({ horses, capacity, seuil }: { horses: Horse[]; capaci
         </span>
         <b>
           <Ic n="flag" className="ar-ic" />
-          {isFinite(seuil) ? `il en faut ${Math.ceil(seuil - 1e-9)}` : "pas encore atteignable"}
+          {isFinite(seuil) ? "le trait : tout est payé" : "pas encore atteignable"}
         </b>
       </div>
     </>

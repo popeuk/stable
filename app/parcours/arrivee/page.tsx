@@ -63,7 +63,7 @@ function Reste() {
           <p className="es-say">par mois.</p>
           <div className="es-calc">
             <div>
-              <span>{n > 1 ? `${n} chevaux, ce qui devrait rentrer` : "Ce qui devrait rentrer"}</span>
+              <span>{n > 1 ? `${n} pensions, si payées` : "Ce qui devrait rentrer"}</span>
               <span className="num">{sg(m.revenue)}</span>
             </div>
             {m.direct > 0 && (

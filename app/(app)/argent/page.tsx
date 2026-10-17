@@ -369,7 +369,7 @@ function Mois() {
         )}
         {isNow && <Piste delay={0.48} />}
         {isNow && (
-          <Link href="/chevaux?vue=clients" className="card ar-lcard rise" style={{ animationDelay: ".48s", marginTop: 18 }}>
+          <Link href="/chevaux?vue=clients" className="ar-lcard ar-lrow rise" style={{ animationDelay: ".48s", marginTop: 18 }}>
             <span className="ar-pic">
               <Ic n="people" className="ar-ic" />
             </span>
@@ -380,7 +380,7 @@ function Mois() {
             <Ic n="chev" className="chev" />
           </Link>
         )}
-        <Link href="/seuil" className="card ar-lcard rise" style={{ animationDelay: ".5s", marginTop: isNow ? 0 : 18 }}>
+        <Link href="/seuil" className="ar-lcard ar-lrow rise" style={{ animationDelay: ".5s", marginTop: isNow ? 0 : 18 }}>
           <span className="ar-pic">
             <Ic n="flag" className="ar-ic" />
           </span>
@@ -390,7 +390,7 @@ function Mois() {
           </span>
           <Ic n="chev" className="chev" />
         </Link>
-        <Link href="/part" className="card ar-lcard rise" style={{ animationDelay: ".56s" }}>
+        <Link href="/part" className="ar-lcard ar-lrow rise" style={{ animationDelay: ".56s" }}>
           <span className="ar-pic">
             <Ic n="hay" className="ar-ic" />
           </span>
@@ -402,7 +402,7 @@ function Mois() {
           </span>
           <Ic n="chev" className="chev" />
         </Link>
-        <Link href="/pilotage" className="card ar-lcard rise" style={{ animationDelay: ".62s" }}>
+        <Link href="/pilotage" className="ar-lcard ar-lrow rise" style={{ animationDelay: ".62s" }}>
           <span className="ar-pic">
             <Ic n="chart" className="ar-ic" />
           </span>
@@ -425,7 +425,7 @@ function Piste({ delay }: { delay: number }) {
   const action = list.find((s) => s.lever === "facturer") ?? list[0];
   if (!action) return null;
   return (
-    <Sec blk ill="piste" title="Une piste pour gagner plus" action={<Link href="/argent?vue=leviers">{list.length > 1 ? `Les ${list.length} pistes` : "Voir"}</Link>} delay={delay}>
+    <Sec ill="piste" title="Une piste pour gagner plus" action={<Link href="/argent?vue=leviers">{list.length > 1 ? `Les ${list.length} pistes` : "Voir"}</Link>} delay={delay}>
       <Link href="/argent?vue=leviers" className="ar-piste">
         <span style={{ minWidth: 0 }}>
           <b>{action.title}</b>

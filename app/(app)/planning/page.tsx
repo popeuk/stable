@@ -175,13 +175,13 @@ function Planning() {
       {Math.round(aCompteJour) !== 0 && (
         <>
           {" · "}
-          <span className={moneyCls(aCompteJour)}>{sg(aCompteJour)}</span> {sel === today ? "ont déjà compté" : "ont compté"}
+          <span className={moneyCls(aCompteJour)} style={{ whiteSpace: "nowrap" }}>{sg(aCompteJour)}</span> {sel === today ? "ont déjà compté" : "ont compté"}
         </>
       )}
       {Math.round(aVenirJour) !== 0 && (
         <>
           {" · "}
-          {sg(aVenirJour)} encore prévus {sel === today ? "aujourd’hui" : "ce jour-là"}
+          <span style={{ whiteSpace: "nowrap" }}>{sg(aVenirJour)}</span> encore prévus {sel === today ? "aujourd’hui" : "ce jour-là"}
         </>
       )}
       .
