@@ -15,7 +15,7 @@ import { useDesk } from "@/components/bs/desk-hook";
 import { useAideIci } from "@/components/bs/nav";
 import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
 import { useRouter, useSearchParams } from "next/navigation";
-import { accord, clientDues, duMois, prenomDe, type ClientDue } from "@/lib/domain/clients";
+import { accord, anciensEnMots, clientDues, prenomDe, type ClientDue } from "@/lib/domain/clients";
 import { billsFor, monthKey } from "@/lib/domain/billing";
 import { clientsAFairePayer } from "@/lib/domain/compte-auto";
 import { addMonths, currentPeriod, daysInMonth } from "@/lib/utils/period";
@@ -180,7 +180,7 @@ const sousLigne = (c: ClientDue) =>
   c.due > 0 ? (c.horses.length ? `${c.horses.join(", ")} · ${c.paieALaSeance ? "à la séance" : "au mois"}` : c.paieALaSeance ? "à la séance" : quiEst(c)) : quiEst(c);
 
 /** Les impayés des mois d'avant, chacun avec son mois : « dont 350 € de septembre ». */
-const anciensDits = (c: ClientDue, period: { year: number; month: number }) => c.anciens.map((a) => `dont ${eur(a.due)} ${duMois(a.month, period)}`).join(" · ");
+const anciensDits = (c: ClientDue, period: { year: number; month: number }) => anciensEnMots(c, period, eur);
 
 function LigneClient({ c, period }: { c: ClientDue; period: { year: number; month: number } }) {
   return (

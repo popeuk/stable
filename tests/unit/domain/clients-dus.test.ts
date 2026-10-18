@@ -125,3 +125,13 @@ describe("les mots", () => {
     expect(m2).not.toContain("Déjà payé");
   });
 });
+
+describe("les impayés d'avant, en mots", () => {
+  const e = (n: number) => `${n} €`;
+  it("« dont » seulement quand le mois en cours doit aussi", async () => {
+    const { anciensEnMots } = await import("@/lib/domain/clients");
+    expect(anciensEnMots({ anciens: [{ month: "2026-09", due: 120 }], dueMois: 0 }, oct, e)).toBe("120 € de septembre");
+    expect(anciensEnMots({ anciens: [{ month: "2026-09", due: 120 }], dueMois: 450 }, oct, e)).toBe("dont 120 € de septembre");
+    expect(anciensEnMots({ anciens: [{ month: "2026-08", due: 80 }, { month: "2026-09", due: 120 }], dueMois: 0 }, oct, e)).toBe("80 € d’août · 120 € de septembre");
+  });
+});

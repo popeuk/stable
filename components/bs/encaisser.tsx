@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Ic, eur, eurc } from "@/components/carnet/ui";
 import { MoyenChoix } from "@/components/bs/moyen-paiement";
 import { useDataStore } from "@/stores/data-store";
-import { accord, clientDues, duMois, prenomDe, type ClientDue } from "@/lib/domain/clients";
+import { accord, anciensEnMots, clientDues, duMois, prenomDe, type ClientDue } from "@/lib/domain/clients";
 import { monthKey } from "@/lib/domain/billing";
 import { dernierMoyen, enMoyen, repartirPaiement, suggestionsPartielles } from "@/lib/domain/paiement";
 import { esc } from "@/components/bs/ui";
@@ -43,7 +43,7 @@ export function Encaisser({ onBack, onDone }: { onBack: () => void; onDone: (htm
                 </span>
                 <span className="cl-rt">
                   <b>{c.name}</b>
-                  {c.anciens.length > 0 && <small>{c.anciens.map((a) => `dont ${eur(a.due)} ${duMois(a.month, period)}`).join(" · ")}</small>}
+                  {c.anciens.length > 0 && <small>{anciensEnMots(c, period, eur)}</small>}
                 </span>
                 <span className="cl-amt">
                   <small>te doit</small>
@@ -54,7 +54,7 @@ export function Encaisser({ onBack, onDone }: { onBack: () => void; onDone: (htm
             ))}
           </div>
         ) : (
-          <p className="note">Personne ne te doit rien pour l’instant.</p>
+          <p className="note">Personne ne te doit d’argent pour l’instant.</p>
         )}
       </>
     );
@@ -94,7 +94,7 @@ function Payer({ c, period, onBack, onDone }: { c: ClientDue; period: { year: nu
           <span className="cl-lab">{prenomDe(c.name)} te doit</span>
           <b className="cl-big">{eur(c.due)}</b>
         </span>
-        {c.anciens.length > 0 && <p className="note">Dont {c.anciens.map((a) => `${eur(a.due)} ${duMois(a.month, period)}`).join(", ")}. Un paiement solde d’abord le plus ancien.</p>}
+        {c.anciens.length > 0 && <p className="note">{c.dueMois > 0 ? "Dont" : "C’est"} {c.anciens.map((a) => `${eur(a.due)} ${duMois(a.month, period)}`).join(", ")}. Un paiement solde d’abord le plus ancien.</p>}
         {partie && (
           <>
             <p className="note">Combien {accord(c.name, "t’a-t-il", "t’a-t-elle")} payé ?</p>

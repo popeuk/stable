@@ -261,6 +261,17 @@ export function messageDu(bill: Bill, period: Period, stableName: string, gerant
 }
 
 /** « de septembre », « d’août », « de décembre 2025 » quand ce n'est pas l'année de `period`. */
+/**
+ * Les impayés des mois d'avant, en mots : « dont 120 € de septembre » quand le
+ * mois en cours doit aussi quelque chose, « 120 € de septembre » quand tout
+ * vient d'avant (pas de « te doit 120 €, dont 120 € »). eur : le format des montants.
+ */
+export function anciensEnMots(c: Pick<ClientDue, "anciens" | "dueMois">, period: Period, eur: (n: number) => string): string {
+  const mots = c.anciens.map((a) => `${eur(a.due)} ${duMois(a.month, period)}`);
+  if (!mots.length) return "";
+  return c.dueMois > 0 ? mots.map((m) => `dont ${m}`).join(" · ") : mots.join(" · ");
+}
+
 export function duMois(month: string, period: Period): string {
   const p = { year: Number(month.slice(0, 4)), month: Number(month.slice(5, 7)) };
   const nom = `${moisNom(p)}${p.year !== period.year ? ` ${p.year}` : ""}`;
