@@ -149,10 +149,34 @@ export interface MonthBreakdown {
   sharedTotal: number;
   net: number;
   horseCount: number;
-  /** Ce que laisse un cheval en moyenne, une fois ses soins payés. */
+  /** Les pensions du mois : les chevaux du mois, sans ceux du gérant. */
+  pensions: number;
+  /** Les chevaux du gérant ce mois (« À moi ») : une place, pas de pension. */
+  miens: number;
+  /** Ce que les pensions doivent payer : les frais de l'écurie et ce que coûtent les chevaux du gérant. */
+  aCouvrir: number;
+  /** Ce que laisse une pension en moyenne, une fois ses soins payés. */
   contribution: number;
-  /** Le nombre de chevaux qui paient les factures communes. */
+  /** Le nombre de pensions qui paient tout (Infinity si une pension ne laisse rien). */
   seuil: number;
+}
+
+/** Un cheval du gérant : la formule « À moi » (components/bs/parcours, A_MOI). */
+export const estAuGerant = (h: { pensionType?: string }) => h.pensionType === "À moi";
+
+/**
+ * Le seuil face aux places : combien de places peuvent recevoir une pension
+ * (les places moins les chevaux du gérant), et ce qui manque encore par mois
+ * quand le seuil dépasse ces places, même toutes pleines. Sans nombre de
+ * places connu, le seuil n'est pas borné.
+ */
+export function seuilEtPlaces(m: Pick<MonthBreakdown, "seuil" | "miens" | "aCouvrir" | "contribution">, capacity: number): { placesPensions: number | null; atteignable: boolean; manque: number } {
+  if (!isFinite(m.seuil)) return { placesPensions: capacity > 0 ? Math.max(0, capacity - m.miens) : null, atteignable: false, manque: 0 };
+  if (!(capacity > 0)) return { placesPensions: null, atteignable: true, manque: 0 };
+  const placesPensions = Math.max(0, capacity - m.miens);
+  const besoin = Math.ceil(m.seuil - 1e-9);
+  if (besoin <= placesPensions) return { placesPensions, atteignable: true, manque: 0 };
+  return { placesPensions, atteignable: false, manque: Math.max(0, Math.round(m.aCouvrir - placesPensions * m.contribution)) };
 }
 
 export function monthBreakdown(data: StableData, period: Period): MonthBreakdown {
@@ -201,9 +225,17 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
   const rest = Math.round((s.sharedCosts - listed) * 100) / 100;
   if (rest > 0.5) addSh("Autres frais de l’écurie", rest);
 
-  // Ce que laisse un cheval : sans l'argent hors chevaux.
-  const contribution = s.horseCount ? (s.horsesRevenue - s.horsesDirectCosts) / s.horseCount : 0;
-  const seuil = contribution > 0 ? s.sharedCosts / contribution : Infinity;
+  // Le seuil se compte en pensions, pas en chevaux : les chevaux du gérant
+  // (« À moi ») prennent une place et leur part, sans payer de pension. Ce
+  // que laisse une pension en moyenne, une fois ses soins payés, doit couvrir
+  // les frais de l'écurie et ce que coûtent les chevaux du gérant.
+  const miens = new Set(data.horses.filter(estAuGerant).map((h) => h.id));
+  const pensionsDuMois = s.perHorse.filter((p) => !miens.has(p.horseId));
+  const lesMiens = s.perHorse.filter((p) => miens.has(p.horseId));
+  const pensions = pensionsDuMois.length;
+  const contribution = pensions ? pensionsDuMois.reduce((t, p) => t + p.revenue - p.directCosts, 0) / pensions : 0;
+  const aCouvrir = Math.round((s.sharedCosts + lesMiens.reduce((t, p) => t + p.directCosts - p.revenue, 0)) * 100) / 100;
+  const seuil = contribution > 0 ? aCouvrir / contribution : Infinity;
 
   const sortDesc = (m: Map<string, number>) =>
     [...m.entries()].map(([label, amount]) => ({ label, amount })).sort((a, b) => b.amount - a.amount);
@@ -218,6 +250,9 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
     sharedTotal: s.sharedCosts,
     net: s.netResult,
     horseCount: s.horseCount,
+    pensions,
+    miens: lesMiens.length,
+    aCouvrir,
     contribution,
     seuil,
   };

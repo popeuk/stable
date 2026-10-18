@@ -11,7 +11,8 @@ import { getSession } from "@/lib/account/session";
 import { estAMoi } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
-import { monthBreakdown } from "@/lib/domain/ticket";
+import { monthBreakdown, seuilEtPlaces } from "@/lib/domain/ticket";
+import { REVOIR_PRIX, memePlein } from "@/lib/domain/lecture";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Horse } from "@/lib/domain/types";
 
@@ -148,7 +149,10 @@ function Fin() {
   const capacity = useSettingsStore((s) => s.capacity);
   const m = useMemo(() => monthBreakdown(data, currentPeriod()), [data]);
   const horses = data.horses.filter((h) => !h.isArchived);
-  const need = isFinite(m.seuil) ? Math.ceil(m.seuil) : null;
+  // Le seuil se compte en pensions ; au-delà des places, il n'est pas atteignable à ce prix.
+  const enPension = horses.filter((h) => !estAMoi(h)).length;
+  const places = seuilEtPlaces(m, capacity);
+  const need = isFinite(m.seuil) && places.atteignable ? Math.ceil(m.seuil - 1e-9) : null;
   return (
     <div className="ar-fin">
       <div className="hero-ill rise">
@@ -157,13 +161,15 @@ function Fin() {
       <h1 className="ar-t1 rise" style={{ animationDelay: ".08s" }}>
         Ton écurie est prête.
       </h1>
-      <Seuil horses={horses} capacity={capacity} seuil={m.seuil} />
+      <Seuil horses={[...horses.filter((h) => !estAMoi(h)), ...horses.filter(estAMoi)]} capacity={capacity} seuil={need ? m.seuil : Infinity} />
       <p className="ar-say">
         {need ? (
           <>
-            Il te faut {need} chevaux pour ne pas perdre d’argent. Tu en as {horses.length}
-            {horses.length >= need ? ", c’est bon" : `, il en manque ${need - horses.length}`}. Chaque place louée en plus te laisse environ <Money v={m.contribution} /> de plus par mois.
+            Il te faut {need} pension{need > 1 ? "s" : ""} pour ne pas perdre d’argent. Tu en as {enPension}
+            {enPension >= need ? ", c’est bon" : `, il en manque ${need - enPension}`}. Chaque place louée en plus te laisse environ <Money v={m.contribution} /> de plus par mois.
           </>
+        ) : isFinite(m.seuil) ? (
+          `${memePlein(capacity, eurc(places.manque))} ${REVOIR_PRIX}`
         ) : (
           "Pour l’instant, les pensions ne suffisent pas à payer les soins des chevaux. Commence par revoir le prix de tes pensions."
         )}

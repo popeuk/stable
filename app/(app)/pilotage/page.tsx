@@ -186,7 +186,7 @@ function Bilans() {
         </div>
         <div>
           <b>{cur && isFinite(cur.seuil) ? Math.ceil(cur.seuil - 1e-9) : "pas encore"}</b>
-          <small>chevaux pour tout payer</small>
+          <small>pensions pour tout payer</small>
         </div>
       </div>
     </div>

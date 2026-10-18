@@ -20,8 +20,8 @@ describe("pensions qui manquent pour tout payer", () => {
     expect(pensionsQuiManquent(Infinity, 4)).toBeNull();
   });
   it("une phrase par cas", () => {
-    expect(phraseSeuil(9, 9)).toBe("Avec 9 chevaux, tout est payé.");
-    expect(phraseSeuil(0.5, 1)).toBe("Avec 1 cheval, tout est payé.");
+    expect(phraseSeuil(9, 9)).toBe("Avec 9 pensions, tout est payé.");
+    expect(phraseSeuil(0.5, 1)).toBe("Avec 1 pension, tout est payé.");
     expect(phraseSeuil(7.5, 6)).toBe("Il te manque 2 pensions pour tout payer.");
     expect(phraseSeuil(6.2, 6)).toBe("Il te manque 1 pension pour tout payer.");
     expect(phraseSeuil(Infinity, 3)).toMatch(/ne paient même pas les soins/);

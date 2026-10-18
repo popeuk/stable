@@ -23,12 +23,22 @@ export function pensionsQuiManquent(seuil: number, chevaux: number): number | nu
   return Math.max(0, Math.ceil(seuil - 1e-9) - chevaux);
 }
 
-/** La phrase sous « Il en faut 9. Tu en as 9. » : la réponse, sans le calcul. */
+/** « Il te faut 9 pensions. » : le seuil se compte en pensions, pas en chevaux. */
+export function ilFautPensions(seuil: number): string {
+  const n = Math.ceil(seuil - 1e-9);
+  return `Il te faut ${n} pension${n > 1 ? "s" : ""}.`;
+}
+
+/** Quand le seuil dépasse les places : même pleines, il manque (`manque` arrive écrit, « 430 € »). */
+export const memePlein = (places: number, manque: string) => `Même avec tes ${places} places pleines, il manque environ ${manque} par mois.`;
+export const REVOIR_PRIX = "C’est le prix des pensions qu’il faut revoir.";
+
+/** La phrase sous « Il te faut 9 pensions. Tu en as 9. » : la réponse, sans le calcul. */
 export function phraseSeuil(seuil: number, chevaux: number): string {
   const manque = pensionsQuiManquent(seuil, chevaux);
   if (manque === null) return "Pour l’instant, les pensions ne paient même pas les soins des chevaux.";
   if (manque === 0 && chevaux === 0) return "Tout est payé.";
-  if (manque === 0) return `Avec ${chevaux} cheva${chevaux > 1 ? "ux" : "l"}, tout est payé.`;
+  if (manque === 0) return `Avec ${chevaux} pension${chevaux > 1 ? "s" : ""}, tout est payé.`;
   return `Il te manque ${manque} pension${manque > 1 ? "s" : ""} pour tout payer.`;
 }
 

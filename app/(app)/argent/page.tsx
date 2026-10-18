@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
-import { cap, esc, ilEnFaut } from "@/components/bs/ui";
+import { cap, esc } from "@/components/bs/ui";
 import { PORTEE_PREVU, plannedRest } from "@/components/bs/goal-card";
 import { phrasePistes } from "@/lib/domain/objectif";
 import { partageLabel, repartition } from "@/lib/domain/presence";
@@ -16,8 +16,8 @@ import { usePeriodStore } from "@/stores/period-store";
 import { useUiStore } from "@/stores/ui-store";
 import { libelleFrais } from "@/components/bs/parcours";
 import { estEstimation } from "@/lib/domain/estimation";
-import { barreDuMois } from "@/lib/domain/lecture";
-import { monthBreakdown } from "@/lib/domain/ticket";
+import { barreDuMois, ilFautPensions, memePlein } from "@/lib/domain/lecture";
+import { monthBreakdown, seuilEtPlaces } from "@/lib/domain/ticket";
 import { suggestions, leverPotential, type Lever, type Suggestion } from "@/lib/domain/leviers";
 import { clientDues } from "@/lib/domain/clients";
 import { seanceAmount } from "@/lib/domain/seances";
@@ -121,6 +121,8 @@ function Mois() {
   // « Te fixer un objectif ? » sur l'accueil ouvre directement le champ.
   const [editGoal, setEditGoal] = useState(() => objectifDemande());
   const m = useMemo(() => monthBreakdown(data, active), [data, active]);
+  const capacity = useSettingsStore((s) => s.capacity);
+  const places = seuilEtPlaces(m, capacity);
   const dues = useMemo(() => clientDues(data, active).filter((c) => c.due > 0), [data, active]);
   const duTotal = dues.reduce((t, c) => t + c.due, 0);
   const isNow = samePeriod(active, currentPeriod());
@@ -340,7 +342,7 @@ function Mois() {
             </span>
             <span>
               <span className="k">Combien de chevaux pour ne pas perdre d’argent</span>
-              <b>{isFinite(m.seuil) ? `${ilEnFaut(m.seuil)} Tu en as ${m.horseCount}.` : "Tes pensions ne paient pas encore les soins des chevaux"}</b>
+              <b>{!isFinite(m.seuil) ? "Tes pensions ne paient pas encore les soins des chevaux" : !places.atteignable ? memePlein(capacity, eur(places.manque)) : `${ilFautPensions(m.seuil)} Tu en as ${m.pensions}.`}</b>
             </span>
             <Ic n="chev" className="chev" />
           </Link>
