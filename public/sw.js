@@ -21,7 +21,7 @@ const HORS_LIGNE = BASE + "hors-ligne.html";
 const ECRANS = [
   "", "accueil/", "planning/", "chevaux/", "argent/", "valider/", "equipe/", "clients/", "client/", "ticket/",
   "cheval/", "contacts/", "prestations/", "moi/", "recherche/", "pilotage/", "facture/", "facturation/", "registre/",
-  "ma-fiche/", "seuil/", "part/",
+  "ma-fiche/", "seuil/", "part/", "ecurie/", "parcours/factures/", "reglages/",
 ].map((p) => BASE + p);
 const FICHIERS = ["manifest.webmanifest", "icon-192.png", "img/carnet/hors-ligne.webp", "img/carnet/gerant-hors-ligne.webp"].map((p) => BASE + p);
 
