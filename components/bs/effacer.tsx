@@ -101,7 +101,7 @@ export function FeuilleConfirmer({ titre, onClose, children }: { titre: string; 
               <Ic n="x" className="" />
             </button>
           </div>
-          <div style={{ display: "grid", gap: 10, paddingBottom: 8 }}>{children}</div>
+          <div className="pad" style={{ display: "grid", gap: 10, paddingBottom: 8 }}>{children}</div>
         </div>
       </div>
     </div>,

@@ -184,6 +184,13 @@
 .carnet .jr-desk .ev small .in, .carnet .jr-desk .ev small .out, .carnet .jr-desk .ev b .in, .carnet .jr-desk .ev b .out { flex: none; font-size: 12px; }
 .carnet .jr-desk .ev b > span + span, .carnet .jr-desk .ev small > span + span { flex: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .carnet .jr-desk .ev.short { align-content: center; padding: 0 7px; }
+/* Deux rendez-vous à la même heure, côte à côte : le nom d'abord, le montant
+   s'efface s'il ne reste pas la place (« F. −80 € » devient « Ferrure · T… »).
+   Le détail reste au survol et au toucher. */
+.carnet .jr-desk .ev { container-type: inline-size; }
+@container (max-width: 110px) {
+  .carnet .jr-desk .ev b > span + span, .carnet .jr-desk .ev small > span + span { display: none; }
+}
 .carnet .jr-desk .ev.done { box-shadow: inset 0 2px 0 var(--ink3), inset 0 0 0 1px var(--line); }
 .carnet .jr-desk .dk { width: 14px; height: 14px; border-radius: 50%; background: var(--acc); display: flex; align-items: center; justify-content: center; flex: none; }
 .carnet .jr-desk .dk svg { width: 9px; height: 9px; fill: none; stroke: var(--sheet); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }

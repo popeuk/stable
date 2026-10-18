@@ -145,11 +145,17 @@ function Moi() {
     }
     poserParent(GROUPES[groupe].parent);
     // L'onglet du navigateur dit la page : « Mon équipe · Be Stable », pas « Réglages ».
-    const avant = document.title;
-    document.title = `${GROUPES[groupe].t} · Be Stable`;
+    // Next repose le titre de l'écran après coup : on le remet tant que la page est ouverte.
+    const titre = `${GROUPES[groupe].t} · Be Stable`;
+    const poserTitre = () => {
+      if (document.title !== titre) document.title = titre;
+    };
+    poserTitre();
+    const mo = new MutationObserver(poserTitre);
+    mo.observe(document.head, { childList: true, subtree: true, characterData: true });
     return () => {
+      mo.disconnect();
       poserParent(null);
-      document.title = avant;
     };
   }, [groupe, poserParent, router]);
   const [taille, setTaille] = useState<Taille>(tailleTexte);
