@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, IBM_Plex_Mono } from "next/font/google";
 import { EARLY_INSTALL_SCRIPT, PwaRegister } from "@/components/pwa-register";
 import { SANS_ZOOM } from "@/lib/sans-zoom";
 import { TAILLE_TOT } from "@/lib/taille";
+import { Consentement } from "@/components/bs/consentement";
 import "./globals.css";
 import "./bs.css";
 import "./carnet.css";
@@ -87,6 +88,7 @@ export default function RootLayout({
       <body>
         {children}
         <PwaRegister />
+        <Consentement />
       </body>
     </html>
   );

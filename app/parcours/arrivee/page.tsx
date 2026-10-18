@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { mesurer } from "@/lib/mesure";
 import { useRouter } from "next/navigation";
 import { useUiStore } from "@/stores/ui-store";
 import { ClientGate } from "@/components/ui/client-gate";
@@ -25,6 +26,8 @@ export default function Page() {
 
 function Arrivee() {
   const parcours = useSettingsStore((s) => s.parcours);
+  // « Voilà ton mois » : une étape de l'essai, mesurée si le gérant l'a accepté (lib/mesure).
+  useEffect(() => mesurer("voila_ton_mois"), []);
   return OBSTACLES.every((o) => parcours[o]) ? <Fin /> : <Reste />;
 }
 

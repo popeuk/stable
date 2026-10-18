@@ -67,6 +67,12 @@ jobs:
           DEPLOY_TARGET: pages
           PAGES_BASE: ""
           NEXT_PUBLIC_BASE_PATH: ""
+          # La version, envoyée avec un message « Contact ».
+          NEXT_PUBLIC_APP_VERSION: ${{ github.sha }}
+          # La mesure (Google Analytics, pixel Meta) reste éteinte tant que ces variables
+          # du dépôt (Settings > Variables) sont vides : rien ne se charge, pas de bandeau.
+          NEXT_PUBLIC_GA_ID: ${{ vars.GA_ID }}
+          NEXT_PUBLIC_META_PIXEL: ${{ vars.META_PIXEL }}
       - name: Publish to the vps branch
         run: |
           cd out

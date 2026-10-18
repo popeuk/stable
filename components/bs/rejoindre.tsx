@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { withBase } from "@/components/bs/ui";
 import { nf, useAnnuaire } from "@/components/bs/account-ui";
 import { EcuriesTexte, ecuriesTexte } from "@/lib/annuaire";
+import { mesurer } from "@/lib/mesure";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
 import { Ic, Ill } from "@/components/carnet/ui";
 import { Stories } from "@/components/bs/histoire";
@@ -169,6 +170,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
     setErr("");
     try {
       const r = await api.verifierCode(email.trim(), c);
+      if (r.nouveau) mesurer("compte_cree");
       const s = sessionFrom(r);
       setSession(s);
       setCompte(s);

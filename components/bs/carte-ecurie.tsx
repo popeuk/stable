@@ -11,6 +11,7 @@ import { api, type StableHit } from "@/lib/account/api";
 import { useAnnuaire } from "@/components/bs/account-ui";
 import { EcuriesTexte } from "@/lib/annuaire";
 import { ContactOuvrir } from "@/components/bs/contact";
+import { ChoixTemoinsLigne } from "@/components/bs/consentement";
 
 /**
  * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
@@ -215,7 +216,9 @@ export function Reglages() {
           { href: "/regles?t=cgu", ic: "doc", t: "Conditions d’utilisation", s: "Ce que l’app fait, ce qu’elle ne fait pas" },
           { href: "/regles?t=mentions-legales", ic: "flag", t: "Mentions légales", s: "Qui édite Be Stable, qui l’héberge" },
         ]}
-      />
+      >
+        <ChoixTemoinsLigne className="ce-li">{(resume) => <LigneTx ic="chart" t="Témoins et mesure" s={`${resume} · changer d’avis`} />}</ChoixTemoinsLigne>
+      </Case>
       <ContactOuvrir
         ecran="/reglages"
         render={(ouvrir) => (
