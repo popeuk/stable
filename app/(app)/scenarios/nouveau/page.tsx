@@ -107,7 +107,7 @@ function Simulator() {
       </div>
 
       <div className="pad rise" style={{ animationDelay: ".28s", marginTop: 12 }}>
-        <button type="button" onClick={() => say("Essai gardé sur cet appareil.")} className="btn full">
+        <button type="button" onClick={() => say("Essai gardé.")} className="btn full">
           <Ic n="ck" className="" />
           Garder cet essai
         </button>

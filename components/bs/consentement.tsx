@@ -94,7 +94,7 @@ function Panneau({ choix, onChoisir, onClose }: { choix: Choix | null; onChoisir
       <div className="bs-cs-scrim" onClick={onClose} />
       <div className="bs-cs-p" role="dialog" aria-modal="true" aria-labelledby="bs-cs-t">
         <b id="bs-cs-t">Tes choix de témoins</b>
-        <p className="bs-cs-n">Rien n’est chargé sans ton accord. Ton choix est gardé 6 mois sur cet appareil ; tu le changes quand tu veux dans Réglages.</p>
+        <p className="bs-cs-n">Rien n’est chargé sans ton accord. Ton choix est gardé 6 mois ici ; tu le changes quand tu veux dans Réglages.</p>
         {AVEC_GA && (
           <label className="bs-cs-l">
             <input type="checkbox" checked={audience} onChange={(e) => setAudience(e.target.checked)} />

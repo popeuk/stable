@@ -54,7 +54,7 @@ describe("une sauvegarde abîmée ou d'un autre format est refusée, rien n'est 
   it("refusée avec la raison", () => {
     const abimee = lireSauvegarde(JSON.stringify({ app: "be-stable", "be-stable-data": { state: { horses: "abc" } } }));
     expect(abimee.ok).toBe(false);
-    expect(!abimee.ok && abimee.raison).toMatch(/abîmée \(les chevaux\)\. Rien n’a été remplacé/);
+    expect(!abimee.ok && abimee.raison).toMatch(/abîmée \(les chevaux\)\. Rien n’a changé dans l’app/);
     expect(lireSauvegarde("bonjour").ok).toBe(false);
     expect(lireSauvegarde(JSON.stringify({ app: "autre" })).ok).toBe(false);
   });

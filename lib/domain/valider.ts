@@ -146,15 +146,15 @@ export function lireSauvegarde(texte: string): Lecture {
   try {
     json = JSON.parse(texte);
   } catch {
-    return { ok: false, raison: "Ce fichier n’est pas une sauvegarde Be Stable : il ne se lit pas. Choisis le fichier créé avec « Exporter mes données »." };
+    return { ok: false, raison: "Ce fichier n’est pas une sauvegarde Be Stable. Choisis celui créé avec « Faire une sauvegarde »." };
   }
   if (!estObjet(json) || json.app !== "be-stable" || !estObjet(json["be-stable-data"]) || !estObjet((json["be-stable-data"] as Record<string, unknown>).state)) {
-    return { ok: false, raison: "Ce fichier n’est pas une sauvegarde Be Stable. Choisis le fichier créé avec « Exporter mes données »." };
+    return { ok: false, raison: "Ce fichier n’est pas une sauvegarde Be Stable. Choisis celui créé avec « Faire une sauvegarde »." };
   }
   const state = (json["be-stable-data"] as Record<string, unknown>).state as Record<string, unknown>;
   const n = nettoyer(state);
   if (n.problemes.length) {
-    return { ok: false, raison: `Cette sauvegarde est abîmée (${n.problemes.join(", ")}). Rien n’a été remplacé. Tes données sur cet appareil sont toujours là.` };
+    return { ok: false, raison: `Cette sauvegarde est abîmée (${n.problemes.join(", ")}). Rien n’a changé dans l’app.` };
   }
   const st = json["be-stable-settings"];
   const settings = estObjet(st) && estObjet(st.state) ? (st.state as Record<string, unknown>) : undefined;

@@ -24,7 +24,7 @@ export function EtatCopie() {
     <div className="li np" role="status">
       <span>
         <b>{t}</b>
-        <small>tes autres appareils la retrouvent avec ton e-mail</small>
+        <small>ton téléphone et ton ordinateur la retrouvent avec ton e-mail</small>
       </span>
       <span />
     </div>

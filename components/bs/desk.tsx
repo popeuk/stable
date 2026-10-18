@@ -168,7 +168,7 @@ export function InstallCard() {
         </span>
         <div style={{ flex: 1 }}>
           <div className="k">Installée</div>
-          <b>Be Stable s’ouvre comme une app sur cet appareil.</b>
+          <b>Be Stable s’ouvre comme une app sur cet ordinateur.</b>
         </div>
       </div>
     );

@@ -180,7 +180,7 @@ function Factures() {
             unit={uniteConnu(connu)}
             value={txt}
             onChange={changerTotal}
-            help="Un ordre d’idée suffit. Tu affineras plus tard."
+            help="Un chiffre à peu près suffit. Tu corrigeras plus tard."
           />
           {connu !== "mois" && montantOuZero(txt) > 0 && (
             <div className="ar-mc">
@@ -238,7 +238,7 @@ function Factures() {
       </div>
       {mode === "postes" && (
         <Tip ill="carnet-buste">
-          <b>Un ordre d’idée suffit.</b> Tu pourras corriger ces montants quand tu veux, depuis « Mon écurie et mes réglages ».
+          <b>Un chiffre à peu près suffit.</b> Tu pourras le corriger dans Mon écurie, Mes frais.
         </Tip>
       )}
       </div>

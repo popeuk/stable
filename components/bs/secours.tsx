@@ -36,7 +36,7 @@ export function SecoursEcran({ problemes, origine, onRepartir, onGarder, garder 
   return (
     <Page>
       <Hello
-        title="Une partie de tes données ne se lit plus."
+        title="Une partie de ce que tu as noté est abîmée."
         sub={problemes.length ? `Ce qui est abîmé : ${problemes.join(", ")}. Le reste est là. Garde-en une copie avant de choisir.` : "Garde une copie de ce qui reste avant de choisir."}
       />
       <div className="pad rise" style={{ display: "grid", gap: 10, marginTop: 16, animationDelay: ".1s" }}>
@@ -49,7 +49,7 @@ export function SecoursEcran({ problemes, origine, onRepartir, onGarder, garder 
           }}
         >
           <Ic n="download" className="" />
-          Exporter ce qui reste
+          Garder une copie de ce qui reste
         </button>
         {exporte && <p className="note">Le fichier est dans tes téléchargements. Tu pourras le donner à Be Stable pour qu’on t’aide à le relire.</p>}
         {onGarder && (
@@ -61,10 +61,10 @@ export function SecoursEcran({ problemes, origine, onRepartir, onGarder, garder 
           type="button"
           className="btn line full"
           onClick={() => {
-            if (window.confirm(exporte ? "Repartir sur cet appareil ? Ce qui reste sera remplacé." : "Repartir sans garder de copie ? Ce qui reste sera remplacé. Exporte-le d’abord si tu en as besoin.")) onRepartir();
+            if (window.confirm(exporte ? "Repartir de zéro ? Ce qui reste sera effacé." : "Repartir sans copie ? Ce qui reste sera effacé. Garde-en une copie d’abord si tu en as besoin.")) onRepartir();
           }}
         >
-          Repartir
+          Repartir de zéro
         </button>
       </div>
       <div className="end" />

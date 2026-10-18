@@ -79,7 +79,7 @@ export function Essayer() {
   const repartir = async () => {
     if (busy) return;
     const quoi = essai?.chevaux ? `Ton essai (${essai.chevaux} cheva${essai.chevaux > 1 ? "ux" : "l"})` : "Ton essai";
-    if (!window.confirm(`${quoi} sera effacé de cet appareil. Repartir de zéro ?`)) return;
+    if (!window.confirm(`${quoi} sera effacé d’ici. Repartir de zéro ?`)) return;
     await commencer();
   };
   const reprendreEssai = () => enter({ kind: "locale", at: new Date().toISOString() });

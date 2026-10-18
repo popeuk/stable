@@ -64,7 +64,7 @@ async function importData(file: File) {
     window.alert(lu.raison);
     return;
   }
-  if (!window.confirm("Remplacer les données de ce compte, sur cet appareil, par celles du fichier ?")) return;
+  if (!window.confirm("Remplacer ce qui est dans l’app par cette sauvegarde ?")) return;
   // Une sauvegarde d'une version d'avant passe par la même mise à jour qu'au chargement.
   const repris = migrerDonnees(lu.data, 4);
   // Les stores réécrivent tout seuls dans le coffre du compte (chiffré).
@@ -229,14 +229,14 @@ function Moi() {
   );
 
   const donnees = (
-    <Sec title="Tes données" delay={0.3}>
+    <Sec title="Ta sauvegarde" delay={0.3}>
       <RecupererLigne />
       <OuNote />
-      <button type="button" className="li np" onClick={exportData}>
-        <Li title="Exporter mes données" sub="une sauvegarde de toute ton écurie" right={<Ic n="download" className="ec-ico" />} />
+      <button type="button" className="li np" onClick={() => (exportData(), say("La sauvegarde est dans tes téléchargements."))}>
+        <Li title="Faire une sauvegarde" sub="un fichier avec toute ton écurie" right={<Ic n="download" className="ec-ico" />} />
       </button>
       <label className="li np">
-        <Li title="Reprendre une sauvegarde" sub="remplace ce qui est sur cet appareil" right={<Ic n="upload" className="ec-ico" />} />
+        <Li title="Ouvrir une sauvegarde" sub="remplace ce qui est dans l’app" right={<Ic n="upload" className="ec-ico" />} />
         <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
       </label>
       {session?.kind === "demo" && (
@@ -307,7 +307,7 @@ function Moi() {
           Gros texte
         </Switch>
       </div>
-      <p className="ec-help">Tout le texte grandit un peu, sur cet appareil seulement.</p>
+      <p className="ec-help">Tout le texte grandit, ici seulement.</p>
     </Sec>
   );
 
@@ -398,8 +398,8 @@ function OuNote() {
   return (
     <p className="note">
       {ou.compte
-        ? `Ton écurie est ${ou.ou}. Tes autres appareils la retrouvent avec ton e-mail. Une sauvegarde reste utile : un fichier à garder chez toi.`
-        : `Tout est rangé ${ou.ou}, et seulement là. Exporte une sauvegarde ici pour la garder ailleurs, ou crée ton compte.`}
+        ? `Ton écurie est ${ou.ou}. Ton téléphone et ton ordinateur la retrouvent avec ton e-mail. Une sauvegarde reste utile : un fichier à garder chez toi.`
+        : `Tout est rangé ${ou.ou}, et seulement là. Fais une sauvegarde ici pour la garder ailleurs, ou crée ton compte.`}
     </p>
   );
 }
@@ -411,13 +411,13 @@ function Install() {
   if (install.installed)
     return (
       <div className="li np">
-        <Li title="Be Stable est installée" sub="elle s’ouvre comme une app sur cet appareil" right={<span className="pill ink">Installée</span>} />
+        <Li title="Be Stable est installée" sub="elle s’ouvre comme une app" right={<span className="pill ink">Installée</span>} />
       </div>
     );
   return (
     <>
       <button type="button" className="li np" onClick={async () => (install.way === "bouton" ? install.prompt() : setHow(true))}>
-        <Li title="Installer Be Stable comme une app" sub="une icône sur ton écran d’accueil, même sans réseau" right={chev} />
+        <Li title="Installer l’app" sub="une icône sur ton écran d’accueil, même sans réseau" right={chev} />
       </button>
       {how && <InstallSheet onClose={() => setHow(false)} />}
     </>

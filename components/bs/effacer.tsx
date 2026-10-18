@@ -57,7 +57,7 @@ export function ZoneEffacer({ exporter }: { exporter: () => void }) {
             <Ic n="trash" className="" />
             Effacer mon écurie partout
           </button>
-          <small>Ce téléphone, tes autres appareils et ta copie en ligne. On te le redemande avant.</small>
+          <small>Ce téléphone, ton ordinateur et ta copie en ligne. On te le redemande avant.</small>
         </>
       )}
       {kind === "locale" && (

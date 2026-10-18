@@ -282,7 +282,7 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
             }}
           />
           <div className="fa-go">
-            <p>Vérifie l’aperçu : faite, la facture prend son numéro et ne change plus.{(data.invoices ?? []).length === 0 ? " Fais tes factures depuis un seul appareil." : ""}</p>
+            <p>Vérifie l’aperçu : faite, la facture prend son numéro et ne change plus.{(data.invoices ?? []).length === 0 ? " Fais tes factures toujours au même endroit." : ""}</p>
             <button type="button" className="btn full" onClick={faire} disabled={enCours}>
               <Ic n="doc" className="" />
               Faire la facture

@@ -66,8 +66,8 @@ function Facturation() {
         <p className="fr-hint">Une facture faite ne se modifie plus. Pour la corriger, ouvre-la et annule-la avec un avoir. Les numéros se suivent, on ne revient jamais en arrière.</p>
         <p className="fr-hint">
           {ou.compte
-            ? "Si deux appareils font chacun une facture avant de s’être synchronisés (sans réseau, par exemple), elles peuvent avoir le même numéro : fais tes factures plutôt sur un seul."
-            : "Fais tes factures toujours sur le même appareil : sans compte, le téléphone et l’ordinateur ne se les partagent pas, et deux factures pourraient avoir le même numéro."}
+            ? "Si le téléphone et l’ordinateur font chacun une facture sans réseau, elles peuvent avoir le même numéro : fais tes factures plutôt au même endroit."
+            : "Fais toujours tes factures sur le même téléphone (ou le même ordinateur) : sans compte, ils ne se les partagent pas, et deux factures pourraient avoir le même numéro."}
         </p>
       </Sec>
       <Sec title="Sur tes factures" blk delay={0.14}>

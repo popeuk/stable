@@ -48,17 +48,17 @@ export function AdoptChoice({ to = "/accueil", source = "legacy" }: { to?: strin
           </div>
           <div className="hello rise" style={{ animationDelay: "0.1s" }}>
             <h2>Ton compte a déjà une écurie.</h2>
-            <p>Tu as aussi noté des chiffres sur cet appareil, sans compte. Choisis ceux que tu gardes.</p>
+            <p>Tu as aussi noté des chiffres ici, sans compte. Choisis ceux que tu gardes.</p>
           </div>
           <GardeListe r={resume} />
           <div className="mt-afoot rise" style={{ animationDelay: "0.18s" }}>
             <button type="button" className="btn full" disabled={busy} onClick={() => go(() => adoptLocale("locale"))}>
-              <Ic n="ck" className="" /> Garder les chiffres de cet appareil
+              <Ic n="ck" className="" /> Garder les chiffres notés ici
             </button>
             <button type="button" className="btn line full" disabled={busy} onClick={() => go(() => adoptLocale("compte"))}>
               Garder l’écurie de mon compte
             </button>
-            <p className="note">Les chiffres que tu ne gardes pas sont effacés de cet appareil.</p>
+            <p className="note">Les chiffres que tu ne gardes pas sont effacés d’ici.</p>
           </div>
         </main>
       </div>
@@ -72,12 +72,12 @@ export function AdoptChoice({ to = "/accueil", source = "legacy" }: { to?: strin
           <Ill n="carnet" alt="" />
         </div>
         <div className="hello rise" style={{ animationDelay: "0.1s" }}>
-          <h2>Une écurie t’attend déjà sur cet appareil.</h2>
+          <h2>Une écurie t’attend déjà ici.</h2>
           <p>Des chevaux, des séances ou des chiffres ont été notés ici avant que tu aies un compte. Tu peux les mettre dans ton compte. Ils seront protégés, et toi seulement y auras accès.</p>
         </div>
         <div className="mt-afoot rise" style={{ animationDelay: "0.18s" }}>
           <button type="button" className="btn full" disabled={busy} onClick={() => go(adoptLegacy)}>
-            <Ic n="ck" className="" /> Garder ces données dans mon compte
+            <Ic n="ck" className="" /> Garder ces chiffres dans mon compte
           </button>
           <button type="button" className="btn line full" disabled={busy} onClick={() => go()}>
             Partir d’une écurie vide

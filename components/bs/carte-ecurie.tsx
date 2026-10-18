@@ -197,7 +197,7 @@ export function Reglages() {
     <div className="ce">
       <header className="ce-hd rise">
         <h1>Réglages</h1>
-        <p>L’app sur {ici}. Rien ici ne change tes chiffres.</p>
+        <p>L’app sur {ici} : compte, rappel, affichage.</p>
       </header>
       <Case
         titre="Toi"
@@ -217,7 +217,7 @@ export function Reglages() {
       <Case
         titre="Les règles"
         lignes={[
-          { href: "/regles?t=confidentialite", ic: "key", t: "Confidentialité", s: "Tes données : où elles vont, chiffrées, et tes droits" },
+          { href: "/regles?t=confidentialite", ic: "key", t: "Confidentialité", s: "Ce qu’on garde, comment c’est protégé, tes droits" },
           { href: "/regles?t=cgu", ic: "doc", t: "Conditions d’utilisation", s: "Ce que l’app fait, ce qu’elle ne fait pas" },
           { href: "/regles?t=mentions-legales", ic: "flag", t: "Mentions légales", s: "Qui édite Be Stable, qui l’héberge" },
         ]}
