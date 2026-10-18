@@ -118,6 +118,7 @@ function Chevaux() {
           retour={retour}
           n={1}
           title={deja ? "Tes chevaux" : "Combien de chevaux en pension ?"}
+          apercu={deja ? undefined : { chevaux: nombre, pension: p }}
           sub={deja ? `${deja > 1 ? `${deja} chevaux sont` : "Un cheval est"} déjà dans ton écurie. Tu peux en ajouter, ou passer.` : "Ceux dont on te paie la pension. Les noms, tu les mettras plus tard."}
         />
         {deja > 0 && troupeau}
