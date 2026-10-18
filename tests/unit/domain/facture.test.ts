@@ -5,7 +5,7 @@ import { dernierMoyen, moyenDit } from "@/lib/domain/paiement";
 import type { BillingInfo, Invoice, StableData } from "@/lib/domain/types";
 
 const oct = { year: 2026, month: 10 };
-const TAUX: BillingInfo = { legalName: "Les Pommiers", vat: "taux", rates: { pension: 20, cours: 5.5, soins: 20, autre: 10 }, address: "1 rue du Pré\n72000 Le Mans", siret: "123 456 789 00012", tvaIntra: "FR32123456789" };
+const TAUX: BillingInfo = { legalName: "Les Pommiers", statut: "ei", vat: "taux", rates: { pension: 20, cours: 5.5, soins: 20, autre: 10 }, address: "1 rue du Pré\n72000 Le Mans", siret: "123 456 789 00012", tvaIntra: "FR32123456789" };
 
 const base = (billing?: BillingInfo): StableData => ({
   horses: [{ id: "h1", stableId: "s", name: "Tonnerre", entryDate: "2024-01-01", exitDate: null, isArchived: false, ownerName: "Hugo L." }],
@@ -110,7 +110,7 @@ describe("HT, TVA et TTC", () => {
   });
 
   it("le vendeur : son nom (jamais celui de l'écurie par défaut), adresse, SIRET de 14 chiffres, TVA intracommunautaire avec la TVA", () => {
-    expect(vendeurManque(undefined)).toEqual(["nom", "adresse", "siret"]);
+    expect(vendeurManque(undefined)).toEqual(["nom", "statut", "adresse", "siret"]);
     expect(vendeurManque(TAUX)).toEqual([]);
     expect(vendeurManque({ ...TAUX, tvaIntra: undefined })).toEqual(["tva"]);
     expect(vendeurManque({ ...TAUX, vat: "franchise", tvaIntra: undefined })).toEqual([]);

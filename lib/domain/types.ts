@@ -440,8 +440,18 @@ export type VatRate = 5.5 | 10 | 20;
 export interface BillingInfo {
   /** Nom ou raison sociale, obligatoire : l'app ne prend pas le nom de l'écurie à sa place. */
   legalName?: string;
-  /** Forme juridique, imprimée après le nom quand elle est notée : « EI », « EARL », « SARL »… */
+  /**
+   * Le statut du vendeur, choisi une fois : entrepreneur individuel (la loi
+   * impose « EI » après le nom) ou société (forme juridique et capital,
+   * imprimés sous le nom). Absent : pas encore choisi, la facture le demande.
+   */
+  statut?: "ei" | "societe";
+  /** Forme juridique d'une société : « EARL », « SCEA », « SARL »… (avant le choix du statut : imprimée après le nom). */
   forme?: string;
+  /** Le capital social d'une société, tel que tapé (« 7 500 »). */
+  capital?: string;
+  /** L'IBAN, facultatif : imprimé en pied de facture (« Paiement par virement : IBAN … »). */
+  iban?: string;
   address?: string;
   /** Le SIRET, le même que celui du lieu de détention (Holding.siret) : saisi une fois. */
   siret?: string;
@@ -499,7 +509,8 @@ export interface Invoice {
   kind?: "avoir";
   /** Sur un avoir : la facture qu'il annule. */
   avoirDe?: { number: string; issuedAt: ISODate };
-  seller: { name: string; forme?: string; address?: string; siret?: string; tvaIntra?: string };
+  /** Figé à l'émission. `ei` : « EI » après le nom ; `capital` : la forme et le capital sous le nom ; `iban` : en pied de facture. */
+  seller: { name: string; forme?: string; ei?: boolean; capital?: string; address?: string; siret?: string; tvaIntra?: string; iban?: string };
   buyer: { name: string; address?: string; pro?: boolean };
   /** Client professionnel : la date d'échéance et le taux des pénalités, figés à l'émission. */
   echeance?: ISODate;

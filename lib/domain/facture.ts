@@ -75,10 +75,53 @@ export const tvaIntraDit = (s?: string) => {
   return tvaIntraValide(t) ? `${t.slice(0, 2)} ${t.slice(2, 4)} ${t.slice(4)}` : (s ?? "").trim();
 };
 
+/* ---------- Le statut du vendeur et son IBAN ---------- */
+
+/** L'IBAN sans espaces, en capitales. */
+export const ibanPropre = (s?: string) => (s ?? "").replace(/\s+/g, "").toUpperCase();
+/** Un IBAN français : FR et 25 caractères (contrôle de forme simple, espaces tolérés). */
+export const ibanValide = (s?: string) => /^FR[0-9A-Z]{25}$/.test(ibanPropre(s));
+/** « FR76 3000 6000 0112 3456 7890 189 ». */
+export const ibanDit = (s?: string) => {
+  const t = ibanPropre(s);
+  return ibanValide(t) ? (t.match(/.{1,4}/g) ?? []).join(" ") : (s ?? "").trim();
+};
+/** La ligne du pied de facture quand l'IBAN est noté. */
+export const mentionIban = (iban?: string) => (iban && ibanValide(iban) ? `Paiement par virement : IBAN ${ibanDit(iban)}` : "");
+
+/** Le capital tel qu'imprimé : « 7 500 € » pour « 7500 », sinon tel que tapé. */
+export function capitalDit(c?: string): string {
+  const t = (c ?? "").trim();
+  if (!t) return "";
+  const n = Number(t.replace(/[\s\u00a0\u202f€]/g, "").replace(",", "."));
+  if (/^[\d\s\u00a0\u202f.,]+€?$/.test(t) && Number.isFinite(n)) return eur0(n);
+  return t;
+}
+const eur0 = (n: number) => `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(n).replace(/[\u00a0\u202f]/g, " ")} €`;
+
+/** Le nom déjà suivi de « EI » (ou « Entrepreneur individuel ») : pas de doublon. */
+const finitParEI = (n: string) => /(^|\s)(EI|entrepreneur individuel)\.?$/i.test(n.trim());
+
+/**
+ * L'en-tête du vendeur sur la feuille : un entrepreneur individuel a « EI »
+ * après son nom ; une société a sa forme et son capital sous le nom. Une
+ * facture faite avant le choix du statut s'imprime comme avant (la forme
+ * notée, après le nom).
+ */
+export function enteteVendeur(seller: Pick<Invoice["seller"], "name" | "forme" | "ei" | "capital">): { nom: string; sous?: string } {
+  const name = seller.name.trim();
+  if (seller.ei) return { nom: finitParEI(name) ? name : `${name} EI` };
+  if (seller.capital) return { nom: name, sous: `${seller.forme ? `${seller.forme} au capital` : "Capital"} de ${capitalDit(seller.capital)}` };
+  return { nom: `${name}${seller.forme ? ` ${seller.forme}` : ""}` };
+}
+
 /** Ce qui peut manquer au vendeur pour faire une facture. */
-export type VendeurManque = "nom" | "adresse" | "siret" | "tva";
+export type VendeurManque = "nom" | "statut" | "forme" | "capital" | "adresse" | "siret" | "tva";
 export const VENDEUR_MANQUE_DIT: Record<VendeurManque, string> = {
   nom: "ton nom ou ta raison sociale",
+  statut: "ton statut",
+  forme: "ta forme juridique",
+  capital: "ton capital",
   adresse: "ton adresse",
   siret: "ton SIRET",
   tva: "ton numéro de TVA intracommunautaire",
@@ -90,6 +133,12 @@ export const listeDite = (xs: string[]) => (xs.length < 2 ? (xs[0] ?? "") : `${x
 export function vendeurManque(b: BillingInfo | undefined): VendeurManque[] {
   const out: VendeurManque[] = [];
   if (!nomVendeur(b)) out.push("nom");
+  // Entrepreneur individuel ou société : la loi ne demande pas les mêmes mentions.
+  if (!b?.statut) out.push("statut");
+  if (b?.statut === "societe") {
+    if (!b.forme?.trim()) out.push("forme");
+    if (!b.capital?.trim()) out.push("capital");
+  }
   if (!b?.address?.trim()) out.push("adresse");
   if (!siretValide(b?.siret)) out.push("siret");
   if (b?.vat === "taux" && !tvaIntraValide(b.tvaIntra)) out.push("tva");
@@ -381,13 +430,23 @@ const plusJours = (iso: string, n: number) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-/** Le vendeur tel qu'il s'imprime : nom, forme, adresse, SIRET, et TVA intracommunautaire hors franchise. */
+/**
+ * Le vendeur tel qu'il s'imprime : nom (avec « EI » pour un entrepreneur
+ * individuel ; forme et capital pour une société), adresse, SIRET, TVA
+ * intracommunautaire hors franchise, et l'IBAN s'il est noté et bien formé.
+ */
 export function vendeurDe(b: BillingInfo | undefined, franchise: boolean): Invoice["seller"] {
-  const forme = b?.forme?.trim();
+  const ei = b?.statut === "ei";
+  const forme = ei ? undefined : b?.forme?.trim();
+  const capital = b?.statut === "societe" ? b.capital?.trim() : undefined;
   const tva = tvaIntraPropre(b?.tvaIntra);
+  const iban = ibanValide(b?.iban) ? ibanPropre(b?.iban) : undefined;
   return {
     name: nomVendeur(b),
+    ...(ei ? { ei: true } : {}),
     ...(forme ? { forme } : {}),
+    ...(capital ? { capital } : {}),
+    ...(iban ? { iban } : {}),
     ...(b?.address?.trim() ? { address: b.address.trim() } : {}),
     ...(siretPropre(b?.siret) ? { siret: siretPropre(b?.siret) } : {}),
     ...(!franchise && tva ? { tvaIntra: tva } : {}),

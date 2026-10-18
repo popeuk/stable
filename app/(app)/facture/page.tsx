@@ -21,10 +21,12 @@ import {
   contenuAvoir,
   dateDite,
   deMois,
+  enteteVendeur,
   eur2,
   facturation,
   facturesDe,
   listeDite,
+  mentionIban,
   mentionsPaiement,
   messageFacture,
   messageFaite,
@@ -606,15 +608,15 @@ function Feuille({ inv, apercu }: { inv: Invoice; apercu?: boolean }) {
   const f = inv.franchise;
   const avoir = inv.kind === "avoir";
   const mentions = mentionsPaiement(inv);
+  const entete = enteteVendeur(inv.seller);
+  const iban = avoir ? "" : mentionIban(inv.seller.iban);
   return (
     <article className={`fa-print${apercu ? " apercu" : ""}`} aria-label={apercu ? "Aperçu de la facture" : nomDoc(inv)}>
       {apercu && <p className="fa-wm">Aperçu, pas encore de numéro</p>}
       <header className="fa-top">
         <div className="fa-from">
-          <b>
-            {inv.seller.name}
-            {inv.seller.forme ? ` ${inv.seller.forme}` : ""}
-          </b>
+          <b>{entete.nom}</b>
+          {entete.sous && <span>{entete.sous}</span>}
           {inv.seller.address && <span className="fa-pre">{inv.seller.address}</span>}
           {inv.seller.siret && <span>SIRET {siretDit(inv.seller.siret)}</span>}
           {!f && inv.seller.tvaIntra && <span>N° TVA intracommunautaire {tvaIntraDit(inv.seller.tvaIntra)}</span>}
@@ -697,6 +699,7 @@ function Feuille({ inv, apercu }: { inv: Invoice; apercu?: boolean }) {
         {mentions.map((m) => (
           <p key={m}>{m}</p>
         ))}
+        {iban && <p>{iban}.</p>}
       </footer>
     </article>
   );

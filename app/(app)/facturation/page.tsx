@@ -6,12 +6,12 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Hello, Ic, Page as Ecran, Sec } from "@/components/carnet/ui";
 import { ConditionsPro, ExportComptable, InfosVendeur, TvaReglage } from "@/components/bs/facturation";
 import { useDataStore } from "@/stores/data-store";
-import { conditionsProManquent, eur2, facturation, moisDit, nomDoc, vendeurManque } from "@/lib/domain/facture";
+import { conditionsProManquent, enteteVendeur, eur2, facturation, moisDit, nomDoc, vendeurDe, vendeurManque } from "@/lib/domain/facture";
 
 /**
  * Tes factures (`/facturation`) : d'abord les factures et avoirs faits, puis
- * ce qui s'imprime sur chaque facture (nom ou raison sociale, forme,
- * adresse, SIRET, TVA, conditions pour un professionnel), replié une fois
+ * ce qui s'imprime sur chaque facture (nom ou raison sociale, statut,
+ * adresse, SIRET, IBAN, TVA, conditions pour un professionnel), replié une fois
  * rempli, et le tableau de l'année pour le comptable (`#comptable`). On y
  * arrive depuis Réglages et depuis l'historique de Mon mois. Styles :
  * app/carnet/facture.css.
@@ -72,8 +72,8 @@ function Facturation() {
             <span>
               <b>{ouvert ? "Replier" : "Modifier"}</b>
               <small>
-                {b.legalName}
-                {b.forme ? ` ${b.forme}` : ""} · {b.vat === "franchise" ? "sans TVA" : "avec TVA"}
+                {enteteVendeur(vendeurDe(b, b.vat === "franchise")).nom} · {b.vat === "franchise" ? "sans TVA" : "avec TVA"}
+                {b.iban ? " · IBAN noté" : ""}
                 {pro ? " · conditions pour un professionnel choisies" : ""}
               </small>
             </span>
