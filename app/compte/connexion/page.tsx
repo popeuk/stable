@@ -10,6 +10,7 @@ import { api, ApiError, appUrl, type AuthResponse } from "@/lib/account/api";
 import { AVEC_APPLE, AVEC_GOOGLE, lireRetour, partirVers, revenirDe, type Fournisseur } from "@/lib/account/oauth";
 import { enter, getSession, hasAccountData, hasLegacyData, hasLocaleData, sessionFrom, setSession, type AccountSession } from "@/lib/account/session";
 import { adoptLocale, resumeLocale, type ResumeEssai } from "@/lib/account/vault";
+import { useSettingsStore } from "@/stores/settings-store";
 
 /**
  * Se connecter : l'e-mail, puis le code reçu, ou « Continuer avec Google »
@@ -20,9 +21,17 @@ import { adoptLocale, resumeLocale, type ResumeEssai } from "@/lib/account/vault
  * essayée sans compte : « On garde tout pour demain. », puis l'écurie de
  * l'essai passe dans le compte (chiffrée). Si le compte a déjà la sienne,
  * le gérant choisit laquelle garder.
+ *
+ * En gardant un essai, on demande d'abord le nom de l'écurie (rien n'est
+ * revendiqué : la fiche mon-ecurie.fr se reprend plus tard). Il devient le
+ * nom de l'écurie dans l'app et part au site après le code, pour les e-mails.
  */
+const SANS_NOM = (n: string) => !n.trim() || n.trim() === "Mon écurie";
 export default function Page() {
-  const [mode, setMode] = useState<"email" | "code">("email");
+  const [mode, setMode] = useState<"nom" | "email" | "code">("email");
+  const [nom, setNom] = useState("");
+  /** Pas encore d'écurie : un projet, dit au site pour les e-mails. */
+  const [projet, setProjet] = useState(false);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -33,8 +42,13 @@ export default function Page() {
 
   useEffect(() => {
     const voulu = new URLSearchParams(window.location.search).get("garder") === "1" || getSession()?.kind === "locale";
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (voulu && hasLocaleData()) setGarder(resumeLocale() ?? { chevaux: 0, pension: 0, frais: 0, seances: 0 });
+    if (voulu && hasLocaleData()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setGarder(resumeLocale() ?? { chevaux: 0, pension: 0, frais: 0, seances: 0 });
+      const deja = useSettingsStore.getState().stableName;
+      setNom(SANS_NOM(deja) ? "" : deja);
+      setMode("nom");
+    }
     // Retour de Google ou d'Apple.
     const retour = lireRetour(window.location.search);
     if (!retour) return;
@@ -54,6 +68,11 @@ export default function Page() {
     // L'écurie essayée sans compte passe dans le compte.
     if (hasLocaleData()) {
       setSession(s);
+      // Le nom (ou le projet) part au site, avec le jeton du compte : sans effet tant que l'extension ne le connaît pas.
+      // Lu dans les réglages de l'essai : il survit au détour par Google.
+      const deja = useSettingsStore.getState().stableName;
+      const ecurie = projet || SANS_NOM(deja) ? "" : deja.trim();
+      if (garder && (ecurie || projet)) void api.majMoi(projet ? { projet: true } : { ecurie }).catch(() => {});
       if (hasAccountData(s.userId)) return setAdopt("locale");
       await adoptLocale("locale");
       return setFait(s);
@@ -97,7 +116,7 @@ export default function Page() {
 
   const top = (
     <ArTop
-      onBack={mode === "email" ? undefined : () => (setMode("email"), setErr(""))}
+      onBack={mode === "code" ? () => (setMode("email"), setErr("")) : mode === "email" && garder ? () => (setMode("nom"), setErr("")) : undefined}
       right={
         garder ? (
           <Link href="/accueil" className="ar-link">
@@ -120,13 +139,47 @@ export default function Page() {
   return (
     <div className="carnet">
       <div className="ar ar-duo">
+        {mode === "nom" && (
+          <form
+            className="ar-v"
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (nom.trim().length < 2) return setErr("Le nom de ton écurie, tel que tes clients le disent.");
+              useSettingsStore.getState().setIdentity({ stableName: nom.trim() });
+              setProjet(false);
+              setErr("");
+              setMode("email");
+            }}
+          >
+            {top}
+            <div className="q rise">
+              <h1>Ton écurie s’appelle comment ?</h1>
+              <p>On garde ton mois à son nom.</p>
+            </div>
+            <label className="input ar-in">
+              <input autoFocus type="text" autoComplete="organization" maxLength={120} value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Le nom que tes clients connaissent" aria-label="Le nom de ton écurie" />
+            </label>
+            {garder && <GardeListe r={garder} />}
+            {erreur}
+            <div className="foot">
+              <button className="btn full" disabled={!nom.trim()}>
+                Continuer
+              </button>
+              <button type="button" className="lnk" onClick={() => (setNom(""), setProjet(true), setErr(""), setMode("email"))}>
+                Je n’ai pas encore d’écurie
+              </button>
+            </div>
+          </form>
+        )}
+
         {mode === "email" && (
           <form className="ar-v" noValidate onSubmit={(e) => (e.preventDefault(), run(async () => (await api.envoyerCode(email.trim()), setCode(""), setMode("code"))))}>
             {top}
             {garder ? (
               <div className="q rise">
-                <h1>On garde tout pour demain.</h1>
-                <p>Ton e-mail, puis un code. Pas de mot de passe.</p>
+                <h1>{nom.trim() ? `On garde ${nom.trim()}.` : "On garde tout pour demain."}</h1>
+                <p>Ton e-mail, puis un code.</p>
               </div>
             ) : (
               <>
@@ -141,7 +194,7 @@ export default function Page() {
             <label className="input ar-in">
               <input autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.fr" aria-label="Ton e-mail" />
             </label>
-            {garder && <GardeListe r={garder} />}
+            {garder && !nom.trim() && <GardeListe r={garder} />}
             {erreur}
             <div className="foot">
               <button className="btn full" disabled={busy || !email.trim()}>

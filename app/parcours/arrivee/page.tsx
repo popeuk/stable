@@ -7,6 +7,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { ClientGate } from "@/components/ui/client-gate";
 import { CountUp, Face, Ic, Ill, Money, Steam, eurc, sg } from "@/components/carnet/ui";
 import { usePerso } from "@/components/bs/perso";
+import { getSession } from "@/lib/account/session";
 import { estAMoi } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
@@ -45,6 +46,12 @@ function Reste() {
   const prixPension = data.tariffs?.pension;
   /** Le prix d'un cours, pour dire ce qu'un cours noté ajoutera. */
   const prixCours = data.tariffs?.cours_collectif || data.tariffs?.cours_individuel || data.prestations?.find((p) => p.active && p.price > 0)?.price;
+  /** L'essai sans compte : le mois se garde tout de suite (nom de l'écurie, e-mail, code), le + vient après. */
+  const essai = getSession()?.kind === "locale";
+  const essayerPlus = () => {
+    useUiStore.getState().setTutoPlus(true);
+    router.push("/accueil");
+  };
   return (
     <div className="ar-fin ar-reste">
       <h1 className="ar-t1 rise">Voilà ton mois.</h1>
@@ -109,22 +116,28 @@ function Reste() {
           </p>
         </span>
       </div>
-      <div className="foot rise" style={{ animationDelay: ".2s" }}>
-        <button
-          type="button"
-          className="btn full"
-          onClick={() => {
-            useUiStore.getState().setTutoPlus(true);
-            router.push("/accueil");
-          }}
-        >
-          Essayer le +
-          <Ic n="arrow" className="" />
-        </button>
-        <Link href="/accueil" className="lnk">
-          Voir mon écurie d’abord
-        </Link>
-      </div>
+      {essai ? (
+        <div className="foot rise" style={{ animationDelay: ".2s" }}>
+          <Link href="/compte/connexion?garder=1" className="btn full">
+            Garder mon mois
+            <Ic n="arrow" className="" />
+          </Link>
+          <p className="ar-proof">Le nom de ton écurie, ton e-mail, un code. Pour retrouver tes chiffres demain.</p>
+          <button type="button" className="lnk" onClick={essayerPlus}>
+            Essayer le + d’abord
+          </button>
+        </div>
+      ) : (
+        <div className="foot rise" style={{ animationDelay: ".2s" }}>
+          <button type="button" className="btn full" onClick={essayerPlus}>
+            Essayer le +
+            <Ic n="arrow" className="" />
+          </button>
+          <Link href="/accueil" className="lnk">
+            Voir mon écurie d’abord
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
