@@ -8,6 +8,8 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { fraisDuMois } from "@/components/bs/parcours";
 import { getSession, type Listing } from "@/lib/account/session";
 import { api, type StableHit } from "@/lib/account/api";
+import { useAnnuaire } from "@/components/bs/account-ui";
+import { EcuriesTexte } from "@/lib/annuaire";
 
 /**
  * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
@@ -42,6 +44,7 @@ const noms = (xs: string[], vide: string) => (xs.length ? (xs.length > 3 ? `${xs
 
 function TonEcurie() {
   const stableName = useSettingsStore((s) => s.stableName);
+  const annuaire = useAnnuaire();
   const [listing, setListing] = useState<Listing | null>(null);
   useEffect(() => {
     const s = getSession();
@@ -80,7 +83,7 @@ function TonEcurie() {
       ) : (
         <div className="ce-cherche">
           <label htmlFor="ce-q">Cherche-la sur mon-ecurie.fr</label>
-          <p>Plus de 7 000 écuries y sont déjà. Retrouve la tienne : ton nom, ta commune et ta fiche se remplissent d’un coup.</p>
+          <p>{EcuriesTexte(annuaire?.ecuries)} y sont déjà. Retrouve la tienne : ton nom, ta commune et ta fiche se remplissent d’un coup.</p>
           <span className="ce-in">
             <Ic n="search" className="" />
             <input id="ce-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Le nom de ton écurie" autoComplete="off" />

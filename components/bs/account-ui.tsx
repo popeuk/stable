@@ -49,11 +49,25 @@ export function Field({ label, hint, error, optional, unit, ...input }: FieldPro
   );
 }
 
-/** Les chiffres de l'annuaire, lus en direct ; rien n'est affiché s'ils manquent. */
+type Chiffres = { ecuries: number; departements: number; revendiquees: number; avec_prix: number };
+/** Une seule lecture par visite, partagée par tous les écrans ; un échec se relit à la visite suivante. */
+let chiffresLus: Promise<Chiffres | null> | null = null;
+let chiffresConnus: Chiffres | null = null;
+
+/** Les chiffres de l'annuaire, lus en direct ; null tant qu'ils manquent (sans réseau : le texte de repli). */
 export function useAnnuaire() {
-  const [c, setC] = useState<{ ecuries: number; departements: number; revendiquees: number; avec_prix: number } | null>(null);
+  const [c, setC] = useState<Chiffres | null>(chiffresConnus);
   useEffect(() => {
-    api.stats().then(setC, () => setC(null));
+    if (chiffresConnus) return;
+    let fini = false;
+    chiffresLus ??= api.stats().then(
+      (r) => (chiffresConnus = r),
+      () => ((chiffresLus = null), null),
+    );
+    chiffresLus.then((r) => !fini && setC(r));
+    return () => {
+      fini = true;
+    };
   }, []);
   return c;
 }

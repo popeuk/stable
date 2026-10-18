@@ -4,6 +4,8 @@ import { useState, type ReactNode } from "react";
 import { Promo } from "@/components/carnet/ui";
 import { getSession, type Session } from "@/lib/account/session";
 import { premiersJours } from "@/components/bs/compte";
+import { useAnnuaire } from "@/components/bs/account-ui";
+import { EcuriesTexte } from "@/lib/annuaire";
 
 /**
  * L'encart mon-ecurie.fr de l'accueil : de la promo assumée, réduite et
@@ -29,6 +31,7 @@ function enPause() {
 }
 
 export function PromoMonEcurie({ small }: { small?: boolean }) {
+  const annuaire = useAnnuaire();
   // L'accueil n'est rendu que dans le navigateur (ClientGate) : on lit tout de suite.
   const [etat, setEtat] = useState<{ s: Session | null; cache: boolean }>(() => {
     const s = getSession();
@@ -67,8 +70,8 @@ export function PromoMonEcurie({ small }: { small?: boolean }) {
             title: small ? "Les cavaliers cherchent leur pension. Ton écurie y est peut-être déjà." : <>Les cavaliers cherchent leur pension.<br />Ton écurie y est peut-être déjà.</>,
             text:
               etat.s?.kind === "compte"
-                ? "Des milliers d’écuries sont déjà sur la carte de France. Reprends la tienne avec ce même compte, en deux minutes."
-                : "Des milliers d’écuries sont déjà sur la carte de France. Cherche la tienne et mets-la à ton nom : c’est gratuit.",
+                ? `${EcuriesTexte(annuaire?.ecuries)} sont déjà sur la carte de France. Reprends la tienne avec ce même compte, en deux minutes.`
+                : `${EcuriesTexte(annuaire?.ecuries)} sont déjà sur la carte de France. Cherche la tienne et mets-la à ton nom : c’est gratuit.`,
             cta: "Trouver mon écurie",
           };
 
