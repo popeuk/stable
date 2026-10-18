@@ -1,182 +1,54 @@
-/* Propositions « onboarding fort » (18 octobre 2026), derrière ?v=a|b|c.
-   Le contenu ne bouge pas : seuls la lumière, les sols, l'échelle et le mouvement.
-   a · Le chiffre qui monte · b · Trois chapitres · c · Le livret.
-   Couleurs de la charte seulement : vert, vert profond, rose casaque, rose doux,
-   papier, brume, encre ; crème et foin pour les sols des illustrations. */
+/* L'arrivée tenue (18 octobre 2026), derrière ?v=n : l'actuel, rangé.
+   Chaque partie dans une case blanche tenue par un filet (12 px), chaque dessin
+   posé sur le bord de sa case, une seule marge de 16 px. Rien ne flotte sur le
+   papier. Aucune couleur nouvelle, aucune ombre. */
 
-/* ---------- Commun : l'histoire en grand ---------- */
-.carnet .obf-st .stories { transition: background-color .6s var(--ease); }
-.carnet .obf-st .stories .slide { grid-template-rows: auto minmax(0, 1fr); padding: 0 var(--gut); }
-.carnet .obf-st .stories .tx { order: -1; padding-top: 46px; }
-.carnet .obf-st .stories strong { font-size: clamp(38px, 11.4vw, 50px); font-weight: 780; line-height: .94; letter-spacing: -.035em; font-variation-settings: "wdth" 86; max-width: 11ch; transition: color .6s var(--ease); }
-.carnet .obf-st .stories .tx span { font-size: 17px; line-height: 1.45; margin-top: 14px; max-width: 32ch; transition: color .6s var(--ease); }
-.carnet .obf-st .stories mark { color: inherit; background: linear-gradient(transparent 58%, var(--rose) 58%, var(--rose) 92%, transparent 92%); padding: 0 .06em; margin: 0 -.06em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-.carnet .obf-st .stories .art { margin: 18px calc(-1 * var(--gut)) 0; }
-.carnet .obf-st .stories .art .ill.mul { mix-blend-mode: normal; }
-.carnet .obf-st .stories .cta .btn { height: 56px; font-size: 17px; }
-.carnet .stories mark { background: none; color: inherit; }
+/* ---------- L'histoire : la scène dans sa case, le texte juste dessous ---------- */
+.carnet .obn-st .stories .slide { grid-template-rows: minmax(0, 1fr) auto; padding: 46px 0 0; }
+.carnet .obn-st .stories .art { margin: 0 var(--gut) 18px; border-radius: var(--bloc-r); background: linear-gradient(transparent 90%, var(--mist) 90%), var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .obn-st .stories .art-fit { bottom: 1px; }
+.carnet .obn-st .stories .tx { padding: 0 var(--gut); }
+.carnet .obn-st .stories .cta { padding-left: var(--gut); padding-right: var(--gut); }
 
-/* Un titre de question plus grand, la question à hauteur d'œil. */
-html[data-ob] .carnet .obf-t1 { margin: 22px var(--gut) 0; font-size: clamp(32px, 9.6vw, 40px); line-height: .98; letter-spacing: -.035em; }
-html[data-ob] .carnet .obf-sub { margin: 10px var(--gut) 0; font-size: 16px; max-width: 34ch; }
-html[data-ob] .carnet .obf-tete { position: relative; }
-html[data-ob] .carnet .obf-tete-top { display: flex; align-items: center; justify-content: space-between; padding-right: var(--gut); }
-html[data-ob] .carnet .obf-tete .dots i { width: 26px; height: 4px; }
+/* ---------- Une question : sa case, son dessin sur le filet, le mois en pied ---------- */
+html[data-ob="n"] .carnet .obn-tete { margin: 10px var(--gut) 0; display: grid; grid-template-columns: minmax(0, 1fr) 108px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+html[data-ob="n"] .carnet .obn-tete-h { padding: 16px 0 16px 16px; min-width: 0; }
+html[data-ob="n"] .carnet .obn-tete .dots i { width: 22px; height: 3px; }
+html[data-ob="n"] .carnet .obn-t1 { margin: 14px 0 0; font-size: 28px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; text-wrap: balance; }
+html[data-ob="n"] .carnet .obn-sub { margin: 8px 0 0; font-size: 14px; line-height: 1.45; color: var(--ink2); }
+html[data-ob="n"] .carnet .obn-ill { align-self: end; justify-self: end; width: 100%; height: 118px; object-fit: contain; object-position: right bottom; padding-right: 8px; animation: cn-rise .7s var(--ease) backwards; }
+html[data-ob="n"] .carnet .obn-mois { grid-column: 1 / -1; margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--mist); font-size: 13px; line-height: 1.35; color: var(--ink2); }
+html[data-ob="n"] .carnet .obn-mois b { flex: none; font-size: 18px; font-weight: 760; letter-spacing: -.02em; color: var(--ink); white-space: nowrap; }
+html[data-ob="n"] .carnet .obn-mois small { font-size: 12px; font-weight: 500; color: var(--ink3); letter-spacing: 0; }
+html[data-ob="n"] .carnet .obn-mois-vide { color: var(--ink3); }
 
-/* ================= A · Le chiffre qui monte ================= */
-/* L'histoire : deux scènes sur le papier, puis Be Stable arrive en vert. */
-.carnet .obf-a.obf-s2 .stories { background: var(--vert); }
-.carnet .obf-a.obf-s2 .stories .bars i { background: color-mix(in srgb, #fff 22%, transparent); }
-.carnet .obf-a.obf-s2 .stories .bars b { background: var(--rose); }
-.carnet .obf-a.obf-s2 .ar-login { color: #fff; }
-.carnet .obf-a .slide.s2 strong { color: #fff; }
-.carnet .obf-a .slide.s2 mark { background: none; color: var(--rose); }
-.carnet .obf-a .slide.s2 .tx span { color: var(--on-vert); }
-.carnet .obf-a.obf-s2 .stories .cta .btn { background: var(--rose); color: var(--vert-deep); }
-.carnet .obf-a .slide.s0 .ar-rays { width: calc(var(--sd) * 1.5); background: radial-gradient(circle, color-mix(in srgb, var(--hay) 55%, transparent), transparent 66%); }
+/* Le corps de la question : une seule case, ses parties séparées par un filet. */
+html[data-ob="n"] .carnet .obn-corps { margin: 12px var(--gut) 0; padding: 2px 16px 16px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+html[data-ob="n"] .carnet .obn-corps :is(.ar-mm, .ar-lines, .ar-total, .tip, .ar-seg, .ar-mc, .ar-warn, .ar-add, .ar-new, .ar-h5, .es-help) { margin-left: 0; margin-right: 0; }
+html[data-ob="n"] .carnet .obn-corps > :first-child { margin-top: 14px; }
+html[data-ob="n"] .carnet .obn-corps .es-count { margin-top: 18px; }
+html[data-ob="n"] .carnet .obn-corps .ar-mm { margin-top: 18px; }
+html[data-ob="n"] .carnet .obn-corps .ar-mm + .ar-mm { padding-top: 18px; border-top: 1px solid var(--line2); }
+html[data-ob="n"] .carnet .obn-corps .ar-mm-f { background: var(--paper); }
+html[data-ob="n"] .carnet .obn-corps .ar-total { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+html[data-ob="n"] .carnet .obn-corps .tip { margin-top: 14px; }
+html[data-ob="n"] .carnet .ar-pc .ar-go { margin: 16px var(--gut) 0; width: calc(100% - 2 * var(--gut)); height: 52px; font-size: 15px; }
 
-/* Les questions : la bande vert anglais où le mois se construit. */
-.carnet .obf-tete.obf-a { background: var(--vert); color: #fff; margin-top: calc(-8px - env(safe-area-inset-top)); padding: calc(env(safe-area-inset-top) + 8px) 0 20px; min-height: 196px; overflow: hidden; }
-.carnet .obf-tete.obf-a .ar-obh, .carnet .obf-tete.obf-a .ar-obh svg { color: #fff; }
-.carnet .obf-tete.obf-a .dots i { background: color-mix(in srgb, #fff 24%, transparent); }
-.carnet .obf-tete.obf-a .dots i.on { background: var(--rose); }
-.carnet .obf-bande { position: relative; z-index: 1; display: grid; gap: 2px; padding: 22px var(--gut) 0; max-width: 64%; }
-.carnet .obf-bande-k { font-size: 13px; font-weight: 650; color: var(--on-vert); }
-.carnet .obf-bande-v { font-size: clamp(46px, 14vw, 60px); font-weight: 800; line-height: .95; letter-spacing: -.02em; font-variation-settings: "wdth" 86; color: var(--rose); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.carnet .obf-bande-s { font-size: 14px; font-weight: 600; color: var(--on-vert); }
-.carnet .obf-tete.obf-a .obf-tete-ill { position: absolute; right: -6px; bottom: 0; height: 150px; width: auto; max-width: 46%; object-fit: contain; object-position: right bottom; animation: cn-rise .7s var(--ease) backwards; }
-html[data-ob="a"] .carnet .es-count b { color: var(--vert); }
+/* ---------- Ton mois : le chiffre et ce qu'il veut dire, dans la même case ---------- */
+.carnet .obn-fin .ar-t1 { text-align: left; margin: 52px var(--gut) 0; font-size: 32px; }
+.carnet .obn-fin .es-perch { padding: 0 var(--gut); }
+.carnet .obn-fin .moncard { border-radius: var(--bloc-r) var(--bloc-r) 0 0; padding: 18px 16px 16px; }
+.carnet .obn-fin .note { margin: 0 var(--gut); padding: 12px 16px; border-radius: 0 0 var(--bloc-r) var(--bloc-r); background: var(--mist); box-shadow: inset 1px 0 0 var(--line), inset -1px 0 0 var(--line), inset 0 -1px 0 var(--line); font-size: 13px; line-height: 1.45; color: var(--ink2); }
+.carnet .obn-fin .es-suite { margin: 12px var(--gut) 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .obn-fin .foot { padding-left: var(--gut); padding-right: var(--gut); }
+.carnet .obn-fin .foot .btn { height: 52px; font-size: 15px; }
 
-/* Voilà ton mois : tout l'écran en vert, le chiffre en rose. */
-.carnet .obf-fin.obf-a { background: var(--vert); color: #fff; margin: calc(-8px - env(safe-area-inset-top)) 0 calc(-40px - env(safe-area-inset-bottom)); padding: calc(env(safe-area-inset-top) + 30px) 0 calc(40px + env(safe-area-inset-bottom)); min-height: 100dvh; }
-.carnet .obf-fin.obf-a .ar-t1 { color: #fff; font-size: 40px; text-align: left; margin: 30px var(--gut) 0; }
-.carnet .obf-fin.obf-a .es-perch { padding: 0 var(--gut); }
-.carnet .obf-fin.obf-a .ill.mul, .carnet .obf-fin.obf-a .ill { mix-blend-mode: normal; }
-.carnet .obf-fin.obf-a .moncard { background: transparent; box-shadow: none; padding: 0; }
-.carnet .obf-fin.obf-a .es-say { color: var(--on-vert); font-size: 17px; font-weight: 600; }
-.carnet .obf-fin.obf-a .big { color: var(--rose); font-size: clamp(64px, 21vw, 96px); font-weight: 800; letter-spacing: -.02em; font-variation-settings: "wdth" 86; white-space: nowrap; margin: 2px 0 4px; }
-.carnet .obf-fin.obf-a .es-calc { border-top-color: color-mix(in srgb, #fff 26%, transparent); font-family: inherit; font-size: 15px; gap: 8px; padding-top: 14px; margin-top: 16px; font-variant-numeric: tabular-nums; }
-.carnet .obf-fin.obf-a .es-calc span:first-child { color: var(--on-vert); }
-.carnet .obf-fin.obf-a .es-calc span:last-child { color: #fff; font-weight: 650; }
-.carnet .obf-fin.obf-a .es-calc .es-attente span:last-child { color: var(--on-vert); }
-.carnet .obf-fin.obf-a .note { color: var(--on-vert); margin: 14px var(--gut) 0; }
-.carnet .obf-fin.obf-a .es-suite { background: var(--vert-deep); margin: 22px var(--gut) 0; }
-.carnet .obf-fin.obf-a .es-plus { background: var(--rose); color: var(--vert-deep); }
-.carnet .obf-fin.obf-a .es-suite b { color: #fff; }
-.carnet .obf-fin.obf-a .es-suite p { color: var(--on-vert); }
-.carnet .obf-fin.obf-a .foot { margin-top: auto; padding: 26px var(--gut) 0; }
-.carnet .obf-fin.obf-a .foot .btn { background: var(--rose); color: var(--vert-deep); height: 56px; font-size: 17px; }
-.carnet .obf-fin.obf-a .foot .ar-proof { color: var(--on-vert); }
-.carnet .obf-fin.obf-a .foot .lnk { color: #fff; }
-
-/* ================= B · Trois chapitres ================= */
-/* Chaque scène a sa lumière : l'aube sur la crème, la nuit en vert profond, Be Stable en rose. */
-.carnet .obf-b.obf-s0 .stories { background: var(--cream); }
-.carnet .obf-b.obf-s1 .stories { background: var(--vert-deep); }
-.carnet .obf-b.obf-s2 .stories { background: var(--rose); }
-.carnet .obf-b .stories .art::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 16%; transition: background-color .6s var(--ease); }
-.carnet .obf-b .slide.s0 .art::before { background: color-mix(in srgb, var(--hay) 34%, var(--cream)); }
-.carnet .obf-b .slide.s1 .art::before { background: var(--vert); }
-.carnet .obf-b .slide.s2 .art::before { background: color-mix(in srgb, var(--rose) 55%, #fff); }
-.carnet .obf-b .slide.s0 .ar-rays { width: calc(var(--sd) * 1.7); background: radial-gradient(circle, color-mix(in srgb, var(--hay) 70%, transparent), transparent 64%); }
-.carnet .obf-b .slide.s1 .ar-lamp { width: calc(var(--sd) * 2); background: radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--hay) 62%, transparent), transparent 70%); }
-.carnet .obf-b .slide.s1 strong { color: #fff; }
-.carnet .obf-b .slide.s1 .tx span { color: var(--on-vert); }
-.carnet .obf-b .slide.s1 mark { background: none; color: var(--rose); }
-.carnet .obf-b .slide.s2 strong, .carnet .obf-b .slide.s2 .tx span { color: var(--vert-deep); }
-.carnet .obf-b .slide.s2 mark { background: linear-gradient(transparent 58%, var(--paper) 58%, var(--paper) 92%, transparent 92%); }
-.carnet .obf-b.obf-s1 .stories .bars i { background: color-mix(in srgb, #fff 22%, transparent); }
-.carnet .obf-b.obf-s1 .stories .bars b { background: var(--rose); }
-.carnet .obf-b.obf-s1 .ar-login { color: #fff; }
-.carnet .obf-b.obf-s2 .stories .bars i { background: color-mix(in srgb, var(--vert-deep) 18%, transparent); }
-.carnet .obf-b.obf-s2 .stories .bars b { background: var(--vert-deep); }
-.carnet .obf-b.obf-s2 .ar-login { color: var(--vert-deep); }
-.carnet .obf-b.obf-s1 .stories .cta .btn { background: var(--rose); color: var(--vert-deep); }
-
-/* Les questions : la scène d'abord, posée sur son sol de crème. */
-.carnet .obf-tete.obf-b { background: var(--cream); margin-top: calc(-8px - env(safe-area-inset-top)); padding: calc(env(safe-area-inset-top) + 8px) 0 0; height: calc(env(safe-area-inset-top) + 236px); overflow: hidden; }
-.carnet .obf-tete.obf-b::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30px; background: color-mix(in srgb, var(--hay) 34%, var(--cream)); }
-.carnet .obf-tete.obf-b .obf-tete-ill { position: absolute; z-index: 1; left: 50%; bottom: 10px; translate: -50% 0; height: 172px; width: auto; max-width: 78%; object-fit: contain; object-position: center bottom; animation: obf-pose .8s var(--ease) backwards; }
-html[data-ob="b"] .carnet .ar-pc { background: var(--paper); }
-
-/* Voilà ton mois : le chiffre sur le rose, la gérante assise dessus. */
-.carnet .obf-fin.obf-b { margin-top: calc(-8px - env(safe-area-inset-top)); }
-.carnet .obf-fin.obf-b .ar-t1 { margin: 0; padding: calc(env(safe-area-inset-top) + 72px) var(--gut) 6px; background: var(--rose); color: var(--vert-deep); text-align: left; font-size: 40px; }
-.carnet .obf-fin.obf-b .es-perch { margin: 0; padding: 0 var(--gut) 22px; background: linear-gradient(var(--rose) 0 62%, var(--paper) 62%); }
-.carnet .obf-fin.obf-b .moncard { box-shadow: none; padding: 18px 18px 16px; }
-.carnet .obf-fin.obf-b .big { font-size: clamp(56px, 18vw, 80px); font-weight: 800; font-variation-settings: "wdth" 86; white-space: nowrap; }
-.carnet .obf-fin.obf-b .foot .btn { height: 56px; font-size: 17px; }
-
-/* ================= C · Le livret ================= */
-/* L'histoire : trois pages du livret, l'image en plaque de crème, le flot à la fin. */
-.carnet .obf-c .stories { background: var(--mist); }
-.carnet .obf-c .stories .slide { padding: 0 var(--gut); }
-.carnet .obf-c .stories .slide::before { content: ""; position: absolute; inset: 40px 10px 0; background: var(--sheet); border-radius: 14px 14px 0 0; box-shadow: inset 0 0 0 1px var(--line); }
-.carnet .obf-c .stories .slide > * { position: relative; z-index: 1; }
-.carnet .obf-c .stories .tx { padding: 66px 10px 0; }
-.carnet .obf-c .stories .art { margin: 20px 4px 0; background: var(--cream); }
-.carnet .obf-c .stories .art::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 14%; background: color-mix(in srgb, var(--hay) 34%, var(--cream)); }
-.carnet .obf-c .stories .art-fit { z-index: 1; }
-.carnet .obf-c .stories .art .obf-tampon { position: absolute; z-index: 2; top: 14px; right: 14px; width: 96px; rotate: -6deg; }
-.carnet .obf-c .slide.on .obf-tampon { animation: obf-tampon .5s .9s var(--ease) backwards; }
-
-/* Le livret de l'écurie, en tête de chaque question. */
-.carnet .obf-tete.obf-c { padding-bottom: 4px; }
-.carnet .obf-livret { margin: 14px var(--gut) 0; background: var(--sheet); border-radius: var(--bloc-r); box-shadow: inset 0 0 0 1px var(--line); padding: 14px 16px 6px; }
-.carnet .obf-livret-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
-.carnet .obf-livret-h b { font-size: 21px; font-weight: 760; letter-spacing: -.025em; font-variation-settings: "wdth" 88; line-height: 1.05; }
-.carnet .obf-livret-h span { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); white-space: nowrap; }
-.carnet .obf-livret ol { list-style: none; margin: 0; padding: 0; }
-.carnet .obf-livret li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 48px; border-bottom: 1px solid var(--line2); }
-.carnet .obf-livret li:last-child { border-bottom: 0; }
-.carnet .obf-num { width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink); display: grid; place-items: center; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.carnet .obf-num svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-.carnet .obf-livret li.fait .obf-num { background: var(--vert); box-shadow: none; color: #fff; animation: obf-coche .45s var(--ease) backwards; }
-.carnet .obf-livret li.next { color: var(--ink3); }
-.carnet .obf-livret li.next .obf-num { box-shadow: inset 0 0 0 1.5px var(--line); color: var(--ink3); }
-.carnet .obf-livret li.now { margin: 0 -16px; padding: 0 16px; background: var(--rose-soft); }
-.carnet .obf-livret li.now .obf-k { font-weight: 700; color: var(--vert-deep); }
-.carnet .obf-k { font-size: 15px; font-weight: 600; }
-.carnet .obf-v { font-size: 15px; font-weight: 700; white-space: nowrap; }
-.carnet .obf-livret li.now .obf-v { font-weight: 600; color: var(--vert-deep); }
-
-/* Voilà ton mois : le livret rempli, le flot frappé dessus. */
-.carnet .obf-fin-livret { position: relative; }
-.carnet .obf-fin-livret .obf-livret { margin-top: 18px; }
-.carnet .obf-fin-livret .obf-livret-h span { visibility: hidden; }
-.carnet .obf-fin-livret .obf-tampon { position: absolute; top: -14px; right: 4px; width: 96px; rotate: -6deg; animation: obf-tampon .5s .5s var(--ease) backwards; }
-.carnet .obf-fin.obf-c .ar-t1 { text-align: left; margin: 26px var(--gut) 0; font-size: 36px; }
-.carnet .obf-fin.obf-c .big { font-size: clamp(56px, 17vw, 76px); font-weight: 800; font-variation-settings: "wdth" 86; white-space: nowrap; }
-
-/* Le flot (DESIGN.md, « Le flot ») */
-.carnet .obf-flot-d, .carnet .obf-flot-q { fill: var(--vert); }
-.carnet .obf-flot-c { fill: var(--rose); }
-.carnet .obf-flot-p { stroke: var(--vert-deep); }
-.carnet .obf-flot text { fill: var(--vert-deep); font-family: var(--font-bricolage), sans-serif; font-size: 12.5px; font-weight: 700; letter-spacing: -.01em; }
-
-@keyframes obf-tampon { from { opacity: 0; transform: rotate(-14deg) scale(1.25); } to { opacity: 1; transform: none; } }
-@keyframes obf-pose { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-@keyframes obf-coche { from { transform: scale(.6); } to { transform: none; } }
-
-@media (prefers-reduced-motion: reduce) {
-  .carnet .obf-c .slide.on .obf-tampon, .carnet .obf-fin-livret .obf-tampon, .carnet .obf-tete .obf-tete-ill, .carnet .obf-livret li.fait .obf-num { animation: none; }
-  .carnet .obf-st .stories, .carnet .obf-st .stories strong, .carnet .obf-st .stories .tx span { transition: none; }
-}
-.carnet .obf-fin.obf-c { padding-top: 44px; }
-
-/* Ordinateur : l'histoire en deux colonnes, les aplats de couleur jusqu'aux bords. */
 @media (min-width: 900px) {
-  .carnet .obf-st .stories .slide { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); grid-template-rows: minmax(0, 1fr); align-items: center; gap: 56px; padding: 0 max(56px, calc((100% - 1120px) / 2)); }
-  .carnet .obf-st .stories .tx { order: 0; padding: 0; }
-  .carnet .obf-st .stories strong { font-size: clamp(56px, 5.6vw, 80px); }
-  .carnet .obf-st .stories .tx span { font-size: 20px; }
-  .carnet .obf-st .stories .art { height: 100%; margin: 0; }
-  .carnet .obf-st .stories .cta { padding-left: max(56px, calc((100% - 1120px) / 2)); padding-right: max(56px, calc((100% - 1120px) / 2)); grid-template-columns: minmax(0, 420px); }
-  .carnet .obf-c .stories .slide::before { inset: 48px max(40px, calc((100% - 1160px) / 2)) 0; }
-  .carnet .obf-c .stories .art { margin: 24px 0 0; }
-  .carnet .obf-tete.obf-a, .carnet .obf-tete.obf-b, .carnet .obf-fin.obf-a, .carnet .obf-fin.obf-b .ar-t1, .carnet .obf-fin.obf-b .es-perch { box-shadow: 0 0 0 100vmax var(--obf-bord); clip-path: inset(0 -100vmax); }
-  .carnet .obf-tete.obf-a, .carnet .obf-fin.obf-a { --obf-bord: var(--vert); }
-  .carnet .obf-tete.obf-b { --obf-bord: var(--cream); }
-  .carnet .obf-fin.obf-b .ar-t1 { --obf-bord: var(--rose); }
-  .carnet .obf-fin.obf-b .es-perch { background: var(--rose); --obf-bord: var(--rose); }
+  .carnet .obn-st .stories .slide { padding-left: max(var(--gut), calc((100% - 720px) / 2)); padding-right: max(var(--gut), calc((100% - 720px) / 2)); }
+  .carnet .obn-st .stories .art { margin: 0 0 20px; }
+  .carnet .obn-st .stories .tx { padding: 0; }
+  .carnet .obn-st .stories .cta { padding-left: max(var(--gut), calc((100% - 720px) / 2)); padding-right: max(var(--gut), calc((100% - 720px) / 2)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-ob="n"] .carnet .obn-ill { animation: none; }
 }

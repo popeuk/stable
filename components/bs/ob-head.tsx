@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Ic, Ill, type IllName } from "@/components/carnet/ui";
 import { saisieMontant } from "@/lib/utils/montant";
-import { BandeMois, LivretTete, useObV, type Apercu } from "@/components/bs/ob-fort";
+import { MoisLigne, useObV, type Apercu } from "@/components/bs/ob-fort";
 
 /** L'image de chaque question des premiers pas, la même que sur le chemin. */
 const CHAP: Record<number, { ill: IllName; alt: string }> = {
@@ -28,27 +28,27 @@ export function ObHead({ n, title, sub, retour, apercu }: { n: number; title: st
     );
   }
   const chap = CHAP[n];
+  // L'arrivée tenue (?v=n) : la question dans sa case, le dessin posé sur le filet, le mois en pied.
   if (v)
     return (
       <>
-        <div className={`obf-tete obf-${v}`}>
-          <div className="obf-tete-top">
-            <Link href="/parcours" className="ar-obh">
-              <Ic n="back" className="" />
-              Tes premiers pas
-            </Link>
+        <Link href="/parcours" className="ar-obh">
+          <Ic n="back" className="" />
+          Tes premiers pas
+        </Link>
+        <div className="obn-tete">
+          <div className="obn-tete-h">
             <span className="dots" role="img" aria-label={`Question ${n} sur 3`}>
               {[1, 2, 3].map((k) => (
                 <i key={k} className={k <= n ? "on" : undefined} />
               ))}
             </span>
+            <h1 className="obn-t1">{title}</h1>
+            <p className="obn-sub">{sub}</p>
           </div>
-          {v === "a" && <BandeMois apercu={apercu} n={n} />}
-          {v === "c" && <LivretTete apercu={apercu} n={n} />}
-          {v !== "c" && chap && <Ill n={chap.ill} alt={chap.alt} className="obf-tete-ill" prio />}
+          {chap && <Ill n={chap.ill} alt={chap.alt} className="obn-ill" prio />}
+          <MoisLigne apercu={apercu} />
         </div>
-        <h1 className="ar-t1 obf-t1">{title}</h1>
-        <p className="ar-sub obf-sub">{sub}</p>
       </>
     );
   return (

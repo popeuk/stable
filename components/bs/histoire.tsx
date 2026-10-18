@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Ill } from "@/components/carnet/ui";
 import { illPerso, usePerso } from "@/components/bs/perso";
-import { Flot, useObV } from "@/components/bs/ob-fort";
+import { useObV } from "@/components/bs/ob-fort";
 
 /**
  * L'histoire d'ouverture : trois scènes de la gérante (ou du gérant), le
@@ -13,22 +13,11 @@ import { Flot, useObV } from "@/components/bs/ob-fort";
  */
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** `hl` : le mot que le surligneur rose porte dans les propositions (?v=…), une fois par titre. */
-const SCENES: { ill: "matin" | "soir" | "sereine"; alt: string; t: string; hl: string; s: string; fx?: "rays" | "lamp" }[] = [
-  { ill: "matin", alt: "La gérante porte une botte de foin devant les boxes, au lever du soleil.", t: "Le matin, tu es sur le pont.", hl: "sur le pont", s: "Le foin, l’eau, le crottin, les sabots. Tu assures, même les yeux fermés.", fx: "rays" },
-  { ill: "soir", alt: "La gérante, fatiguée, devant des papiers et une calculette.", t: "Le soir, les comptes te rattrapent.", hl: "les comptes", s: "Les papiers s’empilent. Et une question revient : ton écurie te fait-elle vivre ?", fx: "lamp" },
-  { ill: "sereine", alt: "La gérante sourit à son téléphone, son cheval tout contre elle.", t: "Avec Be Stable, tu tiens les rênes.", hl: "les rênes", s: "Deux gestes pour noter ta journée. Un chiffre clair pour chaque cheval." },
+const SCENES: { ill: "matin" | "soir" | "sereine"; alt: string; t: string; s: string; fx?: "rays" | "lamp" }[] = [
+  { ill: "matin", alt: "La gérante porte une botte de foin devant les boxes, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, le crottin, les sabots. Tu assures, même les yeux fermés.", fx: "rays" },
+  { ill: "soir", alt: "La gérante, fatiguée, devant des papiers et une calculette.", t: "Le soir, les comptes te rattrapent.", s: "Les papiers s’empilent. Et une question revient : ton écurie te fait-elle vivre ?", fx: "lamp" },
+  { ill: "sereine", alt: "La gérante sourit à son téléphone, son cheval tout contre elle.", t: "Avec Be Stable, tu tiens les rênes.", s: "Deux gestes pour noter ta journée. Un chiffre clair pour chaque cheval." },
 ];
-const surligne = (t: string, hl: string) => {
-  const i = t.indexOf(hl);
-  return i < 0 ? t : (
-    <>
-      {t.slice(0, i)}
-      <mark>{hl}</mark>
-      {t.slice(i + hl.length)}
-    </>
-  );
-};
 const DUREE = 5000;
 
 /**
@@ -81,7 +70,7 @@ export function Stories({
   }, [i]);
   const dernier = i === SCENES.length - 1;
   return (
-    <div className={`ar-stwrap${v ? ` obf-st obf-${v} obf-s${i}` : ""}`}>
+    <div className={`ar-stwrap${v ? " obn-st" : ""}`}>
       <h1 className="sr-only">Be Stable, ton écurie et ce qu’elle te rapporte</h1>
       <div className="stories">
         <div className="bars" aria-hidden="true">
@@ -98,17 +87,16 @@ export function Stories({
         )}
         <button type="button" className="stage" aria-label={dernier ? `Scène ${i + 1} sur 3` : "Écran suivant"} onClick={() => setI((x) => Math.min(x + 1, SCENES.length - 1))}>
           {SCENES.map((s, j) => (
-            <span key={s.ill} className={`slide s${j}${j === i ? " on" : ""}`} aria-hidden={j !== i}>
+            <span key={s.ill} className={`slide${j === i ? " on" : ""}`} aria-hidden={j !== i}>
               <span className="art">
                 <span className="art-fit" style={cadre(illPerso(s.ill, perso).n)}>
                   {s.fx === "rays" && <span className="ar-rays" />}
                   {s.fx === "lamp" && <span className="ar-lamp" />}
                   <Ill n={s.ill} alt={s.alt} className="mul" prio={j === 0} />
                 </span>
-                {v === "c" && j === SCENES.length - 1 && <Flot l1="Tu tiens" l2="les rênes" className="obf-tampon" />}
               </span>
               <span className="tx" aria-live={j === i ? "polite" : undefined}>
-                <strong>{v ? surligne(s.t, s.hl) : s.t}</strong>
+                <strong>{s.t}</strong>
                 <span>{s.s}</span>
               </span>
             </span>

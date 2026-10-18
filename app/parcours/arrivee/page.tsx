@@ -8,7 +8,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { CountUp, Face, Ic, Ill, Money, Steam, eurc, sg } from "@/components/carnet/ui";
 import { usePerso } from "@/components/bs/perso";
 import { getSession } from "@/lib/account/session";
-import { Flot, LivretTete, useObV } from "@/components/bs/ob-fort";
+import { useObV } from "@/components/bs/ob-fort";
 import { estAMoi } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
@@ -55,13 +55,7 @@ function Reste() {
     router.push("/accueil");
   };
   return (
-    <div className={`ar-fin ar-reste${v ? ` obf-fin obf-${v}` : ""}`}>
-      {v === "c" && (
-        <div className="obf-fin-livret rise">
-          <LivretTete n={4} />
-          <Flot l1="Ton mois" l2="est là" className="obf-tampon" />
-        </div>
-      )}
+    <div className={`ar-fin ar-reste${v ? " obn-fin" : ""}`}>
       <h1 className="ar-t1 rise">Voilà ton mois.</h1>
       <div className="perch es-perch rise" style={{ animationDelay: ".08s" }}>
         {net < 0 ? (

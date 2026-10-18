@@ -66,6 +66,7 @@ function Tarifs() {
         title={retour ? "Mes prix" : "Tes prix"}
         sub={commune !== null ? "Ta pension est fixée. Ajoute le prix de tes cours si tu en donnes." : "Ce que chaque propriétaire te paie par mois. Ensuite, elle est comptée chaque mois, sans que tu la notes."}
       />
+      <div className="obn-corps">
       {commune !== null ? (
         <>
           <div className="ar-lines">
@@ -179,6 +180,7 @@ function Tarifs() {
       <Tip ill="carnet-buste">
         <b>Ces prix se remplissent tout seuls</b> quand tu notes un cours. Tu peux toujours les changer juste pour une fois.
       </Tip>
+      </div>
       <button
         type="button"
         className="btn ar-go"

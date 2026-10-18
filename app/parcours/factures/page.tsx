@@ -141,6 +141,7 @@ function Factures() {
   return (
     <>
       <ObHead retour={retour} n={3} title={retour ? "Mes frais" : "Les frais de l’écurie"} sub="Ce qui sert à toute l’écurie : foin, paille, loyer, salaires… C’est compté chaque mois et partagé entre tes chevaux." />
+      <div className="obn-corps">
       <div className="ar-seg">
         <Seg<Mode>
           label="Comment noter tes frais"
@@ -240,6 +241,7 @@ function Factures() {
           <b>Un ordre d’idée suffit.</b> Tu pourras corriger ces montants quand tu veux, depuis « Mon écurie et mes réglages ».
         </Tip>
       )}
+      </div>
       <button
         type="button"
         className="btn ar-go"

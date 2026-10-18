@@ -121,50 +121,52 @@ function Chevaux() {
           apercu={deja ? undefined : { chevaux: nombre, pension: p }}
           sub={deja ? `${deja > 1 ? `${deja} chevaux sont` : "Un cheval est"} déjà dans ton écurie. Tu peux en ajouter, ou passer.` : "Ceux dont on te paie la pension. Les noms, tu les mettras plus tard."}
         />
-        {deja > 0 && troupeau}
-        {deja > 0 && <p className="ar-h5">En ajouter</p>}
-        <div className="es-count">
-          <button type="button" aria-label="Un cheval de moins" disabled={nombre <= 1} onClick={() => (setNombre((v) => Math.max(1, v - 1)), setTick((t) => t + 1))}>
-            −
-          </button>
-          <b key={tick} className={tick ? "tick" : ""} aria-live="polite">
-            {nombre}
-          </b>
-          <button type="button" aria-label="Un cheval de plus" disabled={nombre >= 60} onClick={() => (setNombre((v) => Math.min(60, v + 1)), setTick((t) => t + 1))}>
-            +
-          </button>
-        </div>
-        <p className="es-count-lab">{deja ? (nombre > 1 ? "chevaux de plus" : "cheval de plus") : nombre > 1 ? "chevaux" : "cheval"}</p>
-        <MontantMois id="h-pension" label="Une pension, c’est combien par mois ?" value={pension} onChange={setPension} help="En moyenne, toutes formules confondues." />
-        {!deja && (
-          <>
-            <div className="ar-mm">
-              <span className="ar-mm-l" id="h-miens-l">
-                Et à toi, combien de chevaux ?
-              </span>
-              <div className="es-count es-count-s" role="group" aria-labelledby="h-miens-l">
-                <button type="button" aria-label="Un cheval à toi de moins" disabled={miens <= 0} onClick={() => setMiens((v) => Math.max(0, v - 1))}>
-                  −
-                </button>
-                <b aria-live="polite">{miens}</b>
-                <button type="button" aria-label="Un cheval à toi de plus" disabled={miens >= 30} onClick={() => setMiens((v) => Math.min(30, v + 1))}>
-                  +
-                </button>
+        <div className="obn-corps">
+          {deja > 0 && troupeau}
+          {deja > 0 && <p className="ar-h5">En ajouter</p>}
+          <div className="es-count">
+            <button type="button" aria-label="Un cheval de moins" disabled={nombre <= 1} onClick={() => (setNombre((v) => Math.max(1, v - 1)), setTick((t) => t + 1))}>
+              −
+            </button>
+            <b key={tick} className={tick ? "tick" : ""} aria-live="polite">
+              {nombre}
+            </b>
+            <button type="button" aria-label="Un cheval de plus" disabled={nombre >= 60} onClick={() => (setNombre((v) => Math.min(60, v + 1)), setTick((t) => t + 1))}>
+              +
+            </button>
+          </div>
+          <p className="es-count-lab">{deja ? (nombre > 1 ? "chevaux de plus" : "cheval de plus") : nombre > 1 ? "chevaux" : "cheval"}</p>
+          <MontantMois id="h-pension" label="Une pension, c’est combien par mois ?" value={pension} onChange={setPension} help="En moyenne, toutes formules confondues." />
+          {!deja && (
+            <>
+              <div className="ar-mm">
+                <span className="ar-mm-l" id="h-miens-l">
+                  Et à toi, combien de chevaux ?
+                </span>
+                <div className="es-count es-count-s" role="group" aria-labelledby="h-miens-l">
+                  <button type="button" aria-label="Un cheval à toi de moins" disabled={miens <= 0} onClick={() => setMiens((v) => Math.max(0, v - 1))}>
+                    −
+                  </button>
+                  <b aria-live="polite">{miens}</b>
+                  <button type="button" aria-label="Un cheval à toi de plus" disabled={miens >= 30} onClick={() => setMiens((v) => Math.min(30, v + 1))}>
+                    +
+                  </button>
+                </div>
+                <p className="es-help">Ils prennent une place et leur part des frais, sans pension. Tu vois ce qu’ils te coûtent.</p>
               </div>
-              <p className="es-help">Ils prennent une place et leur part des frais, sans pension. Tu vois ce qu’ils te coûtent.</p>
-            </div>
-            <div className="ar-mm">
-              <label htmlFor="h-places">Combien de places en tout ?</label>
-              <span className="ar-mm-f">
-                <input id="h-places" inputMode="numeric" autoComplete="off" placeholder="?" value={places} onChange={(e) => setPlaces(e.target.value.replace(/\D/g, "").slice(0, 2))} aria-describedby="h-places-aide" />
-                <span className="u">places</span>
-              </span>
-              <p id="h-places-aide" className="es-help">
-                Box, pré ou écurie active, une place est une place. Facultatif : avec, tu vois ce que rapporteraient tes places libres.
-              </p>
-            </div>
-          </>
-        )}
+              <div className="ar-mm">
+                <label htmlFor="h-places">Combien de places en tout ?</label>
+                <span className="ar-mm-f">
+                  <input id="h-places" inputMode="numeric" autoComplete="off" placeholder="?" value={places} onChange={(e) => setPlaces(e.target.value.replace(/\D/g, "").slice(0, 2))} aria-describedby="h-places-aide" />
+                  <span className="u">places</span>
+                </span>
+                <p id="h-places-aide" className="es-help">
+                  Box, pré ou écurie active, une place est une place. Facultatif : avec, tu vois ce que rapporteraient tes places libres.
+                </p>
+              </div>
+            </>
+          )}
+        </div>
         {deja ? (
           <>
             <button type="button" className="btn line ar-go" disabled={!p} onClick={parNombre}>
