@@ -180,7 +180,7 @@ export function InstallCard() {
         </span>
         <div style={{ flex: 1 }}>
           <div className="k">Ordinateur ou téléphone</div>
-          <b>Installer Be Stable comme une app</b>
+          <b>Installer l’app</b>
         </div>
         <Picto name="arrowR" />
       </button>

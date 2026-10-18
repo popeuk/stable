@@ -320,7 +320,6 @@ function Mois() {
               encore prévu
             </span>
           </div>
-          <p className="note">En euros. Sous chaque barre, le premier jour de la semaine.</p>
         </Sec>
         )}
         {isNow && <Piste delay={0.48} />}

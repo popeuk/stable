@@ -43,7 +43,9 @@ describe("les espaces insécables du français", () => {
       createElement("div", null, [
         createElement(Hello, { key: 1, title: "On continue ?", sub: "Ce qui était prévu est compté fait. Pas eu lieu ? Retire la ligne." }),
         createElement(Sec, { key: 2, title: "Hier : 2 choses" }),
+        // eslint-disable-next-line react/no-children-prop -- les props typées demandent children
         createElement(Empty, { key: 3, children: "Aucun cheval pour l’instant !" }),
+        // eslint-disable-next-line react/no-children-prop -- idem
         createElement(Tip, { key: 4, children: "Un chiffre à peu près suffit : 12 €" }),
       ]),
     );
