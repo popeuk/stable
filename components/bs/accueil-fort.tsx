@@ -7,6 +7,8 @@ import { Ic, Ill, sgc, type IllName } from "@/components/carnet/ui";
 import { estAMoi } from "@/components/bs/parcours";
 import { premiersJours } from "@/components/bs/compte";
 import { getSession } from "@/lib/account/session";
+import { api } from "@/lib/account/api";
+import { ficheRows } from "@/components/bs/account-ui";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { estEstimation } from "@/lib/domain/estimation";
 import { currentPeriod } from "@/lib/utils/period";
@@ -15,12 +17,15 @@ import { useUiStore, type AddMode } from "@/stores/ui-store";
 
 /**
  * L'accueil d'une écurie qui démarre (18 octobre 2026, décision de Samuel :
- * « plus fort » quand l'app est vide). Quatre blocs, dans l'ordre de l'accueil :
+ * « plus fort » quand l'app est vide). Les blocs, dans l'ordre de l'accueil :
  *   - Stories : des ronds en haut, une histoire courte par geste de l'app.
- *     Un rond vu passe au gris ; la rangée part quand tout est vu.
+ *     Un rond vu passe au gris ; la rangée part quand tout est vu. Retirées
+ *     de l'accueil pour le moment (Samuel, 18 octobre), gardées ici.
  *   - CeQuiManque : sous le chiffre, tant qu'aucune charge n'existe, ce qui
  *     rentre (en vert) et ce qui manque (hachuré), avec de quoi l'ajouter.
- *   - Chemin : cinq pas lus dans les données, un seul à faire maintenant,
+ *   - Chemin : cinq pas lus dans les données (prix, chevaux et propriétaires
+ *     dans la fiche du cheval, frais, premier soin, fiche mon-ecurie.fr),
+ *     un seul à faire maintenant, le fil rouge ne relie que deux pas faits,
  *     un flot gagné au bout (jamais perdu). Les 30 premiers jours d'usage
  *     seulement ; il part une fois le flot vu.
  *   - JourneeMontree : la journée vide montre une journée type, en pointillé
@@ -49,38 +54,54 @@ const cheminPossible = () => !demo() && premiersJours(30);
 
 type Pas = { id: string; fait: boolean; titre: string; sous: string; gain?: string; ill: IllName; cta: string; href?: string; noter?: AddMode | "grille" };
 
+/** La fiche mon-ecurie.fr est-elle remplie (reprise, tarifs, places, photos, contact) ? Lue une fois, gardée sur l'appareil. */
+const FICHE_OK = "be-stable-fiche-remplie";
+function useFicheRemplie() {
+  const [ok, setOk] = useState(() => lire(FICHE_OK) === "1");
+  useEffect(() => {
+    const s = getSession();
+    if (s?.kind !== "compte" || !s.listing) return;
+    let vivant = true;
+    api.maFiche().then(
+      (f) => {
+        const v = ficheRows(f, s.listing?.status === "validee").every((r) => r[1]);
+        ecrire(FICHE_OK, v ? "1" : "0");
+        if (vivant) setOk(v);
+      },
+      () => {},
+    );
+    return () => {
+      vivant = false;
+    };
+  }, []);
+  return ok;
+}
+
 /** Les cinq pas, lus dans les données. Le premier est fait dès la sortie du parcours. */
 export function usePas(): Pas[] {
   const data = useDataStore();
+  const fiche = useFicheRemplie();
   return useMemo(() => {
     const actifs = data.horses.filter((h) => !h.isArchived);
-    const sansNom = actifs.filter((h) => sansNomRe.test(h.name.trim()));
-    const sansProprio = actifs.filter((h) => !estAMoi(h) && !h.ownerName?.trim());
+    // Un cheval est complet avec son vrai nom et, s'il est en pension, son propriétaire : les deux se notent dans sa fiche.
+    const aFinir = actifs.filter((h) => sansNomRe.test(h.name.trim()) || (!estAMoi(h) && !h.ownerName?.trim()));
     const b = monthBreakdown(data, currentPeriod());
     const charges = b.sharedTotal + b.direct + b.outside > 0 || data.sharedExpenses.length > 0 || (data.recurringExpenses ?? []).length > 0;
     const soin = (data.careEvents ?? []).length > 0 || (data.seances ?? []).length > 0 || data.directExpenses.length > 0;
-    const vers = (list: typeof actifs) => (list.length === 1 ? `/ticket?id=${list[0].id}` : "/chevaux?vue=chevaux");
+    const h = aFinir[0];
     return [
-      { id: "prix", fait: actifs.length > 0, titre: "Tes chevaux et tes prix", sous: "Faits pendant les questions.", ill: "tete", cta: "" },
+      { id: "prix", fait: actifs.length > 0, titre: "Tes prix et ton mois", sous: "Faits pendant les questions.", ill: "tete", cta: "" },
       {
-        id: "noms",
-        fait: !sansNom.length,
-        titre: sansNom.length > 1 ? `Donne un nom à tes ${sansNom.length} chevaux` : "Donne son nom à ton cheval",
-        sous: sansNom.length > 1 ? `${sansNom[0].name}, ${sansNom[1].name}… Avec leur vrai nom, tes chiffres parlent de tes chevaux.` : `« ${sansNom[0]?.name ?? ""} » attend son vrai nom.`,
-        gain: "2 minutes",
-        ill: "tete",
-        cta: "Nommer mes chevaux",
-        href: vers(sansNom),
-      },
-      {
-        id: "proprios",
-        fait: !sansProprio.length,
-        titre: "Qui paie quoi ?",
-        sous: "Relie chaque cheval à son propriétaire : ton chiffre du mois devient réel.",
+        id: "chevaux",
+        fait: !aFinir.length,
+        titre: "Tes chevaux et leurs propriétaires",
+        sous: h
+          ? `Dans la fiche de chaque cheval : son vrai nom et qui paie sa pension. ${aFinir.length > 1 ? `Encore ${aFinir.length} chevaux, en commençant par ${h.name}.` : `Il reste ${h.name}.`}`
+          : "",
         gain: "rend le chiffre réel",
-        ill: "carnet",
-        cta: "Relier les propriétaires",
-        href: vers(sansProprio),
+        ill: "tete",
+        cta: h ? `Compléter ${h.name}` : "",
+        href: h ? `/saisie/cheval?edit=${h.id}&retour=accueil` : "/chevaux?vue=chevaux",
       },
       {
         id: "frais",
@@ -102,8 +123,18 @@ export function usePas(): Pas[] {
         cta: "Dire mon premier soin",
         noter: "grille",
       },
+      {
+        id: "fiche",
+        fait: fiche,
+        titre: "Ta fiche sur mon-ecurie.fr",
+        sous: "Les cavaliers y cherchent leur pension. Tes photos, tes places libres et tes tarifs : c’est ce qu’ils regardent avant d’écrire.",
+        gain: "gratuit",
+        ill: "cavaliere",
+        cta: "Remplir ma fiche",
+        href: "/ma-fiche",
+      },
     ] satisfies Pas[];
-  }, [data]);
+  }, [data, fiche]);
 }
 
 const FLOT_VU = "be-stable-flot-lancee";
@@ -131,7 +162,7 @@ export function Chemin({ delay = 0.1 }: { delay?: number }) {
       <section className="af-chemin af-gagne rise" style={{ animationDelay: `${delay}s` }} aria-label="Ton écurie est lancée">
         <Ill n="rosette" className="af-rosette" />
         <h2>Ton écurie est lancée.</h2>
-        <p>Tes chevaux ont leur nom, leur propriétaire, et ton chiffre tient compte de tes frais. Ce flot est à toi : il ne se perd pas.</p>
+        <p>Tes chevaux ont leur nom et leur propriétaire, ton chiffre compte tes frais, et ta fiche attend les cavaliers. Ce flot est à toi : il ne se perd pas.</p>
         <button
           type="button"
           className="af-btn rose"
@@ -159,13 +190,18 @@ export function Chemin({ delay = 0.1 }: { delay?: number }) {
     <section className="af-chemin rise" style={{ animationDelay: `${delay}s` }} aria-label={`Ton écurie en cinq pas : ${faits} sur ${total} faits`}>
       <h2>Ton écurie prend vie en cinq pas</h2>
       <p className="af-sub">{faits <= 1 ? "Le premier est fait. Le reste se fait dans la cour, à ton rythme." : `${faits} sur ${total} faits. Le reste se fait dans la cour, à ton rythme.`}</p>
-      <div className={`af-rail${go ? " go" : ""}`} aria-hidden="true" style={{ ["--k" as string]: String(Math.min(faits, total - 1)) }}>
-        <i className="af-fill" />
-        {pas.map((p) => (
-          <span key={p.id} className={`af-st${p.fait ? " ok" : p === now ? " now" : ""}`}>
-            {p.fait && <Ic n="ck" className="" />}
-          </span>
-        ))}
+      {/* Le fil rouge ne relie que deux pas faits qui se suivent : un pas fait en avance reste seul, sans fil. */}
+      <div className={`af-rail${go ? " go" : ""}`} aria-hidden="true">
+        {pas.map((p, k) => {
+          const suivant = pas[k + 1];
+          const fil = p.fait && (suivant ? suivant.fait : false);
+          return (
+            <span key={p.id} className="af-cell">
+              <i className={`af-seg${fil ? " on" : ""}${suivant ? "" : " fin"}`} style={{ transitionDelay: `${0.25 + k * 0.18}s` }} />
+              <span className={`af-st${p.fait ? " ok" : p === now ? " now" : ""}`}>{p.fait && <Ic n="ck" className="" />}</span>
+            </span>
+          );
+        })}
         <Ill n="rosette" className="af-flot" />
       </div>
       <div className="af-step">

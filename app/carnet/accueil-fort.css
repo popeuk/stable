@@ -68,10 +68,11 @@
 .carnet .af-chemin h2 { margin: 0; font-size: 24px; line-height: 1; letter-spacing: -.035em; font-weight: 700; font-variation-settings: "wdth" 90; max-width: 16ch; text-wrap: balance; }
 .carnet .af-sub { margin: 6px 0 0; font-size: 13.5px; color: var(--on-vert); }
 .carnet .af-rail { --k: 0; position: relative; display: grid; grid-template-columns: repeat(5, 1fr) auto; align-items: center; margin: 16px 0 14px; }
-.carnet .af-rail::before, .carnet .af-rail .af-fill { content: ""; position: absolute; left: 12px; top: 50%; height: 2px; transform: translateY(-50%); }
-.carnet .af-rail::before { right: 40px; background: rgba(191, 214, 203, .25); }
-.carnet .af-rail .af-fill { width: 0; background: var(--rose); transition: width 1.3s var(--ease) .25s; }
-.carnet .af-rail.go .af-fill { width: calc((100% - 30px) * var(--k) / 5); }
+.carnet .af-cell { position: relative; display: flex; align-items: center; height: 24px; }
+.carnet .af-seg { position: absolute; left: 12px; width: 100%; top: 50%; height: 2px; margin-top: -1px; background: rgba(191, 214, 203, .25); overflow: hidden; }
+.carnet .af-seg.fin { width: calc(100% - 6px); }
+.carnet .af-seg::after { content: ""; position: absolute; inset: 0; background: var(--rose); transform: scaleX(0); transform-origin: left; transition: transform .6s var(--ease); transition-delay: inherit; }
+.carnet .af-rail.go .af-seg.on::after { transform: scaleX(1); }
 .carnet .af-st { position: relative; z-index: 1; width: 24px; height: 24px; border-radius: 50%; background: var(--vert-deep); box-shadow: inset 0 0 0 2px rgba(191, 214, 203, .4); display: grid; place-items: center; color: var(--vert-deep); }
 .carnet .af-st.ok { background: var(--rose); box-shadow: none; }
 .carnet .af-st svg, .carnet .af-n svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -130,6 +131,6 @@
 @media (prefers-reduced-motion: reduce) {
   .af-lecteur, .af-scene-ill, .af-texte, .carnet .af-gr, .carnet .af-gagne .af-rosette { animation: none; }
   .carnet .af-st.now::after { animation: none; }
-  .carnet .af-rail .af-fill, .carnet .af-bar .tr i { transition: none; }
+  .carnet .af-seg::after, .carnet .af-bar .tr i { transition: none; }
   .af-prog i.ici::after { animation: none; transform: none; }
 }

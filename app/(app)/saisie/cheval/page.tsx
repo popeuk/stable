@@ -86,7 +86,8 @@ function SaisieCheval() {
     };
     if (editing) {
       updateHorse(editing.id, common);
-      router.push(versClient(editing.id) ?? `/ticket?id=${editing.id}`);
+      // Depuis le chemin de l'accueil (?retour=accueil), on y revient pour le pas suivant.
+      router.push(retour === "accueil" ? "/accueil" : (versClient(editing.id) ?? `/ticket?id=${editing.id}`));
       return;
     }
     // Le premier cheval ramène à l'accueil, pour que les premiers pas continuent.

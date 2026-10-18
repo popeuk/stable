@@ -13,12 +13,11 @@ import { PromoMonEcurie } from "@/components/bs/promo-mon-ecurie";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 import { Empty, Face, Ic, Page, Sec } from "@/components/carnet/ui";
-import { CeQuiManque, Chemin, JourneeMontree, Stories, useCheminActif, useJamaisNote } from "@/components/bs/accueil-fort";
+import { CeQuiManque, Chemin, JourneeMontree, useCheminActif, useJamaisNote } from "@/components/bs/accueil-fort";
 import "@/app/carnet/accueil-fort.css";
 
 /**
- * L'accueil, dans l'ordre : les stories tant qu'il en reste à voir, le
- * chiffre du mois (le personnage à côté) et, sans aucun frais, ce qui lui
+ * L'accueil, dans l'ordre : le chiffre du mois (le personnage à côté) et, sans aucun frais, ce qui lui
  * manque ; le chemin en cinq pas d'une écurie qui démarre
  * (components/bs/accueil-fort.tsx) ; puis la
  * ligne « Hier : … ont compté » qui ouvre la tournée du matin si on veut,
@@ -44,7 +43,6 @@ function Accueil() {
     return (
       <Page className="ac-acc">
         <BandeauExemple />
-        <Stories />
         <Compteur href="/argent" ill />
         <CeQuiManque />
         <AideCarte compact />
@@ -61,8 +59,7 @@ function Accueil() {
       <BandeauExemple />
       <div className="ac-dtop">
         <div>
-          <Stories />
-          <Compteur href="/argent" ill />
+            <Compteur href="/argent" ill />
           <CeQuiManque />
           <AideCarte compact />
           <Chemin />
