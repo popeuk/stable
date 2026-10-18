@@ -13,7 +13,7 @@ import { illPerso, usePerso } from "@/components/bs/perso";
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const SCENES: { ill: "matin" | "soir" | "sereine"; alt: string; t: string; s: string; fx?: "rays" | "lamp" }[] = [
-  { ill: "matin", alt: "La gérante porte une botte de foin devant les boxes, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, le crottin, les sabots. Tu assures, même les yeux fermés.", fx: "rays" },
+  { ill: "matin", alt: "La gérante porte une botte de foin devant les box, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, le crottin, les sabots. Tu assures, même les yeux fermés.", fx: "rays" },
   { ill: "soir", alt: "La gérante, fatiguée, devant des papiers et une calculette.", t: "Le soir, les comptes te rattrapent.", s: "Les papiers s’empilent. Et une question revient : est-ce que ton écurie te fait vivre ?", fx: "lamp" },
   { ill: "sereine", alt: "La gérante sourit à son téléphone, son cheval tout contre elle.", t: "Avec Be Stable, tu sais où tu en es.", s: "Deux gestes pour noter ta journée. Un chiffre clair pour chaque cheval." },
 ];

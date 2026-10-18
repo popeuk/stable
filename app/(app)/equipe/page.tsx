@@ -300,7 +300,7 @@ function Equipe() {
         )}
         <div className="pad rise" style={{ animationDelay: ".22s" }}>
           <p className="note jr-small">
-            {desk ? "Glisse une tâche d’une colonne à l’autre. " : ""}Quand une tâche qui a un coût passe en « {lists.find((l) => l.isDone)?.title ?? "Fait"} », le montant va dans les frais communs, partagé entre les chevaux. Les tâches avec une date apparaissent aussi dans le planning.
+            {desk ? "Glisse une tâche d’une colonne à l’autre. " : ""}Quand une tâche qui a un coût passe en « {lists.find((l) => l.isDone)?.title ?? "Fait"} », le montant va dans les frais de l’écurie, partagé entre les chevaux. Les tâches avec une date apparaissent aussi dans le planning.
           </p>
         </div>
         <div className="end" />

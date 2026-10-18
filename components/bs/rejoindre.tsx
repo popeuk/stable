@@ -542,7 +542,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
             </button>
             <p className="ar-proof">
               Pas de mot de passe. En continuant, tu acceptes les{" "}
-              <LienLegal t="cgu">conditions</LienLegal> de Be Stable et mon-ecurie.fr. Ce qu’on fait de tes données :{" "}
+              <LienLegal t="cgu">conditions</LienLegal> de Be Stable et mon-ecurie.fr. Ce qu’on fait de tes informations :{" "}
               <LienLegal t="confidentialite">confidentialité</LienLegal>.
             </p>
           </div>

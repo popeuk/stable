@@ -140,7 +140,7 @@ function FeuilleEffacer({ exporter, onClose }: { exporter: () => void; onClose: 
   return (
     <FeuilleConfirmer titre="Effacer mon écurie partout" onClose={onClose}>
       <p className="note" style={{ marginTop: 0 }}>
-        <b>Ton écurie sera effacée sur {cetAppareil()}, sur tes autres appareils et dans ta copie en ligne.</b> Les chevaux, les clients, les séances, les frais : tout repart de zéro.
+        <b>Ton écurie sera effacée sur {cetAppareil()}, sur tes autres téléphones et ordinateurs, et dans ta copie en ligne.</b> Les chevaux, les clients, les séances, les frais : tout repart de zéro.
       </p>
       <p className="note">Fais d’abord une sauvegarde : un fichier à garder, qui se reprend dans Réglages, Avancé. Tu pourras aussi récupérer l’écurie d’avant sur {cetAppareil()} pendant {JOURS_RECUPERATION} jours.</p>
       <button
@@ -246,7 +246,7 @@ export function RecupererLigne() {
       </button>
       {ouverte && (
         <FeuilleConfirmer titre="Récupérer l’écurie d’avant" onClose={() => setOuverte(false)}>
-          <p className="note" style={{ marginTop: 0 }}>L’écurie d’avant le {jour} revient sur {cetAppareil()}, puis dans ta copie en ligne et sur tes autres appareils. Ce que tu as noté depuis l’effacement est remplacé.</p>
+          <p className="note" style={{ marginTop: 0 }}>L’écurie d’avant le {jour} revient sur {cetAppareil()}, puis dans ta copie en ligne et sur tes autres téléphones et ordinateurs. Ce que tu as noté depuis l’effacement est remplacé.</p>
           <button
             type="button"
             className="btn full"
