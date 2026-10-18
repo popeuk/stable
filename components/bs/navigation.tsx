@@ -18,6 +18,7 @@ export const ECURIE = ["/ecurie", "/parcours/tarifs", "/parcours/factures", "/co
 /** Chaque écran a un seul parent, quel que soit le chemin pris pour y venir. */
 const PARENTS2: [string, string][] = [
   ["/ticket", "/chevaux?vue=chevaux"],
+  ["/saisie/cheval", "/chevaux?vue=chevaux"],
   ["/client", "/chevaux?vue=clients"],
   ["/facture", "/chevaux?vue=clients"],
   ["/valider", "/planning"],
@@ -45,6 +46,7 @@ const NOMS: [string, string][] = [
   ["/argent", "Mon bilan"],
   ["/scenarios", "Et si… ?"],
   ["/client", "Sa fiche"],
+  ["/ticket", "Sa fiche"],
   ["/reglages", "Réglages"],
   ["/accueil", "Accueil"],
 ];
@@ -59,7 +61,7 @@ export function useRetour2() {
   const path = usePathname() ?? "";
   const ici = useParentIci((s) => s.href);
   // La facture ramène à la fiche de son client ; un groupe de réglages à Mon écurie ou aux Réglages : l'écran le pose.
-  const href = (path.startsWith("/facture") || path.startsWith("/moi") || path.startsWith("/parametres")) && ici ? ici : parent2(path);
+  const href = (path.startsWith("/facture") || path.startsWith("/moi") || path.startsWith("/parametres") || path.startsWith("/saisie/cheval")) && ici ? ici : parent2(path);
   return { href, nom: nomDe(href), aller: () => router.push(href) };
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Face, Ic, Page as Ecran, Portrait, Sec } from "@/components/carnet/ui";
@@ -14,6 +14,7 @@ import type { Horse } from "@/lib/domain/types";
 import { montantEnTexte, montantOuZero, saisieMontant } from "@/lib/utils/montant";
 import { useUiStore } from "@/stores/ui-store";
 import { esc } from "@/lib/utils/esc";
+import { useParentIci } from "@/components/bs/nav";
 
 const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"];
 
@@ -56,6 +57,12 @@ function SaisieCheval() {
   const editing = editId ? horses.find((h) => h.id === editId) : undefined;
   const proprietaire = search.get("proprietaire")?.trim() ?? "";
   const retour = search.get("retour");
+  // La flèche du haut : la fiche du cheval qu'on modifie, sinon la liste des chevaux.
+  const poserParent = useParentIci((s) => s.poser);
+  useEffect(() => {
+    poserParent(editId ? `/ticket?id=${editId}` : retour === "client" && proprietaire ? `/client?nom=${encodeURIComponent(proprietaire)}` : "/chevaux?vue=chevaux");
+    return () => poserParent(null);
+  }, [editId, retour, proprietaire, poserParent]);
 
   const [name, setName] = useState(editing?.name ?? "");
   const [breed, setBreed] = useState(editing?.breed ?? "");
