@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { lignesComptables } from "@/lib/domain/comptable";
 import type { Invoice, StableData } from "@/lib/domain/types";
+import { brouillon, contenuAvoir, emettre, emettreAvoir } from "@/lib/domain/facture";
 
 /** Tonnerre à Hugo, deux chevaux sans propriétaire, une estimation de foin et une vraie livraison. */
 function data(invoices: Invoice[] = []): StableData {
@@ -61,3 +62,75 @@ describe("le fichier du comptable : seulement le réel", () => {
     expect(enc[0].montant).toBe(350);
   });
 });
+
+describe("le fichier du comptable : ce qui revient chaque mois, noté pour de vrai", () => {
+  const avecRecurrentes = (): StableData => ({
+    ...data(),
+    recurringExpenses: [
+      ...(data().recurringExpenses ?? []),
+      // Le + sur Tonnerre : « Complément 40 € tous les mois », depuis le 15 août.
+      { id: "comp", stableId: "s", label: "Complément", amount: 40, isShared: false, horseId: "h1", frequency: "monthly", startDate: "2026-08-15", endDate: null, source: "manual" },
+    ],
+    recurringRevenues: [
+      // Le + en recette sur Tonnerre (à Hugo) et sur Cheval 1 (sans propriétaire).
+      { id: "trav", stableId: "s", horseId: "h1", label: "Travail", amount: 80, frequency: "monthly", startDate: "2026-09-01", source: "manual" },
+      { id: "orph", stableId: "s", horseId: "h2", label: "Travail", amount: 80, frequency: "monthly", startDate: "2026-09-01", source: "manual" },
+    ],
+  });
+
+  it("le frais d'un cheval « tous les mois » : chaque mois passé et le mois en cours, rien d’après", () => {
+    const ls = lignesComptables(avecRecurrentes(), 2026, "2026-10-10").filter((l) => l.libelle === "Complément");
+    expect(ls.map((l) => l.date)).toEqual(["2026-08-15", "2026-09-15", "2026-10-10"]);
+    expect(ls.every((l) => l.type === "Dépense" && l.cheval === "Tonnerre" && l.montant === 40)).toBe(true);
+  });
+
+  it("la recette « tous les mois » d'un cheval qui a un propriétaire y va, à son client ; sans propriétaire, non", () => {
+    const ls = lignesComptables(avecRecurrentes(), 2026, "2026-10-31").filter((l) => l.libelle === "Travail");
+    expect(ls.map((l) => `${l.date}|${l.cheval}|${l.client}|${l.montant}`)).toEqual(["2026-09-01|Tonnerre|Hugo L.|80", "2026-10-01|Tonnerre|Hugo L.|80"]);
+  });
+
+  it("les estimations de Mes frais n'y vont toujours pas", () => {
+    const ls = lignesComptables(avecRecurrentes(), 2026, "2026-10-31");
+    expect(ls.some((l) => l.montant === 900 || l.montant === 400)).toBe(false);
+  });
+
+  it("l'année d'avant : ses douze mois", () => {
+    const d = avecRecurrentes();
+    d.recurringExpenses = [{ id: "c", stableId: "s", label: "Complément", amount: 40, isShared: false, horseId: "h1", frequency: "monthly", startDate: "2025-01-01", endDate: null, source: "manual" }];
+    expect(lignesComptables(d, 2025, "2026-10-31").filter((l) => l.libelle === "Complément")).toHaveLength(12);
+  });
+});
+
+describe("le fichier du comptable et les avoirs : une seule fois", () => {
+  const B = { legalName: "Les Pommiers", forme: "EI" as const, vat: "franchise" as const, address: "1 rue du Pré", siret: "12345678900012" };
+  /** Marc paie la pension de Cheval 2, sans propriétaire noté ; facturée puis annulée. */
+  function annulee() {
+    const d0 = data();
+    const d: StableData = {
+      ...d0,
+      revenues: d0.revenues.map((r) => (r.id === "rev-pension-h3-2026-10" ? { ...r, payer: "Marc" } : r)),
+      people: [{ id: "m", name: "Marc", role: "proprietaire", active: true, statut: "particulier" }],
+      billing: B,
+    };
+    const inv = emettre(d, brouillon(d, "Marc", { year: 2026, month: 10 }).facture!, "2026-10-20", "i1");
+    const d1 = { ...d, invoices: [inv], invoiceSeq: { "2026": 1 } };
+    const a = emettreAvoir(d1, contenuAvoir(inv, inv.lines.map((l) => l.qty), d1.invoices)!, "2026-10-21", "a1");
+    return { d: { ...d1, invoices: [inv, a] } as StableData, inv, a };
+  }
+
+  it("la vente annulée garde sa recette et son numéro, l'avoir est une ligne négative", () => {
+    const { d, inv, a } = annulee();
+    const ls = lignesComptables(d, 2026, "2026-10-31");
+    const marc = ls.filter((l) => l.client === "Marc");
+    expect(marc.map((l) => `${l.type}|${l.montant}|${l.facture}`)).toEqual([`Recette|350|${inv.number}`, `Avoir|-350|${a.number}`]);
+  });
+
+  it("une recette facturée puis retirée de l'app reste telle que facturée : l'avoir ne la retire pas deux fois", () => {
+    const { d, inv } = annulee();
+    const d2 = { ...d, revenues: d.revenues.filter((r) => r.id !== "rev-pension-h3-2026-10") };
+    const marc = lignesComptables(d2, 2026, "2026-10-31").filter((l) => l.client === "Marc");
+    expect(marc.filter((l) => l.type === "Recette").map((l) => `${l.montant}|${l.facture}`)).toEqual([`350|${inv.number}`]);
+    expect(marc.reduce((t, l) => t + l.montant, 0)).toBe(0);
+  });
+});
+
