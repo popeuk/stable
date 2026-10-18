@@ -18,6 +18,7 @@ class Mem {
 
 const { changerProprio, filtrerProprios, proprietaires, renommerClient, retirerClient } = await import("@/lib/domain/proprio");
 const { billsFor } = await import("@/lib/domain/billing");
+const { facturesDe, recettesFacturees } = await import("@/lib/domain/facture");
 const { clientDues } = await import("@/lib/domain/clients");
 const { useDataStore } = await import("@/stores/data-store");
 
@@ -143,6 +144,21 @@ describe("renommer et retirer un client", () => {
     expect(billsFor({ ...data(), ...r }, oct).find((b) => b.payer === "Hugo Leroy")!.paid).toBe(100);
   });
 
+  it("renommer : ses factures restent à lui, la facture figée garde le nom imprimé", () => {
+    const inv = {
+      id: "i1", number: "2026-0001", year: 2026, seq: 1, issuedAt: "2026-10-31", payer: "Hugo L.", month: "2026-10",
+      seller: { name: "Les Pommiers" }, buyer: { name: "Hugo L." }, franchise: true, lines: [], totalHT: 500, vat: [], totalTTC: 500, paid: 0, due: 500, revenueIds: ["r2"],
+    };
+    const autre = { ...inv, id: "i2", number: "2026-0002", seq: 2, payer: "Léa B.", buyer: { name: "Léa B." }, revenueIds: [] };
+    const r = renommerClient({ ...data(), invoices: [inv, autre] }, "hugo l.", "Hugo Leroy");
+    expect(r.invoices!.map((i) => i.payer)).toEqual(["Hugo Leroy", "Léa B."]);
+    expect(r.invoices![0].buyer.name).toBe("Hugo L.");
+    expect(facturesDe(r.invoices, "Hugo Leroy", "2026-10").map((i) => i.number)).toEqual(["2026-0001"]);
+    expect(facturesDe(r.invoices, "Hugo L.", "2026-10")).toEqual([]);
+    // Ses recettes déjà facturées le restent : rien ne repasse sur une nouvelle facture.
+    expect(recettesFacturees(r.invoices).get("r2")).toBe("2026-0001");
+  });
+
   it("retirer un client garde ses chevaux, sans propriétaire", () => {
     const r = retirerClient(data(), "ph", "2026-10-16", mkId);
     expect(r.people!.some((p) => p.id === "ph")).toBe(false);
@@ -200,6 +216,17 @@ describe("le store", () => {
     expect(s.horses.find((h) => h.id === hid)!.ownerName).toBe("olivier v.");
     expect(s.people!.filter((p) => p.name.toLowerCase() === "olivier v.")).toHaveLength(1);
     expect(s.horses.filter((h) => h.ownerName === "olivier v.")).toHaveLength(2);
+  });
+
+  it("updatePerson garde les factures rattachées au client renommé", () => {
+    const inv = {
+      id: "i1", number: "2026-0001", year: 2026, seq: 1, issuedAt: "2026-10-31", payer: "Hugo L.", month: "2026-10",
+      seller: { name: "Les Pommiers" }, buyer: { name: "Hugo L." }, franchise: true, lines: [], totalHT: 500, vat: [], totalTTC: 500, paid: 0, due: 500, revenueIds: ["r2"],
+    };
+    useDataStore.setState({ invoices: [inv] });
+    useDataStore.getState().updatePerson("ph", { name: "Hugo Leroy" });
+    const s = useDataStore.getState();
+    expect(s.invoices![0]).toMatchObject({ payer: "Hugo Leroy", buyer: { name: "Hugo L." }, number: "2026-0001" });
   });
 
   it("updatePerson renomme en cascade ; deletePerson garde les chevaux", () => {

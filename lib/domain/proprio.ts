@@ -1,4 +1,4 @@
-import type { Horse, Payment, Person, Revenue, StableData } from "@/lib/domain/types";
+import type { Horse, Invoice, Payment, Person, Revenue, StableData } from "@/lib/domain/types";
 
 /**
  * Le lien entre un cheval et son propriétaire. Le cheval porte le nom de son
@@ -184,13 +184,16 @@ export function changerProprio(
 /**
  * Renommer un client : son nom suit partout, sur ses chevaux, sur les
  * recettes et les paiements notés à son nom. Les séances le désignent par
- * son id : rien à changer.
+ * son id : rien à changer. Ses factures et avoirs restent à lui : ils lui
+ * sont rattachés sous son nouveau nom, mais une facture faite est figée et
+ * garde le nom imprimé dessus (`buyer`). Ce qui n'est pas encore facturé
+ * suit, puisque la prochaine facture se fait sous le nouveau nom.
  */
 export function renommerClient(
-  data: Pick<StableData, "horses" | "revenues" | "payments" | "people">,
+  data: Pick<StableData, "horses" | "revenues" | "payments" | "people" | "invoices">,
   oldName: string,
   newName: string,
-): Pick<StableData, "horses" | "revenues" | "payments" | "people"> {
+): Pick<StableData, "horses" | "revenues" | "payments" | "people" | "invoices"> {
   const from = oldName.trim();
   const to = newName.trim();
   const same = (n?: string) => !!n && cle(n) === cle(from);
@@ -200,6 +203,7 @@ export function renommerClient(
     horses: data.horses.map((h) => (same(h.ownerName) ? { ...h, ownerName: to } : h)),
     revenues: data.revenues.map((r) => (same(r.payer) ? { ...r, payer: to } : r)),
     payments: (data.payments ?? []).map((p: Payment) => (same(p.payer) ? { ...p, payer: to } : p)),
+    ...(data.invoices ? { invoices: data.invoices.map((i: Invoice) => (same(i.payer) ? { ...i, payer: to } : i)) } : {}),
   };
 }
 
