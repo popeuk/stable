@@ -352,6 +352,22 @@ html { touch-action: manipulation; }
    une seule fois : les feuilles sorties dans body (carnet-portal) suivent, et
    les colonnes se replient comme sur un écran un peu plus étroit. */
 html[data-taille="grand"] body { zoom: 1.15; }
+/* Très gros texte (décision 5) : environ 150 %. Sur un téléphone de 375 px,
+   l'écran se lit comme s'il faisait 250 px. L'en-tête et la barre du bas
+   restent à la taille du Gros texte (1,5 × 0,767 = 1,15) : leurs cinq onglets,
+   le retour nommé, « Voir mon bilan », l'enveloppe et la roue tiennent ainsi
+   sur une ligne, sans couper un mot. Ce qui avait une largeur fixe plus large
+   que l'écran prend toute la largeur. */
+html[data-taille="tres-grand"] body { zoom: 1.5; }
+html[data-taille="tres-grand"] .carnet .tb,
+html[data-taille="tres-grand"] .carnet .hd2 { zoom: 0.767; }
+html[data-taille="tres-grand"] .carnet .ch-bar2 .seg,
+html[data-taille="tres-grand"] .carnet .ch-bar2 .ch-search { width: 100%; flex: 1 1 100%; }
+html[data-taille="tres-grand"] .carnet .seg button { min-width: 0; white-space: normal; }
+/* Sous un zoom, une hauteur en dvh grandit avec lui : les panneaux bornés à
+   90 % de l'écran le restent (60 × 1,5 = 90). */
+html[data-taille="tres-grand"] .bs-cs-p { max-height: 60dvh; }
+html[data-taille="tres-grand"] .carnet .rg-feuille { max-height: 61dvh; }
 @media (max-width: 1023px) {
   input, select, textarea { font-size: max(16px, 1em); }
 }

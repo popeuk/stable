@@ -8,11 +8,11 @@ import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
 import { useDesk } from "@/components/bs/desk-hook";
-import { Hello, Ic, Sec, Switch, ini } from "@/components/carnet/ui";
+import { Hello, Ic, Sec, Seg, Switch, ini } from "@/components/carnet/ui";
 import { CategoriesReglages, EquipeReglages, LieuReglages } from "@/components/bs/reglages";
 import { getSession, leave } from "@/lib/account/session";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
-import { grosTexte, poserGrosTexte } from "@/lib/taille";
+import { poserTaille, tailleTexte, type Taille } from "@/lib/taille";
 import { fusionFactures } from "@/lib/domain/facture";
 import { compteurAppareil } from "@/lib/account/factures-seq";
 import { migrerDonnees, useDataStore } from "@/stores/data-store";
@@ -146,7 +146,7 @@ function Moi() {
     poserParent(GROUPES[groupe].parent);
     return () => poserParent(null);
   }, [groupe, poserParent, router]);
-  const [gros, setGros] = useState(grosTexte);
+  const [taille, setTaille] = useState<Taille>(tailleTexte);
   const today = localToday();
   // L'aperçu du rappel compte comme l'accueil : séances, soins, tâches, rendez-vous.
   const jour = resumeJournee(dayItems(data, today, today, "00:00"));
@@ -296,18 +296,21 @@ function Moi() {
   const app = (
     <Sec title="L’app sur ton téléphone" delay={0.16}>
       <Install />
-      <div style={{ marginTop: 4 }}>
-        <Switch
-          on={gros}
-          onClick={() => {
-            poserGrosTexte(!gros);
-            setGros(!gros);
-          }}
-        >
-          Gros texte
-        </Switch>
-      </div>
-      <p className="ec-help">Tout le texte grandit, ici seulement.</p>
+      <p className="mc-k" style={{ marginTop: 12 }}>Taille du texte</p>
+      <Seg
+        value={taille}
+        onChange={(t) => {
+          poserTaille(t);
+          setTaille(t);
+        }}
+        options={[
+          ["normal", "Normal"],
+          ["grand", "Gros texte"],
+          ["tres-grand", "Très gros texte"],
+        ]}
+        label="Taille du texte"
+      />
+      <p className="ec-help">Tout l’écran grandit, ici seulement.</p>
     </Sec>
   );
 
