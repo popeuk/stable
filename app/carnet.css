@@ -439,6 +439,9 @@ html[data-taille="tres-grand"] .carnet .rg-feuille { max-height: 61dvh; }
 .carnet :where(.ck, .ar-bin, .nt-bk, .hd .back, .hd .help, .hd .wm, .x, .ar-mnav button, .ec-mnav button, .ch-mnav button, .ch-sw, .lnk, .ar-link, .ar-obh, .pp-add, .sec :is(h2, h4) a, .sec :is(h2, h4) .act, .ch-tags a, .jr-open, .cl-key a) { position: relative; }
 .carnet :is(.ck, .ar-bin, .nt-bk, .hd .back, .hd .help, .hd .wm, .x, .ar-mnav button, .ec-mnav button, .ch-mnav button, .ch-sw, .lnk, .ar-link, .ar-obh, .pp-add, .sec :is(h2, h4) a, .sec :is(h2, h4) .act, .ch-tags a, .jr-open, .cl-key a)::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
 .carnet .seg button::after { content: ""; position: absolute; inset: -3px 0; }
+/* L'en-tête : « Voir mon bilan » et la roue gardent leur dessin de 38 px, l'appui en fait 44. */
+.carnet :is(.hd2-bilan, .hd2-gear) { position: relative; }
+.carnet :is(.hd2-bilan, .hd2-gear)::after { content: ""; position: absolute; inset: -3px; }
 .carnet .input > input, .carnet .input > select, .carnet .input > textarea { align-self: stretch; flex: 1 1 auto; width: 100%; min-width: 0; height: auto; min-height: 0; }
 .carnet .ac-promo-x::after, .carnet .cn-term::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
 .carnet .cn-term { position: relative; }

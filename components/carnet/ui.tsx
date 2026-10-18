@@ -1,5 +1,6 @@
 "use client";
 
+import { ILL_TAILLES } from "@/components/carnet/ill-tailles";
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { withBase } from "@/components/bs/ui";
@@ -108,6 +109,9 @@ export function Ill({ n, alt = "", className = "", style, fixe, prio }: { n: Ill
   const perso = usePerso();
   const choix = fixe ? { n } : illPerso(n, perso);
   const repli = choix.repli;
+  // La place du dessin est réservée avant qu'il arrive (l'écran ne saute pas) ; une fois chargé, sa vraie forme compte.
+  const taille = ILL_TAILLES[choix.n] ?? ILL_TAILLES[n];
+  const st: CSSProperties | undefined = taille ? { aspectRatio: `auto ${taille[0]} / ${taille[1]}`, ...style } : style;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -115,7 +119,7 @@ export function Ill({ n, alt = "", className = "", style, fixe, prio }: { n: Ill
       className={`ill ${className}`}
       src={withBase(`/img/carnet/${choix.n}.webp`)}
       alt={fixe ? alt : altPerso(alt, perso)}
-      style={style}
+      style={st}
       draggable={false}
       loading={prio ? "eager" : "lazy"}
       fetchPriority={prio ? "high" : undefined}

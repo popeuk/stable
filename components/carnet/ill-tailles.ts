@@ -1,0 +1,45 @@
+/**
+ * La taille de chaque dessin de public/img/carnet (largeur, hauteur) : posée
+ * sur l'image, elle réserve sa place avant le chargement, l'écran ne saute plus
+ * quand le dessin arrive. À refaire si un dessin change de format
+ * (tests/unit/app/ill-tailles.test.ts le vérifie).
+ */
+export const ILL_TAILLES: Record<string, [number, number]> = {
+  "accueil-premier": [712, 508],
+  "assise": [874, 512],
+  "brouette": [578, 600],
+  "carnet-buste": [480, 480],
+  "carnet": [390, 534],
+  "cavaliere": [900, 657],
+  "confirmer": [343, 480],
+  "dodo": [480, 317],
+  "equipe": [725, 623],
+  "foin": [619, 699],
+  "gerant-accueil-premier": [712, 490],
+  "gerant-assise": [801, 534],
+  "gerant-brouette": [556, 600],
+  "gerant-buste": [480, 480],
+  "gerant-carnet": [390, 534],
+  "gerant-foin": [595, 757],
+  "gerant-hors-ligne": [833, 403],
+  "gerant-matin": [1112, 1053],
+  "gerant-rosette": [400, 580],
+  "gerant-sereine": [721, 1725],
+  "gerant-soir": [931, 1740],
+  "gerant-vide-contacts": [681, 740],
+  "gerant-vide-ecurie": [812, 670],
+  "guide": [441, 480],
+  "hors-ligne": [833, 404],
+  "introuvable": [459, 386],
+  "matin": [1085, 1066],
+  "piste": [450, 486],
+  "promo": [900, 622],
+  "rosette": [452, 667],
+  "sacoche": [420, 420],
+  "sereine": [798, 1715],
+  "soir": [931, 1737],
+  "tete-fondu": [240, 221],
+  "tete": [640, 591],
+  "vide-contacts": [683, 730],
+  "vide-ecurie": [807, 660],
+};
