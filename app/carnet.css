@@ -397,6 +397,18 @@ html[data-taille="tres-grand"] .nt-tile b,
 html[data-taille="tres-grand"] .nt-tile small,
 html[data-taille="tres-grand"] .nt-q3 button { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; hyphens: auto; }
 html[data-taille="tres-grand"] .nt-q3 button { height: auto; min-height: 44px; padding-top: 6px; padding-bottom: 6px; line-height: 1.15; }
+/* Les cartes du chemin des premiers pas : le dessin couvrait le bouton. */
+html[data-taille="tres-grand"] .carnet .pas-card,
+html[data-taille="tres-grand"] .carnet .pas-card:has(.pas-wide) { grid-template-columns: minmax(0, 1fr); padding-right: 16px; }
+html[data-taille="tres-grand"] .carnet .pas-card-ill { display: none; }
+/* Les lignes des clients : le nom sur la ligne, ce qu'il doit dessous (le
+   nom et le montant se chevauchaient). */
+html[data-taille="tres-grand"] .carnet .cl-row { grid-template-columns: 36px minmax(0, 1fr) 14px; row-gap: 2px; }
+html[data-taille="tres-grand"] .carnet .cl-row .cl-amt { grid-column: 2; grid-row: 2; justify-items: start; display: flex; gap: 6px; align-items: baseline; }
+html[data-taille="tres-grand"] .carnet .cl-row > .chev { grid-column: 3; grid-row: 1 / span 2; }
+html[data-taille="tres-grand"] .carnet .cl-row > .face,
+html[data-taille="tres-grand"] .carnet .cl-row > .ini { grid-row: 1 / span 2; }
+html[data-taille="tres-grand"] .carnet .cl-row small { white-space: normal; }
 /* « Tout est sur ce téléphone » : le texte et la croix sur une ligne, le bouton dessous. */
 html[data-taille="tres-grand"] .carnet .es-keep { display: grid; grid-template-columns: minmax(0, 1fr) 44px; row-gap: 6px; }
 html[data-taille="tres-grand"] .carnet .es-keep > span { grid-column: 1; grid-row: 1; }
