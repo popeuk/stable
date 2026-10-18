@@ -13,9 +13,14 @@ import { PromoMonEcurie } from "@/components/bs/promo-mon-ecurie";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 import { Empty, Face, Ic, Page, Sec } from "@/components/carnet/ui";
+import { CeQuiManque, Chemin, JourneeMontree, Stories, useCheminActif, useJamaisNote } from "@/components/bs/accueil-fort";
+import "@/app/carnet/accueil-fort.css";
 
 /**
- * L'accueil, dans l'ordre : le chiffre du mois (le personnage à côté), la
+ * L'accueil, dans l'ordre : les stories tant qu'il en reste à voir, le
+ * chiffre du mois (le personnage à côté) et, sans aucun frais, ce qui lui
+ * manque ; le chemin en cinq pas d'une écurie qui démarre
+ * (components/bs/accueil-fort.tsx) ; puis la
  * ligne « Hier : … ont compté » qui ouvre la tournée du matin si on veut,
  * ta journée en pleine largeur, une seule chose à faire à la fois (fin du
  * mois, ou des chevaux à nommer), et l'encart mon-ecurie.fr réduit, tout en
@@ -39,10 +44,13 @@ function Accueil() {
     return (
       <Page className="ac-acc">
         <BandeauExemple />
+        <Stories />
         <Compteur href="/argent" ill />
+        <CeQuiManque />
         <AideCarte compact />
+        <Chemin />
         <LigneHier />
-        <Journee delay={0.12} max={5} />
+        <Journee delay={0.16} max={5} />
         <UneChose />
         <PromoMonEcurie small />
         <div className="end" />
@@ -53,8 +61,11 @@ function Accueil() {
       <BandeauExemple />
       <div className="ac-dtop">
         <div>
+          <Stories />
           <Compteur href="/argent" ill />
+          <CeQuiManque />
           <AideCarte compact />
+          <Chemin />
           <LigneHier />
           <UneChose />
         </div>
@@ -85,10 +96,12 @@ function BandeauExemple() {
   );
 }
 
-/** Une seule chose à faire à la fois : la fin du mois d'abord, sinon les chevaux à nommer. */
+/** Une seule chose à faire à la fois : la fin du mois d'abord, sinon les chevaux à nommer (le chemin s'en charge tant qu'il est là). */
 function UneChose() {
   const fin = useFinDuMois();
+  const chemin = useCheminActif();
   if (fin && fin.count) return <BandeauFinDuMois />;
+  if (chemin) return null;
   return <NommerChevaux />;
 }
 
@@ -105,9 +118,12 @@ function Journee({ delay, max }: { delay: number; max: number }) {
   const shown = [...shownDone, ...shownNext].sort((a, b) => (a.start ?? "99").localeCompare(b.start ?? "99"));
   const reste = items.filter((i) => !(i.type === "task" && i.done)).length - shown.length;
   const debutant = useDebutant();
+  const jamais = useJamaisNote();
   return (
     <Sec title="Ta journée" action={<Link href="/planning">Tout le planning</Link>} delay={delay} className="ac-jour">
-      {!items.length ? (
+      {!items.length && jamais ? (
+        <JourneeMontree />
+      ) : !items.length ? (
         <p className="note ac-jnote">Rien de prévu aujourd’hui. Touche le + pour ajouter une séance, un soin ou une tâche.</p>
       ) : !shown.length ? (
         <Empty ill="dodo">
