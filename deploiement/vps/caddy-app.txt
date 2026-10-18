@@ -1,5 +1,7 @@
 # L'app Be Stable (18 octobre 2026) : fichiers statiques, mis à jour par
 # bestable-app-maj depuis la branche « vps ». Le micro est permis (saisie à la voix).
+# 19 octobre : politique de contenu en essai (Report-Only), manifeste en application/manifest+json.
+# Fichier seulement : à recopier dans le Caddyfile du VPS, puis « caddy validate » et « systemctl reload caddy ».
 app.bestable.fr, app.187-7-74-179.sslip.io {
 	encode zstd gzip
 	# Les en-têtes de (securite), sauf le micro, permis à l app elle-même.
@@ -10,8 +12,18 @@ app.bestable.fr, app.187-7-74-179.sslip.io {
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(self), geolocation=()"
 		Content-Security-Policy "frame-ancestors 'none'"
+		# Politique de contenu à l'essai (19 octobre 2026) : le navigateur signale dans
+		# sa console ce qu'elle bloquerait, sans rien bloquer. Google et Meta y sont
+		# déjà, pour le jour où la mesure est allumée (lib/mesure.ts, ADRESSES_MESURE).
+		# style-src permet les styles en ligne de React (attributs style), sinon tout
+		# écran en signalerait. À passer en Content-Security-Policy quand la console
+		# reste propre une semaine.
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.mon-ecurie.fr https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com; connect-src 'self' https://www.mon-ecurie.fr https://wgvithqivsygsoeyqruz.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.facebook.com https://connect.facebook.net; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
 		-Server
 	}
+	# Le manifeste de l'app installée, avec son vrai type.
+	@manifeste path /manifest.webmanifest
+	header @manifeste Content-Type "application/manifest+json"
 	root * /srv/bestable-app/courant
 	@immuable path /_next/static/*
 	header @immuable Cache-Control "public, max-age=31536000, immutable"
