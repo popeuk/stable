@@ -90,10 +90,11 @@ export function usePas(): Pas[] {
     const soin = (data.careEvents ?? []).length > 0 || (data.seances ?? []).length > 0 || data.directExpenses.length > 0;
     const h = aFinir[0];
     return [
-      { id: "prix", fait: actifs.length > 0, titre: "Tes prix et ton mois", sous: "Faits pendant les questions.", ill: "tete", cta: "" },
+      // Sans cheval (questions passées, ou écurie vidée), ce pas est à faire : il mène aux trois questions.
+      { id: "prix", fait: actifs.length > 0, titre: "Tes prix et ton mois", sous: actifs.length ? "Faits pendant les questions." : "Tes chevaux, tes prix, tes frais : trois questions, et tu vois ton mois.", ill: "tete", cta: "Répondre aux trois questions", href: "/parcours" },
       {
         id: "chevaux",
-        fait: !aFinir.length,
+        fait: actifs.length > 0 && !aFinir.length,
         titre: "Tes chevaux et leurs propriétaires",
         sous: h
           ? `Dans la fiche de chaque cheval : son vrai nom et qui paie sa pension. ${aFinir.length > 1 ? `Encore ${aFinir.length} chevaux, en commençant par ${h.name}.` : `Il reste ${h.name}.`}`
@@ -189,7 +190,7 @@ export function Chemin({ delay = 0.1 }: { delay?: number }) {
   return (
     <section className="af-chemin rise" style={{ animationDelay: `${delay}s` }} aria-label={`Ton écurie en cinq pas : ${faits} sur ${total} faits`}>
       <h2>Ton écurie prend vie en cinq pas</h2>
-      <p className="af-sub">{faits <= 1 ? "Le premier est fait. Le reste se fait dans la cour, à ton rythme." : `${faits} sur ${total} faits. Le reste se fait dans la cour, à ton rythme.`}</p>
+      <p className="af-sub">{!pas[0].fait ? "Tout commence par les trois questions. Le reste se fait dans la cour, à ton rythme." : faits <= 1 ? "Le premier est fait. Le reste se fait dans la cour, à ton rythme." : `${faits} sur ${total} faits. Le reste se fait dans la cour, à ton rythme.`}</p>
       {/* Le fil rouge ne relie que deux pas faits qui se suivent : un pas fait en avance reste seul, sans fil. */}
       <div className={`af-rail${go ? " go" : ""}`} aria-hidden="true">
         {pas.map((p, k) => {
