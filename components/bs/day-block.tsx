@@ -14,6 +14,7 @@ import { PayeSurPlaceSheet } from "@/components/bs/moyen-paiement";
 import { dernierMoyen, enMoyen } from "@/lib/domain/paiement";
 import type { PaymentMethod } from "@/lib/domain/types";
 import { vibrer } from "@/lib/utils/vibrer";
+import { heure } from "@/lib/utils/heure";
 
 /** Le pictogramme d'un élément de la journée (créneaux, semaine sur ordinateur). */
 export function iconOf(it: DayItem): string {
@@ -110,7 +111,7 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
   return (
     <>
       <div className={`row${it.done && it.task ? " done" : ""}${showTime ? "" : " jr-notime"}`}>
-        <time>{showTime ? (it.start ?? "") : ""}</time>
+        <time>{showTime ? heure(it.start) : ""}</time>
         {it.seance ? (
           <button type="button" className="jr-open" onClick={open} title="Ouvrir la séance">
             {body}

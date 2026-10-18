@@ -1,5 +1,6 @@
 import type { ISODate, Revenue, Seance, StableData, TeamTask } from "@/lib/domain/types";
 import { CARE_META, addDays, type CareEvent } from "@/lib/domain/care";
+import { heure } from "@/lib/utils/heure";
 
 /**
  * Les séances du planning (repris du planning des cours du Clos) et la
@@ -259,7 +260,7 @@ export function resumeJournee(items: DayItem[]) {
   const choses = (k: number) => (k > 1 ? `${k} choses` : k === 1 ? "une chose" : "rien");
   const titre = n ? `Ta journée : ${n} chose${n > 1 ? "s" : ""}` : "Ta journée : rien de prévu";
   const avenir = items.filter((i) => !i.done);
-  const liste = (avenir.length ? avenir : items).slice(0, 3).map((i) => `${i.start ? `${i.start} ` : ""}${i.title}`).join(", ");
+  const liste = (avenir.length ? avenir : items).slice(0, 3).map((i) => `${i.start ? `${heure(i.start)} ` : ""}${i.title}`).join(", ");
   const corps = n ? `${liste}${n > 3 ? "…" : "."}` : "Rien de prévu aujourd’hui.";
   const ligne = n
     ? `${n > 1 ? `${n} choses` : "Une chose"} au planning aujourd’hui${faits ? `, dont ${faits === n ? (n > 1 ? "toutes" : "elle") : choses(faits)} déjà ${faits > 1 ? "faites" : "faite"}` : ""}.`

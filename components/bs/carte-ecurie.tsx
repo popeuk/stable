@@ -14,6 +14,7 @@ import { useAnnuaire } from "@/components/bs/account-ui";
 import { EcuriesTexte } from "@/lib/annuaire";
 import { ContactOuvrir } from "@/components/bs/contact";
 import { ChoixTemoinsLigne } from "@/components/bs/consentement";
+import { heure } from "@/lib/utils/heure";
 
 /**
  * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
@@ -203,7 +204,7 @@ export function Reglages() {
         titre="Toi"
         lignes={[
           { href: "/moi?s=compte", ic: "key", t: "Mon compte", s: compte },
-          { href: "/moi?s=rappel", ic: "bell", t: "Mon rappel", s: `${reminder ? reminder.replace(":", " h ") : "Le matin"}${evening ? ", et le soir s’il reste quelque chose" : ""}` },
+          { href: "/moi?s=rappel", ic: "bell", t: "Mon rappel", s: `${reminder ? heure(reminder) : "Le matin"}${evening ? ", et le soir s’il reste quelque chose" : ""}` },
         ]}
       />
       <Case

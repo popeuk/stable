@@ -14,6 +14,7 @@ import { scopedKey } from "@/lib/account/session";
 import type { DayItem } from "@/lib/domain/seances";
 import type { StableData } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
+import { heure } from "@/lib/utils/heure";
 
 /**
  * Tout compte, tu retires : les morceaux d'écran partagés par l'accueil, la
@@ -139,7 +140,7 @@ export function LigneComptee({ it, time }: { it: DayItem; time?: string }) {
   const open = () => it.seance && openSeance(it.seance.id, collectif ? "presence" : "fiche");
   return (
     <div className="row cp-row">
-      {time ?? it.start ? <time>{time ?? it.start}</time> : <span aria-hidden="true" />}
+      {time ?? it.start ? <time>{heure(time ?? it.start)}</time> : <span aria-hidden="true" />}
       <span>
         <b>{it.title}</b>
         <small>
@@ -178,7 +179,7 @@ export function LigneAVenir({ it }: { it: DayItem }) {
   );
   return (
     <div className="row cp-row cp-next">
-      {it.start ? <time>{it.start}</time> : <span aria-hidden="true" />}
+      {it.start ? <time>{heure(it.start)}</time> : <span aria-hidden="true" />}
       {it.seance ? (
         <button type="button" className="jr-open" onClick={() => openSeance(it.seance!.id)}>
           {body}

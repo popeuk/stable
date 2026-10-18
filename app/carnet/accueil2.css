@@ -80,11 +80,11 @@
 
 /* Une ligne qui a compté : l'heure, ce que c'était, le montant signé, × ou « Qui était là ? ». */
 /* .row.cp-row : plus fort que .row:has(> time) (livret.css), qui fixait la dernière colonne à 28px et faisait passer « Qui était là ? » sous le montant. */
-.carnet .row.cp-row { grid-template-columns: 50px minmax(0, 1fr) auto auto; gap: 6px; padding: 6px 0; min-height: 52px; }
+.carnet .row.cp-row { grid-template-columns: 62px minmax(0, 1fr) auto auto; gap: 6px; padding: 6px 0; min-height: 52px; }
 .carnet .cp-row > span, .carnet .cp-row > .jr-open { min-width: 0; }
 .carnet .cp-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .carnet .cp-row small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.carnet .row.cp-row.cp-next { grid-template-columns: 50px minmax(0, 1fr) auto; padding: 9px 0; }
+.carnet .row.cp-row.cp-next { grid-template-columns: 62px minmax(0, 1fr) auto; padding: 9px 0; }
 .carnet .cp-ok { display: inline-flex; align-items: center; gap: 3px; color: var(--ink2); font-weight: 600; }
 .carnet .cp-ok svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .cp-act { display: flex; align-items: center; justify-content: flex-end; }
@@ -178,7 +178,7 @@
 .carnet .ac-step .ac-hier + .btn.full, .carnet .ac-step .ac-today + .btn.full, .carnet .ac-step .ac-mnote + .btn.full { margin-top: 18px; }
 .carnet .ac-scene { display: flex; justify-content: center; height: 150px; margin: 8px 0 4px; }
 .carnet .ac-scene .ill { height: 100%; width: auto; object-fit: contain; }
-.carnet .ac-today .row { grid-template-columns: 50px minmax(0, 1fr) auto; padding: 13px 0; }
+.carnet .ac-today .row { grid-template-columns: 62px minmax(0, 1fr) auto; padding: 13px 0; }
 .carnet .ac-today time { font-size: 13px; color: var(--ink); font-weight: 600; }
 .carnet .ac-today b { font-size: 15.5px; }
 .carnet .ac-tperch { padding: 0; margin-top: 14px; }

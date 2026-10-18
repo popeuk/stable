@@ -16,6 +16,7 @@ import { habitues } from "@/lib/domain/ajouter";
 import { norm } from "@/lib/domain/interpret";
 import { nomRetenu } from "@/lib/domain/proprio";
 import type { Seance } from "@/lib/domain/types";
+import { plage } from "@/lib/utils/heure";
 
 /**
  * La fiche d'une séance. À venir : inscrire, l'annuler avec un motif, la
@@ -81,7 +82,7 @@ function Inner({ seance }: { seance: Seance }) {
   const following = series.filter((x) => x.date >= seance.date).length;
   const vide = isEmptySeance(seance);
   const dateLabel = new Date(seance.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-  const over = `${dateLabel.charAt(0).toUpperCase()}${dateLabel.slice(1)} · ${seance.start} à ${seance.end}${seance.lieu ? ` · ${seance.lieu}` : ""}`;
+  const over = `${dateLabel.charAt(0).toUpperCase()}${dateLabel.slice(1)} · ${plage(seance.start, seance.end)}${seance.lieu ? ` · ${seance.lieu}` : ""}`;
   const collectif = seance.format === "collectif";
   const today = localToday();
   const now = hhmm();

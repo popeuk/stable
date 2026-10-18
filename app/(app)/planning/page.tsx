@@ -15,6 +15,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { dayItems, dayTones, seanceAmount, type DayItem } from "@/lib/domain/seances";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { localToday } from "@/lib/utils/local-date";
+import { heure } from "@/lib/utils/heure";
 
 /**
  * Le planning (repris du planning des cours du Clos) : semaine ou mois,
@@ -246,7 +247,7 @@ function Planning() {
                       {its.slice(0, 3).map((it) => (
                         <i key={it.key}>
                           {aCompte(it) || it.done ? "✓ " : ""}
-                          {it.start ? `${it.start} ` : ""}
+                          {it.start ? `${heure(it.start)} ` : ""}
                           {it.title}
                         </i>
                       ))}
@@ -566,7 +567,7 @@ function Creneaux({ items, isToday, now, onEmpty }: { items: DayItem[]; isToday:
         {placed.map(({ it, s, e, col, cols }) => {
           const w = `((100% - 34px) / ${cols})`;
           const h = Math.max(30, ((e - s) / 60) * HOUR - 3);
-          const sub = [it.start, it.sub].filter(Boolean).join(" · ");
+          const sub = [heure(it.start), it.sub].filter(Boolean).join(" · ");
           return (
             <button
               key={it.key}

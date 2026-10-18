@@ -107,7 +107,7 @@
 .carnet .af-jour { padding-top: 10px; }
 .carnet .af-lbl { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; padding: 3px 10px; border-radius: 40px; background: var(--mist); color: var(--ink2); font-size: 12px; font-weight: 650; }
 .carnet .af-lbl svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.carnet .af-gr { display: grid; grid-template-columns: 48px 1fr; gap: 10px; align-items: center; margin-bottom: 6px; padding: 9px 10px; border: 1.5px dashed var(--line); border-radius: 10px; animation: af-txt .6s var(--ease) both; }
+.carnet .af-gr { display: grid; grid-template-columns: 60px 1fr; gap: 10px; align-items: center; margin-bottom: 6px; padding: 9px 10px; border: 1.5px dashed var(--line); border-radius: 10px; animation: af-txt .6s var(--ease) both; }
 .carnet .af-gr time { font-size: 14px; font-weight: 700; color: var(--ink3); font-feature-settings: "tnum" 1; }
 .carnet .af-gr b { display: block; font-size: 14px; font-weight: 620; color: var(--ink2); }
 .carnet .af-gr small { font-size: 12.5px; color: var(--ink3); }

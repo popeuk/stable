@@ -294,9 +294,9 @@ export function CeQuiManque() {
 /* ---------- La journée montrée ---------- */
 
 const TYPE: { t: string; b: string; s: string }[] = [
-  { t: "07:30", b: "Foin et eau", s: "toutes les places" },
-  { t: "10:00", b: "Cours collectif", s: "la présence compte toute seule" },
-  { t: "17:30", b: "Maréchal", s: "son coût va sur la fiche du cheval" },
+  { t: "7 h 30", b: "Foin et eau", s: "toutes les places" },
+  { t: "10 h", b: "Cours collectif", s: "la présence compte toute seule" },
+  { t: "17 h 30", b: "Maréchal", s: "son coût va sur la fiche du cheval" },
 ];
 
 /** Rien n'a jamais été noté : la journée vide se montre, au lieu d'une phrase. */

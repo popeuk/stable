@@ -14,6 +14,7 @@ import { LigneComptee, useDebutant } from "@/components/bs/compte";
 import { Ill, Money, eur, sg } from "@/components/carnet/ui";
 import { resteOuManque } from "@/lib/domain/lecture";
 import { useFeuille } from "@/components/bs/feuille";
+import { heure } from "@/lib/utils/heure";
 
 /**
  * La tournée du matin : 30 secondes en trois étapes, quand on la demande
@@ -192,7 +193,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
               <div className="rows ac-today">
                 {restants.slice(0, 5).map((it) => (
                   <div className="row" key={it.key}>
-                    <time>{it.start ?? ""}</time>
+                    <time>{heure(it.start)}</time>
                     <span>
                       <b>{it.title}</b>
                       {it.sub && <small>{it.sub}</small>}

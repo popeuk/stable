@@ -26,6 +26,7 @@ import type { Horse, Period, PersonRole, StableData } from "@/lib/domain/types";
 import { de, moisAFacturer } from "@/lib/domain/facture";
 import { Partis } from "@/components/bs/partis";
 import { useFeuille } from "@/components/bs/feuille";
+import { echeance } from "@/lib/utils/heure";
 
 /**
  * Clients : un onglet, deux vues.
@@ -79,7 +80,7 @@ function Vues() {
 
 const moisDe = () => cap(new Date().toLocaleDateString("fr-FR", { month: "long" }));
 const formule = (h: Horse) => (h.pensionType ?? "pension").toLowerCase();
-const quand = (d: Deadline) => (d.daysLeft < 0 ? `en retard de ${-d.daysLeft} j` : d.daysLeft === 0 ? "aujourd’hui" : `dans ${d.daysLeft} j`);
+const quand = (d: Deadline) => echeance(d.daysLeft);
 /** Les chevaux créés par l'essai sans compte s'appellent « Cheval 1 », « Cheval 2 »… */
 const sansNom = (h: Horse) => /^Cheval \d+$/.test(h.name.trim());
 

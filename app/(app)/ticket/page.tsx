@@ -20,6 +20,7 @@ import type { Horse } from "@/lib/domain/types";
 import { msgFairePayer } from "@/lib/utils/esc";
 import { Identite } from "@/components/bs/identite";
 import { SejourForm } from "@/components/bs/sejour-form";
+import { echeance, heure } from "@/lib/utils/heure";
 
 /**
  * La fiche d'un cheval : son portrait qui respire, puis le ticket du mois
@@ -237,7 +238,7 @@ function Ticket({ horse }: { horse: Horse }) {
             <span>
               <b>{CARE_META[d.kind].label}</b>
               <small className={d.status === "overdue" ? "ch-late" : undefined}>
-                {d.daysLeft < 0 ? `en retard de ${-d.daysLeft} j` : d.daysLeft === 0 ? "aujourd’hui" : `dans ${d.daysLeft} j, le ${jour(d.dueDate, "long")}`}
+                {d.daysLeft <= 0 ? echeance(d.daysLeft) : `${echeance(d.daysLeft)}, le ${jour(d.dueDate, "long")}`}
               </small>
             </span>
             <Ic n="chev" className="chev" />
@@ -286,7 +287,7 @@ function Ticket({ horse }: { horse: Horse }) {
                 <span>
                   <b>{x.title}</b>
                   <small>
-                    {new Date(x.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })} · {x.start}
+                    {new Date(x.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })} · {heure(x.start)}
                   </small>
                 </span>
                 <Ic n="chev" className="chev" />

@@ -11,6 +11,7 @@ import { applyCours, endOf, fromMin, type CoursHabit, type Draft, type Habitudes
 import type { Horse } from "@/lib/domain/types";
 import { cleSouple, nomRetenu } from "@/lib/domain/proprio";
 import { lireMontant, montantEnTexte, montantTape, saisieMontant, toucheMontant } from "@/lib/utils/montant";
+import { heure } from "@/lib/utils/heure";
 
 /**
  * Les briques du + (feuille Ajouter) et des écrans /saisie : les chevaux en
@@ -24,11 +25,8 @@ const NB = " ";
 
 /* ---------- Formats ---------- */
 
-/** « 18 h », « 7 h 30 ». */
-export const hh = (t: string) => {
-  const [h, m] = t.split(":");
-  return `${Number(h)}${NB}h${m && m !== "00" ? `${NB}${m}` : ""}`;
-};
+/** « 18 h », « 7 h 30 » : la fonction commune de lib/utils/heure. */
+export const hh = (t: string) => heure(t);
 
 /** « aujourd’hui », « demain », « jeudi 22 », « lundi 3 novembre ». */
 export function jourLabel(date: string, today: string) {

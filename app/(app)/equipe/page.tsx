@@ -15,6 +15,7 @@ import { localToday } from "@/lib/utils/local-date";
 import type { TeamTask } from "@/lib/domain/types";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { useFeuille } from "@/components/bs/feuille";
+import { heure } from "@/lib/utils/heure";
 
 /**
  * Le tableau de l'équipe : des colonnes (À faire, En cours, Fait), des
@@ -32,7 +33,7 @@ export default function Page() {
 function dueLabel(due: string | undefined, today: string) {
   if (!due) return "";
   const d = due.slice(0, 10);
-  const t = due.length > 10 ? ` ${due.slice(11, 16)}` : "";
+  const t = due.length > 10 ? `, ${heure(due.slice(11, 16))}` : "";
   if (d === today) return `aujourd’hui${t}`;
   return new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) + t;
 }
