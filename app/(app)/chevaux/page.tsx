@@ -9,7 +9,7 @@ import { cap } from "@/components/bs/ui";
 import { Chips, CountUp, Empty, Face, Ic, Ill, Money, Page as Ecran, Pill, Sec, Seg, coatFilter, eur, ini, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { reconciledNets, monthBreakdown, horseTicket } from "@/lib/domain/ticket";
+import { reconciledNets, monthBreakdown, horseTicket, estAuGerant } from "@/lib/domain/ticket";
 import { suggestions } from "@/lib/domain/leviers";
 import { useDesk } from "@/components/bs/desk-hook";
 import { useAideIci } from "@/components/bs/nav";
@@ -489,14 +489,15 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
 /* Chevaux : celui à surveiller, puis ce que chacun te laisse          */
 /* ------------------------------------------------------------------ */
 
-/** Le cheval qui te coûte le plus ce mois, s'il te coûte, avec ce qui presse pour lui. */
+/** Le cheval en pension qui te coûte le plus ce mois, s'il te coûte, avec ce qui presse pour lui. */
 function ASurveiller({ delay }: { delay: number }) {
   const data = useDataStore();
   const capacity = useSettingsStore((s) => s.capacity);
   const pick = useMemo(() => {
     const p = currentPeriod();
     const nets = reconciledNets(data, p);
-    const horses = data.horses.filter((h) => !h.isArchived && nets[h.id] !== undefined && nets[h.id] < 0);
+    // Les chevaux du gérant coûtent sans pension, c’est attendu : ils ne sont pas « à surveiller ».
+    const horses = data.horses.filter((h) => !h.isArchived && !estAuGerant(h) && nets[h.id] !== undefined && nets[h.id] < 0);
     if (!horses.length) return null;
     const h = horses.sort((a, b) => nets[a.id] - nets[b.id])[0];
     const s = suggestions(data, p, capacity).find((x) => x.apply?.type === "pension" && x.apply.horseId === h.id);

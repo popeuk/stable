@@ -12,7 +12,7 @@ import { useParcours } from "@/components/bs/parcours";
 import { avecArticle } from "@/lib/domain/leviers";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { horseTicket, partEnMots, reconciledNets, type HorseTicket } from "@/lib/domain/ticket";
+import { estAuGerant, horseTicket, partEnMots, reconciledNets, type HorseTicket } from "@/lib/domain/ticket";
 import { CARE_META, horseCareLog, upcomingDeadlines, type CareKind } from "@/lib/domain/care";
 import { currentPeriod, addMonths } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
@@ -162,6 +162,10 @@ function Ticket({ horse }: { horse: Horse }) {
             {net >= 0 ? (
               <>
                 Soins et foin payés, {horse.name} te laisse <Money v={net} /> ce mois.
+              </>
+            ) : estAuGerant(horse) ? (
+              <>
+                Avec ses soins et sa part des frais, {horse.name} te coûte {eur(-net)} ce mois.
               </>
             ) : (
               selonSexe(horse, `${horse.name} mange plus qu’il ne paie.`, `${horse.name} mange plus qu’elle ne paie.`, `${horse.name} coûte plus que sa pension.`)
