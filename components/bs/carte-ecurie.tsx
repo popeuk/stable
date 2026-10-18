@@ -14,27 +14,42 @@ import { api, type StableHit } from "@/lib/account/api";
  * qu'elle paie, ses gens, ses papiers) ; Réglages ne parle que de l'app sur
  * ce téléphone. Chaque ligne dit ce qu'il y a dedans avant qu'on l'ouvre.
  */
-type Ligne = { href: string; ic: string; t: string; s: string };
+/** `ext` : une page du site mon-ecurie.fr, ouverte dans un nouvel onglet. */
+type Ligne = { href: string; ic: string; t: string; s: string; ext?: boolean };
 
 function Case({ titre, lignes }: { titre: string; lignes: Ligne[] }) {
   return (
     <section className="ce-case rise">
       <h2>{titre}</h2>
-      {lignes.map((l) => (
-        <Link key={l.t} href={l.href} className="ce-li">
-          <span className="ce-ic">
-            <Ic n={l.ic} className="" />
-          </span>
-          <span className="ce-tx">
-            <b>{l.t}</b>
-            <small>{l.s}</small>
-          </span>
-          <Ic n="chev" className="ce-chev" />
-        </Link>
-      ))}
+      {lignes.map((l) => {
+        const dedans = (
+          <>
+            <span className="ce-ic">
+              <Ic n={l.ic} className="" />
+            </span>
+            <span className="ce-tx">
+              <b>{l.t}</b>
+              <small>{l.s}</small>
+            </span>
+            <Ic n="chev" className="ce-chev" />
+          </>
+        );
+        return l.ext ? (
+          <a key={l.t} href={l.href} className="ce-li" target="_blank" rel="noreferrer">
+            {dedans}
+          </a>
+        ) : (
+          <Link key={l.t} href={l.href} className="ce-li">
+            {dedans}
+          </Link>
+        );
+      })}
     </section>
   );
 }
+
+/** Les textes légaux sont communs à l’app et à mon-ecurie.fr, et vivent sur le site. */
+const SITE = "https://www.mon-ecurie.fr";
 
 const noms = (xs: string[], vide: string) => (xs.length ? (xs.length > 3 ? `${xs.slice(0, 3).join(", ")} et ${xs.length - 3} autre${xs.length > 4 ? "s" : ""}` : xs.join(", ")) : vide);
 
@@ -185,6 +200,14 @@ export function Reglages() {
           { href: "/moi?s=affichage", ic: "phone", t: "Affichage", s: "Gros texte, installer l’app sur l’écran d’accueil" },
           { href: "/moi?s=revoir", ic: "help", t: "Revoir", s: "Les explications, la tournée du matin" },
           { href: "/moi?s=avance", ic: "gear", t: "Avancé", s: "Catégories, sauvegarde, tout effacer" },
+        ]}
+      />
+      <Case
+        titre="Les règles"
+        lignes={[
+          { href: `${SITE}/confidentialite/`, ext: true, ic: "key", t: "Confidentialité", s: "Tes données : où elles vont, chiffrées, et tes droits" },
+          { href: `${SITE}/cgu/`, ext: true, ic: "doc", t: "Conditions d’utilisation", s: "Ce que l’app fait, ce qu’elle ne fait pas" },
+          { href: `${SITE}/mentions-legales/`, ext: true, ic: "flag", t: "Mentions légales", s: "Qui édite Be Stable, qui l’héberge" },
         ]}
       />
     </div>

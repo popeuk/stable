@@ -541,7 +541,11 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
               <a className="lnk" href="https://www.mon-ecurie.fr/cgu/" target="_blank" rel="noreferrer">
                 conditions
               </a>{" "}
-              de mon-ecurie.fr.
+              de Be Stable et mon-ecurie.fr. Ce qu’on fait de tes données :{" "}
+              <a className="lnk" href="https://www.mon-ecurie.fr/confidentialite/" target="_blank" rel="noreferrer">
+                confidentialité
+              </a>
+              .
             </p>
           </div>
         </form>
