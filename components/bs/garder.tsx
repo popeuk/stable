@@ -157,7 +157,7 @@ export function GardeFait({ onOpen, fiche, onFiche }: { onOpen: () => void; fich
         </button>
         {fiche && onFiche && (
           <button type="button" className="lnk" onClick={() => onFiche(fiche.id)}>
-            C’est ma fiche sur mon-ecurie.fr : la reprendre
+            Reprendre ma fiche mon-ecurie.fr
           </button>
         )}
       </div>

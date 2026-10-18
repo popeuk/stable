@@ -73,7 +73,7 @@ export function AdoptChoice({ to = "/accueil", source = "legacy" }: { to?: strin
         </div>
         <div className="hello rise" style={{ animationDelay: "0.1s" }}>
           <h2>Une écurie t’attend déjà sur cet appareil.</h2>
-          <p>Des chevaux, des séances ou des chiffres ont été notés sur cet appareil avant que tu aies un compte. Tu peux les mettre dans ton compte. Ils seront protégés et toi seul y auras accès.</p>
+          <p>Des chevaux, des séances ou des chiffres ont été notés ici avant que tu aies un compte. Tu peux les mettre dans ton compte. Ils seront protégés, et toi seulement y auras accès.</p>
         </div>
         <div className="mt-afoot rise" style={{ animationDelay: "0.18s" }}>
           <button type="button" className="btn full" disabled={busy} onClick={() => go(adoptLegacy)}>
@@ -82,7 +82,7 @@ export function AdoptChoice({ to = "/accueil", source = "legacy" }: { to?: strin
           <button type="button" className="btn line full" disabled={busy} onClick={() => go()}>
             Partir d’une écurie vide
           </button>
-          <p className="note">Si tu pars d’une écurie vide, rien n’est effacé : les anciennes données restent sur l’appareil.</p>
+          <p className="note">Si tu pars d’une écurie vide, rien n’est effacé : ce qui était noté reste ici.</p>
         </div>
       </main>
     </div>

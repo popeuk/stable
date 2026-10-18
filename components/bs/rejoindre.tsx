@@ -36,10 +36,10 @@ const PHOTO = withBase("/img/exemple-pre.jpg");
 
 /** Les messages du site sont au « vous » : l'app parle au « tu ». */
 const TU: Record<string, string> = {
-  trop_d_essais: "Trop d’essais depuis cette connexion. Réessaie un peu plus tard.",
+  trop_d_essais: "Trop d’essais. Attends quelques minutes et réessaie.",
   code_faux: "Ce code ne correspond pas. Vérifie les six chiffres.",
   code_expire: "Ce code n’est plus valable. Demande-en un nouveau.",
-  email_invalide: "Cette adresse e-mail ne semble pas valide.",
+  email_invalide: "Cette adresse e-mail a l’air incomplète. Vérifie-la.",
   hors_ligne: "Pas de connexion. Vérifie ton réseau et réessaie.",
   revendication_en_cours: "Une demande est déjà en cours pour cette fiche. Si c’est la tienne, tu recevras un e-mail.",
   deja_revendiquee: "Cette fiche a déjà un gérant. Si c’est une erreur, écris à bonjour@mon-ecurie.fr.",
@@ -114,7 +114,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
       setFiche(await api.ecurie(h.id));
       aller("elle");
     } catch {
-      setErr("Cette fiche ne répond pas. Réessaie.");
+      setErr("Impossible d’ouvrir cette fiche. Réessaie.");
     } finally {
       setBusy(false);
     }
@@ -158,7 +158,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
       setCode("");
       aller("code");
     } catch (x) {
-      setErr(dire(x, "L’envoi n’a pas abouti. Réessaie."));
+      setErr(dire(x, "Ce n’est pas parti. Réessaie."));
     } finally {
       setBusy(false);
     }
@@ -180,7 +180,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
       if (r.listing?.status === "validee") return entrer(s, "/accueil");
       await envoyer(s);
     } catch (x) {
-      setErr(dire(x, "Le code n’a pas pu être vérifié."));
+      setErr(dire(x, "Le code n’est pas passé. Réessaie."));
       setCode("");
     } finally {
       setBusy(false);
@@ -218,7 +218,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
           </>
         ) : (
           <>
-            <p className="k">Ce qu’une fiche reprise montre aux cavaliers</p>
+            <p className="k">Ce qu’une fiche à ton nom montre aux cavaliers</p>
             <div className="ar-apercu">
               <FicheCarte f={{ title: "Ton écurie", commune: "Ta commune", photos: [{ id: 0, url: PHOTO }], prix_min: "420", places_libres: "2" }} etat="reprise" />
             </div>
@@ -290,7 +290,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
             <Ill n="cavaliere" alt="Une cavalière cherche une pension sur son téléphone, appuyée à la barrière du paddock." />
           </div>
           <div className="q rise" style={{ animationDelay: ".08s" }}>
-            <h1>D’abord, retrouvons ton écurie.</h1>
+            <h1>D’abord, on retrouve ton écurie.</h1>
             <p>
               Elle a sans doute déjà sa fiche sur <b>mon-ecurie.fr</b>, l’annuaire des pensions pour chevaux : <b className="num">{ecuriesTexte(chiffres?.ecuries)}</b> y sont, partout en France. En la reprenant :
             </p>
@@ -378,7 +378,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
         >
           {top}
           <div className="q">
-            <h1>Ajoutons-la.</h1>
+            <h1>On l’ajoute.</h1>
             <p>Le nom, le code postal et la commune suffisent.</p>
           </div>
           <div className="ar-form">
@@ -419,13 +419,13 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
             {statut === "revendiquee" ? (
               <>
                 <p className="ar-proof">
-                  Quelqu’un l’a déjà reprise. Si c’est toi, entre avec l’e-mail utilisé ce jour-là : tu retrouves ta fiche.
+                  Elle est déjà au nom de quelqu’un. Si c’est toi, entre avec l’e-mail utilisé ce jour-là : tu retrouves ta fiche.
                 </p>
                 <Link href="/compte/connexion" className="btn full">
                   Me connecter
                 </Link>
                 <p className="ar-proof">
-                  Ce n’est pas toi qui l’as reprise ?{" "}
+                  Ce n’est pas toi ?{" "}
                   <a className="lnk" href={`mailto:bonjour@mon-ecurie.fr?subject=${encodeURIComponent(`Ma fiche ${fiche.title ?? ""} est reprise par quelqu’un d’autre`)}`}>
                     Écris-nous
                   </a>
@@ -462,7 +462,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
         <div className="ar-v">
           {top}
           <div className="q">
-            <h1>Glisse.</h1>
+            <h1>Fais glisser pour comparer.</h1>
           </div>
           <AvantApres f={fiche} />
           <div className="foot">
@@ -495,7 +495,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
               Complet
             </button>
             <button type="button" className="chip" aria-pressed={places === ""} onClick={() => setPlaces("")}>
-              Je ne dis pas
+              Je préfère ne pas le dire
             </button>
           </div>
           <div className="foot">
@@ -512,7 +512,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
             <h1>Ta pension, à partir de combien ?</h1>
           </div>
           <label className="ar-prix">
-            <input inputMode="numeric" value={prix} placeholder="0" aria-label="Prix à partir de, par mois" onChange={(e) => setPrix(e.target.value.replace(/\D/g, "").slice(0, 5))} autoFocus />
+            <input inputMode="numeric" value={prix} placeholder="0" aria-label="Ta pension la moins chère, par mois" onChange={(e) => setPrix(e.target.value.replace(/\D/g, "").slice(0, 5))} autoFocus />
             <span>€ / mois</span>
           </label>
           <p className="ar-ex" style={{ textAlign: "center" }}>
@@ -554,7 +554,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
         <form className="ar-v" onSubmit={(e) => (e.preventDefault(), verifier(code))}>
           {top}
           <div className="q">
-            <h1>Le code reçu.</h1>
+            <h1>Le code reçu par e-mail</h1>
             <p>Envoyé à {email.trim()}.</p>
           </div>
           <CodeInput value={code} onChange={(v) => (setCode(v), v.length === 6 && verifier(v))} disabled={busy} />
@@ -637,15 +637,15 @@ function FicheCarte({ f, etat, exemple }: { f: Partial<Fiche>; etat: "avant" | "
   const places = f.places_libres;
   const pill =
     etat === "reprise" ? (
-      <span className="pill ink">✓ Revendiquée</span>
+      <span className="pill ink">✓ À ton nom</span>
     ) : etat === "verif" ? (
       <span className="pill">En vérification</span>
     ) : f.statut === "revendiquee" ? (
-      <span className="pill">Déjà reprise</span>
+      <span className="pill">Déjà à quelqu’un</span>
     ) : f.statut === "en_verification" ? (
       <span className="pill">En vérification</span>
     ) : (
-      <span className="pill">Non revendiquée</span>
+      <span className="pill">Pas encore à ton nom</span>
     );
   return (
     <div className="ar-fc">
@@ -698,9 +698,9 @@ function AvantApres({ f }: { f: Partial<Fiche> }) {
           <FicheCarte f={reprise} etat="reprise" exemple={<Ill n="matin" />} />
         </div>
         <span className="tag a">Aujourd’hui</span>
-        <span className="tag b">Reprise</span>
+        <span className="tag b">À ton nom</span>
         <i className="knob" aria-hidden />
-        <input type="range" min={0} max={100} value={x} onChange={(e) => setX(Number(e.target.value))} aria-label="Comparer ta fiche aujourd’hui et reprise" />
+        <input type="range" min={0} max={100} value={x} onChange={(e) => setX(Number(e.target.value))} aria-label="Ta fiche aujourd’hui, et une fois à ton nom" />
       </div>
       <p className="ar-ex">À droite : photo, prix et places d’exemple. Les tiens les remplacent.</p>
     </>

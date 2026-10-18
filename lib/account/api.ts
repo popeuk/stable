@@ -38,7 +38,7 @@ function clean<T>(v: T): T {
 }
 
 const SLOW = "mon-ecurie.fr met trop de temps à répondre. Réessaie dans quelques minutes.";
-const OFFLINE = "Impossible de joindre mon-ecurie.fr. Vérifiez votre connexion et réessayez.";
+const OFFLINE = "Impossible de joindre mon-ecurie.fr. Vérifie ta connexion et réessaie.";
 
 export interface Demande {
   fonction?: string;
@@ -76,7 +76,7 @@ async function call<T>(method: "GET" | "POST" | "PUT" | "DELETE", path: string, 
   } catch {}
   if (!res.ok) {
     const j = (json ?? {}) as { code?: string; message?: string; data?: Record<string, unknown> };
-    throw new ApiError(j.code ?? "erreur", j.message ?? "Une erreur est survenue. Réessayez dans un instant.", res.status, j.data ?? {});
+    throw new ApiError(j.code ?? "erreur", j.message ?? "Ça n’a pas marché. Réessaie dans un instant.", res.status, j.data ?? {});
   }
   return clean(json) as T;
 }
@@ -211,7 +211,7 @@ export const api = {
       throw new ApiError("hors_ligne", OFFLINE);
     }
     const j = await res.json().catch(() => ({}));
-    if (!res.ok) throw new ApiError(j.code ?? "erreur", j.message ?? "La photo n’a pas pu être envoyée.", res.status);
+    if (!res.ok) throw new ApiError(j.code ?? "erreur", j.message ?? "La photo n’est pas partie. Réessaie.", res.status);
     return j as Fiche;
   },
   retirerPhoto: (id: number) => call<Fiche>("DELETE", `/ma-fiche/photos/${id}`),

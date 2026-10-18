@@ -54,7 +54,7 @@ export function PromoMonEcurie({ small }: { small?: boolean }) {
     statut === "validee"
       ? {
           etat: "ta fiche est en ligne",
-          title: small ? "Les cavaliers te trouvent. Montre-leur la bonne écurie." : <>Les cavaliers te trouvent.<br />Montre-leur la bonne écurie.</>,
+          title: small ? "Les cavaliers te cherchent. Montre-leur ton écurie." : <>Les cavaliers te cherchent.<br />Montre-leur ton écurie.</>,
           text: "Une photo, tes places libres et tes formules : c’est ce que les cavaliers regardent avant de t’écrire.",
           cta: "Mettre ma fiche à jour",
         }

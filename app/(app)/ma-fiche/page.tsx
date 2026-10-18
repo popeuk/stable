@@ -82,7 +82,7 @@ function MaFiche() {
   if (s?.kind === "demo")
     return (
       <Seul>
-        <Hello title="Ta fiche, c’est ta vitrine." sub="Dans l’écurie d’exemple, il n’y a pas de vraie fiche. Crée ton compte pour reprendre celle de ton écurie : c’est gratuit et sans commission." />
+        <Hello title="Ta fiche mon-ecurie.fr" sub="Dans l’écurie d’exemple, il n’y a pas de vraie fiche. Crée ton compte pour reprendre celle de ton écurie : c’est gratuit et sans commission." />
         <div className="pad rise" style={{ marginTop: 16, animationDelay: ".1s" }}>
           <Link href="/compte/inscription?retrouver=1" className="btn full">
             Trouver mon écurie
@@ -94,13 +94,13 @@ function MaFiche() {
   if (etat === "charge")
     return (
       <Seul>
-        <Hello title="Ta fiche, c’est ta vitrine." sub="Chargement de ta fiche…" />
+        <Hello title="Ta fiche mon-ecurie.fr" sub="Chargement de ta fiche…" />
       </Seul>
     );
   if (etat === "erreur")
     return (
       <Seul>
-        <Hello title="Ta fiche ne répond pas." />
+        <Hello title="Impossible d’ouvrir ta fiche." />
         <Empty ill="hors-ligne">mon-ecurie.fr ne répond pas pour le moment. Vérifie ta connexion internet. Le reste de l’app marche normalement.</Empty>
       </Seul>
     );
@@ -133,7 +133,7 @@ function MaFiche() {
       updateAccount({ listing: s?.kind === "compte" && s.listing ? { ...s.listing, title: r.title } : undefined });
       say(r.en_attente ? "C’est enregistré. Ça apparaîtra sur ta fiche dès qu’elle sera validée." : `Ta fiche est à jour sur mon-ecurie.fr : <strong>${esc(r.title)}</strong>.`);
     } catch (e) {
-      say(e instanceof ApiError ? esc(e.message) : "Ça n’a pas pu être enregistré. Réessaie dans un instant.");
+      say(e instanceof ApiError ? esc(e.message) : "Ce n’est pas enregistré. Réessaie dans un instant.");
     } finally {
       setBusy(false);
     }
@@ -150,7 +150,7 @@ function MaFiche() {
       });
       say("Photo ajoutée à ta fiche.");
     } catch (e) {
-      say(e instanceof ApiError ? esc(e.message) : "La photo n’a pas pu être envoyée.");
+      say(e instanceof ApiError ? esc(e.message) : "La photo n’est pas partie. Réessaie.");
     } finally {
       setUp(false);
     }
@@ -229,7 +229,7 @@ function MaFiche() {
               Complet
             </button>
             <button type="button" className="chip" aria-pressed={f.places_libres === ""} onClick={() => set({ places_libres: "" })}>
-              Ne pas dire
+              Je préfère ne pas le dire
             </button>
           </div>
         </div>
@@ -325,7 +325,7 @@ function MaFiche() {
                         const r = await api.retirerPhoto(p.id);
                         setF({ ...f, photos: r.photos });
                       } catch {
-                        say("La photo n’a pas pu être retirée.");
+                        say("La photo est toujours là. Réessaie.");
                       }
                     }}
                   >
@@ -341,7 +341,7 @@ function MaFiche() {
               )}
             </div>
             <input ref={file} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => e.target.files?.[0] && addPhoto(e.target.files[0])} />
-            <p className="ec-help">Une photo de ton téléphone convient (JPEG, PNG ou WebP, 10 Mo au plus). La première s’affiche en grand : prends le pré ou la cour, en plein jour.</p>
+            <p className="ec-help">Une photo prise avec ton téléphone, c’est parfait. La première s’affiche en grand : le pré ou la cour, en plein jour.</p>
           </>
         )}
         <p className="ec-help">

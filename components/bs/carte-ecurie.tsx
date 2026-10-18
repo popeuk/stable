@@ -116,7 +116,7 @@ function TonEcurie() {
                   <Link href={`/compte/inscription?fiche=${h.id}&depuis=ecurie`}>
                     <b>{h.title}</b>
                     <small>{[h.commune, h.departement && `(${h.departement})`].filter(Boolean).join(" ")}</small>
-                    <em>{h.statut === "libre" ? "C’est la mienne" : h.statut === "revendiquee" ? "déjà reprise" : "en vérification"}</em>
+                    <em>{h.statut === "libre" ? "C’est la mienne" : h.statut === "revendiquee" ? "déjà à quelqu’un" : "en vérification"}</em>
                   </Link>
                 </li>
               ))}
@@ -191,7 +191,7 @@ export function Reglages() {
     const s = getSession();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIci(cetAppareil());
-    setCompte(s?.kind === "demo" ? "Tu visites l’écurie d’exemple" : s?.kind === "compte" ? "Connecté, tes chiffres sont gardés" : `Sur ${cetAppareil()} seulement : garde tes chiffres`);
+    setCompte(s?.kind === "demo" ? "Tu visites l’écurie d’exemple" : s?.kind === "compte" ? "Avec ton compte, tes chiffres sont gardés" : `Sur ${cetAppareil()} seulement : garde tes chiffres`);
   }, []);
   return (
     <div className="ce">

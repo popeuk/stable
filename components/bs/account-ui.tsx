@@ -86,11 +86,11 @@ export function HitRow({ h, onPick }: { h: StableHit; onPick: () => void }) {
         <span>{[h.commune, h.departement && `(${h.departement})`].filter(Boolean).join(" ")}</span>
       </span>
       {h.statut === "revendiquee" ? (
-        <span className="bs-pill n">déjà reprise</span>
+        <span className="bs-pill n">déjà à quelqu’un</span>
       ) : h.statut === "en_verification" ? (
         <span className="bs-pill n">en vérification</span>
       ) : (
-        <span className="bs-pill k">à reprendre</span>
+        <span className="bs-pill k">à mettre à ton nom</span>
       )}
       <Picto name="chev" />
     </button>
@@ -118,10 +118,10 @@ export function FichePreview({ f, claimed, pending }: { f: Partial<Fiche>; claim
           <span className="badge n">En vérification</span>
         ) : claimed ? (
           <span className="badge r">
-            <Picto name="check" size={13} /> Revendiquée
+            <Picto name="check" size={13} /> À ton nom
           </span>
         ) : (
-          <span className="badge n">Fiche non revendiquée</span>
+          <span className="badge n">Pas encore à ton nom</span>
         )}
         {price > 0 ? (
           <div className="price">
@@ -167,7 +167,7 @@ export function ResultSheet({ f, claimed }: { f: Partial<Fiche>; claimed?: boole
 export function ficheRows(f: Partial<Fiche>, claimed?: boolean): [string, boolean, string, string][] {
   return [
     ["Sur la carte de l’annuaire", true, "en ligne", ""],
-    ["Fiche reprise par l’écurie", !!claimed, "reprise", "à reprendre"],
+    ["Fiche à ton nom", !!claimed, "à ton nom", "à mettre à ton nom"],
     ["Tarifs affichés", Number(f.prix_min) > 0 || !!f.formules?.some((x) => Number(x.prix) > 0), "affichés", "à renseigner"],
     ["Places libres", f.places_libres !== "" && f.places_libres !== undefined, "à jour", "à préciser"],
     ["Photos", !!f.photos?.length, `${f.photos?.length ?? 0} photo${(f.photos?.length ?? 0) > 1 ? "s" : ""}`, "à ajouter"],
@@ -200,10 +200,10 @@ export function FicheApercu({ f, claimed, pending }: { f: Partial<Fiche>; claime
         ) : claimed ? (
           <span className="pill">
             <Ic n="ck" className="" />
-            Revendiquée
+            À ton nom
           </span>
         ) : (
-          <span className="pill">Fiche non revendiquée</span>
+          <span className="pill">Pas encore à ton nom</span>
         )}
         {price > 0 ? (
           <div className="pr0">

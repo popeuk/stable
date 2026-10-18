@@ -118,7 +118,7 @@ export default function Page() {
     try {
       await f();
     } catch (x) {
-      setErr(x instanceof ApiError ? x.message : "Une erreur est survenue. Réessaie.");
+      setErr(x instanceof ApiError ? x.message : "Ça n’a pas marché. Réessaie.");
     } finally {
       setBusy(false);
     }
@@ -263,7 +263,7 @@ export default function Page() {
                   <Ill n="assise" alt="La gérante, assise, une tasse de café à la main." />
                 </div>
                 <div className="q rise" style={{ animationDelay: ".08s" }}>
-                  <h1>Content de te revoir.</h1>
+                  <h1>Te revoilà.</h1>
                 </div>
               </>
             )}
@@ -295,7 +295,7 @@ export default function Page() {
           <form className="ar-v" onSubmit={(e) => (e.preventDefault(), run(async () => ouvrir(await api.verifierCode(email.trim(), code))))}>
             {top}
             <div className="q">
-              <h1>Le code reçu.</h1>
+              <h1>Le code reçu par e-mail</h1>
               <p>Envoyé à {email.trim()}.</p>
             </div>
             <CodeInput
