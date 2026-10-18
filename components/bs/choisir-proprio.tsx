@@ -7,7 +7,7 @@ import { esc } from "@/components/bs/ui";
 import { Face, Ic, ini } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { filtrerProprios, proprietaires } from "@/lib/domain/proprio";
+import { cleSouple, filtrerProprios, proprietaires } from "@/lib/domain/proprio";
 import { accord, prenomDe } from "@/lib/domain/clients";
 import type { Horse } from "@/lib/domain/types";
 import { useFeuille } from "@/components/bs/feuille";
@@ -17,7 +17,9 @@ import { useFeuille } from "@/components/bs/feuille";
  * - `ChoisirProprio` : le champ « Son propriétaire » d'un formulaire cheval.
  *   Les clients existants à toucher, filtrés à chaque lettre, ou « + Nouveau ».
  *   La personne est créée à l'enregistrement du cheval (addHorse / setOwner),
- *   jamais pour un formulaire abandonné.
+ *   jamais pour un formulaire abandonné. Un nom tapé sans toucher « + Nouveau »
+ *   n'est pas perdu : `onTape` le donne au formulaire, qui l'enregistre comme
+ *   propriétaire (le client connu s'il porte ce nom, sinon un nouveau).
  * - `ChevauxDuClient` : la feuille « Ajouter un cheval » d'une fiche client.
  * Styles : app/carnet/proprio.css.
  */
@@ -25,7 +27,18 @@ import { useFeuille } from "@/components/bs/feuille";
 /** Sans rien de tapé, quatre clients ; en tapant, six : le champ tient sans défiler. */
 const maxDe = (q: string) => (q.trim() ? 6 : 4);
 
-export function ChoisirProprio({ value, onChange, label = "Son propriétaire" }: { value: string; onChange: (name: string) => void; label?: ReactNode }) {
+export function ChoisirProprio({
+  value,
+  onChange,
+  onTape,
+  label = "Son propriétaire",
+}: {
+  value: string;
+  onChange: (name: string) => void;
+  /** Le texte encore dans le champ, à reprendre à l'enregistrement. */
+  onTape?: (texte: string) => void;
+  label?: ReactNode;
+}) {
   const horses = useDataStore((s) => s.horses);
   const people = useDataStore((s) => s.people);
   const list = useMemo(() => proprietaires({ horses, people }), [horses, people]);
@@ -34,13 +47,17 @@ export function ChoisirProprio({ value, onChange, label = "Son propriétaire" }:
   const uid = useId();
   const t = q.trim();
   const found = filtrerProprios(list, q);
-  const exact = list.find((p) => p.name.toLowerCase() === t.toLowerCase());
+  const exact = list.find((p) => p.name.toLowerCase() === t.toLowerCase()) ?? (t ? list.find((p) => cleSouple(p.name) === cleSouple(t)) : undefined);
   const shown = found.slice(0, maxDe(q));
   const connu = !!value && list.some((p) => p.name.toLowerCase() === value.trim().toLowerCase());
 
+  const taper = (v: string) => {
+    setQ(v);
+    onTape?.(v);
+  };
   const pick = (name: string) => {
     onChange(name);
-    setQ("");
+    taper("");
   };
 
   if (value.trim()) {
@@ -79,7 +96,7 @@ export function ChoisirProprio({ value, onChange, label = "Son propriétaire" }:
         ref={input}
         className="input"
         value={q}
-        onChange={(e) => setQ(e.target.value)}
+        onChange={(e) => taper(e.target.value)}
         onKeyDown={(e) => {
           if (e.key !== "Enter" || !t) return;
           e.preventDefault();

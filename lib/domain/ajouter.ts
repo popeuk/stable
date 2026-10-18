@@ -75,6 +75,8 @@ export interface Draft {
   rep: Rep;
   until: ISODate;
   cav: string[];
+  /** Le nom encore dans le champ « Cavaliers » : il est inscrit à l'enregistrement, même sans « Ajouter ». */
+  cavTape?: string;
   // Soin
   care: CareKind | null;
   provider: string;

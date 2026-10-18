@@ -9,6 +9,37 @@ import type { Horse, Payment, Person, Revenue, StableData } from "@/lib/domain/t
  */
 
 const cle = (n: string) => n.trim().toLowerCase();
+/** La clé souple d'un nom : sans casse, sans accents, espaces confondus (« Hélène  Roy » = « helene roy »). */
+export const cleSouple = (n: string) =>
+  n
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+/**
+ * Le nom à retenir pour un texte tapé sans avoir touché « + Nouveau » : le
+ * client déjà connu s'il porte ce nom (à la casse et aux accents près), sinon
+ * le texte tapé, qui deviendra un nouveau client. Rien de tapé : undefined.
+ */
+export function nomRetenu(noms: string[], tape: string | undefined): string | undefined {
+  const t = (tape ?? "").trim().replace(/\s+/g, " ");
+  if (!t) return undefined;
+  const k = cleSouple(t);
+  return noms.find((n) => n.trim().toLowerCase() === t.toLowerCase())?.trim() ?? noms.find((n) => cleSouple(n) === k)?.trim() ?? t;
+}
+
+/**
+ * Les cavaliers d'une séance, avec le nom encore dans le champ : il est
+ * ajouté (une seule fois) sous le nom du client connu, ou comme nouveau
+ * cavalier. Un texte avec une virgule n'est pas un nom : il est laissé.
+ */
+export function cavaliersRetenus(cav: string[], tape: string | undefined, noms: string[]): string[] {
+  const n = (tape ?? "").includes(",") ? undefined : nomRetenu(noms, tape);
+  if (!n || cav.some((x) => cleSouple(x) === cleSouple(n))) return cav;
+  return [...cav, n];
+}
 
 /** Un propriétaire proposé dans le sélecteur. */
 export interface Proprio {
@@ -74,7 +105,13 @@ export function nomConnu(data: Pick<StableData, "horses" | "people">, name: stri
   const p = (data.people ?? []).find((x) => cle(x.name) === k);
   if (p) return p.name;
   const h = data.horses.find((x) => x.ownerName && cle(x.ownerName) === k);
-  return h?.ownerName?.trim() ?? name.trim();
+  if (h?.ownerName) return h.ownerName.trim();
+  // Même nom aux accents et aux espaces près (« Helene Roy » pour « Hélène Roy ») : c'est le même client.
+  const s = cleSouple(name);
+  const p2 = (data.people ?? []).find((x) => cleSouple(x.name) === s);
+  if (p2) return p2.name;
+  const h2 = data.horses.find((x) => x.ownerName && cleSouple(x.ownerName) === s);
+  return h2?.ownerName?.trim() ?? name.trim();
 }
 
 /** La personne existe (active, propriétaire) : créée une seule fois, réactivée au besoin. */
