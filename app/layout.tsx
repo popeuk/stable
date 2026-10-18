@@ -4,6 +4,7 @@ import { EARLY_INSTALL_SCRIPT, PwaRegister } from "@/components/pwa-register";
 import { SANS_ZOOM } from "@/lib/sans-zoom";
 import { TAILLE_TOT } from "@/lib/taille";
 import { Consentement } from "@/components/bs/consentement";
+import { TypoFr } from "@/components/typo-fr";
 import "./globals.css";
 import "./bs.css";
 import "./carnet.css";
@@ -89,6 +90,7 @@ export default function RootLayout({
         {children}
         <PwaRegister />
         <Consentement />
+        <TypoFr />
       </body>
     </html>
   );
