@@ -31,3 +31,18 @@ describe("les demandes des cavaliers", () => {
     expect(quandDemande("pas une date", now)).toBe("");
   });
 });
+
+describe("la sonde du site", () => {
+  it("en ligne, un site qui refuse cache le Contact ; hors ligne, on ne sait pas", async () => {
+    const { routesSite } = await import("@/lib/account/demandes");
+    const f = globalThis.fetch;
+    const nav = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+    globalThis.fetch = (() => Promise.reject(new TypeError("refusé"))) as typeof fetch;
+    Object.defineProperty(globalThis, "navigator", { value: { onLine: true }, configurable: true });
+    expect(await routesSite()).toBe(false);
+    Object.defineProperty(globalThis, "navigator", { value: { onLine: false }, configurable: true });
+    expect(await routesSite()).toBe(null);
+    globalThis.fetch = f;
+    if (nav) Object.defineProperty(globalThis, "navigator", nav);
+  });
+});

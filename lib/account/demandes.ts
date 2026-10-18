@@ -38,7 +38,8 @@ let sonde: Promise<boolean | null> | null = null;
 
 /**
  * true : les routes existent ; false : le site répond 404 (pas encore la
- * 1.5.0) ; null : pas de réseau, on ne sait pas (on réessaiera).
+ * 1.5.0), refuse ou ne répond pas alors qu'on est en ligne ; null : hors
+ * ligne, on ne sait pas (on réessaiera).
  */
 export function routesSite(): Promise<boolean | null> {
   sonde ??= (async () => {
@@ -49,7 +50,9 @@ export function routesSite(): Promise<boolean | null> {
       return true;
     } catch {
       sonde = null;
-      return null;
+      // Le réseau est là mais le site refuse ou ne répond pas : pas de Contact pour l'instant
+      // (on réessaiera au prochain écran). Vraiment hors ligne : on ne sait pas.
+      return typeof navigator !== "undefined" && navigator.onLine === false ? null : false;
     }
   })();
   return sonde;
