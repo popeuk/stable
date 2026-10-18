@@ -12,7 +12,7 @@ import { useParcours } from "@/components/bs/parcours";
 import { avecArticle } from "@/lib/domain/leviers";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { estAuGerant, horseTicket, partEnMots, reconciledNets, type HorseTicket } from "@/lib/domain/ticket";
+import { estAuGerant, horseTicket, lignesArrondies, partEnMots, reconciledNets, type HorseTicket } from "@/lib/domain/ticket";
 import { CARE_META, horseCareLog, upcomingDeadlines, type CareKind } from "@/lib/domain/care";
 import { currentPeriod, addMonths } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
@@ -68,8 +68,8 @@ const CARE_IC: Partial<Record<CareKind, string>> = {
 const careIc = (k: CareKind) => CARE_IC[k] ?? "syringe";
 
 /** Le conseil du ticket : une phrase forte, puis la suite. */
-function tipFor(h: Horse, t: HorseTicket): [string, string] {
-  if (t.net >= 0) return [`${h.name} paie ses soins et sa part des frais de l’écurie.`, `Une fois tout payé, ${selonSexe(h, "il", "elle", h.name)} te laisse ${eur(t.net)} ce mois.`];
+function tipFor(h: Horse, t: HorseTicket, net: number): [string, string] {
+  if (net >= 0) return [`${h.name} paie ses soins et sa part des frais de l’écurie.`, `Une fois tout payé, ${selonSexe(h, "il", "elle", h.name)} te laisse ${eur(net)} ce mois.`];
   const soins = t.lines.filter((l) => l.kind === "out" && /orthop|ost|compl|dent|vaccin|vermif/i.test(l.label));
   const big = (soins.length ? soins : t.lines.filter((l) => l.kind === "out")).sort((a, b) => a.amount - b.amount)[0];
   if (big && -big.amount > 20)
@@ -126,7 +126,7 @@ function Ticket({ horse }: { horse: Horse }) {
   ]
     .filter(Boolean)
     .join(" · ");
-  const [tipB, tipRest] = tipFor(horse, t);
+  const [tipB, tipRest] = tipFor(horse, t, net);
 
   const top = (
     <>
@@ -173,7 +173,7 @@ function Ticket({ horse }: { horse: Horse }) {
           </p>
         )}
         <div className="ticket print" key={`${period.year}-${period.month}`}>
-          {t.lines.map((l) => (
+          {lignesArrondies(t.lines, net).map((l) => (
             <div key={l.key} className={`r${lastLine && lastLine.horseId === horse.id && lastLine.sourceId === l.sourceId ? " new" : ""}`}>
               <span>
                 {l.kind === "share" ? (

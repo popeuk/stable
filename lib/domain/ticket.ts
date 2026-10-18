@@ -136,6 +136,22 @@ export function reconciledNets(data: StableData, period: Period): Record<string,
   return Object.fromEntries(fl.map((x) => [x.id, x.f]));
 }
 
+/**
+ * Les lignes du ticket telles qu'on les lit : chacune arrondie à l'euro, et la
+ * part des frais (déjà un partage à peu près) prend l'écart d'arrondi, pour
+ * que les lignes fassent exactement le total affiché (reconciledNets). Sans
+ * cela, « +450 € », « −265 € » et « Il te reste 186 € » ne tombaient pas juste.
+ */
+export function lignesArrondies(lines: TicketLine[], total: number): TicketLine[] {
+  const r = lines.map((l) => ({ ...l, amount: Math.round(l.amount) }));
+  const ecart = Math.round(total) - r.reduce((t, l) => t + l.amount, 0);
+  if (ecart === 0 || !r.length) return r;
+  const i = r.findIndex((l) => l.kind === "share");
+  const j = i >= 0 ? i : r.reduce((b, l, k) => (Math.abs(l.amount) > Math.abs(r[b].amount) ? k : b), 0);
+  r[j] = { ...r[j], amount: r[j].amount + ecart };
+  return r;
+}
+
 export interface MonthLine {
   label: string;
   amount: number;
