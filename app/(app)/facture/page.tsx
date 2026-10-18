@@ -475,7 +475,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
         {faite && !avoir && (
           <div className="card fa-card fa-faite rise" role="status">
             <b>{nomDoc(inv)} faite</b>
-            <p>Elle est rangée dans Tes factures. Imprime-la, ou envoie-la à {prenomDe(inv.payer)}.</p>
+            <p>Elle est rangée dans Tes factures. Imprime-la (ou enregistre-la en PDF), ou envoie-la à {prenomDe(inv.payer)}.</p>
             <div className="fa-sendb">
               <button type="button" className="btn" onClick={() => window.print()}>
                 <Ic n="print" className="" />
@@ -526,10 +526,13 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
             .
           </p>
         )}
-        <button type="button" className="btn full fa-print-btn" onClick={() => window.print()}>
-          <Ic n="print" className="" />
-          Imprimer ou enregistrer en PDF
-        </button>
+        {/* Juste faite, la carte du haut a déjà son bouton Imprimer : pas deux boutons qui font la même chose. */}
+        {!(faite && !avoir) && (
+          <button type="button" className="btn full fa-print-btn" onClick={() => window.print()}>
+            <Ic n="print" className="" />
+            Imprimer ou enregistrer en PDF
+          </button>
+        )}
         <div className="fa-send" ref={envoi}>
           <p className="fa-sendq">L’envoyer à {prenomDe(inv.payer)}</p>
           <div className="fa-sendb">
