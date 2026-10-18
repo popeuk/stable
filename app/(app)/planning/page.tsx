@@ -156,7 +156,7 @@ function Planning() {
       </div>
       <div>
         <b className={moneyCls(sum.validated)}>{sg(sum.validated)}</b>
-        <small>ont compté {portee}</small>
+        <small>déjà fait {portee}</small>
       </div>
       <div>
         <b className={soft}>{sg(sum.planned)}</b>
@@ -175,7 +175,7 @@ function Planning() {
       {Math.round(aCompteJour) !== 0 && (
         <>
           {" · "}
-          <span className={moneyCls(aCompteJour)} style={{ whiteSpace: "nowrap" }}>{sg(aCompteJour)}</span> {sel === today ? "ont déjà compté" : "ont compté"}
+          <span className={moneyCls(aCompteJour)} style={{ whiteSpace: "nowrap" }}>{sg(aCompteJour)}</span> {sel === today ? "déjà fait" : "fait"}
         </>
       )}
       {Math.round(aVenirJour) !== 0 && (
@@ -264,7 +264,7 @@ function Planning() {
             <span>
               <span className="out">−</span> en rose : sorti
             </span>
-            <span>± à l’encre : encore prévu</span>
+            <span>± en noir : encore prévu</span>
             <span className="hint">Clique sur une heure libre pour ajouter quelque chose · Flèches ← → pour changer de {view === "semaine" ? "semaine" : "mois"} · T pour aujourd’hui</span>
           </p>
           <Taches />
@@ -411,7 +411,7 @@ function Planning() {
               <span>
                 <b className="out">−</b> sorti
               </span>
-              <span>± à l’encre : prévu</span>
+              <span>± en noir : prévu</span>
               <span>
                 <span className="jr-dots">
                   <s />
@@ -441,7 +441,7 @@ function Planning() {
             <b>{cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" }))}</b>
             <button type="button" className="jr-mode" onClick={() => setDayView(dayView === "liste" ? "creneaux" : "liste")}>
               <Ic n={dayView === "liste" ? "clock" : "list"} className="" />
-              {dayView === "liste" ? "Voir en créneaux" : "Voir en liste"}
+              {dayView === "liste" ? "Voir par heure" : "Voir en liste"}
             </button>
           </div>
           {dayView === "liste" ? (

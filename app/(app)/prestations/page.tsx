@@ -135,7 +135,7 @@ function Prestations() {
           {desk && (
             <button type="button" className="btn" onClick={() => openNoter({ mode: "seance" })}>
               <Ic n="plus" className="" />
-              Planifier une séance
+              Prévoir une séance
             </button>
           )}
         </div>
@@ -256,7 +256,7 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
           <div className="acts">
             {p.active && (
               <button type="button" className="lnk" onClick={onPlan}>
-                Planifier une séance
+                Prévoir une séance
               </button>
             )}
             <button type="button" className="lnk mute" onClick={() => upd({ active: !p.active })}>

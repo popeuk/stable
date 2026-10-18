@@ -185,7 +185,7 @@ function Inner({ seance }: { seance: Seance }) {
   if (view === "fiche" || view === "presence") {
     const rows = seance.participants.length ? seance.participants : seance.horseIds.map((h) => ({ personId: "", horseId: h, present: undefined as boolean | undefined }));
     // Passée sans personne : rien n'a compté, on invite à dire qui est venu.
-    const etat = seance.status === "cancelled" ? `Retirée${seance.cancelReason ? ` · ${seance.cancelReason}` : ""}` : passee ? (vide ? "Personne d’inscrit" : "A compté") : "Prévue";
+    const etat = seance.status === "cancelled" ? `Retirée${seance.cancelReason ? ` · ${seance.cancelReason}` : ""}` : passee ? (vide ? "Personne d’inscrit" : "Faite") : "Prévue";
     // Un seul mot pour le prix : par cavalier (un participant est un cavalier) ; par cheval seulement pour un travail sans cavalier.
     const parCheval = !seance.participants.length && seance.horseIds.length > 0;
     body = (
@@ -264,7 +264,7 @@ function Inner({ seance }: { seance: Seance }) {
         {seance.notes && <p className="note">{seance.notes}</p>}
         {seance.updatedBy && <p className="note" style={{ fontSize: 12 }}>Modifiée par {seance.updatedBy}</p>}
         <div className="card jr-tot">
-          <span className="k">{appel && aChange ? "Comptera" : passee ? (vide ? "Pour l’instant" : "A rapporté") : "Rapportera"}</span>
+          <span className="k">{appel && aChange ? "Comptera" : passee ? (vide ? "Pour l’instant" : "Rapporté") : "Rapportera"}</span>
           <b className="mid">
             <Money exact v={seance.status === "cancelled" ? 0 : appel ? montantAppel : seanceAmount(seance)} />
           </b>
@@ -308,7 +308,7 @@ function Inner({ seance }: { seance: Seance }) {
     body = (
       <>
         {tabs}
-        <p className="note">Elle ne comptera pas dans ton argent. La raison reste notée.</p>
+        <p className="note">Elle ne comptera pas dans ton bilan. La raison reste notée.</p>
         <div style={{ marginTop: 12 }}>
           <Chips value={REASONS.includes(reason) ? reason : ""} onChange={(r) => setReason(r)} options={REASONS.map((r) => [r, r] as [string, string])} />
         </div>
@@ -348,7 +348,7 @@ function Inner({ seance }: { seance: Seance }) {
           </label>
         </div>
         {scopePicker}
-        <p className="note">Seul ce que tu changes bouge. Si tu changes la date, les autres séances choisies se décalent d’autant de jours.</p>
+        <p className="note">Seul ce que tu changes bouge. Si tu changes la date, les autres séances se décalent d’autant.</p>
         <button type="button" className="btn full jr-btn-top" disabled={end <= start} onClick={saveEdit}>
           Enregistrer
         </button>

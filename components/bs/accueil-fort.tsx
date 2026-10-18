@@ -99,7 +99,7 @@ export function usePas(): Pas[] {
         sous: h
           ? `Dans la fiche de chaque cheval : son vrai nom et qui paie sa pension. ${aFinir.length > 1 ? `Encore ${aFinir.length} chevaux, en commençant par ${h.name}.` : `Il reste ${h.name}.`}`
           : "",
-        gain: "rend le chiffre réel",
+        gain: "pour un chiffre juste",
         ill: "tete",
         cta: h ? `Compléter ${h.name}` : "",
         href: h ? `/saisie/cheval?edit=${h.id}&retour=accueil` : "/chevaux?vue=chevaux",
@@ -109,7 +109,7 @@ export function usePas(): Pas[] {
         fait: charges,
         titre: "Tes frais de l’écurie",
         sous: "Foin, paille, loyer : à peu près, ça suffit. L’app les partage entre tes chevaux.",
-        gain: "chiffre juste",
+        gain: "pour un chiffre juste",
         ill: "foin",
         cta: "Ajouter mes frais",
         href: "/parcours/factures?retour=accueil",
@@ -163,7 +163,7 @@ export function Chemin({ delay = 0.1 }: { delay?: number }) {
       <section className="af-chemin af-gagne rise" style={{ animationDelay: `${delay}s` }} aria-label="Ton écurie est lancée">
         <Ill n="rosette" className="af-rosette" />
         <h2>Ton écurie est lancée.</h2>
-        <p>Tes chevaux ont leur nom et leur propriétaire, ton chiffre compte tes frais, et ta fiche attend les cavaliers. Ce flot est à toi : il ne se perd pas.</p>
+        <p>Tes chevaux ont leur nom, tes frais sont comptés, ta fiche attend les cavaliers.</p>
         <button
           type="button"
           className="af-btn rose"
@@ -188,9 +188,9 @@ export function Chemin({ delay = 0.1 }: { delay?: number }) {
   );
 
   return (
-    <section className="af-chemin rise" style={{ animationDelay: `${delay}s` }} aria-label={`Ton écurie en cinq pas : ${faits} sur ${total} faits`}>
-      <h2>Ton écurie prend vie en cinq pas</h2>
-      <p className="af-sub">{!pas[0].fait ? "Tout commence par les trois questions. Le reste se fait dans la cour, à ton rythme." : faits <= 1 ? "Le premier est fait. Le reste se fait dans la cour, à ton rythme." : `${faits} sur ${total} faits. Le reste se fait dans la cour, à ton rythme.`}</p>
+    <section className="af-chemin rise" style={{ animationDelay: `${delay}s` }} aria-label={`Pour bien démarrer : ${faits} choses faites sur ${total}`}>
+      <h2>Pour bien démarrer</h2>
+      <p className="af-sub">{!pas[0].fait ? "Tout commence par les trois questions. Le reste se fait dans la cour, à ton rythme." : faits <= 1 ? "Le premier est fait. Le reste se fait dans la cour, à ton rythme." : "Le reste se fait dans la cour, à ton rythme."}</p>
       {/* Le fil rouge ne relie que deux pas faits qui se suivent : un pas fait en avance reste seul, sans fil. */}
       <div className={`af-rail${go ? " go" : ""}`} aria-hidden="true">
         {pas.map((p, k) => {
@@ -230,7 +230,7 @@ export function Chemin({ delay = 0.1 }: { delay?: number }) {
       <p className="af-flotline">
         <Ill n="rosette" />
         <span>
-          <b>Au bout : le flot « Écurie lancée ».</b> Il se gagne, il ne se perd jamais.
+          <b>Au bout : le flot « Écurie lancée ».</b>
         </span>
       </p>
     </section>
@@ -371,7 +371,7 @@ const STORIES: Story[] = [
     rond: <Ic n="mic" className="" />,
     ill: "carnet",
     titre: "Tu parles, c’est rangé.",
-    texte: "« Vermifuge pour Cheval 3, 12 € ». L’app comprend le soin, le cheval et le coût, et les range au bon endroit.",
+    texte: "« Vermifuge pour Cheval 3, 12 € » : l’app range le soin, le cheval et le prix.",
     cta: "Essayer le micro",
     noter: true,
   },
@@ -381,7 +381,7 @@ const STORIES: Story[] = [
     rond: <Ill n="sacoche" />,
     ill: "sacoche",
     titre: "Chaque cheval a son chiffre.",
-    texte: "Ce qu’il rapporte, ce qu’il coûte, en mots simples. Tu vois tout de suite lequel te coûte de l’argent.",
+    texte: "Ce qu’il rapporte, ce qu’il coûte. Tu vois tout de suite lequel te coûte.",
     cta: "Voir mon bilan",
     href: "/argent",
   },
@@ -390,8 +390,8 @@ const STORIES: Story[] = [
     nom: "Le 1er du mois",
     rond: <Ill n="sereine" />,
     ill: "sereine",
-    titre: "Les pensions se posent seules.",
-    texte: "Le 1er du mois, chaque pension est comptée sans rien recopier. Toi, tu n’as plus qu’à voir qui a payé.",
+    titre: "Les pensions se comptent toutes seules.",
+    texte: "Le 1er du mois, chaque pension est comptée. Toi, tu regardes qui a payé.",
     cta: "Voir mes clients",
     href: "/chevaux?vue=clients",
   },

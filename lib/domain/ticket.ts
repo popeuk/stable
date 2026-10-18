@@ -107,7 +107,7 @@ export function partEnMots(data: StableData, horseId: string, period: Period): s
     return quand ? `÷ ${n} : une part entière, même ${quand}` : `÷ ${n}`;
   }
   if (h && !plein) return `au prorata de ses ${jours} jour${jours > 1 ? "s" : ""} ici`;
-  return "sa part, fixée à la saisie";
+  return "sa part, fixée quand tu l’as notée";
 }
 
 /**
@@ -188,20 +188,20 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
   const addIn = (label: string, a: number) => insMap.set(label, (insMap.get(label) ?? 0) + a);
   for (const r of data.revenues) {
     if (!active.has(r.horseId) || !dateInPeriod(r.date, period)) continue;
-    addIn(catName(data, r.categoryId) ?? "Autres recettes", r.amount);
+    addIn(catName(data, r.categoryId) ?? "Autres rentrées d’argent", r.amount);
   }
   // Les récurrentes des chevaux du mois (pension en modèle), seulement s'ils sont encore là.
   for (const hid of active)
-    for (const rec of recurringRevenuesDue(data, hid, period)) addIn(catName(data, rec.categoryId) ?? rec.label ?? "Autres recettes", rec.amount);
+    for (const rec of recurringRevenuesDue(data, hid, period)) addIn(catName(data, rec.categoryId) ?? rec.label ?? "Autres rentrées d’argent", rec.amount);
   // L'argent qui rentre sans concerner aucun cheval (PAC, subvention…), sous son nom.
   for (const r of data.revenues) {
     if (!isOutside(r) || !dateInPeriod(r.date, period)) continue;
-    addIn(r.note || catName(data, r.categoryId) || "Hors chevaux", r.amount);
+    addIn(r.note || catName(data, r.categoryId) || "Rien à voir avec les chevaux", r.amount);
   }
   const outMap = new Map<string, number>();
   for (const e of data.directExpenses) {
     if (!isOutside(e) || !dateInPeriod(e.date, period)) continue;
-    const label = e.label || catName(data, e.categoryId) || "Hors chevaux";
+    const label = e.label || catName(data, e.categoryId) || "Rien à voir avec les chevaux";
     outMap.set(label, (outMap.get(label) ?? 0) + e.amount);
   }
 

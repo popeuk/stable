@@ -99,7 +99,7 @@ export function TaskDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Habi
           <Puces options={RAPPELS.map((r) => [r, r] as [string, string])} value={d.rappel} onPick={(rappel) => set((x) => ({ ...x, rappel: x.rappel === rappel ? "" : rappel }))} />
         </F>
       )}
-      <F label="Répétition">
+      <F label="Ça revient ?">
         <Repetition d={d} set={set} options={REPEATS} />
       </F>
       <F label="Notes">

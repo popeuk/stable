@@ -465,7 +465,7 @@ export function SeanceDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Ha
       <F label="Prix par cavalier">
         <MoneyField value={d.price} onChange={(price) => set((x) => ({ ...x, price }))} placeholder="Ajouter un prix" label="Prix par cavalier" />
       </F>
-      <F label="Répétition">
+      <F label="Ça revient ?">
         <Repetition d={d} set={set} />
       </F>
       {team.length > 0 && (

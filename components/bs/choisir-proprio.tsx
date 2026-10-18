@@ -203,7 +203,7 @@ export function ChevauxDuClient({
         <p>
           {conf.quoi === "detacher" ? (
             <>
-              Détacher <b>{h.name}</b> de {qui} ? Ce qui est passé reste à son nom.
+              <b>{h.name}</b> n’est plus à {qui} ? Ce qui est passé reste à son nom.
             </>
           ) : (
             <>
@@ -213,7 +213,7 @@ export function ChevauxDuClient({
         </p>
         <div className="pp-cacts">
           <button type="button" className="btn" onClick={() => (conf.quoi === "detacher" ? detacher(h) : rattacher(h))}>
-            {conf.quoi === "detacher" ? "Détacher" : `Oui, à ${qui}`}
+            {conf.quoi === "detacher" ? "Ce n’est plus son cheval" : `Oui, à ${qui}`}
           </button>
           <button type="button" className="btn line" onClick={() => setConf(null)}>
             Annuler
@@ -236,7 +236,7 @@ export function ChevauxDuClient({
                     <b>{h.name}</b>
                     {h.pensionType && <small>{h.pensionType}</small>}
                   </span>
-                  <button type="button" className="pp-x" onClick={() => setConf({ horse: h, quoi: "detacher" })} aria-label={`Détacher ${h.name} de ${qui}`}>
+                  <button type="button" className="pp-x" onClick={() => setConf({ horse: h, quoi: "detacher" })} aria-label={`${h.name} n’est plus à ${qui}`}>
                     <Ic n="x" className="" />
                   </button>
                 </div>

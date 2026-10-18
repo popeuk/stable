@@ -79,7 +79,7 @@ function Equipe() {
     st.moveTask(t.id, listId);
     const l = lists.find((x) => x.id === listId);
     say(
-      l?.isDone && t.cost ? `C’est fait. <strong>${eur(t.cost)}</strong> ajoutés aux frais de l’écurie, partagés entre les chevaux.` : `Tâche rangée dans <strong>${esc(l?.title ?? "")}</strong>.`,
+      l?.isDone && t.cost ? `C’est fait. <strong>${eur(t.cost)}</strong> ajoutés aux frais de l’écurie, partagés entre les chevaux.` : `Tâche passée dans « <strong>${esc(l?.title ?? "")}</strong> ».`,
       () => useDataStore.setState(snap),
     );
   }
@@ -212,7 +212,7 @@ function Equipe() {
           </button>
         </div>
         <div className="jr-ttl rise" style={{ animationDelay: ".05s" }}>
-          <h2>Tâches d’équipe</h2>
+          <h2>Tâches de l’équipe</h2>
         </div>
         <div className="jr-ctl rise" style={{ animationDelay: ".08s" }}>
           <Seg
@@ -361,7 +361,7 @@ function TaskSheet({ id, onClose }: { id: string; onClose: () => void }) {
                 const l = lists.find((x) => x.id === lid);
                 const undo = snap();
                 st().moveTask(t.id, lid);
-                say(l?.isDone && t.cost ? `C’est fait. <strong>${eur(t.cost)}</strong> ajoutés aux frais de l’écurie, partagés entre les chevaux.` : `Tâche rangée dans <strong>${esc(l?.title ?? "")}</strong>.`, undo);
+                say(l?.isDone && t.cost ? `C’est fait. <strong>${eur(t.cost)}</strong> ajoutés aux frais de l’écurie, partagés entre les chevaux.` : `Tâche passée dans « <strong>${esc(l?.title ?? "")}</strong> ».`, undo);
               }}
               options={lists.map((l) => [l.id, l.title] as [string, string])}
             />

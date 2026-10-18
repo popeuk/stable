@@ -160,7 +160,7 @@ export function MonEcurie() {
       <Case
         titre="Ce que tu vends, ce que tu paies"
         lignes={[
-          { href: "/parcours/tarifs?retour=ecurie", ic: "euro", t: "Mes prix", s: prix || "Pension, cours, forfaits, prestations" },
+          { href: "/parcours/tarifs?retour=ecurie", ic: "euro", t: "Mes prix", s: prix || "Pension, cours, forfaits, services" },
           { href: "/parcours/factures?retour=ecurie", ic: "hay", t: "Mes frais", s: frais ? `${eur(frais)} par mois · foin, paille, loyer…` : "Foin, paille, loyer, salaires" },
         ]}
       />

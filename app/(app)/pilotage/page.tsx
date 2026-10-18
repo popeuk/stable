@@ -269,7 +269,7 @@ function Bilans() {
           ))
         )}
       </Sec>
-      <Sec ill="confirmer" title="Ce que rapportent tes cours" action={<Link href="/prestations">Tes prestations</Link>} delay={0.46}>
+      <Sec ill="confirmer" title="Ce que rapportent tes cours" action={<Link href="/prestations">Tes cours</Link>} delay={0.46}>
         {prests.length === 0 ? (
           <p className="note">Pas encore de séance sur ces mois-là. Note-les dans le planning : une fois passées, elles comptent toutes seules.</p>
         ) : (

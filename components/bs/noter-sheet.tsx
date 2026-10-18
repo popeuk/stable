@@ -48,9 +48,9 @@ const TYPES: { id: AjoutType; l: string; s: string; i: string }[] = [
   { id: "argent", l: "Argent", s: "ça rentre, ça sort", i: "euro" },
 ];
 const MOREH: Record<AjoutType, string> = {
-  seance: "lieu, cavaliers, répétition…",
-  soin: "qui vient, refacturer…",
-  rdv: "rappel, répétition…",
+  seance: "lieu, cavaliers, chaque semaine…",
+  soin: "qui vient, à faire payer…",
+  rdv: "rappel, chaque semaine…",
   argent: "payé comment, notes…",
 };
 const POUR: [Pour, string][] = [
@@ -233,7 +233,7 @@ function NoterInner() {
     rec.onerror = (e) => {
       if (e.error === "not-allowed" || e.error === "service-not-allowed" || e.error === "audio-capture") {
         setTyping(true);
-        setVoiceMsg("Le micro n’est pas permis. Écris-le, ou touche le micro du clavier.");
+        setVoiceMsg("Le micro est bloqué. Autorise-le dans les réglages du téléphone, ou écris-le.");
       }
     };
     rec.onend = () => {
@@ -426,14 +426,14 @@ function NoterInner() {
       else chosen.forEach((horseId) => st.addRecurringExpense({ label: label || cat?.name || "Dépense", amount: v, categoryId: cat?.id, isShared: false, horseId, frequency: freq, startDate: d.date, endDate: null, source: "manual" }));
     } else if (pour === "hors") {
       if (inn) st.addRevenue({ horseId: "", amount: v, date: d.date, note: label || note, source: "manual" });
-      else st.addDirectExpense({ horseId: "", label: label || "Hors chevaux", amount: v, date: d.date, note, source: "manual" });
+      else st.addDirectExpense({ horseId: "", label: label || "Rien à voir avec les chevaux", amount: v, date: d.date, note, source: "manual" });
     } else if (pour === "ecurie") {
       const period = currentPeriod(new Date(d.date + "T12:00:00"));
       const estime = estimationDuPoste(st, cat?.id, period);
       if (cat && estime > 0 && dedans === undefined) return setDedansQ({ nom: cat.name, montant: estime });
       st.addSharedExpense({
         categoryId: cat?.id,
-        label: label || cat?.name || "Frais communs",
+        label: label || cat?.name || "Frais de l’écurie",
         totalAmount: v,
         periodMonth: period.month,
         periodYear: period.year,
@@ -477,7 +477,7 @@ function NoterInner() {
     } else if (edit.t === "sh") {
       const cat = trouve(st.expenseCategories.filter((c) => !c.isDirect));
       const p = currentPeriod(new Date(x.date + "T12:00:00"));
-      st.updateSharedExpense(edit.id, { totalAmount: v, periodMonth: p.month, periodYear: p.year, ...(change ? { label: label || cat?.name || "Frais communs", ...(cat ? { categoryId: cat.id } : {}) } : {}) });
+      st.updateSharedExpense(edit.id, { totalAmount: v, periodMonth: p.month, periodYear: p.year, ...(change ? { label: label || cat?.name || "Frais de l’écurie", ...(cat ? { categoryId: cat.id } : {}) } : {}) });
     } else if (edit.t === "recrev") {
       const cat = trouve(st.revenueCategories);
       st.updateRecurringRevenue(edit.id, { amount: v, ...(horseId ? { horseId } : {}), ...(change ? (cat ? { categoryId: cat.id, label: undefined } : { label: label || undefined }) : {}) });
@@ -746,7 +746,7 @@ function NoterInner() {
         )}
         <div className="nt-alt">
           <button type="button" className="lnk" onClick={backToGrid}>
-            Revenir au choix
+            Revenir
           </button>
         </div>
       </>
@@ -919,7 +919,7 @@ function NoterInner() {
             Plus de détails
           </button>
           <button type="button" className="lnk" onClick={backToGrid}>
-            Revenir au choix
+            Revenir
           </button>
         </div>
       </>
@@ -1049,7 +1049,7 @@ function NoterInner() {
             {soinTiles(x)}
           </F>
           {horses.length > 0 && (
-            <F label="Quel cheval" hint="sans cheval, c’est un rendez-vous au planning">
+            <F label="Quel cheval" hint="sans cheval, ça va au planning comme un rendez-vous">
               <HorseChips grille horses={horses} value={x.horseIds} onChange={(horseIds) => set((y) => ({ ...y, horseIds }))} />
             </F>
           )}
@@ -1069,7 +1069,7 @@ function NoterInner() {
             <MoneyField value={x.price} onChange={(price) => set((y) => ({ ...y, price }))} placeholder="Sans prix" label="Prix du soin" />
           </F>
           {owners && (
-            <F label="Refacturer au propriétaire">
+            <F label="À faire payer au propriétaire">
               <Puces
                 options={[
                   ["oui", "Oui"],
@@ -1111,11 +1111,11 @@ function NoterInner() {
             <Jours date={x.date} today={today} onDate={(date) => set((y) => ({ ...y, date }))} />
           </F>
           {x.pour === "ecurie" && x.sens === "out" && (
-            <F label="Répétition">
+            <F label="Ça revient ?">
               <Puces
                 options={[
                   ["once", "Une fois"],
-                  ["monthly", "Tous les mois"],
+                  ["monthly", "Chaque mois"],
                 ]}
                 value={x.moneyRep === "once" ? "once" : "monthly"}
                 onPick={(rep) => set((y) => (rep === "once" ? { ...y, moneyRep: "once" } : { ...y, moneyRep: y.moneyRep === "once" ? "monthly" : y.moneyRep }))}
@@ -1132,7 +1132,7 @@ function NoterInner() {
             </F>
           )}
           {x.pour !== "hors" && x.pour !== "ecurie" && !(x.sens === "in" && x.pour !== "cheval") && (
-            <F label="Répétition">
+            <F label="Ça revient ?">
               <Puces
                 options={[
                   ["once", "Une fois"],

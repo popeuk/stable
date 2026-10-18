@@ -298,7 +298,7 @@ function Ticket({ horse }: { horse: Horse }) {
       <div className="ch-after">
         <button type="button" className="btn line full" onClick={() => openNoter({ mode: "seance", horseIds: [horse.id] })}>
           <Ic n="plus" className="" />
-          Planifier une séance
+          Prévoir une séance
         </button>
       </div>
     </>

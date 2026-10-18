@@ -77,12 +77,12 @@ export const CARE_META: Record<
   osteo: { label: "Ostéopathe", cadenceDays: 365 },
   veto: { label: "Vétérinaire", cadenceDays: null },
   soin: { label: "Soin", cadenceDays: null },
-  entrainement: { label: "Entraînement", cadenceDays: null },
+  entrainement: { label: "Travail du cheval", cadenceDays: null },
   cours_collectif: { label: "Cours collectif", cadenceDays: null },
-  cours_individuel: { label: "Cours individuel", cadenceDays: null },
+  cours_individuel: { label: "Cours particulier", cadenceDays: null },
   concours: { label: "Concours", cadenceDays: null },
   document: { label: "Document", cadenceDays: null },
-  prestation: { label: "Prestation", cadenceDays: null },
+  prestation: { label: "Cours ou service", cadenceDays: null },
 };
 
 export const CARE_KINDS = Object.keys(CARE_META) as CareKind[];

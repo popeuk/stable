@@ -62,7 +62,7 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days[0]]);
 
-  const label = (it: DayItem) => `${it.start ? `${it.start}${it.end ? `-${it.end}` : ""} · ` : ""}${it.title}${it.sub ? `, ${it.sub}` : ""}${it.money ? `, ${signed(it.money)}` : ""}${aCompte(it) ? ", a compté" : ""}`;
+  const label = (it: DayItem) => `${it.start ? `${it.start}${it.end ? `-${it.end}` : ""} · ` : ""}${it.title}${it.sub ? `, ${it.sub}` : ""}${it.money ? `, ${signed(it.money)}` : ""}${aCompte(it) ? ", fait" : ""}`;
   const open = (it: DayItem) => {
     if (it.seance) openSeance(it.seance.id);
     else if (it.task && !it.done) check(it);
@@ -98,7 +98,7 @@ export function WeekGrid({ days, today, now, onPickDay }: { days: string[]; toda
                       type="button"
                       className={`jci${it.done ? " done" : ""}`}
                       onClick={() => open(it)}
-                      title={it.done ? `${label(it)} (fait)` : it.task ? `${label(it)} : clique quand c’est fait` : label(it)}
+                      title={it.done ? `${label(it)} (fait)` : it.task ? `${label(it)} : coche quand c’est fait` : label(it)}
                       aria-label={it.done ? `${label(it)}, fait` : it.task ? `C’est fait : ${label(it)}` : label(it)}
                     >
                       {it.done && (

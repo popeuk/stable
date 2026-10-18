@@ -174,7 +174,7 @@ function Tarifs() {
       ) : (
         <button type="button" className="ar-add" onClick={() => setNouvelle({ nom: "", prix: "" })}>
           <Ic n="plus" className="" />
-          Ajouter une prestation
+          Ajouter un cours ou un service
         </button>
       )}
       <Tip ill="carnet-buste">

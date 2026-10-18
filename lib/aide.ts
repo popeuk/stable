@@ -25,7 +25,7 @@ const AIDES: Record<string, Aide> = {
     points: [
       "En haut, ce qu’il te reste ce mois, une fois tout payé. Touche-le pour voir d’où ça vient.",
       "Ta journée : les séances, les soins et les tâches prévus aujourd’hui.",
-      "Tout ce qui était prévu compte. Si quelque chose n’a pas eu lieu, retire la ligne.",
+      "Ce qui était prévu est compté fait. Pas eu lieu ? Retire la ligne.",
       "Le + en bas sert à tout ajouter : une séance, un soin, une tâche, de l’argent.",
     ],
   },
@@ -48,7 +48,7 @@ const AIDES: Record<string, Aide> = {
     cible: "haut",
     points: [
       "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
-      "Une séance faite compte dans ton mois et dans ce que le client te doit.",
+      "Une séance faite compte dans ton bilan et dans ce que le client te doit.",
       "Un cours à plusieurs : chaque cavalier compte. Ouvre la séance pour retirer un absent.",
     ],
   },
@@ -117,7 +117,7 @@ const AIDES: Record<string, Aide> = {
   },
   depenses: {
     id: "depenses",
-    titre: "Tes dépenses",
+    titre: "Ce qui rentre et ce qui sort",
     bulle: "Une dépense ? Note-la avec le +",
     cible: "plus",
     points: [
@@ -132,7 +132,7 @@ const AIDES: Record<string, Aide> = {
     cible: "haut",
     points: [
       "Ce qu’il y a à faire à l’écurie, et qui s’en occupe.",
-      "Ajoute une tâche, confie-la à quelqu’un, puis indique quand elle est faite.",
+      "Ajoute une tâche, confie-la à quelqu’un, puis coche-la quand elle est faite.",
     ],
   },
   clients: {
@@ -154,7 +154,7 @@ const AIDES: Record<string, Aide> = {
     cible: "haut",
     points: [
       "« Hugo te doit 114 € » : ce qu’il te doit, tout compris.",
-      "Il a payé ? Touche « Il a payé ». Une partie seulement ? « Il a payé une partie ».",
+      "Il a payé ? Touche « Il a payé ». Juste une partie ? « Il a payé une partie ».",
       "Une ligne qui n’a pas eu lieu ? Retire-la avec ×.",
     ],
   },
@@ -166,7 +166,7 @@ const AIDES: Record<string, Aide> = {
     points: [
       "Pension, cours, balades… avec leur prix.",
       "Quand tu notes une séance, son prix se met tout seul.",
-      "Tu vois aussi ce que chacune t’a rapporté ce mois.",
+      "Tu vois aussi ce que chaque cours t’a rapporté ce mois-ci.",
     ],
   },
   "ma-fiche": {
@@ -182,12 +182,12 @@ const AIDES: Record<string, Aide> = {
   },
   moi: {
     id: "moi",
-    titre: "Ton écurie et tes réglages",
-    bulle: "Ton écurie, ton équipe, ton rappel du matin",
+    titre: "Réglages",
+    bulle: "Ton compte, ton rappel, l’affichage",
     cible: "haut",
     points: [
-      "Le nom de ton écurie, ton équipe, le rappel du matin.",
-      "Tes chiffres sont sur ton appareil et, avec un compte, dans ta copie en ligne, protégée. Tu peux en garder une copie.",
+      "Mon écurie garde l’écurie : places, papiers, équipe. Réglages garde l’app : compte, rappel, affichage.",
+      "Tes chiffres sont sur ce téléphone et, avec un compte, dans ta copie en ligne, protégée. Tu peux aussi faire une sauvegarde.",
     ],
   },
 };

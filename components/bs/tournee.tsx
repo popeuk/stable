@@ -104,7 +104,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
   const moisNom = cap(new Date(today + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" }));
 
   const recap = [
-    ...(etapes.includes("hier") ? [veille.length ? `Hier, ${pl(veille.length, "ligne")} ${veille.length > 1 ? "ont" : "a"} compté : ${sg(totalHier)}.` : "Hier, plus rien ne compte."] : []),
+    ...(etapes.includes("hier") ? [veille.length ? `Hier, ${pl(veille.length, "chose")} ${veille.length > 1 ? "faites" : "faite"} : ${sg(totalHier)}.` : "Hier, rien de fait."] : []),
     // Toutes les choses du jour, comme l'accueil : séances, soins, tâches, rendez-vous.
     ...(resumeJournee(items).ligne ? [resumeJournee(items).ligne!] : []),
     `Ce mois-ci, ${resteOuManque(mois.net)} ${eur(Math.abs(mois.net))}.`,
@@ -183,7 +183,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                 <div>
                   <p className="ac-dt">{dt}</p>
                   <h2>Aujourd’hui</h2>
-                  <p>{restants.some((i) => i.type === "task") ? "Ce qui t’attend aujourd’hui. Les tâches se cochent dans le planning." : "Rien à cocher. Juste un coup d’œil."}</p>
+                  <p>{restants.some((i) => i.type === "task") ? "Ce qui t’attend aujourd’hui. Tu coches les tâches dans le planning." : "Rien à cocher. Juste un coup d’œil."}</p>
                 </div>
               </div>
               <div className="ac-scene">
