@@ -1,5 +1,6 @@
 "use client";
 
+import { LienLegal } from "@/components/bs/texte-legal";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { withBase } from "@/components/bs/ui";
@@ -538,14 +539,8 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
             </button>
             <p className="ar-proof">
               Pas de mot de passe. En continuant, tu acceptes les{" "}
-              <a className="lnk" href="https://www.mon-ecurie.fr/cgu/" target="_blank" rel="noreferrer">
-                conditions
-              </a>{" "}
-              de Be Stable et mon-ecurie.fr. Ce qu’on fait de tes données :{" "}
-              <a className="lnk" href="https://www.mon-ecurie.fr/confidentialite/" target="_blank" rel="noreferrer">
-                confidentialité
-              </a>
-              .
+              <LienLegal t="cgu">conditions</LienLegal> de Be Stable et mon-ecurie.fr. Ce qu’on fait de tes données :{" "}
+              <LienLegal t="confidentialite">confidentialité</LienLegal>.
             </p>
           </div>
         </form>

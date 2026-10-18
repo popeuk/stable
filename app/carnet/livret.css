@@ -121,3 +121,26 @@
   /* Barre latérale : l'écran ouvert sur un aplat rose casaque, en vert foncé, comme sur mon-ecurie.fr. */
   .carnet .cn-side .it[aria-current="page"] { background: var(--rose); color: var(--vert-deep); }
 }
+
+/* Les règles (18 octobre 2026) : un texte légal du site, lu dans l'app. */
+.carnet .rg-txt { margin: 12px var(--gut) 32px; padding: 4px 16px 12px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font-size: 15px; line-height: 1.55; color: var(--ink); overflow-wrap: anywhere; }
+.carnet .rg-txt h2 { margin: 22px 0 6px; font-size: 18px; font-weight: 720; letter-spacing: -.01em; line-height: 1.25; }
+.carnet .rg-txt p { margin: 8px 0; }
+.carnet .rg-txt > div > p:first-child { margin-top: 14px; font-size: 13px; color: var(--ink3); }
+.carnet .rg-txt ul { margin: 8px 0; padding-left: 1.2em; list-style: disc; }
+.carnet .rg-txt li { margin: 5px 0; }
+.carnet .rg-txt a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.carnet .rg-txt table, .carnet .rg-txt tbody, .carnet .rg-txt tr, .carnet .rg-txt td { display: block; width: 100%; }
+.carnet .rg-txt thead { display: none; }
+.carnet .rg-txt table { margin: 10px 0; border-collapse: collapse; }
+.carnet .rg-txt tr { padding: 10px 0; border-bottom: 1px solid var(--line2); }
+.carnet .rg-txt td { padding: 2px 0; font-size: 14px; }
+.carnet .rg-txt td[data-l]::before { content: attr(data-l) " : "; font-weight: 650; }
+.carnet .rg-vide { margin: 24px var(--gut); color: var(--ink2); font-size: 15px; display: grid; gap: 12px; justify-items: start; }
+.carnet.rg-voile { position: fixed; inset: 0; z-index: 90; background: rgba(0, 0, 0, .35); display: flex; align-items: flex-end; justify-content: center; }
+.carnet .rg-feuille { width: 100%; max-width: 640px; max-height: 92dvh; overflow-y: auto; background: var(--paper, var(--sheet)); border-radius: var(--bloc-r) var(--bloc-r) 0 0; padding-bottom: env(safe-area-inset-bottom); }
+.carnet .rg-tete { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px var(--gut); background: inherit; border-bottom: 1px solid var(--line2); }
+.carnet .rg-tete h2 { margin: 0; font-size: 18px; font-weight: 720; }
+.carnet .rg-fermer { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .rg-fermer svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+@media (min-width: 1024px) { .carnet.rg-voile { align-items: center; } .carnet .rg-feuille { border-radius: var(--bloc-r); } }
