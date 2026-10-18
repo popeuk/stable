@@ -192,7 +192,7 @@ function Moi() {
           Un rappel le soir s’il reste quelque chose à faire
         </Switch>
       </div>
-      <div className="ec-lock" role="img" aria-label="Aperçu de la notification du matin">
+      <div className="ec-lock" role="img" aria-label="Aperçu du rappel du matin">
         <div className="dt">{cap(new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }))}</div>
         <div className="tm">{s.reminder}</div>
         <div className="nt">
@@ -211,7 +211,7 @@ function Moi() {
           onClick={async () => {
             const r = await Notification.requestPermission();
             setPerm(r);
-            if (r === "granted") say("Notifications autorisées. Le rappel arrive au premier lancement de la journée.");
+            if (r === "granted") say("Notifications autorisées. Si l’app est ouverte à l’heure choisie, elle te le rappelle.");
           }}
         >
           <Ic n="bell" className="" />
@@ -219,9 +219,10 @@ function Moi() {
         </button>
       )}
       <p className="note" style={{ fontSize: 12.5 }}>
-        {perm === "unsupported"
-          ? "Ce navigateur ne gère pas les notifications. Installe l’app sur ton écran d’accueil pour les recevoir."
-          : "Le rappel s’affiche à l’heure choisie, dès que l’app est ouverte ou installée sur ton écran d’accueil."}
+        {/* Pas de serveur d'envoi : rien ne part quand l'app est fermée (components/bs/morning-nudge). */}
+        {perm === "granted"
+          ? "Quand tu ouvres l’app le matin, elle te montre ta journée. Si elle est déjà ouverte à l’heure choisie, une notification te le rappelle."
+          : "Quand tu ouvres l’app le matin, elle te montre ta journée."}
       </p>
     </Sec>
   );
