@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import type { CareKind } from "@/lib/domain/care";
+import type { LigneArgent } from "@/lib/domain/corriger";
 
 /**
  * L'état d'interface partagé : la feuille « Noter » (ouverte depuis le +,
@@ -19,6 +20,8 @@ export interface NoterPrefill {
   date?: string;
   /** Pour une séance : la prestation choisie d'avance. */
   prestationId?: string;
+  /** Corriger une ligne d'argent : la feuille s'ouvre remplie, avec « Enregistrer ». */
+  edit?: LigneArgent;
 }
 
 export type NoteKindId =

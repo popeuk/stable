@@ -21,6 +21,7 @@ import { monthBreakdown, seuilEtPlaces } from "@/lib/domain/ticket";
 import { suggestions, leverPotential, type Lever, type Suggestion } from "@/lib/domain/leviers";
 import { clientDues } from "@/lib/domain/clients";
 import { seanceAmount } from "@/lib/domain/seances";
+import { factureDeLigne, messageFacturee, type LigneArgent } from "@/lib/domain/corriger";
 import { currentPeriod, dateInPeriod, samePeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
@@ -569,7 +570,19 @@ function Mouvements() {
   const recRevs = (data.recurringRevenues ?? []).filter((r) => kind !== "out" && (!horse || r.horseId === horse) && enCours(r));
   const recExps = (data.recurringExpenses ?? []).filter((r) => kind !== "in" && (!horse || r.horseId === horse) && enCours(r));
 
+  /** Une ligne déjà sur une facture ne se corrige ni ne se retire ici : la facture est figée, on fait un avoir. */
+  const facturee = (l: LigneArgent) => {
+    const n = factureDeLigne(useDataStore.getState(), l);
+    if (n) say(esc(messageFacturee(n)));
+    return !!n;
+  };
+  /** Toucher une ligne : la même feuille que le +, remplie, avec « Enregistrer ». */
+  const corriger = (l: LigneArgent) => {
+    if (!facturee(l)) openNoter({ edit: l });
+  };
+
   function remove(r: (typeof rows)[number]) {
+    if (facturee({ t: r.t, id: r.id })) return;
     const st = useDataStore.getState();
     const snap = { revenues: st.revenues, directExpenses: st.directExpenses, sharedExpenses: st.sharedExpenses, careEvents: st.careEvents };
     if (r.t === "rev") st.deleteRevenue(r.id);
@@ -626,10 +639,10 @@ function Mouvements() {
                     {new Date(r.date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}
                   </td>
                   <td>
-                    <span className="ar-what">
+                    <button type="button" className="ar-what ar-fix" onClick={() => corriger({ t: r.t, id: r.id })} aria-label={`Corriger : ${r.label}`}>
                       <Ic n={icFor(r.label)} className="ar-ic" />
                       {r.label}
-                    </span>
+                    </button>
                   </td>
                   <td className="m">{r.sub}</td>
                   <td className="n">
@@ -667,10 +680,10 @@ function Mouvements() {
                   <span className="ar-pic">
                     <Ic n={icFor(r.label)} className="ar-ic" />
                   </span>
-                  <span style={{ minWidth: 0 }}>
+                  <button type="button" className="ar-fix" onClick={() => corriger({ t: r.t, id: r.id })} aria-label={`Corriger : ${r.label}`}>
                     <b>{r.label}</b>
                     {r.sub && <small>{r.sub}</small>}
-                  </span>
+                  </button>
                   <Money v={r.amount} />
                   <button type="button" className="ar-bin" aria-label={`Supprimer : ${r.label}`} onClick={() => remove(r)}>
                     <Ic n="trash" className="ar-ic" />
@@ -694,7 +707,7 @@ function Mouvements() {
               <span className="ar-pic">
                 <Ic n="clock" className="ar-ic" />
               </span>
-              <span style={{ minWidth: 0 }}>
+              <button type="button" className="ar-fix" onClick={() => corriger({ t: "recrev", id: r.id })} aria-label={`Corriger : ${r.label ?? "Pension"}`}>
                 <b>
                   {r.label ?? "Pension"} · {name(r.horseId) || "cheval retiré"}
                 </b>
@@ -702,7 +715,7 @@ function Mouvements() {
                   rentre {freqLabel(r.frequency)}
                   {r.endDate ? ` · ${finEnMots(r.endDate)}` : " · sans date de fin"}
                 </small>
-              </span>
+              </button>
               <span className="ar-rt">
                 <Money v={r.amount} />
                 {!arretee(r) && (
@@ -723,13 +736,13 @@ function Mouvements() {
               <span className="ar-pic">
                 <Ic n="clock" className="ar-ic" />
               </span>
-              <span style={{ minWidth: 0 }}>
+              <button type="button" className="ar-fix" onClick={() => corriger({ t: "recexp", id: r.id })} aria-label={`Corriger : ${r.label}`}>
                 <b>{r.label}</b>
                 <small>
                   {freqLabel(r.frequency)} · {r.isShared ? "frais de l’écurie" : `pour ${name(r.horseId ?? "") || "1 cheval"}`}
                   {r.endDate ? ` · ${finEnMots(r.endDate)}` : ""}
                 </small>
-              </span>
+              </button>
               <span className="ar-rt">
                 <Money v={-r.amount} />
                 {!arretee(r) && (
