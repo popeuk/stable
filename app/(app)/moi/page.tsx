@@ -10,10 +10,7 @@ import { Screen, cap } from "@/components/bs/ui";
 import { useDesk } from "@/components/bs/desk-hook";
 import { Hello, Ic, Sec, Switch, ini } from "@/components/carnet/ui";
 import { CategoriesReglages, EquipeReglages, LieuReglages } from "@/components/bs/reglages";
-import { api } from "@/lib/account/api";
-import { envoyer } from "@/lib/account/nuage";
 import { getSession, leave } from "@/lib/account/session";
-import { effacerLocale } from "@/lib/account/vault";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { grosTexte, poserGrosTexte } from "@/lib/taille";
 import { fusionFactures } from "@/lib/domain/facture";
@@ -25,6 +22,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 import { useFeuille } from "@/components/bs/feuille";
+import { DeconnexionLigne, RecupererLigne, ZoneEffacer } from "@/components/bs/effacer";
 
 /**
  * Les pages de réglage, une par sujet (?s=…) : sous Mon écurie, Mes places,
@@ -229,6 +227,7 @@ function Moi() {
 
   const donnees = (
     <Sec title="Tes données" delay={0.3}>
+      <RecupererLigne />
       <p className="note">Tout est rangé sur cet appareil. Pour passer du téléphone à l’ordinateur, exporte tes données ici, puis ouvre le fichier sur l’autre appareil.</p>
       <button type="button" className="li np" onClick={exportData}>
         <Li title="Exporter mes données" sub="une sauvegarde de toute ton écurie" right={<Ic n="download" className="ec-ico" />} />
@@ -252,40 +251,8 @@ function Moi() {
           <Li title="Remettre l’écurie d’exemple" sub="pour essayer sans risque" />
         </button>
       )}
-      <div className="ec-danger">
-        <button
-          type="button"
-          className="btn danger"
-          onClick={() => {
-            // Dans la démo, tout effacer remet l'écurie d'exemple : elle ne se vide jamais pour de bon.
-            if (getSession()?.kind === "demo") {
-              if (window.confirm("Effacer ce que tu as noté et remettre l’écurie d’exemple ?")) {
-                data.resetToDemo();
-                s.setIdentity({ stableName: "Les Trois Pommiers" });
-                router.push("/bienvenue");
-              }
-              return;
-            }
-            // Sans compte : l'essai est effacé de l'appareil, on repart de l'histoire comme au premier jour.
-            if (getSession()?.kind === "locale") {
-              if (window.confirm("Tout effacer de ce téléphone et repartir du début ? Rien n’est gardé ailleurs.")) {
-                effacerLocale();
-                leave("/bienvenue");
-              }
-              return;
-            }
-            if (window.confirm("Tout effacer et refaire le parcours depuis le début ?")) {
-              data.startEmpty();
-              s.resetParcours();
-              router.push("/bienvenue");
-            }
-          }}
-        >
-          <Ic n="trash" className="" />
-          Tout effacer et recommencer
-        </button>
-        <small>{session?.kind === "demo" ? "Dans la démo, l’écurie d’exemple revient telle qu’au départ." : session?.kind === "locale" ? "Ton essai disparaît de ce téléphone. On te le redemande avant." : "Le parcours repart de zéro. On te le redemande avant."}</small>
-      </div>
+      {/* Se déconnecter, effacer : selon la session, avec une feuille de confirmation (components/bs/effacer). */}
+      <ZoneEffacer exporter={exportData} />
     </Sec>
   );
 
@@ -414,21 +381,8 @@ function Compte() {
         </span>
         <span />
       </div>
-      <button
-        type="button"
-        className="li np"
-        onClick={async () => {
-          if (!window.confirm("Te déconnecter de cet appareil ? Tes données restent ici, protégées. Tu les retrouveras à ta prochaine connexion.")) return;
-          // Ce qui attend part d'abord en ligne : l'autre appareil le verra sans attendre la prochaine connexion ici.
-          await envoyer().catch(() => {});
-          try {
-            await api.deconnexion();
-          } catch {}
-          leave("/compte/connexion");
-        }}
-      >
-        <Li title="Me déconnecter" sub="tes données restent protégées sur cet appareil" />
-      </button>
+      <RecupererLigne />
+      <DeconnexionLigne />
     </>
   );
 }

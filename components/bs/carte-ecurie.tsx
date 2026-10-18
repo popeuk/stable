@@ -184,7 +184,7 @@ export function Reglages() {
         lignes={[
           { href: "/moi?s=affichage", ic: "phone", t: "Affichage", s: "Gros texte, installer l’app sur l’écran d’accueil" },
           { href: "/moi?s=revoir", ic: "help", t: "Revoir", s: "Les explications, la tournée du matin" },
-          { href: "/moi?s=avance", ic: "gear", t: "Avancé", s: "Catégories, sauvegarde, tout effacer" },
+          { href: "/moi?s=avance", ic: "gear", t: "Avancé", s: "Catégories, sauvegarde, se déconnecter ou tout effacer" },
         ]}
       />
       <Case
