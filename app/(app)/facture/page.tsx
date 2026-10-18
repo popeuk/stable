@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Empty, Ic } from "@/components/carnet/ui";
@@ -99,7 +99,7 @@ function FactureRoute() {
   if (n) {
     const inv = (invoices ?? []).find((i) => i.number === n);
     if (!inv) return <Introuvable texte={`La facture n° ${n} n’est pas dans ton carnet.`} />;
-    return <Emise key={inv.id} inv={inv} avoirDe={sp.get("avoir")} />;
+    return <Emise key={inv.id} inv={inv} avoirDe={sp.get("avoir")} faite={sp.get("faite") === "1"} />;
   }
   const lot = parseMois(sp.get("lot"));
   if (lot) return <Lot period={lot} />;
@@ -197,8 +197,8 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
     const [inv] = await useDataStore.getState().issueInvoices([draft.facture], localToday());
     setEnCours(false);
     if (!inv) return say("Ces lignes viennent d’être facturées dans un autre onglet. La facture est dans Tes factures.");
-    say(messageFaite(inv));
-    router.replace(`/facture?n=${encodeURIComponent(inv.number)}`);
+    // La facture faite s'ouvre avec sa confirmation : « Facture n° … faite », Imprimer, Envoyer.
+    router.replace(`/facture?n=${encodeURIComponent(inv.number)}&faite=1`);
   };
 
   // Une facture déjà faite, et rien de nouveau : elle s'ouvre telle quelle.
@@ -440,7 +440,8 @@ function Lot({ period }: { period: Period }) {
 /* ---------- Une facture faite ---------- */
 
 /** Une facture (ou un avoir) faite : figée, à imprimer, à envoyer, à annuler au besoin par un avoir. */
-function Emise({ inv, autres, onAutre, avoirDe }: { inv: Invoice; autres?: Invoice[]; onAutre?: (n: string) => void; avoirDe?: string | null }) {
+function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?: Invoice[]; onAutre?: (n: string) => void; avoirDe?: string | null; faite?: boolean }) {
+  const envoi = useRef<HTMLDivElement>(null);
   const people = useDataStore((s) => s.people);
   const invoices = useDataStore((s) => s.invoices);
   const gerant = useSettingsStore((s) => s.gerant);
@@ -471,6 +472,28 @@ function Emise({ inv, autres, onAutre, avoirDe }: { inv: Invoice; autres?: Invoi
             {moisDit(inv.month)} · fait{avoir ? "" : "e"} le {dateDite(inv.issuedAt)}
           </p>
         </div>
+        {faite && !avoir && (
+          <div className="card fa-card fa-faite rise" role="status">
+            <b>{nomDoc(inv)} faite</b>
+            <p>Elle est rangée dans Tes factures. Imprime-la, ou envoie-la à {prenomDe(inv.payer)}.</p>
+            <div className="fa-sendb">
+              <button type="button" className="btn" onClick={() => window.print()}>
+                <Ic n="print" className="" />
+                Imprimer
+              </button>
+              <button
+                type="button"
+                className="btn line"
+                onClick={() => {
+                  envoi.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  envoi.current?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+                }}
+              >
+                Envoyer
+              </button>
+            </div>
+          </div>
+        )}
         {autres && onAutre && (
           <div className="chips fa-autres" role="radiogroup" aria-label="Les factures du mois">
             {autres.map((i) => (
@@ -507,7 +530,7 @@ function Emise({ inv, autres, onAutre, avoirDe }: { inv: Invoice; autres?: Invoi
           <Ic n="print" className="" />
           Imprimer ou enregistrer en PDF
         </button>
-        <div className="fa-send">
+        <div className="fa-send" ref={envoi}>
           <p className="fa-sendq">L’envoyer à {prenomDe(inv.payer)}</p>
           <div className="fa-sendb">
             <a className="btn line" href={`sms:${phone}?&body=${enc}`}>

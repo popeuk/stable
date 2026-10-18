@@ -26,6 +26,7 @@
 .carnet .fa-sendq { margin: 0 0 8px; font-size: 13px; font-weight: 650; color: var(--ink); }
 .carnet .fa-sendb { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .carnet .fa-sendb .btn { padding: 0 6px; }
+.carnet .fa-faite .fa-sendb { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 10px; }
 .carnet .fa-hint, .carnet .fr-hint { margin: 8px 0 0; font-size: 12.5px; color: var(--ink3); line-height: 1.45; }
 .carnet .fa-more { margin: 16px 0 0; font-size: 13px; color: var(--ink3); }
 .carnet .fa-more .lnk { display: inline-flex; align-items: center; min-height: 44px; }
