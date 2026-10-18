@@ -22,11 +22,14 @@ import { useSettingsStore } from "@/stores/settings-store";
  * l'essai passe dans le compte (chiffrée). Si le compte a déjà la sienne,
  * le gérant choisit laquelle garder.
  *
- * En créant le compte depuis un essai, on demande d'abord l'écurie : on la
- * cherche dans mon-ecurie.fr et on la choisit, ou on garde le nom tapé. Rien
+ * En créant le compte depuis un essai, on demande d'abord l'e-mail et le
+ * code (décision de Samuel du 18 octobre : on sait qui c'est avant de
+ * parler d'écurie). Un compte qui a déjà sa fiche la garde, sans question.
+ * Sinon on cherche l'écurie dans mon-ecurie.fr : seule une fiche libre se
+ * choisit, une fiche déjà reprise appartient au compte de son gérant. Rien
  * n'est revendiqué : une fois le compte créé, « C'est ma fiche » le propose,
  * sans obligation. Le nom devient celui de l'écurie dans l'app ; le nom et la
- * fiche choisie partent au site après le code, pour les e-mails.
+ * fiche choisie partent au site, pour les e-mails.
  */
 const FICHE = "be-stable-fiche-choisie";
 const SANS_NOM = (n: string) => !n.trim() || n.trim() === "Mon écurie";
@@ -47,6 +50,8 @@ export default function Page() {
   const [adopt, setAdopt] = useState<"legacy" | "locale" | null>(null);
   const [garder, setGarder] = useState<ResumeEssai | null>(null);
   const [fait, setFait] = useState<AccountSession | null>(null);
+  /** Le compte est ouvert (code bon), il attend que l'écurie soit dite. */
+  const [attente, setAttente] = useState<AccountSession | null>(null);
 
   useEffect(() => {
     const voulu = new URLSearchParams(window.location.search).get("garder") === "1" || getSession()?.kind === "locale";
@@ -56,7 +61,6 @@ export default function Page() {
       const deja = useSettingsStore.getState().stableName;
       setNom(SANS_NOM(deja) ? "" : deja);
       setFiche(lireFiche());
-      setMode("nom");
     }
     // Retour de Google ou d'Apple.
     const retour = lireRetour(window.location.search);
@@ -74,26 +78,18 @@ export default function Page() {
 
   async function ouvrir(r: AuthResponse) {
     const s = sessionFrom(r);
-    // Une écurie déjà revendiquée n'entre que dans le compte de son gérant : un autre compte ne la prend pas.
-    const prise = garder && !projet ? lireFiche() : null;
-    if (prise && prise.statut !== "libre" && s.listing?.id !== prise.id) {
-      setCode("");
-      setMode("nom");
-      return setErr(`${prise.title} a déjà un compte, ce n’est pas celui de ${s.email}. Entre avec l’adresse de son gérant, ou choisis « Elle n’est pas dans la liste ».`);
-    }
     // L'écurie essayée sans compte passe dans le compte.
     if (hasLocaleData()) {
-      setSession(s);
-      // Le nom (ou le projet) part au site, avec le jeton du compte : sans effet tant que l'extension ne le connaît pas.
-      // Lu dans les réglages de l'essai : il survit au détour par Google.
-      const deja = useSettingsStore.getState().stableName;
-      const ecurie = projet || SANS_NOM(deja) ? "" : deja.trim();
-      const choisie = projet ? null : lireFiche();
-      if (garder && (ecurie || projet)) void api.majMoi(projet ? { projet: true } : { ecurie, ...(choisie ? { fiche: choisie.id } : {}) }).catch(() => {});
-      ecrireFiche(null);
-      if (hasAccountData(s.userId)) return setAdopt("locale");
-      await adoptLocale("locale");
-      return setFait(s);
+      // Le compte a déjà sa fiche : c'est son écurie, sans question.
+      if (s.listing) {
+        useSettingsStore.getState().setIdentity({ stableName: s.listing.title });
+        return finir(s, { ecurie: "", fiche: null, projet: false });
+      }
+      // Sinon, l'écurie se dit maintenant qu'on sait qui c'est.
+      setAttente(s);
+      setCode("");
+      setErr("");
+      return setMode("nom");
     }
     if (!hasAccountData(s.userId) && hasLegacyData()) {
       setSession(s);
@@ -101,6 +97,16 @@ export default function Page() {
     }
     // Sans fiche aussi : la fiche se propose plus tard, dans l'app.
     enter(s, "/accueil");
+  }
+
+  /** L'écurie est dite : l'essai passe dans le compte. Le nom (ou le projet) part au site, sans effet tant que l'extension ne le connaît pas. */
+  async function finir(s: AccountSession, dit: { ecurie: string; fiche: StableHit | null; projet: boolean }) {
+    setSession(s);
+    if (dit.ecurie || dit.projet) void api.majMoi(dit.projet ? { projet: true } : { ecurie: dit.ecurie, ...(dit.fiche ? { fiche: dit.fiche.id } : {}) }).catch(() => {});
+    ecrireFiche(null);
+    if (hasAccountData(s.userId)) return setAdopt("locale");
+    await adoptLocale("locale");
+    setFait(s);
   }
 
   async function run(f: () => Promise<void>) {
@@ -135,6 +141,8 @@ export default function Page() {
 
   /** L'écurie est dite : celle de l'annuaire (h), ou le nom tapé. */
   function garderNom(h: StableHit | null) {
+    // Une fiche déjà reprise appartient au compte de son gérant : elle ne se choisit pas ici.
+    if (h && h.statut !== "libre") return setErr(`${h.title} a déjà un compte, avec une autre adresse. Si c’est ton écurie, écris-nous : on regarde avec toi.`);
     const n = (h?.title ?? nom).trim();
     if (n.length < 2) return setErr("Le nom de ton écurie, tel que tes clients le disent.");
     useSettingsStore.getState().setIdentity({ stableName: n });
@@ -144,7 +152,7 @@ export default function Page() {
     setHits(null);
     setProjet(false);
     setErr("");
-    setMode("email");
+    if (attente) void run(() => finir(attente, { ecurie: n, fiche: h, projet: false }));
   }
 
   if (adopt)
@@ -165,7 +173,7 @@ export default function Page() {
 
   const top = (
     <ArTop
-      onBack={mode === "code" ? () => (setMode("email"), setErr("")) : mode === "email" && garder ? () => (setMode("nom"), setErr("")) : undefined}
+      onBack={mode === "code" ? () => (setMode("email"), setErr("")) : undefined}
       right={
         garder ? (
           <Link href="/accueil" className="ar-link">
@@ -225,7 +233,6 @@ export default function Page() {
                 </li>
               </ul>
             )}
-            {!hits && garder && <GardeListe r={garder} />}
             {erreur}
             <div className="foot">
               {!hits && (
@@ -233,7 +240,7 @@ export default function Page() {
                   Continuer
                 </button>
               )}
-              <button type="button" className="lnk" onClick={() => (setNom(""), setFiche(null), ecrireFiche(null), setHits(null), setProjet(true), setErr(""), setMode("email"))}>
+              <button type="button" className="lnk" onClick={() => (setNom(""), setFiche(null), ecrireFiche(null), setHits(null), setProjet(true), setErr(""), attente ? void run(() => finir(attente, { ecurie: "", fiche: null, projet: true })) : setMode("email"))}>
                 Je n’ai pas encore d’écurie
               </button>
             </div>
@@ -245,8 +252,8 @@ export default function Page() {
             {top}
             {garder ? (
               <div className="q rise">
-                <h1>{nom.trim() && !projet ? `Ton compte pour ${nom.trim()}.` : "Ton compte."}</h1>
-                <p>{fiche && fiche.statut !== "libre" && !projet ? "Cette écurie a déjà un compte : entre avec l’adresse de son gérant, puis le code." : "Ton e-mail, puis un code. Tes chiffres passent dedans."}</p>
+                <h1>Ton compte.</h1>
+                <p>Ton e-mail, puis un code. Ensuite, ton écurie. Tes chiffres passent dedans.</p>
               </div>
             ) : (
               <>
@@ -261,7 +268,7 @@ export default function Page() {
             <label className="input ar-in">
               <input autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.fr" aria-label="Ton e-mail" />
             </label>
-            {garder && !nom.trim() && <GardeListe r={garder} />}
+            {garder && <GardeListe r={garder} />}
             {erreur}
             <div className="foot">
               <button className="btn full" disabled={busy || !email.trim()}>
