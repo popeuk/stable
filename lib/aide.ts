@@ -1,3 +1,5 @@
+import { fr } from "@/lib/utils/typo";
+
 /**
  * « Comment ça marche ici » : pour chaque écran, ce qu'on y voit et ce
  * qu'on peut y faire, en quelques points. À la première visite, rien ne
@@ -16,7 +18,7 @@ export interface Aide {
   cible: CibleBulle;
 }
 
-const AIDES: Record<string, Aide> = {
+const AIDES_BRUTES: Record<string, Aide> = {
   accueil: {
     id: "accueil",
     titre: "Ton accueil, chaque matin",
@@ -191,6 +193,11 @@ const AIDES: Record<string, Aide> = {
     ],
   },
 };
+
+/** Les mêmes, avec les espaces insécables du français (lib/utils/typo). */
+const AIDES: Record<string, Aide> = Object.fromEntries(
+  Object.entries(AIDES_BRUTES).map(([k, a]) => [k, { ...a, titre: fr(a.titre), bulle: fr(a.bulle), points: a.points.map(fr) }]),
+);
 
 /**
  * L'aide d'un écran, d'après son adresse (« /argent?vue=… » compte comme

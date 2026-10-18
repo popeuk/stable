@@ -6,6 +6,7 @@
 import type { StableData, Period } from "@/lib/domain/types";
 import { stablePnl } from "@/lib/domain/calculations";
 import { formatEur, formatPct } from "@/lib/utils/format-currency";
+import { fr } from "@/lib/utils/typo";
 
 export interface Lesson {
   key: string;
@@ -17,7 +18,7 @@ export interface Lesson {
   yourData?: (data: StableData, period: Period) => string;
 }
 
-export const LESSONS: Record<string, Lesson> = {
+const LESSONS_BRUTES: Record<string, Lesson> = {
   chiffre_affaires: {
     key: "chiffre_affaires",
     title: "Ce qui rentre",
@@ -218,5 +219,13 @@ export const LESSONS: Record<string, Lesson> = {
     ],
   },
 };
+
+/** Les mêmes, avec les espaces insécables du français (lib/utils/typo). */
+export const LESSONS: Record<string, Lesson> = Object.fromEntries(
+  Object.entries(LESSONS_BRUTES).map(([k, l]) => [
+    k,
+    { ...l, title: fr(l.title), definition: fr(l.definition), whatToDo: l.whatToDo.map(fr), ...(l.yourData ? { yourData: (d: StableData, p: Period) => fr(l.yourData!(d, p)) } : {}) },
+  ]),
+);
 
 export const LESSON_KEYS = Object.keys(LESSONS);

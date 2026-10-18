@@ -6,6 +6,7 @@ import { withBase } from "@/components/bs/ui";
 import { coatOf } from "@/components/bs/horse-face";
 import { altPerso, illPerso, usePerso } from "@/components/bs/perso";
 import type { Horse } from "@/lib/domain/types";
+import { frNode } from "@/lib/utils/typo";
 
 /**
  * Les briques du carnet illustré (maquettes validées du 15 octobre 2026).
@@ -213,7 +214,7 @@ export function Sec({ ill, illStyle, title, action, blk, nomarge, delay = 0, cla
       <div style={{ minWidth: 0 }}>
         {title && (
           <h2>
-            <span>{title}</span>
+            <span>{frNode(title)}</span>
             {action}
           </h2>
         )}
@@ -226,8 +227,8 @@ export function Sec({ ill, illStyle, title, action, blk, nomarge, delay = 0, cla
 export function Hello({ title, sub, delay = 0.04 }: { title: ReactNode; sub?: ReactNode; delay?: number }) {
   return (
     <div className="hello rise" style={{ animationDelay: `${delay}s` }}>
-      <h2>{title}</h2>
-      {sub && <p>{sub}</p>}
+      <h2>{frNode(title)}</h2>
+      {sub && <p>{frNode(sub)}</p>}
     </div>
   );
 }
@@ -363,7 +364,7 @@ export function Tip({ ill = "piste", children }: { ill?: IllName; children: Reac
   return (
     <div className="tip">
       <Ill n={ill} />
-      <span>{children}</span>
+      <span>{frNode(children)}</span>
     </div>
   );
 }
@@ -372,7 +373,7 @@ export function Empty({ ill = "dodo", children }: { ill?: IllName; children: Rea
   return (
     <div className="empty">
       <Ill n={ill} className={`e-${ill}`} />
-      <p style={{ margin: 0 }}>{children}</p>
+      <p style={{ margin: 0 }}>{frNode(children)}</p>
     </div>
   );
 }

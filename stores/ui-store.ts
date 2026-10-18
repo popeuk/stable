@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type { CareKind } from "@/lib/domain/care";
 import type { LigneArgent } from "@/lib/domain/corriger";
+import { fr } from "@/lib/utils/typo";
 
 /**
  * L'état d'interface partagé : la feuille « Noter » (ouverte depuis le +,
@@ -84,7 +85,7 @@ export const useUiStore = create<UiState>((set) => ({
   closeNoter: () => set({ noterOpen: false }),
   say: (html, undo) => {
     const id = Date.now();
-    set({ toast: { id, html, undo } });
+    set({ toast: { id, html: fr(html), undo } });
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => set((s) => (s.toast?.id === id ? { toast: null } : s)), undo ? 6000 : 4000);
   },

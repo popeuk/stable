@@ -80,7 +80,7 @@ export function LigneHier() {
   return (
     <button type="button" className="cp-hier rise" style={{ animationDelay: "0.08s" }} onClick={openTournee}>
       <span>
-        <b>Hier :</b> {Math.round(total) !== 0 ? <span className={moneyCls(total)}>{sg(total)}</span> : pl(n, "chose")} {Math.round(total) !== 0 || n > 1 ? "ont" : "a"} compté
+        <b>Hier :</b> {Math.round(total) !== 0 ? <><span className={moneyCls(total)}>{sg(total)}</span> de fait</> : `${pl(n, "chose")} ${n > 1 ? "faites" : "faite"}`}
       </span>
       <span className="cp-revoir">
         Revoir
