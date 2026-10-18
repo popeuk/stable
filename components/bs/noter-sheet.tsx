@@ -248,6 +248,7 @@ function NoterInner() {
       setListening(true);
     } catch {
       setTyping(true);
+      setVoiceMsg("Le micro ne répond pas. Écris-le ici.");
     }
   }
   function stopListening() {

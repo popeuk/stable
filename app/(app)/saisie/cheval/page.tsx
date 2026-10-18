@@ -12,6 +12,8 @@ import { localToday } from "@/lib/utils/local-date";
 import { debutCompte, dernierSejour } from "@/lib/domain/sejours";
 import type { Horse } from "@/lib/domain/types";
 import { montantEnTexte, montantOuZero, saisieMontant } from "@/lib/utils/montant";
+import { useUiStore } from "@/stores/ui-store";
+import { esc } from "@/lib/utils/esc";
 
 const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"];
 
@@ -71,6 +73,7 @@ function SaisieCheval() {
 
   function save() {
     if (!name.trim()) return;
+    const say = useUiStore.getState().say;
     const common = {
       name: name.trim(),
       breed: breed.trim() || undefined,
@@ -88,6 +91,7 @@ function SaisieCheval() {
     };
     if (editing) {
       updateHorse(editing.id, common);
+      say("C’est enregistré.");
       // Depuis le chemin de l'accueil (?retour=accueil), on y revient pour le pas suivant.
       router.push(retour === "accueil" ? "/accueil" : (versClient(editing.id) ?? `/ticket?id=${editing.id}`));
       return;
@@ -95,6 +99,7 @@ function SaisieCheval() {
     // Le premier cheval ramène à l'accueil, pour que les premiers pas continuent.
     const isFirst = !horses.some((h) => !h.isArchived);
     const hid = addHorse({ ...common, exitDate: null });
+    say(`<strong>${esc(common.name)}</strong> est dans ton écurie.`);
     router.push(versClient(hid) ?? (isFirst ? "/accueil" : "/chevaux"));
   }
 
