@@ -515,11 +515,12 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
         {avoirs.length > 0 && (
           <p className="fa-who">
             {peutAnnuler ? "En partie annulée par " : "Annulée par "}
+            {avoirs.length > 1 ? "les avoirs n° " : "l’avoir n° "}
             {avoirs.map((a, k) => (
               <span key={a.id}>
-                {k > 0 && ", "}
+                {k > 0 && (k === avoirs.length - 1 ? " et " : ", ")}
                 <Link className="lnk" href={`/facture?n=${encodeURIComponent(a.number)}`}>
-                  l’avoir n° {a.number}
+                  {a.number}
                 </Link>
               </span>
             ))}
