@@ -172,7 +172,7 @@ function Fin() {
             {enPension >= need ? ", c’est bon" : `, il en manque ${need - enPension}`}. Chaque place louée en plus te laisse environ <Money v={m.contribution} /> de plus par mois.
           </>
         ) : isFinite(m.seuil) ? (
-          `${memePlein(capacity, eurc(places.manque))} ${REVOIR_PRIX}`
+          `${memePlein(places.places, eurc(places.manque))} ${REVOIR_PRIX}`
         ) : (
           "Pour l’instant, les pensions ne suffisent pas à payer les soins des chevaux. Commence par revoir le prix de tes pensions."
         )}

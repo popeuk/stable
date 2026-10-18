@@ -342,7 +342,7 @@ function Mois() {
             </span>
             <span>
               <span className="k">Combien de chevaux pour ne pas perdre d’argent</span>
-              <b>{!isFinite(m.seuil) ? "Tes pensions ne paient pas encore les soins des chevaux" : !places.atteignable ? memePlein(capacity, eur(places.manque)) : `${ilFautPensions(m.seuil)} Tu en as ${m.pensions}.`}</b>
+              <b>{!isFinite(m.seuil) ? "Tes pensions ne paient pas encore les soins des chevaux" : !places.atteignable ? memePlein(places.places, eur(places.manque)) : `${ilFautPensions(m.seuil)} Tu en as ${m.pensions}.`}</b>
             </span>
             <Ic n="chev" className="chev" />
           </Link>

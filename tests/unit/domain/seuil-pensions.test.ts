@@ -36,16 +36,24 @@ describe("combien de chevaux : on compte les pensions", () => {
     const m = monthBreakdown(data(14, 2, 5800), oct);
     // 5 900 € à couvrir à 350 € la pension : 17 pensions, mais 16 places pour des pensions sur 18.
     const p = seuilEtPlaces(m, 18);
-    expect(p).toEqual({ placesPensions: 16, atteignable: false, manque: 300 });
+    expect(p).toEqual({ places: 18, placesPensions: 16, atteignable: false, manque: 300 });
   });
 
   it("assez de places : atteignable, rien ne manque", () => {
     const m = monthBreakdown(data(14, 2, 5330), oct);
-    expect(seuilEtPlaces(m, 18)).toEqual({ placesPensions: 16, atteignable: true, manque: 0 });
+    expect(seuilEtPlaces(m, 18)).toEqual({ places: 18, placesPensions: 16, atteignable: true, manque: 0 });
   });
 
   it("sans nombre de places, le seuil n'est pas borné", () => {
     const m = monthBreakdown(data(14, 0, 9000), oct);
     expect(seuilEtPlaces(m, 0).atteignable).toBe(true);
+  });
+
+  it("moins de places notées que de chevaux déjà là : on compte les chevaux", () => {
+    // 14 pensions et 2 chevaux à soi pour « 11 places » : il y a au moins 16 places.
+    const m = monthBreakdown(data(14, 2, 5800), oct);
+    const p = seuilEtPlaces(m, 11);
+    expect(p.places).toBe(16);
+    expect(p.placesPensions).toBe(14);
   });
 });

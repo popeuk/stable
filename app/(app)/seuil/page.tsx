@@ -50,7 +50,7 @@ function Seuil() {
       <Hello
         title={
           horsPlaces ? (
-            memePlein(capacity, eur(places.manque))
+            memePlein(places.places, eur(places.manque))
           ) : ok ? (
             <>
               {ilFautPensions(m.seuil)}

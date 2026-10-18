@@ -192,13 +192,15 @@ export const estAuGerant = (h: { pensionType?: string }) => h.pensionType === "�
  * quand le seuil dépasse ces places, même toutes pleines. Sans nombre de
  * places connu, le seuil n'est pas borné.
  */
-export function seuilEtPlaces(m: Pick<MonthBreakdown, "seuil" | "miens" | "aCouvrir" | "contribution">, capacity: number): { placesPensions: number | null; atteignable: boolean; manque: number } {
-  if (!isFinite(m.seuil)) return { placesPensions: capacity > 0 ? Math.max(0, capacity - m.miens) : null, atteignable: false, manque: 0 };
-  if (!(capacity > 0)) return { placesPensions: null, atteignable: true, manque: 0 };
-  const placesPensions = Math.max(0, capacity - m.miens);
+export function seuilEtPlaces(m: Pick<MonthBreakdown, "seuil" | "miens" | "aCouvrir" | "contribution"> & { pensions?: number }, capacity: number): { places: number; placesPensions: number | null; atteignable: boolean; manque: number } {
+  // Des places notées en dessous des chevaux déjà là (13 pensions pour « 11 places ») : on compte les chevaux.
+  const places = capacity > 0 ? Math.max(capacity, (m.pensions ?? 0) + m.miens) : 0;
+  if (!isFinite(m.seuil)) return { places, placesPensions: places > 0 ? Math.max(0, places - m.miens) : null, atteignable: false, manque: 0 };
+  if (!(places > 0)) return { places, placesPensions: null, atteignable: true, manque: 0 };
+  const placesPensions = Math.max(0, places - m.miens);
   const besoin = Math.ceil(m.seuil - 1e-9);
-  if (besoin <= placesPensions) return { placesPensions, atteignable: true, manque: 0 };
-  return { placesPensions, atteignable: false, manque: Math.max(0, Math.round(m.aCouvrir - placesPensions * m.contribution)) };
+  if (besoin <= placesPensions) return { places, placesPensions, atteignable: true, manque: 0 };
+  return { places, placesPensions, atteignable: false, manque: Math.max(0, Math.round(m.aCouvrir - placesPensions * m.contribution)) };
 }
 
 export function monthBreakdown(data: StableData, period: Period): MonthBreakdown {
