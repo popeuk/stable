@@ -85,7 +85,7 @@ export function TexteLegal({ t, onTexte }: { t: Texte; onTexte: (t: Texte) => vo
   if (etat.rate)
     return (
       <div className="rg-vide">
-        <p>Le texte ne se charge pas : il faut du réseau.</p>
+        <p>Pas de réseau : le texte ne peut pas s’ouvrir.</p>
         <a className="btn" href={`${SITE}${TEXTES[t].chemin}`} target="_blank" rel="noreferrer">
           Le lire sur mon-ecurie.fr
         </a>

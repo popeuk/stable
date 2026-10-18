@@ -44,7 +44,7 @@ export function PwaInstallPrompt() {
           <Picto name="install" />
         </span>
         <span className="tx">
-          <b>Installe Be Stable</b>
+          <b>Installer l’app</b>
           <span>Une icône sur ton écran, une fenêtre à part, même sans réseau.</span>
         </span>
         <button
@@ -59,7 +59,7 @@ export function PwaInstallPrompt() {
         >
           {install.way === "bouton" ? "Installer" : "Comment"}
         </button>
-        <button type="button" className="bs-x" style={{ float: "none", margin: 0 }} onClick={dismiss} aria-label="Ne plus proposer">
+        <button type="button" className="bs-x" style={{ float: "none", margin: 0 }} onClick={dismiss} aria-label="Non merci">
           <Picto name="x" size={18} />
         </button>
       </div>

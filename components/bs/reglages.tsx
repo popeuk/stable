@@ -182,7 +182,11 @@ const LIEU_CHAMPS: { k: HoldingKey; label: string; ph: string; type?: "tel" | "e
   { k: "holderNumber", label: "Numéro de détenteur", ph: "donné par le SIRE, si tu l’as" },
   { k: "siret", label: "SIRET", ph: "si tu es professionnel, le même que sur tes factures" },
   { k: "vetTraitant", label: "Vétérinaire traitant", ph: "nom, cabinet, téléphone" },
-  { k: "vetSanitaire", label: "Vétérinaire sanitaire", ph: "obligatoire dès 3 chevaux" },
+  // Règle : tout détenteur d'au moins 3 équidés (chevaux, poneys, ânes) désigne au préfet
+  // (DDPP) un vétérinaire sanitaire, qui fait la visite sanitaire équine. Source : arrêté
+  // du 19 septembre 2018 modifiant l'arrêté du 24 septembre 2015 (JO du 26/09/2018,
+  // NOR AGRG1821873A, legifrance.gouv.fr).
+  { k: "vetSanitaire", label: "Vétérinaire sanitaire", ph: "à désigner au préfet dès 3 équidés" },
 ];
 
 /**

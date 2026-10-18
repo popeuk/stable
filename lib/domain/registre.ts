@@ -185,7 +185,11 @@ export function horseGaps(h: Horse): HorseGap[] {
   return g;
 }
 
-/** Ce qu'il manque au lieu de détention. Le vétérinaire sanitaire compte dès 3 équidés. */
+/**
+ * Ce qu'il manque au lieu de détention. Le vétérinaire sanitaire compte dès 3 équidés :
+ * « vétérinaire désigné au Préfet par tous les détenteurs d'au moins 3 équidés »
+ * (arrêté du 19 septembre 2018, NOR AGRG1821873A, JO du 26/09/2018).
+ */
 export type HoldingGap = "lieu" | "detenteur" | "numero" | "veto_sanitaire";
 export const HOLDING_GAP_LABEL: Record<HoldingGap, string> = {
   lieu: "Adresse du lieu à compléter",
