@@ -264,7 +264,7 @@ export function ExportComptable() {
       </button>
       <p className="fr-hint">
         {n ? `${n} ligne${n > 1 ? "s" : ""}, jusqu’à aujourd’hui. ` : "Rien de noté en " + an + ". "}
-        Un fichier qui s’ouvre dans Excel : une ligne par recette, dépense, paiement reçu et avoir, chacun dans sa colonne de montant. Les paiements reçus disent quand l’argent est rentré : on ne les ajoute pas aux recettes.
+        Un fichier pour Excel, à donner à ton comptable : une ligne par recette, dépense, paiement et avoir. Seulement ce qui a vraiment eu lieu : tes frais estimés n’y sont pas.
       </p>
     </div>
   );
