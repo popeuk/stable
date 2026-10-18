@@ -47,6 +47,9 @@ function Chevaux() {
   const { pass } = useParcours();
   const [name, setName] = useState("");
   const [owner, setOwner] = useState(proprietaire);
+  // Le nom tapé sans toucher « + Nouveau » : il devient le propriétaire à l'ajout.
+  const [tape, setTape] = useState("");
+  const [champ, setChamp] = useState(0);
   const [coat, setCoat] = useState<Coat>("alezan");
   const [blaze, setBlaze] = useState(true);
   const [formule, setFormule] = useState<string>("Box + paddock");
@@ -72,10 +75,12 @@ function Chevaux() {
   function add() {
     const n = name.trim();
     if (!n) return;
-    addHorse({ name: n, ownerName: owner.trim() || undefined, coat, blaze, pensionType: formule, pension: formule === A_MOI ? undefined : tariffs?.pension, entryDate: localToday() });
+    addHorse({ name: n, ownerName: owner.trim() || tape.trim() || undefined, coat, blaze, pensionType: formule, pension: formule === A_MOI ? undefined : tariffs?.pension, entryDate: localToday() });
     say(`<strong>${esc(n)}</strong> rejoint l’écurie.`);
     setName("");
     setOwner(proprietaire);
+    setTape("");
+    setChamp((c) => c + 1);
   }
 
   function parNombre() {
@@ -200,7 +205,7 @@ function Chevaux() {
           <span>Son nom</span>
           <input id="h-name" className="input" placeholder="Ex. Pacha" value={name} autoComplete="off" onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
         </label>
-        <ChoisirProprio value={owner} onChange={setOwner} />
+        <ChoisirProprio key={champ} value={owner} onChange={setOwner} onTape={setTape} />
         <div className="field">
           <span>Sa robe</span>
           <div className="ar-robes">

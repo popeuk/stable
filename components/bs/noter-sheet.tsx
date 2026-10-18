@@ -14,6 +14,8 @@ import { ChoixConnu, ChoixFois, SoitParMois } from "@/components/bs/montant-conn
 import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
 import { comprendre } from "@/lib/domain/dire";
 import { norm } from "@/lib/domain/interpret";
+import { cavaliersRetenus } from "@/lib/domain/proprio";
+import { nomsDePros } from "@/lib/domain/pros";
 import { seriesDates } from "@/lib/domain/seances";
 import type { CareKind } from "@/lib/domain/care";
 import type { Frequency } from "@/lib/domain/types";
@@ -279,7 +281,13 @@ function NoterInner() {
         if (known && !known.active) st.updatePrestation(known.id, { active: true });
       }
       const start = d.start ?? "18:00";
-      const participants = d.cav.map((n, i) => {
+      // Un nom resté dans le champ « Cavaliers » est inscrit lui aussi (le client connu, ou un nouveau cavalier).
+      const cav = cavaliersRetenus(
+        d.cav,
+        d.cavTape,
+        (st.people ?? []).map((p) => p.name),
+      );
+      const participants = cav.map((n, i) => {
         const owner = horses.find((x) => x.ownerName === n);
         return { personId: st.ensurePerson(n, owner ? "proprietaire" : "cavalier"), horseId: owner?.id ?? (d.horseIds.length ? d.horseIds[i % d.horseIds.length] : undefined) };
       });
@@ -423,7 +431,8 @@ function NoterInner() {
 
   /* ---------- Les morceaux d'écran ---------- */
   const typeOf = (t: AjoutType) => TYPES.find((x) => x.id === t)!;
-  const providers = [...new Set([...(d?.provider ? [d.provider] : []), ...h.soins.map((s) => s.provider).filter((x): x is string => !!x), ...(data.team ?? []).filter((m) => m.role === "prestataire").map((m) => m.name)])];
+  // « Qui vient » : ceux déjà notés pour ces soins, puis Les pros (décision 16).
+  const providers = nomsDePros(data.pros, [...(d?.provider ? [d.provider] : []), ...h.soins.map((s) => s.provider).filter((x): x is string => !!x)]);
 
   const labOptions = (x: Draft): string[] => {
     const uniq = (xs: string[]) => [...new Map(xs.filter(Boolean).map((s) => [norm(s), s])).values()];

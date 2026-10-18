@@ -14,6 +14,7 @@ import { isEmptySeance, seanceAmount, seancePassee } from "@/lib/domain/seances"
 import { HorseChips, InField } from "@/components/bs/seance-form";
 import { habitues } from "@/lib/domain/ajouter";
 import { norm } from "@/lib/domain/interpret";
+import { nomRetenu } from "@/lib/domain/proprio";
 import type { Seance } from "@/lib/domain/types";
 
 /**
@@ -417,7 +418,11 @@ function Inscrire({ seance, passee }: { seance: Seance; passee: boolean }) {
   const exact = people.some((p) => norm(p.name) === q);
 
   function inscrire(nom: string) {
-    const v = nom.trim();
+    // Le client connu sous ce nom (casse et accents confondus), sinon un nouveau cavalier.
+    const v = nomRetenu(
+      (data.people ?? []).map((p) => p.name),
+      nom,
+    ) ?? "";
     if (!v || plein || v.includes(",")) return;
     const st = useDataStore.getState();
     const snap = { seances: st.seances, people: st.people, revenues: st.revenues };

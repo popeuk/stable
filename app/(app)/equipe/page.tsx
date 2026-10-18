@@ -48,6 +48,8 @@ function Bulle() {
 
 function Equipe() {
   const data = useDataStore();
+  // Mon équipe : les gens qui travaillent à l'écurie (les pros sont à part).
+  const nEquipe = (data.team ?? []).filter((m) => m.role !== "prestataire").length;
   const gerant = useSettingsStore((s) => s.gerant);
   const openNoter = useUiStore((s) => s.openNoter);
   const say = useUiStore((s) => s.say);
@@ -204,7 +206,7 @@ function Equipe() {
           </div>
         )}
         <div className="over rise" style={{ animationDelay: ".02s" }}>
-          <span>{data.team?.length ? `Toi et ${data.team.length} personne${data.team.length > 1 ? "s" : ""} dans l’équipe` : "Toi et ton équipe"}</span>
+          <span>{nEquipe ? `Toi et ${nEquipe} personne${nEquipe > 1 ? "s" : ""} dans l’équipe` : "Toi et ton équipe"}</span>
           <button type="button" className="lnk" style={{ fontSize: 12.5, textDecoration: "none" }} onClick={() => openNoter({ mode: "tache" })}>
             Ajouter une tâche
           </button>

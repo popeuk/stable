@@ -58,6 +58,8 @@ function SaisieCheval() {
   const [name, setName] = useState(editing?.name ?? "");
   const [breed, setBreed] = useState(editing?.breed ?? "");
   const [ownerName, setOwnerName] = useState(editing?.ownerName ?? proprietaire);
+  // Le nom tapé sans toucher « + Nouveau » : il devient le propriétaire à l'enregistrement.
+  const [tape, setTape] = useState("");
   const [coat, setCoat] = useState<Coat | undefined>(editing ? (editing.coat && editing.coat in COATS ? (editing.coat as Coat) : undefined) : "alezan");
   const [blaze, setBlaze] = useState<boolean | undefined>(editing?.blaze);
   const [formule, setFormule] = useState<string | undefined>(editing?.pensionType);
@@ -72,7 +74,7 @@ function SaisieCheval() {
     const common = {
       name: name.trim(),
       breed: breed.trim() || undefined,
-      ownerName: ownerName.trim() || undefined,
+      ownerName: ownerName.trim() || tape.trim() || undefined,
       pension: pensionNum > 0 ? pensionNum : undefined,
       pensionType: formule,
       coat,
@@ -119,7 +121,7 @@ function SaisieCheval() {
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Pacha" autoComplete="off" />
           {!editing && <em>Son nom suffit pour commencer. Tu pourras compléter le reste plus tard.</em>}
         </label>
-        <ChoisirProprio value={ownerName} onChange={setOwnerName} />
+        <ChoisirProprio value={ownerName} onChange={setOwnerName} onTape={setTape} />
         <div className="field" role="group" aria-label="Sa robe">
           <span>Sa robe</span>
           <div className="ch-sws">

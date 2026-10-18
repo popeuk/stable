@@ -4,7 +4,6 @@ import Link from "next/link";
 import { type ReactNode, useState } from "react";
 import { Empty, Ic, Sec, Seg, ini } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
-import type { TeamRole } from "@/lib/domain/types";
 import type { Holding } from "@/lib/domain/registre";
 import { localToday } from "@/lib/utils/local-date";
 import { categorieSysteme } from "@/lib/domain/categories";
@@ -19,17 +18,17 @@ import { esc } from "@/components/bs/ui";
 
 /* ---------- L'équipe ---------- */
 /**
- * Employés et prestataires réguliers. On les retrouve en un tap dans
- * « Qui s'en occupe ? » quand on ajoute quelque chose au planning.
+ * Les gens qui travaillent à l'écurie (décision 16). On les retrouve en un
+ * tap dans « Qui s'en occupe ? » quand on ajoute quelque chose au planning.
+ * Les pros qui viennent (maréchal, véto…) sont dans Les pros (/contacts).
  */
 export function EquipeReglages() {
-  const team = useDataStore((s) => s.team) ?? [];
+  const team = (useDataStore((s) => s.team) ?? []).filter((m) => m.role !== "prestataire");
   const careEvents = useDataStore((s) => s.careEvents) ?? [];
   const addTeamMember = useDataStore((s) => s.addTeamMember);
   const deleteTeamMember = useDataStore((s) => s.deleteTeamMember);
   const [name, setName] = useState("");
   const [job, setJob] = useState("");
-  const [role, setRole] = useState<TeamRole>("employe");
   const today = localToday();
 
   // Les tâches à venir de chacun, dérivées du planning : rien à ressaisir.
@@ -37,14 +36,14 @@ export function EquipeReglages() {
 
   function save() {
     if (!name.trim()) return;
-    addTeamMember({ name, job: job.trim() || undefined, role });
+    addTeamMember({ name, job: job.trim() || undefined, role: "employe" });
     setName("");
     setJob("");
   }
 
   return (
     <Sec title="Ton équipe" delay={0.2} id="equipe">
-      {team.length === 0 && <Empty ill="equipe">Les gens qui travaillent avec toi : salariés, maréchal, véto…</Empty>}
+      {team.length === 0 && <Empty ill="equipe">Les gens qui travaillent à l’écurie avec toi : salariés, moniteurs, apprentis…</Empty>}
       {team.map((m) => {
         const n = upcoming(m.name);
         return (
@@ -56,7 +55,7 @@ export function EquipeReglages() {
                 {m.job ? ` · ${m.job}` : ""}
               </b>
               <small>
-                {m.role === "employe" ? "Salarié" : "Pro"}
+                À l’écurie
                 {n > 0 ? ` · ${n} tâche${n > 1 ? "s" : ""} à venir` : ""}
               </small>
             </span>
@@ -68,27 +67,24 @@ export function EquipeReglages() {
       })}
       <div className="ec-addp">
         <p className="k">Ajouter quelqu’un</p>
-        <Seg<TeamRole>
-          value={role}
-          onChange={setRole}
-          label="Son rôle"
-          options={[
-            ["employe", "Salarié"],
-            ["prestataire", "Pro extérieur"],
-          ]}
-        />
         <label className="input">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={role === "employe" ? "Son nom, ex. Julie" : "Son nom, ex. M. Roche"} aria-label="Son nom" />
+          <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="Son nom, ex. Julie" aria-label="Son nom" />
         </label>
         <label className="input">
-          <input value={job} onChange={(e) => setJob(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder={role === "employe" ? "Son métier (facultatif)" : "Maréchal, vétérinaire… (facultatif)"} aria-label="Son métier (facultatif)" />
+          <input value={job} onChange={(e) => setJob(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="Son métier (facultatif)" aria-label="Son métier (facultatif)" />
         </label>
         <button type="button" className="btn full" onClick={save} disabled={!name.trim()}>
           <Ic n="plus" className="" />
           Ajouter à l’équipe
         </button>
       </div>
-      <p className="ec-help">Quand tu ajoutes une séance ou un rendez-vous, tu choisis qui s’en occupe.</p>
+      <p className="ec-help">
+        Quand tu ajoutes une séance ou un rendez-vous, tu choisis qui s’en occupe. Ton maréchal, ton véto ?{" "}
+        <Link className="lnk" href="/contacts">
+          Ils sont dans Les pros
+        </Link>
+        .
+      </p>
     </Sec>
   );
 }

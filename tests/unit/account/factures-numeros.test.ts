@@ -87,4 +87,11 @@ describe("les numéros de facture ne reviennent jamais", () => {
     expect(a).toMatchObject({ kind: "avoir", number: "2026-0005", totalTTC: -25 });
     expect(compteurAppareil()["2026"]).toBe(5);
   });
+
+  it("un avoir d'un montant libre prend lui aussi le numéro suivant", async () => {
+    const inv = useDataStore.getState().invoices!.find((i) => i.number === "2026-0003")!;
+    const a = await useDataStore.getState().issueAvoirMontant(inv.number, 10, "Absence", today);
+    expect(a).toMatchObject({ kind: "avoir", number: "2026-0006", totalTTC: -10, avoirDe: { number: "2026-0003" } });
+    expect(await useDataStore.getState().issueAvoirMontant(inv.number, inv.totalTTC, "Trop", today)).toBeNull();
+  });
 });

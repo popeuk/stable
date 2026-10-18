@@ -44,6 +44,8 @@ export function derivePeople(data: StableData): Person[] {
     addRole(p, "proprietaire");
     addHorse(p, h.id);
   }
+  // Les pros notés dans Les pros, même sans soin encore.
+  for (const pro of data.pros ?? []) if (pro.name?.trim()) addRole(get(pro.name), "prestataire");
   for (const e of data.careEvents ?? []) {
     if (!e.provider?.trim()) continue;
     const p = get(e.provider);

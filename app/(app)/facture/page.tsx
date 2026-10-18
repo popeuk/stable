@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Empty, Ic } from "@/components/carnet/ui";
@@ -19,12 +19,15 @@ import {
   avoirsDe,
   brouillon,
   contenuAvoir,
+  contenuAvoirMontant,
   dateDite,
   deMois,
+  enteteVendeur,
   eur2,
   facturation,
   facturesDe,
   listeDite,
+  mentionIban,
   mentionsPaiement,
   messageFacture,
   messageFaite,
@@ -32,6 +35,7 @@ import {
   nomDoc,
   personneDe,
   resteAAnnuler,
+  resteEnEuros,
   siretDit,
   tauxDit,
   tvaIntraDit,
@@ -40,8 +44,11 @@ import {
   type Brouillon,
 } from "@/lib/domain/facture";
 import { prenomDe } from "@/lib/domain/clients";
+import { nomEcurie } from "@/lib/domain/politesse";
 import { currentPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
+import { lireMontant, saisieMontant } from "@/lib/utils/montant";
+import { InField } from "@/components/bs/seance-form";
 import type { Invoice, Period, StableData } from "@/lib/domain/types";
 
 /**
@@ -92,7 +99,7 @@ function FactureRoute() {
   if (n) {
     const inv = (invoices ?? []).find((i) => i.number === n);
     if (!inv) return <Introuvable texte={`La facture n° ${n} n’est pas dans ton carnet.`} />;
-    return <Emise key={inv.id} inv={inv} avoirDe={sp.get("avoir")} />;
+    return <Emise key={inv.id} inv={inv} avoirDe={sp.get("avoir")} faite={sp.get("faite") === "1"} />;
   }
   const lot = parseMois(sp.get("lot"));
   if (lot) return <Lot period={lot} />;
@@ -190,8 +197,8 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
     const [inv] = await useDataStore.getState().issueInvoices([draft.facture], localToday());
     setEnCours(false);
     if (!inv) return say("Ces lignes viennent d’être facturées dans un autre onglet. La facture est dans Tes factures.");
-    say(messageFaite(inv));
-    router.replace(`/facture?n=${encodeURIComponent(inv.number)}`);
+    // La facture faite s'ouvre avec sa confirmation : « Facture n° … faite », Imprimer, Envoyer.
+    router.replace(`/facture?n=${encodeURIComponent(inv.number)}&faite=1`);
   };
 
   // Une facture déjà faite, et rien de nouveau : elle s'ouvre telle quelle.
@@ -433,21 +440,25 @@ function Lot({ period }: { period: Period }) {
 /* ---------- Une facture faite ---------- */
 
 /** Une facture (ou un avoir) faite : figée, à imprimer, à envoyer, à annuler au besoin par un avoir. */
-function Emise({ inv, autres, onAutre, avoirDe }: { inv: Invoice; autres?: Invoice[]; onAutre?: (n: string) => void; avoirDe?: string | null }) {
+function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?: Invoice[]; onAutre?: (n: string) => void; avoirDe?: string | null; faite?: boolean }) {
+  const envoi = useRef<HTMLDivElement>(null);
   const people = useDataStore((s) => s.people);
   const invoices = useDataStore((s) => s.invoices);
   const gerant = useSettingsStore((s) => s.gerant);
+  const stableName = useSettingsStore((s) => s.stableName);
+  const billing = useDataStore((s) => s.billing);
   const person = (people ?? []).find((p) => cleClient(p.name) === cleClient(inv.payer));
   const avoir = inv.kind === "avoir";
   const [annuler, setAnnuler] = useState(() => !!avoirDe && !avoir);
   const phone = person?.phone?.replace(/[^\d+]/g, "") ?? "";
   const email = person?.email?.trim() ?? "";
-  const msg = messageFacture(inv, gerant);
+  // Tu ou vous selon le choix de Tes factures ; signé du gérant et de l'écurie.
+  const msg = messageFacture(inv, gerant, { tu: billing?.tutoie, ecurie: nomEcurie(stableName, billing?.legalName) });
   const enc = encodeURIComponent(msg);
   const objet = encodeURIComponent(nomDoc(inv));
   const avoirs = avoir ? [] : avoirsDe(invoices, inv.number);
   const reste = avoir ? [] : resteAAnnuler(inv, invoices);
-  const peutAnnuler = !avoir && reste.some((q) => q > 0);
+  const peutAnnuler = !avoir && reste.some((q) => q > 0) && resteEnEuros(inv, invoices) > 0;
   useTitreDocument(`${avoir ? "Avoir" : "Facture"} ${inv.number} ${inv.payer}`);
   useRetourFiche(inv.payer, inv.month);
   return (
@@ -461,6 +472,28 @@ function Emise({ inv, autres, onAutre, avoirDe }: { inv: Invoice; autres?: Invoi
             {moisDit(inv.month)} · fait{avoir ? "" : "e"} le {dateDite(inv.issuedAt)}
           </p>
         </div>
+        {faite && !avoir && (
+          <div className="card fa-card fa-faite rise" role="status">
+            <b>{nomDoc(inv)} faite</b>
+            <p>Elle est rangée dans Tes factures. Imprime-la, ou envoie-la à {prenomDe(inv.payer)}.</p>
+            <div className="fa-sendb">
+              <button type="button" className="btn" onClick={() => window.print()}>
+                <Ic n="print" className="" />
+                Imprimer
+              </button>
+              <button
+                type="button"
+                className="btn line"
+                onClick={() => {
+                  envoi.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  envoi.current?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+                }}
+              >
+                Envoyer
+              </button>
+            </div>
+          </div>
+        )}
         {autres && onAutre && (
           <div className="chips fa-autres" role="radiogroup" aria-label="Les factures du mois">
             {autres.map((i) => (
@@ -497,7 +530,7 @@ function Emise({ inv, autres, onAutre, avoirDe }: { inv: Invoice; autres?: Invoi
           <Ic n="print" className="" />
           Imprimer ou enregistrer en PDF
         </button>
-        <div className="fa-send">
+        <div className="fa-send" ref={envoi}>
           <p className="fa-sendq">L’envoyer à {prenomDe(inv.payer)}</p>
           <div className="fa-sendb">
             <a className="btn line" href={`sms:${phone}?&body=${enc}`}>
@@ -533,20 +566,27 @@ function Emise({ inv, autres, onAutre, avoirDe }: { inv: Invoice; autres?: Invoi
   );
 }
 
-/** « Annuler par un avoir » : toute la facture, ou une partie, ligne par ligne. */
+/** « Annuler par un avoir » : toute la facture, ou une partie, ligne par ligne ou d'un montant libre (avec son motif). */
 function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoice; reste: number[]; invoices?: Invoice[]; preselect?: string; onClose: () => void }) {
   const router = useRouter();
   const say = useUiStore((s) => s.say);
   const ligne = preselect ? inv.lines.findIndex((l) => l.revenueIds?.includes(preselect)) : -1;
   const [tout, setTout] = useState(ligne < 0);
+  const [parMontant, setParMontant] = useState(false);
   const [qtes, setQtes] = useState<number[]>(() => reste.map((r, i) => (i === ligne ? Math.min(1, r) : 0)));
+  const [montant, setMontant] = useState("");
+  const [motif, setMotif] = useState("");
   const [enCours, setEnCours] = useState(false);
+  const maxEuros = resteEnEuros(inv, invoices);
+  const m = lireMontant(montant) ?? 0;
+  const libre = !tout && parMontant;
   const choix = tout ? reste : qtes;
-  const c = contenuAvoir(inv, choix, invoices);
+  const c = libre ? contenuAvoirMontant(inv, m, motif, invoices) : contenuAvoir(inv, choix, invoices);
   const faire = async () => {
     if (!c || enCours) return;
     setEnCours(true);
-    const a = await useDataStore.getState().issueAvoir(inv.number, choix, localToday());
+    const st = useDataStore.getState();
+    const a = libre ? await st.issueAvoirMontant(inv.number, m, motif, localToday()) : await st.issueAvoir(inv.number, choix, localToday());
     setEnCours(false);
     if (!a) return;
     say(messageFaite(a));
@@ -554,6 +594,9 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
     router.push(`/facture?n=${encodeURIComponent(a.number)}`);
   };
   const changer = (i: number, d: number) => setQtes((q) => q.map((x, k) => (k === i ? Math.min(reste[i], Math.max(0, x + d)) : x)));
+  // Un avoir d'un montant fait avant : il ne reste plus toute la facture à annuler.
+  const deja = maxEuros < inv.totalTTC;
+  const vide = libre ? (m > maxEuros ? `Au plus ${eur2(maxEuros)}` : "Tape le montant") : tout && deja ? `Il reste ${eur2(maxEuros)} : choisis « Un montant »` : "Choisis ce qu’il annule";
   return (
     <FeuilleMoyen titre="Annuler par un avoir" onClose={onClose}>
       <div className="pad fa-avf">
@@ -567,6 +610,32 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
           </button>
         </div>
         {!tout && (
+          <div className="fr-two" role="radiogroup" aria-label="Comment">
+            <button type="button" role="radio" aria-checked={!parMontant} className={`chip${!parMontant ? " on" : ""}`} onClick={() => setParMontant(false)}>
+              Des lignes
+            </button>
+            <button type="button" role="radio" aria-checked={parMontant} className={`chip${parMontant ? " on" : ""}`} onClick={() => setParMontant(true)}>
+              Un montant
+            </button>
+          </div>
+        )}
+        {libre && (
+          <div className="fa-avl">
+            <label className="field">
+              <span>Le montant</span>
+              <InField unit="€">
+                <input inputMode="decimal" autoFocus placeholder="Ex. : 50" aria-label="Le montant de l’avoir" value={montant} onChange={(e) => setMontant(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && faire()} />
+              </InField>
+              <em>Au plus {eur2(maxEuros)}, ce qui reste de la facture.</em>
+            </label>
+            <label className="field">
+              <span>Le motif</span>
+              <input className="input" placeholder="Ex. : une semaine d’absence" aria-label="Le motif de l’avoir" value={motif} autoComplete="off" onChange={(e) => setMotif(e.target.value.slice(0, 80))} onKeyDown={(e) => e.key === "Enter" && faire()} />
+              <em>Il s’imprime sur l’avoir. Sans motif : « Remise ».</em>
+            </label>
+          </div>
+        )}
+        {!tout && !parMontant && (
           <div className="fa-avl">
             {inv.lines.map((l, i) =>
               reste[i] > 0 ? (
@@ -592,7 +661,7 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
           </div>
         )}
         <button type="button" className="btn full" disabled={!c || enCours} onClick={faire}>
-          {c ? `Faire l’avoir de ${eur2(-c.totalTTC)}` : "Choisis ce qu’il annule"}
+          {c ? `Faire l’avoir de ${eur2(-c.totalTTC)}` : vide}
         </button>
       </div>
     </FeuilleMoyen>
@@ -606,15 +675,15 @@ function Feuille({ inv, apercu }: { inv: Invoice; apercu?: boolean }) {
   const f = inv.franchise;
   const avoir = inv.kind === "avoir";
   const mentions = mentionsPaiement(inv);
+  const entete = enteteVendeur(inv.seller);
+  const iban = avoir ? "" : mentionIban(inv.seller.iban);
   return (
     <article className={`fa-print${apercu ? " apercu" : ""}`} aria-label={apercu ? "Aperçu de la facture" : nomDoc(inv)}>
       {apercu && <p className="fa-wm">Aperçu, pas encore de numéro</p>}
       <header className="fa-top">
         <div className="fa-from">
-          <b>
-            {inv.seller.name}
-            {inv.seller.forme ? ` ${inv.seller.forme}` : ""}
-          </b>
+          <b>{entete.nom}</b>
+          {entete.sous && <span>{entete.sous}</span>}
           {inv.seller.address && <span className="fa-pre">{inv.seller.address}</span>}
           {inv.seller.siret && <span>SIRET {siretDit(inv.seller.siret)}</span>}
           {!f && inv.seller.tvaIntra && <span>N° TVA intracommunautaire {tvaIntraDit(inv.seller.tvaIntra)}</span>}
@@ -697,6 +766,7 @@ function Feuille({ inv, apercu }: { inv: Invoice; apercu?: boolean }) {
         {mentions.map((m) => (
           <p key={m}>{m}</p>
         ))}
+        {iban && <p>{iban}.</p>}
       </footer>
     </article>
   );

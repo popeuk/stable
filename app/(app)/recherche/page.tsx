@@ -188,9 +188,9 @@ function Recherche() {
             </Group>
           )}
           {results.people.length > 0 && (
-            <Group title="Contacts" delay={next()}>
+            <Group title="Clients et pros" delay={next()}>
               {results.people.map((p) => (
-                <Link key={p.name} href="/contacts" className="li">
+                <Link key={p.name} href={p.roles.includes("proprietaire") ? `/client?nom=${encodeURIComponent(p.name)}` : "/contacts"} className="li">
                   <span className="ini" aria-hidden="true">
                     {ini(p.name)}
                   </span>

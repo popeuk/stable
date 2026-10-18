@@ -17,7 +17,7 @@ import type { StableData } from "@/lib/domain/types";
 /** Les listes sans lesquelles aucun écran ne s'affiche. */
 const LISTES_ESSENTIELLES = ["horses", "revenues", "directExpenses", "sharedExpenses", "revenueCategories", "expenseCategories"] as const;
 /** Les autres listes, facultatives. */
-const LISTES = ["recurringExpenses", "recurringRevenues", "careEvents", "rhythms", "services", "team", "people", "prestations", "seances", "taskLists", "tasks", "actions", "payments", "invoices"] as const;
+const LISTES = ["recurringExpenses", "recurringRevenues", "careEvents", "rhythms", "services", "team", "pros", "people", "prestations", "seances", "taskLists", "tasks", "actions", "payments", "invoices"] as const;
 /** Les fiches (objets simples), facultatives. */
 const FICHES = ["tariffs", "billing", "holding", "invoiceSeq"] as const;
 
@@ -34,6 +34,7 @@ const NOMS: Record<string, string> = {
   rhythms: "les rythmes du planning",
   services: "les services",
   team: "l’équipe",
+  pros: "les pros",
   people: "les clients",
   prestations: "les cours et services",
   seances: "le planning",
@@ -73,6 +74,7 @@ function ligneLisible(liste: string, x: unknown): boolean {
     case "careEvents":
       return estJour(x.date) && typeof x.kind === "string";
     case "people":
+    case "pros":
       return typeof x.name === "string";
     case "prestations":
       return typeof x.label === "string";

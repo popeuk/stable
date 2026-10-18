@@ -1,5 +1,5 @@
 import type { CareEvent, CareKind } from "@/lib/domain/care";
-import type { Horse, ISODate, Person } from "@/lib/domain/types";
+import type { BillingInfo, Horse, ISODate, Person } from "@/lib/domain/types";
 import { presentEntre, sejours } from "@/lib/domain/sejours";
 
 /**
@@ -61,6 +61,10 @@ export interface RegisterPeriod {
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
+/** Le tri naturel des noms : « Cheval 2 » avant « Cheval 10 ». */
+export const parNom = (a: string, b: string) => a.localeCompare(b, "fr", { numeric: true, sensitivity: "base" });
+/** Un cheval du gérant lui-même (formule « À moi », components/bs/parcours.ts) : son propriétaire, c'est le détenteur. */
+export const estAMoi = (h: Pick<Horse, "pensionType">) => h.pensionType === "À moi";
 const lastDay = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
 
 export const quarterOf = (iso: ISODate) => Math.floor((Number(iso.slice(5, 7)) - 1) / 3) + 1;
@@ -95,7 +99,7 @@ export function horsesPresent(horses: Horse[], start: ISODate, end: ISODate): Ho
   return horses
     .filter((h) => presentEntre(h, start, end))
     .map((h) => ligneDuRegistre(h, end))
-    .sort((a, b) => (a.entryDate === b.entryDate ? a.name.localeCompare(b.name, "fr") : a.entryDate < b.entryDate ? -1 : 1));
+    .sort((a, b) => (a.entryDate === b.entryDate ? parNom(a.name, b.name) : a.entryDate < b.entryDate ? -1 : 1));
 }
 
 /** Le cheval tel que sa ligne du registre le montre, à la fin de la période. */
@@ -127,7 +131,7 @@ export function movementsIn(horses: Horse[], start: ISODate, end: ISODate): Move
       if (s.entry && s.entry >= start && s.entry <= end) out.push({ date: s.entry, horseId: h.id, horseName: h.name, kind: "entree", reason: s.entryReason, place: s.origin });
       if (s.exit && s.exit >= start && s.exit <= end) out.push({ date: s.exit, horseId: h.id, horseName: h.name, kind: "sortie", reason: s.exitReason, place: s.destination });
     }
-  return out.sort((a, b) => (a.date === b.date ? (a.kind === b.kind ? a.horseName.localeCompare(b.horseName, "fr") : a.kind === "entree" ? -1 : 1) : a.date < b.date ? -1 : 1));
+  return out.sort((a, b) => (a.date === b.date ? (a.kind === b.kind ? parNom(a.horseName, b.horseName) : a.kind === "entree" ? -1 : 1) : a.date < b.date ? -1 : 1));
 }
 
 /**
@@ -174,7 +178,8 @@ export function horseGaps(h: Horse): HorseGap[] {
   const g: HorseGap[] = [];
   if (!h.sireNumber?.trim()) g.push("sire");
   if (!h.chipNumber?.trim()) g.push("puce");
-  if (!h.ownerName?.trim()) g.push("proprietaire");
+  // Un cheval du gérant a son propriétaire : le gérant.
+  if (!h.ownerName?.trim() && !estAMoi(h)) g.push("proprietaire");
   if (!h.origin?.trim()) g.push("provenance");
   if (h.exitDate && !h.destination?.trim()) g.push("destination");
   return g;
@@ -198,12 +203,51 @@ export function holdingGaps(h: Holding | undefined, nHorses: number): HoldingGap
   return g;
 }
 
-/** Les coordonnées du propriétaire, prises dans les clients quand on les connaît. */
-export function ownerLine(h: Horse, people: Person[] | undefined): string {
+/** Le gérant tel que le registre le nomme pour ses propres chevaux : nom, adresse, téléphone, courriel. */
+export interface Detenteur {
+  name: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+}
+
+/** Une adresse sur une ligne du tableau : « 3 allée des Saules, 72000 Le Mans ». */
+const surUneLigne = (a?: string) => (a ?? "").split(/\n+/).map((x) => x.trim()).filter(Boolean).join(", ");
+
+/**
+ * Les coordonnées du propriétaire : son nom, puis son adresse, son
+ * téléphone et son courriel lus sur sa fiche client (nom à la casse et aux
+ * espaces près). Un cheval du gérant (« À moi ») sans propriétaire noté a
+ * pour propriétaire le détenteur.
+ */
+export function ownerLine(h: Horse, people: Person[] | undefined, moi?: Detenteur): string {
   const name = h.ownerName?.trim();
-  if (!name) return "";
-  const p = (people ?? []).find((x) => x.name.trim().toLowerCase() === name.toLowerCase());
-  return [name, p?.phone, p?.email].filter(Boolean).join(", ");
+  if (!name) return estAMoi(h) && moi?.name.trim() ? [moi.name.trim(), surUneLigne(moi.address), moi.phone, moi.email].filter(Boolean).join(", ") : "";
+  const k = name.replace(/\s+/g, " ").toLowerCase();
+  const p = (people ?? []).find((x) => x.name.trim().replace(/\s+/g, " ").toLowerCase() === k);
+  return [name, surUneLigne(p?.address), p?.phone, p?.email].filter(Boolean).join(", ");
+}
+
+/** Le nom générique d'une écurie pas encore nommée : jamais imprimé comme dénomination. */
+const SANS_NOM = /^mon [ée]curie$/i;
+
+/**
+ * La dénomination du lieu : celle notée pour le registre, sinon le nom de
+ * facturation (celui des factures), sinon le nom de l'écurie s'il est choisi.
+ */
+export function denomination(holding: Holding | undefined, billing: Pick<BillingInfo, "legalName"> | undefined, stableName: string | undefined): string {
+  const n = (stableName ?? "").trim();
+  return holding?.placeName?.trim() || billing?.legalName?.trim() || (n && !SANS_NOM.test(n) ? n : "");
+}
+
+/** Le détenteur : celui noté pour le registre, sinon le nom de facturation, sinon le gérant ; ses coordonnées suivent. */
+export function detenteurDe(holding: Holding | undefined, billing: Pick<BillingInfo, "legalName" | "address"> | undefined, gerant: string | undefined): Detenteur {
+  return {
+    name: holding?.holderName?.trim() || billing?.legalName?.trim() || (gerant ?? "").trim(),
+    address: holding?.holderAddress?.trim() || holding?.placeAddress?.trim() || billing?.address?.trim() || undefined,
+    phone: holding?.holderPhone?.trim() || undefined,
+    email: holding?.holderEmail?.trim() || undefined,
+  };
 }
 
 /** L'identifiant affiché : la date de naissance si connue, sinon l'année. */

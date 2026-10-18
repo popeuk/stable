@@ -3,6 +3,7 @@ import { billOf, billsFor, cleClient, monthKey } from "@/lib/domain/billing";
 import { prenomDe } from "@/lib/domain/clients";
 import { enMoyen } from "@/lib/domain/paiement";
 import { esc } from "@/lib/utils/esc";
+import { formule, signature } from "@/lib/domain/politesse";
 
 /**
  * La facture d'un client pour un mois. Les prix saisis dans l'app sont ceux
@@ -75,10 +76,53 @@ export const tvaIntraDit = (s?: string) => {
   return tvaIntraValide(t) ? `${t.slice(0, 2)} ${t.slice(2, 4)} ${t.slice(4)}` : (s ?? "").trim();
 };
 
+/* ---------- Le statut du vendeur et son IBAN ---------- */
+
+/** L'IBAN sans espaces, en capitales. */
+export const ibanPropre = (s?: string) => (s ?? "").replace(/\s+/g, "").toUpperCase();
+/** Un IBAN français : FR et 25 caractères (contrôle de forme simple, espaces tolérés). */
+export const ibanValide = (s?: string) => /^FR[0-9A-Z]{25}$/.test(ibanPropre(s));
+/** « FR76 3000 6000 0112 3456 7890 189 ». */
+export const ibanDit = (s?: string) => {
+  const t = ibanPropre(s);
+  return ibanValide(t) ? (t.match(/.{1,4}/g) ?? []).join(" ") : (s ?? "").trim();
+};
+/** La ligne du pied de facture quand l'IBAN est noté. */
+export const mentionIban = (iban?: string) => (iban && ibanValide(iban) ? `Paiement par virement : IBAN ${ibanDit(iban)}` : "");
+
+/** Le capital tel qu'imprimé : « 7 500 € » pour « 7500 », sinon tel que tapé. */
+export function capitalDit(c?: string): string {
+  const t = (c ?? "").trim();
+  if (!t) return "";
+  const n = Number(t.replace(/[\s\u00a0\u202f€]/g, "").replace(",", "."));
+  if (/^[\d\s\u00a0\u202f.,]+€?$/.test(t) && Number.isFinite(n)) return eur0(n);
+  return t;
+}
+const eur0 = (n: number) => `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(n).replace(/[\u00a0\u202f]/g, " ")} €`;
+
+/** Le nom déjà suivi de « EI » (ou « Entrepreneur individuel ») : pas de doublon. */
+const finitParEI = (n: string) => /(^|\s)(EI|entrepreneur individuel)\.?$/i.test(n.trim());
+
+/**
+ * L'en-tête du vendeur sur la feuille : un entrepreneur individuel a « EI »
+ * après son nom ; une société a sa forme et son capital sous le nom. Une
+ * facture faite avant le choix du statut s'imprime comme avant (la forme
+ * notée, après le nom).
+ */
+export function enteteVendeur(seller: Pick<Invoice["seller"], "name" | "forme" | "ei" | "capital">): { nom: string; sous?: string } {
+  const name = seller.name.trim();
+  if (seller.ei) return { nom: finitParEI(name) ? name : `${name} EI` };
+  if (seller.capital) return { nom: name, sous: `${seller.forme ? `${seller.forme} au capital` : "Capital"} de ${capitalDit(seller.capital)}` };
+  return { nom: `${name}${seller.forme ? ` ${seller.forme}` : ""}` };
+}
+
 /** Ce qui peut manquer au vendeur pour faire une facture. */
-export type VendeurManque = "nom" | "adresse" | "siret" | "tva";
+export type VendeurManque = "nom" | "statut" | "forme" | "capital" | "adresse" | "siret" | "tva";
 export const VENDEUR_MANQUE_DIT: Record<VendeurManque, string> = {
   nom: "ton nom ou ta raison sociale",
+  statut: "ton statut",
+  forme: "ta forme juridique",
+  capital: "ton capital",
   adresse: "ton adresse",
   siret: "ton SIRET",
   tva: "ton numéro de TVA intracommunautaire",
@@ -90,6 +134,12 @@ export const listeDite = (xs: string[]) => (xs.length < 2 ? (xs[0] ?? "") : `${x
 export function vendeurManque(b: BillingInfo | undefined): VendeurManque[] {
   const out: VendeurManque[] = [];
   if (!nomVendeur(b)) out.push("nom");
+  // Entrepreneur individuel ou société : la loi ne demande pas les mêmes mentions.
+  if (!b?.statut) out.push("statut");
+  if (b?.statut === "societe") {
+    if (!b.forme?.trim()) out.push("forme");
+    if (!b.capital?.trim()) out.push("capital");
+  }
   if (!b?.address?.trim()) out.push("adresse");
   if (!siretValide(b?.siret)) out.push("siret");
   if (b?.vat === "taux" && !tvaIntraValide(b.tvaIntra)) out.push("tva");
@@ -381,13 +431,23 @@ const plusJours = (iso: string, n: number) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-/** Le vendeur tel qu'il s'imprime : nom, forme, adresse, SIRET, et TVA intracommunautaire hors franchise. */
+/**
+ * Le vendeur tel qu'il s'imprime : nom (avec « EI » pour un entrepreneur
+ * individuel ; forme et capital pour une société), adresse, SIRET, TVA
+ * intracommunautaire hors franchise, et l'IBAN s'il est noté et bien formé.
+ */
 export function vendeurDe(b: BillingInfo | undefined, franchise: boolean): Invoice["seller"] {
-  const forme = b?.forme?.trim();
+  const ei = b?.statut === "ei";
+  const forme = ei ? undefined : b?.forme?.trim();
+  const capital = b?.statut === "societe" ? b.capital?.trim() : undefined;
   const tva = tvaIntraPropre(b?.tvaIntra);
+  const iban = ibanValide(b?.iban) ? ibanPropre(b?.iban) : undefined;
   return {
     name: nomVendeur(b),
+    ...(ei ? { ei: true } : {}),
     ...(forme ? { forme } : {}),
+    ...(capital ? { capital } : {}),
+    ...(iban ? { iban } : {}),
     ...(b?.address?.trim() ? { address: b.address.trim() } : {}),
     ...(siretPropre(b?.siret) ? { siret: siretPropre(b?.siret) } : {}),
     ...(!franchise && tva ? { tvaIntra: tva } : {}),
@@ -428,6 +488,11 @@ export function resteAAnnuler(inv: Invoice, invoices: Invoice[] | undefined): nu
   return reste;
 }
 
+/** Ce qui reste à annuler en euros (TTC) : le total de la facture moins ses avoirs déjà faits. */
+export function resteEnEuros(inv: Invoice, invoices: Invoice[] | undefined): number {
+  return r2(Math.max(0, inv.totalTTC + avoirsDe(invoices, inv.number).reduce((t, a) => t + a.totalTTC, 0)));
+}
+
 /**
  * Le contenu d'un avoir sur une facture : pour chaque ligne, la quantité
  * annulée (`qtes[i]`, bornée à ce qui reste). Les montants sont ceux de la
@@ -448,6 +513,8 @@ export function contenuAvoir(inv: Invoice, qtes: number[], invoices: Invoice[] |
     pos.push({ label: l.label, kind: l.kind, qty: q, rate: l.rate, unitTTC: l.unitTTC, unitHT: l.unitHT, totalTTC, totalHT: r2(l.unitHT * q), revenueIds: ids, de: i });
   });
   if (!pos.length) return null;
+  // Jamais plus que ce qui reste de la facture (un avoir d'un montant a pu être fait avant).
+  if (r2(pos.reduce((t, l) => t + l.totalTTC, 0)) > resteEnEuros(inv, invoices) + 0.005) return null;
   // Une facture d'avant les lignes détaillées, annulée en entier : toutes ses recettes sont rendues.
   const tout = reste.every((r, i) => (qtes[i] ?? 0) >= r);
   if (tout && !inv.lines.some((l) => l.revenueIds)) rendues.push(...inv.revenueIds);
@@ -471,10 +538,62 @@ export function contenuAvoir(inv: Invoice, qtes: number[], invoices: Invoice[] |
   };
 }
 
+/**
+ * L'avoir d'un montant libre (une remise de 50 € pour une semaine
+ * d'absence) : une ligne au motif donné, jamais plus que ce qui reste de la
+ * facture. Avec plusieurs taux de TVA, le montant se répartit entre eux au
+ * prorata de la facture, pour que la TVA rendue soit juste. Il ne rend
+ * aucune ligne de la facture : elle reste facturée, diminuée du montant.
+ */
+export function contenuAvoirMontant(inv: Invoice, montant: number, motif: string, invoices: Invoice[] | undefined): Omit<Invoice, "id" | "number" | "year" | "seq" | "issuedAt"> | null {
+  const m = r2(montant);
+  if (!(m > 0) || m > resteEnEuros(inv, invoices) + 0.005 || inv.kind === "avoir") return null;
+  const label = motif.trim() || "Remise";
+  // Le TTC de la facture par taux, et la prestation principale de chaque taux.
+  const parTaux = new Map<number, { ttc: number; kind: VatKind; poids: number }>();
+  for (const l of inv.lines) {
+    const g = parTaux.get(l.rate) ?? { ttc: 0, kind: l.kind, poids: 0 };
+    g.ttc += l.totalTTC;
+    if (l.totalTTC > g.poids) {
+      g.poids = l.totalTTC;
+      g.kind = l.kind;
+    }
+    parTaux.set(l.rate, g);
+  }
+  const taux = [...parTaux.entries()].filter(([, g]) => g.ttc > 0).sort((a, b) => a[0] - b[0]);
+  const total = taux.reduce((t, [, g]) => t + g.ttc, 0);
+  if (!taux.length || total <= 0) return null;
+  let reste = m;
+  const pos: InvoiceLine[] = taux.map(([rate, g], i) => {
+    const part = i === taux.length - 1 ? r2(reste) : r2((m * g.ttc) / total);
+    reste = r2(reste - part);
+    const unitHT = horsTaxes(part, rate);
+    return { label: taux.length > 1 ? `${label} (TVA ${tauxDit(rate)})` : label, kind: g.kind, qty: 1, rate, unitTTC: part, unitHT, totalTTC: part, totalHT: unitHT };
+  });
+  const t = totaux(pos);
+  const neg = (n: number) => (n ? -n : 0);
+  return {
+    kind: "avoir",
+    avoirDe: { number: inv.number, issuedAt: inv.issuedAt },
+    payer: inv.payer,
+    month: inv.month,
+    seller: inv.seller,
+    buyer: inv.buyer,
+    franchise: inv.franchise,
+    lines: pos.map((l) => ({ ...l, totalTTC: neg(l.totalTTC), totalHT: neg(l.totalHT) })),
+    totalHT: neg(t.totalHT),
+    vat: t.vat.map((v) => ({ rate: v.rate, base: neg(v.base), amount: neg(v.amount) })),
+    totalTTC: neg(t.totalTTC),
+    paid: 0,
+    due: 0,
+    revenueIds: [],
+  };
+}
+
 /** L'avoir numéroté dans la même suite que les factures. */
 export function emettreAvoir(
   data: Pick<StableData, "invoices" | "invoiceSeq">,
-  contenu: NonNullable<ReturnType<typeof contenuAvoir>>,
+  contenu: NonNullable<ReturnType<typeof contenuAvoir | typeof contenuAvoirMontant>>,
   today: string,
   id: string,
   haut?: Record<string, number>,
@@ -517,18 +636,28 @@ export const messageFaite = (inv: Pick<Invoice, "kind" | "number" | "payer" | "a
 /** « Facture n° 2026-0004 », « Avoir n° 2026-0007 ». */
 export const nomDoc = (inv: Pick<Invoice, "kind" | "number">) => `${inv.kind === "avoir" ? "Avoir" : "Facture"} n° ${inv.number}`;
 
-/** Le message prêt à envoyer avec la facture (ou l'avoir) : montant, mois, numéro. */
-export function messageFacture(inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe">, gerant: string): string {
+/**
+ * Le message prêt à envoyer avec la facture (ou l'avoir) : montant, mois,
+ * numéro. Tu ou vous selon le choix de Tes factures (vous par défaut), une
+ * majuscule après « Bonjour Claire, », et la signature : le gérant et le
+ * nom de l'écurie.
+ */
+export function messageFacture(
+  inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe">,
+  gerant: string,
+  opts: { tu?: boolean; ecurie?: string } = {},
+): string {
   const nb = (n: number) => eur2(n).replace(/ /g, " ");
+  const f = formule(opts.tu);
   const out =
     inv.kind === "avoir"
-      ? [`Bonjour ${prenomDe(inv.payer)},`, `voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} en moins.`, "Je te joins l’avoir en PDF."]
+      ? [`Bonjour ${prenomDe(inv.payer)},`, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} en moins.`, `Je ${f.te} joins l’avoir en PDF.`]
       : [
           `Bonjour ${prenomDe(inv.payer)},`,
-          `voici ta facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,
-          inv.due > 0 && inv.due < inv.totalTTC ? `Reste à payer : ${nb(inv.due)}.` : inv.due <= 0 ? "Elle est déjà réglée, merci." : "Payable à réception.",
-          "Je te joins la facture en PDF.",
+          `Voici ${f.ta} facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,
+          inv.due > 0 && inv.due < inv.totalTTC ? `Reste à payer : ${nb(inv.due)}.` : inv.due <= 0 ? "Elle est déjà réglée." : "Payable à réception.",
+          `Je ${f.te} joins la facture en PDF.`,
         ];
-  out.push(gerant.trim() ? `Merci, ${gerant.trim()}` : "Merci");
+  out.push(...signature(gerant, opts.ecurie));
   return out.join("\n");
 }

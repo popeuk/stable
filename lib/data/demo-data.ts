@@ -383,12 +383,15 @@ export function buildDemoData(now = new Date()): StableData {
       { id: "svc-balade", name: "Balade encadrée", price: 20 },
       { id: "svc-transport", name: "Transport concours", price: 50 },
     ],
-    // L'équipe : on lui assigne les tâches du planning.
+    // L'équipe : les gens qui travaillent à l'écurie ; on leur assigne les tâches du planning.
     team: [
       { id: "tm-julie", name: "Julie", role: "employe", job: "Monitrice" },
       { id: "tm-marc", name: "Marc", role: "employe", job: "Palefrenier" },
-      { id: "tm-roche", name: "M. Roche", role: "prestataire", job: "Maréchal-ferrant" },
-      { id: "tm-lavigne", name: "Dr Lavigne", role: "prestataire", job: "Vétérinaire" },
+    ],
+    // Les pros qui viennent : proposés dans « Qui vient ».
+    pros: [
+      { id: "tm-roche", name: "M. Roche", metier: "marechal", phone: "06 12 34 56 78" },
+      { id: "tm-lavigne", name: "Dr Lavigne", metier: "veto", phone: "02 43 00 00 00" },
     ],
   };
 }

@@ -19,9 +19,12 @@ import {
   buildRegister,
   currentQuarter,
   holdingGaps,
+  denomination,
+  detenteurDe,
   horseGaps,
   type HorseGap,
   ownerLine,
+  type Detenteur,
   registerPeriod,
   type Holding,
   type PeriodKind,
@@ -88,6 +91,11 @@ function Registre() {
   // Le SIRET est celui des factures quand il n'a été noté que là.
   const holding = useMemo(() => (lieu?.siret || !siretFactures ? lieu : { ...(lieu ?? {}), siret: siretFactures }), [lieu, siretFactures]);
   const stableName = useSettingsStore((s) => s.stableName);
+  const gerant = useSettingsStore((s) => s.gerant);
+  const billing = useDataStore((s) => s.billing);
+  // Le nom de facturation plutôt que « Mon écurie » ; le gérant, propriétaire de ses chevaux à lui.
+  const nomLieu = denomination(holding, billing, stableName);
+  const moi = useMemo(() => detenteurDe(holding, billing, gerant), [holding, billing, gerant]);
   const today = localToday();
   const cur = currentQuarter(today);
   const [kind, setKind] = useState<PeriodKind>("trimestre");
@@ -115,14 +123,14 @@ function Registre() {
     } else setQuarter(q);
   };
 
-  const hGaps = holdingGaps(holding, reg.horses.length);
+  const hGaps = holdingGaps({ ...(holding ?? {}), holderName: moi.name || undefined }, reg.horses.length);
   const gapsByHorse = reg.horses
     .map((h) => ({ h, g: horseGaps(h) }))
     .filter((x) => x.g.length > 0)
     .sort((a, b) => (a.h.id === cheval ? -1 : b.h.id === cheval ? 1 : 0));
   const focus = cheval ? horses.find((h) => h.id === cheval) : undefined;
 
-  const sheet = <Feuille reg={reg} holding={holding} stableName={stableName} people={people} today={today} />;
+  const sheet = <Feuille reg={reg} holding={holding} nomLieu={nomLieu} moi={moi} people={people} today={today} />;
 
   return (
     <Ecran wide={desk} className="rg-pg">
@@ -236,7 +244,7 @@ function Registre() {
 
 /* ---------- La feuille imprimée ---------- */
 
-function Feuille({ reg, holding, stableName, people, today }: { reg: Register; holding?: Holding; stableName: string; people: Parameters<typeof ownerLine>[1]; today: string }) {
+function Feuille({ reg, holding, nomLieu, moi, people, today }: { reg: Register; holding?: Holding; nomLieu: string; moi: Detenteur; people: Parameters<typeof ownerLine>[1]; today: string }) {
   const h = holding ?? {};
   const byId = new Map(reg.horses.map((x) => [x.id, x]));
   const nom = (id: string) => byId.get(id)?.name ?? "";
@@ -246,7 +254,8 @@ function Feuille({ reg, holding, stableName, people, today }: { reg: Register; h
       <header className="rg-head">
         <h1>Registre d’élevage</h1>
         <p>
-          Détenteur d’équidés · {h.placeName || stableName} · {reg.period.label}, {du}
+          Détenteur d’équidés · {nomLieu ? `${nomLieu} · ` : ""}
+          {reg.period.label}, {du}
         </p>
         <p>Imprimé le {dmy(today)}</p>
       </header>
@@ -254,12 +263,12 @@ function Feuille({ reg, holding, stableName, people, today }: { reg: Register; h
       <section>
         <h2>1. Caractéristiques du lieu de détention</h2>
         <dl className="rg-kv">
-          <Kv k="Dénomination" v={h.placeName || stableName} />
+          <Kv k="Dénomination" v={nomLieu} />
           <Kv k="Adresse du lieu" v={h.placeAddress} />
           <Kv k="Type d’activité" v={h.activity} />
           <Kv k="Numéro de détenteur (SIRE)" v={h.holderNumber} />
-          <Kv k="Détenteur" v={h.holderName} />
-          <Kv k="Adresse du détenteur" v={h.holderAddress} />
+          <Kv k="Détenteur" v={moi.name} />
+          <Kv k="Adresse du détenteur" v={h.holderAddress || (h.placeAddress ? undefined : moi.address)} />
           <Kv k="Téléphone, courriel" v={[h.holderPhone, h.holderEmail].filter(Boolean).join(", ")} />
           <Kv k="SIRET" v={h.siret ? siretDit(h.siret) : undefined} />
         </dl>
@@ -279,7 +288,7 @@ function Feuille({ reg, holding, stableName, people, today }: { reg: Register; h
         <p className="rg-sub">Équidés présents {du} : {reg.horses.length}</p>
         <Table
           cols={["N°", "Nom", "N° SIRE ou UELN", "N° transpondeur", "Sexe", "Naissance", "Propriétaire et coordonnées", "Première entrée", "Provenance", "Sortie définitive", "Destination"]}
-          rows={reg.horses.map((x: Horse, i) => [String(i + 1), x.name, x.sireNumber, x.chipNumber, x.sex ? SEX_LABEL[x.sex] : "", birthLabel(x), ownerLine(x, people), dmy(x.entryDate), x.origin, dmy(x.exitDate), x.destination])}
+          rows={reg.horses.map((x: Horse, i) => [String(i + 1), x.name, x.sireNumber, x.chipNumber, x.sex ? SEX_LABEL[x.sex] : "", birthLabel(x), ownerLine(x, people, moi), dmy(x.entryDate), x.origin, dmy(x.exitDate), x.destination])}
           empty="Aucun équidé présent sur la période."
         />
       </section>

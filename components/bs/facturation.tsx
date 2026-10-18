@@ -11,6 +11,10 @@ import {
   MENTION_FRANCHISE,
   PENALITES,
   TAUX,
+  enteteVendeur,
+  ibanDit,
+  ibanPropre,
+  ibanValide,
   personneDe,
   siretDit,
   siretPropre,
@@ -33,7 +37,7 @@ import type { PersonRole, VatKind } from "@/lib/domain/types";
  * manque quelque chose. Styles : app/carnet/facture.css (fr-).
  */
 
-/** Nom ou raison sociale (obligatoire), forme juridique, adresse, SIRET (le même que celui du registre). */
+/** Nom ou raison sociale (obligatoire), statut (EI ou société, forme et capital), adresse, SIRET (le même que celui du registre), IBAN (facultatif). */
 export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
   const billing = useDataStore((s) => s.billing);
   const siretLieu = useDataStore((s) => s.holding?.siret);
@@ -50,13 +54,9 @@ export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
             <input className="input" defaultValue={billing?.legalName ?? ""} placeholder="Ex. : Écurie des Prés, ou ton nom" autoComplete="organization" onChange={(e) => setBilling({ legalName: e.target.value })} />
             <em>Tel qu’il est inscrit au répertoire Sirene. Il s’imprime en tête de chaque facture.</em>
           </label>
-          <label className="field">
-            <span>Forme juridique, si tu en as une</span>
-            <input className="input" defaultValue={billing?.forme ?? ""} placeholder="Ex. : EI, EARL, SARL" autoComplete="off" onChange={(e) => setBilling({ forme: e.target.value.trim() || undefined })} />
-            <em>Entrepreneur individuel : écris EI, la loi le demande à côté de ton nom.</em>
-          </label>
         </>
       )}
+      {(voir("statut") || voir("forme") || voir("capital")) && <StatutVendeur />}
       {voir("adresse") && (
         <label className="field">
           <span>Adresse</span>
@@ -82,7 +82,77 @@ export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
         </label>
       )}
       {voir("tva") && !voir("nom") && <TvaIntra />}
+      {!seulement && <Iban />}
     </div>
+  );
+}
+
+/**
+ * Entrepreneur individuel ou société : la loi demande « EI » après le nom
+ * d'un entrepreneur individuel, la forme juridique et le capital d'une
+ * société. Choisi une fois, imprimé sur chaque facture.
+ */
+function StatutVendeur() {
+  const billing = useDataStore((s) => s.billing);
+  const setBilling = useDataStore((s) => s.setBilling);
+  const statut = billing?.statut;
+  const nom = billing?.legalName?.trim();
+  return (
+    <>
+      <div className="fr-rate">
+        <span id="fr-statut-v">Ton statut</span>
+        <div className="fr-two" role="radiogroup" aria-labelledby="fr-statut-v">
+          <button type="button" role="radio" aria-checked={statut === "ei"} className={`chip${statut === "ei" ? " on" : ""}`} onClick={() => setBilling({ statut: "ei" })}>
+            Entrepreneur individuel (micro)
+          </button>
+          <button type="button" role="radio" aria-checked={statut === "societe"} className={`chip${statut === "societe" ? " on" : ""}`} onClick={() => setBilling({ statut: "societe" })}>
+            Société (EARL, SCEA, SARL…)
+          </button>
+        </div>
+      </div>
+      {statut === "ei" && <p className="fr-hint">La loi demande « EI » après ton nom : tes factures diront « {enteteVendeur({ name: nom || "Ton nom", ei: true }).nom} ».</p>}
+      {statut === "societe" && (
+        <>
+          <label className="field">
+            <span>Forme juridique</span>
+            <input className="input" defaultValue={billing?.forme ?? ""} placeholder="Ex. : EARL" autoComplete="off" onChange={(e) => setBilling({ forme: e.target.value.trim() || undefined })} />
+          </label>
+          <label className="field">
+            <span>Capital</span>
+            <input className="input" inputMode="decimal" defaultValue={billing?.capital ?? ""} placeholder="Ex. : 7 500 €" autoComplete="off" onChange={(e) => setBilling({ capital: e.target.value.trim() || undefined })} />
+            <em>Sur tes statuts ou ton Kbis. Imprimé sous ton nom : « EARL au capital de 7 500 € ».</em>
+          </label>
+        </>
+      )}
+    </>
+  );
+}
+
+/** L'IBAN, facultatif : imprimé en pied de facture pour être payé par virement. */
+function Iban() {
+  const billing = useDataStore((s) => s.billing);
+  const setBilling = useDataStore((s) => s.setBilling);
+  const [v, setV] = useState(ibanDit(billing?.iban));
+  const ok = ibanValide(v);
+  return (
+    <label className="field">
+      <span>
+        Ton IBAN <span className="ch-opt">facultatif</span>
+      </span>
+      <input
+        className="input"
+        autoComplete="off"
+        autoCapitalize="characters"
+        value={v}
+        placeholder="Ex. : FR76 3000 6000 0112 3456 7890 189"
+        onChange={(e) => {
+          const t = e.target.value.slice(0, 40);
+          setV(t);
+          setBilling({ iban: ibanPropre(t) || undefined });
+        }}
+      />
+      <em>{v.trim() && !ok ? `FR, puis 25 chiffres ou lettres : ${Math.max(0, ibanPropre(v).length - 2)} sur 25.` : "Rempli, il s’imprime en bas de tes factures : « Paiement par virement : IBAN … »."}</em>
+    </label>
   );
 }
 
@@ -157,6 +227,28 @@ export function TvaReglage({ kinds = KINDS }: { kinds?: VatKind[] }) {
         </div>
       )}
       <p className="fr-hint">Pas sûr ? Le taux dépend de ce que tu vends et de ton statut : demande à ton comptable, puis choisis ici. Tes prix restent ceux que paie le client, TVA comprise.</p>
+    </div>
+  );
+}
+
+/** « Avec tes clients, tu dis tu ou vous ? » : choisi une fois, pour les messages de facture et de relance. Vous par défaut. */
+export function TuVous() {
+  const tutoie = useDataStore((s) => s.billing?.tutoie);
+  const setBilling = useDataStore((s) => s.setBilling);
+  return (
+    <div className="fr-tva">
+      <div className="fr-rate">
+        <span id="fr-tuvous">Avec tes clients, tu dis tu ou vous ?</span>
+        <div className="fr-two" role="radiogroup" aria-labelledby="fr-tuvous">
+          <button type="button" role="radio" aria-checked={!!tutoie} className={`chip${tutoie ? " on" : ""}`} onClick={() => setBilling({ tutoie: true })}>
+            Tu
+          </button>
+          <button type="button" role="radio" aria-checked={!tutoie} className={`chip${!tutoie ? " on" : ""}`} onClick={() => setBilling({ tutoie: undefined })}>
+            Vous
+          </button>
+        </div>
+      </div>
+      <p className="fr-hint">{tutoie ? "« Bonjour Claire, voici ta facture n° … »" : "« Bonjour Claire, voici votre facture n° … »"} Le message qui part avec la facture suit ce choix.</p>
     </div>
   );
 }

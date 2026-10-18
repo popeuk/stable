@@ -1,4 +1,4 @@
-import type { Horse, Payment, Person, Revenue, StableData } from "@/lib/domain/types";
+import type { Horse, Invoice, Payment, Person, Revenue, StableData } from "@/lib/domain/types";
 
 /**
  * Le lien entre un cheval et son propriétaire. Le cheval porte le nom de son
@@ -9,6 +9,37 @@ import type { Horse, Payment, Person, Revenue, StableData } from "@/lib/domain/t
  */
 
 const cle = (n: string) => n.trim().toLowerCase();
+/** La clé souple d'un nom : sans casse, sans accents, espaces confondus (« Hélène  Roy » = « helene roy »). */
+export const cleSouple = (n: string) =>
+  n
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+/**
+ * Le nom à retenir pour un texte tapé sans avoir touché « + Nouveau » : le
+ * client déjà connu s'il porte ce nom (à la casse et aux accents près), sinon
+ * le texte tapé, qui deviendra un nouveau client. Rien de tapé : undefined.
+ */
+export function nomRetenu(noms: string[], tape: string | undefined): string | undefined {
+  const t = (tape ?? "").trim().replace(/\s+/g, " ");
+  if (!t) return undefined;
+  const k = cleSouple(t);
+  return noms.find((n) => n.trim().toLowerCase() === t.toLowerCase())?.trim() ?? noms.find((n) => cleSouple(n) === k)?.trim() ?? t;
+}
+
+/**
+ * Les cavaliers d'une séance, avec le nom encore dans le champ : il est
+ * ajouté (une seule fois) sous le nom du client connu, ou comme nouveau
+ * cavalier. Un texte avec une virgule n'est pas un nom : il est laissé.
+ */
+export function cavaliersRetenus(cav: string[], tape: string | undefined, noms: string[]): string[] {
+  const n = (tape ?? "").includes(",") ? undefined : nomRetenu(noms, tape);
+  if (!n || cav.some((x) => cleSouple(x) === cleSouple(n))) return cav;
+  return [...cav, n];
+}
 
 /** Un propriétaire proposé dans le sélecteur. */
 export interface Proprio {
@@ -74,7 +105,13 @@ export function nomConnu(data: Pick<StableData, "horses" | "people">, name: stri
   const p = (data.people ?? []).find((x) => cle(x.name) === k);
   if (p) return p.name;
   const h = data.horses.find((x) => x.ownerName && cle(x.ownerName) === k);
-  return h?.ownerName?.trim() ?? name.trim();
+  if (h?.ownerName) return h.ownerName.trim();
+  // Même nom aux accents et aux espaces près (« Helene Roy » pour « Hélène Roy ») : c'est le même client.
+  const s = cleSouple(name);
+  const p2 = (data.people ?? []).find((x) => cleSouple(x.name) === s);
+  if (p2) return p2.name;
+  const h2 = data.horses.find((x) => x.ownerName && cleSouple(x.ownerName) === s);
+  return h2?.ownerName?.trim() ?? name.trim();
 }
 
 /** La personne existe (active, propriétaire) : créée une seule fois, réactivée au besoin. */
@@ -147,13 +184,16 @@ export function changerProprio(
 /**
  * Renommer un client : son nom suit partout, sur ses chevaux, sur les
  * recettes et les paiements notés à son nom. Les séances le désignent par
- * son id : rien à changer.
+ * son id : rien à changer. Ses factures et avoirs restent à lui : ils lui
+ * sont rattachés sous son nouveau nom, mais une facture faite est figée et
+ * garde le nom imprimé dessus (`buyer`). Ce qui n'est pas encore facturé
+ * suit, puisque la prochaine facture se fait sous le nouveau nom.
  */
 export function renommerClient(
-  data: Pick<StableData, "horses" | "revenues" | "payments" | "people">,
+  data: Pick<StableData, "horses" | "revenues" | "payments" | "people" | "invoices">,
   oldName: string,
   newName: string,
-): Pick<StableData, "horses" | "revenues" | "payments" | "people"> {
+): Pick<StableData, "horses" | "revenues" | "payments" | "people" | "invoices"> {
   const from = oldName.trim();
   const to = newName.trim();
   const same = (n?: string) => !!n && cle(n) === cle(from);
@@ -163,6 +203,7 @@ export function renommerClient(
     horses: data.horses.map((h) => (same(h.ownerName) ? { ...h, ownerName: to } : h)),
     revenues: data.revenues.map((r) => (same(r.payer) ? { ...r, payer: to } : r)),
     payments: (data.payments ?? []).map((p: Payment) => (same(p.payer) ? { ...p, payer: to } : p)),
+    ...(data.invoices ? { invoices: data.invoices.map((i: Invoice) => (same(i.payer) ? { ...i, payer: to } : i)) } : {}),
   };
 }
 

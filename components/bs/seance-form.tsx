@@ -9,6 +9,7 @@ import { MAX_SEANCES, seriesDates } from "@/lib/domain/seances";
 import { addDays } from "@/lib/domain/care";
 import { applyCours, endOf, fromMin, type CoursHabit, type Draft, type Habitudes, type Rep } from "@/lib/domain/ajouter";
 import type { Horse } from "@/lib/domain/types";
+import { cleSouple, nomRetenu } from "@/lib/domain/proprio";
 import { lireMontant, montantEnTexte, montantTape, saisieMontant, toucheMontant } from "@/lib/utils/montant";
 
 /**
@@ -409,15 +410,19 @@ export function SeanceDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Ha
   const team = [gerant, ...(data.team ?? []).filter((m) => m.role === "employe").map((m) => m.name)].filter(Boolean);
   const lieux = [...new Set(["Carrière", "Manège", "Extérieur", ...(data.seances ?? []).map((s) => s.lieu).filter((x): x is string => !!x)])].slice(0, 6);
   const [other, setOther] = useState(!!d.custom);
-  const [typed, setTyped] = useState("");
+  // Le nom tapé vit dans le brouillon : « C’est bon » l'inscrit même sans « Ajouter ».
+  const typed = d.cavTape ?? "";
+  const setTyped = (cavTape: string) => set((x) => ({ ...x, cavTape }));
   const start = d.start ?? "18:00";
-  const q = typed.trim().toLowerCase();
-  const sugg = q ? people.filter((p) => p.name.toLowerCase().includes(q) && !d.cav.includes(p.name)).slice(0, 6) : [];
+  const q = cleSouple(typed);
+  const sugg = q ? people.filter((p) => cleSouple(p.name).includes(q) && !d.cav.includes(p.name)).slice(0, 6) : [];
   const addCav = (n: string) => {
-    const v = n.trim();
-    if (!v || v.includes(",") || d.cav.some((x) => x.toLowerCase() === v.toLowerCase())) return setTyped("");
-    set((x) => ({ ...x, cav: [...x.cav, v] }));
-    setTyped("");
+    const v = nomRetenu(
+      people.map((p) => p.name),
+      n,
+    );
+    if (!v || v.includes(",") || d.cav.some((x) => cleSouple(x) === cleSouple(v))) return setTyped("");
+    set((x) => ({ ...x, cav: [...x.cav, v], cavTape: "" }));
   };
   return (
     <>
