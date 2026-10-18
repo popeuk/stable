@@ -19,7 +19,7 @@ import { useSettingsStore } from "@/stores/settings-store";
  * Tant que le site n'a pas la route (404), le bouton n'apparaît pas.
  */
 export const CONTACT_EMAIL = "contact@bestable.fr";
-const VERSION = (process.env.NEXT_PUBLIC_APP_VERSION ?? "").slice(0, 12) || "dev";
+const VERSION = (process.env.NEXT_PUBLIC_VERSION ?? "").slice(0, 12) || "dev";
 
 /** L'appareil, en quelques mots : pas d'empreinte, juste de quoi reproduire un souci. */
 export function appareilEnMots(): string {
