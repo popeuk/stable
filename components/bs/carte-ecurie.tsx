@@ -187,11 +187,13 @@ export function Reglages() {
   const reminder = useSettingsStore((s) => s.reminder);
   const evening = useSettingsStore((s) => s.evening);
   const [compte, setCompte] = useState("Sur ce téléphone");
+  const [avecCompte, setAvecCompte] = useState(false);
   const [ici, setIci] = useState("ce téléphone");
   useEffect(() => {
     const s = getSession();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIci(cetAppareil());
+    setAvecCompte(s?.kind === "compte");
     setCompte(s?.kind === "demo" ? "Tu visites l’écurie d’exemple" : s?.kind === "compte" ? "Avec ton compte, tes chiffres sont gardés" : `Sur ${cetAppareil()} seulement : garde tes chiffres`);
   }, []);
   return (
@@ -212,7 +214,7 @@ export function Reglages() {
         lignes={[
           { href: "/moi?s=affichage", ic: "phone", t: "Affichage", s: "Taille du texte, installer l’app sur l’écran d’accueil" },
           { href: "/moi?s=revoir", ic: "help", t: "Revoir", s: "Les explications, la tournée du matin" },
-          { href: "/moi?s=avance", ic: "gear", t: "Avancé", s: "Catégories, sauvegarde, se déconnecter ou tout effacer" },
+          { href: "/moi?s=avance", ic: "gear", t: "Avancé", s: avecCompte ? "Catégories, sauvegarde, se déconnecter ou tout effacer" : "Catégories, sauvegarde, tout effacer" },
         ]}
       />
       <Case
