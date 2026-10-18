@@ -368,6 +368,35 @@ html[data-taille="tres-grand"] .carnet .seg button { min-width: 0; white-space: 
    d'un mot par ligne. Le texte prend toute la largeur. */
 html[data-taille="tres-grand"] .carnet .ac-cpt { grid-template-columns: minmax(0, 1fr); }
 html[data-taille="tres-grand"] .carnet .ac-cpt .ac-ill { display: none; }
+/* Les têtes de « Combien de chevaux » : six par ligne, la grille se réduit d'un
+   bloc (le trait et son « il en faut » suivent) pour tenir dans la carte. */
+html[data-taille="grand"] .carnet .ar-grid12 { zoom: 0.94; }
+html[data-taille="tres-grand"] .carnet .ar-grid12 { zoom: 0.66; }
+/* L'en-tête des trois questions : à 150 %, le dessin prenait la moitié de la
+   carte et le titre passait à un mot par ligne. Le texte prend la largeur, le
+   chiffre du mois passe sous sa phrase. */
+html[data-taille="tres-grand"] .carnet .obn-tete { grid-template-columns: minmax(0, 1fr); }
+html[data-taille="tres-grand"] .carnet .obn-tete .obn-ill { display: none; }
+html[data-taille="tres-grand"] .carnet .obn-tete-h { padding-right: 16px; }
+html[data-taille="tres-grand"] .carnet .obn-mois { flex-wrap: wrap; }
+/* Les lignes à remplir (prix, frais poste par poste) : le nom sur toute la
+   ligne, le champ et son « € » dessous, à droite. */
+html[data-taille="tres-grand"] .carnet .ar-ln:has(> input) > :nth-child(2) { grid-column: 2 / -1; }
+html[data-taille="tres-grand"] .carnet .ar-ln:has(> input) > input { grid-column: 3; grid-row: 2; }
+html[data-taille="tres-grand"] .carnet .ar-ln:has(> input) > input + * { grid-column: 4; grid-row: 2; }
+/* La facture à l'écran est la feuille A4 : à 150 %, elle se réduit d'un bloc
+   pour tenir dans la largeur, comme un aperçu. */
+html[data-taille="tres-grand"] .carnet .fa-print { zoom: 0.667; }
+html[data-taille="grand"] .carnet .fa-print { zoom: 0.87; }
+/* Le cheval à surveiller : sa phrase avant sa tête. */
+html[data-taille="tres-grand"] .carnet .ch-watch { grid-template-columns: minmax(0, 1fr) auto; }
+html[data-taille="tres-grand"] .carnet .ch-watch .face { display: none; }
+/* Le + : les choix (cours, soin, jour) passent à la ligne au lieu de se couper
+   en « Aujou… » ou « Cours part… ». */
+html[data-taille="tres-grand"] .nt-tile b,
+html[data-taille="tres-grand"] .nt-tile small,
+html[data-taille="tres-grand"] .nt-q3 button { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; hyphens: auto; }
+html[data-taille="tres-grand"] .nt-q3 button { height: auto; min-height: 44px; padding-top: 6px; padding-bottom: 6px; line-height: 1.15; }
 /* « Tout est sur ce téléphone » : le texte et la croix sur une ligne, le bouton dessous. */
 html[data-taille="tres-grand"] .carnet .es-keep { display: grid; grid-template-columns: minmax(0, 1fr) 44px; row-gap: 6px; }
 html[data-taille="tres-grand"] .carnet .es-keep > span { grid-column: 1; grid-row: 1; }
@@ -379,6 +408,13 @@ html[data-taille="tres-grand"] .bs-cs-p { max-height: 60dvh; }
 html[data-taille="tres-grand"] .carnet .rg-feuille { max-height: 61dvh; }
 @media (max-width: 1023px) {
   input, select, textarea { font-size: max(16px, 1em); }
+}
+/* À l'impression, le gros texte de l'écran ne compte pas : la facture et le
+   registre sortent en A4 à leur taille. */
+@media print {
+  html[data-taille] body,
+  html[data-taille] .carnet .fa-print,
+  html[data-taille] .carnet .ar-grid12 { zoom: 1 !important; }
 }
 
 /* =====================================================================
