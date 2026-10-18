@@ -3,6 +3,7 @@ import { billOf, billsFor, cleClient, monthKey } from "@/lib/domain/billing";
 import { prenomDe } from "@/lib/domain/clients";
 import { enMoyen } from "@/lib/domain/paiement";
 import { esc } from "@/lib/utils/esc";
+import { formule, signature } from "@/lib/domain/politesse";
 
 /**
  * La facture d'un client pour un mois. Les prix saisis dans l'app sont ceux
@@ -576,18 +577,28 @@ export const messageFaite = (inv: Pick<Invoice, "kind" | "number" | "payer" | "a
 /** « Facture n° 2026-0004 », « Avoir n° 2026-0007 ». */
 export const nomDoc = (inv: Pick<Invoice, "kind" | "number">) => `${inv.kind === "avoir" ? "Avoir" : "Facture"} n° ${inv.number}`;
 
-/** Le message prêt à envoyer avec la facture (ou l'avoir) : montant, mois, numéro. */
-export function messageFacture(inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe">, gerant: string): string {
+/**
+ * Le message prêt à envoyer avec la facture (ou l'avoir) : montant, mois,
+ * numéro. Tu ou vous selon le choix de Tes factures (vous par défaut), une
+ * majuscule après « Bonjour Claire, », et la signature : le gérant et le
+ * nom de l'écurie.
+ */
+export function messageFacture(
+  inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe">,
+  gerant: string,
+  opts: { tu?: boolean; ecurie?: string } = {},
+): string {
   const nb = (n: number) => eur2(n).replace(/ /g, " ");
+  const f = formule(opts.tu);
   const out =
     inv.kind === "avoir"
-      ? [`Bonjour ${prenomDe(inv.payer)},`, `voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} en moins.`, "Je te joins l’avoir en PDF."]
+      ? [`Bonjour ${prenomDe(inv.payer)},`, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} en moins.`, `Je ${f.te} joins l’avoir en PDF.`]
       : [
           `Bonjour ${prenomDe(inv.payer)},`,
-          `voici ta facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,
-          inv.due > 0 && inv.due < inv.totalTTC ? `Reste à payer : ${nb(inv.due)}.` : inv.due <= 0 ? "Elle est déjà réglée, merci." : "Payable à réception.",
-          "Je te joins la facture en PDF.",
+          `Voici ${f.ta} facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,
+          inv.due > 0 && inv.due < inv.totalTTC ? `Reste à payer : ${nb(inv.due)}.` : inv.due <= 0 ? "Elle est déjà réglée." : "Payable à réception.",
+          `Je ${f.te} joins la facture en PDF.`,
         ];
-  out.push(gerant.trim() ? `Merci, ${gerant.trim()}` : "Merci");
+  out.push(...signature(gerant, opts.ecurie));
   return out.join("\n");
 }

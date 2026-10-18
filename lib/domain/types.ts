@@ -452,6 +452,8 @@ export interface BillingInfo {
   capital?: string;
   /** L'IBAN, facultatif : imprimé en pied de facture (« Paiement par virement : IBAN … »). */
   iban?: string;
+  /** Dans les messages aux clients (facture, relance) : true = tu ; absent = vous. */
+  tutoie?: boolean;
   address?: string;
   /** Le SIRET, le même que celui du lieu de détention (Holding.siret) : saisi une fois. */
   siret?: string;

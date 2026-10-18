@@ -42,6 +42,7 @@ import {
   type Brouillon,
 } from "@/lib/domain/facture";
 import { prenomDe } from "@/lib/domain/clients";
+import { nomEcurie } from "@/lib/domain/politesse";
 import { currentPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import type { Invoice, Period, StableData } from "@/lib/domain/types";
@@ -439,12 +440,15 @@ function Emise({ inv, autres, onAutre, avoirDe }: { inv: Invoice; autres?: Invoi
   const people = useDataStore((s) => s.people);
   const invoices = useDataStore((s) => s.invoices);
   const gerant = useSettingsStore((s) => s.gerant);
+  const stableName = useSettingsStore((s) => s.stableName);
+  const billing = useDataStore((s) => s.billing);
   const person = (people ?? []).find((p) => cleClient(p.name) === cleClient(inv.payer));
   const avoir = inv.kind === "avoir";
   const [annuler, setAnnuler] = useState(() => !!avoirDe && !avoir);
   const phone = person?.phone?.replace(/[^\d+]/g, "") ?? "";
   const email = person?.email?.trim() ?? "";
-  const msg = messageFacture(inv, gerant);
+  // Tu ou vous selon le choix de Tes factures ; signé du gérant et de l'écurie.
+  const msg = messageFacture(inv, gerant, { tu: billing?.tutoie, ecurie: nomEcurie(stableName, billing?.legalName) });
   const enc = encodeURIComponent(msg);
   const objet = encodeURIComponent(nomDoc(inv));
   const avoirs = avoir ? [] : avoirsDe(invoices, inv.number);

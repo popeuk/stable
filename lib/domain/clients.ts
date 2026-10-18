@@ -1,4 +1,5 @@
 import type { Period, PersonRole, StableData } from "@/lib/domain/types";
+import { formule, nomEcurie, signature } from "@/lib/domain/politesse";
 import { dateInPeriod } from "@/lib/utils/period";
 import { billsFor, type Bill } from "@/lib/domain/billing";
 
@@ -185,9 +186,12 @@ const eur0 = (n: number) => `${new Intl.NumberFormat("fr-FR", { maximumFractionD
 /**
  * Le message tout prêt « ce que tu me dois » : les pensions une à une, le
  * reste regroupé (« Cours de Tonnerre (5) : 125 € »), ce qui est déjà payé,
- * le reste à payer. Ce qui a été payé sur place n'y figure pas.
+ * le reste à payer. Ce qui a été payé sur place n'y figure pas. Tu ou
+ * vous selon le choix fait dans Tes factures (vous par défaut), signé du
+ * gérant et de l'écurie.
  */
-export function messageDu(bill: Bill, period: Period, stableName: string, gerant: string): string {
+export function messageDu(bill: Bill, period: Period, stableName: string, gerant: string, tu?: boolean): string {
+  const f = formule(tu);
   const qui = prenomDe(bill.payer);
   const lines = bill.lines.filter((l) => !l.onSite);
   const fixes = lines.filter((l) => /pension/i.test(l.label));
@@ -203,12 +207,12 @@ export function messageDu(bill: Bill, period: Period, stableName: string, gerant
   const deja = Math.round((bill.paid - onSite) * 100) / 100;
   const out = [
     `Bonjour ${qui},`,
-    `voici ce que tu me dois pour ${moisNom(period)} ${chezEcurie(stableName)} :`,
+    `Voici ce que ${f.doit} pour ${moisNom(period)} ${chezEcurie(stableName)} :`,
     ...fixes.map((l) => `${l.label} : ${eur0(l.amount)}`),
     ...[...grp.entries()].map(([t, g]) => `${t}${g.n > 1 ? ` (${g.n})` : ""} : ${eur0(g.v)}`),
   ];
   if (deja > 0) out.push(`Déjà payé : ${eur0(deja)}`);
   out.push(`Reste à payer : ${eur0(bill.due)}.`);
-  out.push(gerant.trim() ? `Merci, ${gerant.trim()}` : "Merci");
+  out.push(...signature(gerant, nomEcurie(stableName)));
   return out.join("\n");
 }

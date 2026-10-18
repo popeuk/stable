@@ -231,6 +231,28 @@ export function TvaReglage({ kinds = KINDS }: { kinds?: VatKind[] }) {
   );
 }
 
+/** « Avec tes clients, tu dis tu ou vous ? » : choisi une fois, pour les messages de facture et de relance. Vous par défaut. */
+export function TuVous() {
+  const tutoie = useDataStore((s) => s.billing?.tutoie);
+  const setBilling = useDataStore((s) => s.setBilling);
+  return (
+    <div className="fr-tva">
+      <div className="fr-rate">
+        <span id="fr-tuvous">Avec tes clients, tu dis tu ou vous ?</span>
+        <div className="fr-two" role="radiogroup" aria-labelledby="fr-tuvous">
+          <button type="button" role="radio" aria-checked={!!tutoie} className={`chip${tutoie ? " on" : ""}`} onClick={() => setBilling({ tutoie: true })}>
+            Tu
+          </button>
+          <button type="button" role="radio" aria-checked={!tutoie} className={`chip${!tutoie ? " on" : ""}`} onClick={() => setBilling({ tutoie: undefined })}>
+            Vous
+          </button>
+        </div>
+      </div>
+      <p className="fr-hint">{tutoie ? "« Bonjour Claire, voici ta facture n° … »" : "« Bonjour Claire, voici votre facture n° … »"} Le message qui part avec la facture suit ce choix.</p>
+    </div>
+  );
+}
+
 /**
  * Pour un client professionnel, la loi demande sur la facture la date
  * d'échéance et le taux des pénalités de retard. L'app ne les choisit pas :

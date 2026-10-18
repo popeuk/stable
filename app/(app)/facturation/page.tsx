@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Hello, Ic, Page as Ecran, Sec } from "@/components/carnet/ui";
-import { ConditionsPro, ExportComptable, InfosVendeur, TvaReglage } from "@/components/bs/facturation";
+import { ConditionsPro, ExportComptable, InfosVendeur, TuVous, TvaReglage } from "@/components/bs/facturation";
 import { useDataStore } from "@/stores/data-store";
 import { conditionsProManquent, enteteVendeur, eur2, facturation, moisDit, nomDoc, vendeurDe, vendeurManque } from "@/lib/domain/facture";
 
@@ -90,6 +90,9 @@ function Facturation() {
           </div>
         )}
         <p className="fr-hint">Chaque mention s’appuie sur ce que tu as noté ici. Fais-les valider une fois par ton comptable : l’app ne remplace pas son avis.</p>
+      </Sec>
+      <Sec title="Tes messages aux clients" blk delay={0.17} id="messages">
+        <TuVous />
       </Sec>
       <Sec title="Pour ton comptable" blk delay={0.2} id="comptable">
         <ExportComptable />
