@@ -12,6 +12,7 @@ import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { useFinDuMois } from "@/components/bs/compte";
 import { BILAN, CLIENTS_CHEVAUX, under, useParentIci } from "@/components/bs/nav";
+import { EnveloppeBouton } from "@/components/bs/demandes";
 
 /**
  * L'en-tête : à gauche « be stable » sur les onglets, sinon le retour, qui
@@ -48,6 +49,7 @@ export function Header() {
           </span>
         )}
       </Link>
+      <EnveloppeBouton />
       <Link href="/reglages" className="hd2-gear" aria-current={path.startsWith("/reglages") ? "page" : undefined} aria-label="Réglages de l’app">
         <Ic n="gear" />
       </Link>
