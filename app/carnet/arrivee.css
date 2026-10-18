@@ -307,15 +307,9 @@
 .carnet .pas-mini > .ar-ico { color: var(--ink3); }
 .carnet .pas-later { margin-top: 18px; }
 
-/* L'en-tête d'une question : où on en est (trois points) et son image. */
-.carnet .ob-chap { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 6px 22px 0; }
-.carnet .ob-chap .dots { margin-bottom: 6px; }
-.carnet .ob-chap .dots i { width: 26px; height: 4px; }
-.carnet .ob-chap .dots i.on { background: var(--acc); }
-.carnet .ob-chap-ill { height: 84px; width: auto; max-width: 120px; object-fit: contain; object-position: right bottom; animation: cn-rise .7s var(--ease) backwards; }
 
 @media (prefers-reduced-motion: reduce) {
-  .carnet .pas-hero-ill, .carnet .pas-step::before, .carnet .ob-chap-ill { animation: none; }
+  .carnet .pas-hero-ill, .carnet .pas-step::before { animation: none; }
   .carnet .pas-card, .carnet .pas-go .ar-ico { transition: none; }
 }
 @media (min-width: 1024px) {

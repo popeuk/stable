@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Ill } from "@/components/carnet/ui";
 import { illPerso, usePerso } from "@/components/bs/perso";
-import { useObV } from "@/components/bs/ob-fort";
 
 /**
  * L'histoire d'ouverture : trois scènes de la gérante (ou du gérant), le
@@ -52,7 +51,6 @@ export function Stories({
 }) {
   const [i, setI] = useState(0);
   const perso = usePerso();
-  const v = useObV();
   const bars = useRef<(HTMLElement | null)[]>([]);
   useEffect(() => {
     const fill = (k: number) => bars.current.forEach((b, j) => b && (b.style.transform = `scaleX(${j < i ? 1 : j === i ? k : 0})`));
@@ -70,7 +68,7 @@ export function Stories({
   }, [i]);
   const dernier = i === SCENES.length - 1;
   return (
-    <div className={`ar-stwrap${v ? " obn-st" : ""}`}>
+    <div className="ar-stwrap obn-st">
       <h1 className="sr-only">Be Stable, ton écurie et ce qu’elle te rapporte</h1>
       <div className="stories">
         <div className="bars" aria-hidden="true">

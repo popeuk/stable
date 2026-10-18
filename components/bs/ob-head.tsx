@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Ic, Ill, type IllName } from "@/components/carnet/ui";
 import { saisieMontant } from "@/lib/utils/montant";
-import { MoisLigne, useObV, type Apercu } from "@/components/bs/ob-fort";
+import { MoisLigne, type Apercu } from "@/components/bs/ob-fort";
 
 /** L'image de chaque question des premiers pas, la même que sur le chemin. */
 const CHAP: Record<number, { ill: IllName; alt: string }> = {
@@ -12,7 +12,6 @@ const CHAP: Record<number, { ill: IllName; alt: string }> = {
 
 /** L'en-tête d'un obstacle, trois points pour dire où on en est et l'image de la question. Ouvert depuis l'app (retour=…), il redevient un simple réglage. */
 export function ObHead({ n, title, sub, retour, apercu }: { n: number; title: string; sub: string; retour?: string | null; apercu?: Apercu }) {
-  const v = useObV();
   if (retour) {
     return (
       <>
@@ -28,47 +27,26 @@ export function ObHead({ n, title, sub, retour, apercu }: { n: number; title: st
     );
   }
   const chap = CHAP[n];
-  // L'arrivée tenue (?v=n) : la question dans sa case, le dessin posé sur le filet, le mois en pied.
-  if (v)
-    return (
-      <>
-        <Link href="/parcours" className="ar-obh">
-          <Ic n="back" className="" />
-          Tes premiers pas
-        </Link>
-        <div className="obn-tete">
-          <div className="obn-tete-h">
-            <span className="dots" role="img" aria-label={`Question ${n} sur 3`}>
-              {[1, 2, 3].map((k) => (
-                <i key={k} className={k <= n ? "on" : undefined} />
-              ))}
-            </span>
-            <h1 className="obn-t1">{title}</h1>
-            <p className="obn-sub">{sub}</p>
-          </div>
-          {chap && <Ill n={chap.ill} alt={chap.alt} className="obn-ill" prio />}
-          <MoisLigne apercu={apercu} />
-        </div>
-      </>
-    );
+  // La question dans sa case, le dessin posé sur le filet, le mois en pied.
   return (
     <>
       <Link href="/parcours" className="ar-obh">
         <Ic n="back" className="" />
         Tes premiers pas
       </Link>
-      <div className="ob-chap">
-        <span className="dots" role="img" aria-label={`Question ${n} sur 3`}>
-          {[1, 2, 3].map((k) => (
-            <i key={k} className={k <= n ? "on" : undefined} />
-          ))}
-        </span>
-        {chap && <Ill n={chap.ill} alt={chap.alt} className="ob-chap-ill" prio />}
+      <div className="obn-tete">
+        <div className="obn-tete-h">
+          <span className="dots" role="img" aria-label={`Question ${n} sur 3`}>
+            {[1, 2, 3].map((k) => (
+              <i key={k} className={k <= n ? "on" : undefined} />
+            ))}
+          </span>
+          <h1 className="obn-t1">{title}</h1>
+          <p className="obn-sub">{sub}</p>
+        </div>
+        {chap && <Ill n={chap.ill} alt={chap.alt} className="obn-ill" prio />}
+        <MoisLigne apercu={apercu} />
       </div>
-      <h1 className="ar-t1" style={{ marginTop: 8 }}>
-        {title}
-      </h1>
-      <p className="ar-sub">{sub}</p>
     </>
   );
 }

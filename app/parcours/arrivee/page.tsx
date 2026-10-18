@@ -8,7 +8,6 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { CountUp, Face, Ic, Ill, Money, Steam, eurc, sg } from "@/components/carnet/ui";
 import { usePerso } from "@/components/bs/perso";
 import { getSession } from "@/lib/account/session";
-import { useObV } from "@/components/bs/ob-fort";
 import { estAMoi } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
@@ -49,13 +48,12 @@ function Reste() {
   const prixCours = data.tariffs?.cours_collectif || data.tariffs?.cours_individuel || data.prestations?.find((p) => p.active && p.price > 0)?.price;
   /** L'essai sans compte : le mois se garde tout de suite (nom de l'écurie, e-mail, code), le + vient après. */
   const essai = getSession()?.kind === "locale";
-  const v = useObV();
   const essayerPlus = () => {
     useUiStore.getState().setTutoPlus(true);
     router.push("/accueil");
   };
   return (
-    <div className={`ar-fin ar-reste${v ? " obn-fin" : ""}`}>
+    <div className="ar-fin ar-reste obn-fin">
       <h1 className="ar-t1 rise">Voilà ton mois.</h1>
       <div className="perch es-perch rise" style={{ animationDelay: ".08s" }}>
         {net < 0 ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { eurc, sg } from "@/components/carnet/ui";
 import { estAMoi, fraisDuMois } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
@@ -8,36 +8,11 @@ import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 
 /**
- * L'arrivée tenue (proposition du 18 octobre 2026, derrière ?v=n ; ?v=0
- * revient à l'actuel). Les mêmes écrans, les mêmes mots, les mêmes
- * dessins, rangés comme le reste de l'app : chaque partie dans une case
- * blanche tenue par un filet, chaque dessin posé sur le bord de sa case,
- * une seule marge de 16 px. En pied de la case de chaque question, une
- * ligne montre le mois qui se dessine. Le choix suit tout le parcours
- * dans l'onglet. Styles : app/carnet/ob-fort.css.
+ * L'arrivée tenue (18 octobre 2026) : chaque partie dans une case blanche
+ * tenue par un filet, chaque dessin posé sur le bord de sa case, une seule
+ * marge de 16 px. En pied de la case de chaque question, une ligne montre le
+ * mois qui se dessine. Styles : app/carnet/ob-fort.css.
  */
-export type ObV = "n" | null;
-const CLE = "be-stable-ob-v";
-
-export function useObV(): ObV {
-  const [v, setV] = useState<ObV>(null);
-  useEffect(() => {
-    let x: string | null = new URLSearchParams(window.location.search).get("v");
-    try {
-      if (x === "0") {
-        sessionStorage.removeItem(CLE);
-        x = null;
-      } else if (x === "n") sessionStorage.setItem(CLE, x);
-      else x = sessionStorage.getItem(CLE);
-    } catch {}
-    const ok: ObV = x === "n" ? "n" : null;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setV(ok);
-    if (ok) document.documentElement.dataset.ob = ok;
-    else delete document.documentElement.dataset.ob;
-  }, []);
-  return v;
-}
 
 /** Ce qu'une question a déjà en main sans l'avoir enregistré (le nombre et la pension tapés). */
 export interface Apercu {

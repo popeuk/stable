@@ -1,4 +1,4 @@
-/* L'arrivée tenue (18 octobre 2026), derrière ?v=n : l'actuel, rangé.
+/* L'arrivée tenue (18 octobre 2026) : l'histoire, les trois questions et le mois, rangés.
    Chaque partie dans une case blanche tenue par un filet (12 px), chaque dessin
    posé sur le bord de sa case, une seule marge de 16 px. Rien ne flotte sur le
    papier. Aucune couleur nouvelle, aucune ombre. */
@@ -11,28 +11,28 @@
 .carnet .obn-st .stories .cta { padding-left: var(--gut); padding-right: var(--gut); }
 
 /* ---------- Une question : sa case, son dessin sur le filet, le mois en pied ---------- */
-html[data-ob="n"] .carnet .obn-tete { margin: 10px var(--gut) 0; display: grid; grid-template-columns: minmax(0, 1fr) 108px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
-html[data-ob="n"] .carnet .obn-tete-h { padding: 16px 0 16px 16px; min-width: 0; }
-html[data-ob="n"] .carnet .obn-tete .dots i { width: 22px; height: 3px; }
-html[data-ob="n"] .carnet .obn-t1 { margin: 14px 0 0; font-size: 28px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; text-wrap: balance; }
-html[data-ob="n"] .carnet .obn-sub { margin: 8px 0 0; font-size: 14px; line-height: 1.45; color: var(--ink2); }
-html[data-ob="n"] .carnet .obn-ill { align-self: end; justify-self: end; width: 100%; height: 118px; object-fit: contain; object-position: right bottom; padding-right: 8px; animation: cn-rise .7s var(--ease) backwards; }
-html[data-ob="n"] .carnet .obn-mois { grid-column: 1 / -1; margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--mist); font-size: 13px; line-height: 1.35; color: var(--ink2); }
-html[data-ob="n"] .carnet .obn-mois b { flex: none; font-size: 18px; font-weight: 760; letter-spacing: -.02em; color: var(--ink); white-space: nowrap; }
-html[data-ob="n"] .carnet .obn-mois small { font-size: 12px; font-weight: 500; color: var(--ink3); letter-spacing: 0; }
-html[data-ob="n"] .carnet .obn-mois-vide { color: var(--ink3); }
+.carnet .obn-tete { margin: 10px var(--gut) 0; display: grid; grid-template-columns: minmax(0, 1fr) 108px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+.carnet .obn-tete-h { padding: 16px 0 16px 16px; min-width: 0; }
+.carnet .obn-tete .dots i { width: 22px; height: 3px; }
+.carnet .obn-t1 { margin: 14px 0 0; font-size: 28px; font-weight: 760; letter-spacing: -.03em; line-height: 1.02; font-variation-settings: "wdth" 86; text-wrap: balance; }
+.carnet .obn-sub { margin: 8px 0 0; font-size: 14px; line-height: 1.45; color: var(--ink2); }
+.carnet .obn-ill { align-self: end; justify-self: end; width: 100%; height: 118px; object-fit: contain; object-position: right bottom; padding-right: 8px; animation: cn-rise .7s var(--ease) backwards; }
+.carnet .obn-mois { grid-column: 1 / -1; margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--mist); font-size: 13px; line-height: 1.35; color: var(--ink2); }
+.carnet .obn-mois b { flex: none; font-size: 18px; font-weight: 760; letter-spacing: -.02em; color: var(--ink); white-space: nowrap; }
+.carnet .obn-mois small { font-size: 12px; font-weight: 500; color: var(--ink3); letter-spacing: 0; }
+.carnet .obn-mois-vide { color: var(--ink3); }
 
 /* Le corps de la question : une seule case, ses parties séparées par un filet. */
-html[data-ob="n"] .carnet .obn-corps { margin: 12px var(--gut) 0; padding: 2px 16px 16px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
-html[data-ob="n"] .carnet .obn-corps :is(.ar-mm, .ar-lines, .ar-total, .tip, .ar-seg, .ar-mc, .ar-warn, .ar-add, .ar-new, .ar-h5, .es-help) { margin-left: 0; margin-right: 0; }
-html[data-ob="n"] .carnet .obn-corps > :first-child { margin-top: 14px; }
-html[data-ob="n"] .carnet .obn-corps .es-count { margin-top: 18px; }
-html[data-ob="n"] .carnet .obn-corps .ar-mm { margin-top: 18px; }
-html[data-ob="n"] .carnet .obn-corps .ar-mm + .ar-mm { padding-top: 18px; border-top: 1px solid var(--line2); }
-html[data-ob="n"] .carnet .obn-corps .ar-mm-f { background: var(--paper); }
-html[data-ob="n"] .carnet .obn-corps .ar-total { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
-html[data-ob="n"] .carnet .obn-corps .tip { margin-top: 14px; }
-html[data-ob="n"] .carnet .ar-pc .ar-go { margin: 16px var(--gut) 0; width: calc(100% - 2 * var(--gut)); height: 52px; font-size: 15px; }
+.carnet .obn-corps { margin: 12px var(--gut) 0; padding: 2px 16px 16px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .obn-corps :is(.ar-mm, .ar-lines, .ar-total, .tip, .ar-seg, .ar-mc, .ar-warn, .ar-add, .ar-new, .ar-h5, .es-help) { margin-left: 0; margin-right: 0; }
+.carnet .obn-corps > :first-child { margin-top: 14px; }
+.carnet .obn-corps .es-count { margin-top: 18px; }
+.carnet .obn-corps .ar-mm { margin-top: 18px; }
+.carnet .obn-corps .ar-mm + .ar-mm { padding-top: 18px; border-top: 1px solid var(--line2); }
+.carnet .obn-corps .ar-mm-f { background: var(--paper); }
+.carnet .obn-corps .ar-total { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.carnet .obn-corps .tip { margin-top: 14px; }
+.carnet .ar-pc .ar-go { margin: 16px var(--gut) 0; width: calc(100% - 2 * var(--gut)); height: 52px; font-size: 15px; }
 
 /* ---------- Ton mois : le chiffre et ce qu'il veut dire, dans la même case ---------- */
 .carnet .obn-fin .ar-t1 { text-align: left; margin: 52px var(--gut) 0; font-size: 32px; }
@@ -50,5 +50,5 @@ html[data-ob="n"] .carnet .ar-pc .ar-go { margin: 16px var(--gut) 0; width: calc
   .carnet .obn-st .stories .cta { padding-left: max(var(--gut), calc((100% - 720px) / 2)); padding-right: max(var(--gut), calc((100% - 720px) / 2)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  html[data-ob="n"] .carnet .obn-ill { animation: none; }
+  .carnet .obn-ill { animation: none; }
 }
