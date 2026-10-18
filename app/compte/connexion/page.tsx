@@ -74,6 +74,13 @@ export default function Page() {
 
   async function ouvrir(r: AuthResponse) {
     const s = sessionFrom(r);
+    // Une écurie déjà revendiquée n'entre que dans le compte de son gérant : un autre compte ne la prend pas.
+    const prise = garder && !projet ? lireFiche() : null;
+    if (prise && prise.statut !== "libre" && s.listing?.id !== prise.id) {
+      setCode("");
+      setMode("nom");
+      return setErr(`${prise.title} a déjà un compte, ce n’est pas celui de ${s.email}. Entre avec l’adresse de son gérant, ou choisis « Elle n’est pas dans la liste ».`);
+    }
     // L'écurie essayée sans compte passe dans le compte.
     if (hasLocaleData()) {
       setSession(s);
@@ -201,7 +208,10 @@ export default function Page() {
                       <b>
                         <Marque t={h.title} q={nom} />
                       </b>
-                      <span>{[h.commune, h.departement && `(${h.departement})`].filter(Boolean).join(" ")}</span>
+                      <span>
+                        {[h.commune, h.departement && `(${h.departement})`].filter(Boolean).join(" ")}
+                        {h.statut !== "libre" && " · déjà un compte"}
+                      </span>
                       <Ic n="chev" className="chev" />
                     </button>
                   </li>
@@ -236,7 +246,7 @@ export default function Page() {
             {garder ? (
               <div className="q rise">
                 <h1>{nom.trim() && !projet ? `Ton compte pour ${nom.trim()}.` : "Ton compte."}</h1>
-                <p>Ton e-mail, puis un code. Tes chiffres passent dedans.</p>
+                <p>{fiche && fiche.statut !== "libre" && !projet ? "Cette écurie a déjà un compte : entre avec l’adresse de son gérant, puis le code." : "Ton e-mail, puis un code. Tes chiffres passent dedans."}</p>
               </div>
             ) : (
               <>
