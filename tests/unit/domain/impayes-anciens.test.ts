@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { clientDues, duMois, impayesAnciens } from "@/lib/domain/clients";
+import { repartirPaiement } from "@/lib/domain/paiement";
 import type { StableData } from "@/lib/domain/types";
 
 const nov = { year: 2026, month: 11 };
@@ -52,5 +53,17 @@ describe("Ils te doivent : tous les mois confondus", () => {
     expect(duMois("2026-09", nov)).toBe("de septembre");
     expect(duMois("2026-08", nov)).toBe("d’août");
     expect(duMois("2025-12", nov)).toBe("de décembre 2025");
+  });
+
+  it("« Un client m'a payé » depuis le + : tout payé, chaque mois est soldé, le plus ancien d'abord", () => {
+    const d = data();
+    const hugo = clientDues(d, nov).find((c) => c.name === "Hugo L.")!;
+    const parts = repartirPaiement([...hugo.anciens, { month: "2026-11", due: hugo.dueMois }], hugo.due);
+    expect(parts).toEqual([
+      { month: "2026-09", amount: 120 },
+      { month: "2026-11", amount: 400 },
+    ]);
+    parts.forEach((p, i) => d.payments!.push({ id: `y${i}`, payer: "Hugo L.", month: p.month, amount: p.amount, at: "" }));
+    expect(clientDues(d, nov).find((c) => c.name === "Hugo L.")!.due).toBe(0);
   });
 });

@@ -14,6 +14,7 @@ import { ChoixConnu, ChoixFois, SoitParMois } from "@/components/bs/montant-conn
 import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
 import { comprendre } from "@/lib/domain/dire";
 import { ligneRemplie } from "@/lib/domain/corriger";
+import { Encaisser } from "@/components/bs/encaisser";
 import { estimationDuPoste } from "@/lib/domain/recurring";
 import { questionDedans } from "@/lib/domain/estimation";
 import { norm } from "@/lib/domain/interpret";
@@ -260,6 +261,8 @@ function NoterInner() {
 
   // Une vraie dépense d'un poste déjà estimé dans Mes frais : fait-elle partie de l'estimation ?
   const [dedansQ, setDedansQ] = useState<{ nom: string; montant: number } | null>(null);
+  // « Un client m'a payé » : la liste de ceux qui doivent, puis le paiement (components/bs/encaisser).
+  const [encaisser, setEncaisser] = useState(false);
 
   /* ---------- Enregistrer ---------- */
   function commit(dedans?: boolean) {
@@ -739,6 +742,16 @@ function NoterInner() {
         </div>
       </>
     );
+  } else if (d && encaisser) {
+    body = (
+      <Encaisser
+        onBack={() => setEncaisser(false)}
+        onDone={(html, undo) => {
+          close();
+          say(html, undo);
+        }}
+      />
+    );
   } else if (d && dedansQ) {
     body = (
       <>
@@ -978,6 +991,13 @@ function NoterInner() {
               <span className="out">−</span>Ça sort
             </button>
           </div>
+          {/* En tête de « Ça rentre » : le paiement d’un client, comme sur sa fiche. */}
+          {x.sens === "in" && (
+            <button type="button" className="btn line nt-pay1" onClick={() => setEncaisser(true)}>
+              <Ic n="people" className="" />
+              Un client m’a payé
+            </button>
+          )}
           <Keypad value={x.amount} sens={x.sens} onChange={(amount) => (set((y) => ({ ...y, amount })), setTried(false))} />
           <Q>C’est pour qui ?</Q>
           {pourChips(x)}
