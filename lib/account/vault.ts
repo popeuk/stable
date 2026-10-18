@@ -180,6 +180,14 @@ export async function adoptLegacy(): Promise<boolean> {
 const NAMES = ["be-stable-data", "be-stable-settings"] as const;
 const localKey = (name: string) => `${name}@${LOCALE_SCOPE}`;
 
+/** Tout effacer pendant un essai : l'écurie de cet appareil disparaît, l'accueil repart de l'histoire. */
+export function effacerLocale() {
+  try {
+    for (const k of Object.keys(localStorage)) if (k.endsWith(`@${LOCALE_SCOPE}`)) localStorage.removeItem(k);
+    localStorage.removeItem("be-stable-garder");
+  } catch {}
+}
+
 interface Persisted {
   state?: Record<string, unknown>;
   version?: number;

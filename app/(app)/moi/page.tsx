@@ -13,6 +13,7 @@ import { CategoriesReglages, EquipeReglages, LieuReglages } from "@/components/b
 import { api } from "@/lib/account/api";
 import { envoyer } from "@/lib/account/nuage";
 import { getSession, leave } from "@/lib/account/session";
+import { effacerLocale } from "@/lib/account/vault";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { grosTexte, poserGrosTexte } from "@/lib/taille";
 import { fusionFactures } from "@/lib/domain/facture";
@@ -265,6 +266,14 @@ function Moi() {
               }
               return;
             }
+            // Sans compte : l'essai est effacé de l'appareil, on repart de l'histoire comme au premier jour.
+            if (getSession()?.kind === "locale") {
+              if (window.confirm("Tout effacer de ce téléphone et repartir du début ? Rien n’est gardé ailleurs.")) {
+                effacerLocale();
+                leave("/bienvenue");
+              }
+              return;
+            }
             if (window.confirm("Tout effacer et refaire le parcours depuis le début ?")) {
               data.startEmpty();
               s.resetParcours();
@@ -275,7 +284,7 @@ function Moi() {
           <Ic n="trash" className="" />
           Tout effacer et recommencer
         </button>
-        <small>{session?.kind === "demo" ? "Dans la démo, l’écurie d’exemple revient telle qu’au départ." : "Le parcours repart de zéro. On te le redemande avant."}</small>
+        <small>{session?.kind === "demo" ? "Dans la démo, l’écurie d’exemple revient telle qu’au départ." : session?.kind === "locale" ? "Ton essai disparaît de ce téléphone. On te le redemande avant." : "Le parcours repart de zéro. On te le redemande avant."}</small>
       </div>
     </Sec>
   );
