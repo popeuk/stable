@@ -20,6 +20,38 @@ import { EnveloppeBouton } from "@/components/bs/demandes";
  * dit où il mène ; à droite « Voir mon bilan » et le chiffre du mois (un
  * « +X € » s'envole quand de l'argent rentre), puis la roue des réglages.
  */
+/**
+ * Quand l'en-tête ne tient pas sur la largeur (Gros texte, retour long comme
+ * « Mon écurie », gros chiffre, enveloppe), « Voir mon bilan » laisse sa
+ * place au seul chiffre (le bouton garde son nom pour la lecture vocale),
+ * au lieu de pousser la roue hors de l'écran.
+ */
+function useSerre() {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const h = ref.current;
+    if (!h || typeof ResizeObserver === "undefined") return;
+    const mesurer = () => {
+      h.classList.remove("serre");
+      if (h.scrollWidth > h.clientWidth + 1) h.classList.add("serre");
+    };
+    const ro = new ResizeObserver(mesurer);
+    ro.observe(h);
+    const mo = new MutationObserver(() => {
+      for (const c of Array.from(h.children)) ro.observe(c);
+      mesurer();
+    });
+    mo.observe(h, { childList: true, subtree: true, characterData: true });
+    for (const c of Array.from(h.children)) ro.observe(c);
+    mesurer();
+    return () => {
+      ro.disconnect();
+      mo.disconnect();
+    };
+  }, []);
+  return ref;
+}
+
 export function Header() {
   const path = usePathname() ?? "";
   const retour = useRetour2();
@@ -28,8 +60,9 @@ export function Header() {
   const ready = useDataStore((s) => s.hydrated);
   const tone = estime ? "" : Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "";
   const gain = useGain(net, ready);
+  const hdRef = useSerre();
   return (
-    <header className="hd hd2">
+    <header className="hd hd2" ref={hdRef}>
       {isRoot2(path) ? (
         <Link href="/accueil" className="wm">
           be stable

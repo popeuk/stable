@@ -72,6 +72,9 @@
 .carnet .hd2-bilan { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px 0 12px; border-radius: 19px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); text-decoration: none; font-size: 13px; font-weight: 650; white-space: nowrap; }
 .carnet .hd2-bilan b { padding: 4px 9px; border-radius: 13px; background: var(--mist); font-size: 13.5px; font-weight: 780; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 .carnet .hd2-bilan[aria-current="page"] { box-shadow: inset 0 0 0 1.5px var(--acc); }
+/* Trop serré (components/bs/shell.tsx, useSerre) : le chiffre seul. */
+.carnet .hd2.serre .hd2-bilan > span:first-child { display: none; }
+.carnet .hd2.serre .hd2-bilan { padding-left: 6px; }
 .carnet .hd2-gear { width: 38px; height: 38px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); }
 .carnet .hd2-gear[aria-current="page"] { box-shadow: inset 0 0 0 1.5px var(--acc); }
 .carnet .hd2-gear svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
