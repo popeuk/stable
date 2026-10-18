@@ -87,7 +87,8 @@ export function usePas(): Pas[] {
     const aFinir = actifs.filter((h) => sansNomRe.test(h.name.trim()) || (!estAMoi(h) && !h.ownerName?.trim()));
     const b = monthBreakdown(data, currentPeriod());
     const charges = b.sharedTotal + b.direct + b.outside > 0 || data.sharedExpenses.length > 0 || (data.recurringExpenses ?? []).length > 0;
-    const soin = (data.careEvents ?? []).length > 0 || (data.seances ?? []).length > 0 || data.directExpenses.length > 0;
+    // « Ton premier soin » : un soin ou un frais d’un cheval, pas une séance (le titre dit « soin »).
+    const soin = (data.careEvents ?? []).length > 0 || data.directExpenses.length > 0;
     const h = aFinir[0];
     return [
       // Sans cheval (questions passées, ou écurie vidée), ce pas est à faire : il mène aux trois questions.
