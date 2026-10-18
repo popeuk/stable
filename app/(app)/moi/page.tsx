@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { useParentIci } from "@/components/bs/nav";
+import { useTitreOnglet } from "@/components/bs/titre-onglet";
 import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
@@ -144,20 +145,10 @@ function Moi() {
       return;
     }
     poserParent(GROUPES[groupe].parent);
-    // L'onglet du navigateur dit la page : « Mon équipe · Be Stable », pas « Réglages ».
-    // Next repose le titre de l'écran après coup : on le remet tant que la page est ouverte.
-    const titre = `${GROUPES[groupe].t} · Be Stable`;
-    const poserTitre = () => {
-      if (document.title !== titre) document.title = titre;
-    };
-    poserTitre();
-    const mo = new MutationObserver(poserTitre);
-    mo.observe(document.head, { childList: true, subtree: true, characterData: true });
-    return () => {
-      mo.disconnect();
-      poserParent(null);
-    };
+    return () => poserParent(null);
   }, [groupe, poserParent, router]);
+  // L'onglet du navigateur dit la page : « Mon équipe · Be Stable », pas « Réglages ».
+  useTitreOnglet(groupe ? GROUPES[groupe].t : null);
   const [taille, setTaille] = useState<Taille>(tailleTexte);
   const today = localToday();
   // L'aperçu du rappel compte comme l'accueil : séances, soins, tâches, rendez-vous.

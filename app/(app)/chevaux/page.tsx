@@ -26,6 +26,7 @@ import type { Horse, Period, PersonRole, StableData } from "@/lib/domain/types";
 import { de, moisAFacturer } from "@/lib/domain/facture";
 import { Partis } from "@/components/bs/partis";
 import { useFeuille } from "@/components/bs/feuille";
+import { useTitreOnglet } from "@/components/bs/titre-onglet";
 import { echeance } from "@/lib/utils/heure";
 
 /**
@@ -71,6 +72,7 @@ function Vues() {
     poser(vue);
     return () => poser(null);
   }, [vue, poser]);
+  useTitreOnglet(vue === "chevaux" ? "Chevaux" : null);
   const versChevaux = () => {
     choisir("chevaux");
     window.scrollTo({ top: 0 });
