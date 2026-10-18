@@ -293,6 +293,13 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
             <span className="in">{sgc(p.amount)}</span>
           </div>
         ))}
+        {(bill.avoirs ?? []).map((a) => (
+          <Link key={a.number} className="cl-pd cl-pdl" href={`/facture?n=${encodeURIComponent(a.number)}`}>
+            <span>Avoir n° {a.number}</span>
+            {/* Ce qu'elle ne doit plus : à l'encre, avec son signe. */}
+            <span>{sgc(-a.amount)}</span>
+          </Link>
+        ))}
         {bill.total > 0 &&
           (faitesDuMois.length && brouillonDuMois.vide ? (
             <Link className="btn line cl-sendb" href={`/facture?n=${encodeURIComponent(faitesDuMois[faitesDuMois.length - 1].number)}`}>
