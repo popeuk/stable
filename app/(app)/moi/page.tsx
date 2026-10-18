@@ -386,7 +386,7 @@ function Compte() {
       <>
         <p className="note">Ton écurie est rangée dans ce téléphone, sans compte. Crée ton accès pour la retrouver ailleurs et ne rien perdre.</p>
         <Link href="/compte/connexion?garder=1" className="btn full" style={{ marginTop: 12 }}>
-          Garder mes chiffres
+          Créer mon compte
         </Link>
       </>
     );

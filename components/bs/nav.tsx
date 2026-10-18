@@ -314,7 +314,7 @@ function useSessionKind() {
 /**
  * Les lignes de la barre latérale et de la palette, sur ordinateur, sous
  * « Voir mon bilan » : les réglages, et les premiers pas tant qu'ils ne
- * sont pas finis (en tête, « Garder mes chiffres » sans compte).
+ * sont pas finis (en tête, « Créer mon compte » sans compte).
  */
 export function usePlusItems(): PlusItem[] {
   const parcours = useSettingsStore((s) => s.parcours);
@@ -322,7 +322,7 @@ export function usePlusItems(): PlusItem[] {
   const pas = OBSTACLES.filter((o) => parcours[o]).length;
   const installe = parcours.chevaux && parcours.tarifs && parcours.factures;
   return useMemo(() => [
-    ...(kind === "locale" ? [{ id: "garder", ic: "user", label: "Garder mes chiffres", sub: "Le nom de ton écurie, ton e-mail, un code", href: "/compte/connexion?garder=1", tone: "attn" as const }] : []),
+    ...(kind === "locale" ? [{ id: "garder", ic: "user", label: "Créer mon compte", sub: "Gratuit. Ton écurie, ton e-mail, un code", href: "/compte/connexion?garder=1", tone: "attn" as const }] : []),
     { id: "reglages", ic: "gear", label: "Réglages", sub: "Compte, rappel, affichage, explications", href: "/reglages" },
     // Sans compte d'étapes : ce qu'il reste à faire, dit simplement.
     ...(pas < 6 ? [{ id: "parcours", ic: "bulb", label: "Tes premiers pas", sub: installe ? "Le reste vient en utilisant l’app" : "Trois questions sur ton écurie", href: "/parcours", tone: "attn" as const }] : []),

@@ -614,7 +614,7 @@ const plie = (s: string) =>
     })
     .join("");
 /** Le nom trouvé, avec la partie tapée soulignée. */
-function Marque({ t, q }: { t: string; q: string }) {
+export function Marque({ t, q }: { t: string; q: string }) {
   const k = plie(q.trim());
   const i = k.length >= 2 ? plie(t).indexOf(k) : -1;
   if (i < 0) return <>{t}</>;

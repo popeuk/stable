@@ -158,7 +158,7 @@ export const api = {
   verifierCode: (email: string, code: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/code/verifier", { email, code }),
   /** Google ou Apple : le jeton signé de Supabase ouvre le compte de cette adresse (lib/account/oauth). */
   connexionSupabase: (accessToken: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/connexion/supabase", { access_token: accessToken }),
-  majMoi: (p: { prenom?: string; nom?: string; telephone?: string; ecurie?: string; projet?: boolean }) => call<{ user: Me }>("PUT", "/moi", p),
+  majMoi: (p: { prenom?: string; nom?: string; telephone?: string; ecurie?: string; fiche?: number; projet?: boolean }) => call<{ user: Me }>("PUT", "/moi", p),
   oubli: (email: string) => call<{ ok: true }>("POST", "/mot-de-passe/oubli", { email, retour: appUrl("/compte/nouveau-mot-de-passe/") }),
   nouveau: (p: { login: string; key: string; password: string }) => call<AuthResponse>("POST", "/mot-de-passe/nouveau", p),
   moi: () => call<{ user: Me; listing: Listing | null; data_key: string }>("GET", "/moi"),

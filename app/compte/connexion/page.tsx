@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
 import { GardeFait, GardeListe } from "@/components/bs/garder";
-import { ArTop, CodeInput } from "@/components/bs/rejoindre";
-import { Ill } from "@/components/carnet/ui";
-import { api, ApiError, appUrl, type AuthResponse } from "@/lib/account/api";
+import { ArTop, CodeInput, Marque } from "@/components/bs/rejoindre";
+import { Ic, Ill } from "@/components/carnet/ui";
+import { api, ApiError, appUrl, type AuthResponse, type StableHit } from "@/lib/account/api";
 import { AVEC_APPLE, AVEC_GOOGLE, lireRetour, partirVers, revenirDe, type Fournisseur } from "@/lib/account/oauth";
 import { enter, getSession, hasAccountData, hasLegacyData, hasLocaleData, sessionFrom, setSession, type AccountSession } from "@/lib/account/session";
 import { adoptLocale, resumeLocale, type ResumeEssai } from "@/lib/account/vault";
@@ -17,21 +17,29 @@ import { useSettingsStore } from "@/stores/settings-store";
  * (Apple quand il sera branché). Plus de mot de passe (décision du 18 octobre).
  * Google revient ici avec ?code=… : le compte s'ouvre comme avec le code.
  *
- * Avec ?garder=1 (le bandeau « Garder mes chiffres ») ou depuis l'écurie
+ * Avec ?garder=1 (le bandeau « Créer mon compte ») ou depuis l'écurie
  * essayée sans compte : « On garde tout pour demain. », puis l'écurie de
  * l'essai passe dans le compte (chiffrée). Si le compte a déjà la sienne,
  * le gérant choisit laquelle garder.
  *
- * En gardant un essai, on demande d'abord le nom de l'écurie (rien n'est
- * revendiqué : la fiche mon-ecurie.fr se reprend plus tard). Il devient le
- * nom de l'écurie dans l'app et part au site après le code, pour les e-mails.
+ * En créant le compte depuis un essai, on demande d'abord l'écurie : on la
+ * cherche dans mon-ecurie.fr et on la choisit, ou on garde le nom tapé. Rien
+ * n'est revendiqué : une fois le compte créé, « C'est ma fiche » le propose,
+ * sans obligation. Le nom devient celui de l'écurie dans l'app ; le nom et la
+ * fiche choisie partent au site après le code, pour les e-mails.
  */
+const FICHE = "be-stable-fiche-choisie";
 const SANS_NOM = (n: string) => !n.trim() || n.trim() === "Mon écurie";
 export default function Page() {
   const [mode, setMode] = useState<"nom" | "email" | "code">("email");
   const [nom, setNom] = useState("");
   /** Pas encore d'écurie : un projet, dit au site pour les e-mails. */
   const [projet, setProjet] = useState(false);
+  /** La fiche mon-ecurie.fr choisie, sans la revendiquer. */
+  const [fiche, setFiche] = useState<StableHit | null>(null);
+  const [hits, setHits] = useState<StableHit[] | null>(null);
+  const [cherche, setCherche] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -47,6 +55,7 @@ export default function Page() {
       setGarder(resumeLocale() ?? { chevaux: 0, pension: 0, frais: 0, seances: 0 });
       const deja = useSettingsStore.getState().stableName;
       setNom(SANS_NOM(deja) ? "" : deja);
+      setFiche(lireFiche());
       setMode("nom");
     }
     // Retour de Google ou d'Apple.
@@ -72,7 +81,9 @@ export default function Page() {
       // Lu dans les réglages de l'essai : il survit au détour par Google.
       const deja = useSettingsStore.getState().stableName;
       const ecurie = projet || SANS_NOM(deja) ? "" : deja.trim();
-      if (garder && (ecurie || projet)) void api.majMoi(projet ? { projet: true } : { ecurie }).catch(() => {});
+      const choisie = projet ? null : lireFiche();
+      if (garder && (ecurie || projet)) void api.majMoi(projet ? { projet: true } : { ecurie, ...(choisie ? { fiche: choisie.id } : {}) }).catch(() => {});
+      ecrireFiche(null);
       if (hasAccountData(s.userId)) return setAdopt("locale");
       await adoptLocale("locale");
       return setFait(s);
@@ -98,6 +109,37 @@ export default function Page() {
     }
   }
 
+  function chercher(v: string) {
+    setNom(v);
+    setFiche(null);
+    if (timer.current) clearTimeout(timer.current);
+    if (v.trim().length < 2) return setHits(null);
+    timer.current = setTimeout(async () => {
+      setCherche(true);
+      try {
+        setHits((await api.chercher(v.trim())).resultats.slice(0, 5));
+      } catch {
+        setHits(null);
+      } finally {
+        setCherche(false);
+      }
+    }, 260);
+  }
+
+  /** L'écurie est dite : celle de l'annuaire (h), ou le nom tapé. */
+  function garderNom(h: StableHit | null) {
+    const n = (h?.title ?? nom).trim();
+    if (n.length < 2) return setErr("Le nom de ton écurie, tel que tes clients le disent.");
+    useSettingsStore.getState().setIdentity({ stableName: n });
+    setNom(n);
+    setFiche(h);
+    ecrireFiche(h);
+    setHits(null);
+    setProjet(false);
+    setErr("");
+    setMode("email");
+  }
+
   if (adopt)
     return (
       <div className="carnet">
@@ -109,7 +151,7 @@ export default function Page() {
     return (
       <div className="carnet">
         <div className="ar">
-          <GardeFait onOpen={() => enter(fait, "/accueil")} />
+          <GardeFait onOpen={() => enter(fait, "/accueil")} fiche={fiche && fiche.statut === "libre" && !projet ? fiche : null} onFiche={(id) => enter(fait, `/compte/inscription?fiche=${id}`)} />
         </div>
       </div>
     );
@@ -140,33 +182,48 @@ export default function Page() {
     <div className="carnet">
       <div className="ar ar-duo">
         {mode === "nom" && (
-          <form
-            className="ar-v"
-            noValidate
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (nom.trim().length < 2) return setErr("Le nom de ton écurie, tel que tes clients le disent.");
-              useSettingsStore.getState().setIdentity({ stableName: nom.trim() });
-              setProjet(false);
-              setErr("");
-              setMode("email");
-            }}
-          >
+          <form className="ar-v" noValidate onSubmit={(e) => (e.preventDefault(), garderNom(fiche))}>
             {top}
             <div className="q rise">
               <h1>Ton écurie s’appelle comment ?</h1>
-              <p>On garde ton mois à son nom.</p>
+              <p>Si elle est sur mon-ecurie.fr, choisis-la. Rien ne change sur sa fiche.</p>
             </div>
             <label className="input ar-in">
-              <input autoFocus type="text" autoComplete="organization" maxLength={120} value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Le nom que tes clients connaissent" aria-label="Le nom de ton écurie" />
+              <Ic n="search" className="ar-ico" />
+              <input autoFocus type="text" autoComplete="off" enterKeyHint="next" maxLength={120} value={nom} onChange={(e) => chercher(e.target.value)} placeholder="Nom ou commune" aria-label="Le nom de ton écurie" />
+              {cherche && <span className="ar-spin" aria-hidden />}
             </label>
-            {garder && <GardeListe r={garder} />}
+            {hits && (
+              <ul className="ar-hits" aria-live="polite">
+                {hits.map((h) => (
+                  <li key={h.id}>
+                    <button type="button" onClick={() => garderNom(h)}>
+                      <b>
+                        <Marque t={h.title} q={nom} />
+                      </b>
+                      <span>{[h.commune, h.departement && `(${h.departement})`].filter(Boolean).join(" ")}</span>
+                      <Ic n="chev" className="chev" />
+                    </button>
+                  </li>
+                ))}
+                <li>
+                  <button type="button" className="add" onClick={() => garderNom(null)}>
+                    <b>{hits.length ? "Elle n’est pas dans la liste" : "Aucune écurie à ce nom"}</b>
+                    <span>continuer avec « {nom.trim()} »</span>
+                    <Ic n="chev" className="chev" />
+                  </button>
+                </li>
+              </ul>
+            )}
+            {!hits && garder && <GardeListe r={garder} />}
             {erreur}
             <div className="foot">
-              <button className="btn full" disabled={!nom.trim()}>
-                Continuer
-              </button>
-              <button type="button" className="lnk" onClick={() => (setNom(""), setProjet(true), setErr(""), setMode("email"))}>
+              {!hits && (
+                <button className="btn full" disabled={!nom.trim()}>
+                  Continuer
+                </button>
+              )}
+              <button type="button" className="lnk" onClick={() => (setNom(""), setFiche(null), ecrireFiche(null), setHits(null), setProjet(true), setErr(""), setMode("email"))}>
                 Je n’ai pas encore d’écurie
               </button>
             </div>
@@ -178,8 +235,8 @@ export default function Page() {
             {top}
             {garder ? (
               <div className="q rise">
-                <h1>{nom.trim() ? `On garde ${nom.trim()}.` : "On garde tout pour demain."}</h1>
-                <p>Ton e-mail, puis un code.</p>
+                <h1>{nom.trim() && !projet ? `Ton compte pour ${nom.trim()}.` : "Ton compte."}</h1>
+                <p>Ton e-mail, puis un code. Tes chiffres passent dedans.</p>
               </div>
             ) : (
               <>
@@ -256,4 +313,19 @@ export default function Page() {
       </div>
     </div>
   );
+}
+
+/** La fiche choisie survit au détour par Google (même onglet). */
+function lireFiche(): StableHit | null {
+  try {
+    return JSON.parse(sessionStorage.getItem(FICHE) ?? "null") as StableHit | null;
+  } catch {
+    return null;
+  }
+}
+function ecrireFiche(h: StableHit | null) {
+  try {
+    if (h) sessionStorage.setItem(FICHE, JSON.stringify(h));
+    else sessionStorage.removeItem(FICHE);
+  } catch {}
 }

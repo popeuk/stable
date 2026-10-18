@@ -55,12 +55,12 @@ export function GarderBandeau() {
 
   if (!local || !voir || ferme || !/^\/accueil\/?$/.test(path)) return null;
   return (
-    <div className="es-keep" role="region" aria-label="Garder mes chiffres">
+    <div className="es-keep" role="region" aria-label="Créer mon compte">
       <span>
-        <b>Tout est dans ce téléphone.</b> Ajoute ton e-mail pour le garder.
+        <b>Tout est dans ce téléphone.</b> Crée ton compte pour le garder.
       </span>
       <Link href="/compte/connexion?garder=1" className="btn">
-        Garder mes chiffres
+        Créer mon compte
       </Link>
       <button
         type="button"
@@ -133,8 +133,12 @@ export function GardeListe({ r }: { r: ResumeEssai | null }) {
   );
 }
 
-/** C'est gardé : la rosette, puis retour à l'écurie. */
-export function GardeFait({ onOpen }: { onOpen: () => void }) {
+/**
+ * Le compte est prêt : la rosette, puis retour à l'écurie. Si le gérant a
+ * choisi une fiche libre de mon-ecurie.fr, il peut la reprendre tout de
+ * suite, sans obligation (sinon on le lui proposera plus tard, par e-mail).
+ */
+export function GardeFait({ onOpen, fiche, onFiche }: { onOpen: () => void; fiche?: { id: number; title: string } | null; onFiche?: (id: number) => void }) {
   const perso = usePerso();
   return (
     <div className="ar-v es-done">
@@ -142,13 +146,18 @@ export function GardeFait({ onOpen }: { onOpen: () => void }) {
         <Ill n={perso === "m" ? "gerant-rosette" : "rosette"} alt={perso === "m" ? "Le gérant brandit une rosette." : "La gérante brandit une rosette."} />
       </div>
       <div className="q rise" style={{ animationDelay: ".1s" }}>
-        <h2>C’est gardé.</h2>
+        <h2>Ton compte est prêt.</h2>
         <p>Demain, ton e-mail suffit pour retrouver tes chiffres.</p>
       </div>
       <div className="foot rise" style={{ animationDelay: ".2s" }}>
         <button type="button" className="btn full" onClick={onOpen}>
           Revenir à mon écurie
         </button>
+        {fiche && onFiche && (
+          <button type="button" className="lnk" onClick={() => onFiche(fiche.id)}>
+            C’est ma fiche sur mon-ecurie.fr : la reprendre
+          </button>
+        )}
       </div>
     </div>
   );

@@ -119,10 +119,10 @@ function Reste() {
       {essai ? (
         <div className="foot rise" style={{ animationDelay: ".2s" }}>
           <Link href="/compte/connexion?garder=1" className="btn full">
-            Garder mon mois
+            Créer mon compte
             <Ic n="arrow" className="" />
           </Link>
-          <p className="ar-proof">Le nom de ton écurie, ton e-mail, un code. Pour retrouver tes chiffres demain.</p>
+          <p className="ar-proof">Gratuit. Ton écurie, ton e-mail, un code : tes chiffres sont gardés.</p>
           <button type="button" className="lnk" onClick={essayerPlus}>
             Essayer le + d’abord
           </button>
