@@ -4,12 +4,14 @@ import { createPortal } from "react-dom";
 import { Ic, Ill } from "@/components/carnet/ui";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { useFeuille } from "@/components/bs/feuille";
+import { useOuChiffres } from "@/components/bs/ou-chiffres";
 
 /** Les gestes pour installer l'app, sur tous les écrans (téléphone compris). */
 export function InstallHowto({ onClose }: { onClose: () => void }) {
   const install = useInstall();
   const steps = INSTALL_HOWTO[install.way === "bouton" ? "autre" : install.way];
   const ref = useFeuille(onClose, { verrou: true });
+  const ou = useOuChiffres();
   return createPortal(
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
@@ -33,7 +35,7 @@ export function InstallHowto({ onClose }: { onClose: () => void }) {
             </ol>
             <div className="tip" style={{ marginTop: 16 }}>
               <Ill n="guide" />
-              <span>Tes données restent dans cet appareil : l’app installée sur l’ordinateur et celle du téléphone ne se partagent pas encore leurs saisies.</span>
+              <span>{ou.compte ? "Avec ton compte, l’app installée sur l’ordinateur et celle du téléphone retrouvent la même écurie." : `Sans compte, tes chiffres restent sur ${ou.cet} : l’app installée ailleurs ne les voit pas.`}</span>
             </div>
             <button type="button" className="btn full" style={{ marginTop: 16 }} onClick={onClose}>
               J’ai compris

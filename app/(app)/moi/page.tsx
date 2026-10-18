@@ -23,6 +23,7 @@ import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 import { useFeuille } from "@/components/bs/feuille";
 import { DeconnexionLigne, RecupererLigne, ZoneEffacer } from "@/components/bs/effacer";
+import { useOuChiffres } from "@/components/bs/ou-chiffres";
 
 /**
  * Les pages de réglage, une par sujet (?s=…) : sous Mon écurie, Mes places,
@@ -228,7 +229,7 @@ function Moi() {
   const donnees = (
     <Sec title="Tes données" delay={0.3}>
       <RecupererLigne />
-      <p className="note">Tout est rangé sur cet appareil. Pour passer du téléphone à l’ordinateur, exporte tes données ici, puis ouvre le fichier sur l’autre appareil.</p>
+      <OuNote />
       <button type="button" className="li np" onClick={exportData}>
         <Li title="Exporter mes données" sub="une sauvegarde de toute ton écurie" right={<Ic n="download" className="ec-ico" />} />
       </button>
@@ -348,10 +349,11 @@ function Moi() {
 /** Le compte : qui est connecté, sa fiche, se déconnecter. Dans la démo : créer son compte. */
 function Compte() {
   const s = getSession();
+  const ou = useOuChiffres();
   if (s?.kind === "locale")
     return (
       <>
-        <p className="note">Ton écurie est rangée dans ce téléphone, sans compte. Crée ton accès pour la retrouver ailleurs et ne rien perdre.</p>
+        <p className="note">Ton écurie est rangée sur {ou.cet}, sans compte. Crée ton accès pour la retrouver ailleurs et ne rien perdre.</p>
         <Link href="/compte/connexion?garder=1" className="btn full" style={{ marginTop: 12 }}>
           Créer mon compte
         </Link>
@@ -387,6 +389,18 @@ function Compte() {
   );
 }
 
+/** Où est l'écurie, selon la session : sur l'appareil seulement, ou aussi dans la copie en ligne. */
+function OuNote() {
+  const ou = useOuChiffres();
+  return (
+    <p className="note">
+      {ou.compte
+        ? `Ton écurie est ${ou.ou}. Tes autres appareils la retrouvent avec ton e-mail. Une sauvegarde reste utile : un fichier à garder chez toi.`
+        : `Tout est rangé ${ou.ou}, et seulement là. Exporte une sauvegarde ici pour la garder ailleurs, ou crée ton compte.`}
+    </p>
+  );
+}
+
 /** L'app installée, ou comment l'installer. */
 function Install() {
   const install = useInstall();
@@ -411,6 +425,7 @@ function InstallSheet({ onClose }: { onClose: () => void }) {
   const install = useInstall();
   const steps = INSTALL_HOWTO[install.way === "bouton" ? "autre" : install.way];
   const ref = useFeuille(onClose, { verrou: true });
+  const ou = useOuChiffres();
   return createPortal(
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
@@ -433,7 +448,7 @@ function InstallSheet({ onClose }: { onClose: () => void }) {
             ))}
           </ol>
           <p className="note" style={{ fontSize: 12.5 }}>
-            Tes données restent sur chaque appareil : l’ordinateur et le téléphone ne se partagent pas encore ce que tu notes.
+            {ou.compte ? "Avec ton compte, l’ordinateur et le téléphone retrouvent la même écurie." : `Sans compte, tes chiffres restent sur ${ou.cet} : l’app installée ailleurs ne les voit pas.`}
           </p>
         </div>
       </div>

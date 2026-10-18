@@ -37,9 +37,9 @@
 <body>
 <main>
   <img class="ill" id="ill" src="{{BASE}}img/carnet/hors-ligne.webp" width="833" height="404" alt="La gérante assise dans l’herbe, le téléphone posé à côté d’elle, son cheval qui broute.">
-  <h1>Cet écran n’est pas encore sur ton téléphone</h1>
+  <h1 id="titre">Cet écran n’est pas encore sur ton téléphone</h1>
   <p>Il n’y a pas de réseau, et tu n’avais jamais ouvert cet écran ici. Il se garde dès que tu l’ouvres une fois avec du réseau.</p>
-  <p><b>Tes chiffres ne sont pas perdus :</b> ils sont rangés sur ce téléphone. L’accueil et les écrans déjà ouverts marchent sans réseau.</p>
+  <p><b>Tes chiffres ne sont pas perdus :</b> ils sont rangés <span id="ou">sur cet appareil</span>. L’accueil et les écrans déjà ouverts marchent sans réseau.</p>
   <div class="actions">
     <button type="button" class="btn plein" id="retry">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
@@ -58,6 +58,13 @@
         ill.src = "{{BASE}}img/carnet/gerant-hors-ligne.webp";
         ill.alt = "Le gérant assis dans l’herbe, le téléphone posé à côté de lui, son cheval qui broute.";
       }
+    } catch (e) {}
+    // Où sont les chiffres : sur ce téléphone ou cet ordinateur ; avec un compte, aussi dans la copie en ligne.
+    try {
+      var tel = /iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent) || window.innerWidth < 1024;
+      var compte = (JSON.parse(localStorage.getItem("be-stable-session") || "null") || {}).kind === "compte";
+      document.getElementById("titre").textContent = "Cet écran n’est pas encore sur ton " + (tel ? "téléphone" : "ordinateur");
+      document.getElementById("ou").textContent = (tel ? "sur ce téléphone" : "sur cet ordinateur") + (compte ? " et dans ta copie en ligne, protégée" : "");
     } catch (e) {}
     var btn = document.getElementById("retry"), etat = document.getElementById("etat");
     btn.addEventListener("click", function () {

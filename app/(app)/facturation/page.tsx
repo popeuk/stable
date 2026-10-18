@@ -6,6 +6,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Hello, Ic, Page as Ecran, Sec } from "@/components/carnet/ui";
 import { ConditionsPro, ExportComptable, InfosVendeur, TvaReglage } from "@/components/bs/facturation";
 import { useDataStore } from "@/stores/data-store";
+import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { conditionsProManquent, eur2, facturation, moisDit, nomDoc, vendeurManque } from "@/lib/domain/facture";
 
 /**
@@ -25,6 +26,7 @@ export default function Page() {
 }
 
 function Facturation() {
+  const ou = useOuChiffres();
   const invoices = useDataStore((s) => s.invoices);
   const billing = useDataStore((s) => s.billing);
   const holding = useDataStore((s) => s.holding);
@@ -63,7 +65,9 @@ function Facturation() {
         )}
         <p className="fr-hint">Une facture faite ne se modifie plus. Pour la corriger, ouvre-la et annule-la avec un avoir. Les numéros se suivent, on ne revient jamais en arrière.</p>
         <p className="fr-hint">
-          Fais tes factures toujours sur le même appareil. Pour l’instant, le téléphone et l’ordinateur ne se les partagent pas : tu risquerais d’avoir deux factures avec le même numéro.
+          {ou.compte
+            ? "Si deux appareils font chacun une facture avant de s’être synchronisés (sans réseau, par exemple), elles peuvent avoir le même numéro : fais tes factures plutôt sur un seul."
+            : "Fais tes factures toujours sur le même appareil : sans compte, le téléphone et l’ordinateur ne se les partagent pas, et deux factures pourraient avoir le même numéro."}
         </p>
       </Sec>
       <Sec title="Sur tes factures" blk delay={0.14}>

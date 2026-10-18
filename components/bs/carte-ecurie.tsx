@@ -8,6 +8,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { fraisDuMois } from "@/components/bs/parcours";
 import { getSession, type Listing } from "@/lib/account/session";
 import { api, type StableHit } from "@/lib/account/api";
+import { cetAppareil } from "@/lib/appareil";
 
 /**
  * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
@@ -164,7 +165,7 @@ export function Reglages() {
   useEffect(() => {
     const s = getSession();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCompte(s?.kind === "demo" ? "Tu visites l’écurie d’exemple" : s?.kind === "compte" ? "Connecté, tes chiffres sont gardés" : "Sur ce téléphone seulement : garde tes chiffres");
+    setCompte(s?.kind === "demo" ? "Tu visites l’écurie d’exemple" : s?.kind === "compte" ? "Connecté, tes chiffres sont gardés" : `Sur ${cetAppareil()} seulement : garde tes chiffres`);
   }, []);
   return (
     <div className="ce">

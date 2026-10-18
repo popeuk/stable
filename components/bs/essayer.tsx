@@ -9,6 +9,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { Horse } from "@/lib/domain/types";
 import { usePerso } from "@/components/bs/perso";
+import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { resumeLocale, type ResumeEssai } from "@/lib/account/vault";
 import { Stories } from "@/components/bs/histoire";
 
@@ -54,6 +55,7 @@ export const chevauxSansNom = (horses: Pick<Horse, "name" | "isArchived">[]) => 
 export function Essayer() {
   const router = useRouter();
   const perso = usePerso();
+  const ou = useOuChiffres();
   const [busy, setBusy] = useState(false);
   const [reprendre, setReprendre] = useState(false);
   const [essai, setEssai] = useState<ResumeEssai | null>(null);
@@ -98,7 +100,7 @@ export function Essayer() {
           </div>
           <div className="q rise" style={{ animationDelay: ".08s" }}>
             <h1>Ton essai t’attend.</h1>
-            <p>Tes chiffres sont restés sur ce téléphone. Tu reprends où tu en étais.</p>
+            <p>Tes chiffres sont restés {ou.ou}. Tu reprends où tu en étais.</p>
           </div>
           {/* Au téléphone, la scène d'accueil remplit l'espace entre la question et le bouton. */}
           <div className="es-scene rise" style={{ animationDelay: ".12s" }}>

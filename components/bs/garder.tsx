@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Ic, Ill, eur } from "@/components/carnet/ui";
 import { usePerso } from "@/components/bs/perso";
+import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { getSession } from "@/lib/account/session";
 import type { ResumeEssai } from "@/lib/account/vault";
 import { useDataStore } from "@/stores/data-store";
@@ -45,6 +46,7 @@ export function GarderBandeau() {
   const [local, setLocal] = useState(false);
   const [ferme, setFerme] = useState(false);
   const voir = usePremiereSaisie(local);
+  const ou = useOuChiffres();
 
   useEffect(() => {
     if (getSession()?.kind !== "locale") return;
@@ -57,7 +59,7 @@ export function GarderBandeau() {
   return (
     <div className="es-keep" role="region" aria-label="Créer mon compte">
       <span>
-        <b>Tout est dans ce téléphone.</b> Crée ton compte pour le garder.
+        <b>Tout est {ou.ou}.</b> Crée ton compte pour le garder.
       </span>
       <Link href="/compte/connexion?garder=1" className="btn">
         Créer mon compte

@@ -187,7 +187,7 @@ const AIDES: Record<string, Aide> = {
     cible: "haut",
     points: [
       "Le nom de ton écurie, ton équipe, le rappel du matin.",
-      "Tes chiffres restent sur ton téléphone. Tu peux en garder une copie.",
+      "Tes chiffres sont sur ton appareil et, avec un compte, dans ta copie en ligne, protégée. Tu peux en garder une copie.",
     ],
   },
 };
