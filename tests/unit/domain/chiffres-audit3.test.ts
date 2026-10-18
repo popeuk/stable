@@ -81,7 +81,7 @@ describe("facture : la quantité fois le prix unitaire imprimé (P3)", () => {
 });
 
 describe("le fichier du comptable suit les séjours", () => {
-  it("une recette qui revient sans être notée n'est pas une vraie recette", async () => {
+  it("une recette notée « tous les mois » sur un cheval qui a un propriétaire : rien entre deux séjours, datée du retour", async () => {
     const { lignesComptables } = await import("@/lib/domain/comptable");
     const h = avecSejours({ id: "h", stableId: "s", name: "Pacha", entryDate: "", isArchived: false, ownerName: "Julie P." }, [
       { entry: "2024-01-01", exit: "2026-09-10" },
@@ -96,7 +96,11 @@ describe("le fichier du comptable suit les séjours", () => {
       expenseCategories: [],
       recurringRevenues: [{ id: "rr", stableId: "s", horseId: "h", categoryId: "cp", amount: 400, frequency: "monthly", startDate: "2026-01-01", source: "manual" }],
     };
-    // Seulement le réel : ce qui revient chaque mois sans être noté une à une n'y est pas.
-    expect(lignesComptables(d, 2026, "2026-12-31").filter((l) => l.type === "Recette")).toHaveLength(0);
+    // Notée par le gérant « tous les mois », elle est réelle : une ligne par mois où le cheval était là.
+    const dates = lignesComptables(d, 2026, "2026-12-31").filter((l) => l.type === "Recette").map((l) => l.date);
+    expect(dates.some((x) => x.startsWith("2026-10"))).toBe(false);
+    expect(dates).toContain("2026-11-05");
+    expect(dates.some((x) => x.startsWith("2026-09"))).toBe(true);
+    expect(dates).toHaveLength(11);
   });
 });

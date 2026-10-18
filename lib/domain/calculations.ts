@@ -13,6 +13,7 @@ import {
   recurringSlices,
 } from "@/lib/domain/recurring";
 import { chevauxDuMois, facturesSansCheval, repartition } from "@/lib/domain/presence";
+import { annuleSurCheval } from "@/lib/domain/billing";
 
 /**
  * Pure P&L calculations (section 10 of the spec). No I/O, no framework.
@@ -23,7 +24,10 @@ function sum(ns: number[]): number {
   return ns.reduce((s, n) => s + n, 0);
 }
 
-/** Revenue booked for one horse in one period. */
+/**
+ * Revenue booked for one horse in one period. Un avoir annule une vente :
+ * ce qu'il rend est retiré du mois de la facture (billing.ts, une seule fois).
+ */
 export function horseRevenue(
   data: StableData,
   horseId: string,
@@ -34,7 +38,9 @@ export function horseRevenue(
       data.revenues
         .filter((r) => r.horseId === horseId && dateInPeriod(r.date, period))
         .map((r) => r.amount),
-    ) + recurringRevenueForHorse(data, horseId, period)
+    ) +
+    recurringRevenueForHorse(data, horseId, period) -
+    annuleSurCheval(data, horseId, period)
   );
 }
 
@@ -105,7 +111,7 @@ export function horsePnl(
 export const isOutside = (e: { horseId?: string | null }) => !e.horseId;
 
 export function outsideMoney(data: StableData, period: Period) {
-  const revenue = sum(data.revenues.filter((r) => isOutside(r) && dateInPeriod(r.date, period)).map((r) => r.amount));
+  const revenue = sum(data.revenues.filter((r) => isOutside(r) && dateInPeriod(r.date, period)).map((r) => r.amount)) - annuleSurCheval(data, "", period);
   const costs = sum(data.directExpenses.filter((e) => isOutside(e) && dateInPeriod(e.date, period)).map((e) => e.amount));
   return { revenue: round2(revenue), costs: round2(costs) };
 }
