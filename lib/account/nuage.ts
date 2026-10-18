@@ -52,6 +52,10 @@ interface EtatTiroir {
   modifie?: string;
   /** L'appareil a déjà été aligné sur le serveur au moins une fois. */
   vu?: boolean;
+  /** Combien de changements attendent d'être envoyés (pour Mon compte). */
+  n?: number;
+  /** Quand la copie en ligne a été à jour pour la dernière fois (ISO). */
+  aligne?: string;
 }
 type Etat = Partial<Record<Nom, EtatTiroir>>;
 
@@ -207,7 +211,7 @@ async function noter(nom: string, clair: string): Promise<void> {
   const e = lireEtat()[nom];
   if (e?.empreinte === h && !e.sale) return;
   if (e?.locale === h && e.sale) return;
-  majTiroir(nom, { sale: true, locale: h, modifie: new Date().toISOString() });
+  majTiroir(nom, { sale: true, locale: h, modifie: new Date().toISOString(), n: (e?.sale ? (e.n ?? 1) : 0) + 1 });
   planifierEnvoi();
 }
 
@@ -334,7 +338,7 @@ export async function envoyer(): Promise<void> {
       garderBase(nom, raw);
       const now = lireEtat()[nom];
       const toujours = now?.locale === envoye;
-      majTiroir(nom, { rev: r.json.rev, vu: true, ...(toujours ? { sale: false, empreinte: envoye } : {}) });
+      majTiroir(nom, { rev: r.json.rev, vu: true, ...(toujours ? { sale: false, empreinte: envoye, n: 0, aligne: new Date().toISOString() } : {}) });
       if (!toujours) planifierEnvoi();
     } else if (r.status === 409) {
       const changed = await resoudre(nom, (r.json.tiroir as Distant | null) ?? null);
@@ -398,9 +402,14 @@ export async function synchroniser(): Promise<Set<string>> {
 }
 
 /** Où en est la copie en ligne, pour l'écran Mon compte. */
-export function etatNuage(): { allume: boolean; attente: boolean; derniere: { quand: string; ok: boolean } | null } {
+export function etatNuage(): { allume: boolean; attente: boolean; changements: number; aJour: string | null; derniere: { quand: string; ok: boolean } | null } {
   const e = lireEtat();
-  return { allume: actif(), attente: TIROIRS.some((n) => e[n]?.sale), derniere };
+  const sales = TIROIRS.filter((n) => e[n]?.sale);
+  const changements = sales.reduce((t, n) => t + Math.max(1, e[n]?.n ?? 1), 0);
+  // À jour : le dernier envoi ou la dernière lecture réussis, ici ou gardés d'une visite d'avant.
+  const dates = [derniere?.ok ? derniere.quand : null, ...TIROIRS.map((n) => e[n]?.aligne ?? null)].filter((d): d is string => !!d);
+  const aJour = dates.length ? dates.reduce((a, b) => (Date.parse(a) >= Date.parse(b) ? a : b)) : null;
+  return { allume: actif(), attente: sales.length > 0, changements, aJour, derniere };
 }
 
 /* Les écrans qui doivent relire leurs données quand un tiroir change. */

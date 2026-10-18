@@ -101,6 +101,26 @@ describe("la copie en ligne des tiroirs", () => {
     expect((await lire()).horses).toEqual(["Sirius"]);
   });
 
+  it("Mon compte voit les changements en attente, puis l'heure de la copie à jour", async () => {
+    const pc = appareil();
+    pc.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", donnees(["A"]));
+    await attendre();
+    await vault.setItem("be-stable-data", donnees(["A", "B"]));
+    await attendre();
+    await vault.setItem("be-stable-settings", JSON.stringify({ state: { stableName: "X" } }));
+    await attendre();
+    const avant = nuage.etatNuage();
+    expect(avant.attente).toBe(true);
+    expect(avant.changements).toBe(3);
+    await nuage.envoyer();
+    const apres = nuage.etatNuage();
+    expect(apres.attente).toBe(false);
+    expect(apres.changements).toBe(0);
+    expect(apres.aJour).not.toBeNull();
+  });
+
   it("rien ne part avant la première lecture du serveur", async () => {
     const tel = appareil();
     tel.entrer();

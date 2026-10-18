@@ -24,6 +24,7 @@ import { localToday } from "@/lib/utils/local-date";
 import { useFeuille } from "@/components/bs/feuille";
 import { DeconnexionLigne, RecupererLigne, ZoneEffacer } from "@/components/bs/effacer";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
+import { EtatCopie } from "@/components/bs/etat-copie";
 
 /**
  * Les pages de réglage, une par sujet (?s=…) : sous Mon écurie, Mes places,
@@ -384,6 +385,7 @@ function Compte() {
         </span>
         <span />
       </div>
+      <EtatCopie />
       <RecupererLigne />
       <DeconnexionLigne />
     </>
