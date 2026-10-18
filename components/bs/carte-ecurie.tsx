@@ -116,6 +116,7 @@ export function MonEcurie() {
   const horses = useDataStore((s) => s.horses.filter((h) => !h.isArchived).length);
   const t = useDataStore((s) => s.tariffs) ?? {};
   const team = useDataStore((s) => s.team) ?? [];
+  const pros = useDataStore((s) => s.pros) ?? [];
   const factures = useDataStore((s) => (s.invoices ?? []).length);
   const frais = useDataStore((s) => {
     const f = fraisDuMois(s);
@@ -142,8 +143,8 @@ export function MonEcurie() {
       <Case
         titre="Les gens"
         lignes={[
-          { href: "/moi?s=equipe", ic: "people", t: "Mon équipe", s: noms(team.filter((m) => m.role === "employe").map((m) => m.name), "Ceux qui travaillent avec toi") },
-          { href: "/contacts", ic: "user", t: "Les pros", s: noms(team.filter((m) => m.role === "prestataire").map((m) => m.name), "Maréchal, vétérinaire, dentiste…") },
+          { href: "/moi?s=equipe", ic: "people", t: "Mon équipe", s: noms(team.filter((m) => m.role === "employe").map((m) => m.name), "Ceux qui travaillent à l’écurie") },
+          { href: "/contacts", ic: "user", t: "Les pros", s: noms(pros.map((p) => p.name), "Maréchal, véto, dentiste, ostéo…") },
         ]}
       />
       <Case

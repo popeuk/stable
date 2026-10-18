@@ -15,6 +15,7 @@ import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
 import { comprendre } from "@/lib/domain/dire";
 import { norm } from "@/lib/domain/interpret";
 import { cavaliersRetenus } from "@/lib/domain/proprio";
+import { nomsDePros } from "@/lib/domain/pros";
 import { seriesDates } from "@/lib/domain/seances";
 import type { CareKind } from "@/lib/domain/care";
 import type { Frequency } from "@/lib/domain/types";
@@ -430,7 +431,8 @@ function NoterInner() {
 
   /* ---------- Les morceaux d'écran ---------- */
   const typeOf = (t: AjoutType) => TYPES.find((x) => x.id === t)!;
-  const providers = [...new Set([...(d?.provider ? [d.provider] : []), ...h.soins.map((s) => s.provider).filter((x): x is string => !!x), ...(data.team ?? []).filter((m) => m.role === "prestataire").map((m) => m.name)])];
+  // « Qui vient » : ceux déjà notés pour ces soins, puis Les pros (décision 16).
+  const providers = nomsDePros(data.pros, [...(d?.provider ? [d.provider] : []), ...h.soins.map((s) => s.provider).filter((x): x is string => !!x)]);
 
   const labOptions = (x: Draft): string[] => {
     const uniq = (xs: string[]) => [...new Map(xs.filter(Boolean).map((s) => [norm(s), s])).values()];

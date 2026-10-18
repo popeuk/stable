@@ -220,13 +220,28 @@ export interface Service {
   price?: number;
 }
 
-/** L'équipe de l'écurie : employés et prestataires réguliers. */
+/**
+ * L'équipe de l'écurie : les gens qui y travaillent. « prestataire » ne sert
+ * plus que pour lire les anciennes données : ils passent dans Les pros (pros.ts).
+ */
 export type TeamRole = "employe" | "prestataire";
 export interface TeamMember {
   id: string;
   name: string;
   role: TeamRole;
   /** « Monitrice », « Maréchal-ferrant »… */
+  job?: string;
+}
+
+/** Le métier d'un pro qui vient à l'écurie (Les pros). */
+export type ProMetier = "marechal" | "veto" | "dentiste" | "osteo" | "autre";
+/** Un pro : maréchal, véto, dentiste, ostéo… Il ne travaille pas à l'écurie (ce n'est pas l'équipe). */
+export interface Pro {
+  id: string;
+  name: string;
+  metier: ProMetier;
+  phone?: string;
+  /** Son métier en clair, pour « autre » (« Sellier », « Pareur »). */
   job?: string;
 }
 
@@ -551,8 +566,10 @@ export interface StableData {
   tariffs?: Tariffs;
   /** Les prestations libres du gérant (balade, transport…). */
   services?: Service[];
-  /** L'équipe : employés et prestataires, assignables aux tâches. */
+  /** L'équipe : les gens qui travaillent à l'écurie, assignables aux tâches. */
   team?: TeamMember[];
+  /** Les pros qui viennent (maréchal, véto, dentiste, ostéo…), proposés dans « Qui vient ». */
+  pros?: Pro[];
   people?: Person[];
   prestations?: Prestation[];
   /** Les forfaits des cavaliers (au mois, à l'année). */

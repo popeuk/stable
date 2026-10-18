@@ -15,6 +15,7 @@ import type {
   StableData,
   Tariffs,
   TeamMember,
+  Pro,
 } from "@/lib/domain/types";
 import type { CareEvent } from "@/lib/domain/care";
 import type { Holding } from "@/lib/domain/registre";
@@ -35,6 +36,7 @@ import { sansPrixDExemple } from "@/lib/domain/ajouter";
 import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
+import { prosDeLEquipe } from "@/lib/domain/pros";
 import { avecProprio, changerProprio, nomConnu, renommerClient, retirerClient } from "@/lib/domain/proprio";
 import { arreterRecurrentes, migrerSejours, presentDans } from "@/lib/domain/presence";
 import { avecSejours, changerArrivee, changerInfosSejour, compteDepuis, partirLe, revenirLe, type InfosEntree, type InfosSortie } from "@/lib/domain/sejours";
@@ -82,6 +84,10 @@ interface DataState extends StableData {
   /** Un membre de l'équipe : employé ou prestataire, assignable aux tâches. */
   addTeamMember: (m: Omit<TeamMember, "id">) => void;
   deleteTeamMember: (id: string) => void;
+  /** Les pros (maréchal, véto…) : ajouter, modifier, retirer. Ce qu'ils ont fait reste dans le carnet. */
+  addPro: (p: Omit<Pro, "id">) => string;
+  updatePro: (id: string, patch: Partial<Omit<Pro, "id">>) => void;
+  deletePro: (id: string) => void;
   /**
    * L'autopilote : poste les pensions du mois et matérialise les rythmes
    * de la semaine. Idempotent — appelé à l'ouverture, il ne crée que ce
@@ -271,7 +277,8 @@ export function migrerDonnees(old: unknown, v: number): StableData {
   if (v < 4 && getSession()?.kind !== "demo" && d.prestations) {
     d = { ...d, prestations: sansPrixDExemple(d.prestations, buildDemoData().prestations ?? [], d.seances ?? []) };
   }
-  return avecCategoriesSysteme(d);
+  // Les pros extérieurs de l'équipe passent dans Les pros (décision 16), sans rien perdre.
+  return avecCategoriesSysteme(prosDeLEquipe(d));
 }
 
 function id(prefix: string): string {
@@ -607,6 +614,17 @@ export const useDataStore = create<DataState>()(
 
       deleteTeamMember: (mid) =>
         set((s) => ({ team: (s.team ?? []).filter((x) => x.id !== mid) })),
+
+      addPro: (p) => {
+        const pid = id("pro");
+        set((s) => ({ pros: [...(s.pros ?? []), { ...p, id: pid, name: p.name.trim(), phone: p.phone?.trim() || undefined }] }));
+        return pid;
+      },
+
+      updatePro: (pid, patch) =>
+        set((s) => ({ pros: (s.pros ?? []).map((x) => (x.id === pid ? { ...x, ...patch, name: patch.name?.trim() || x.name } : x)) })),
+
+      deletePro: (pid) => set((s) => ({ pros: (s.pros ?? []).filter((x) => x.id !== pid) })),
 
       setHolding: (patch) =>
         set((s) => {
@@ -1145,6 +1163,7 @@ export const useDataStore = create<DataState>()(
           holding: {},
           services: [],
           team: [],
+          pros: [],
           people: [],
           // Les cours de l'exemple, sans leurs prix : seul le gérant fixe les siens.
           prestations: (demo.prestations ?? []).map((p) => ({ ...p, price: 0 })),
@@ -1200,6 +1219,8 @@ export const useDataStore = create<DataState>()(
         // (emprunt, MSA…), sans rien perdre ; un poste retiré ensuite ne revient pas.
         const cur = useDataStore.getState();
         if ((cur.postesCommuns ?? 0) < POSTES_VERSION) useDataStore.setState({ expenseCategories: ajouterPostesManquants(cur.expenseCategories), postesCommuns: POSTES_VERSION });
+        // Les pros extérieurs encore dans l'équipe passent une fois dans Les pros (décision 16).
+        if ((cur.team ?? []).some((m) => m.role === "prestataire")) useDataStore.setState(prosDeLEquipe({ team: cur.team, pros: cur.pros }));
         useDataStore.setState({ hydrated: true });
       },
     },
