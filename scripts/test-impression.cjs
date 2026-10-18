@@ -2,7 +2,7 @@
  * Test d'impression : la facture, l'avoir et le registre sortent-ils en PDF
  * avec leur contenu, au bon format, et un autre écran ne sort-il pas blanc ?
  *
- * Il ouvre la démo par son vrai bouton, fait une facture par le parcours
+ * Il ouvre la démo (session « demo » posée dans le localStorage), fait une facture par le parcours
  * (vendeur, TVA, client, aperçu, « Faire la facture »), l'imprime en PDF
  * (Chromium, page.pdf), puis l'annule par un avoir et l'imprime, imprime le
  * registre et l'accueil ; il lit le texte et la taille des pages avec
@@ -53,7 +53,9 @@ async function contexte(type, viewport) {
   const erreurs = [];
   p.on("pageerror", (e) => erreurs.push(e.message));
   await p.goto(`${BASE}/bienvenue/`, { waitUntil: "networkidle" });
-  await p.getByText(/Juste regarder/i).first().click();
+  // La démo s'ouvre par sa session (le bouton « Juste regarder » n'existe plus depuis 0135f74).
+  await p.evaluate(() => localStorage.setItem("be-stable-session", JSON.stringify({ kind: "demo" })));
+  await p.goto(`${BASE}/accueil/`, { waitUntil: "networkidle" });
   await p.waitForURL(/accueil/, { timeout: 15000 });
   return { b, p, erreurs };
 }

@@ -61,6 +61,9 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci
+      # Rien ne part chez les gérants si une vérification échoue : le job s'arrête ici.
+      - name: Check (types, lint, tests)
+        run: npm run typecheck && npm run lint && npm test
       - name: Build static export (the app at the root of app.bestable.fr)
         run: npm run build
         env:
