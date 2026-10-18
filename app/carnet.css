@@ -409,6 +409,7 @@ html[data-taille="tres-grand"] .carnet .cl-row > .chev { grid-column: 3; grid-ro
 html[data-taille="tres-grand"] .carnet .cl-row > .face,
 html[data-taille="tres-grand"] .carnet .cl-row > .ini { grid-row: 1 / span 2; }
 html[data-taille="tres-grand"] .carnet .cl-row small { white-space: normal; }
+html[data-taille="tres-grand"] .carnet .cl-row .cl-amt small { white-space: nowrap; overflow: visible; }
 /* « Tout est sur ce téléphone » : le texte et la croix sur une ligne, le bouton dessous. */
 html[data-taille="tres-grand"] .carnet .es-keep { display: grid; grid-template-columns: minmax(0, 1fr) 44px; row-gap: 6px; }
 html[data-taille="tres-grand"] .carnet .es-keep > span { grid-column: 1; grid-row: 1; }

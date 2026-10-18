@@ -97,3 +97,40 @@ describe("le retour passe avant Next", () => {
     expect(location.pathname).toBe("/planning/");
   });
 });
+
+describe("deux feuilles empilées, avec Next qui réécrit l'arrivée", () => {
+  it("le retour ferme celle du dessus, pas celle d'en dessous", async () => {
+    vi.resetModules();
+    history.replaceState({ __NA: true, page: "client" }, "", "/client/");
+    const next = (e: PopStateEvent) => history.replaceState({ ...(e.state ?? {}), __NA: true, arbre: "rendu" }, "", location.pathname);
+    window.addEventListener("popstate", next);
+    const { poserEntree: poser } = await import("@/lib/retour-feuille");
+    const a = vi.fn();
+    const b = vi.fn();
+    poser(a);
+    poser(b);
+    await retour();
+    expect(b).toHaveBeenCalledTimes(1);
+    expect(a).not.toHaveBeenCalled();
+    await retour();
+    expect(a).toHaveBeenCalledTimes(1);
+    window.removeEventListener("popstate", next);
+  });
+});
+
+describe("une navigation depuis une feuille ouverte", () => {
+  it("l'entrée remplacée n'est pas sautée plus tard (pas de double retour)", async () => {
+    vi.resetModules();
+    history.replaceState({ __NA: true, page: "accueil" }, "", "/accueil/");
+    history.pushState({ __NA: true, page: "planning" }, "", "/planning/");
+    const { poserEntree: poser, retirerEntree: retirer } = await import("@/lib/retour-feuille");
+    const n = poser(() => {});
+    // Un lien dans la feuille mène à un autre écran, puis la feuille se démonte.
+    history.pushState({ __NA: true, page: "cheval" }, "", "/cheval/");
+    retirer(n);
+    await retour();
+    // Un second retour (de trop) arriverait ici.
+    await new Promise((r) => setTimeout(r, 50));
+    expect(location.pathname).toBe("/planning/");
+  });
+});
