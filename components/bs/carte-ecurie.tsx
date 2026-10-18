@@ -9,6 +9,7 @@ import { fraisDuMois } from "@/components/bs/parcours";
 import { getSession, type Listing } from "@/lib/account/session";
 import { api, type StableHit } from "@/lib/account/api";
 import { cetAppareil } from "@/lib/appareil";
+import { versionDite } from "@/lib/version";
 
 /**
  * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
@@ -196,6 +197,7 @@ export function Reglages() {
           { href: "/regles?t=mentions-legales", ic: "flag", t: "Mentions légales", s: "Qui édite Be Stable, qui l’héberge" },
         ]}
       />
+      <p className="ce-ver">{versionDite()}</p>
     </div>
   );
 }

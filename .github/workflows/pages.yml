@@ -67,6 +67,9 @@ jobs:
           DEPLOY_TARGET: pages
           PAGES_BASE: ""
           NEXT_PUBLIC_BASE_PATH: ""
+          # Le numéro en bas de Réglages : « Version 3bdc74f · 18 octobre » (lib/version.ts).
+          NEXT_PUBLIC_VERSION: ${{ github.sha }}
+          NEXT_PUBLIC_VERSION_DATE: ${{ github.event.head_commit.timestamp }}
       - name: Publish to the vps branch
         run: |
           cd out
