@@ -246,14 +246,14 @@ const TITRES: [string, string][] = [
   ["/pilotage", "Sur plusieurs mois"],
   ["/seuil", "Combien de chevaux"],
   ["/scenarios", "Et si… ?"],
-  ["/clients", "Mes clients"],
+  ["/clients", "Clients"],
   ["/client", "Fiche client"],
-  ["/facturation", "Factures"],
-  ["/facture", "Facture"],
+  ["/facturation", "Mes factures"],
+  ["/facture", "La facture"],
   ["/contacts", "Les pros"],
   ["/equipe", "Tâches de l’équipe"],
   ["/prestations", "Mes prix"],
-  ["/ma-fiche", "Ma fiche"],
+  ["/ma-fiche", "Ma fiche mon-ecurie.fr"],
   ["/reglages", "Réglages"],
   ["/moi", "Réglages"],
   ["/parametres", "Réglages"],
@@ -266,7 +266,7 @@ export const titreDe = (p: string) => TITRES.find(([m]) => p.replace(/(.)\/$/, "
 /**
  * Le titre principal de l'écran (h1), lu par les lecteurs d'écran : l'en-tête
  * montre le mot-symbole ou un titre court, pas un h1. S'efface si l'écran a
- * déjà son propre h1 (Mon mois, Clients et chevaux, le seuil...).
+ * déjà son propre h1 (Mon bilan, Clients et chevaux, le seuil...).
  */
 const ONGLETS: [string, string][] = [
   ["/accueil", "Accueil"],

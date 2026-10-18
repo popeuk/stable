@@ -51,7 +51,7 @@ export function Header() {
         )}
       </Link>
       <EnveloppeBouton />
-      <Link href="/reglages" className="hd2-gear" aria-current={path.startsWith("/reglages") ? "page" : undefined} aria-label="Réglages de l’app">
+      <Link href="/reglages" className="hd2-gear" aria-current={path.startsWith("/reglages") ? "page" : undefined} aria-label="Réglages">
         <Ic n="gear" />
       </Link>
     </header>

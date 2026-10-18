@@ -76,7 +76,7 @@ const AIDES: Record<string, Aide> = {
   },
   argent: {
     id: "argent",
-    titre: "Mon mois",
+    titre: "Mon bilan",
     bulle: "Ce qu’il te reste, tout payé",
     cible: "haut",
     points: [
@@ -91,7 +91,7 @@ const AIDES: Record<string, Aide> = {
     bulle: "Tes chiffres, mois après mois",
     cible: "haut",
     points: [
-      "Les mêmes chiffres que dans Mon mois, sur 3, 6 ou 12 mois.",
+      "Les mêmes chiffres que dans Mon bilan, sur 3, 6 ou 12 mois.",
       "Pour voir si ça s’améliore, et ce qui pèse le plus.",
     ],
   },

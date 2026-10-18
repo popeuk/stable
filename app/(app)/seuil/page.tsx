@@ -30,7 +30,7 @@ function Seuil() {
   const capacity = useSettingsStore((s) => s.capacity);
   const { parcours, pass } = useParcours();
   const m = useMemo(() => monthBreakdown(data, currentPeriod()), [data]);
-  // Les chevaux de ce mois, comme Mon mois (un cheval parti dans le mois y compte encore).
+  // Les chevaux de ce mois, comme Mon bilan (un cheval parti dans le mois y compte encore).
   const horses = useMemo(() => chevauxDuMois(data, currentPeriod()), [data]);
   // Le seuil se compte en pensions : les chevaux du gérant prennent une place, sans pension.
   const pensions = horses.filter((h) => !estAuGerant(h));

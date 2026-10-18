@@ -66,7 +66,7 @@ function Bilans() {
 
   const months = useMemo(() => periods.map((p) => ({ p, m: monthBreakdown(data, p) })), [data, periods]);
   const revenue = months.reduce((t, x) => t + x.m.revenue, 0);
-  // Tout ce qui est sorti, hors chevaux compris (tracteur, matériel…), comme dans Mon mois.
+  // Tout ce qui est sorti, hors chevaux compris (tracteur, matériel…), comme dans Mon bilan.
   const charges = months.reduce((t, x) => t + x.m.direct + x.m.sharedTotal + x.m.outside, 0);
   const net = months.reduce((t, x) => t + x.m.net, 0);
   const avg = net / Math.max(1, months.length);

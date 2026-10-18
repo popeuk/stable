@@ -17,7 +17,7 @@ describe("le mois d'un départ : un seul diviseur partout (P2-6 recette 2)", () 
   const d0 = demo();
   const pacha = d0.horses.find((h) => h.name === "Pacha")!;
   const d = avec(d0, partirLe(pacha, "2026-10-17", "2026-10-17"));
-  it("Chevaux, frais communs et fiche comptent les 9 chevaux d'octobre, comme Mon mois", () => {
+  it("Chevaux, frais communs et fiche comptent les 9 chevaux d'octobre, comme Mon bilan", () => {
     expect(chevauxDuMois(d, oct)).toHaveLength(9);
     expect(chevauxPresents(d, oct)).toHaveLength(9);
     const nets = reconciledNets(d, oct);

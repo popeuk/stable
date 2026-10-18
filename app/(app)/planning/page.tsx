@@ -84,7 +84,7 @@ function Planning() {
     const done = ss.filter((s) => s.status === "done");
     // Les séances seules : les frais des soins vivent sur les tickets des chevaux.
     const validated = done.reduce((t, s) => t + seanceAmount(s), 0);
-    // Le prévu : le même calcul que l'Accueil et Mon mois (séances, soins et tâches pas encore comptés).
+    // Le prévu : le même calcul que l'Accueil et Mon bilan (séances, soins et tâches pas encore comptés).
     const planned = prevuSur(data, days, today, now);
     return { count: ss.length, validated, planned };
     // eslint-disable-next-line react-hooks/exhaustive-deps

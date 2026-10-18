@@ -551,7 +551,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
   const period = useMemo(() => currentPeriod(), []);
   const nets = useMemo(() => reconciledNets(data, period), [data, period]);
   const m = useMemo(() => monthBreakdown(data, period), [data, period]);
-  // Les chevaux du mois, comme Mon mois : un cheval parti dans le mois y garde son ticket.
+  // Les chevaux du mois, comme Mon bilan : un cheval parti dans le mois y garde son ticket.
   const horses = useMemo(() => chevauxDuMois(data, period), [data, period]);
   const partage = useMemo(() => chevauxPresents(data, period).length, [data, period]);
   // Ce que les chevaux laissent, à eux seuls : la somme de leurs tickets (l'argent hors chevaux n'y est pas).

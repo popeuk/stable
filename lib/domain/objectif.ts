@@ -32,7 +32,7 @@ export function phraseObjectif(net: number, objective: number): string {
   return left > 0 ? `Il te manque ${eur(left)} pour ton objectif de ${eur(objective)}.` : `Objectif de ${eur(objective)} atteint.`;
 }
 
-/** La suite de « il te reste X € » dans Mon mois, ou une chaîne vide sans objectif. */
+/** La suite de « il te reste X € » dans Mon bilan, ou une chaîne vide sans objectif. */
 export function phraseObjectifMois(net: number, objective: number, enCours: boolean): string {
   const left = objectifManque(net, objective);
   if (left === null) return "";

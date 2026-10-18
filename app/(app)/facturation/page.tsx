@@ -14,7 +14,7 @@ import { conditionsProManquent, enteteVendeur, eur2, facturation, moisDit, nomDo
  * ce qui s'imprime sur chaque facture (nom ou raison sociale, statut,
  * adresse, SIRET, IBAN, TVA, conditions pour un professionnel), replié une fois
  * rempli, et le tableau de l'année pour le comptable (`#comptable`). On y
- * arrive depuis Réglages et depuis l'historique de Mon mois. Styles :
+ * arrive depuis Réglages et depuis l'historique de Mon bilan. Styles :
  * app/carnet/facture.css.
  */
 export default function Page() {

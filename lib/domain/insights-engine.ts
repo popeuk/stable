@@ -168,7 +168,7 @@ function ruleSharedExpenseImpact(
     b.totalAmount > a.totalAmount ? b : a,
   );
   const total = stablePnl(data, period);
-  // Le même total que Mon mois et Et si… : les factures du mois ET les
+  // Le même total que Mon bilan et Et si… : les factures du mois ET les
   // charges récurrentes partagées (assurance, crédit…).
   const sharedTotal = total.sharedCosts;
   return [

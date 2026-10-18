@@ -12,7 +12,7 @@ describe("Découvertes : des constats justes (P2-9)", () => {
     const d = buildDemoData(NOW);
     expect(generateInsights(d, oct).some((i) => i.type === "vs_last_year")).toBe(false);
   });
-  it("les frais communs ont le même total que Mon mois (assurance comprise)", () => {
+  it("les frais communs ont le même total que Mon bilan (assurance comprise)", () => {
     const d = buildDemoData(NOW);
     const shared = generateInsights(d, oct).find((i) => i.type === "shared_expense_impact")!;
     const total = monthBreakdown(d, oct).sharedTotal;

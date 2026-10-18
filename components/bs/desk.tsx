@@ -107,9 +107,9 @@ export function Sidebar() {
         ))}
       </div>
       <div className="ac-sgrp">
-        <Link href="/argent" className="it" aria-current={under(path, BILAN) && !vue ? "page" : undefined} title="Voir mon bilan (G puis M)">
+        <Link href="/argent" className="it" aria-current={under(path, BILAN) && !vue ? "page" : undefined} title="Mon bilan (G puis M)">
           <Ic n="chart" />
-          <span style={{ flex: 1, minWidth: 0 }}>Voir mon bilan</span>
+          <span style={{ flex: 1, minWidth: 0 }}>Mon bilan</span>
           <em className={c.estime ? undefined : c.net > 0 ? "in" : c.net < 0 ? "out" : undefined}>{signed(c.net)}</em>
         </Link>
         <EnveloppeLigne />
@@ -243,7 +243,7 @@ function PaletteInner() {
           openNoter({});
         },
       },
-      { id: "a-seance", group: "Faire", label: "Planifier une séance", sub: "cours, travail, balade", ic: "cal", run: add("seance") },
+      { id: "a-seance", group: "Faire", label: "Prévoir une séance", sub: "cours, travail, balade", ic: "cal", run: add("seance") },
       { id: "a-soin", group: "Faire", label: "Noter un soin", sub: "maréchal, véto, vermifuge…", ic: "shoe", run: add("soin") },
       { id: "a-tache", group: "Faire", label: "Ajouter une tâche d’équipe", ic: "board", run: add("tache") },
       { id: "a-depense", group: "Faire", label: "Noter une dépense", sub: "ou une recette", ic: "euro", run: add("depense") },
@@ -252,7 +252,7 @@ function PaletteInner() {
       { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
       { id: "g-chevaux", group: "Aller à", label: "Clients", sub: "tes clients et leurs chevaux", ic: "people", hint: "G C", run: go("/chevaux") },
       { id: "g-ecurie", group: "Aller à", label: "Mon écurie", sub: "prix, frais, équipe, pros, papiers", ic: "horse", hint: "G E", run: go("/ecurie") },
-      { id: "g-mois", group: "Aller à", label: "Voir mon bilan", sub: signed(c.net), money: c.estime ? undefined : c.net, ic: "chart", hint: "G M", run: go("/argent") },
+      { id: "g-mois", group: "Aller à", label: "Mon bilan", sub: signed(c.net), money: c.estime ? undefined : c.net, ic: "chart", hint: "G M", run: go("/argent") },
       { id: "g-prix", group: "Aller à", label: "Mes prix", sub: "dans Mon écurie", ic: "euro", hint: "G S", run: go("/parcours/tarifs?retour=ecurie") },
       { id: "g-frais", group: "Aller à", label: "Mes frais", sub: "dans Mon écurie", ic: "hay", run: go("/parcours/factures?retour=ecurie") },
       { id: "g-pros", group: "Aller à", label: "Les pros", sub: "dans Mon écurie", ic: "user", run: go("/contacts") },
@@ -261,8 +261,8 @@ function PaletteInner() {
       { id: "g-valider", group: "Aller à", label: "Ce qui est fait", sub: "dans Planning", ic: "ck", hint: "G V", run: go("/valider") },
       { id: "g-equipe", group: "Aller à", label: "Tâches de l’équipe", sub: "dans Planning", ic: "board", hint: "G T", run: go("/equipe") },
       { id: "g-clients", group: "Aller à", label: "Mes clients", sub: "qui te doit quoi", ic: "people", hint: "G K", run: go("/chevaux?vue=clients") },
-      { id: "g-leviers", group: "Aller à", label: "Idées pour gagner plus", sub: "dans ton bilan", ic: "bulb", hint: "G L", run: go("/argent?vue=leviers") },
-      { id: "g-mouv", group: "Aller à", label: "Entrées et sorties d’argent", sub: "dans ton bilan", ic: "list", run: go("/argent?vue=mouvements") },
+      { id: "g-leviers", group: "Aller à", label: "Idées pour gagner plus", sub: "dans Mon bilan", ic: "bulb", hint: "G L", run: go("/argent?vue=leviers") },
+      { id: "g-mouv", group: "Aller à", label: "Ce qui rentre et ce qui sort", sub: "dans Mon bilan", ic: "list", run: go("/argent?vue=mouvements") },
       { id: "g-bilans", group: "Aller à", label: "Sur plusieurs mois", sub: "ton argent sur 3, 6 ou 12 mois", ic: "chart", hint: "G B", run: go("/pilotage") },
       { id: "g-seuil", group: "Aller à", label: "Combien de chevaux pour ne pas perdre d’argent", ic: "flag", run: go("/seuil") },
       ...data.horses
@@ -292,7 +292,7 @@ function PaletteInner() {
   return createPortal(
     <div className="carnet carnet-portal">
       <div className="nt-pal-scrim" onClick={close} />
-      <div className="nt-pal" role="dialog" aria-modal="true" aria-label="Chercher ou faire" ref={ref}>
+      <div className="nt-pal" role="dialog" aria-modal="true" aria-label="Chercher" ref={ref}>
         <label className="nt-pin">
           <Ic n="search" />
           <input
@@ -459,13 +459,13 @@ export function ShortcutHelp() {
 function HelpInner({ close }: { close: () => void }) {
   const ref = useFeuille(close);
   const rows: [string, string[]][] = [
-    ["Chercher, aller à, faire", [modKey(), "K"]],
+    ["Chercher ou aller quelque part", [modKey(), "K"]],
     ["Ajouter (séance, soin, tâche, argent)", ["N"]],
     ["Accueil", ["G", "A"]],
     ["Planning", ["G", "P"]],
     ["Clients", ["G", "C"]],
     ["Mon écurie", ["G", "E"]],
-    ["Voir mon bilan", ["G", "M"]],
+    ["Mon bilan", ["G", "M"]],
     ["Ce qui est fait", ["G", "V"]],
     ["Tâches de l’équipe", ["G", "T"]],
     ["Mes clients", ["G", "K"]],

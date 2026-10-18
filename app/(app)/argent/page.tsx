@@ -28,7 +28,7 @@ import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 
 /**
- * Mon mois (ancien Bilan) : le chiffre du mois en tête, puis ce qui rentre
+ * Mon bilan : le chiffre du mois en tête, puis ce qui rentre
  * et ce qui sort (d'où ça vient), puis les séances semaine par semaine, une
  * piste pour gagner plus et les explications. Encaisser se fait à un seul
  * endroit, l'onglet Clients : l'ancienne vue Facturer y mène. Les leviers
@@ -41,7 +41,7 @@ const VUES: [Vue, string][] = [
   ["leviers", "Gagner plus"],
   ["mouvements", "Historique"],
 ];
-const TITRES: Record<Vue, string> = { mois: "Mon mois", leviers: "Idées pour gagner plus", mouvements: "Ce qui rentre et ce qui sort" };
+const TITRES: Record<Vue, string> = { mois: "Mon bilan", leviers: "Idées pour gagner plus", mouvements: "Ce qui rentre et ce qui sort" };
 
 /** Le pictogramme d'une ligne d'argent, d'après son libellé. */
 function icFor(label: string): string {
@@ -103,7 +103,7 @@ function Argent() {
         </button>
       </div>
       <div className="ar-bseg">
-        <Seg value={vue} onChange={(v) => router.replace(v === "mois" ? "/argent" : `/argent?vue=${v}`)} options={VUES} label="Vues de Mon mois" />
+        <Seg value={vue} onChange={(v) => router.replace(v === "mois" ? "/argent" : `/argent?vue=${v}`)} options={VUES} label="Vues de Mon bilan" />
       </div>
       {vue === "mois" && <Mois />}
       {vue === "leviers" && <Leviers />}

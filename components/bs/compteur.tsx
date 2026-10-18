@@ -67,7 +67,7 @@ export const dIciFin = () => {
  * (ill), la barre vers l'objectif s'il y en a un, et ce qui est encore prévu
  * au planning d'ici la fin du mois (en encre : ce n'est pas encore rentré).
  * Ce qui est passé compte déjà tout seul. Avec href, toute la carte mène au
- * détail (Mon mois). Sans objectif, une proposition discrète d'en fixer un,
+ * détail (Mon bilan). Sans objectif, une proposition discrète d'en fixer un,
  * sous la carte.
  */
 export function Compteur({ href, ill, className = "" }: { href?: string; ill?: boolean; className?: string }) {

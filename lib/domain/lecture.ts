@@ -1,6 +1,6 @@
 /**
  * Les chiffres lus d'un coup d'œil : de quoi montrer la réponse plutôt que
- * l'expliquer (Mon mois, Sur plusieurs mois, Combien de chevaux). Aucun
+ * l'expliquer (Mon bilan, Sur plusieurs mois, Combien de chevaux). Aucun
  * calcul d'argent ici : on lit ce que les écrans ont déjà calculé.
  */
 

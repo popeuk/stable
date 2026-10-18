@@ -8,7 +8,7 @@ import { currentPeriod } from "@/lib/utils/period";
 /*
  * L'ancienne carte d'objectif de l'accueil est remplacée par le compteur du
  * mois (components/bs/compteur.tsx). Reste ici le « prévu », calculé d'une
- * seule façon pour tous les écrans (Accueil, Mon mois, Planning).
+ * seule façon pour tous les écrans (Accueil, Mon bilan, Planning).
  */
 
 type Data = ReturnType<typeof useDataStore.getState>;
