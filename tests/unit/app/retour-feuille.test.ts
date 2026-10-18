@@ -79,3 +79,21 @@ describe("le bouton retour ferme d'abord la feuille", () => {
     expect(history.state.arbre).toBe(2);
   });
 });
+
+describe("le retour passe avant Next", () => {
+  it("Next réécrit l'entrée d'arrivée dans son propre écouteur : la feuille se ferme quand même", async () => {
+    vi.resetModules();
+    history.replaceState({ __NA: true, page: "planning" }, "", "/planning/");
+    // Comme Next 16 avec React 19 : son écouteur, posé avant le nôtre, rend le
+    // retour tout de suite et réécrit l'entrée d'arrivée (sans marque).
+    const next = (e: PopStateEvent) => history.replaceState({ ...(e.state ?? {}), __NA: true, arbre: "rendu" }, "", location.pathname);
+    window.addEventListener("popstate", next);
+    const { poserEntree: poser } = await import("@/lib/retour-feuille");
+    const fermer = vi.fn();
+    poser(fermer);
+    await retour();
+    window.removeEventListener("popstate", next);
+    expect(fermer).toHaveBeenCalledTimes(1);
+    expect(location.pathname).toBe("/planning/");
+  });
+});

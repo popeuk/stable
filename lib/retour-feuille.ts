@@ -58,6 +58,9 @@ function installer() {
     replace.call(history, d, unused, url);
     courant = history.state as Etat;
   };
+  // À la capture : il passe avant celui de Next. React rend le retour d'un coup
+  // (popstate), et Next réécrit alors l'entrée d'arrivée avant les écouteurs
+  // suivants : l'entrée qu'on quitte serait déjà perdue, la feuille resterait ouverte.
   window.addEventListener("popstate", (e) => {
     const avant = marqueDe(courant);
     courant = (e.state ?? null) as Etat;
@@ -71,7 +74,7 @@ function installer() {
     }
     // On quitte une entrée morte (feuille déjà fermée) : le retour continue jusqu'à l'écran d'avant.
     history.back();
-  });
+  }, true);
 }
 
 /** Pose l'entrée d'une feuille qui s'ouvre. Rend son numéro. */
