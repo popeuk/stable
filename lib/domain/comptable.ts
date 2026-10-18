@@ -1,10 +1,7 @@
-import type { Payment, RecurringExpense, StableData } from "@/lib/domain/types";
+import type { Payment, StableData } from "@/lib/domain/types";
 import { cleClient } from "@/lib/domain/billing";
 import { KIND_LABEL, deMois, kindOf, recettesFacturees } from "@/lib/domain/facture";
 import { moyenDit, nomMoyen } from "@/lib/domain/paiement";
-import { recurringDue } from "@/lib/domain/recurring";
-import { jourDuCheval, recurrenteDuCheval } from "@/lib/domain/presence";
-import { daysInMonth, periodStart } from "@/lib/utils/period";
 
 /**
  * Le tableau de l'année pour le comptable (centre de gestion) : une ligne
@@ -16,8 +13,13 @@ import { daysInMonth, periodStart } from "@/lib/utils/period";
  * vendu, les dépenses ce qui a été payé, les encaissements quand et comment
  * l'argent est rentré, les avoirs ce qui a été annulé sur une facture.
  * Chaque colonne s'additionne seule ; on n'ajoute pas les encaissements aux
- * recettes. Rien d'après aujourd'hui : les frais qui reviennent ne sont
- * comptés que pour les mois commencés.
+ * recettes. Rien d'après aujourd'hui.
+ *
+ * Seulement le réel (décision du 18 octobre 2026) : les factures et avoirs,
+ * les paiements reçus, les recettes et les dépenses notées une à une. Les
+ * estimations n'y sont jamais : ni les frais de « Mes frais » ni ce qui
+ * revient chaque mois sans être noté (les modèles qui reviennent), ni la
+ * pension d'un cheval sans propriétaire ni facture.
  */
 
 export const COLONNES = ["Date", "Nature", "Catégorie", "Libellé", "Cheval", "Client", "Recette TTC", "Dépense TTC", "Encaissement TTC", "Avoir TTC", "Moyen de paiement", "N° de facture"] as const;
@@ -62,18 +64,6 @@ const jourDe = (p: Payment) => {
 };
 
 /**
- * Ce qu'un frais connu à l'année compte un mois donné : le total de l'année
- * réparti au centime près, pour que les douze mois fassent exactement ce
- * que le gérant a tapé (1 000 € par an, et non 12 × 83,33 = 999,96 €).
- */
-function partDuMois(re: RecurringExpense, month: number): number {
-  if (!re.saisi || re.frequency !== "monthly") return re.amount;
-  const an = re.saisi.mode === "an" ? re.saisi.montant : re.saisi.montant * Math.max(1, Math.min(12, Math.round(re.saisi.fois ?? 1)));
-  if (!(an > 0)) return re.amount;
-  return r2(Math.round((an * month * 100) / 12) / 100 - Math.round((an * (month - 1) * 100) / 12) / 100);
-}
-
-/**
  * Les lignes de l'année jusqu'à aujourd'hui compris (`today`, AAAA-MM-JJ) :
  * le comptable ne reçoit rien qui n'a pas encore eu lieu.
  */
@@ -112,6 +102,8 @@ export function lignesComptables(data: StableData, year: number, today: string):
   for (const r of data.revenues) {
     if (r.date.slice(0, 4) !== y) continue;
     const h = horse(r.horseId);
+    // La pension d'un cheval sans propriétaire ni facture : personne ne la paie, ce n'est pas une vraie recette.
+    if (h && !r.payer?.trim() && !h.ownerName?.trim() && !factureDe.has(r.id)) continue;
     const cat = revCat(r.categoryId) || KIND_LABEL[kindOf(r, revCat(r.categoryId))];
     const client = r.payer?.trim() || h?.ownerName?.trim() || "";
     out.push({
@@ -125,25 +117,6 @@ export function lignesComptables(data: StableData, year: number, today: string):
       moyen: client ? moyenRecette(client, r.date.slice(0, 7), r.seanceId) : "",
       facture: factureDe.get(r.id) ?? "",
     });
-  }
-
-  for (let m = 1; m <= 12; m++) {
-    const p = { year, month: m };
-    const start = periodStart(p);
-    const jour = (startDate: string) => `${start.slice(0, 8)}${String(Math.min(Number(startDate.slice(8, 10)) || 1, daysInMonth(p))).padStart(2, "0")}`;
-    for (const rr of data.recurringRevenues ?? []) {
-      const h = horse(rr.horseId);
-      // Les séjours du cheval : rien entre deux séjours, et le jour de son retour s'il revient en cours de mois.
-      if (!recurringDue(rr, p) || (h && !recurrenteDuCheval(h, p))) continue;
-      const cat = revCat(rr.categoryId) || "Pension";
-      out.push({ date: h ? jourDuCheval(h, p, jour(rr.startDate)) : jour(rr.startDate), type: "Recette", categorie: cat, libelle: libelleDe(rr.label, cat), cheval: h?.name ?? "", client: h?.ownerName?.trim() ?? "", montant: rr.amount, moyen: "", facture: "" });
-    }
-    for (const re of data.recurringExpenses ?? []) {
-      const h = horse(re.horseId);
-      if (!recurringDue(re, p) || (!re.isShared && h && !recurrenteDuCheval(h, p))) continue;
-      const cat = expCat(re.categoryId);
-      out.push({ date: jour(re.startDate), type: "Dépense", categorie: cat, libelle: libelleDe(re.label, cat), cheval: re.isShared ? "commun" : (h?.name ?? ""), client: "", montant: partDuMois(re, m), moyen: "", facture: "" });
-    }
   }
 
   for (const e of data.directExpenses) {

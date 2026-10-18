@@ -185,7 +185,7 @@ function Ticket({ horse }: { horse: Horse }) {
           ))}
           <div className="r tot">
             <span>{net >= 0 ? selonSexe(horse, "Il te laisse", "Elle te laisse", "Il te reste") : selonSexe(horse, "Il te coûte", "Elle te coûte", "Coût du mois")}</span>
-            <Money v={net} />
+            <Money v={net} plain />
           </div>
         </div>
       </Sec>

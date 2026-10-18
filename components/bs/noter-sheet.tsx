@@ -13,6 +13,10 @@ import { applySoin, connuDe, draftFor, draftFromCompris, endOf, habitudes, manqu
 import { ChoixConnu, ChoixFois, SoitParMois } from "@/components/bs/montant-connu";
 import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
 import { comprendre } from "@/lib/domain/dire";
+import { ligneRemplie } from "@/lib/domain/corriger";
+import { Encaisser } from "@/components/bs/encaisser";
+import { estimationDuPoste } from "@/lib/domain/recurring";
+import { questionDedans } from "@/lib/domain/estimation";
 import { norm } from "@/lib/domain/interpret";
 import { cavaliersRetenus } from "@/lib/domain/proprio";
 import { nomsDePros } from "@/lib/domain/pros";
@@ -71,6 +75,16 @@ export function NoterSheet() {
 
 /** Ce que le + ouvre : la grille, ou directement les questions quand on vient d'un créneau, d'un ticket… */
 function startFrom(p: NoterPrefill, h: Habitudes, today: string): { screen: Screen; d: Draft | null } {
+  if (p.edit) {
+    // Corriger : la même feuille, remplie avec la ligne.
+    const l = ligneRemplie(useDataStore.getState(), p.edit);
+    if (!l) return { screen: "grid", d: null };
+    const d = draftFor("argent", h, today, { date: l.date, horseIds: l.horseIds, amount: l.amount, sens: l.sens, pour: l.pour });
+    d.pour = l.pour;
+    d.label = l.label;
+    d.moneyRep = l.revient ? "monthly" : "once";
+    return { screen: "q", d };
+  }
   const base = { date: p.date, start: p.start, horseIds: p.horseIds, prestationId: p.prestationId, amount: p.amount };
   const money = (kind?: string) =>
     draftFor("argent", h, today, { ...base, sens: kind === "recette" ? "in" : "out", pour: kind === "commune" ? "ecurie" : p.horseIds?.length ? "cheval" : undefined });
@@ -120,6 +134,8 @@ function NoterInner() {
   const h = useMemo(() => habitudes(data, today), [data, today]);
 
   const [init] = useState(() => startFrom(prefill, h, today));
+  // Corriger une ligne d'argent plutôt qu'en ajouter une.
+  const edit = prefill.edit && init.d ? prefill.edit : undefined;
   const [screen, setScreen] = useState<Screen>(init.screen);
   const [prev, setPrev] = useState<Screen>("q");
   const [d, setD] = useState<Draft | null>(init.d);
@@ -245,8 +261,13 @@ function NoterInner() {
     setScreen("grid");
   }
 
+  // Une vraie dépense d'un poste déjà estimé dans Mes frais : fait-elle partie de l'estimation ?
+  const [dedansQ, setDedansQ] = useState<{ nom: string; montant: number } | null>(null);
+  // « Un client m'a payé » : la liste de ceux qui doivent, puis le paiement (components/bs/encaisser).
+  const [encaisser, setEncaisser] = useState(false);
+
   /* ---------- Enregistrer ---------- */
-  function commit() {
+  function commit(dedans?: boolean) {
     if (!d) return;
     if (manque(d)) {
       setTried(true);
@@ -379,6 +400,12 @@ function NoterInner() {
     }
 
     // L'argent
+    if (edit) {
+      corriger(d);
+      close();
+      say("C’est corrigé.", undo);
+      return;
+    }
     const v = d.amount;
     const inn = d.sens === "in";
     const chosen = d.pour === "cheval" ? d.horseIds : [];
@@ -402,6 +429,8 @@ function NoterInner() {
       else st.addDirectExpense({ horseId: "", label: label || "Hors chevaux", amount: v, date: d.date, note, source: "manual" });
     } else if (pour === "ecurie") {
       const period = currentPeriod(new Date(d.date + "T12:00:00"));
+      const estime = estimationDuPoste(st, cat?.id, period);
+      if (cat && estime > 0 && dedans === undefined) return setDedansQ({ nom: cat.name, montant: estime });
       st.addSharedExpense({
         categoryId: cat?.id,
         label: label || cat?.name || "Frais communs",
@@ -414,6 +443,7 @@ function NoterInner() {
         // y compris ceux qui arrivent après ; sans cheval, elle compte quand même (presence.ts).
         allocations: [],
         note,
+        ...(dedans ? { dansEstimation: true } : {}),
       });
     } else {
       const before = new Set([...st.revenues.map((r) => r.id), ...st.directExpenses.map((x) => x.id)]);
@@ -427,6 +457,42 @@ function NoterInner() {
     }
     close();
     say("C’est dans ton mois.", undo);
+  }
+
+  /** Enregistre la ligne corrigée à sa place (le passé d'une ligne qui revient ne bouge pas). */
+  function corriger(x: Draft) {
+    if (!edit) return;
+    const st = useDataStore.getState();
+    const label = x.label.trim();
+    const change = norm(label) !== norm(init.d?.label ?? "");
+    const v = x.amount;
+    const horseId = x.pour === "cheval" ? x.horseIds[0] : undefined;
+    const trouve = (cats: { id: string; name: string }[]) => cats.find((c) => norm(c.name) === norm(label));
+    if (edit.t === "rev") {
+      const cat = trouve(st.revenueCategories);
+      st.updateRevenue(edit.id, { amount: v, date: x.date, ...(horseId ? { horseId } : {}), ...(change ? (cat ? { categoryId: cat.id, note: undefined } : { note: label || undefined }) : {}) });
+    } else if (edit.t === "dir") {
+      const cat = trouve(st.expenseCategories.filter((c) => c.isDirect));
+      st.updateDirectExpense(edit.id, { amount: v, date: x.date, ...(horseId ? { horseId } : {}), ...(change ? { label: label || cat?.name || "Dépense", ...(cat ? { categoryId: cat.id } : {}) } : {}) });
+    } else if (edit.t === "sh") {
+      const cat = trouve(st.expenseCategories.filter((c) => !c.isDirect));
+      const p = currentPeriod(new Date(x.date + "T12:00:00"));
+      st.updateSharedExpense(edit.id, { totalAmount: v, periodMonth: p.month, periodYear: p.year, ...(change ? { label: label || cat?.name || "Frais communs", ...(cat ? { categoryId: cat.id } : {}) } : {}) });
+    } else if (edit.t === "recrev") {
+      const cat = trouve(st.revenueCategories);
+      st.updateRecurringRevenue(edit.id, { amount: v, ...(horseId ? { horseId } : {}), ...(change ? (cat ? { categoryId: cat.id, label: undefined } : { label: label || undefined }) : {}) });
+    } else {
+      const rec = (st.recurringExpenses ?? []).find((r) => r.id === edit.id);
+      if (!rec) return;
+      const cat = trouve(st.expenseCategories.filter((c) => !!c.isDirect !== rec.isShared));
+      st.updateRecurringExpense(edit.id, {
+        amount: v,
+        ...(!rec.isShared && horseId ? { horseId } : {}),
+        // Un montant corrigé à la main se compte par mois : l'ancienne façon de le taper ne vaut plus.
+        ...(v !== rec.amount ? { saisi: undefined } : {}),
+        ...(change ? { label: label || cat?.name || rec.label, ...(cat ? { categoryId: cat.id } : {}) } : {}),
+      });
+    }
   }
 
   /* ---------- Les morceaux d'écran ---------- */
@@ -594,8 +660,8 @@ function NoterInner() {
           {d.type === "soin" ? "Choisis d’abord le soin." : "Il manque le montant."}
         </p>
       )}
-      <button type="button" className="btn full nt-ok" onClick={commit}>
-        C’est bon
+      <button type="button" className="btn full nt-ok" onClick={() => commit()}>
+        {edit ? "Enregistrer" : "C’est bon"}
       </button>
     </>
   );
@@ -681,6 +747,35 @@ function NoterInner() {
         <div className="nt-alt">
           <button type="button" className="lnk" onClick={backToGrid}>
             Revenir au choix
+          </button>
+        </div>
+      </>
+    );
+  } else if (d && encaisser) {
+    body = (
+      <Encaisser
+        onBack={() => setEncaisser(false)}
+        onDone={(html, undo) => {
+          close();
+          say(html, undo);
+        }}
+      />
+    );
+  } else if (d && dedansQ) {
+    body = (
+      <>
+        <button type="button" className="nt-bk" onClick={() => setDedansQ(null)}>
+          <Ic n="back" className="" />
+          Revenir
+        </button>
+        <Q>{questionDedans(dedansQ.nom, eurc(dedansQ.montant))}</Q>
+        <p className="note">Oui : on la décompte de ton estimation, le mois compte toujours {eurc(dedansQ.montant)} en tout. Non : elle s’ajoute.</p>
+        <div className="nt-stick">
+          <button type="button" className="btn full nt-ok" onClick={() => commit(true)}>
+            Oui, c’est dedans
+          </button>
+          <button type="button" className="btn line full" onClick={() => commit(false)}>
+            Non, c’est en plus
           </button>
         </div>
       </>
@@ -872,6 +967,28 @@ function NoterInner() {
           {hourLine(x)}
         </>
       );
+    else if (edit)
+      // Corriger : le montant, le cheval, ce que c'est et le jour. Le sens et « pour qui » restent ceux de la ligne.
+      qs = (
+        <>
+          <Q>{x.sens === "in" ? "Ça rentre" : "Ça sort"}</Q>
+          <Keypad value={x.amount} sens={x.sens} onChange={(amount) => (set((y) => ({ ...y, amount })), setTried(false))} />
+          {x.pour === "cheval" && horses.length > 0 && (
+            <>
+              <Q>Pour quel cheval ?</Q>
+              <HorseChips grille horses={horses} value={x.horseIds} onChange={(ids) => set((y) => { const neuf = ids.find((i) => !y.horseIds.includes(i)); return neuf ? { ...y, horseIds: [neuf] } : y; })} />
+            </>
+          )}
+          <Q em="si tu veux">C’est quoi ?</Q>
+          {labChips(x, true)}
+          {x.moneyRep === "once" && (
+            <>
+              <Q>Quel jour ?</Q>
+              <Quand date={x.date} today={today} onDate={(date) => set((y) => ({ ...y, date }))} />
+            </>
+          )}
+        </>
+      );
     else
       qs = (
         <>
@@ -883,6 +1000,13 @@ function NoterInner() {
               <span className="out">−</span>Ça sort
             </button>
           </div>
+          {/* En tête de « Ça rentre » : le paiement d’un client, comme sur sa fiche. */}
+          {x.sens === "in" && (
+            <button type="button" className="btn line nt-pay1" onClick={() => setEncaisser(true)}>
+              <Ic n="people" className="" />
+              Un client m’a payé
+            </button>
+          )}
           <Keypad value={x.amount} sens={x.sens} onChange={(amount) => (set((y) => ({ ...y, amount })), setTried(false))} />
           <Q>C’est pour qui ?</Q>
           {pourChips(x)}
@@ -892,17 +1016,21 @@ function NoterInner() {
       );
     return (
       <>
-        <button type="button" className="nt-bk" onClick={backToGrid}>
-          <Ic n="back" className="" />
-          {t.l}
-        </button>
-        {qs}
-        <div className="nt-more2">
-          <button type="button" className="lnk" onClick={() => (setPrev("q"), setPick(null), setScreen("more"))}>
-            Plus de détails
+        {!edit && (
+          <button type="button" className="nt-bk" onClick={backToGrid}>
+            <Ic n="back" className="" />
+            {t.l}
           </button>
-          <span>{MOREH[x.type]}</span>
-        </div>
+        )}
+        {qs}
+        {!edit && (
+          <div className="nt-more2">
+            <button type="button" className="lnk" onClick={() => (setPrev("q"), setPick(null), setScreen("more"))}>
+              Plus de détails
+            </button>
+            <span>{MOREH[x.type]}</span>
+          </div>
+        )}
         {/* « C'est bon » reste sous le pouce, même quand la feuille défile (iPhone de 844 px). */}
         <div className="nt-stick">{okBtn()}</div>
       </>
@@ -1043,10 +1171,10 @@ function NoterInner() {
   return (
     <div className="sheet-wrap open">
       <div className="scrim" onClick={close} />
-      <div ref={sheetRef} className={`sheet nt-add${screen === "more" ? " nt-scrolls" : ""}`} role="dialog" aria-modal="true" aria-label="Ajouter" tabIndex={-1}>
+      <div ref={sheetRef} className={`sheet nt-add${screen === "more" ? " nt-scrolls" : ""}`} role="dialog" aria-modal="true" aria-label={edit ? "Corriger" : "Ajouter"} tabIndex={-1}>
         <div className="grab" />
         <div className="shd">
-          <b>Ajouter</b>
+          <b>{edit ? "Corriger" : "Ajouter"}</b>
           <button type="button" className="x" onClick={close} aria-label="Fermer">
             <Ic n="x" className="" />
           </button>

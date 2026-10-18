@@ -172,14 +172,14 @@ describe("le tableau du comptable", () => {
   it("une ligne par recette, dépense et paiement de l'année, rien des autres années ni d'après aujourd'hui", () => {
     const d = withInv();
     d.revenues.push({ id: "old", stableId: "s", horseId: "h1", amount: 10, date: "2025-12-31", source: "manual" });
-    d.recurringExpenses = [{ id: "r", stableId: "s", label: "Assurance", amount: 30, isShared: true, frequency: "quarterly", startDate: "2026-01-15", source: "manual" }];
+    d.directExpenses.push({ id: "ass", stableId: "s", horseId: "h1", label: "Assurance", amount: 30, date: "2026-10-15", source: "manual" });
     const ls = lignesComptables(d, 2026, "2026-10-20");
     expect(ls.filter((l) => l.type === "Recette")).toHaveLength(4);
-    expect(ls.filter((l) => l.libelle === "Assurance").map((l) => l.date)).toEqual(["2026-01-15", "2026-04-15", "2026-07-15", "2026-10-15"]);
+    expect(ls.filter((l) => l.libelle === "Assurance").map((l) => l.date)).toEqual(["2026-10-15"]);
     expect(ls.filter((l) => l.type === "Encaissement")).toHaveLength(1);
     expect(ls.some((l) => l.date.startsWith("2025"))).toBe(false);
     // Le 14 octobre, l'assurance du 15 n'a pas encore eu lieu.
-    expect(lignesComptables(d, 2026, "2026-10-14").filter((l) => l.libelle === "Assurance")).toHaveLength(3);
+    expect(lignesComptables(d, 2026, "2026-10-14").filter((l) => l.libelle === "Assurance")).toHaveLength(0);
   });
 
   it("les cellules à risque sont protégées, les nombres à la française", () => {

@@ -560,7 +560,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
           </Link>
         </p>
       </div>
-      <Feuille inv={inv} />
+      <Feuille inv={inv} avoirs={avoirs} annulee={avoirs.length > 0 && !peutAnnuler} />
       {annuler && peutAnnuler && <FeuilleAvoir inv={inv} reste={reste} invoices={invoices} preselect={avoirDe ?? undefined} onClose={() => setAnnuler(false)} />}
     </div>
   );
@@ -671,7 +671,10 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
 /* ---------- La feuille A4 ---------- */
 
 /** La feuille A4 : noir sur blanc, sobre. C'est elle seule qui part à l'impression. */
-function Feuille({ inv, apercu }: { inv: Invoice; apercu?: boolean }) {
+function Feuille({ inv, apercu, avoirs = [], annulee }: { inv: Invoice; apercu?: boolean; avoirs?: Invoice[]; annulee?: boolean }) {
+  // Après un avoir, la facture ne dit plus « Reste à payer » comme avant : annulée en entier, elle le dit ; en partie, le reste baisse d'autant.
+  const deduit = avoirs.reduce((t, a) => t + Math.abs(a.totalTTC), 0);
+  const reste = Math.max(0, Math.round((inv.due - deduit) * 100) / 100);
   const f = inv.franchise;
   const avoir = inv.kind === "avoir";
   const mentions = mentionsPaiement(inv);
@@ -754,12 +757,26 @@ function Feuille({ inv, apercu }: { inv: Invoice; apercu?: boolean }) {
             <span>{eur2(inv.paid)}</span>
           </div>
         )}
-        {!avoir && (
-          <div className="fa-due">
-            <span>Reste à payer</span>
-            <span>{eur2(inv.due)}</span>
-          </div>
-        )}
+        {!avoir &&
+          !annulee &&
+          avoirs.map((a) => (
+            <div key={a.id}>
+              <span>Avoir n° {a.number}</span>
+              <span>{eur2(a.totalTTC)}</span>
+            </div>
+          ))}
+        {!avoir &&
+          (annulee ? (
+            <div className="fa-due">
+              <span>{avoirs.length > 1 ? `Annulée par les avoirs n° ${avoirs.map((a) => a.number).join(", ")}` : `Annulée par l’avoir n° ${avoirs[0]?.number ?? ""}`}</span>
+              <span />
+            </div>
+          ) : (
+            <div className="fa-due">
+              <span>Reste à payer</span>
+              <span>{eur2(reste)}</span>
+            </div>
+          ))}
       </div>
       <footer className="fa-foot">
         {f && <p>{MENTION_FRANCHISE}.</p>}

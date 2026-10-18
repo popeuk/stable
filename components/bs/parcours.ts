@@ -7,7 +7,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 import { currentPeriod } from "@/lib/utils/period";
-import { recurringDue } from "@/lib/domain/recurring";
+import { estimationDuPoste, recurringDue } from "@/lib/domain/recurring";
 import { relire, type Connu } from "@/lib/domain/montant-saisi";
 import type { MontantSaisi } from "@/lib/domain/types";
 
@@ -127,12 +127,14 @@ export function changerPensionCommune(pension: number, today = localToday()) {
   for (const h of d.horses) if (!h.isArchived && !estAMoi(h)) d.setPension(h.id, p, today.slice(0, 7));
 }
 
-/** Ce qu'une catégorie de frais communs pèse sur le mois : saisies du mois et charges récurrentes. */
-export function chargeDuMois(data: Pick<Data, "sharedExpenses" | "recurringExpenses">, catId: string, period: Per): number {
-  return (
-    data.sharedExpenses.filter((e) => e.categoryId === catId && e.periodYear === period.year && e.periodMonth === period.month).reduce((t, e) => t + e.totalAmount, 0) +
-    (data.recurringExpenses ?? []).filter((r) => r.isShared && r.categoryId === catId && recurringDue(r, period)).reduce((t, r) => t + r.amount, 0)
-  );
+/**
+ * L'estimation d'un poste de frais communs pour le mois, telle que saisie
+ * dans « Mes frais » : les charges qui reviennent, seulement. Les vraies
+ * dépenses notées avec le + (une livraison de foin) n'y sont pas : le champ
+ * « par mois, à peu près » montre toujours le chiffre tapé.
+ */
+export function chargeDuMois(data: Pick<Data, "recurringExpenses">, catId: string, period: Per): number {
+  return estimationDuPoste(data, catId, period);
 }
 
 /**

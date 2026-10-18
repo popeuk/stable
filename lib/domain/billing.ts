@@ -34,6 +34,12 @@ export interface Bill {
   lines: BillLine[];
   total: number;
   paid: number;
+  /**
+   * Les avoirs faits sur ses factures du mois, et ce que chacun retire de ce
+   * qu'il doit (positif). Une recette annulée par l'avoir puis retirée, ou
+   * remise sur une nouvelle facture, ne se retire pas deux fois.
+   */
+  avoirs?: { number: string; amount: number }[];
   due: number;
 }
 
@@ -92,12 +98,42 @@ export function billsFor(data: StableData, period: Period): Bill[] {
     }
     b.paid += p.amount;
   }
+  for (const a of avoirsDuMois(data, mk)) {
+    const b = map.get(cleClient(a.payer));
+    if (b && !b.orphan && a.amount > 0) b.avoirs = [...(b.avoirs ?? []), { number: a.number, amount: a.amount }];
+  }
   for (const b of map.values()) {
     b.total = Math.round(b.total * 100) / 100;
-    b.due = Math.max(0, Math.round((b.total - b.paid) * 100) / 100);
+    const credit = (b.avoirs ?? []).reduce((t, a) => t + a.amount, 0);
+    b.due = Math.max(0, Math.round((b.total - b.paid - credit) * 100) / 100);
   }
   for (const b of map.values()) if (b.orphan) b.due = 0;
   return [...map.values()].sort((a, b) => Number(!!a.orphan) - Number(!!b.orphan) || b.due - a.due || a.payer.localeCompare(b.payer));
+}
+
+/**
+ * Ce que chaque avoir d'un mois retire de ce que le client doit. Une ligne
+ * d'avoir rend des recettes précises : chacune compte pour son prix, tant
+ * qu'elle existe encore et qu'elle n'est pas repartie sur une autre facture
+ * (sinon le client la doit de nouveau, ou elle a déjà été retirée). Un avoir
+ * d'avant les lignes détaillées compte pour son total.
+ */
+export function avoirsDuMois(data: Pick<StableData, "invoices" | "revenues">, month: string): { number: string; payer: string; amount: number }[] {
+  const invoices = data.invoices ?? [];
+  const n = new Map<string, number>();
+  for (const i of invoices) for (const id of i.revenueIds) n.set(id, (n.get(id) ?? 0) + (i.kind === "avoir" ? -1 : 1));
+  const existe = new Set(data.revenues.map((r) => r.id));
+  const out: { number: string; payer: string; amount: number }[] = [];
+  for (const a of invoices) {
+    if (a.kind !== "avoir" || a.month !== month) continue;
+    let amount = 0;
+    for (const l of a.lines) {
+      if (l.revenueIds?.length) amount += Math.abs(l.unitTTC) * l.revenueIds.filter((id) => existe.has(id) && (n.get(id) ?? 0) <= 0).length;
+      else amount += Math.abs(l.totalTTC);
+    }
+    out.push({ number: a.number, payer: a.payer, amount: Math.round(amount * 100) / 100 });
+  }
+  return out;
 }
 
 /** La note d'un client ce mois-ci (casse et espaces confondus), ou undefined. */

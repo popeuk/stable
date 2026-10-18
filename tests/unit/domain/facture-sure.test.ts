@@ -203,22 +203,21 @@ describe("le tableau du comptable, sûr", () => {
   });
 
   it("aucun mois à venir : le 20 octobre, rien de novembre ni de décembre", () => {
-    const d = base({ recurringExpenses: [{ id: "r", stableId: "s", label: "Frais fixes", amount: 900, isShared: true, frequency: "monthly", startDate: "2026-01-01", source: "manual" }] });
+    const d = base({ directExpenses: [{ id: "nov", stableId: "s", horseId: "h1", label: "Ostéo", amount: 60, date: "2026-11-02", source: "manual" }] });
     const ls = lignesComptables(d, 2026, "2026-10-20");
-    expect(ls.filter((l) => l.libelle === "Frais fixes").map((l) => l.date.slice(5, 7))).toEqual(["01", "02", "03", "04", "05", "06", "07", "08", "09", "10"]);
+    expect(ls.some((l) => l.libelle === "Ostéo")).toBe(false);
     expect(ls.some((l) => l.date > "2026-10-20")).toBe(false);
   });
 
-  it("1 000 € par an font 1 000 € sur l'année, pas 999,96 €", () => {
+  it("seulement le réel : les frais estimés de Mes frais n'y sont jamais, même connus à l'année", () => {
     const d = base({
-      recurringExpenses: [{ id: "r", stableId: "s", label: "Assurance", categoryId: "ea", amount: 83.33, isShared: true, frequency: "monthly", startDate: "2026-01-01", source: "manual", saisi: { mode: "an", montant: 1000 } }],
+      recurringExpenses: [
+        { id: "r", stableId: "s", label: "Assurance", categoryId: "ea", amount: 83.33, isShared: true, frequency: "monthly", startDate: "2026-01-01", source: "manual", saisi: { mode: "an", montant: 1000 } },
+        { id: "f", stableId: "s", label: "Frais fixes", amount: 900, isShared: true, frequency: "monthly", startDate: "2026-01-01", source: "manual" },
+      ],
     });
-    const ls = lignesComptables(d, 2026, "2026-12-31").filter((l) => l.categorie === "Assurance");
-    expect(ls).toHaveLength(12);
-    expect(Math.round(ls.reduce((t, l) => t + l.montant, 0) * 100) / 100).toBe(1000);
-    expect(ls.every((l) => l.montant === 83.33 || l.montant === 83.34)).toBe(true);
-    const fois = base({ recurringExpenses: [{ id: "f", stableId: "s", label: "Foin", amount: 250, isShared: true, frequency: "monthly", startDate: "2026-01-01", source: "manual", saisi: { mode: "fois", montant: 1500, fois: 2 } }] });
-    expect(lignesComptables(fois, 2026, "2026-12-31").reduce((t, l) => t + (l.type === "Dépense" ? l.montant : 0), 0)).toBe(3000);
+    const ls = lignesComptables(d, 2026, "2026-12-31");
+    expect(ls.some((l) => l.libelle === "Assurance" || l.categorie === "Assurance" || l.libelle === "Frais fixes")).toBe(false);
   });
 
   it("la démo range chaque dépense dans sa catégorie (plus de « Compléments » sous « Maréchal-ferrant »)", () => {

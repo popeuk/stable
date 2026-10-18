@@ -4,16 +4,16 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ClientGate } from "@/components/ui/client-gate";
-import { dec1, ilEnFaut } from "@/components/bs/ui";
+import { dec1 } from "@/components/bs/ui";
 import { SeuilGrid } from "@/components/bs/seuil-grid";
 import { useParcours } from "@/components/bs/parcours";
 import { Hello, Ic, Page, Tip, eur } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { monthBreakdown } from "@/lib/domain/ticket";
+import { estAuGerant, monthBreakdown, seuilEtPlaces } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { chevauxDuMois } from "@/lib/domain/presence";
-import { phraseSeuil } from "@/lib/domain/lecture";
+import { REVOIR_PRIX, ilFautPensions, memePlein, phraseSeuil } from "@/lib/domain/lecture";
 
 /** Le seuil : combien de chevaux paient tous les frais communs. */
 export default function Page_() {
@@ -32,19 +32,28 @@ function Seuil() {
   const m = useMemo(() => monthBreakdown(data, currentPeriod()), [data]);
   // Les chevaux de ce mois, comme Mon mois (un cheval parti dans le mois y compte encore).
   const horses = useMemo(() => chevauxDuMois(data, currentPeriod()), [data]);
-  const n = horses.length;
+  // Le seuil se compte en pensions : les chevaux du gérant prennent une place, sans pension.
+  const pensions = horses.filter((h) => !estAuGerant(h));
+  const miens = horses.filter(estAuGerant);
+  const n = pensions.length;
   const free = Math.max(0, capacity - data.horses.filter((h) => !h.isArchived).length);
   const ok = isFinite(m.seuil);
+  const places = seuilEtPlaces(m, capacity);
+  // Même toutes les places pleines, le seuil n'est pas atteint : c'est le prix des pensions.
+  const horsPlaces = ok && !places.atteignable;
   const above = ok && n >= m.seuil;
+  const besoin = ok ? Math.ceil(m.seuil - 1e-9) : 0;
   return (
     <Page>
       <h1 className="ar-sr">Combien de chevaux pour ne pas perdre d’argent ?</h1>
       {/* La réponse en une phrase ; le pourquoi et le calcul attendent dans « Comment on le sait ? ». */}
       <Hello
         title={
-          ok ? (
+          horsPlaces ? (
+            memePlein(capacity, eur(places.manque))
+          ) : ok ? (
             <>
-              {ilEnFaut(m.seuil)}
+              {ilFautPensions(m.seuil)}
               <br />
               Tu en as {n}.
             </>
@@ -52,14 +61,14 @@ function Seuil() {
             "Pas encore atteignable."
           )
         }
-        sub={phraseSeuil(m.seuil, n)}
+        sub={horsPlaces ? REVOIR_PRIX : phraseSeuil(m.seuil, n)}
       />
 
       <div className="card rise" style={{ animationDelay: ".14s", margin: "16px var(--gut) 0" }}>
         <p className="k">
-          {capacity ? `Tes ${Math.max(capacity, n)} place${Math.max(capacity, n) > 1 ? "s" : ""}` : `Tes ${n} cheva${n > 1 ? "ux" : "l"}`}
+          {capacity ? `Tes ${Math.max(capacity, horses.length)} place${Math.max(capacity, horses.length) > 1 ? "s" : ""}` : `Tes ${horses.length} cheva${horses.length > 1 ? "ux" : "l"}`}
         </p>
-        <SeuilGrid horses={horses} capacity={capacity} seuil={m.seuil} />
+        <SeuilGrid horses={pensions} miens={miens} capacity={capacity} seuil={horsPlaces ? Infinity : m.seuil} horsPlaces={horsPlaces} />
       </div>
 
       <details className="ar-how rise" style={{ animationDelay: ".22s" }}>
@@ -70,10 +79,14 @@ function Seuil() {
         {ok ? (
           <>
             <p className="ar-calc">
-              Chaque mois, le foin, le loyer et les salaires tombent, que tu aies peu ou beaucoup de chevaux. Avec moins de {Math.ceil(m.seuil - 1e-9)} chevaux, tu perds de l’argent. À partir de là, chaque cheval en plus te rapporte presque toute sa pension.
+              Chaque mois, le foin, le loyer et les salaires tombent, que tu aies peu ou beaucoup de chevaux. Avec moins de {besoin} pensions, tu perds de l’argent. À partir de là, chaque pension en plus te rapporte presque tout son prix.
             </p>
             <p className="ar-calc">
-              Tes frais de l’écurie font {eur(m.sharedTotal)} par mois. Une fois ses soins payés, chaque cheval te laisse en moyenne {eur(m.contribution)}. {eur(m.sharedTotal).replace(/\s€$/, "")} divisé par {eur(m.contribution).replace(/\s€$/, "")} : {dec1(m.seuil)}. Il t’en faut donc {Math.ceil(m.seuil - 1e-9)} pour tout payer. Tu en as {n}.
+              {m.miens > 0
+                ? `Tes pensions doivent payer ${eur(m.aCouvrir)} par mois : les frais de l’écurie, et ce que coûtent tes ${m.miens > 1 ? `${m.miens} chevaux` : "chevaux"} à toi, qui ne paient pas de pension. `
+                : `Tes frais de l’écurie font ${eur(m.aCouvrir)} par mois. `}
+              Une fois ses soins payés, chaque pension te laisse en moyenne {eur(m.contribution)}. {eur(m.aCouvrir).replace(/\s€$/, "")} divisé par {eur(m.contribution).replace(/\s€$/, "")} : {dec1(m.seuil)}. Il t’en faut donc {besoin} pour tout payer. Tu en as {n}
+              {horsPlaces ? `, et ${places.placesPensions} place${(places.placesPensions ?? 0) > 1 ? "s" : ""} pour des pensions` : ""}.
             </p>
           </>
         ) : (
@@ -90,7 +103,7 @@ function Seuil() {
             Tu as passé le trait : chaque cheval en plus, c’est presque toute sa pension qui te reste.
           </Tip>
         )}
-        {ok && !above && (
+        {ok && !above && !horsPlaces && (
           <Tip ill="piste">
             <b>Remplir une place ou revoir tes pensions</b> te fait passer au-dessus.
           </Tip>

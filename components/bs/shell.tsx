@@ -4,7 +4,8 @@ import { ECURIE, isRoot2, useRetour2 } from "@/components/bs/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CountUp, Ic, sg } from "@/components/carnet/ui";
+import { CountUp, Ic, eur } from "@/components/carnet/ui";
+import { resteOuManque } from "@/lib/domain/lecture";
 import { useUiStore } from "@/stores/ui-store";
 import { useDataStore } from "@/stores/data-store";
 import { estEstimation } from "@/lib/domain/estimation";
@@ -40,7 +41,7 @@ export function Header() {
         </Link>
       )}
       <span className="hd2-sp" />
-      <Link href="/argent" className="hd2-bilan" aria-current={under(path, BILAN) ? "page" : undefined} aria-label={`Voir mon bilan : ${net < 0 ? "il te manque" : "il te reste"} ${sg(net)}`}>
+      <Link href="/argent" className="hd2-bilan" aria-current={under(path, BILAN) ? "page" : undefined} aria-label={`Voir mon bilan : ${resteOuManque(net)} ${eur(Math.abs(net))}`}>
         <span>Voir mon bilan</span>
         <b className={`num ${tone}`}>{ready ? <CountUp value={Math.round(net)} ms={700} /> : "…"}</b>
         {gain > 0 && (

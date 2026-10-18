@@ -39,6 +39,7 @@ import { localToday } from "@/lib/utils/local-date";
 import { prosDeLEquipe } from "@/lib/domain/pros";
 import { avecProprio, changerProprio, nomConnu, renommerClient, retirerClient } from "@/lib/domain/proprio";
 import { arreterRecurrentes, migrerSejours, presentDans } from "@/lib/domain/presence";
+import { corrigerRecurrente } from "@/lib/domain/corriger";
 import { avecSejours, changerArrivee, changerInfosSejour, compteDepuis, partirLe, revenirLe, type InfosEntree, type InfosSortie } from "@/lib/domain/sejours";
 import { currentPeriod } from "@/lib/utils/period";
 import { POSTES_VERSION, ajouterPostesManquants } from "@/lib/domain/postes-communs";
@@ -165,11 +166,23 @@ interface DataState extends StableData {
   setPension: (horseId: string, amount: number, monthKey: string) => void;
   /**
    * Une facture commune mensuelle, réglée une fois : elle devient une charge
-   * récurrente partagée à partir du mois donné, et remplace ce qui avait été
-   * saisi pour ce mois-là dans la même catégorie.
+   * récurrente partagée à partir du mois donné, et remplace l'estimation d'avant
+   * dans la même catégorie. Les vraies dépenses du mois ne bougent pas.
    */
   /** `saisi` : le montant tel que tapé, quand il est connu à l'année ou en plusieurs fois ; `amount` est son équivalent par mois. */
   setMonthlyCharge: (categoryId: string, label: string, amount: number, period: { year: number; month: number }, saisi?: MontantSaisi) => void;
+
+  /* ---- Corriger une ligne d'argent (lib/domain/corriger) ---- */
+  /** Corrige une recette notée. Une recette facturée ne se corrige pas : l'écran propose l'avoir. */
+  updateRevenue: (id: string, patch: Partial<Omit<Revenue, "id" | "stableId">>) => void;
+  /** Corrige une dépense d'un cheval ou hors chevaux ; sa refacturation et son soin suivent le montant. */
+  updateDirectExpense: (id: string, patch: Partial<Omit<DirectExpense, "id" | "stableId">>) => void;
+  /** Corrige une dépense de l'écurie. */
+  updateSharedExpense: (id: string, patch: Partial<Omit<SharedExpense, "id" | "stableId">>) => void;
+  /** Corrige une rentrée qui revient : le passé ne bouge pas (corrigerRecurrente). */
+  updateRecurringRevenue: (id: string, patch: Partial<Omit<RecurringRevenue, "id" | "stableId">>, today?: string) => void;
+  /** Corrige un frais qui revient : le passé ne bouge pas (corrigerRecurrente). */
+  updateRecurringExpense: (id: string, patch: Partial<Omit<RecurringExpense, "id" | "stableId">>, today?: string) => void;
 
   /* ---- Planning, validation, facturation, équipe (octobre 2026) ---- */
   /** Trouve une personne par son nom, ou la crée. Rend son identifiant. */
@@ -757,9 +770,6 @@ export const useDataStore = create<DataState>()(
         set((s) => {
           const start = `${period.year}-${String(period.month).padStart(2, "0")}-01`;
           const value = Math.max(0, Math.round(amount * 100) / 100);
-          const sharedExpenses = s.sharedExpenses.filter(
-            (e) => !(e.categoryId === categoryId && e.periodYear === period.year && e.periodMonth === period.month),
-          );
           // L'ancienne charge s'arrête au mois précédent : le passé ne bouge pas.
           const prevEnd = new Date(Date.UTC(period.year, period.month - 1, 0)).toISOString().slice(0, 10);
           const recurringExpenses = (s.recurringExpenses ?? []).flatMap((r) => {
@@ -783,8 +793,44 @@ export const useDataStore = create<DataState>()(
               ...(saisi ? { saisi } : {}),
             });
           }
-          return { sharedExpenses, recurringExpenses };
+          // Les vraies dépenses du mois (notées avec le +) restent : seule l'estimation change.
+          return { recurringExpenses };
         }),
+
+      updateRevenue: (rid, patch) =>
+        set((s) => {
+          const revenues = s.revenues.map((r) => (r.id === rid ? { ...r, ...patch } : r));
+          const next = revenues.find((r) => r.id === rid);
+          if (next) enqueueMutation("update", "revenues", { ...next });
+          return { revenues };
+        }),
+
+      updateDirectExpense: (eid, patch) =>
+        set((s) => {
+          const e = s.directExpenses.find((x) => x.id === eid);
+          if (!e) return s;
+          const next = { ...e, ...patch };
+          enqueueMutation("update", "direct_expenses", { ...next });
+          const montant = patch.amount !== undefined && patch.amount !== e.amount;
+          // Refacturée : la recette du propriétaire suit le montant et le jour.
+          const revenues = e.rebillRevenueId && (montant || patch.date) ? s.revenues.map((r) => (r.id === e.rebillRevenueId ? { ...r, amount: next.amount, date: next.date } : r)) : s.revenues;
+          const careEvents = montant && (s.careEvents ?? []).some((c) => c.expenseId === eid) ? (s.careEvents ?? []).map((c) => (c.expenseId === eid ? { ...c, cost: next.amount } : c)) : s.careEvents;
+          return { directExpenses: s.directExpenses.map((x) => (x.id === eid ? next : x)), revenues, careEvents };
+        }),
+
+      updateSharedExpense: (sid, patch) =>
+        set((s) => {
+          const sharedExpenses = s.sharedExpenses.map((x) => (x.id === sid ? { ...x, ...patch } : x));
+          const next = sharedExpenses.find((x) => x.id === sid);
+          if (next) enqueueMutation("update", "shared_expenses", { ...next });
+          return { sharedExpenses };
+        }),
+
+      updateRecurringRevenue: (rid, patch, today = localToday()) =>
+        set((s) => ({ recurringRevenues: corrigerRecurrente(s.recurringRevenues ?? [], rid, patch, today, id("recrev")) })),
+
+      updateRecurringExpense: (rid, patch, today = localToday()) =>
+        set((s) => ({ recurringExpenses: corrigerRecurrente(s.recurringExpenses ?? [], rid, patch, today, id("rec")) })),
 
       ensurePerson: (name, role) => {
         const n = name.trim();

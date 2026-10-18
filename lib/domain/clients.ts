@@ -1,7 +1,7 @@
 import type { Period, PersonRole, StableData } from "@/lib/domain/types";
 import { formule, nomEcurie, signature } from "@/lib/domain/politesse";
-import { dateInPeriod } from "@/lib/utils/period";
-import { billsFor, type Bill } from "@/lib/domain/billing";
+import { addMonths, dateInPeriod } from "@/lib/utils/period";
+import { billsFor, cleClient, monthKey, type Bill } from "@/lib/domain/billing";
 
 /**
  * Ce que chaque client a rapporté sur un mois : ce qu'il paie, rangé en
@@ -99,12 +99,47 @@ export interface ClientDue {
   /** Ce qui a compté ce mois. */
   total: number;
   paid: number;
-  /** Ce qu'il te doit encore (jamais négatif). */
+  /** Ce qu'il te doit encore, tous mois confondus (jamais négatif). */
   due: number;
+  /** Ce qu'il doit encore sur le mois lui-même. */
+  dueMois: number;
+  /** Ce qu'il doit encore des mois d'avant, du plus ancien au plus récent (AAAA-MM). */
+  anciens: { month: string; due: number }[];
   paieALaSeance: boolean;
   phone?: string;
 }
 
+/** Jusqu'où remonter pour retrouver un impayé ancien : deux ans. */
+const RECUL = 24;
+
+/**
+ * Les impayés des mois d'avant `period`, client par client (casse et espaces
+ * confondus) : pour chaque mois encore dû, le mois et ce qui reste. Du plus
+ * ancien au plus récent. Le premier mois regardé est celui de la plus
+ * ancienne recette, sans remonter plus de deux ans.
+ */
+export function impayesAnciens(data: StableData, period: Period): Map<string, { name: string; role: PersonRole; month: string; due: number }[]> {
+  const out = new Map<string, { name: string; role: PersonRole; month: string; due: number }[]>();
+  const pk = monthKey(period);
+  const premier = data.revenues.reduce((m, r) => (r.date.slice(0, 7) < m ? r.date.slice(0, 7) : m), pk);
+  for (let k = RECUL; k >= 1; k--) {
+    const p = addMonths(period, -k);
+    const mk = monthKey(p);
+    if (mk < premier) continue;
+    for (const b of billsFor(data, p)) {
+      if (b.orphan || b.due <= 0) continue;
+      const key = cleClient(b.payer);
+      out.set(key, [...(out.get(key) ?? []), { name: b.payer, role: b.role, month: mk, due: b.due }]);
+    }
+  }
+  return out;
+}
+
+/**
+ * Qui te doit quoi au mois `period` : ce qui a compté ce mois, ce qu'il a
+ * payé, et ce qu'il doit encore, tous mois confondus. Un impayé de
+ * septembre reste dans « Ils te doivent » en novembre, avec son mois.
+ */
 export function clientDues(data: StableData, period: Period): ClientDue[] {
   const bills = billsFor(data, period).filter((b) => !b.orphan);
   const people = data.people ?? [];
@@ -124,6 +159,8 @@ export function clientDues(data: StableData, period: Period): ClientDue[] {
       total: 0,
       paid: 0,
       due: 0,
+      dueMois: 0,
+      anciens: [],
       paieALaSeance: !!p?.paieALaSeance,
       phone: p?.phone,
     };
@@ -135,6 +172,12 @@ export function clientDues(data: StableData, period: Period): ClientDue[] {
     c.total = Math.round((c.total + b.total) * 100) / 100;
     c.paid = Math.round((c.paid + b.paid) * 100) / 100;
     c.due = Math.round((c.due + b.due) * 100) / 100;
+    c.dueMois = c.due;
+  }
+  for (const [, mois] of impayesAnciens(data, period)) {
+    const c = add(mois[0].name, mois[0].role);
+    c.anciens = mois.map(({ month, due }) => ({ month, due }));
+    c.due = Math.round((c.dueMois + mois.reduce((t, m) => t + m.due, 0)) * 100) / 100;
   }
   for (const p of people) if (p.active) add(p.name, p.role);
   for (const h of data.horses) if (!h.isArchived && h.ownerName) add(h.ownerName, "proprietaire");
@@ -215,4 +258,11 @@ export function messageDu(bill: Bill, period: Period, stableName: string, gerant
   out.push(`Reste à payer : ${eur0(bill.due)}.`);
   out.push(...signature(gerant, nomEcurie(stableName)));
   return out.join("\n");
+}
+
+/** « de septembre », « d’août », « de décembre 2025 » quand ce n'est pas l'année de `period`. */
+export function duMois(month: string, period: Period): string {
+  const p = { year: Number(month.slice(0, 4)), month: Number(month.slice(5, 7)) };
+  const nom = `${moisNom(p)}${p.year !== period.year ? ` ${p.year}` : ""}`;
+  return /^[aeiouyàâäéèêëîïôöûüù]/i.test(nom) ? `d’${nom}` : `de ${nom}`;
 }

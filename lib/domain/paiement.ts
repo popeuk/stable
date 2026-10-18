@@ -44,3 +44,28 @@ export function dernierMoyen(payments: Payment[] | undefined, payer: string): Pa
 
 /** Un numéro de chèque saisi : chiffres et lettres seulement, 20 au plus. */
 export const saisieCheque = (raw: string) => raw.replace(/[^\dA-Za-z]/g, "").slice(0, 20);
+
+/** Les montants proposés en puces pour un paiement partiel : 20, 50, 100 € et la moitié, sous ce qui est dû. Le champ, lui, reste vide. */
+export function suggestionsPartielles(due: number): number[] {
+  return [...new Set([20, 50, 100, Math.round(due / 2)])].filter((x) => x > 0 && x < due).sort((a, b) => a - b);
+}
+
+/**
+ * Un paiement reçu, réparti sur les mois encore dus, du plus ancien au plus
+ * récent : un client qui paie 500 € alors qu'il doit 120 € de septembre et
+ * 400 € d'octobre solde septembre, puis 380 € d'octobre. Ce qui dépasse va
+ * sur le dernier mois. Rend un paiement par mois touché.
+ */
+export function repartirPaiement(dus: { month: string; due: number }[], montant: number): { month: string; amount: number }[] {
+  const mois = [...dus].filter((d) => d.due > 0).sort((a, b) => a.month.localeCompare(b.month));
+  const out: { month: string; amount: number }[] = [];
+  let reste = Math.round(montant * 100) / 100;
+  for (const m of mois) {
+    if (reste <= 0) break;
+    const a = Math.min(reste, m.due);
+    out.push({ month: m.month, amount: Math.round(a * 100) / 100 });
+    reste = Math.round((reste - a) * 100) / 100;
+  }
+  if (reste > 0 && out.length) out[out.length - 1].amount = Math.round((out[out.length - 1].amount + reste) * 100) / 100;
+  return out;
+}
