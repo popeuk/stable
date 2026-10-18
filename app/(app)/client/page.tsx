@@ -12,8 +12,8 @@ import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
 import { CountUp, Empty, Face, Ic, Ill, Page as Ecran, Switch, eur, eurc, ini, sgc } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { billOf, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
-import { accord, prenomDe } from "@/lib/domain/clients";
+import { billOf, cleClient, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
+import { accord, duMois, impayesAnciens, prenomDe } from "@/lib/domain/clients";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
 import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
@@ -95,6 +95,8 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const role: PersonRole = person?.role ?? (horses.length ? "proprietaire" : "cavalier");
   const bill: Bill = billOf(data, nom, period) ?? { payer: nom, role, lines: [], total: 0, paid: 0, due: 0 };
   const avant = monthsBefore(data, nom, now, 3);
+  // Ce qu'il doit encore des mois d'avant : dit sous ce qu'il doit ce mois-ci, chaque somme avec son mois.
+  const anciens = useMemo(() => (monthKey(period) === monthKey(now) ? (impayesAnciens(data, now).get(cleClient(nom)) ?? []) : []), [data, now, period, nom]);
   const [feuille, setFeuille] = useState<Ouverte>(null);
   const [vientDePayer, setVientDePayer] = useState(false);
   // Comment il paie : le dernier moyen noté pour lui, changé d'un toucher.
@@ -180,12 +182,19 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       <div className="card cl-due rise">
         <div className="cl-dtop">
           <span>
-            <span className="cl-lab">{due > 0 ? `${qui} te doit` : `${Il} a tout payé.`}</span>
+            <span className="cl-lab">{due > 0 ? `${qui} te doit` : anciens.length ? `${Il} a tout payé ce mois-ci.` : `${Il} a tout payé.`}</span>
             <b className="cl-big">{due > 0 ? <CountUp value={due} fmt={eur} ms={700} /> : eur(0)}</b>
           </span>
           {due <= 0 && <Ill n="rosette" className="cl-ros" />}
         </div>
         {vientDePayer && <p className="cl-cnt">Déjà compté dans ton mois.</p>}
+        {anciens.map((a) => (
+          <p key={a.month} className="cl-cnt">
+            <Link className="lnk" href={`/client?nom=${encodeURIComponent(nom)}&mois=${a.month}`}>
+              {due > 0 ? "Plus" : "Encore"} {eurc(a.due)} {duMois(a.month, now)}
+            </Link>
+          </p>
+        ))}
         {seance && due > 0 && ouvertes.length > 0 && (
           <p className="cl-cnt">
             D’habitude, {qui} paie sur place. Là, {pl(ouvertes.length, "séance")} attend{ouvertes.length > 1 ? "ent" : ""}.

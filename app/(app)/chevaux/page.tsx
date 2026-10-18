@@ -15,7 +15,7 @@ import { useDesk } from "@/components/bs/desk-hook";
 import { useAideIci } from "@/components/bs/nav";
 import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
 import { useRouter, useSearchParams } from "next/navigation";
-import { accord, clientDues, prenomDe, type ClientDue } from "@/lib/domain/clients";
+import { accord, clientDues, duMois, prenomDe, type ClientDue } from "@/lib/domain/clients";
 import { billsFor, monthKey } from "@/lib/domain/billing";
 import { clientsAFairePayer } from "@/lib/domain/compte-auto";
 import { addMonths, currentPeriod, daysInMonth } from "@/lib/utils/period";
@@ -178,13 +178,17 @@ const quiEst = (c: ClientDue) => (c.role === "proprietaire" ? (c.horses.length ?
 const sousLigne = (c: ClientDue) =>
   c.due > 0 ? (c.horses.length ? `${c.horses.join(", ")} · ${c.paieALaSeance ? "à la séance" : "au mois"}` : c.paieALaSeance ? "à la séance" : quiEst(c)) : quiEst(c);
 
-function LigneClient({ c }: { c: ClientDue }) {
+/** Les impayés des mois d'avant, chacun avec son mois : « dont 350 € de septembre ». */
+const anciensDits = (c: ClientDue, period: { year: number; month: number }) => c.anciens.map((a) => `dont ${eur(a.due)} ${duMois(a.month, period)}`).join(" · ");
+
+function LigneClient({ c, period }: { c: ClientDue; period: { year: number; month: number } }) {
   return (
     <Link href={ficheDe(c.name)} className="cl-row">
       <Tete c={c} />
       <span className="cl-rt">
         <b>{c.name}</b>
         <small>{sousLigne(c)}</small>
+        {c.anciens.length > 0 && <small>{anciensDits(c, period)}</small>}
       </span>
       {c.due > 0 ? (
         <span className="cl-amt">
@@ -417,7 +421,10 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
                   <td className="m">{c.paieALaSeance ? "à la séance" : "au mois"}</td>
                   <td className="n">{c.total ? eur(c.total) : "·"}</td>
                   <td className="n m">{c.paid ? eur(c.paid) : "·"}</td>
-                  <td className="n">{c.due > 0 ? <b>{eur(c.due)}</b> : <span className="m">à jour</span>}</td>
+                  <td className="n">
+                    {c.due > 0 ? <b>{eur(c.due)}</b> : <span className="m">à jour</span>}
+                    {c.anciens.length > 0 && <small className="m" style={{ display: "block" }}>{anciensDits(c, period)}</small>}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -453,7 +460,7 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
           <p className="k cl-lk">Ils te doivent</p>
           <div className="cl-rows">
             {owe.map((c) => (
-              <LigneClient key={c.name} c={c} />
+              <LigneClient key={c.name} c={c} period={period} />
             ))}
           </div>
         </>
@@ -463,7 +470,7 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
           <p className="k cl-lk">Ils ne te doivent plus rien</p>
           <div className="cl-rows">
             {ok.map((c) => (
-              <LigneClient key={c.name} c={c} />
+              <LigneClient key={c.name} c={c} period={period} />
             ))}
           </div>
         </>
