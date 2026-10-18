@@ -163,16 +163,18 @@ export function Reglages() {
   const reminder = useSettingsStore((s) => s.reminder);
   const evening = useSettingsStore((s) => s.evening);
   const [compte, setCompte] = useState("Sur ce téléphone");
+  const [ici, setIci] = useState("ce téléphone");
   useEffect(() => {
     const s = getSession();
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIci(cetAppareil());
     setCompte(s?.kind === "demo" ? "Tu visites l’écurie d’exemple" : s?.kind === "compte" ? "Connecté, tes chiffres sont gardés" : `Sur ${cetAppareil()} seulement : garde tes chiffres`);
   }, []);
   return (
     <div className="ce">
       <header className="ce-hd rise">
         <h1>Réglages</h1>
-        <p>L’app sur ce téléphone. Rien ici ne change tes chiffres.</p>
+        <p>L’app sur {ici}. Rien ici ne change tes chiffres.</p>
       </header>
       <Case
         titre="Toi"
