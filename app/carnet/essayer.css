@@ -102,3 +102,9 @@
 .carnet .es-suite b { font-size: 15.5px; font-weight: 720; }
 .carnet .es-suite p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink2); }
 .carnet .ar-reste .foot > .lnk { justify-self: center; font-size: 13.5px; font-weight: 600; color: var(--ink2); }
+
+/* La place sur l'appareil (components/bs/place-bandeau) : plus de place, en aplat rose, il reste ;
+   il passe devant le bandeau « garder ses chiffres ». */
+.carnet .es-keep.bs-place.fort { background: var(--rose); color: var(--ink); border-top: 0; }
+.carnet .es-keep.bs-place.fort .btn { background: var(--acc); color: var(--on-ink); }
+.carnet:has(> .bs-place) > .es-keep:not(.bs-place) { display: none; }

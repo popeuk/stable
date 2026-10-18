@@ -3,6 +3,7 @@
 import type { StateStorage } from "zustand/middleware";
 import { getSession, LOCALE_SCOPE, scopedKey } from "@/lib/account/session";
 import { brancherCoffre, ecritureBloquee, noterEcriture, relu } from "@/lib/account/nuage";
+import { estPlacePleine, noterPlacePleine, noterRangement, ranger } from "@/lib/account/place";
 
 /**
  * Le coffre de l'appareil : le stockage des données de gestion, rangé par
@@ -63,7 +64,9 @@ function ecrire(name: string, value: string): Promise<void> | undefined {
   const run = async () => {
     const key = s.kind === "compte" ? await accountKey() : null;
     if (s.kind === "compte" && !key) return;
-    localStorage.setItem(k, key ? await seal(value, key) : value);
+    // Plus de place sur l'appareil : rien n'est écrit, et le bandeau le dit tout de suite
+    // (lib/account/place). Rien ne part en ligne non plus : l'envoi lit ce qui est rangé.
+    if (!ranger(k, key ? await seal(value, key) : value)) return;
     // Un compte : la copie en ligne suivra (lib/account/nuage).
     if (key) void noterEcriture(name, value);
   };
@@ -168,11 +171,22 @@ export async function adoptLegacy(): Promise<boolean> {
   for (const name of ["be-stable-data", "be-stable-settings"]) {
     const raw = localStorage.getItem(name);
     if (raw === null) continue;
-    localStorage.setItem(scopedKey(name, s), await seal(raw, key));
+    rangerOuLever(scopedKey(name, s), await seal(raw, key));
     localStorage.removeItem(name);
     done = true;
   }
   return done;
+}
+
+/** Écrit, et si la place manque, le note (bandeau) avant de relancer l'erreur. */
+function rangerOuLever(k: string, v: string) {
+  try {
+    localStorage.setItem(k, v);
+    noterRangement();
+  } catch (e) {
+    if (estPlacePleine(e)) noterPlacePleine();
+    throw e;
+  }
 }
 
 /* ---------- Garder ses chiffres : l'écurie essayée passe dans le compte ---------- */
@@ -271,7 +285,7 @@ export async function adoptLocale(keep: "locale" | "compte" = "locale"): Promise
   if (!key) return false;
   if (keep === "locale") {
     const data = localStorage.getItem(localKey("be-stable-data"));
-    if (data !== null) localStorage.setItem(scopedKey("be-stable-data", s), await seal(data, key));
+    if (data !== null) rangerOuLever(scopedKey("be-stable-data", s), await seal(data, key));
     const accSealed = localStorage.getItem(scopedKey("be-stable-settings", s));
     let accRaw: string | null = null;
     if (accSealed !== null) {
@@ -282,7 +296,7 @@ export async function adoptLocale(keep: "locale" | "compte" = "locale"): Promise
       }
     }
     const merged = mergeLocaleSettings(localStorage.getItem(localKey("be-stable-settings")), accRaw, { stableName: s.listing?.title, gerant: s.prenom });
-    if (merged !== null) localStorage.setItem(scopedKey("be-stable-settings", s), await seal(merged, key));
+    if (merged !== null) rangerOuLever(scopedKey("be-stable-settings", s), await seal(merged, key));
   }
   for (const name of NAMES) localStorage.removeItem(localKey(name));
   return true;

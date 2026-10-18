@@ -3,6 +3,7 @@
 import { scopedKey } from "@/lib/account/session";
 import { relireTiroir } from "@/lib/account/vault";
 import { compteurMax } from "@/lib/domain/facture";
+import { estPlacePleine, noterPlacePleine } from "@/lib/account/place";
 import type { Invoice } from "@/lib/domain/types";
 
 /**
@@ -41,7 +42,8 @@ export function compteurAppareil(): Record<string, number> {
 export function noterCompteur(c: Record<string, number>): void {
   try {
     localStorage.setItem(scopedKey(NOM), JSON.stringify(compteurMax(compteurAppareil(), c)));
-  } catch {
+  } catch (e) {
+    if (estPlacePleine(e)) noterPlacePleine();
     // Stockage plein ou fermé : le carnet garde son propre compteur.
   }
 }

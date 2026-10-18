@@ -4,6 +4,7 @@ import { getSession, scopedKey } from "@/lib/account/session";
 import { fusionFactures } from "@/lib/domain/facture";
 import { fusionner3 } from "@/lib/account/fusion";
 import type { StableData } from "@/lib/domain/types";
+import { estPlacePleine, noterPlacePleine } from "@/lib/account/place";
 
 /**
  * La copie en ligne des tiroirs d'un compte (Supabase, projet `bestable`).
@@ -108,7 +109,9 @@ function lireEtat(): Etat {
 function ecrireEtat(e: Etat) {
   try {
     localStorage.setItem(cleEtat(), JSON.stringify(e));
-  } catch {}
+  } catch (err) {
+    if (estPlacePleine(err)) noterPlacePleine();
+  }
 }
 function majTiroir(nom: Nom, patch: Partial<EtatTiroir>) {
   const e = lireEtat();
@@ -124,7 +127,9 @@ const cleBase = (nom: Nom) => scopedKey(`bs-nuage-base:${nom}`);
 function garderBase(nom: Nom, raw: string) {
   try {
     localStorage.setItem(cleBase(nom), raw);
-  } catch {}
+  } catch (err) {
+    if (estPlacePleine(err)) noterPlacePleine();
+  }
 }
 
 function appareil(): string {
@@ -270,7 +275,8 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
     marquerARelire(nom);
     try {
       localStorage.setItem(scopedKey(nom), d.contenu);
-    } catch {
+    } catch (err) {
+      if (estPlacePleine(err)) noterPlacePleine();
       relu(nom);
       return false;
     }
@@ -292,7 +298,8 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
       marquerARelire(nom);
       try {
         localStorage.setItem(scopedKey(nom), d.contenu);
-      } catch {
+      } catch (err) {
+        if (estPlacePleine(err)) noterPlacePleine();
         relu(nom);
         return false;
       }
