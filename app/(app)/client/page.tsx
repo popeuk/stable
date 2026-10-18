@@ -18,7 +18,7 @@ import { currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
 import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 import { MoyenChoix } from "@/components/bs/moyen-paiement";
-import { dernierMoyen, enMoyen, moyenDit } from "@/lib/domain/paiement";
+import { dernierMoyen, enMoyen, moyenDit, suggestionsPartielles } from "@/lib/domain/paiement";
 import { brouillon, deMois, facturesDe, recettesFacturees } from "@/lib/domain/facture";
 import { FeuilleMoyen } from "@/components/bs/moyen-paiement";
 import type { PaymentMethod } from "@/lib/domain/types";
@@ -515,8 +515,8 @@ function Feuille({ titre, onClose, children }: { titre: string; onClose: () => v
 }
 
 function PartSheet({ qui, nom, due, moyen, onClose, onOk }: { qui: string; nom: string; due: number; moyen?: PaymentMethod; onClose: () => void; onOk: (v: number, m: PaymentMethod, cheque: string) => void }) {
-  const sug = due > 100 ? 100 : Math.max(1, Math.round(due / 2));
-  const [v, setV] = useState(String(sug));
+  // Rien de prérempli : on tape ce qui a été payé, ou on touche une suggestion.
+  const [v, setV] = useState("");
   const [m, setM] = useState<PaymentMethod | undefined>(moyen);
   const [chq, setChq] = useState("");
   const [demande, setDemande] = useState(false);
@@ -529,12 +529,11 @@ function PartSheet({ qui, nom, due, moyen, onClose, onOk }: { qui: string; nom: 
           {accord(nom, "Il", "Elle")} te doit {eurc(due)}. Combien {accord(nom, "t’a-t-il", "t’a-t-elle")} payé ?
         </p>
         <label className="input cl-amtin">
-          <input type="text" inputMode="decimal" value={v} autoFocus onChange={(e) => setV(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && val > 0 && ok()} aria-label="Montant payé" />
+          <input type="text" inputMode="decimal" value={v} placeholder="0" autoFocus onChange={(e) => setV(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && val > 0 && ok()} aria-label="Montant payé" />
           <span className="u">€</span>
         </label>
         <div className="chips">
-          {[20, 50, 100]
-            .filter((x) => x < due)
+          {suggestionsPartielles(due)
             .map((x) => (
               <button key={x} type="button" className={`chip${val === x ? " on" : ""}`} aria-pressed={val === x} onClick={() => setV(String(x))}>
                 {eur(x)}
