@@ -23,6 +23,13 @@ export function pensionsQuiManquent(seuil: number, chevaux: number): number | nu
   return Math.max(0, Math.ceil(seuil - 1e-9) - chevaux);
 }
 
+/**
+ * « il te reste 617 € » ou « il te manque 617 € » : le verbe porte le sens,
+ * le nombre se dit sans signe (« il te manque −617 € » se lisait de travers).
+ * La même formule partout : accueil, Mon bilan, tournée, pastille du haut.
+ */
+export const resteOuManque = (net: number) => (Math.round(net) < 0 ? "il te manque" : "il te reste");
+
 /** « Il te faut 9 pensions. » : le seuil se compte en pensions, pas en chevaux. */
 export function ilFautPensions(seuil: number): string {
   const n = Math.ceil(seuil - 1e-9);

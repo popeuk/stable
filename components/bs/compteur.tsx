@@ -8,7 +8,11 @@ import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { PORTEE_PREVU, plannedRest } from "@/components/bs/goal-card";
 import { localToday } from "@/lib/utils/local-date";
-import { CountUp, Ic, Ill, sg } from "@/components/carnet/ui";
+import { CountUp, Ic, Ill, eur, sg } from "@/components/carnet/ui";
+import { resteOuManque } from "@/lib/domain/lecture";
+
+/** Le chiffre sous « il te reste » ou « il te manque » : sans signe, le verbe dit le sens. */
+const sansSigne = (n: number) => eur(Math.abs(n));
 import { phraseObjectif } from "@/lib/domain/objectif";
 import { estEstimation } from "@/lib/domain/estimation";
 
@@ -74,9 +78,9 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
   const inner: ReactNode = (
     <>
       <span className="ac-tx">
-        <span className="k">{estime ? "Si tout est payé, ce mois" : net < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"}</span>
+        <span className="k">{estime ? "Si tout est payé, ce mois" : `Ce mois, ${resteOuManque(net)}`}</span>
         <span className={`big ${tone}`}>
-          <CountUp value={net} ms={900} />
+          <CountUp value={net} ms={900} fmt={estime ? undefined : sansSigne} />
         </span>
         <span className="ac-sub">{estime ? "Une estimation, faite avec tes prix. Elle devient réelle quand tes chevaux ont leur propriétaire." : phrase || "Une fois tout payé : pensions, soins, frais de l’écurie."}</span>
       </span>
@@ -104,7 +108,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
       )}
     </>
   );
-  const label = `${estime ? "Si tout est payé, ce mois, estimation :" : net < 0 ? "Ce mois, il te manque" : "Ce mois, il te reste"} ${sg(net)}. ${phrase}${prevuTxt ? ` ${prevuTxt}.` : ""}`;
+  const label = `${estime ? `Si tout est payé, ce mois, estimation : ${sg(net)}` : `Ce mois, ${resteOuManque(net)} ${eur(Math.abs(net))}`}. ${phrase}${prevuTxt ? ` ${prevuTxt}.` : ""}`;
   const card = href ? (
     <Link href={href} className={`card moncard ac-cpt${ill ? "" : " nobag"}`} aria-label={`${label} Voir d’où ça vient.`}>
       {inner}

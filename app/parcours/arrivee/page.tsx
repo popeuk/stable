@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUiStore } from "@/stores/ui-store";
 import { ClientGate } from "@/components/ui/client-gate";
-import { CountUp, Face, Ic, Ill, Money, Steam, eurc, sg } from "@/components/carnet/ui";
+import { CountUp, Face, Ic, Ill, Money, Steam, eur, eurc, sg } from "@/components/carnet/ui";
 import { usePerso } from "@/components/bs/perso";
 import { getSession } from "@/lib/account/session";
 import { estAMoi } from "@/components/bs/parcours";
@@ -76,7 +76,7 @@ function Reste() {
           {/* Rien n'est encore rentré : c'est une estimation, à l'encre, dite comme telle. */}
           <p className="es-say">{net >= 0 ? "Si tout est payé, il te restera environ" : "Si rien ne change, il te manquera environ"}</p>
           <p className="big num">
-            <CountUp value={net} ms={1200} />
+            <CountUp value={net} ms={1200} fmt={(x) => eur(Math.abs(x))} />
           </p>
           <p className="es-say">par mois.</p>
           <div className="es-calc">

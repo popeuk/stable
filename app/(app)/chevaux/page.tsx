@@ -605,7 +605,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
             <p className="k">{month}</p>
             <h2>Tes chevaux</h2>
             <p>
-              Ce mois, tes chevaux {net >= 0 ? "te laissent" : "te coûtent"} <Money v={net} /> à eux tous, une fois leurs frais payés. Clique un cheval pour voir le détail.
+              Ce mois, tes chevaux {net >= 0 ? "te laissent" : "te coûtent"} <Money v={net} plain /> à eux tous, une fois leurs frais payés. Clique un cheval pour voir le détail.
             </p>
           </div>
           <Link href={ajouter} className="btn">
@@ -701,7 +701,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
           <h2>
             {n === 1 ? "Ton cheval" : `Tes ${n} chevaux`} {net >= 0 ? (n === 1 ? "te laisse" : "te laissent") : n === 1 ? "te coûte" : "te coûtent"}{" "}
             <span className={Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "num"}>
-              <CountUp value={net} />
+              <CountUp value={net} fmt={(x) => eur(Math.abs(x))} />
             </span>{" "}
             ce mois.
           </h2>

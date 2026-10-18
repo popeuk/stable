@@ -12,6 +12,7 @@ import { localToday } from "@/lib/utils/local-date";
 import { dIciFin, phraseObjectif, useCompte, useMois } from "@/components/bs/compteur";
 import { LigneComptee, useDebutant } from "@/components/bs/compte";
 import { Ill, Money, eur, sg } from "@/components/carnet/ui";
+import { resteOuManque } from "@/lib/domain/lecture";
 import { useFeuille } from "@/components/bs/feuille";
 
 /**
@@ -106,7 +107,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
     ...(etapes.includes("hier") ? [veille.length ? `Hier, ${pl(veille.length, "ligne")} ${veille.length > 1 ? "ont" : "a"} compté : ${sg(totalHier)}.` : "Hier, plus rien ne compte."] : []),
     // Toutes les choses du jour, comme l'accueil : séances, soins, tâches, rendez-vous.
     ...(resumeJournee(items).ligne ? [resumeJournee(items).ligne!] : []),
-    `Ce mois-ci, ${mois.net < 0 ? "il te manque" : "il te reste"} ${sg(mois.net)}.`,
+    `Ce mois-ci, ${resteOuManque(mois.net)} ${eur(Math.abs(mois.net))}.`,
   ];
 
   return createPortal(
@@ -253,11 +254,11 @@ function MoisQuiCompte({ depuis }: { depuis: number }) {
       <div className="sitw">
         <Ill n="assise" alt="La gérante, assise sur le chiffre du mois, une tasse de café à la main." />
       </div>
-      <div className="card moncard ac-cpt nobag" role="group" aria-label={`Ce mois, ${net < 0 ? "il te manque" : "il te reste"} ${sg(net)}`}>
+      <div className="card moncard ac-cpt nobag" role="group" aria-label={`Ce mois, ${resteOuManque(net)} ${eur(Math.abs(net))}`}>
         <span className="ac-tx">
-          <span className="k">{estime ? "Si tout est payé, ce mois" : v < 0 ? "Ce mois, il te manque" : "Ce mois-ci, il te reste"}</span>
+          <span className="k">{estime ? "Si tout est payé, ce mois" : `Ce mois, ${resteOuManque(net)}`}</span>
           <span className={`big ${tone}`}>
-            <span className="num">{sg(v)}</span>
+            <span className="num">{estime ? sg(v) : eur(Math.abs(v))}</span>
           </span>
           {objective > 0 && <span className="ac-sub">{phraseObjectif(net, objective)}</span>}
         </span>

@@ -146,12 +146,12 @@ function Bilans() {
 
   const hero = (
     <div className="card ar-hero6 rise" style={{ animationDelay: ".05s" }}>
-      <p className="k">Ce qui t’est resté sur {months.length} mois</p>
+      <p className="k">{Math.round(net) < 0 ? `Ce qui t’a manqué sur ${months.length} mois` : `Ce qui t’est resté sur ${months.length} mois`}</p>
       <p className={`big ${net > 0 ? "in" : net < 0 ? "out" : ""}`}>
-        <CountUp value={net} />
+        <CountUp value={net} fmt={(x) => eur(Math.abs(x))} />
       </p>
       <span className="ar-avg">
-        soit <Money v={avg} /> par mois en moyenne
+        soit <Money v={avg} plain /> par mois en moyenne
       </span>
       <p className="note">
         {rangeLabel} {net >= 0 ? `Sur 100 € qui rentrent, il t’en reste ${keep}.` : "Sur ces mois-là, l’écurie t’a coûté plus qu’elle ne t’a rapporté. Beaucoup d’écuries passent par là. Regarde juste en dessous où part l’argent."}

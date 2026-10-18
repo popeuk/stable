@@ -16,7 +16,7 @@ import { usePeriodStore } from "@/stores/period-store";
 import { useUiStore } from "@/stores/ui-store";
 import { libelleFrais } from "@/components/bs/parcours";
 import { estEstimation } from "@/lib/domain/estimation";
-import { barreDuMois, ilFautPensions, memePlein } from "@/lib/domain/lecture";
+import { barreDuMois, ilFautPensions, memePlein, resteOuManque } from "@/lib/domain/lecture";
 import { monthBreakdown, seuilEtPlaces } from "@/lib/domain/ticket";
 import { suggestions, leverPotential, type Lever, type Suggestion } from "@/lib/domain/leviers";
 import { clientDues } from "@/lib/domain/clients";
@@ -172,9 +172,9 @@ function Mois() {
   const goal = (
     <div className="card ar-goal rise" style={{ animationDelay: ".1s" }}>
       <div className="ar-gtx">
-        <p className="k">{estime ? "Si tout est payé, environ" : isNow ? "Ce mois, il te reste" : `En ${mName}, il t’est resté`}</p>
+        <p className="k">{estime ? "Si tout est payé, environ" : isNow ? `Ce mois, ${resteOuManque(m.net)}` : Math.round(m.net) < 0 ? `En ${mName}, il t’a manqué` : `En ${mName}, il t’est resté`}</p>
         <p className={`big ${estime ? "" : m.net > 0 ? "in" : m.net < 0 ? "out" : ""}`}>
-          <CountUp value={m.net} />
+          <CountUp value={m.net} fmt={estime ? undefined : (n) => eur(Math.abs(n))} />
         </p>
         {estime && <p className="note">Une estimation : tes chevaux n’ont pas encore de propriétaire.</p>}
         {isNow && Math.round(rest) !== 0 && (
