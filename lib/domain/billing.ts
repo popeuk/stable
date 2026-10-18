@@ -1,4 +1,4 @@
-import type { Period, StableData } from "@/lib/domain/types";
+import type { Invoice, Period, Revenue, StableData } from "@/lib/domain/types";
 import { addMonths, dateInPeriod } from "@/lib/utils/period";
 
 /**
@@ -111,29 +111,91 @@ export function billsFor(data: StableData, period: Period): Bill[] {
   return [...map.values()].sort((a, b) => Number(!!a.orphan) - Number(!!b.orphan) || b.due - a.due || a.payer.localeCompare(b.payer));
 }
 
+/** Ce qu'un avoir retire d'un mois : pour le client, et cheval par cheval (`""` : l'argent sans cheval). */
+export interface Annulation {
+  number: string;
+  payer: string;
+  issuedAt: string;
+  /** Ce que l'avoir retire de ce que le client doit, et de la recette du mois (positif). */
+  amount: number;
+  parCheval: { horseId: string; amount: number }[];
+}
+
+const cacheAnnulations = new WeakMap<Invoice[], { revenues: Revenue[]; parMois: Map<string, Annulation[]> }>();
+
 /**
- * Ce que chaque avoir d'un mois retire de ce que le client doit. Une ligne
+ * Ce que chaque avoir d'un mois (le mois de la facture) retire, une seule
+ * fois, de ce que le client doit et de la recette du mois. Une ligne
  * d'avoir rend des recettes précises : chacune compte pour son prix, tant
  * qu'elle existe encore et qu'elle n'est pas repartie sur une autre facture
  * (sinon le client la doit de nouveau, ou elle a déjà été retirée). Un avoir
- * d'avant les lignes détaillées compte pour son total.
+ * d'un montant compte pour son total, et se range sur les chevaux de la
+ * facture au prorata de ce qu'ils y ont encore. Mon bilan, la fiche du cheval et celle du client lisent tous ceci.
  */
-export function avoirsDuMois(data: Pick<StableData, "invoices" | "revenues">, month: string): { number: string; payer: string; amount: number }[] {
+export function annulationsDuMois(data: Pick<StableData, "invoices" | "revenues">, month: string): Annulation[] {
   const invoices = data.invoices ?? [];
+  if (!invoices.some((i) => i.kind === "avoir")) return [];
+  let c = cacheAnnulations.get(invoices);
+  if (!c || c.revenues !== data.revenues) {
+    c = { revenues: data.revenues, parMois: new Map() };
+    cacheAnnulations.set(invoices, c);
+  }
+  const vu = c.parMois.get(month);
+  if (vu) return vu;
   const n = new Map<string, number>();
   for (const i of invoices) for (const id of i.revenueIds) n.set(id, (n.get(id) ?? 0) + (i.kind === "avoir" ? -1 : 1));
-  const existe = new Set(data.revenues.map((r) => r.id));
-  const out: { number: string; payer: string; amount: number }[] = [];
+  const rev = new Map(data.revenues.map((r) => [r.id, r]));
+  const rendue = (id: string) => rev.has(id) && (n.get(id) ?? 0) <= 0;
+  const r2 = (x: number) => Math.round(x * 100) / 100;
+  const out: Annulation[] = [];
   for (const a of invoices) {
     if (a.kind !== "avoir" || a.month !== month) continue;
-    let amount = 0;
+    const par = new Map<string, number>();
+    const ajoute = (h: string, x: number) => par.set(h, (par.get(h) ?? 0) + x);
+    let libre = 0;
     for (const l of a.lines) {
-      if (l.revenueIds?.length) amount += Math.abs(l.unitTTC) * l.revenueIds.filter((id) => existe.has(id) && (n.get(id) ?? 0) <= 0).length;
-      else amount += Math.abs(l.totalTTC);
+      if (l.revenueIds?.length) for (const id of l.revenueIds.filter(rendue)) ajoute(rev.get(id)!.horseId ?? "", Math.abs(l.unitTTC));
+      else libre += Math.abs(l.totalTTC);
     }
-    out.push({ number: a.number, payer: a.payer, amount: Math.round(amount * 100) / 100 });
+    if (libre > 0 && a.revenueIds.length) {
+      // Un avoir d'avant les lignes détaillées : les recettes qu'il rend, à leur prix, tant qu'elles comptent.
+      for (const id of a.revenueIds.filter(rendue)) ajoute(rev.get(id)!.horseId ?? "", rev.get(id)!.amount);
+    } else if (libre > 0) {
+      // Un avoir d'un montant : rangé sur les chevaux de la facture, au prorata de ce qu'ils y ont encore.
+      const facture = invoices.find((i) => i.kind !== "avoir" && i.number === a.avoirDe?.number);
+      const poids = new Map<string, number>();
+      for (const id of facture?.revenueIds ?? []) {
+        const r = rev.get(id);
+        if (r && (n.get(id) ?? 0) > 0) poids.set(r.horseId ?? "", (poids.get(r.horseId ?? "") ?? 0) + r.amount);
+      }
+      const total = [...poids.values()].reduce((t, x) => t + x, 0);
+      if (total > 0) {
+        let reste = r2(libre);
+        const ps = [...poids.entries()];
+        ps.forEach(([h, w], k) => {
+          const part = k === ps.length - 1 ? reste : r2((libre * w) / total);
+          reste = r2(reste - part);
+          ajoute(h, part);
+        });
+      } else ajoute("", libre);
+    }
+    const parCheval = [...par.entries()].map(([horseId, x]) => ({ horseId, amount: r2(x) })).filter((x) => x.amount > 0);
+    out.push({ number: a.number, payer: a.payer, issuedAt: a.issuedAt, amount: r2(parCheval.reduce((t, x) => t + x.amount, 0)), parCheval });
   }
+  c.parMois.set(month, out);
   return out;
+}
+
+/** Ce que chaque avoir d'un mois retire de ce que le client doit (positif). */
+export function avoirsDuMois(data: Pick<StableData, "invoices" | "revenues">, month: string): { number: string; payer: string; amount: number }[] {
+  return annulationsDuMois(data, month).map(({ number, payer, amount }) => ({ number, payer, amount }));
+}
+
+/** Ce que les avoirs retirent de la recette d'un cheval (`""` : l'argent sans cheval) pour un mois. */
+export function annuleSurCheval(data: Pick<StableData, "invoices" | "revenues">, horseId: string, period: Period): number {
+  let t = 0;
+  for (const a of annulationsDuMois(data, monthKey(period))) for (const x of a.parCheval) if (x.horseId === horseId) t += x.amount;
+  return Math.round(t * 100) / 100;
 }
 
 /** La note d'un client ce mois-ci (casse et espaces confondus), ou undefined. */

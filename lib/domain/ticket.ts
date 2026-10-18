@@ -6,6 +6,7 @@ import { chevauxDuMois, chevauxPresents, repartition } from "@/lib/domain/presen
 import { presenceDays } from "@/lib/domain/distribution";
 import { daysInMonth, periodEnd, periodStart } from "@/lib/utils/period";
 import { debutCompte, finCompte, sejourDuMois } from "@/lib/domain/sejours";
+import { annulationsDuMois, monthKey } from "@/lib/domain/billing";
 
 /**
  * Le ticket du mois d'un cheval, et le bilan du mois de l'écurie, dans la
@@ -58,6 +59,11 @@ export function horseTicket(data: StableData, horseId: string, period: Period): 
   for (const rec of recurringRevenuesDue(data, horseId, period)) {
     lines.push({ key: rec.id, label: rec.label || catName(data, rec.categoryId) || "Recette", amount: rec.amount, kind: "in" });
   }
+  // Un avoir annule une vente : ce qu'il rend sur ce cheval, en moins (le même chiffre que Mon bilan).
+  for (const a of annulationsDuMois(data, monthKey(period))) {
+    const x = a.parCheval.find((c) => c.horseId === horseId);
+    if (x) lines.push({ key: `avoir-${a.number}`, date: a.issuedAt, label: `Avoir n° ${a.number}`, amount: -x.amount, kind: "in" });
+  }
   for (const e of data.directExpenses) {
     if (e.horseId !== horseId || !dateInPeriod(e.date, period)) continue;
     lines.push({ key: e.id, sourceId: e.id, date: e.date, label: e.label, amount: -e.amount, kind: "out" });
@@ -72,7 +78,7 @@ export function horseTicket(data: StableData, horseId: string, period: Period): 
   lines.sort((a, b) => {
     const order = { in: 0, out: 1, share: 2 } as const;
     if (order[a.kind] !== order[b.kind]) return order[a.kind] - order[b.kind];
-    if (a.kind === "in") return /pension/i.test(a.label) ? -1 : /pension/i.test(b.label) ? 1 : 0;
+    if (a.kind === "in") return /pension/i.test(a.label) ? -1 : /pension/i.test(b.label) ? 1 : Number(a.amount < 0) - Number(b.amount < 0);
     return (a.date ?? "").localeCompare(b.date ?? "");
   });
 
@@ -198,6 +204,9 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
     if (!isOutside(r) || !dateInPeriod(r.date, period)) continue;
     addIn(r.note || catName(data, r.categoryId) || "Hors chevaux", r.amount);
   }
+  // Les avoirs du mois : la vente annulée, retirée une seule fois (billing.ts).
+  const annule = annulationsDuMois(data, monthKey(period)).flatMap((a) => a.parCheval).filter((x) => !x.horseId || active.has(x.horseId)).reduce((t, x) => t + x.amount, 0);
+  if (annule > 0) insMap.set("Avoirs", -Math.round(annule * 100) / 100);
   const outMap = new Map<string, number>();
   for (const e of data.directExpenses) {
     if (!isOutside(e) || !dateInPeriod(e.date, period)) continue;
