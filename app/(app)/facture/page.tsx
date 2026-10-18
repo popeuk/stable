@@ -574,8 +574,10 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
   const router = useRouter();
   const say = useUiStore((s) => s.say);
   const ligne = preselect ? inv.lines.findIndex((l) => l.revenueIds?.includes(preselect)) : -1;
-  const [tout, setTout] = useState(ligne < 0);
-  const [parMontant, setParMontant] = useState(false);
+  // Un avoir d'un montant fait avant : il ne reste plus toute la facture à annuler, la feuille s'ouvre sur « Un montant ».
+  const deja = resteEnEuros(inv, invoices) < inv.totalTTC;
+  const [tout, setTout] = useState(ligne < 0 && !deja);
+  const [parMontant, setParMontant] = useState(deja);
   const [qtes, setQtes] = useState<number[]>(() => reste.map((r, i) => (i === ligne ? Math.min(1, r) : 0)));
   const [montant, setMontant] = useState("");
   const [motif, setMotif] = useState("");
@@ -597,9 +599,7 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
     router.push(`/facture?n=${encodeURIComponent(a.number)}`);
   };
   const changer = (i: number, d: number) => setQtes((q) => q.map((x, k) => (k === i ? Math.min(reste[i], Math.max(0, x + d)) : x)));
-  // Un avoir d'un montant fait avant : il ne reste plus toute la facture à annuler.
-  const deja = maxEuros < inv.totalTTC;
-  const vide = libre ? (m > maxEuros ? `Au plus ${eur2(maxEuros)}` : "Tape le montant") : tout && deja ? `Il reste ${eur2(maxEuros)} : choisis « Un montant »` : "Choisis ce qu’il annule";
+  const vide = libre ? (m > maxEuros ? `Au plus ${eur2(maxEuros)}` : "Tape le montant") : tout && deja ? `Il reste ${eur2(maxEuros)} : choisis « Une partie », puis « Un montant »` : "Choisis ce qu’il annule";
   return (
     <FeuilleMoyen titre="Annuler par un avoir" onClose={onClose}>
       <div className="pad fa-avf">
