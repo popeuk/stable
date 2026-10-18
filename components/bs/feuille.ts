@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { poserEntree, retirerEntree } from "@/lib/retour-feuille";
 
 /**
  * Ce que toute feuille modale doit faire, en un seul endroit : prendre le
  * focus à l'ouverture, garder Tab à l'intérieur, se fermer à Échap, rendre le
  * focus à ce qui l'a ouverte. Les feuilles empilées (une feuille ouverte depuis
  * une autre) se ferment une à une : seule celle du dessus écoute le clavier.
+ * Le bouton retour d'Android ou du navigateur ferme d'abord la feuille
+ * (lib/retour-feuille).
  */
 
 const FOCUSABLE =
@@ -53,6 +56,8 @@ export function useFeuille<T extends HTMLElement = HTMLDivElement>(
     const jeton = {};
     pile.push(jeton);
     const avant = origine;
+    // Une entrée d'historique : le retour ferme la feuille au lieu de quitter l'écran.
+    const entree = poserEntree(() => fermer.current());
 
     // Le focus entre dans la feuille : un élément marqué, sinon le premier
     // choix (pas la croix, pas un champ), sinon la feuille elle-même.
@@ -92,6 +97,7 @@ export function useFeuille<T extends HTMLElement = HTMLDivElement>(
 
     return () => {
       document.removeEventListener("keydown", onKey, true);
+      retirerEntree(entree);
       const i = pile.indexOf(jeton);
       if (i >= 0) pile.splice(i, 1);
       if (verrou) document.body.style.overflow = overflow;
