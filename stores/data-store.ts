@@ -159,8 +159,8 @@ interface DataState extends StableData {
   setPension: (horseId: string, amount: number, monthKey: string) => void;
   /**
    * Une facture commune mensuelle, réglée une fois : elle devient une charge
-   * récurrente partagée à partir du mois donné, et remplace ce qui avait été
-   * saisi pour ce mois-là dans la même catégorie.
+   * récurrente partagée à partir du mois donné, et remplace l'estimation d'avant
+   * dans la même catégorie. Les vraies dépenses du mois ne bougent pas.
    */
   /** `saisi` : le montant tel que tapé, quand il est connu à l'année ou en plusieurs fois ; `amount` est son équivalent par mois. */
   setMonthlyCharge: (categoryId: string, label: string, amount: number, period: { year: number; month: number }, saisi?: MontantSaisi) => void;
@@ -737,9 +737,6 @@ export const useDataStore = create<DataState>()(
         set((s) => {
           const start = `${period.year}-${String(period.month).padStart(2, "0")}-01`;
           const value = Math.max(0, Math.round(amount * 100) / 100);
-          const sharedExpenses = s.sharedExpenses.filter(
-            (e) => !(e.categoryId === categoryId && e.periodYear === period.year && e.periodMonth === period.month),
-          );
           // L'ancienne charge s'arrête au mois précédent : le passé ne bouge pas.
           const prevEnd = new Date(Date.UTC(period.year, period.month - 1, 0)).toISOString().slice(0, 10);
           const recurringExpenses = (s.recurringExpenses ?? []).flatMap((r) => {
@@ -763,7 +760,8 @@ export const useDataStore = create<DataState>()(
               ...(saisi ? { saisi } : {}),
             });
           }
-          return { sharedExpenses, recurringExpenses };
+          // Les vraies dépenses du mois (notées avec le +) restent : seule l'estimation change.
+          return { recurringExpenses };
         }),
 
       ensurePerson: (name, role) => {

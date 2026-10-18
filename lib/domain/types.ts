@@ -123,6 +123,13 @@ export interface SharedExpense {
   source: EntrySource;
   allocations: SharedExpenseAllocation[];
   note?: string;
+  /**
+   * Une vraie dépense d'un poste déjà estimé dans « Mes frais » (une
+   * livraison de foin) qui fait partie de l'estimation : elle est décomptée
+   * de l'estimation du mois au lieu de s'y ajouter (recurring.ts). Absent :
+   * elle s'ajoute.
+   */
+  dansEstimation?: boolean;
 }
 
 /** A calendar period the whole app is scoped to (the Time Ribbon). */

@@ -1,7 +1,7 @@
 import type { Period, StableData } from "@/lib/domain/types";
 import { horsePnl, horseSharedCosts, isOutside, stablePnl } from "@/lib/domain/calculations";
 import { dateInPeriod } from "@/lib/utils/period";
-import { recurringList, recurringDue, recurringDirectDue, recurringRevenuesDue } from "@/lib/domain/recurring";
+import { montantsDuMois, recurringList, recurringDue, recurringDirectDue, recurringRevenuesDue } from "@/lib/domain/recurring";
 import { chevauxDuMois, chevauxPresents, repartition } from "@/lib/domain/presence";
 import { presenceDays } from "@/lib/domain/distribution";
 import { daysInMonth, periodEnd, periodStart } from "@/lib/utils/period";
@@ -192,8 +192,10 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
     if (a > 0) addSh(se.label, a);
   }
   // Les charges récurrentes partagées (assurance, crédit…), sous leur nom, avec ou sans cheval.
+  const du = montantsDuMois(data, period);
   for (const r of recurringList(data)) {
-    if (r.isShared && recurringDue(r, period)) addSh(r.label, r.amount);
+    const a = du.get(r.id) ?? r.amount;
+    if (r.isShared && recurringDue(r, period) && a > 0) addSh(r.label, a);
   }
   const listed = [...shMap.values()].reduce((t, a) => t + a, 0);
   const rest = Math.round((s.sharedCosts - listed) * 100) / 100;

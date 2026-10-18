@@ -13,6 +13,8 @@ import { applySoin, connuDe, draftFor, draftFromCompris, endOf, habitudes, manqu
 import { ChoixConnu, ChoixFois, SoitParMois } from "@/components/bs/montant-connu";
 import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
 import { comprendre } from "@/lib/domain/dire";
+import { estimationDuPoste } from "@/lib/domain/recurring";
+import { questionDedans } from "@/lib/domain/estimation";
 import { norm } from "@/lib/domain/interpret";
 import { seriesDates } from "@/lib/domain/seances";
 import type { CareKind } from "@/lib/domain/care";
@@ -243,8 +245,11 @@ function NoterInner() {
     setScreen("grid");
   }
 
+  // Une vraie dépense d'un poste déjà estimé dans Mes frais : fait-elle partie de l'estimation ?
+  const [dedansQ, setDedansQ] = useState<{ nom: string; montant: number } | null>(null);
+
   /* ---------- Enregistrer ---------- */
-  function commit() {
+  function commit(dedans?: boolean) {
     if (!d) return;
     if (manque(d)) {
       setTried(true);
@@ -394,6 +399,8 @@ function NoterInner() {
       else st.addDirectExpense({ horseId: "", label: label || "Hors chevaux", amount: v, date: d.date, note, source: "manual" });
     } else if (pour === "ecurie") {
       const period = currentPeriod(new Date(d.date + "T12:00:00"));
+      const estime = estimationDuPoste(st, cat?.id, period);
+      if (cat && estime > 0 && dedans === undefined) return setDedansQ({ nom: cat.name, montant: estime });
       st.addSharedExpense({
         categoryId: cat?.id,
         label: label || cat?.name || "Frais communs",
@@ -406,6 +413,7 @@ function NoterInner() {
         // y compris ceux qui arrivent après ; sans cheval, elle compte quand même (presence.ts).
         allocations: [],
         note,
+        ...(dedans ? { dansEstimation: true } : {}),
       });
     } else {
       const before = new Set([...st.revenues.map((r) => r.id), ...st.directExpenses.map((x) => x.id)]);
@@ -585,7 +593,7 @@ function NoterInner() {
           {d.type === "soin" ? "Choisis d’abord le soin." : "Il manque le montant."}
         </p>
       )}
-      <button type="button" className="btn full nt-ok" onClick={commit}>
+      <button type="button" className="btn full nt-ok" onClick={() => commit()}>
         C’est bon
       </button>
     </>
@@ -672,6 +680,25 @@ function NoterInner() {
         <div className="nt-alt">
           <button type="button" className="lnk" onClick={backToGrid}>
             Revenir au choix
+          </button>
+        </div>
+      </>
+    );
+  } else if (d && dedansQ) {
+    body = (
+      <>
+        <button type="button" className="nt-bk" onClick={() => setDedansQ(null)}>
+          <Ic n="back" className="" />
+          Revenir
+        </button>
+        <Q>{questionDedans(dedansQ.nom, eurc(dedansQ.montant))}</Q>
+        <p className="note">Oui : on la décompte de ton estimation, le mois compte toujours {eurc(dedansQ.montant)} en tout. Non : elle s’ajoute.</p>
+        <div className="nt-stick">
+          <button type="button" className="btn full nt-ok" onClick={() => commit(true)}>
+            Oui, c’est dedans
+          </button>
+          <button type="button" className="btn line full" onClick={() => commit(false)}>
+            Non, c’est en plus
           </button>
         </div>
       </>
