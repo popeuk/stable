@@ -38,7 +38,7 @@ export function Partis({ delay = 0.36 }: { delay?: number }) {
                 say(`<strong>${esc(h.name)}</strong> est de retour. Sa pension compte à nouveau.`, () => useDataStore.setState(back));
               }}
             >
-              Il revient
+              Le faire revenir
             </button>
           </div>
         ))}

@@ -101,7 +101,7 @@ function Prestations() {
       </Sec>
       <div className="pad rise" style={{ marginTop: 14, animationDelay: ".36s" }}>
         <Tip ill="sacoche">
-          <b>Un prix changé vaut pour la suite.</b> Les séances déjà au planning gardent leur ancien prix.
+          <b>Un nouveau prix compte pour la suite.</b> Les séances déjà prévues gardent l’ancien.
         </Tip>
       </div>
       <Link href="/argent?vue=leviers" className="ec-lcard rise" style={{ animationDelay: ".42s" }}>
@@ -193,11 +193,11 @@ function prixEnMots(p: Prestation, tariffs: Tariffs | undefined): string {
     const g = prixDe(p, "collectif", tariffs);
     const s = prixDe(p, "particulier", tariffs);
     const parts = [g ? `${eurc(g)} en groupe` : "", s ? `${eurc(s)} seul` : ""].filter(Boolean);
-    if (parts.length) return `${parts.join(", ")} par cavalier · tes prix`;
+    if (parts.length) return `${parts.join(", ")} par cavalier`;
     return "Pas de prix pour l’instant · seul ou en groupe";
   }
   const t = prixDe(p, undefined, tariffs);
-  return t ? `${eurc(t)} la séance · tes prix` : "Pas de prix pour l’instant";
+  return t ? `${eurc(t)} la séance` : "Pas de prix pour l’instant";
 }
 
 function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: boolean; onToggle: () => void; onPlan: () => void }) {
@@ -269,7 +269,7 @@ function Row({ s, max, open, onToggle, onPlan }: { s: Stat; max: number; open: b
                 const snap = st().prestations;
                 const r = st().removePrestation(p.id);
                 say(
-                  r === "supprimee" ? `Retiré : ${esc(p.label)}.` : `${esc(p.label)} a déjà des séances. Mets-la en pause pour garder l’historique.`,
+                  r === "supprimee" ? `Retiré : ${esc(p.label)}.` : `${esc(p.label)} a déjà des séances. Mets-le plutôt en pause : ses séances passées restent.`,
                   () => useDataStore.setState({ prestations: snap }),
                 );
               }}

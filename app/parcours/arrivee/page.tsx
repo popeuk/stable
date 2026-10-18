@@ -126,7 +126,7 @@ function Reste() {
             Créer mon compte
             <Ic n="arrow" className="" />
           </Link>
-          <p className="ar-proof">Gratuit. Ton écurie, ton e-mail, un code : tes chiffres sont gardés.</p>
+          <p className="ar-proof">C’est gratuit. Ton e-mail, un code, et tes chiffres sont à l’abri.</p>
           <button type="button" className="lnk" onClick={essayerPlus}>
             Essayer le + d’abord
           </button>

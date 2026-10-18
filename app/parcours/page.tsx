@@ -58,7 +58,7 @@ function Parcours() {
     <>
       <div className="ar-over">
         <span>Tes premiers pas</span>
-        <button type="button" className="x" onClick={sortir} aria-label={setupDone ? "Fermer et aller à l’accueil" : "Finir plus tard et découvrir l’app"}>
+        <button type="button" className="x" onClick={sortir} aria-label={setupDone ? "Fermer et aller à l’accueil" : "Découvrir l’app, finir plus tard"}>
           <Ic n="x" className="" />
         </button>
       </div>
@@ -72,7 +72,7 @@ function Parcours() {
                 ? "Tu as fait le tour. Ton mois t’attend."
                 : "Le reste vient tout seul, en utilisant l’app."
               : premiere
-                ? "Trois minutes. Des chiffres à peu près, ça suffit. Tu changes tout plus tard."
+                ? "Trois minutes. Des chiffres à peu près suffisent, tu pourras tout changer."
                 : reste === 1
                   ? "Encore une question, et tu vois ton mois."
                   : "Encore deux questions, et tu vois ton mois."}

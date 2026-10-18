@@ -172,7 +172,7 @@ export function MonEcurie() {
         ]}
       />
       <Case
-        titre="Tes places et tes papiers"
+        titre="Places et papiers"
         lignes={[
           { href: "/moi?s=ecurie", ic: "home", t: "Mes places", s: capacity ? `${capacity} places, ${Math.min(horses, capacity)} prises` : "Combien de chevaux tu peux accueillir" },
           { href: "/moi?s=papiers", ic: "doc", t: "Mes papiers", s: `${factures ? `${factures} facture${factures > 1 ? "s" : ""}` : "Factures"}, fichier du comptable, registre d’élevage` },

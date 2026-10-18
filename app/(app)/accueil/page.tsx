@@ -158,7 +158,7 @@ function NommerChevaux() {
       <Face horse={first} />
       <span>
         <b>Donne un nom à tes chevaux</b>
-        <small>{sansNom.length > 1 ? `${sansNom.length} chevaux portent encore un numéro : ${first.name}, ${sansNom[1].name}…` : `« ${first.name} » attend son vrai nom.`}</small>
+        <small>{sansNom.length > 1 ? `${sansNom.length} chevaux portent encore un numéro : ${first.name}, ${sansNom[1].name}…` : `${first.name} n’a pas encore son vrai nom.`}</small>
       </span>
       <Ic n="chev" className="chev" />
     </Link>

@@ -45,7 +45,7 @@ function TicketRoute() {
         <Empty ill="introuvable">Ce cheval n’est plus dans l’écurie.</Empty>
         <div className="ch-after">
           <Link href="/chevaux" className="btn line full">
-            Mes chevaux
+            Tes chevaux
           </Link>
         </div>
       </Ecran>
@@ -77,7 +77,7 @@ function tipFor(h: Horse, t: HorseTicket): [string, string] {
       `Si ${h.ownerName ?? "son propriétaire"} paie aussi ce poste (${big.label.toLowerCase()}), ${h.name} ${Math.round(t.net - big.amount) < 0 ? `ne te coûtera plus que ${eur(-(t.net - big.amount))}` : Math.round(t.net - big.amount) > 0 ? `te laissera ${eur(t.net - big.amount)}` : "ne te coûtera plus rien"}.`,
     ];
   const breakeven = Math.ceil((t.direct + t.share - (t.revenue - (h.pension ?? 0))) / 10) * 10;
-  return [`Une pension à ${eur(breakeven)} au lieu de ${eur(h.pension ?? 0)} suffirait.`, `Sa pension est plus basse que ce ${selonSexe(h, "qu’il", "qu’elle", "que ce cheval")} te coûte. À ce prix, tu ne perdrais plus d’argent.`];
+  return [`À ${eur(breakeven)} au lieu de ${eur(h.pension ?? 0)}, sa pension couvrirait ses frais.`, `Sa pension est plus basse que ce ${selonSexe(h, "qu’il", "qu’elle", "que ce cheval")} te coûte. À ce prix, tu ne perdrais plus d’argent.`];
 }
 
 const jour = (d: string, month: "short" | "long" = "short") => new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month });
@@ -249,7 +249,7 @@ function Ticket({ horse }: { horse: Horse }) {
   );
 
   const carnet = (
-    <Sec ill="carnet-buste" title="Son carnet">
+    <Sec ill="carnet-buste" title="Son carnet de soins">
       {log.length === 0 && <p className="note">Rien de noté pour l’instant. Ses soins (vaccin, maréchal, dentiste…) apparaîtront ici.</p>}
       <div className="rows">
         {log.map((e) => (

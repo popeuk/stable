@@ -178,7 +178,7 @@ function TvaIntra() {
           setBilling({ tvaIntra: tvaIntraPropre(e.target.value) || undefined });
         }}
       />
-      <em>{v && !ok ? "FR, deux caractères, puis les 9 chiffres de ton SIREN." : ok && !memeSiren ? "Ses 9 derniers chiffres ne sont pas ceux de ton SIRET : vérifie-le." : "Il s’imprime sur tes factures avec TVA. Tu le trouves sur ton espace impots.gouv.fr."}</em>
+      <em>{v && !ok ? "FR, puis 2 chiffres ou lettres, puis les 9 chiffres de ton SIREN." : ok && !memeSiren ? "Ses 9 derniers chiffres ne sont pas ceux de ton SIRET : vérifie-le." : "Il s’imprime sur tes factures avec TVA. Tu le trouves sur ton espace impots.gouv.fr."}</em>
     </label>
   );
 }
@@ -226,7 +226,7 @@ export function TvaReglage({ kinds = KINDS }: { kinds?: VatKind[] }) {
           <TvaIntra />
         </div>
       )}
-      <p className="fr-hint">Pas sûr ? Le taux dépend de ce que tu vends et de ton statut : demande à ton comptable, puis choisis ici. Tes prix restent ceux que paie le client, TVA comprise.</p>
+      <p className="fr-hint">Un doute ? Le taux dépend de ce que tu vends et de ton statut : demande à ton comptable, puis choisis ici. Tes prix restent ceux que paie le client, TVA comprise.</p>
     </div>
   );
 }

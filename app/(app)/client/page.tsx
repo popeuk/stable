@@ -66,7 +66,7 @@ function FicheRoute() {
   if (!connu) {
     return (
       <Ecran>
-        <Empty ill="introuvable">Ce client n’est pas dans ton carnet.</Empty>
+        <Empty ill="introuvable">On ne trouve pas ce client.</Empty>
         <div className="ch-after">
           <Link href="/chevaux?vue=clients" className="btn line full">
             Tes clients
@@ -426,7 +426,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
                 router.push(`/facture?n=${encodeURIComponent(number)}&avoir=${encodeURIComponent(l.id)}`);
               }}
             >
-              La retirer et faire l’avoir
+              La retirer et faire un avoir
             </button>
             <button
               type="button"
@@ -437,7 +437,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
                 retirer(l, null, true);
               }}
             >
-              La retirer sans avoir
+              La retirer sans faire d’avoir
             </button>
           </div>
         </FeuilleMoyen>
@@ -567,7 +567,7 @@ function NotesSheet({ qui, notes, onClose, onAdd }: { qui: string; notes: NonNul
         )}
         <textarea className="input ta cl-ta" rows={3} placeholder="Ajoute une note" aria-label="Ajoute une note" value={t} onChange={(e) => setT(e.target.value)} />
         <button type="button" className="btn full" disabled={!t.trim()} onClick={() => onAdd(t)}>
-          Garder la note
+          Enregistrer la note
         </button>
       </div>
     </Feuille>

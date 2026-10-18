@@ -58,7 +58,7 @@ function Seuil() {
               Tu en as {n}.
             </>
           ) : (
-            "Pas encore atteignable."
+            "Pas possible avec tes prix d’aujourd’hui."
           )
         }
         sub={horsPlaces ? REVOIR_PRIX : phraseSeuil(m.seuil, n)}
@@ -100,7 +100,7 @@ function Seuil() {
             <b>
               Tes {free} place{free > 1 ? "s" : ""} libre{free > 1 ? "s sont" : " est"} ta plus grosse piste.
             </b>{" "}
-            Tu as passé le trait : chaque cheval en plus, c’est presque toute sa pension qui te reste.
+            Tu y es : chaque cheval en plus, c’est presque toute sa pension qui te reste.
           </Tip>
         )}
         {ok && !above && !horsPlaces && (

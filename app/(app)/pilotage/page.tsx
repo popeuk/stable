@@ -131,7 +131,7 @@ function Bilans() {
         <Empty ill="dodo">Pas encore grand-chose à montrer. Ajoute tes chevaux et note tes premières séances : les mois vont se remplir petit à petit.</Empty>
         <div className="pad" style={{ marginTop: 14 }}>
           <Link href="/parcours" className="btn full">
-            Reprendre le parcours
+            Reprendre mes premiers pas
           </Link>
         </div>
       </Page>
@@ -289,12 +289,12 @@ function Bilans() {
           ))
         )}
       </Sec>
-      <Sec ill="guide" title="Pour aller plus loin" delay={0.54}>
+      <Sec ill="guide" title="Voir aussi" delay={0.54}>
         {(
           [
             ["/seuil", "flag", "Combien de chevaux pour ne pas perdre d’argent", "le nombre de pensions qui paient tout"],
             ["/scenarios/nouveau", "chart", "Et si… ?", "voir ce que donnerait une pension plus chère, sans rien changer"],
-            ["/argent?vue=mouvements", "list", "Toutes les entrées et sorties d’argent", "chaque ligne, une par une"],
+            ["/argent?vue=mouvements", "list", "Ce qui rentre et ce qui sort", "chaque ligne, une par une"],
           ] as const
         ).map(([href, pic, t, s]) => (
           <Link key={href} href={href} className="li">

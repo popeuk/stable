@@ -158,7 +158,7 @@ function Mois() {
     ? ""
     : pleines.length === parSemaine.length && new Set(pleines).size === 1
       ? `Chaque semaine, tes séances rapportent ${eur(pleines[0])}.`
-      : `La meilleure semaine, celle du ${forte.label}, rapporte ${eur(Math.max(...parSemaine))} ; la plus calme, ${eur(Math.min(...parSemaine))}.`;
+      : `Ta meilleure semaine (celle du ${forte.label}) : ${eur(Math.max(...parSemaine))}. La plus calme : ${eur(Math.min(...parSemaine))}.`;
 
   const mName = monthName(active.year, active.month);
   const lastDay = new Date(active.year, active.month, 0).getDate();
@@ -177,7 +177,7 @@ function Mois() {
         <p className={`big ${estime ? "" : m.net > 0 ? "in" : m.net < 0 ? "out" : ""}`}>
           <CountUp value={m.net} fmt={estime ? undefined : (n) => eur(Math.abs(n))} />
         </p>
-        {estime && <p className="note">Une estimation : tes chevaux n’ont pas encore de propriétaire.</p>}
+        {estime && <p className="note">C’est une estimation : tes chevaux n’ont pas encore de propriétaire noté.</p>}
         {isNow && Math.round(rest) !== 0 && (
           <p className="note">
             Encore {sg(rest)} prévus d’ici le {lastDay} ({PORTEE_PREVU}).
@@ -324,7 +324,7 @@ function Mois() {
         </Sec>
         )}
         {isNow && <Piste delay={0.48} />}
-        <nav className="card ar-links rise" style={{ animationDelay: ".48s" }} aria-label="Pour aller plus loin">
+        <nav className="card ar-links rise" style={{ animationDelay: ".48s" }} aria-label="Voir aussi">
           {isNow && (
             <Link href="/chevaux?vue=clients" className="ar-lrow">
               <span className="ar-pic">
@@ -491,7 +491,7 @@ function Leviers() {
                   {s.status !== "faite" && (
                     <span className="ar-acts">
                       <button type="button" className="lnk" onClick={() => apply(s)}>
-                        {s.apply.type === "rebill" ? "Ajouter à sa facture" : s.apply.type === "pension" ? "Changer la pension au 1er du mois" : s.status === "en_cours" ? "J’y travaille encore" : "Je m’en occupe"}
+                        {s.apply.type === "rebill" ? "Ajouter à sa facture" : s.apply.type === "pension" ? "Changer la pension au 1er du mois" : s.status === "en_cours" ? "C’est en cours" : "Je m’en occupe"}
                       </button>
                       {s.status === "en_cours" && (
                         <button type="button" className="lnk" onClick={() => st().setActionStatus(s.id, "faite")}>
@@ -649,7 +649,7 @@ function Mouvements() {
                     <Money v={r.amount} />
                   </td>
                   <td>
-                    <button type="button" className="ar-bin" aria-label={`Supprimer : ${r.label}`} title="Supprimer (tu as 6 secondes pour annuler)" onClick={() => remove(r)}>
+                    <button type="button" className="ar-bin" aria-label={`Supprimer : ${r.label}`} title="Supprimer, tu pourras annuler juste après" onClick={() => remove(r)}>
                       <Ic n="trash" className="ar-ic" />
                     </button>
                   </td>

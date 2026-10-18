@@ -62,18 +62,18 @@ export function ForfaitOffre({ tarif, prestationId }: { tarif?: keyof typeof CLE
       <label className="fo-l">
         <span>Au mois</span>
         <span className="fo-f">
-          <input inputMode="decimal" placeholder="0" defaultValue={montantEnTexte(p?.forfaitMois)} aria-label="Forfait au mois, euros" onChange={(e) => poser({ forfaitMois: lireMontant(e.target.value) || undefined })} />
+          <input inputMode="decimal" placeholder="0" defaultValue={montantEnTexte(p?.forfaitMois)} aria-label="Forfait au mois, en euros" onChange={(e) => poser({ forfaitMois: lireMontant(e.target.value) || undefined })} />
           <i>€ / mois</i>
         </span>
       </label>
       <label className="fo-l">
-        <span>À l’année</span>
+        <span>À la saison</span>
         <span className="fo-f">
           <input
             inputMode="decimal"
             placeholder="0"
             defaultValue={montantEnTexte(p?.forfaitAnnee)}
-            aria-label="Forfait à l'année, euros"
+            aria-label="Forfait à la saison, en euros"
             onChange={(e) => poser({ forfaitAnnee: lireMontant(e.target.value) || undefined })}
           />
           <i>€ la saison</i>

@@ -64,7 +64,7 @@ function Tarifs() {
         retour={retour}
         n={2}
         title={retour ? "Mes prix" : "Tes prix"}
-        sub={commune !== null ? "Ta pension est fixée. Ajoute le prix de tes cours si tu en donnes." : "Ce que chaque propriétaire te paie par mois. Ensuite, elle est comptée chaque mois, sans que tu la notes."}
+        sub={commune !== null ? "Ta pension est fixée. Ajoute le prix de tes cours si tu en donnes." : "Ce que chaque propriétaire te paie par mois. Ensuite, l’app la compte toute seule."}
       />
       <div className="obn-corps">
       {commune !== null ? (
@@ -136,7 +136,7 @@ function Tarifs() {
               </span>
               <span>
                 <b>{x.label}</b>
-                <small>par cavalier ou la séance</small>
+                <small>par cavalier ou par séance</small>
               </span>
               <input className="inl" inputMode="decimal" defaultValue={montantEnTexte(x.price || undefined)} placeholder="0" aria-label={`${x.label}, euros`} onChange={(e) => updatePrestation(x.id, { price: lireMontant(e.target.value) || 0 })} />
               <button type="button" className="ar-ln-x" aria-label={`Retirer ${x.label}`} onClick={() => (removePrestation(x.id), setAjoutees((a) => a.filter((i) => i !== x.id)))}>
@@ -155,7 +155,7 @@ function Tarifs() {
             <input id="pr-nom" className="input" autoFocus placeholder="Ex. Balade, longe, débourrage" value={nouvelle.nom} autoComplete="off" onChange={(e) => setNouvelle({ ...nouvelle, nom: e.target.value })} onKeyDown={(e) => e.key === "Enter" && ajouter()} />
           </label>
           <label className="field" htmlFor="pr-prix">
-            <span>Son prix, par cavalier ou la séance</span>
+            <span>Son prix, par cavalier ou par séance</span>
             <span className="ar-mm-f">
               <input id="pr-prix" inputMode="decimal" autoComplete="off" placeholder="0" value={nouvelle.prix} onChange={(e) => setNouvelle({ ...nouvelle, prix: e.target.value })} onKeyDown={(e) => e.key === "Enter" && ajouter()} />
               <span className="u">€</span>

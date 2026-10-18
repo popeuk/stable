@@ -330,7 +330,7 @@ export function usePlusItems(): PlusItem[] {
   const pas = OBSTACLES.filter((o) => parcours[o]).length;
   const installe = parcours.chevaux && parcours.tarifs && parcours.factures;
   return useMemo(() => [
-    ...(kind === "locale" ? [{ id: "garder", ic: "user", label: "Créer mon compte", sub: "Gratuit. Ton écurie, ton e-mail, un code", href: "/compte/connexion?garder=1", tone: "attn" as const }] : []),
+    ...(kind === "locale" ? [{ id: "garder", ic: "user", label: "Créer mon compte", sub: "Gratuit, avec ton e-mail et un code", href: "/compte/connexion?garder=1", tone: "attn" as const }] : []),
     { id: "reglages", ic: "gear", label: "Réglages", sub: "Compte, rappel, affichage, explications", href: "/reglages" },
     // Sans compte d'étapes : ce qu'il reste à faire, dit simplement.
     ...(pas < 6 ? [{ id: "parcours", ic: "bulb", label: "Tes premiers pas", sub: installe ? "Le reste vient en utilisant l’app" : "Trois questions sur ton écurie", href: "/parcours", tone: "attn" as const }] : []),

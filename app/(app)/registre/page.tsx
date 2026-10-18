@@ -137,7 +137,7 @@ function Registre() {
       <Hello title="Registre d’élevage" sub="À imprimer et garder chaque trimestre." />
       <div className="rg-tools rise" style={{ animationDelay: ".1s" }}>
         <p className="note">
-          Tu le dois pour tout lieu où vivent des chevaux, même un seul. Imprime-le aussi à chaque visite du vétérinaire, et garde les feuilles 5 ans avec les ordonnances.
+          Obligatoire dès que tu as un cheval chez toi, même un seul. Imprime-le à chaque visite du véto et garde les feuilles 5 ans avec les ordonnances.
         </p>
         <div className="rg-seg">
           <Seg<PeriodKind>
@@ -185,7 +185,7 @@ function Registre() {
 
       {(hGaps.length > 0 || gapsByHorse.length > 0) && (
         <Sec title="À compléter quand tu peux" delay={0.16} className="rg-gaps">
-          <p className="note">La feuille s’imprime déjà. Ces cases resteront vides, tu pourras les remplir à la main ou ici.</p>
+          <p className="note">Tu peux déjà l’imprimer. Ces cases resteront vides : à remplir à la main ou ici.</p>
           <div className="rows">
             {hGaps.length > 0 && (
               <Link href="/moi?s=papiers" className="li np">

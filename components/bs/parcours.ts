@@ -22,7 +22,7 @@ export const OBSTACLE_META: Record<ObstacleId, { title: string; todo: string; hr
   tarifs: { title: "Tes prix", todo: "Le prix de la pension et de tes cours", href: "/parcours/tarifs", picto: "euro" },
   factures: { title: "Les frais de l’écurie", todo: "Foin, paille, loyer, salaires… à peu près, ça suffit", href: "/parcours/factures", picto: "foin" },
   journee: { title: "Ta première journée", todo: "Trois choses qui comptent dans ta journée", href: "/planning", picto: "cal" },
-  ticket: { title: "Ta première fiche du cheval", todo: "Ouvre la fiche d’un cheval : ce qu’il rapporte et ce qu’il coûte", href: "/chevaux", picto: "jump" },
+  ticket: { title: "Ouvrir la fiche d’un cheval", todo: "Ouvre la fiche d’un cheval : ce qu’il rapporte et ce qu’il coûte", href: "/chevaux", picto: "jump" },
   seuil: { title: "Combien de chevaux il te faut", todo: "Découvre combien de chevaux il te faut pour ne pas perdre d’argent", href: "/seuil", picto: "flag" },
 };
 

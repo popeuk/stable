@@ -166,7 +166,7 @@ function Chevaux() {
                   <span className="u">places</span>
                 </span>
                 <p id="h-places-aide" className="es-help">
-                  Box, pré ou écurie active, une place est une place. Facultatif : avec, tu vois ce que rapporteraient tes places libres.
+                  Box, pré ou écurie active : une place est une place. Pas obligé, mais tu verras ce que rapporteraient tes places libres.
                 </p>
               </div>
             </>

@@ -78,7 +78,7 @@ function Facturation() {
               <small>
                 {enteteVendeur(vendeurDe(b, b.vat === "franchise")).nom} · {b.vat === "franchise" ? "sans TVA" : "avec TVA"}
                 {b.iban ? " · IBAN noté" : ""}
-                {pro ? " · conditions pour un professionnel choisies" : ""}
+                {pro ? " · conditions pour les pros notées" : ""}
               </small>
             </span>
             <Ic n="chev" className={`chev rg-rot${ouvert ? " on" : ""}`} />
@@ -93,7 +93,7 @@ function Facturation() {
             <ConditionsPro />
           </div>
         )}
-        <p className="fr-hint">Chaque mention s’appuie sur ce que tu as noté ici. Fais-les valider une fois par ton comptable : l’app ne remplace pas son avis.</p>
+        <p className="fr-hint">Tout vient de ce que tu as noté ici. Fais vérifier une fois par ton comptable.</p>
       </Sec>
       <Sec title="Tes messages aux clients" blk delay={0.17} id="messages">
         <TuVous />

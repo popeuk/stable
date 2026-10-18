@@ -82,7 +82,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
         <span className={`big ${tone}`}>
           <CountUp value={net} ms={900} fmt={estime ? undefined : sansSigne} />
         </span>
-        <span className="ac-sub">{estime ? "Une estimation, faite avec tes prix. Elle devient réelle quand tes chevaux ont leur propriétaire." : phrase || "Une fois tout payé : pensions, soins, frais de l’écurie."}</span>
+        <span className="ac-sub">{estime ? "C’est une estimation. Elle sera juste quand chaque cheval aura son propriétaire." : phrase || "Une fois tout payé : pensions, soins, frais de l’écurie."}</span>
       </span>
       {ill && (
         <span className="ac-ill" aria-hidden="true">
@@ -123,7 +123,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
       {card}
       {objective <= 0 && href && !estime && (
         <Link href="/argent?objectif=1" className="ac-fixer">
-          Te fixer un objectif pour le mois ?
+          Tu veux te fixer un objectif ?
         </Link>
       )}
     </div>

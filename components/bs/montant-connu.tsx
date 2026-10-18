@@ -20,7 +20,7 @@ export const uniteConnu = (mode: Connu) => (mode === "an" ? "€ / an" : mode ==
 /** La petite ligne sous le nom d'un poste. */
 export const ligneConnu = (mode: Connu, fois: number) => (mode === "an" ? "par an, à peu près" : mode === "fois" ? `à chaque fois, ${fois} fois dans l’année` : "par mois, à peu près");
 
-export function ChoixConnu({ value, onChange, label = "Ce montant, tu le connais", sansTitre }: { value: Connu; onChange: (v: Connu) => void; label?: string; sansTitre?: boolean }) {
+export function ChoixConnu({ value, onChange, label = "Tu le paies", sansTitre }: { value: Connu; onChange: (v: Connu) => void; label?: string; sansTitre?: boolean }) {
   return (
     <div className="mc" role="group" aria-label={label}>
       {!sansTitre && <p className="mc-k">{label}</p>}
@@ -56,7 +56,7 @@ export function SoitParMois({ mode, montant, fois }: { mode: Connu; montant: num
   return (
     <p className="mc-soit" aria-live="polite">
       {mode === "fois" && <>{fois} fois {eurc(montant)}, c’est {eurc(parAn(mode, montant, fois))} sur l’année. </>}
-      Soit <b>{eurc(parMois(mode, montant, fois))} par mois</b> : l’app en compte un peu chaque mois, pour que chaque mois soit juste.
+      Soit <b>{eurc(parMois(mode, montant, fois))} par mois</b> : l’app le répartit sur les mois.
     </p>
   );
 }

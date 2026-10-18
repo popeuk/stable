@@ -98,7 +98,7 @@ function FactureRoute() {
   const invoices = useDataStore((s) => s.invoices);
   if (n) {
     const inv = (invoices ?? []).find((i) => i.number === n);
-    if (!inv) return <Introuvable texte={`La facture n° ${n} n’est pas dans ton carnet.`} />;
+    if (!inv) return <Introuvable texte={`On ne trouve pas la facture n° ${n}.`} />;
     return <Emise key={inv.id} inv={inv} avoirDe={sp.get("avoir")} faite={sp.get("faite") === "1"} />;
   }
   const lot = parseMois(sp.get("lot"));
@@ -155,7 +155,7 @@ function useEtapes(data: StableData, kinds: Brouillon["kinds"], tvaManque: boole
     ) : etape === "tva" ? (
       <div className="card fa-card rise">
         <b>{b.vat ? "Choisis le taux de TVA de ce que tu factures." : "Choisis d’abord la TVA de tes factures."}</b>
-        <p>L’app ne la devine pas. Tu la choisis une fois, elle sert pour toutes tes factures.</p>
+        <p>Tu la choisis une fois, elle sert pour toutes tes factures.</p>
         <TvaReglage kinds={kinds.length ? kinds : undefined} />
         <BoutonSuite manque={tvaReste} onClick={() => finir("tva")} />
       </div>
@@ -196,7 +196,7 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
     setEnCours(true);
     const [inv] = await useDataStore.getState().issueInvoices([draft.facture], localToday());
     setEnCours(false);
-    if (!inv) return say("Ces lignes viennent d’être facturées dans un autre onglet. La facture est dans Tes factures.");
+    if (!inv) return say("Ces lignes sont déjà sur une facture. Tu la trouves dans Tes factures.");
     // La facture faite s'ouvre avec sa confirmation : « Facture n° … faite », Imprimer, Envoyer.
     router.replace(`/facture?n=${encodeURIComponent(inv.number)}&faite=1`);
   };
@@ -242,7 +242,7 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
         ) : client ? (
           <div className="card fa-card rise">
             <b>{person?.statut ? `${qui}, pour sa facture` : `${qui} est un particulier ou un professionnel ?`}</b>
-            <p>L’app ne le devine pas. Un professionnel reçoit les mentions de paiement que la loi demande.</p>
+            <p>Pour un professionnel, la loi demande des mentions en plus.</p>
             <ClientFacture nom={nom} role={role} manque={draft.client} />
             <BoutonSuite manque={draft.client.map((m) => (m === "statut" ? "ta réponse" : m === "adresse" ? "son adresse" : "tes conditions de paiement"))} onClick={() => setClientOuvert(false)} label="Voir l’aperçu" />
           </div>
@@ -340,7 +340,7 @@ function Lot({ period }: { period: Period }) {
         {faites ? (
           <div className="card fa-card rise">
             <b>{faites.length > 1 ? `${faites.length} factures faites.` : faites.length ? "Une facture faite." : "Rien de nouveau à facturer."}</b>
-            <p>Ouvre chacune pour l’imprimer en PDF et l’envoyer.</p>
+            <p>Ouvre-les une par une pour les imprimer ou les envoyer.</p>
             <div className="fr-list">
               {faites.map((i) => (
                 <Link key={i.id} href={`/facture?n=${encodeURIComponent(i.number)}`} className="fr-inv">
@@ -380,7 +380,7 @@ function Lot({ period }: { period: Period }) {
             {aCompleter.length > 0 && (
               <div className="card fa-card rise">
                 <b>{aCompleter.length > 1 ? `${aCompleter.length} à compléter d’abord` : "Une à compléter d’abord"}</b>
-                <p>L’app ne devine pas si un client est un particulier ou un professionnel. Tu le dis une fois ; un professionnel a besoin de son adresse.</p>
+                <p>Dis-le une fois pour chaque client. Pour un professionnel, il faut aussi son adresse.</p>
                 <div className="fr-list">
                   {aCompleter.map((c) =>
                     c.d.client.includes("statut") ? (

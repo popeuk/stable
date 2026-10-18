@@ -24,8 +24,8 @@ function arriveeEnMots(entry: string, editing?: Horse): string {
   const today = localToday();
   const nom = new Date(today + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" });
   const mois = /^[aeiouy]/i.test(nom) ? `d’${nom}` : `de ${nom}`;
-  if (editing && debutCompte(dernierSejour(editing)) < `${today.slice(0, 7)}-01`) return "Cette date est inscrite au registre d’élevage. Les chiffres des mois passés ne changent pas.";
-  if (entry && entry.slice(0, 7) < today.slice(0, 7)) return `Cette date est inscrite au registre d’élevage. Il compte dans tes chiffres à partir de ${mois}, pour sa pension et sa part des frais. Les mois d’avant ne changent pas.`;
+  if (editing && debutCompte(dernierSejour(editing)) < `${today.slice(0, 7)}-01`) return "Cette date va au registre d’élevage. Les mois passés ne changent pas.";
+  if (entry && entry.slice(0, 7) < today.slice(0, 7)) return `Cette date va au registre d’élevage. Sa pension et sa part des frais comptent à partir ${mois}.`;
   return "Sa pension et sa part des frais comptent à partir de ce jour-là.";
 }
 
@@ -167,13 +167,13 @@ function SaisieCheval() {
           <input className="input" value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="Ex. Connemara" autoComplete="off" />
         </label>
         <label className="field">
-          <span>Arrivé chez toi le</span>
+          <span>Date d’arrivée</span>
           <input className="input" type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
           <em>{arriveeEnMots(entryDate, editing)}</em>
         </label>
         <button type="submit" className="btn full" disabled={!name.trim()}>
           <Ic n="ck" className="" />
-          {editing ? "Enregistrer les modifications" : "Ajouter ce cheval"}
+          {editing ? "Enregistrer" : "Ajouter ce cheval"}
         </button>
       </form>
       {!editing && others.length > 0 && (

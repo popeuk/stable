@@ -401,7 +401,7 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
                 <th>Client</th>
                 <th>Chevaux</th>
                 <th>Téléphone</th>
-                <th>Paie</th>
+                <th>Paiement</th>
                 <th className="n">Ce mois</th>
                 <th className="n">Payé</th>
                 <th className="n">Te doit</th>
@@ -680,7 +680,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
             </tfoot>
           )}
         </table>
-        {rows.length === 0 && (horses.length ? <p className="note">Aucun cheval dans ce filtre.</p> : <Empty ill="vide-ecurie">Aucun cheval pour l’instant. Ajoute le premier avec le bouton en haut.</Empty>)}
+        {rows.length === 0 && (horses.length ? <p className="note">Aucun cheval dans ce filtre.</p> : <Empty ill="vide-ecurie">Aucun cheval pour l’instant. Ajoute le premier.</Empty>)}
         <Partis />
         <p className="ch-fn">
           «&nbsp;Ce qu’il te laisse&nbsp;» : ce qu’on te paie pour lui, moins ses soins et ses frais, moins sa part des frais de l’écurie (foin, salaires, loyer…){horses.length ? `, ${eur(each)} par cheval ce mois` : ""}.
@@ -715,7 +715,7 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
           {chips}
         </div>
       )}
-      {n === 0 && <Empty ill="vide-ecurie">Aucun cheval pour l’instant. Ajoute le premier ci-dessous.</Empty>}
+      {n === 0 && <Empty ill="vide-ecurie">Aucun cheval pour l’instant. Ajoute le premier.</Empty>}
 
       {f === "prevoir" && (
         <Sec blk ill="confirmer" title="Soins à prévoir" delay={0.1}>

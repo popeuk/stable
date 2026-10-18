@@ -260,7 +260,7 @@ export function resumeJournee(items: DayItem[]) {
   const titre = n ? `Ta journée : ${n} chose${n > 1 ? "s" : ""}` : "Ta journée : rien de prévu";
   const avenir = items.filter((i) => !i.done);
   const liste = (avenir.length ? avenir : items).slice(0, 3).map((i) => `${i.start ? `${i.start} ` : ""}${i.title}`).join(", ");
-  const corps = n ? `${liste}${n > 3 ? "…" : "."}` : "Rien de prévu aujourd’hui. Profites-en pour avancer.";
+  const corps = n ? `${liste}${n > 3 ? "…" : "."}` : "Rien de prévu aujourd’hui.";
   const ligne = n
     ? `${n > 1 ? `${n} choses` : "Une chose"} au planning aujourd’hui${faits ? `, dont ${faits === n ? (n > 1 ? "toutes" : "elle") : choses(faits)} déjà ${faits > 1 ? "faites" : "faite"}` : ""}.`
     : null;

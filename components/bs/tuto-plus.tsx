@@ -25,7 +25,7 @@ const cible = (): HTMLElement | null => {
 };
 
 const USAGES: { i: string; t: string; s: string }[] = [
-  { i: "cal", t: "Une séance", s: "Cours, balade, stage. Elle va sur la note du cavalier et dans ton mois." },
+  { i: "cal", t: "Une séance", s: "Cours, balade, stage. Elle compte dans ce que te doit le cavalier, et dans ton mois." },
   { i: "syringe", t: "Un soin", s: "Maréchal, véto, vaccin." },
   { i: "clock", t: "Une tâche ou un rendez-vous", s: "Avec ou sans heure." },
   { i: "euro", t: "De l’argent", s: "Ce qui rentre, ce qui sort." },
