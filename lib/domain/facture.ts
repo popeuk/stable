@@ -488,6 +488,11 @@ export function resteAAnnuler(inv: Invoice, invoices: Invoice[] | undefined): nu
   return reste;
 }
 
+/** Ce qui reste à annuler en euros (TTC) : le total de la facture moins ses avoirs déjà faits. */
+export function resteEnEuros(inv: Invoice, invoices: Invoice[] | undefined): number {
+  return r2(Math.max(0, inv.totalTTC + avoirsDe(invoices, inv.number).reduce((t, a) => t + a.totalTTC, 0)));
+}
+
 /**
  * Le contenu d'un avoir sur une facture : pour chaque ligne, la quantité
  * annulée (`qtes[i]`, bornée à ce qui reste). Les montants sont ceux de la
@@ -508,6 +513,8 @@ export function contenuAvoir(inv: Invoice, qtes: number[], invoices: Invoice[] |
     pos.push({ label: l.label, kind: l.kind, qty: q, rate: l.rate, unitTTC: l.unitTTC, unitHT: l.unitHT, totalTTC, totalHT: r2(l.unitHT * q), revenueIds: ids, de: i });
   });
   if (!pos.length) return null;
+  // Jamais plus que ce qui reste de la facture (un avoir d'un montant a pu être fait avant).
+  if (r2(pos.reduce((t, l) => t + l.totalTTC, 0)) > resteEnEuros(inv, invoices) + 0.005) return null;
   // Une facture d'avant les lignes détaillées, annulée en entier : toutes ses recettes sont rendues.
   const tout = reste.every((r, i) => (qtes[i] ?? 0) >= r);
   if (tout && !inv.lines.some((l) => l.revenueIds)) rendues.push(...inv.revenueIds);
@@ -531,10 +538,62 @@ export function contenuAvoir(inv: Invoice, qtes: number[], invoices: Invoice[] |
   };
 }
 
+/**
+ * L'avoir d'un montant libre (une remise de 50 € pour une semaine
+ * d'absence) : une ligne au motif donné, jamais plus que ce qui reste de la
+ * facture. Avec plusieurs taux de TVA, le montant se répartit entre eux au
+ * prorata de la facture, pour que la TVA rendue soit juste. Il ne rend
+ * aucune ligne de la facture : elle reste facturée, diminuée du montant.
+ */
+export function contenuAvoirMontant(inv: Invoice, montant: number, motif: string, invoices: Invoice[] | undefined): Omit<Invoice, "id" | "number" | "year" | "seq" | "issuedAt"> | null {
+  const m = r2(montant);
+  if (!(m > 0) || m > resteEnEuros(inv, invoices) + 0.005 || inv.kind === "avoir") return null;
+  const label = motif.trim() || "Remise";
+  // Le TTC de la facture par taux, et la prestation principale de chaque taux.
+  const parTaux = new Map<number, { ttc: number; kind: VatKind; poids: number }>();
+  for (const l of inv.lines) {
+    const g = parTaux.get(l.rate) ?? { ttc: 0, kind: l.kind, poids: 0 };
+    g.ttc += l.totalTTC;
+    if (l.totalTTC > g.poids) {
+      g.poids = l.totalTTC;
+      g.kind = l.kind;
+    }
+    parTaux.set(l.rate, g);
+  }
+  const taux = [...parTaux.entries()].filter(([, g]) => g.ttc > 0).sort((a, b) => a[0] - b[0]);
+  const total = taux.reduce((t, [, g]) => t + g.ttc, 0);
+  if (!taux.length || total <= 0) return null;
+  let reste = m;
+  const pos: InvoiceLine[] = taux.map(([rate, g], i) => {
+    const part = i === taux.length - 1 ? r2(reste) : r2((m * g.ttc) / total);
+    reste = r2(reste - part);
+    const unitHT = horsTaxes(part, rate);
+    return { label: taux.length > 1 ? `${label} (TVA ${tauxDit(rate)})` : label, kind: g.kind, qty: 1, rate, unitTTC: part, unitHT, totalTTC: part, totalHT: unitHT };
+  });
+  const t = totaux(pos);
+  const neg = (n: number) => (n ? -n : 0);
+  return {
+    kind: "avoir",
+    avoirDe: { number: inv.number, issuedAt: inv.issuedAt },
+    payer: inv.payer,
+    month: inv.month,
+    seller: inv.seller,
+    buyer: inv.buyer,
+    franchise: inv.franchise,
+    lines: pos.map((l) => ({ ...l, totalTTC: neg(l.totalTTC), totalHT: neg(l.totalHT) })),
+    totalHT: neg(t.totalHT),
+    vat: t.vat.map((v) => ({ rate: v.rate, base: neg(v.base), amount: neg(v.amount) })),
+    totalTTC: neg(t.totalTTC),
+    paid: 0,
+    due: 0,
+    revenueIds: [],
+  };
+}
+
 /** L'avoir numéroté dans la même suite que les factures. */
 export function emettreAvoir(
   data: Pick<StableData, "invoices" | "invoiceSeq">,
-  contenu: NonNullable<ReturnType<typeof contenuAvoir>>,
+  contenu: NonNullable<ReturnType<typeof contenuAvoir | typeof contenuAvoirMontant>>,
   today: string,
   id: string,
   haut?: Record<string, number>,

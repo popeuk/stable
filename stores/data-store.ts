@@ -26,7 +26,7 @@ import { ensurePensions, pensionRevenueId, premierMoisARattraper } from "@/lib/d
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
-import { compteurMax, contenuAvoir, emettre, emettreAvoir, fusionFactures, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
+import { compteurMax, contenuAvoir, contenuAvoirMontant, emettre, emettreAvoir, fusionFactures, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
 import { compteurAppareil, facturesEnregistrees, noterCompteur, sousVerrou } from "@/lib/account/factures-seq";
 import { ecrituresFaites } from "@/lib/account/vault";
 import { scopedKey } from "@/lib/account/session";
@@ -227,6 +227,8 @@ interface DataState extends StableData {
   issueInvoices: (contenus: NonNullable<Brouillon["facture"]>[], today: string) => Promise<Invoice[]>;
   /** Annule tout ou partie d'une facture par un avoir, numéroté dans la même suite. Rend l'avoir, ou null s'il n'y a rien à annuler. */
   issueAvoir: (number: string, qtes: number[], today: string) => Promise<Invoice | null>;
+  /** Un avoir d'un montant libre sur une facture (montant TTC et motif), numéroté à la suite. */
+  issueAvoirMontant: (number: string, montant: number, motif: string, today: string) => Promise<Invoice | null>;
   /** Réunit les factures d'un autre carnet (sauvegarde reprise, autre onglet) : aucune ne se perd. */
   mergeInvoices: (other: Pick<StableData, "invoices" | "invoiceSeq">) => void;
   /** Ce que la facture d'un client demande : particulier ou professionnel, son adresse. */
@@ -1110,6 +1112,15 @@ export const useDataStore = create<DataState>()(
         const out = await numeroter(get, set, (s, haut) => {
           const inv = (s.invoices ?? []).find((i) => i.number === number && i.kind !== "avoir");
           const c = inv ? contenuAvoir(inv, qtes, s.invoices) : null;
+          return c ? [emettreAvoir(s, c, today, id("avo"), haut)] : [];
+        });
+        return out[0] ?? null;
+      },
+
+      issueAvoirMontant: async (number, montant, motif, today) => {
+        const out = await numeroter(get, set, (s, haut) => {
+          const inv = (s.invoices ?? []).find((i) => i.number === number && i.kind !== "avoir");
+          const c = inv ? contenuAvoirMontant(inv, montant, motif, s.invoices) : null;
           return c ? [emettreAvoir(s, c, today, id("avo"), haut)] : [];
         });
         return out[0] ?? null;
