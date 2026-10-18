@@ -9,17 +9,34 @@
 //                        (0 = pas encore de copie), sinon 409 { tiroir }
 //   POST { nom, contenu, rev, modifie, appareil, garder: true }
 //                      → garde une copie perdante d'un conflit dans les versions
+//                        (on en garde 30 par tiroir, comme pour les remplacées)
+//
+// Garde-fous (audit du 18 octobre, I6, M1, F4) : 2 Mo au plus par envoi,
+// contenu chiffré seulement (« bs-enc1: »), 6 envois par minute et par compte,
+// jeton au bon format avant tout appel au site, refus gardés 5 minutes,
+// jetons bons gardés 2 minutes, appels au site limités par adresse IP.
+// Les compteurs vivent dans la mémoire de l'instance : ils freinent un abus,
+// ils ne sont pas exacts à l'unité quand Supabase lance plusieurs instances.
 import { createClient } from "npm:@supabase/supabase-js@2.108.2";
+import { CACHE_OK_MS, CACHE_REFUS_MS, Fenetre, MAX, Memoire, VERSIONS, contenuChiffre, jetonBienForme, versionsEnTrop } from "./regles.ts";
 
 const MONECURIE = (Deno.env.get("MONECURIE_API") ?? "https://www.mon-ecurie.fr/wp-json/bestable/v1").replace(/\/$/, "");
 const NOMS = new Set(["be-stable-data", "be-stable-settings"]);
-const MAX = 5_000_000;
 const ORIGINES = [/^https:\/\/popeuk\.github\.io$/, /^https:\/\/([a-z0-9-]+\.)?bestable\.fr$/, /^https:\/\/app\.187-7-74-179\.sslip\.io$/, /^http:\/\/localhost(:\d+)?$/, /^http:\/\/127\.0\.0\.1(:\d+)?$/];
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 
-/** Jetons déjà vérifiés, gardés 10 minutes dans cette instance. */
-const connus = new Map<string, { userId: number; jusqua: number }>();
+/** Jetons déjà vérifiés (2 minutes) et jetons refusés (5 minutes), dans cette instance. */
+const connus = new Memoire<number>(CACHE_OK_MS);
+const refuses = new Memoire<true>(CACHE_REFUS_MS);
+/** Envois (PUT, POST) : 6 par minute et par compte. */
+const envois = new Fenetre(6, 60_000);
+/** Vérifications auprès du site : 30 par minute et par adresse IP. */
+const verifs = new Fenetre(30, 60_000);
+
+function ip(req: Request): string {
+  return (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || req.headers.get("cf-connecting-ip") || "?";
+}
 
 function entetes(req: Request): Record<string, string> {
   const o = req.headers.get("Origin") ?? "";
@@ -35,20 +52,26 @@ function entetes(req: Request): Record<string, string> {
   return h;
 }
 
-async function compte(token: string): Promise<number | "refuse" | "injoignable"> {
-  const c = connus.get(token);
-  if (c && c.jusqua > Date.now()) return c.userId;
+async function compte(token: string, adresse: string): Promise<number | "refuse" | "injoignable" | "trop"> {
+  if (!jetonBienForme(token) || refuses.lire(token)) return "refuse";
+  const c = connus.lire(token);
+  if (c) return c;
+  if (verifs.depasse(adresse)) return "trop";
   const stop = new AbortController();
   const t = setTimeout(() => stop.abort(), 15000);
   try {
     const r = await fetch(`${MONECURIE}/moi`, { headers: { Accept: "application/json", "X-BS-Token": token }, signal: stop.signal });
-    if (r.status === 401 || r.status === 403) return "refuse";
+    if (r.status === 401 || r.status === 403) {
+      refuses.poser(token, true);
+      return "refuse";
+    }
     if (!r.ok) return "injoignable";
     const j = (await r.json()) as { user?: { id?: unknown } };
     const id = Number(j?.user?.id);
     if (!Number.isInteger(id) || id <= 0) return "injoignable";
-    connus.set(token, { userId: id, jusqua: Date.now() + 10 * 60_000 });
-    if (connus.size > 5000) connus.clear();
+    // Le numéro du jeton doit être celui du compte rendu par le site.
+    if (token.split(".")[0] !== String(id)) return "refuse";
+    connus.poser(token, id);
     return id;
   } catch {
     return "injoignable";
@@ -73,7 +96,8 @@ Deno.serve(async (req) => {
 
   const token = req.headers.get("X-BS-Token") ?? "";
   if (!token || token.length > 512) return rep(401, { code: "session_expiree", message: "Connexion nécessaire." });
-  const userId = await compte(token);
+  const userId = await compte(token, ip(req));
+  if (userId === "trop") return rep(429, { code: "trop_d_essais", message: "Trop d’essais. Réessaie dans une minute." });
   if (userId === "refuse") return rep(401, { code: "session_expiree", message: "Connexion nécessaire." });
   if (userId === "injoignable") return rep(503, { code: "monecurie_injoignable", message: "mon-ecurie.fr ne répond pas." });
 
@@ -85,6 +109,7 @@ Deno.serve(async (req) => {
 
   if (req.method !== "PUT" && req.method !== "POST") return rep(405, { code: "methode" });
   if (Number(req.headers.get("Content-Length") ?? 0) > MAX + 10_000) return rep(413, { code: "trop_gros" });
+  if (envois.depasse(String(userId))) return rep(429, { code: "trop_d_envois", message: "Trop d’envois. La copie repart dans une minute." });
   let b: Envoi;
   try {
     b = (await req.json()) as Envoi;
@@ -96,12 +121,25 @@ Deno.serve(async (req) => {
   const rev = Number(b.rev);
   const modifie = typeof b.modifie === "string" && !Number.isNaN(Date.parse(b.modifie)) ? b.modifie : new Date().toISOString();
   const appareil = typeof b.appareil === "string" ? b.appareil.slice(0, 80) : null;
-  if (!NOMS.has(nom) || !contenu || contenu.length > MAX || !Number.isInteger(rev) || rev < 0) return rep(400, { code: "invalide" });
+  if (contenu.length > MAX) return rep(413, { code: "trop_gros" });
+  if (!NOMS.has(nom) || !contenuChiffre(contenu) || !Number.isInteger(rev) || rev < 0) return rep(400, { code: "invalide" });
 
   if (req.method === "POST") {
     if (b.garder !== true) return rep(400, { code: "invalide" });
     const { error } = await db.from("tiroirs_versions").insert({ user_id: userId, nom, rev: rev || null, contenu, modifie, appareil, raison: "conflit" });
-    return error ? rep(500, { code: "erreur" }) : rep(200, { ok: true });
+    if (error) return rep(500, { code: "erreur" });
+    // Le ménage, comme après une mise à jour : les 30 versions les plus récentes du tiroir.
+    const { data: toutes } = await db
+      .from("tiroirs_versions")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("nom", nom)
+      .order("gardee_le", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(VERSIONS + 200);
+    const enTrop = versionsEnTrop((toutes ?? []) as { id: number }[]);
+    if (enTrop.length) await db.from("tiroirs_versions").delete().eq("user_id", userId).in("id", enTrop);
+    return rep(200, { ok: true });
   }
 
   const ligne = { contenu, modifie, appareil, rev: rev + 1, maj: new Date().toISOString() };

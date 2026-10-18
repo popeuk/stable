@@ -11,6 +11,7 @@ import { AVEC_APPLE, AVEC_GOOGLE, lireRetour, partirVers, revenirDe, type Fourni
 import { enter, getSession, hasAccountData, hasLegacyData, hasLocaleData, sessionFrom, setSession, type AccountSession } from "@/lib/account/session";
 import { adoptLocale, resumeLocale, type ResumeEssai } from "@/lib/account/vault";
 import { useSettingsStore } from "@/stores/settings-store";
+import { mesurer } from "@/lib/mesure";
 
 /**
  * Se connecter : l'e-mail, puis le code reçu, ou « Continuer avec Google »
@@ -76,7 +77,8 @@ export default function Page() {
     void run(() => partirVers(f, retour));
   }
 
-  async function ouvrir(r: AuthResponse) {
+  async function ouvrir(r: AuthResponse & { nouveau?: boolean }) {
+    if (r.nouveau) mesurer("compte_cree");
     const s = sessionFrom(r);
     // L'écurie essayée sans compte passe dans le compte.
     if (hasLocaleData()) {

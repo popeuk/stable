@@ -12,6 +12,7 @@ import { usePerso } from "@/components/bs/perso";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { resumeLocale, type ResumeEssai } from "@/lib/account/vault";
 import { Stories } from "@/components/bs/histoire";
+import { mesurer } from "@/lib/mesure";
 
 /**
  * Essayer avant le compte : un premier écran, puis le même parcours que
@@ -71,6 +72,7 @@ export function Essayer() {
   const commencer = async () => {
     if (busy) return;
     setBusy(true);
+    if (!reprendre) mesurer("histoire_vue");
     await ouvrirEssai();
   };
   // Un essai déjà rempli ne s'efface jamais sans le dire : on le reprend, ou on repart de zéro après confirmation.

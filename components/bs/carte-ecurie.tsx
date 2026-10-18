@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Ic, eur } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -10,6 +10,10 @@ import { getSession, type Listing } from "@/lib/account/session";
 import { api, type StableHit } from "@/lib/account/api";
 import { cetAppareil } from "@/lib/appareil";
 import { versionDite } from "@/lib/version";
+import { useAnnuaire } from "@/components/bs/account-ui";
+import { EcuriesTexte } from "@/lib/annuaire";
+import { ContactOuvrir } from "@/components/bs/contact";
+import { ChoixTemoinsLigne } from "@/components/bs/consentement";
 
 /**
  * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
@@ -18,7 +22,23 @@ import { versionDite } from "@/lib/version";
  */
 type Ligne = { href: string; ic: string; t: string; s: string };
 
-function Case({ titre, lignes }: { titre: string; lignes: Ligne[] }) {
+/** L'intérieur d'une ligne (icône, titre, sous-titre, chevron), pour une ligne-bouton. */
+function LigneTx({ ic, t, s }: { ic: string; t: string; s: string }) {
+  return (
+    <>
+      <span className="ce-ic">
+        <Ic n={ic} className="" />
+      </span>
+      <span className="ce-tx">
+        <b>{t}</b>
+        <small>{s}</small>
+      </span>
+      <Ic n="chev" className="ce-chev" />
+    </>
+  );
+}
+
+function Case({ titre, lignes, children }: { titre: string; lignes: Ligne[]; children?: ReactNode }) {
   return (
     <section className="ce-case rise">
       <h2>{titre}</h2>
@@ -34,6 +54,7 @@ function Case({ titre, lignes }: { titre: string; lignes: Ligne[] }) {
           <Ic n="chev" className="ce-chev" />
         </Link>
       ))}
+      {children}
     </section>
   );
 }
@@ -44,6 +65,7 @@ const noms = (xs: string[], vide: string) => (xs.length ? (xs.length > 3 ? `${xs
 
 function TonEcurie() {
   const stableName = useSettingsStore((s) => s.stableName);
+  const annuaire = useAnnuaire();
   const [listing, setListing] = useState<Listing | null>(null);
   useEffect(() => {
     const s = getSession();
@@ -82,7 +104,7 @@ function TonEcurie() {
       ) : (
         <div className="ce-cherche">
           <label htmlFor="ce-q">Cherche-la sur mon-ecurie.fr</label>
-          <p>Plus de 7 000 écuries y sont déjà. Retrouve la tienne : ton nom, ta commune et ta fiche se remplissent d’un coup.</p>
+          <p>{EcuriesTexte(annuaire?.ecuries)} y sont déjà. Retrouve la tienne : ton nom, ta commune et ta fiche se remplissent d’un coup.</p>
           <span className="ce-in">
             <Ic n="search" className="" />
             <input id="ce-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Le nom de ton écurie" autoComplete="off" />
@@ -199,6 +221,19 @@ export function Reglages() {
           { href: "/regles?t=cgu", ic: "doc", t: "Conditions d’utilisation", s: "Ce que l’app fait, ce qu’elle ne fait pas" },
           { href: "/regles?t=mentions-legales", ic: "flag", t: "Mentions légales", s: "Qui édite Be Stable, qui l’héberge" },
         ]}
+      >
+        <ChoixTemoinsLigne className="ce-li">{(resume) => <LigneTx ic="chart" t="Témoins et mesure" s={`${resume} · changer d’avis`} />}</ChoixTemoinsLigne>
+      </Case>
+      <ContactOuvrir
+        ecran="/reglages"
+        render={(ouvrir) => (
+          <section className="ce-case rise">
+            <h2>Une question</h2>
+            <button type="button" className="ce-li" onClick={ouvrir}>
+              <LigneTx ic="mail" t="Contact" s="Écris-nous : un souci, une idée, on te répond par e-mail" />
+            </button>
+          </section>
+        )}
       />
       <p className="ce-ver">{versionDite()}</p>
     </div>

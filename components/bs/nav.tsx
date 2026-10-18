@@ -8,6 +8,7 @@ import { Ic } from "@/components/carnet/ui";
 import { getSession } from "@/lib/account/session";
 import { aideParId, aidePour, bulleAMontrer, placerBulle, type CibleBulle } from "@/lib/aide";
 import { OBSTACLES, useSettingsStore } from "@/stores/settings-store";
+import { ContactOuvrir } from "@/components/bs/contact";
 
 /**
  * Ne jamais rester coincé : chaque écran qui n'est pas un onglet a son
@@ -107,6 +108,13 @@ export function AideCarte({ compact }: { compact?: boolean }) {
         <button type="button" className="ok" onClick={ok}>
           J’ai compris
         </button>
+        <ContactOuvrir
+          render={(ouvrir) => (
+            <button type="button" className="ct-aide" onClick={ouvrir}>
+              Une question ? Écris-nous
+            </button>
+          )}
+        />
       </section>
     </>
   );

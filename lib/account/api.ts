@@ -146,6 +146,39 @@ export interface Fiche {
   en_attente?: boolean;
 }
 
+/** Une demande d'un cavalier, reçue par la fiche du gérant (pc-bestable 1.5.0). */
+export interface DemandeCavalier {
+  id: number;
+  date: string;
+  type: string;
+  type_nom: string;
+  nom: string;
+  /** Ce qu'il cherche, en une ligne (« Une place pour Sirius, arrivée le 15 novembre 2026 »). */
+  cherche: string;
+  message: string;
+  telephone: string;
+  email: string;
+  statut: string;
+  vue: boolean;
+}
+export interface DemandesReponse {
+  /** null : le compte n'a pas encore de fiche à lui. */
+  fiche: Listing | null;
+  demandes: DemandeCavalier[];
+  nouvelles: number;
+}
+/** Ce que « Contact » envoie : le message et d'où il part. Aucun chiffre de l'écurie. */
+export interface MessageContact {
+  message: string;
+  /** Sans compte (essai) : l'adresse pour répondre, facultative. */
+  email?: string;
+  ecran: string;
+  version: string;
+  navigateur: string;
+  appareil: string;
+  ecurie?: string;
+}
+
 export type Choix = Record<"offres" | "hebergement" | "installations" | "services" | "univers", Record<string, string>>;
 
 export const PW_MIN = 10;
@@ -184,5 +217,9 @@ export const api = {
   retirerPhoto: (id: number) => call<Fiche>("DELETE", `/ma-fiche/photos/${id}`),
   maFiche: () => call<Fiche>("GET", "/ma-fiche"),
   majFiche: (f: Partial<Fiche>) => call<Fiche>("PUT", "/ma-fiche", f),
+  /** pc-bestable 1.5.0 : Contact, et les demandes des cavaliers (404 tant que le site ne les a pas). */
+  contact: (p: MessageContact) => call<{ ok: true }>("POST", "/contact", p),
+  demandes: () => call<DemandesReponse>("GET", "/demandes"),
+  demandeVue: (id: number) => call<{ ok: true }>("POST", `/demandes/${id}/vue`, {}),
   stats: () => call<{ ecuries: number; departements: number; revendiquees: number; avec_prix: number }>("GET", "/chiffres"),
 };

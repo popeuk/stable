@@ -23,6 +23,7 @@ import { modKey } from "@/components/bs/desk-hook";
 import { useFinDuMois } from "@/components/bs/compte";
 import { BILAN, CLIENTS_CHEVAUX, under, useParentIci, usePlusItems } from "@/components/bs/nav";
 import { ECURIE } from "@/components/bs/navigation";
+import { EnveloppeLigne } from "@/components/bs/demandes";
 
 /* ------------------------------------------------------------------ */
 /* L'écran large                                                        */
@@ -111,6 +112,7 @@ export function Sidebar() {
           <span style={{ flex: 1, minWidth: 0 }}>Voir mon bilan</span>
           <em className={c.estime ? undefined : c.net > 0 ? "in" : c.net < 0 ? "out" : undefined}>{signed(c.net)}</em>
         </Link>
+        <EnveloppeLigne />
         {plus.map((it) => {
           const base = it.href?.split(/[?#]/)[0];
           const on = !!base && under(path, [base]);

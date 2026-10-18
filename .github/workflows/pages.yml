@@ -73,6 +73,12 @@ jobs:
           # Le numéro en bas de Réglages : « Version 3bdc74f · 18 octobre » (lib/version.ts).
           NEXT_PUBLIC_VERSION: ${{ github.sha }}
           NEXT_PUBLIC_VERSION_DATE: ${{ github.event.head_commit.timestamp }}
+          # La version, envoyée avec un message « Contact ».
+          NEXT_PUBLIC_APP_VERSION: ${{ github.sha }}
+          # La mesure (Google Analytics, pixel Meta) reste éteinte tant que ces variables
+          # du dépôt (Settings > Variables) sont vides : rien ne se charge, pas de bandeau.
+          NEXT_PUBLIC_GA_ID: ${{ vars.GA_ID }}
+          NEXT_PUBLIC_META_PIXEL: ${{ vars.META_PIXEL }}
       - name: Publish to the vps branch
         run: |
           cd out

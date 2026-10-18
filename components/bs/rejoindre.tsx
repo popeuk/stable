@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { withBase } from "@/components/bs/ui";
 import { nf, useAnnuaire } from "@/components/bs/account-ui";
+import { EcuriesTexte, ecuriesTexte } from "@/lib/annuaire";
+import { mesurer } from "@/lib/mesure";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
 import { Ic, Ill } from "@/components/carnet/ui";
 import { Stories } from "@/components/bs/histoire";
@@ -168,6 +170,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
     setErr("");
     try {
       const r = await api.verifierCode(email.trim(), c);
+      if (r.nouveau) mesurer("compte_cree");
       const s = sessionFrom(r);
       setSession(s);
       setCompte(s);
@@ -289,7 +292,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
           <div className="q rise" style={{ animationDelay: ".08s" }}>
             <h1>D’abord, retrouvons ton écurie.</h1>
             <p>
-              Elle a sans doute déjà sa fiche sur <b>mon-ecurie.fr</b>, l’annuaire des pensions pour chevaux : <b className="num">{chiffres ? nf(chiffres.ecuries) : "7 681"} écuries</b> y sont, partout en France. En la reprenant :
+              Elle a sans doute déjà sa fiche sur <b>mon-ecurie.fr</b>, l’annuaire des pensions pour chevaux : <b className="num">{ecuriesTexte(chiffres?.ecuries)}</b> y sont, partout en France. En la reprenant :
             </p>
           </div>
           <ul className="ar-pts rise" style={{ animationDelay: ".16s" }}>
@@ -357,7 +360,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
           )}
           <div className="foot">
             <p className="ar-proof">
-              <b className="num">{chiffres ? nf(chiffres.ecuries) : "7 681"}</b> écuries · gratuit · 0 % de commission
+              <b className="num">{EcuriesTexte(chiffres?.ecuries)}</b> · gratuit · 0 % de commission
             </p>
           </div>
         </form>
