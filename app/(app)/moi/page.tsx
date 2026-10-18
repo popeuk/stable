@@ -144,7 +144,13 @@ function Moi() {
       return;
     }
     poserParent(GROUPES[groupe].parent);
-    return () => poserParent(null);
+    // L'onglet du navigateur dit la page : « Mon équipe · Be Stable », pas « Réglages ».
+    const avant = document.title;
+    document.title = `${GROUPES[groupe].t} · Be Stable`;
+    return () => {
+      poserParent(null);
+      document.title = avant;
+    };
   }, [groupe, poserParent, router]);
   const [taille, setTaille] = useState<Taille>(tailleTexte);
   const today = localToday();
