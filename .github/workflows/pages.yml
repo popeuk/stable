@@ -77,6 +77,9 @@ jobs:
           # du dépôt (Settings > Variables) sont vides : rien ne se charge, pas de bandeau.
           NEXT_PUBLIC_GA_ID: ${{ vars.GA_ID }}
           NEXT_PUBLIC_META_PIXEL: ${{ vars.META_PIXEL }}
+          # Matomo sans cookie, sur le VPS (https://stats.bestable.fr, site 1) : pas de bandeau.
+          NEXT_PUBLIC_MATOMO_URL: ${{ vars.MATOMO_URL }}
+          NEXT_PUBLIC_MATOMO_SITE: ${{ vars.MATOMO_SITE }}
           # Les boutons « Continuer avec Google / Apple » restent cachés tant que ces
           # variables du dépôt sont vides (lib/account/oauth.ts).
           NEXT_PUBLIC_GOOGLE: ${{ vars.GOOGLE }}

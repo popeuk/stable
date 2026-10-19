@@ -1,6 +1,14 @@
 /**
  * La mesure d'audience (décision 12 du 18 octobre 2026) : Google Analytics
- * (GA4) pour l'audience, le pixel Meta pour la publicité.
+ * (GA4) pour l'audience, le pixel Meta pour la publicité. Et depuis le
+ * 19 octobre, Matomo, sur notre VPS (stats.bestable.fr), sans cookie.
+ *
+ * Matomo est à part : sans cookie, sans script tiers (l'app envoie elle-même
+ * ses visites à matomo.php), adresse IP anonymisée côté Matomo, données
+ * gardées chez nous. C'est la mesure dispensée de consentement de la CNIL :
+ * pas de bandeau pour elle, elle compte aussi ceux qui refusent les cookies,
+ * mais on peut s'y opposer (Réglages, case « Statistiques anonymes »).
+ * Éteinte sans NEXT_PUBLIC_MATOMO_URL et NEXT_PUBLIC_MATOMO_SITE.
  *
  * ÉTEINTE tant que les identifiants ne sont pas posés au moment de
  * construire l'app (NEXT_PUBLIC_GA_ID, NEXT_PUBLIC_META_PIXEL, vides par
@@ -32,8 +40,16 @@ export const pixelValide = (id: string) => /^\d{6,20}$/.test(id);
 
 export const AVEC_GA = gaValide(GA_ID);
 export const AVEC_PIXEL = pixelValide(META_PIXEL);
-/** Au moins un outil est posé : le bandeau a lieu d'être. */
+/** Au moins un outil à cookies est posé : le bandeau a lieu d'être. */
 export const MESURE_POSEE = AVEC_GA || AVEC_PIXEL;
+
+export const MATOMO_URL = (process.env.NEXT_PUBLIC_MATOMO_URL ?? "").trim().replace(/\/+$/, "");
+export const MATOMO_SITE = (process.env.NEXT_PUBLIC_MATOMO_SITE ?? "").trim();
+/** Une origine https nue (pas de chemin, de recherche ni d'identifiant), et un numéro de site. */
+export const matomoValide = (url: string, site: string) => /^https:\/\/[a-z0-9.-]+\.[a-z]{2,}$/.test(url) && /^\d{1,6}$/.test(site);
+export const AVEC_MATOMO = matomoValide(MATOMO_URL, MATOMO_SITE);
+/** Quelque chose à régler : le panneau des choix et la ligne de Réglages ont lieu d'être. */
+export const MESURE_REGLABLE = MESURE_POSEE || AVEC_MATOMO;
 
 /**
  * Les adresses à autoriser dans la politique de contenu le jour où les
@@ -208,7 +224,9 @@ export function enregistrerChoix(audience: boolean, pub: boolean) {
 
 /** Note une étape franchie, si l'outil est chargé (donc accepté). Sinon, rien. */
 export function mesurer(e: Evenement) {
-  if (typeof window === "undefined" || !MESURE_POSEE) return;
+  if (typeof window === "undefined" || !MESURE_REGLABLE) return;
+  matomoEtape(e);
+  if (!MESURE_POSEE) return;
   const w = window as Fenetre;
   try {
     if (gaCharge) w.gtag?.("event", e, { page_location: adresseMesuree(), page_title: TITRE_MESURE });
@@ -222,7 +240,7 @@ export function mesurer(e: Evenement) {
 
 /** Une étape qui ne se compte qu'une fois par appareil (première saisie, questions finies…). */
 export function mesurerUneFois(e: Evenement) {
-  if (!MESURE_POSEE || !(gaCharge || pixelCharge)) return;
+  if (!(gaCharge || pixelCharge || matomoActif())) return;
   try {
     const k = `bs-mesure-${e}`;
     if (localStorage.getItem(k)) return;
@@ -235,4 +253,94 @@ export function mesurerUneFois(e: Evenement) {
 export const OUVRIR_CHOIX = "bs-consentement-ouvrir";
 export function ouvrirChoix() {
   window.dispatchEvent(new Event(OUVRIR_CHOIX));
+}
+
+/* ---------- Matomo, sans cookie et sans script tiers ---------- */
+
+/** Le refus de Matomo, gardé sur l'appareil (pas de durée : on ne redemande pas). */
+export const CLE_MATOMO = "bs-matomo-refus";
+
+/** Matomo compte cet appareil : posé, et pas refusé. */
+export function matomoActif(): boolean {
+  if (!AVEC_MATOMO || typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(CLE_MATOMO) !== "1";
+  } catch {
+    return true;
+  }
+}
+
+export function choisirMatomo(oui: boolean) {
+  try {
+    if (oui) localStorage.removeItem(CLE_MATOMO);
+    else localStorage.setItem(CLE_MATOMO, "1");
+  } catch {}
+}
+
+/** Les seuls paramètres d'adresse qui partent : ceux des campagnes (jamais un nom, jamais une recherche de l'app). */
+const CAMPAGNE = /^(mtm_|utm_|pk_)[a-z_]{1,20}$/;
+
+/** L'adresse envoyée à Matomo : comme pour Google, plus les paramètres de campagne s'il y en a. */
+export function adresseMatomo(l: { origin: string; pathname: string; search: string } = location): string {
+  const garde = new URLSearchParams();
+  new URLSearchParams(l.search).forEach((v, k) => {
+    if (CAMPAGNE.test(k)) garde.set(k, v.slice(0, 100));
+  });
+  const q = garde.toString();
+  return l.origin + l.pathname + (q ? `?${q}` : "");
+}
+
+/** D'où l'on vient : l'origine et le chemin, sans la recherche. Rien si l'on vient de l'app elle-même. */
+export function provenance(ref: string, origine: string): string {
+  try {
+    const u = new URL(ref);
+    return u.origin === origine ? "" : u.origin + u.pathname;
+  } catch {
+    return "";
+  }
+}
+
+let premierePage = true;
+
+/** Les paramètres d'une visite pour matomo.php (API de suivi HTTP). */
+export function parametresMatomo(extra: Record<string, string>, l: { origin: string; pathname: string; search: string } = location): URLSearchParams {
+  const p = new URLSearchParams({
+    idsite: MATOMO_SITE,
+    rec: "1",
+    apiv: "1",
+    url: adresseMatomo(l),
+    action_name: TITRE_MESURE,
+    rand: String(Math.random()).slice(2, 10),
+    ...extra,
+  });
+  if (typeof screen !== "undefined") p.set("res", `${screen.width}x${screen.height}`);
+  return p;
+}
+
+function envoyerMatomo(p: URLSearchParams) {
+  const adr = `${MATOMO_URL}/matomo.php?${p.toString()}`;
+  try {
+    if (navigator.sendBeacon?.(adr)) return;
+  } catch {}
+  try {
+    void fetch(adr, { method: "POST", mode: "no-cors", keepalive: true, credentials: "omit" }).catch(() => {});
+  } catch {}
+}
+
+/** Une page vue (à chaque changement d'écran). La première porte la provenance. */
+export function matomoPage() {
+  if (!matomoActif()) return;
+  const extra: Record<string, string> = {};
+  if (premierePage) {
+    premierePage = false;
+    const ref = provenance(document.referrer, location.origin);
+    if (ref) extra.urlref = ref;
+  }
+  envoyerMatomo(parametresMatomo(extra));
+}
+
+/** Une étape franchie, en événement « Parcours ». */
+function matomoEtape(e: Evenement) {
+  if (!matomoActif()) return;
+  envoyerMatomo(parametresMatomo({ e_c: "Parcours", e_a: e }));
 }

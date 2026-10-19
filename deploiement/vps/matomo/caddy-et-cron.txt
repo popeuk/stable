@@ -1,0 +1,22 @@
+# Matomo (19 octobre 2026), docker compose dans /opt/matomo, port local 3020.
+# Le traceur (matomo.js, matomo.php) est public. Le reste est réservé à
+# l adresse de Samuel tant que l installation n est pas finie (bloc @installation,
+# à retirer ensuite).
+stats.bestable.fr, stats.187-7-74-179.sslip.io {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	@interdit path /config/* /tmp/* /lang/* /core/* /vendor/* /.git/*
+	respond @interdit 404
+	@installation {
+		not path /matomo.js /matomo.php
+		not remote_ip 88.187.252.143
+	}
+	respond @installation "Installation en cours" 403
+	reverse_proxy 127.0.0.1:3020
+}
+5 * * * * root docker exec -u www-data matomo ./console core:archive --url=https://stats.bestable.fr/ > /dev/null 2>&1

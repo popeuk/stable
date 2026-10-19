@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { AVEC_GA, AVEC_PIXEL, MESURE_POSEE, OUVRIR_CHOIX, appliquerChoix, enregistrerChoix, lireChoix, mesurerUneFois, type Choix } from "@/lib/mesure";
+import { AVEC_GA, AVEC_MATOMO, AVEC_PIXEL, MESURE_POSEE, MESURE_REGLABLE, OUVRIR_CHOIX, appliquerChoix, choisirMatomo, enregistrerChoix, lireChoix, matomoActif, matomoPage, mesurerUneFois, type Choix } from "@/lib/mesure";
 
 /**
  * Le bandeau des cookies et la mesure d'audience. Rien du tout tant qu'aucun
@@ -12,15 +13,27 @@ import { AVEC_GA, AVEC_PIXEL, MESURE_POSEE, OUVRIR_CHOIX, appliquerChoix, enregi
  * Choisir, Accepter), rien de chargé avant l'accord, et Réglages rouvre les
  * choix. Les mots sont ceux d'un gérant : « cookies », « statistiques de
  * visite », « publicités » ; Google et Meta restent nommés.
+ *
+ * Matomo (sans cookie) n'a pas de bandeau : il compte chaque écran dès
+ * l'ouverture, sauf si on l'a refusé dans le panneau (case « Statistiques
+ * anonymes »). « Refuser » dans le bandeau ne parle que des cookies.
  */
 export function Consentement() {
   const [choix, setChoix] = useState<Choix | null | undefined>(undefined);
   const [panneau, setPanneau] = useState(false);
+  const [matomo, setMatomo] = useState(false);
+  const chemin = usePathname();
+
+  // Une page vue Matomo à chaque écran (l'adresse est relue dans lib/mesure, sans sa recherche).
+  useEffect(() => {
+    if (matomo) matomoPage();
+  }, [chemin, matomo]);
 
   useEffect(() => {
-    if (!MESURE_POSEE) return;
-    const c = lireChoix();
+    if (!MESURE_REGLABLE) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMatomo(matomoActif());
+    const c = lireChoix();
     setChoix(c);
     appliquerChoix(c);
     const ouvrir = () => setPanneau(true);
@@ -30,7 +43,7 @@ export function Consentement() {
 
   // Les étapes qui se lisent dans les données : les trois questions finies, la première saisie, une facture faite.
   useEffect(() => {
-    if (!MESURE_POSEE || !choix || (!choix.audience && !choix.pub)) return;
+    if (!matomo && (!MESURE_POSEE || !choix || (!choix.audience && !choix.pub))) return;
     let fin = () => {};
     let annule = false;
     void Promise.all([import("@/stores/data-store"), import("@/stores/settings-store"), import("@/lib/premiere-saisie")]).then(([{ useDataStore }, { useSettingsStore }, { aDejaSaisi, nouvelleSaisie }]) => {
@@ -51,15 +64,20 @@ export function Consentement() {
       annule = true;
       fin();
     };
-  }, [choix]);
+  }, [choix, matomo]);
 
-  if (!MESURE_POSEE || choix === undefined) return null;
-  const choisir = (audience: boolean, pub: boolean) => {
-    setChoix(enregistrerChoix(audience, pub));
+  if (!MESURE_REGLABLE || choix === undefined) return null;
+  const choisir = (audience: boolean, pub: boolean, anonymes = matomo) => {
+    if (AVEC_MATOMO) {
+      choisirMatomo(anonymes);
+      setMatomo(anonymes);
+    }
+    // Sans outil à cookies, il n'y a que Matomo à régler : pas de choix de cookies à garder.
+    if (MESURE_POSEE) setChoix(enregistrerChoix(audience, pub));
     setPanneau(false);
   };
-  if (panneau) return <Panneau choix={choix} onChoisir={choisir} onClose={() => setPanneau(false)} />;
-  if (choix) return null;
+  if (panneau) return <Panneau choix={choix} matomo={matomo} onChoisir={choisir} onClose={() => setPanneau(false)} />;
+  if (choix || !MESURE_POSEE) return null;
   return createPortal(
     <div className="bs-cs" role="region" aria-label="Cookies">
       <p>
@@ -88,9 +106,10 @@ export function phraseCookies(ga: boolean, pixel: boolean): string {
   return `On aimerait savoir ${quoi}. Il faut pour ça des cookies, seulement si tu es d’accord. Les chiffres de ton écurie ne partent jamais.`;
 }
 
-function Panneau({ choix, onChoisir, onClose }: { choix: Choix | null; onChoisir: (audience: boolean, pub: boolean) => void; onClose: () => void }) {
+function Panneau({ choix, matomo, onChoisir, onClose }: { choix: Choix | null; matomo: boolean; onChoisir: (audience: boolean, pub: boolean, anonymes: boolean) => void; onClose: () => void }) {
   const [audience, setAudience] = useState(choix?.audience ?? false);
   const [pub, setPub] = useState(choix?.pub ?? false);
+  const [anonymes, setAnonymes] = useState(matomo);
   useEffect(() => {
     const echap = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", echap);
@@ -100,8 +119,17 @@ function Panneau({ choix, onChoisir, onClose }: { choix: Choix | null; onChoisir
     <div className="bs-cs-wrap">
       <div className="bs-cs-scrim" onClick={onClose} />
       <div className="bs-cs-p" role="dialog" aria-modal="true" aria-labelledby="bs-cs-t">
-        <b id="bs-cs-t">Tes choix de cookies</b>
-        <p className="bs-cs-n">Rien n’est chargé sans ton accord. Ton choix est gardé 6 mois ici ; tu le changes quand tu veux dans Réglages.</p>
+        <b id="bs-cs-t">{MESURE_POSEE ? "Tes choix de cookies" : "Statistiques"}</b>
+        {MESURE_POSEE && <p className="bs-cs-n">Rien n’est chargé sans ton accord. Ton choix est gardé 6 mois ici ; tu le changes quand tu veux dans Réglages.</p>}
+        {AVEC_MATOMO && (
+          <label className="bs-cs-l">
+            <input type="checkbox" checked={anonymes} onChange={(e) => setAnonymes(e.target.checked)} />
+            <span>
+              <b>Statistiques anonymes</b>
+              <small>Sans cookie, sur nos serveurs (Matomo) : quels écrans servent, sans savoir qui tu es. Pas tes chiffres. Décoche pour ne pas être compté.</small>
+            </span>
+          </label>
+        )}
         {AVEC_GA && (
           <label className="bs-cs-l">
             <input type="checkbox" checked={audience} onChange={(e) => setAudience(e.target.checked)} />
@@ -121,13 +149,13 @@ function Panneau({ choix, onChoisir, onClose }: { choix: Choix | null; onChoisir
           </label>
         )}
         <div className="bs-cs-b">
-          <button type="button" onClick={() => onChoisir(false, false)}>
+          <button type="button" onClick={() => onChoisir(false, false, false)}>
             Tout refuser
           </button>
-          <button type="button" onClick={() => onChoisir(audience && AVEC_GA, pub && AVEC_PIXEL)}>
+          <button type="button" onClick={() => onChoisir(audience && AVEC_GA, pub && AVEC_PIXEL, anonymes)}>
             Enregistrer mes choix
           </button>
-          <button type="button" onClick={() => onChoisir(AVEC_GA, AVEC_PIXEL)}>
+          <button type="button" onClick={() => onChoisir(AVEC_GA, AVEC_PIXEL, true)}>
             Tout accepter
           </button>
         </div>
@@ -144,15 +172,22 @@ function Panneau({ choix, onChoisir, onClose }: { choix: Choix | null; onChoisir
 export function ChoixTemoinsLigne({ className, children }: { className: string; children: (resume: string) => React.ReactNode }) {
   const [resume, setResume] = useState("");
   useEffect(() => {
-    if (!MESURE_POSEE) return;
-    const c = lireChoix();
+    if (!MESURE_REGLABLE) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setResume(!c ? "Pas encore choisi" : c.audience || c.pub ? "Accepté" + (c.audience !== c.pub && AVEC_GA && AVEC_PIXEL ? " en partie" : "") : "Refusé");
+    setResume(resumeChoix(MESURE_POSEE ? lireChoix() : null, matomoActif()));
   }, []);
-  if (!MESURE_POSEE) return null;
+  if (!MESURE_REGLABLE) return null;
   return (
     <button type="button" className={className} onClick={() => window.dispatchEvent(new Event(OUVRIR_CHOIX))}>
       {children(resume)}
     </button>
   );
+}
+
+/** Le résumé de la ligne de Réglages : les cookies (s'il y en a de posés), puis les statistiques anonymes. */
+export function resumeChoix(c: Choix | null, anonymes: boolean, ga = AVEC_GA, pixel = AVEC_PIXEL, matomo = AVEC_MATOMO): string {
+  const cookies = !(ga || pixel) ? "" : !c ? "Cookies pas encore choisis" : c.audience || c.pub ? "Cookies acceptés" + (c.audience !== c.pub && ga && pixel ? " en partie" : "") : "Cookies refusés";
+  const stats = matomo ? (anonymes ? "statistiques anonymes" : "sans statistiques") : "";
+  const tout = [cookies, stats].filter(Boolean).join(", ");
+  return tout.charAt(0).toUpperCase() + tout.slice(1);
 }
