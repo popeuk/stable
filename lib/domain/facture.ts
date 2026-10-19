@@ -4,6 +4,7 @@ import { prenomDe } from "@/lib/domain/clients";
 import { enMoyen } from "@/lib/domain/paiement";
 import { esc } from "@/lib/utils/esc";
 import { formule, signature } from "@/lib/domain/politesse";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * La facture d'un client pour un mois. Les prix saisis dans l'app sont ceux
@@ -25,8 +26,6 @@ export const TAUX: VatRate[] = [5.5, 10, 20];
 
 /** La mention imprimée en franchise de TVA. */
 export const MENTION_FRANCHISE = "TVA non applicable, art. 293 B du CGI";
-
-const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /** Le type de prestation d'une recette (même règle que les clients : pension, cours, soins, le reste). */
 export function kindOf(r: Pick<Revenue, "rebillOf" | "seanceId" | "note" | "categoryId">, catName = ""): VatKind {

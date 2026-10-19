@@ -1,5 +1,6 @@
 import type { Payment, PaymentMethod } from "@/lib/domain/types";
 import { cleClient } from "@/lib/domain/billing";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Le moyen de paiement : chèque, espèces, virement, autre. Le comptable veut
@@ -59,13 +60,13 @@ export function suggestionsPartielles(due: number): number[] {
 export function repartirPaiement(dus: { month: string; due: number }[], montant: number): { month: string; amount: number }[] {
   const mois = [...dus].filter((d) => d.due > 0).sort((a, b) => a.month.localeCompare(b.month));
   const out: { month: string; amount: number }[] = [];
-  let reste = Math.round(montant * 100) / 100;
+  let reste = r2(montant);
   for (const m of mois) {
     if (reste <= 0) break;
     const a = Math.min(reste, m.due);
-    out.push({ month: m.month, amount: Math.round(a * 100) / 100 });
-    reste = Math.round((reste - a) * 100) / 100;
+    out.push({ month: m.month, amount: r2(a) });
+    reste = r2((reste - a));
   }
-  if (reste > 0 && out.length) out[out.length - 1].amount = Math.round((out[out.length - 1].amount + reste) * 100) / 100;
+  if (reste > 0 && out.length) out[out.length - 1].amount = r2((out[out.length - 1].amount + reste));
   return out;
 }

@@ -1,5 +1,6 @@
 import type { Period, StableData } from "@/lib/domain/types";
 import { aggregateStablePnl } from "@/lib/domain/calculations";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * The stable's break-even, translated into the owner's own units. The most
@@ -25,10 +26,6 @@ export interface Equilibrium {
   /** avgPension − costPerHorse: what one occupied place leaves you. */
   marginPerHorse: number;
   horseCount: number;
-}
-
-function r2(n: number): number {
-  return Math.round(n * 100) / 100;
 }
 
 export function equilibrium(data: StableData, periods: Period[]): Equilibrium {

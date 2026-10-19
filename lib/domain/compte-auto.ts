@@ -3,6 +3,7 @@ import { addDays } from "@/lib/domain/care";
 import { billsFor, type Bill } from "@/lib/domain/billing";
 import { careToValidate, dayItems, seanceToValidate, type DayItem } from "@/lib/domain/seances";
 import { addMonths, daysInMonth } from "@/lib/utils/period";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Tout compte, tu retires. Ce qui est au planning et dont l'heure est passée
@@ -60,7 +61,7 @@ export function ceQuiACompte(data: StableData, today: ISODate, nowHHMM: string, 
   for (let i = 0; i < jours; i++) {
     const date = addDays(today, -i);
     const items = aCompteLe(data, date, today, nowHHMM);
-    if (items.length) out.push({ date, items, total: Math.round(items.reduce((t, it) => t + (it.money ?? 0), 0) * 100) / 100 });
+    if (items.length) out.push({ date, items, total: r2(items.reduce((t, it) => t + (it.money ?? 0), 0)) });
   }
   return out;
 }

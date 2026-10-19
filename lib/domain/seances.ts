@@ -1,6 +1,7 @@
 import type { ISODate, Revenue, Seance, StableData, TeamTask } from "@/lib/domain/types";
 import { CARE_META, addDays, type CareEvent } from "@/lib/domain/care";
 import { heure } from "@/lib/utils/heure";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Les séances du planning (repris du planning des cours du Clos) et la
@@ -53,7 +54,7 @@ export function payingCount(s: Seance): number {
 /** Ce que la séance rapporte : prévu tant qu'elle n'est pas faite, réel ensuite. */
 export function seanceAmount(s: Seance): number {
   if (s.status === "cancelled") return 0;
-  return Math.round(s.unitPrice * payingCount(s) * 100) / 100;
+  return r2(s.unitPrice * payingCount(s));
 }
 
 /**

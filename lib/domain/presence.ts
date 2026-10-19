@@ -2,6 +2,7 @@ import type { Horse, ISODate, Period, SharedExpense, SharedExpenseAllocation, St
 import { distribute } from "@/lib/domain/distribution";
 import { dateInPeriod, periodEnd, periodStart } from "@/lib/utils/period";
 import { compteEntre, debutCompte, donnerSejours, finCompte, revenirLe, sejourDuMois, sejours } from "@/lib/domain/sejours";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Qui était là, et quand. Un cheval vit à l'écurie par séjours
@@ -100,7 +101,7 @@ export function facturesSansCheval(data: StableData, p: Period, recurringShared:
   const notees = data.sharedExpenses
     .filter((se) => se.periodYear === p.year && se.periodMonth === p.month && se.allocations.length === 0)
     .reduce((t, se) => t + se.totalAmount, 0);
-  return Math.round((notees + recurringShared) * 100) / 100;
+  return r2((notees + recurringShared));
 }
 
 /**

@@ -1,5 +1,6 @@
 import type { Abonnement, ISODate, Participant, Person, Prestation, Revenue, Seance } from "@/lib/domain/types";
 import { moisEntre } from "@/lib/domain/autopilot";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Les forfaits : un cavalier paie un cours au mois ou à l'année plutôt qu'à
@@ -65,7 +66,7 @@ export function echeances(a: Abonnement, jusqua: string): [string, number, numbe
   for (let i = 0; i < f; i++) {
     const k = moisPlus(a.debut, Math.floor((i * n) / f));
     if (k > jusqua || (fin !== null && k > fin)) break;
-    const montant = i === f - 1 ? Math.round((a.amount - part * (f - 1)) * 100) / 100 : part;
+    const montant = i === f - 1 ? r2((a.amount - part * (f - 1))) : part;
     out.push([k, montant, i + 1]);
   }
   return out;

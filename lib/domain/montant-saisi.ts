@@ -1,4 +1,5 @@
 import type { MontantSaisi } from "@/lib/domain/types";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Un frais qui revient, tel que le gérant le connaît : par mois, sur l'année
@@ -19,7 +20,7 @@ export type Connu = "mois" | "an" | "fois";
 export const FOIS_PROPOSES = [2, 3, 4, 6] as const;
 export const FOIS_PAR_DEFAUT = 2;
 
-const auCentime = (n: number) => Math.round(n * 100) / 100;
+const auCentime = (n: number) => r2(n);
 const foisSur = (fois: number | undefined) => Math.max(1, Math.min(12, Math.round(fois ?? FOIS_PAR_DEFAUT)));
 
 /** Ce que le gérant paie sur l'année, selon comment il connaît le montant. */

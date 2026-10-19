@@ -1,3 +1,5 @@
+import { r2 } from "@/lib/utils/arrondi";
+
 /**
  * Scenario simulator (section 11.3). Pure, runs client-side in real time
  * as the user drags sliders — no server round trip.
@@ -63,5 +65,5 @@ export function simulateScenario(
 }
 
 function round2(n: number): number {
-  return Math.round(n * 100) / 100;
+  return r2(n);
 }

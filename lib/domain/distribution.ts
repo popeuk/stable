@@ -5,6 +5,7 @@ import type {
   SharedExpenseAllocation,
 } from "@/lib/domain/types";
 import { joursDansLeMois } from "@/lib/domain/sejours";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Number of days a horse was present in the stable during a given month
@@ -57,16 +58,16 @@ export function distribute(
   // Round to cents, then reconcile the remainder onto the biggest share.
   const rounded = raw.map((r) => ({
     ...r,
-    amount: Math.round(r.amount * 100) / 100,
+    amount: r2(r.amount),
   }));
   const sum = rounded.reduce((s, r) => s + r.amount, 0);
-  const drift = Math.round((total - sum) * 100) / 100;
+  const drift = r2((total - sum));
   if (drift !== 0 && rounded.length > 0) {
     let maxIdx = 0;
     for (let i = 1; i < rounded.length; i++) {
       if (rounded[i].amount > rounded[maxIdx].amount) maxIdx = i;
     }
-    rounded[maxIdx].amount = Math.round((rounded[maxIdx].amount + drift) * 100) / 100;
+    rounded[maxIdx].amount = r2((rounded[maxIdx].amount + drift));
   }
 
   return rounded.map((r) => ({

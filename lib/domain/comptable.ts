@@ -5,6 +5,7 @@ import { moyenDit, nomMoyen } from "@/lib/domain/paiement";
 import { recurringDirectDue, recurringRevenuesDue } from "@/lib/domain/recurring";
 import { jourDuCheval } from "@/lib/domain/presence";
 import { daysInMonth } from "@/lib/utils/period";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Le tableau de l'année pour le comptable (centre de gestion) : une ligne
@@ -49,7 +50,6 @@ export interface LigneComptable {
   facture: string;
 }
 
-const r2 = (n: number) => Math.round(n * 100) / 100;
 /** « 1234,5 » donne « 1234,50 » ; pas de séparateur de milliers (Excel le lit comme un nombre). */
 export const nombreFr = (n: number) => r2(n).toFixed(2).replace(".", ",");
 /** « 2026-10-03 » donne « 03/10/2026 ». */

@@ -1,5 +1,6 @@
 import type { ISODate } from "@/lib/domain/types";
 import { addDays, CARE_KINDS, type CareKind } from "@/lib/domain/care";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * L'interpréteur de commandes en français : « cours collectif demain 14 h
@@ -162,7 +163,7 @@ export function sanitizeCommand(
   const date =
     typeof r.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? r.date : ctx.today;
   const num = (v: unknown) =>
-    typeof v === "number" && isFinite(v) && v > 0 && v < 100000 ? Math.round(v * 100) / 100 : undefined;
+    typeof v === "number" && isFinite(v) && v > 0 && v < 100000 ? r2(v) : undefined;
   return {
     kind,
     horseIds: [...new Set(horseIds)],

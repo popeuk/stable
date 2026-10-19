@@ -7,6 +7,7 @@ import { presenceDays } from "@/lib/domain/distribution";
 import { daysInMonth, periodEnd, periodStart } from "@/lib/utils/period";
 import { debutCompte, finCompte, sejourDuMois } from "@/lib/domain/sejours";
 import { annulationsDuMois, monthKey } from "@/lib/domain/billing";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Le ticket du mois d'un cheval, et le bilan du mois de l'écurie, dans la
@@ -224,7 +225,7 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
   }
   // Les avoirs du mois : la vente annulée, retirée une seule fois (billing.ts).
   const annule = annulationsDuMois(data, monthKey(period)).flatMap((a) => a.parCheval).filter((x) => !x.horseId || active.has(x.horseId)).reduce((t, x) => t + x.amount, 0);
-  if (annule > 0) insMap.set("Avoirs", -Math.round(annule * 100) / 100);
+  if (annule > 0) insMap.set("Avoirs", -r2(annule));
   const outMap = new Map<string, number>();
   for (const e of data.directExpenses) {
     if (!isOutside(e) || !dateInPeriod(e.date, period)) continue;
@@ -249,7 +250,7 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
     if (r.isShared && recurringDue(r, period) && a > 0) addSh(r.label, a);
   }
   const listed = [...shMap.values()].reduce((t, a) => t + a, 0);
-  const rest = Math.round((s.sharedCosts - listed) * 100) / 100;
+  const rest = r2((s.sharedCosts - listed));
   if (rest > 0.5) addSh("Autres frais de l’écurie", rest);
 
   // Le seuil se compte en pensions, pas en chevaux : les chevaux du gérant
@@ -261,7 +262,7 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
   const lesMiens = s.perHorse.filter((p) => miens.has(p.horseId));
   const pensions = pensionsDuMois.length;
   const contribution = pensions ? pensionsDuMois.reduce((t, p) => t + p.revenue - p.directCosts, 0) / pensions : 0;
-  const aCouvrir = Math.round((s.sharedCosts + lesMiens.reduce((t, p) => t + p.directCosts - p.revenue, 0)) * 100) / 100;
+  const aCouvrir = r2((s.sharedCosts + lesMiens.reduce((t, p) => t + p.directCosts - p.revenue, 0)));
   const seuil = contribution > 0 ? aCouvrir / contribution : Infinity;
 
   const sortDesc = (m: Map<string, number>) =>

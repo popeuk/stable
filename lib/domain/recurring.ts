@@ -2,6 +2,7 @@ import type { Period, RecurringSchedule, StableData } from "@/lib/domain/types";
 import { distribute } from "@/lib/domain/distribution";
 import { periodEnd, periodStart } from "@/lib/utils/period";
 import { chevauxPresents, recurrenteDuCheval } from "@/lib/domain/presence";
+import { r2 } from "@/lib/utils/arrondi";
 
 /** Un cheval qui n'était pas là ce mois (parti avant, entre deux séjours) ne reçoit pas ses récurrentes (pension, charge à lui). */
 function encoreLa(data: StableData, horseId: string | undefined, period: Period): boolean {
@@ -55,8 +56,8 @@ export function montantsDuMois(data: StableData, period: Period): Map<string, nu
     const reste = r.isShared && r.categoryId ? dedans.get(r.categoryId) ?? 0 : 0;
     if (reste > 0 && recurringDue(r, period)) {
       const pris = Math.min(a, reste);
-      a = Math.round((a - pris) * 100) / 100;
-      dedans.set(r.categoryId!, Math.round((reste - pris) * 100) / 100);
+      a = r2((a - pris));
+      dedans.set(r.categoryId!, r2((reste - pris)));
     }
     out.set(r.id, a);
   }
@@ -67,7 +68,7 @@ export function montantsDuMois(data: StableData, period: Period): Map<string, nu
 export function estimationDuPoste(data: Pick<StableData, "recurringExpenses">, categoryId: string | undefined, period: Period): number {
   if (!categoryId) return 0;
   const t = (data.recurringExpenses ?? []).filter((r) => r.isShared && r.categoryId === categoryId && recurringDue(r, period)).reduce((s, r) => s + r.amount, 0);
-  return Math.round(t * 100) / 100;
+  return r2(t);
 }
 
 /** Les recettes récurrentes d'un cheval dues ce mois, s'il est encore là. */
@@ -116,7 +117,7 @@ export function recurringSharedForHorse(
     const mine = allocs.find((a) => a.horseId === horseId);
     if (mine) total += mine.allocatedAmount;
   }
-  return Math.round(total * 100) / 100;
+  return r2(total);
 }
 
 /** Recurring charges due in a period, as breakdown-ready slices. */

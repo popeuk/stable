@@ -14,6 +14,7 @@ import {
 } from "@/lib/domain/recurring";
 import { chevauxDuMois, facturesSansCheval, repartition } from "@/lib/domain/presence";
 import { annuleSurCheval } from "@/lib/domain/billing";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Pure P&L calculations (section 10 of the spec). No I/O, no framework.
@@ -73,7 +74,7 @@ export function horseSharedCosts(
     }
   }
   total += recurringSharedForHorse(data, horseId, period);
-  return Math.round(total * 100) / 100;
+  return r2(total);
 }
 
 /** Full P&L for one horse over one period (section 10.1–10.3). */
@@ -308,7 +309,7 @@ export function expenseBreakdown(data: StableData, periods: Period[]): ExpenseSl
 }
 
 function round2(n: number): number {
-  return Math.round(n * 100) / 100;
+  return r2(n);
 }
 
 export interface ExpenseMover {
