@@ -100,7 +100,7 @@ describe("frais communs notés sans cheval (P1-5)", () => {
     const m = monthBreakdown(d, oct);
     expect(m.net).toBe(-500);
     expect(m.sharedTotal).toBe(500);
-    expect(m.shared).toEqual([{ label: "Foin", amount: 500 }]);
+    expect(m.shared).toEqual([{ label: "Foin", amount: 500, reel: 500 }]);
   });
 
   it("dès qu'un cheval arrive dans le mois, il porte la facture ; un cheval arrivé le mois d'après, non", () => {

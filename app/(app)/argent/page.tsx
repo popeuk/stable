@@ -18,7 +18,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { libelleFrais } from "@/components/bs/parcours";
 import { estEstimation } from "@/lib/domain/estimation";
 import { barreDuMois, ilFautPensions, memePlein, resteOuManque } from "@/lib/domain/lecture";
-import { monthBreakdown, seuilEtPlaces } from "@/lib/domain/ticket";
+import { monthBreakdown, regrouperFrais, seuilEtPlaces } from "@/lib/domain/ticket";
 import { suggestions, leverPotential, type Lever, type Suggestion } from "@/lib/domain/leviers";
 import { clientDues } from "@/lib/domain/clients";
 import { seanceAmount } from "@/lib/domain/seances";
@@ -256,12 +256,19 @@ function Mois() {
   );
   const ceQuiSort = (
         <Sec title="Ce qui sort" action={<span className={`act${!estime && Math.round(m.direct + m.sharedTotal + m.outside) ? " out" : ""}`}>{sg(-(m.direct + m.sharedTotal + m.outside))}</span>} delay={0.26}>
-          {m.shared.map((x) => (
+          {regrouperFrais(m.shared, (l) => libelleFrais(l).replace(/, en un total$/, "")).map((x) => (
             <div key={x.label} className="ar-post">
               <span className="ar-pic">
                 <Ic n={icFor(x.label)} className="ar-ic" />
               </span>
-              <span>{libelleFrais(x.label)}</span>
+              <span>
+                {x.label}
+                {!!x.reel && !!x.estime && (
+                  <small>
+                    {eurc(x.reel)} noté{x.reel > 1 ? "s" : ""}, {eurc(x.estime)} estimé{x.estime > 1 ? "s" : ""}
+                  </small>
+                )}
+              </span>
               <Money v={-x.amount} prevu={estime} />
             </div>
           ))}

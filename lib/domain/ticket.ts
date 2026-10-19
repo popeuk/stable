@@ -156,6 +156,9 @@ export function lignesArrondies(lines: TicketLine[], total: number): TicketLine[
 export interface MonthLine {
   label: string;
   amount: number;
+  /** Frais de l'écurie : ce qui est noté pour de vrai, et ce qui vient de l'estimation (le total des premiers pas, un poste estimé). */
+  reel?: number;
+  estime?: number;
 }
 
 export interface MonthBreakdown {
@@ -236,18 +239,27 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
   // Les factures communes, à hauteur de ce qui est réparti sur les chevaux présents.
   const shMap = new Map<string, number>();
   const addSh = (label: string, a: number) => shMap.set(label, (shMap.get(label) ?? 0) + a);
+  const reelSh = new Map<string, number>();
+  const estSh = new Map<string, number>();
+  const plus = (m: Map<string, number>, label: string, a: number) => m.set(label, (m.get(label) ?? 0) + a);
   for (const se of data.sharedExpenses) {
     if (se.periodYear !== period.year || se.periodMonth !== period.month) continue;
     const parts = repartition(data, se);
     // Sans aucun cheval ce mois-là, la facture compte quand même, en entier.
     const a = parts.length ? parts.filter((x) => active.has(x.horseId)).reduce((t, x) => t + x.allocatedAmount, 0) : se.totalAmount;
-    if (a > 0) addSh(se.label, a);
+    if (a > 0) {
+      addSh(se.label, a);
+      plus(reelSh, se.label, a);
+    }
   }
   // Les charges récurrentes partagées (assurance, crédit…), sous leur nom, avec ou sans cheval.
   const du = montantsDuMois(data, period);
   for (const r of recurringList(data)) {
     const a = du.get(r.id) ?? r.amount;
-    if (r.isShared && recurringDue(r, period) && a > 0) addSh(r.label, a);
+    if (r.isShared && recurringDue(r, period) && a > 0) {
+      addSh(r.label, a);
+      plus(estSh, r.label, a);
+    }
   }
   const listed = [...shMap.values()].reduce((t, a) => t + a, 0);
   const rest = r2((s.sharedCosts - listed));
@@ -270,7 +282,7 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
 
   return {
     ins: sortDesc(insMap),
-    shared: sortDesc(shMap),
+    shared: sortDesc(shMap).map((l) => ({ ...l, ...(reelSh.has(l.label) ? { reel: r2(reelSh.get(l.label)!) } : {}), ...(estSh.has(l.label) ? { estime: r2(estSh.get(l.label)!) } : {}) })),
     outs: sortDesc(outMap),
     revenue: s.revenue,
     direct: s.horsesDirectCosts,
@@ -284,4 +296,23 @@ export function monthBreakdown(data: StableData, period: Period): MonthBreakdown
     contribution,
     seuil,
   };
+}
+
+/**
+ * Les frais de l'écurie de Mon bilan, une ligne par poste tel qu'on le lit :
+ * le total estimé des premiers pas (« Frais communs en un total ») et une
+ * vraie dépense rangée dans « Frais communs » font une seule ligne « Frais de
+ * l'écurie », avec le noté et l'estimé dedans. `nom` donne le nom affiché.
+ */
+export function regrouperFrais(lines: MonthLine[], nom: (label: string) => string): MonthLine[] {
+  const out = new Map<string, MonthLine>();
+  for (const l of lines) {
+    const k = nom(l.label);
+    const x = out.get(k) ?? { label: k, amount: 0 };
+    x.amount = r2(x.amount + l.amount);
+    if (l.reel) x.reel = r2((x.reel ?? 0) + l.reel);
+    if (l.estime) x.estime = r2((x.estime ?? 0) + l.estime);
+    out.set(k, x);
+  }
+  return [...out.values()].sort((a, b) => b.amount - a.amount);
 }
