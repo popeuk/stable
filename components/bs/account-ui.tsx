@@ -126,7 +126,7 @@ export function FichePreview({ f, claimed, pending }: { f: Partial<Fiche>; claim
         {price > 0 ? (
           <div className="price">
             <span style={{ fontSize: 13, color: "var(--on-vert)" }}>à partir de</span>
-            <b>{nf(price)} €</b>
+            <b>{`${nf(price)}\u00a0€`}</b>
             <span style={{ fontSize: 13 }}>/ mois</span>
           </div>
         ) : (
@@ -147,7 +147,7 @@ export function ResultSheet({ f, claimed }: { f: Partial<Fiche>; claimed?: boole
   return (
     <div className="bs-sheet-res">
       <div className="bs-score" aria-label={`Fiche complète à ${Math.round((ok / rows.length) * 100)} %`}>
-        <b>{Math.round((ok / rows.length) * 100)} %</b>
+        <b>{`${Math.round((ok / rows.length) * 100)}\u00a0%`}</b>
         <span className="trk">
           <i style={{ width: `${(ok / rows.length) * 100}%` }} />
         </span>
@@ -208,7 +208,7 @@ export function FicheApercu({ f, claimed, pending }: { f: Partial<Fiche>; claime
         {price > 0 ? (
           <div className="pr0">
             <span>à partir de</span>
-            <b>{nf(price)} €</b>
+            <b>{`${nf(price)}\u00a0€`}</b>
             <span>/ mois</span>
           </div>
         ) : (
@@ -230,7 +230,7 @@ export function FicheResultat({ f, claimed, action }: { f: Partial<Fiche>; claim
     <div className="card">
       <p className="k">Ta fiche est complète à</p>
       <div className="ec-sc" aria-label={`Fiche complète à ${pc} %`}>
-        <b>{pc} %</b>
+        <b>{`${pc}\u00a0%`}</b>
         <div className="bar">
           <i style={{ width: `${pc}%` }} />
         </div>

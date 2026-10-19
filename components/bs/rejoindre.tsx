@@ -658,7 +658,7 @@ function FicheCarte({ f, etat, exemple }: { f: Partial<Fiche>; etat: "avant" | "
         {pill}
         {price > 0 ? (
           <span className="px">
-            à partir de<strong>{nf(price)} €</strong>/ mois
+            à partir de<strong>{`${nf(price)}\u00a0€`}</strong>/ mois
           </span>
         ) : (
           <span className="px">Tarifs non communiqués</span>
