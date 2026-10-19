@@ -45,7 +45,8 @@ import { lireMontant, saisieMontant } from "@/lib/utils/montant";
 import { InField } from "@/components/bs/seance-form";
 import { Feuille, resteApresAvoirs } from "@/components/bs/feuille-facture";
 import { facturePdf, nomFichierPdf } from "@/lib/domain/facture-pdf";
-import { AvoirSansReseau, FactureNonEnregistree, MESSAGE_AVOIR_SANS_RESEAU, messageNonEnregistree } from "@/lib/account/numeroter";
+import { refusCopie } from "@/lib/account/nuage";
+import { AvoirSansReseau, FactureNonEnregistree, MESSAGE_AVOIR_COPIE_REFUSEE, MESSAGE_AVOIR_SANS_RESEAU, messageNonEnregistree, raisonProvisoire } from "@/lib/account/numeroter";
 import { MENTION_PROVISOIRE, lienFacture, messageRetiree } from "@/lib/domain/numeros";
 import type { Invoice, Period, StableData } from "@/lib/domain/types";
 import { adresseClient, adresseFacture, nomDeLAdresse } from "@/lib/adresse-client";
@@ -506,7 +507,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
       const { numerotees, retirees } = await useDataStore.getState().numeroterEnAttente(localToday());
       const moi = numerotees.find((i) => i.id === inv.id);
       const retiree = retirees.find((r) => r.facture.id === inv.id);
-      say(moi ? `La facture a reçu le n° <strong>${moi.number}</strong>.` : retiree ? messageRetiree(retiree) : "Toujours pas de réseau : elle recevra son numéro dès qu’il revient.");
+      say(moi ? `La facture a reçu le n° <strong>${moi.number}</strong>.` : retiree ? messageRetiree(retiree) : refusCopie() ? raisonProvisoire(refusCopie()) : "Toujours pas de réseau : elle recevra son numéro dès qu’il revient.");
     } catch (e) {
       if (e instanceof FactureNonEnregistree) say(messageNonEnregistree(e));
       else throw e;
@@ -529,7 +530,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
         {provisoire && (
           <div className="card fa-card fa-faite rise" role="status">
             <b>Faite, mais pas encore numérotée</b>
-            <p>Pas de réseau : l’app n’a pas pu vérifier en ligne qu’aucun autre appareil n’a déjà pris le numéro suivant. Elle le recevra dès que le réseau revient, dans l’ordre où tu as fait tes factures. D’ici là, tu peux l’imprimer : elle dit « {MENTION_PROVISOIRE} ». Elle s’envoie une fois numérotée.</p>
+            <p>{raisonProvisoire(refusCopie())} D’ici là, tu peux l’imprimer : elle dit « {MENTION_PROVISOIRE} ». Elle s’envoie une fois numérotée.</p>
             <div className="fa-sendb">
               <button type="button" className="btn" onClick={donnerNumero} disabled={numeroEnCours}>
                 Lui donner son numéro
@@ -696,7 +697,7 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
     } catch (e) {
       setEnCours(false);
       if (e instanceof FactureNonEnregistree) return say(messageNonEnregistree(e, true));
-      if (e instanceof AvoirSansReseau) return say(MESSAGE_AVOIR_SANS_RESEAU);
+      if (e instanceof AvoirSansReseau) return say(e.refus ? MESSAGE_AVOIR_COPIE_REFUSEE : MESSAGE_AVOIR_SANS_RESEAU);
       throw e;
     }
     setEnCours(false);

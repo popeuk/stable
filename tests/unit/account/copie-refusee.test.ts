@@ -50,6 +50,8 @@ const { setSession } = await import("@/lib/account/session");
 const nuage = await import("@/lib/account/nuage");
 const { texteCopie } = await import("@/lib/account/etat-copie");
 const { contenuChiffre } = await import("@/supabase/functions/tiroirs/regles");
+const { numeroter, raisonProvisoire, AvoirSansReseau } = await import("@/lib/account/numeroter");
+type Inv = import("@/lib/domain/types").Invoice;
 
 const cle = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("base64");
 const compte = { kind: "compte" as const, userId: 7, email: "g@x.fr", prenom: "Claire", token: "t", dataKey: cle, at: "" };
@@ -106,6 +108,35 @@ describe("la copie en ligne refusée par le serveur", () => {
     expect(serveur.puts.length).toBe(avant + 1);
     expect(nuage.refusCopie()).toBeNull();
     expect(nuage.etatNuage().attente).toBe(false);
+  });
+
+  it("refusée : « relire avant de numéroter » ne dit pas « à jour », la facture est provisoire, avec la raison", async () => {
+    const pc = appareil();
+    pc.entrer();
+    await sync();
+    expect((await nuage.relireAvantNumero()).etat).toBe("a-jour");
+    serveur.max = 1000;
+    await ecrire(200);
+    await nuage.envoyer();
+    expect(nuage.refusCopie()).toBe("trop_gros");
+    expect((await nuage.relireAvantNumero()).etat).toBe("refusee");
+
+    // Le carnet de l'écran, enregistré dans le coffre comme le fait l'app.
+    let st: { invoices?: Inv[]; invoiceSeq?: Record<string, number> } = { invoices: [], invoiceSeq: {} };
+    const get = () => st;
+    const set = (p: Partial<typeof st>) => {
+      st = { ...st, ...p };
+      void vault.setItem("be-stable-data", JSON.stringify({ state: st, version: 5 }));
+    };
+    const facture = { id: "f1", number: "2026-0001", year: 2026, seq: 1, issuedAt: "2026-10-20", payer: "Léa", month: "2026-10", seller: { name: "J" }, buyer: { name: "Léa" }, franchise: true, lines: [], totalHT: 25, vat: [], totalTTC: 25, paid: 0, due: 25, revenueIds: ["r1"] } as Inv;
+    const [f] = await numeroter(get, set, () => [facture], { relire: async () => {} });
+    expect(f.provisoire).toBeTruthy();
+    expect(f.seq).toBe(0);
+    await expect(numeroter(get, set, () => [facture], { relire: async () => {}, avoir: true })).rejects.toMatchObject({ refus: true });
+    expect(new AvoirSansReseau(true).refus).toBe(true);
+    expect(raisonProvisoire("trop_gros")).toBe("Ta copie en ligne ne part plus (ton écurie est trop grosse) : ton autre appareil ne voit pas tes factures et pourrait donner le même numéro. Elle le recevra dès que ta copie repart. Fais une sauvegarde (Réglages, Avancé).");
+    expect(raisonProvisoire(null)).toMatch(/^Pas de réseau/);
+    serveur.max = 2_000_000;
   });
 
   it("mal formée (400) : dite aussi, sans nouvel essai dans la journée", async () => {

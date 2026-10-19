@@ -6,7 +6,7 @@ import { etatPlace } from "@/lib/account/place";
 import { compteurAppareil, facturesEnregistrees, noterCompteur, sousVerrou } from "@/lib/account/factures-seq";
 import { compteurMax, fusionFactures } from "@/lib/domain/facture";
 import { numeroterProvisoires, rendreProvisoire, estProvisoire, type ProvisoireRetiree } from "@/lib/domain/numeros";
-import { envoyerMaintenant, relireAvantNumero } from "@/lib/account/nuage";
+import { envoyerMaintenant, relireAvantNumero, type CodeRefus } from "@/lib/account/nuage";
 import type { Invoice, StableData } from "@/lib/domain/types";
 
 /**
@@ -44,12 +44,21 @@ export function messageNonEnregistree(e: FactureNonEnregistree, avoir = false): 
 }
 
 export class AvoirSansReseau extends Error {
-  constructor() {
+  /** `refus` : le réseau est là, mais la copie en ligne de cet appareil est refusée. */
+  constructor(public refus = false) {
     super("avoir sans réseau");
     this.name = "AvoirSansReseau";
   }
 }
 export const MESSAGE_AVOIR_SANS_RESEAU = "Pas de réseau : l’avoir n’est pas fait. Il prend le numéro qui suit tes factures, et l’app vérifie en ligne qu’aucun autre appareil ne l’a déjà pris. Réessaie quand tu as du réseau.";
+export const MESSAGE_AVOIR_COPIE_REFUSEE = "Ta copie en ligne ne part plus : l’avoir n’est pas fait. Il prend le numéro qui suit tes factures, et tant que tes factures ne montent plus en ligne, ton autre appareil pourrait donner le même. Fais une sauvegarde (Réglages, Avancé) et écris-nous.";
+
+/** Pourquoi une facture reste provisoire : pas de réseau, ou une copie en ligne refusée (la raison change ce qu'il faut faire). */
+export function raisonProvisoire(refus: CodeRefus | null): string {
+  if (refus)
+    return `Ta copie en ligne ne part plus${refus === "trop_gros" ? " (ton écurie est trop grosse)" : ""} : ton autre appareil ne voit pas tes factures et pourrait donner le même numéro. Elle le recevra dès que ta copie repart. Fais une sauvegarde (Réglages, Avancé)${refus === "trop_gros" ? "" : " et écris-nous"}.`;
+  return "Pas de réseau : l’app n’a pas pu vérifier en ligne qu’aucun autre appareil n’a déjà pris le numéro suivant. Elle le recevra dès que le réseau revient, dans l’ordre où tu as fait tes factures.";
+}
 
 type Carnet = Pick<StableData, "invoices" | "invoiceSeq">;
 
@@ -98,12 +107,17 @@ export interface OptionsNumero {
   avoir?: boolean;
 }
 
-/** Relit la copie en ligne, puis le carnet enregistré. Rend false si le serveur n'a pas pu être lu. */
-async function toutRelire<S extends Carnet>(get: () => S, set: (p: Partial<S>) => void, opts: OptionsNumero): Promise<boolean> {
+/**
+ * Relit la copie en ligne, puis le carnet enregistré. Rend « hors-ligne » si
+ * le serveur n'a pas pu être lu, « refusee » s'il refuse la copie de cet
+ * appareil : dans les deux cas, on ne sait pas quel numéro l'autre appareil
+ * a donné, la facture est provisoire.
+ */
+async function toutRelire<S extends Carnet>(get: () => S, set: (p: Partial<S>) => void, opts: OptionsNumero): Promise<"ok" | "hors-ligne" | "refusee"> {
   const lu = await relireAvantNumero();
   if (lu.change) await opts.relire();
   await relireCarnet(get, set);
-  return lu.etat !== "hors-ligne";
+  return lu.etat === "hors-ligne" || lu.etat === "refusee" ? lu.etat : "ok";
 }
 
 export async function numeroter<S extends Carnet>(
@@ -113,8 +127,9 @@ export async function numeroter<S extends Carnet>(
   opts: OptionsNumero,
 ): Promise<Invoice[]> {
   return sousVerrou(async () => {
-    const enLigne = await toutRelire(get, set, opts);
-    if (!enLigne && opts.avoir) throw new AvoirSansReseau();
+    const lu = await toutRelire(get, set, opts);
+    const enLigne = lu === "ok";
+    if (!enLigne && opts.avoir) throw new AvoirSansReseau(lu === "refusee");
     let out = faire(get(), compteurAppareil());
     if (!out.length) return out;
     if (!enLigne) {
@@ -143,7 +158,7 @@ export async function numeroterEnAttente<S extends Carnet>(
   const rien = { numerotees: [], retirees: [] };
   if (!(get().invoices ?? []).some(estProvisoire)) return rien;
   return sousVerrou(async () => {
-    if (!(await toutRelire(get, set, opts))) return rien;
+    if ((await toutRelire(get, set, opts)) !== "ok") return rien;
     const s = get();
     const { numerotees, retirees } = numeroterProvisoires(s.invoices ?? [], s.invoiceSeq, today, compteurAppareil());
     if (retirees.length) {

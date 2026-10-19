@@ -503,9 +503,12 @@ export async function synchroniser(): Promise<Set<string>> {
  * - « seul » : pas de compte (essai, démo) ou copie éteinte, un seul appareil ;
  * - « a-jour » : le serveur a été lu ; `change` dit si l'appareil a changé
  *   (il faut alors relire les données à l'écran avant de numéroter) ;
- * - « hors-ligne » : le serveur n'a pas répondu, on ne sait pas.
+ * - « hors-ligne » : le serveur n'a pas répondu, on ne sait pas ;
+ * - « refusee » : le serveur a été lu, mais il refuse la copie de cet
+ *   appareil (trop grosse, mal formée) : ses factures ne montent plus, l'autre
+ *   appareil ne les voit pas et pourrait donner le même numéro.
  */
-export async function relireAvantNumero(): Promise<{ etat: "seul" | "a-jour" | "hors-ligne"; change: boolean }> {
+export async function relireAvantNumero(): Promise<{ etat: "seul" | "a-jour" | "hors-ligne" | "refusee"; change: boolean }> {
   if (!actif() || !coffre) return { etat: "seul", change: false };
   if (enCours) await enCours;
   const r = await appel("GET");
@@ -516,12 +519,13 @@ export async function relireAvantNumero(): Promise<{ etat: "seul" | "a-jour" | "
   const nom: Nom = "be-stable-data";
   const d = ((r.json.tiroirs ?? []) as Distant[]).find((x) => x.nom === nom);
   const e = lireEtat()[nom];
-  if (!d || (e?.vu && d.rev === e.rev)) return { etat: "a-jour", change: false };
+  const etat = refusCopie() ? "refusee" : "a-jour";
+  if (!d || (e?.vu && d.rev === e.rev)) return { etat, change: false };
   if (e?.vu && d.rev < e.rev) majTiroir(nom, { rev: d.rev });
   const raw = localStorage.getItem(scopedKey(nom));
   const change = await resoudre(nom, d, !raw || (!!e?.vu && !e.sale));
   if (change) notifier(new Set([nom]));
-  return { etat: "a-jour", change };
+  return { etat, change };
 }
 
 /** Envoie tout de suite ce qui attend (une facture vient d'être numérotée : l'autre appareil doit la voir vite). */
