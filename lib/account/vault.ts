@@ -182,6 +182,11 @@ brancherCoffre({
   },
 });
 
+/** Écrit un tiroir hors de l'écran (récupération de l'écurie d'avant), chiffré pour un compte, puis noté à envoyer. */
+export async function ecrireTiroir(name: string, clair: string): Promise<void> {
+  await ecrire(name, clair);
+}
+
 /** Attend que les écritures en cours d'un tiroir soient faites. */
 export function ecrituresFaites(name: string): Promise<void> {
   const s = getSession();

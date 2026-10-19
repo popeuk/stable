@@ -116,6 +116,30 @@ describe("effacer mon écurie partout, récupérable 7 jours", () => {
     _reinitialiser();
   });
 
+  it("les factures et avoirs faits depuis l'effacement restent, et la suite des numéros ne recule pas", async () => {
+    setSession(compte(key()));
+    const fa = (id: string, seq: number, kind?: "avoir") => ({ id, number: `2026-000${seq}`, year: 2026, seq, payer: "Claire", month: "2026-10", revenueIds: [], ...(kind ? { kind } : {}) });
+    await vault.setItem("be-stable-data", JSON.stringify({ state: { horses: ["Sirius"], invoices: [fa("a", 1)], invoiceSeq: { "2026": 1 } }, version: 5 }));
+    expect(await eff.mettreDeCote()).toBe(true);
+    // Après l'effacement, la 0002 et son avoir 0003.
+    await vault.setItem("be-stable-data", JSON.stringify({ state: { horses: [], invoices: [fa("a", 1), fa("b", 2), fa("c", 3, "avoir")], invoiceSeq: { "2026": 3 } }, version: 5 }));
+    expect(await eff.recupererEcurie()).toBe(true);
+    const lu = JSON.parse((await vault.getItem("be-stable-data"))!) as { state: { horses: string[]; invoices: { number: string }[]; invoiceSeq: Record<string, number> }; version: number };
+    expect(lu.state.horses).toEqual(["Sirius"]);
+    expect(lu.state.invoices.map((i) => i.number)).toEqual(["2026-0001", "2026-0002", "2026-0003"]);
+    expect(lu.state.invoiceSeq).toEqual({ "2026": 3 });
+    expect(lu.version).toBe(5);
+    _reinitialiser();
+  });
+
+  it("avecFacturesDepuis : rien de neuf, le texte reste tel quel", () => {
+    const clair = '{"state":{"invoices":[{"id":"a","year":2026,"seq":1}],"invoiceSeq":{"2026":1}}}';
+    expect(eff.avecFacturesDepuis(clair, { invoices: [], invoiceSeq: { "2026": 1 } })).toBe(clair);
+    expect(eff.avecFacturesDepuis("pas du json", { invoices: [] })).toBe("pas du json");
+    // Le compteur de l'appareil, plus haut, compte aussi.
+    expect(JSON.parse(eff.avecFacturesDepuis(clair, { invoices: [] }, { "2026": 4 })).state.invoiceSeq).toEqual({ "2026": 4 });
+  });
+
   it("la fenêtre de 7 jours", () => {
     const t = Date.parse("2026-10-19T10:00:00Z");
     expect(eff.encoreRecuperable("2026-10-19T09:00:00Z", t)).toBe(true);

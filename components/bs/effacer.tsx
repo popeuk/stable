@@ -295,7 +295,7 @@ export function RecupererLigne() {
       </button>
       {ouverte && (
         <FeuilleConfirmer titre="Récupérer l’écurie d’avant" onClose={() => setOuverte(false)}>
-          <p className="note" style={{ marginTop: 0 }}>L’écurie d’avant le {jour} revient sur {cetAppareil()}, puis dans ta copie en ligne et sur tes autres téléphones et ordinateurs. Ce que tu as noté depuis l’effacement est remplacé.</p>
+          <p className="note" style={{ marginTop: 0 }}>L’écurie d’avant le {jour} revient sur {cetAppareil()}, puis dans ta copie en ligne et sur tes autres téléphones et ordinateurs. Ce que tu as noté depuis l’effacement est remplacé, sauf tes factures et tes avoirs : ils restent, et leurs numéros continuent à la suite.</p>
           <button
             type="button"
             className="btn full"

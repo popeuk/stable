@@ -1,7 +1,10 @@
 "use client";
 
 import { getSession, scopedKey } from "@/lib/account/session";
-import { ecrituresFaites, relireTiroir } from "@/lib/account/vault";
+import { ecrireTiroir, ecrituresFaites, relireTiroir } from "@/lib/account/vault";
+import { compteurAppareil, facturesEnregistrees } from "@/lib/account/factures-seq";
+import { fusionFactures } from "@/lib/domain/facture";
+import type { StableData } from "@/lib/domain/types";
 import { noterEcriture, TIROIRS } from "@/lib/account/nuage";
 import { estPlacePleine, noterPlacePleine } from "@/lib/account/place";
 
@@ -55,6 +58,16 @@ export function ecurieEffacee(maintenant = Date.now()): { quand: string } | null
   return { quand: m.quand };
 }
 
+/** Remet les tiroirs tels qu'ils étaient avant la récupération. */
+function remettre(avant: Map<string, string | null>) {
+  for (const [nom, v] of avant) {
+    try {
+      if (v === null) localStorage.removeItem(scopedKey(nom));
+      else localStorage.setItem(scopedKey(nom), v);
+    } catch {}
+  }
+}
+
 function oublier() {
   try {
     localStorage.removeItem(scopedKey(NOM));
@@ -83,17 +96,43 @@ export async function mettreDeCote(maintenant = new Date()): Promise<boolean> {
   }
 }
 
+type Carnet = Pick<StableData, "invoices" | "invoiceSeq">;
+
+/**
+ * L'écurie d'avant (son tiroir de données, en clair) avec les factures et
+ * avoirs faits depuis l'effacement, et le compteur qui ne recule pas. Rend
+ * le texte tel quel s'il n'y a rien à y ajouter (ou s'il ne se lit pas).
+ */
+export function avecFacturesDepuis(clair: string, depuis: Carnet, haut?: Record<string, number>): string {
+  try {
+    const j = JSON.parse(clair) as { state?: Carnet & Record<string, unknown> };
+    if (!j?.state) return clair;
+    const ids = new Set((j.state.invoices ?? []).map((i) => i.id));
+    const f = fusionFactures(j.state, depuis, haut);
+    const seqAvant = j.state.invoiceSeq ?? {};
+    const neuf = (depuis.invoices ?? []).some((i) => !ids.has(i.id)) || Object.entries(f.invoiceSeq).some(([y, n]) => n > (seqAvant[y] ?? 0));
+    return neuf ? JSON.stringify({ ...j, state: { ...j.state, ...f } }) : clair;
+  } catch {
+    return clair;
+  }
+}
+
 /**
  * Remet l'écurie d'avant sur cet appareil et la marque à envoyer : au
- * rechargement, elle repart dans la copie en ligne. Rend false si elle n'est
- * plus là, ou si la place manque (rien n'est alors changé, la copie reste).
- * L'appelant recharge l'app tout de suite après.
+ * rechargement, elle repart dans la copie en ligne. Les factures et avoirs
+ * faits depuis l'effacement restent (la loi les veut tous, et la suite des
+ * numéros ne recule pas). Rend false si elle n'est plus là, ou si la place
+ * manque (rien n'est alors changé, la copie reste). L'appelant recharge
+ * l'app tout de suite après.
  */
 export async function recupererEcurie(): Promise<boolean> {
   if (getSession()?.kind !== "compte") return false;
   const m = lire();
   if (!m || !encoreRecuperable(m.quand)) return false;
   for (const nom of TIROIRS) await ecrituresFaites(nom);
+  // Les factures faites depuis l'effacement, et le compteur de l'appareil.
+  const depuis = await facturesEnregistrees();
+  const haut = compteurAppareil();
   // Faute de place, on remet ce qui était là avant : jamais une récupération à moitié faite.
   const avant = new Map<string, string | null>();
   const remis: string[] = [];
@@ -106,16 +145,24 @@ export async function recupererEcurie(): Promise<boolean> {
     }
   } catch (err) {
     if (estPlacePleine(err)) noterPlacePleine();
-    for (const [nom, v] of avant) {
-      try {
-        if (v === null) localStorage.removeItem(scopedKey(nom));
-        else localStorage.setItem(scopedKey(nom), v);
-      } catch {}
-    }
+    remettre(avant);
     return false;
   }
   for (const nom of remis) {
-    const clair = await relireTiroir(nom);
+    let clair = await relireTiroir(nom);
+    if (clair !== null && nom === "be-stable-data" && depuis) {
+      const avecFactures = avecFacturesDepuis(clair, depuis, haut);
+      if (avecFactures !== clair) {
+        await ecrireTiroir(nom, avecFactures);
+        const lu = await facturesEnregistrees();
+        // Pas pu écrire (place) : rien n'est récupéré, plutôt que de perdre une facture.
+        if (!(depuis.invoices ?? []).every((i) => (lu?.invoices ?? []).some((j) => j.id === i.id))) {
+          remettre(avant);
+          return false;
+        }
+        clair = avecFactures;
+      }
+    }
     if (clair !== null) await noterEcriture(nom, clair);
   }
   oublier();
