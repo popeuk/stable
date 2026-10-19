@@ -1,5 +1,6 @@
 import type { ISODate, StableData } from "@/lib/domain/types";
 import { recettesFacturees } from "@/lib/domain/facture";
+import { jourDepense } from "@/lib/domain/presence";
 
 /**
  * Corriger une ligne d'argent : une recette, une dépense d'un cheval ou hors
@@ -62,7 +63,7 @@ export function ligneRemplie(data: StableData, l: LigneArgent): LigneRemplie | n
   if (l.t === "sh") {
     const s = data.sharedExpenses.find((x) => x.id === l.id);
     if (!s) return null;
-    return { sens: "out", amount: s.totalAmount, pour: "ecurie", horseIds: [], label: s.label || cat(s.categoryId), date: `${s.periodYear}-${String(s.periodMonth).padStart(2, "0")}-01`, revient: false, ...(s.dansEstimation ? { dansMois: s.dansMois ?? 1 } : {}) };
+    return { sens: "out", amount: s.totalAmount, pour: "ecurie", horseIds: [], label: s.label || cat(s.categoryId), date: jourDepense(s), revient: false, ...(s.dansEstimation ? { dansMois: s.dansMois ?? 1 } : {}) };
   }
   if (l.t === "recrev") {
     const r = (data.recurringRevenues ?? []).find((x) => x.id === l.id);

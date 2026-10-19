@@ -85,6 +85,16 @@ export function chevauxDuMois(data: StableData, p: Period): Horse[] {
  * arrivé après n'en paie rien. Sans aucun cheval présent, la liste est vide
  * et la facture reste dans le mois de l'écurie (voir `facturesSansCheval`).
  */
+/**
+ * Le jour d'une dépense de l'écurie : celui où elle a été notée (ou choisi),
+ * pour l'historique et le fichier du comptable. Une dépense d'avant, sans
+ * jour noté, reste au 1er de son mois.
+ */
+export function jourDepense(se: Pick<SharedExpense, "date" | "periodYear" | "periodMonth">): ISODate {
+  const mois = `${se.periodYear}-${String(se.periodMonth).padStart(2, "0")}`;
+  return se.date && se.date.slice(0, 7) === mois ? se.date : `${mois}-01`;
+}
+
 export function repartition(data: StableData, se: SharedExpense): SharedExpenseAllocation[] {
   if (se.allocations.length) return se.allocations;
   const p = { year: se.periodYear, month: se.periodMonth };

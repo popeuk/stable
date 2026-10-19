@@ -3,7 +3,7 @@ import { cleClient } from "@/lib/domain/billing";
 import { KIND_LABEL, deMois, kindOf, recettesFacturees } from "@/lib/domain/facture";
 import { moyenDit, nomMoyen } from "@/lib/domain/paiement";
 import { recurringDirectDue, recurringRevenuesDue } from "@/lib/domain/recurring";
-import { jourDuCheval } from "@/lib/domain/presence";
+import { jourDepense, jourDuCheval } from "@/lib/domain/presence";
 import { daysInMonth } from "@/lib/utils/period";
 import { r2 } from "@/lib/utils/arrondi";
 
@@ -172,7 +172,7 @@ export function lignesComptables(data: StableData, year: number, today: string):
   for (const s of data.sharedExpenses) {
     if (s.periodYear !== year) continue;
     const cat = expCat(s.categoryId);
-    out.push({ date: `${y}-${String(s.periodMonth).padStart(2, "0")}-01`, type: "Dépense", categorie: cat, libelle: libelleDe(s.label, cat), cheval: "commun", client: "", montant: s.totalAmount, moyen: "", facture: "" });
+    out.push({ date: jourDepense(s), type: "Dépense", categorie: cat, libelle: libelleDe(s.label, cat), cheval: "commun", client: "", montant: s.totalAmount, moyen: "", facture: "" });
   }
 
   for (const p of payments) {

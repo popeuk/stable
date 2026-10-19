@@ -1107,6 +1107,7 @@ export const useDataStore = create<DataState>()(
                 stableId: STABLE_ID,
                 label: task.title,
                 totalAmount: task.cost,
+                date: localToday(),
                 periodMonth: period.month,
                 periodYear: period.year,
                 distributionMode: "equal",

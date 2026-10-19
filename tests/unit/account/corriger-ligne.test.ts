@@ -86,3 +86,14 @@ describe("corriger ce qui revient chaque mois : le passé ne bouge pas", () => {
     ]);
   });
 });
+
+describe("une dépense de l'écurie garde son jour", () => {
+  it("notée par le +, elle porte la date du jour, et Corriger la change", () => {
+    st().startEmpty();
+    st().addSharedExpense({ label: "Foin", totalAmount: 120, periodMonth: 10, periodYear: 2026, date: "2026-10-19", distributionMode: "equal", source: "manual", allocations: [] });
+    const sid = st().sharedExpenses[0].id;
+    expect(st().sharedExpenses[0].date).toBe("2026-10-19");
+    st().updateSharedExpense(sid, { date: "2026-10-12" });
+    expect(st().sharedExpenses[0].date).toBe("2026-10-12");
+  });
+});

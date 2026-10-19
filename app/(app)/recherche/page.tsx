@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useMemo, useState, type ReactNode } from "react";
+import { jourDepense } from "@/lib/domain/presence";
 import Link from "next/link";
 import { ClientGate } from "@/components/ui/client-gate";
 import { useDataStore } from "@/stores/data-store";
@@ -94,7 +95,7 @@ function Recherche() {
       })),
       ...data.sharedExpenses.map((e) => ({
         id: e.id,
-        date: `${e.periodYear}-${String(e.periodMonth).padStart(2, "0")}-01`,
+        date: jourDepense(e),
         label: e.label,
         sub: "Frais de l’écurie",
         amount: e.totalAmount,

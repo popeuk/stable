@@ -7,7 +7,7 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { cap, esc } from "@/components/bs/ui";
 import { PORTEE_PREVU, plannedRest } from "@/components/bs/goal-card";
 import { phrasePistes } from "@/lib/domain/objectif";
-import { partageLabel, repartition } from "@/lib/domain/presence";
+import { jourDepense, partageLabel, repartition } from "@/lib/domain/presence";
 import { useDesk } from "@/components/bs/desk-hook";
 import { Chips, CountUp, Empty, Ic, Ill, Money, Page, Sec, Seg, eur, eurc, sg, type IllName } from "@/components/carnet/ui";
 import { r2 } from "@/lib/utils/arrondi";
@@ -553,7 +553,7 @@ function Mouvements() {
       .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: x.label, sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.rebillRevenueId ? "remis sur sa facture" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
     const s = data.sharedExpenses
       .filter((x) => x.periodYear === active.year && x.periodMonth === active.month)
-      .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: libelleFrais(x.label), sub: partageLabel(repartition(data, x).length), amount: -x.totalAmount, horseId: "" }));
+      .map((x) => ({ id: x.id, t: "sh" as const, date: jourDepense(x), label: libelleFrais(x.label), sub: partageLabel(repartition(data, x).length), amount: -x.totalAmount, horseId: "" }));
     return [...r, ...d, ...s]
       .filter((x) => (kind === "in" ? x.amount > 0 : kind === "out" ? x.amount < 0 : true))
       .filter((x) => !horse || x.horseId === horse)

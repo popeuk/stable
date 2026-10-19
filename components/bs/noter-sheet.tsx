@@ -447,6 +447,7 @@ function NoterInner() {
         // y compris ceux qui arrivent après ; sans cheval, elle compte quand même (presence.ts).
         allocations: [],
         note,
+        date: d.date,
         ...(dedans ? { dansEstimation: true, ...(dansMois > 1 ? { dansMois } : {}) } : {}),
       });
     } else {
@@ -481,7 +482,7 @@ function NoterInner() {
     } else if (edit.t === "sh") {
       const cat = trouve(st.expenseCategories.filter((c) => !c.isDirect));
       const p = currentPeriod(new Date(x.date + "T12:00:00"));
-      st.updateSharedExpense(edit.id, { totalAmount: v, periodMonth: p.month, periodYear: p.year, ...(x.dansMois !== undefined ? { dansMois: x.dansMois > 1 ? x.dansMois : undefined } : {}), ...(change ? { label: label || cat?.name || "Frais de l’écurie", ...(cat ? { categoryId: cat.id } : {}) } : {}) });
+      st.updateSharedExpense(edit.id, { totalAmount: v, periodMonth: p.month, periodYear: p.year, date: x.date, ...(x.dansMois !== undefined ? { dansMois: x.dansMois > 1 ? x.dansMois : undefined } : {}), ...(change ? { label: label || cat?.name || "Frais de l’écurie", ...(cat ? { categoryId: cat.id } : {}) } : {}) });
     } else if (edit.t === "recrev") {
       const cat = trouve(st.revenueCategories);
       st.updateRecurringRevenue(edit.id, { amount: v, ...(horseId ? { horseId } : {}), ...(change ? (cat ? { categoryId: cat.id, label: undefined } : { label: label || undefined }) : {}) });
