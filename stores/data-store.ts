@@ -26,9 +26,9 @@ import { ensurePensions, pensionRevenueId, premierMoisARattraper } from "@/lib/d
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
-import { compteurMax, contenuAvoir, contenuAvoirMontant, emettre, emettreAvoir, fusionFactures, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
-import { compteurAppareil, facturesEnregistrees, noterCompteur, sousVerrou } from "@/lib/account/factures-seq";
-import { ecrituresFaites } from "@/lib/account/vault";
+import { contenuAvoir, contenuAvoirMontant, emettre, emettreAvoir, fusionFactures, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
+import { compteurAppareil, facturesEnregistrees } from "@/lib/account/factures-seq";
+import { numeroter } from "@/lib/account/numeroter";
 import { scopedKey } from "@/lib/account/session";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { SAISON_MOIS, couvreMois, ensureForfaits, marquerForfaits, moisPlus } from "@/lib/domain/forfaits";
@@ -235,7 +235,9 @@ interface DataState extends StableData {
    * Émet des factures : chacune reçoit le numéro suivant de l'année, jamais
    * réutilisé (lib/account/factures-seq), et un contenu figé. Une facture
    * dont une ligne vient d'être facturée ailleurs (un autre onglet) n'est
-   * pas faite. Rend les factures enregistrées.
+   * pas faite. Rend les factures enregistrées. Si elles n'ont pas pu être
+   * enregistrées (téléphone plein), aucune n'est numérotée et l'erreur
+   * FactureNonEnregistree est levée (lib/account/numeroter).
    */
   issueInvoices: (contenus: NonNullable<Brouillon["facture"]>[], today: string) => Promise<Invoice[]>;
   /** Annule tout ou partie d'une facture par un avoir, numéroté dans la même suite. Rend l'avoir, ou null s'il n'y a rien à annuler. */
@@ -298,32 +300,6 @@ export function migrerDonnees(old: unknown, v: number): StableData {
 
 function id(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-/**
- * Numéroter sous verrou : relire le carnet enregistré (un autre onglet a pu
- * faire une facture), prendre le plus grand des compteurs (carnet, appareil),
- * noter les numéros donnés sur l'appareil avant tout, puis attendre que le
- * carnet soit écrit pour rendre la main au prochain onglet.
- */
-async function numeroter(
-  get: () => DataState,
-  set: (p: Partial<DataState>) => void,
-  faire: (s: DataState, haut: Record<string, number>) => Invoice[],
-): Promise<Invoice[]> {
-  return sousVerrou(async () => {
-    const enregistrees = await facturesEnregistrees();
-    if (enregistrees) set(fusionFactures(get(), enregistrees));
-    const haut = compteurAppareil();
-    const out = faire(get(), haut);
-    if (!out.length) return out;
-    const donnes = compteurMax(...out.map((i) => ({ [String(i.year)]: i.seq })));
-    noterCompteur(donnes);
-    const s = get();
-    set({ invoices: [...(s.invoices ?? []), ...out], invoiceSeq: compteurMax(s.invoiceSeq, donnes) });
-    await ecrituresFaites("be-stable-data");
-    return out;
-  });
 }
 
 export const useDataStore = create<DataState>()(

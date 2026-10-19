@@ -49,6 +49,7 @@ import { currentPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { lireMontant, saisieMontant } from "@/lib/utils/montant";
 import { InField } from "@/components/bs/seance-form";
+import { FactureNonEnregistree, messageNonEnregistree } from "@/lib/account/numeroter";
 import type { Invoice, Period, StableData } from "@/lib/domain/types";
 
 /**
@@ -194,7 +195,14 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
   const faire = async () => {
     if (!draft.facture || enCours) return;
     setEnCours(true);
-    const [inv] = await useDataStore.getState().issueInvoices([draft.facture], localToday());
+    let inv: Invoice | undefined;
+    try {
+      [inv] = await useDataStore.getState().issueInvoices([draft.facture], localToday());
+    } catch (e) {
+      setEnCours(false);
+      if (e instanceof FactureNonEnregistree) return say(messageNonEnregistree(e));
+      throw e;
+    }
     setEnCours(false);
     if (!inv) return say("Ces lignes sont déjà sur une facture. Tu la trouves dans Tes factures.");
     // La facture faite s'ouvre avec sa confirmation : « Facture n° … faite », Imprimer, Envoyer.
@@ -321,10 +329,17 @@ function Lot({ period }: { period: Period }) {
   const faire = async () => {
     if (enCours || !prets.length) return;
     setEnCours(true);
-    const out = await useDataStore.getState().issueInvoices(
-      prets.map((c) => c.d.facture!),
-      localToday(),
-    );
+    let out: Invoice[];
+    try {
+      out = await useDataStore.getState().issueInvoices(
+        prets.map((c) => c.d.facture!),
+        localToday(),
+      );
+    } catch (e) {
+      setEnCours(false);
+      if (e instanceof FactureNonEnregistree) return say(messageNonEnregistree(e));
+      throw e;
+    }
     setEnCours(false);
     setFaites(out);
     say(out.length > 1 ? `<strong>${out.length} factures</strong> faites.` : out.length ? "<strong>Une facture</strong> faite." : "Rien de nouveau à facturer.");
@@ -592,7 +607,14 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
     if (!c || enCours) return;
     setEnCours(true);
     const st = useDataStore.getState();
-    const a = libre ? await st.issueAvoirMontant(inv.number, m, motif, localToday()) : await st.issueAvoir(inv.number, choix, localToday());
+    let a: Invoice | null;
+    try {
+      a = libre ? await st.issueAvoirMontant(inv.number, m, motif, localToday()) : await st.issueAvoir(inv.number, choix, localToday());
+    } catch (e) {
+      setEnCours(false);
+      if (e instanceof FactureNonEnregistree) return say(messageNonEnregistree(e, true));
+      throw e;
+    }
     setEnCours(false);
     if (!a) return;
     say(messageFaite(a));
