@@ -12,7 +12,7 @@ import { PORTEE_PREVU, prevuSur } from "@/components/bs/goal-card";
 import { DayBlock, aCompte, iconOf, moneyCls, moneyClsIt } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { dayItems, dayTones, seanceAmount, type DayItem } from "@/lib/domain/seances";
+import { dayItems, dayTones, type DayItem } from "@/lib/domain/seances";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { localToday } from "@/lib/utils/local-date";
 import { heure } from "@/lib/utils/heure";
@@ -82,9 +82,8 @@ function Planning() {
     const days = view === "semaine" ? week : monthDays.filter((d) => d.slice(0, 7) === sel.slice(0, 7));
     const inR = new Set(days);
     const ss = (data.seances ?? []).filter((s) => inR.has(s.date) && s.status !== "cancelled");
-    const done = ss.filter((s) => s.status === "done");
-    // Les séances seules : les frais des soins vivent sur les tickets des chevaux.
-    const validated = done.reduce((t, s) => t + seanceAmount(s), 0);
+    // « Déjà fait » : comme la journée sur téléphone, tout ce qui a compté (séances et soins faits), jour par jour.
+    const validated = days.reduce((t, d) => t + dayItems(data, d, today, now).filter(aCompte).reduce((u, i) => u + (i.money ?? 0), 0), 0);
     // Le prévu : le même calcul que l'Accueil et Mon bilan (séances, soins et tâches pas encore comptés).
     const planned = prevuSur(data, days, today, now);
     return { count: ss.length, validated, planned };
