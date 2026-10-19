@@ -651,12 +651,12 @@ export function messageFacture(
   const f = formule(opts.tu);
   const out =
     inv.kind === "avoir"
-      ? [`Bonjour ${prenomDe(inv.payer)},`, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} en moins.`, `Je ${f.te} joins l’avoir en PDF.`]
+      ? [`Bonjour ${prenomDe(inv.payer)},`, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} déduits de ${f.ta} facture.`, "L’avoir en PDF suit."]
       : [
           `Bonjour ${prenomDe(inv.payer)},`,
           `Voici ${f.ta} facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,
           inv.due > 0 && inv.due < inv.totalTTC ? `Reste à payer : ${nb(inv.due)}.` : inv.due <= 0 ? "Elle est déjà réglée." : "Payable à réception.",
-          `Je ${f.te} joins la facture en PDF.`,
+          "La facture en PDF suit.",
         ];
   out.push(...signature(gerant, opts.ecurie));
   return out.join("\n");
