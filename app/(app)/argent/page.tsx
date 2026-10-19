@@ -334,7 +334,7 @@ function Mois() {
               </span>
               <span>
                 <span className="k">Qui te doit quoi</span>
-                <b>{dues.length ? `${dues.length} client${dues.length > 1 ? "s" : ""} te ${dues.length > 1 ? "doivent" : "doit"} ${eurc(duTotal)}. Tu les retrouves dans Clients.` : "Tout le monde t’a payé ce mois-ci."}</b>
+                <b>{dues.length ? `${dues.length} client${dues.length > 1 ? "s" : ""} te ${dues.length > 1 ? "doivent" : "doit"} ${eurc(duTotal)}. Le détail est dans Clients.` : "Tout le monde t’a payé."}</b>
               </span>
               <Ic n="chev" className="chev" />
             </Link>

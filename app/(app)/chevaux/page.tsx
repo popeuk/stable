@@ -343,7 +343,8 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
     () =>
       billsFor(data, period)
         .filter((b) => !b.orphan)
-        .reduce((t, b) => t + Math.min(b.due, b.lines.filter((l) => /pension/i.test(l.label)).reduce((u, l) => u + l.amount, 0)), 0),
+        // Une pension annulée par un avoir n'est plus due : ce qui reste dû vient d'ailleurs (un soin refacturé).
+        .reduce((t, b) => t + Math.max(0, Math.min(b.due, b.lines.filter((l) => /pension/i.test(l.label)).reduce((u, l) => u + l.amount, 0) - (b.avoirs ?? []).reduce((u, a) => u + a.amount, 0))), 0),
     [data, period],
   );
   const rassure =
