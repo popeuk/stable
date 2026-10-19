@@ -27,6 +27,7 @@ describe("Ils te doivent, sur une grosse écurie", () => {
     for (let i = 0; i < 5; i++) clientDues(d, period);
     const ms = (performance.now() - t) / 5;
     console.log(`clientDues : ${ms.toFixed(1)} ms par appel (${d.revenues.length} recettes)`);
-    expect(ms).toBeLessThan(20);
+    // 20 ms sur un Mac ; le serveur de construction de GitHub est 2 à 3 fois plus lent. Avant la correction : 155 ms sur le Mac.
+    expect(ms).toBeLessThan(process.env.CI ? 80 : 20);
   });
 });
