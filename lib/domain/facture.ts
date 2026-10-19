@@ -547,6 +547,14 @@ export function resteEnEuros(inv: Invoice, invoices: Invoice[] | undefined): num
  * Le contenu d'un avoir sur une facture : pour chaque ligne, la quantité
  * annulée (`qtes[i]`, bornée à ce qui reste). Les montants sont ceux de la
  * facture, en négatif ; le vendeur et le client sont ceux de la facture.
+ *
+ * Pourquoi le vendeur de la facture, pas celui du jour : l'avoir rectifie
+ * une facture précise (il la cite, art. 242 nonies A de l'annexe II du
+ * CGI) ; il doit venir de la même personne, avec la même identité (nom,
+ * statut, SIRET, TVA). Si le gérant est passé d'EI à société entre-temps,
+ * la société ne peut pas annuler une facture de l'EI. Seule l'adresse
+ * pourrait être plus juste au jour de l'avoir ; elle reste celle de la
+ * facture, pour que les deux documents se répondent.
  */
 export function contenuAvoir(inv: Invoice, qtes: number[], invoices: Invoice[] | undefined): Omit<Invoice, "id" | "number" | "year" | "seq" | "issuedAt"> | null {
   const reste = resteAAnnuler(inv, invoices);

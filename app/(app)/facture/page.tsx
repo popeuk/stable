@@ -14,7 +14,6 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { billsFor, cleClient } from "@/lib/domain/billing";
 import {
-  MENTION_FRANCHISE,
   VENDEUR_MANQUE_DIT,
   avoirsDe,
   brouillon,
@@ -22,13 +21,10 @@ import {
   contenuAvoirMontant,
   dateDite,
   deMois,
-  enteteVendeur,
   eur2,
   facturation,
   facturesDe,
   listeDite,
-  mentionIban,
-  mentionsPaiement,
   messageFacture,
   messageFaite,
   moisDit,
@@ -36,9 +32,6 @@ import {
   personneDe,
   resteAAnnuler,
   resteEnEuros,
-  siretDit,
-  tauxDit,
-  tvaIntraDit,
   vendeurDe,
   vendeurManque,
   type Brouillon,
@@ -49,6 +42,7 @@ import { currentPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { lireMontant, saisieMontant } from "@/lib/utils/montant";
 import { InField } from "@/components/bs/seance-form";
+import { Feuille, resteApresAvoirs } from "@/components/bs/feuille-facture";
 import { AvoirSansReseau, FactureNonEnregistree, MESSAGE_AVOIR_SANS_RESEAU, messageNonEnregistree } from "@/lib/account/numeroter";
 import { MENTION_PROVISOIRE, lienFacture } from "@/lib/domain/numeros";
 import type { Invoice, Period, StableData } from "@/lib/domain/types";
@@ -564,6 +558,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
           </p>
         )}
         {avoirs.length > 0 && (
+          // À l'écran seulement : la feuille imprimée reste celle qui est partie (un double est identique à l'original).
           <p className="fa-who">
             {peutAnnuler ? "En partie annulée par " : "Annulée par "}
             {avoirs.length > 1 ? "les avoirs n° " : "l’avoir n° "}
@@ -575,7 +570,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
                 </Link>
               </span>
             ))}
-            .
+            {peutAnnuler && inv.due > 0 ? `. Ce qui reste à payer passe de ${eur2(inv.due)} à ${eur2(resteApresAvoirs(inv, avoirs))}.` : "."} La facture s’imprime telle qu’elle est partie : l’avoir est un document à part.
           </p>
         )}
         {/* Juste faite, la carte du haut a déjà son bouton Imprimer : pas deux boutons qui font la même chose. */}
@@ -617,7 +612,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
           </Link>
         </p>
       </div>
-      <Feuille inv={inv} avoirs={avoirs} annulee={avoirs.length > 0 && !peutAnnuler} />
+      <Feuille inv={inv} />
       {annuler && peutAnnuler && <FeuilleAvoir inv={inv} reste={reste} invoices={invoices} preselect={avoirDe ?? undefined} onClose={() => setAnnuler(false)} />}
     </div>
   );
@@ -733,124 +728,3 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
   );
 }
 
-/* ---------- La feuille A4 ---------- */
-
-/** La feuille A4 : noir sur blanc, sobre. C'est elle seule qui part à l'impression. */
-function Feuille({ inv, apercu, avoirs = [], annulee }: { inv: Invoice; apercu?: boolean; avoirs?: Invoice[]; annulee?: boolean }) {
-  // Après un avoir, la facture ne dit plus « Reste à payer » comme avant : annulée en entier, elle le dit ; en partie, le reste baisse d'autant.
-  const deduit = avoirs.reduce((t, a) => t + Math.abs(a.totalTTC), 0);
-  const reste = Math.max(0, Math.round((inv.due - deduit) * 100) / 100);
-  const f = inv.franchise;
-  const avoir = inv.kind === "avoir";
-  const mentions = mentionsPaiement(inv);
-  const entete = enteteVendeur(inv.seller);
-  const iban = avoir ? "" : mentionIban(inv.seller.iban);
-  return (
-    <article className={`fa-print${apercu ? " apercu" : ""}`} aria-label={apercu ? "Aperçu de la facture" : nomDoc(inv)}>
-      {apercu && <p className="fa-wm">Aperçu, pas encore de numéro</p>}
-      {!apercu && inv.provisoire && <p className="fa-wm">{MENTION_PROVISOIRE}</p>}
-      <header className="fa-top">
-        <div className="fa-from">
-          <b>{entete.nom}</b>
-          {entete.sous && <span>{entete.sous}</span>}
-          {inv.seller.address && <span className="fa-pre">{inv.seller.address}</span>}
-          {inv.seller.siret && <span>SIRET {siretDit(inv.seller.siret)}</span>}
-          {!f && inv.seller.tvaIntra && <span>N° TVA intracommunautaire {tvaIntraDit(inv.seller.tvaIntra)}</span>}
-        </div>
-        <div className="fa-id">
-          <h1>{avoir ? "Avoir" : "Facture"}</h1>
-          <span>n° {apercu || inv.provisoire ? "à venir" : inv.number}</span>
-          <span>Date : {dateDite(inv.issuedAt)}</span>
-          {avoir && inv.avoirDe && (
-            <span>
-              Sur la facture n° {inv.avoirDe.number} du {dateDite(inv.avoirDe.issuedAt)}
-            </span>
-          )}
-          <span>Prestations {deMois(inv.month)}</span>
-        </div>
-      </header>
-      <div className="fa-to">
-        <small>{avoir ? "Pour" : "Facturé à"}</small>
-        <b>{inv.buyer.name}</b>
-        {inv.buyer.address && <span className="fa-pre">{inv.buyer.address}</span>}
-      </div>
-      <table className="fa-tbl">
-        <thead>
-          <tr>
-            <th>Désignation</th>
-            <th className="n">Qté</th>
-            <th className="n">{f ? "Prix unitaire" : "Prix unitaire HT"}</th>
-            {!f && <th className="n">TVA</th>}
-            <th className="n">{f ? "Total" : "Total HT"}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {inv.lines.map((l, i) => (
-            <tr key={i}>
-              <td>{l.label}</td>
-              <td className="n">{l.qty}</td>
-              <td className="n">{eur2(l.unitHT)}</td>
-              {!f && <td className="n">{tauxDit(l.rate)}</td>}
-              <td className="n">{eur2(l.totalHT)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="fa-tot">
-        {!f && (
-          <>
-            <div>
-              <span>Total HT</span>
-              <span>{eur2(inv.totalHT)}</span>
-            </div>
-            {inv.vat.map((v) => (
-              <div key={v.rate}>
-                <span>
-                  TVA {tauxDit(v.rate)} sur {eur2(v.base)}
-                </span>
-                <span>{eur2(v.amount)}</span>
-              </div>
-            ))}
-          </>
-        )}
-        <div className="fa-ttc">
-          <span>{avoir ? (f ? "Total de l’avoir" : "Total de l’avoir TTC") : f ? "Total" : "Total TTC"}</span>
-          <span>{eur2(inv.totalTTC)}</span>
-        </div>
-        {!avoir && inv.paid > 0 && (
-          <div>
-            <span>Déjà payé</span>
-            <span>{eur2(inv.paid)}</span>
-          </div>
-        )}
-        {!avoir &&
-          !annulee &&
-          avoirs.map((a) => (
-            <div key={a.id}>
-              <span>Avoir n° {a.number}</span>
-              <span>{eur2(a.totalTTC)}</span>
-            </div>
-          ))}
-        {!avoir &&
-          (annulee ? (
-            <div className="fa-due">
-              <span>{avoirs.length > 1 ? `Annulée par les avoirs n° ${avoirs.map((a) => a.number).join(", ")}` : `Annulée par l’avoir n° ${avoirs[0]?.number ?? ""}`}</span>
-              <span />
-            </div>
-          ) : (
-            <div className="fa-due">
-              <span>Reste à payer</span>
-              <span>{eur2(reste)}</span>
-            </div>
-          ))}
-      </div>
-      <footer className="fa-foot">
-        {f && <p>{MENTION_FRANCHISE}.</p>}
-        {mentions.map((m) => (
-          <p key={m}>{m}</p>
-        ))}
-        {iban && <p>{iban}.</p>}
-      </footer>
-    </article>
-  );
-}
