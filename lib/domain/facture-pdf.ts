@@ -201,6 +201,7 @@ export function facturePdf(inv: Invoice): Uint8Array {
   }
   tot.push([avoir ? (f ? "Total de l’avoir" : "Total de l’avoir TTC") : f ? "Total" : "Total TTC", eur2(inv.totalTTC), true]);
   if (!avoir && inv.paid > 0) tot.push(["Déjà payé", eur2(inv.paid), false]);
+  if (!avoir && (inv.avance ?? 0) > 0) tot.push(["Avance déjà versée", `−${eur2(inv.avance!)}`, false]);
   if (!avoir) tot.push(["Reste à payer", eur2(inv.due), true]);
   p.place(tot.length * 15 + 10);
   for (const [l, v, g] of tot) {

@@ -428,6 +428,14 @@ export function regleeDe(payments: Payment[] | undefined, payer: string, month: 
   return { date, ...(moyen ? { moyen } : {}) };
 }
 
+/** Un mois soldé par son avance seule : le jour de la dernière avance versée avant lui, et son moyen. */
+function regleeParAvance(payments: Payment[] | undefined, payer: string, month: string): { date: string; moyen?: string } | undefined {
+  const k = cleClient(payer);
+  const av = (payments ?? []).filter((p) => p.kind === "avance" && p.month <= month && cleClient(p.payer) === k).sort((a, b) => (a.at ?? "").localeCompare(b.at ?? ""));
+  if (!av.length) return undefined;
+  return regleeDe([{ ...av[av.length - 1], kind: undefined }], payer, av[av.length - 1].month);
+}
+
 /** Ce qu'il faut pour faire la facture, ou ce qui manque. */
 export interface Brouillon {
   /** Rien de nouveau à facturer ce mois. */
@@ -497,8 +505,11 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
   // Ce qui est payé, moins ce que tu lui as rendu sur ce mois.
   const recu = (bill?.paid ?? 0) - (bill?.rendu ?? 0);
   const paid = r2(Math.min(t.totalTTC, Math.max(0, recu - dejaFacture)));
-  const due = r2(Math.max(0, t.totalTTC - paid));
-  const reglee = due <= 0 ? regleeDe(data.payments, payer, mk) : undefined;
+  // L'avance prise sur ce mois (déjà comptée dans le dû de la fiche) vient après l'argent du mois.
+  const couvert = Math.min(t.totalTTC, Math.max(0, recu + (bill?.avance ?? 0) - dejaFacture));
+  const avance = r2(Math.max(0, couvert - paid));
+  const due = r2(Math.max(0, t.totalTTC - paid - avance));
+  const reglee = due <= 0 ? (regleeDe(data.payments, payer, mk) ?? (avance > 0 ? regleeParAvance(data.payments, payer, mk) : undefined)) : undefined;
   const pro = person?.statut === "pro";
   out.facture = {
     payer: bill?.payer ?? payer,
@@ -515,6 +526,7 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
     vat: t.vat,
     totalTTC: t.totalTTC,
     paid,
+    ...(avance > 0 ? { avance } : {}),
     due,
     ...(reglee ? { reglee } : {}),
     revenueIds: list.flatMap((g) => g.ids),

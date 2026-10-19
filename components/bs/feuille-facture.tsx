@@ -99,6 +99,12 @@ export function Feuille({ inv, apercu }: { inv: Invoice; apercu?: boolean }) {
             <span>{eur2(inv.paid)}</span>
           </div>
         )}
+        {!avoir && (inv.avance ?? 0) > 0 && (
+          <div>
+            <span>Avance déjà versée</span>
+            <span>−{eur2(inv.avance!)}</span>
+          </div>
+        )}
         {!avoir && (
           <div className="fa-due">
             <span>Reste à payer</span>

@@ -588,6 +588,8 @@ export interface Invoice {
   totalTTC: number;
   /** Déjà payé à l'émission, et ce qui restait dû. */
   paid: number;
+  /** Ce que son avance (versée un mois d'avant) a réglé sur cette facture : « Avance déjà versée ». */
+  avance?: number;
   due: number;
   /** Les recettes facturées : elles ne repassent pas sur une autre facture. */
   revenueIds: string[];
