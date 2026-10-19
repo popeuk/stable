@@ -77,6 +77,10 @@ jobs:
           # du dépôt (Settings > Variables) sont vides : rien ne se charge, pas de bandeau.
           NEXT_PUBLIC_GA_ID: ${{ vars.GA_ID }}
           NEXT_PUBLIC_META_PIXEL: ${{ vars.META_PIXEL }}
+          # Les boutons « Continuer avec Google / Apple » restent cachés tant que ces
+          # variables du dépôt sont vides (lib/account/oauth.ts).
+          NEXT_PUBLIC_GOOGLE: ${{ vars.GOOGLE }}
+          NEXT_PUBLIC_APPLE: ${{ vars.APPLE }}
       # Le test d'impression sur l'export qui va partir : une vraie facture, un avoir,
       # la facture réimprimée et le registre, en PDF (Chromium) et dans WebKit (Safari).
       # S'il échoue, rien n'est publié (scripts/test-impression.cjs).
