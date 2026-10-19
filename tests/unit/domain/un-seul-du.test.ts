@@ -158,6 +158,16 @@ describe("un avoir sur un mois déjà payé : à lui rendre", () => {
     expect(l.find((x) => x.categorie === "Remboursement")!.montant).toBe(-350);
   });
 
+  it("un remboursement noté sur un mois où elle n'a aucune note (novembre) retire quand même ce qui est à lui rendre", () => {
+    const d = payeEtAvoir();
+    expect(dusDuClient(d, "Claire D.", nov)).toMatchObject({ aRendre: 350 });
+    d.payments!.push({ id: "r", payer: "Claire D.", month: "2026-11", amount: 350, at: "2026-11-02T10:00:00", kind: "remboursement" });
+    expect(dusDuClient(d, "Claire D.", nov)).toMatchObject({ due: 0, aRendre: 0, avance: 0 });
+    // En partie : il reste la différence.
+    d.payments![d.payments!.length - 1].amount = 100;
+    expect(dusDuClient(d, "Claire D.", nov)).toMatchObject({ aRendre: 250 });
+  });
+
   it("le remboursement va sur le mois du trop-perçu : septembre ne dit plus « à lui rendre »", () => {
     const d = payeEtAvoir();
     expect(partsARendre(d, "Claire D.", "2026-11")).toEqual([{ month: "2026-10", amount: 350 }]);
