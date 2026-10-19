@@ -28,14 +28,25 @@ import { adresseChevalDe } from "@/lib/adresse-client";
 /** Sans rien de tapé, quatre clients ; en tapant, six : le champ tient sans défiler. */
 const maxDe = (q: string) => (q.trim() ? 6 : 4);
 
+/** Ce que le propriétaire choisi a déjà : sans le cheval qu'on modifie. */
+export function decrire(chevaux: string[], cheval?: string): string {
+  const autres = chevaux.filter((n) => n !== cheval);
+  if (autres.length) return `${cheval && chevaux.includes(cheval) ? "a aussi" : "a déjà"} ${autres.join(", ")}`;
+  if (cheval && chevaux.includes(cheval)) return `propriétaire de ${cheval}`;
+  return "déjà dans tes clients";
+}
+
 export function ChoisirProprio({
   value,
   onChange,
   onTape,
   label = "Son propriétaire",
+  cheval,
 }: {
   value: string;
   onChange: (name: string) => void;
+  /** Le cheval qu'on modifie : il ne compte pas dans « a déjà… » (« Claire Dubois a déjà Cheval 3 » dans la fiche de Cheval 3). */
+  cheval?: string;
   /** Le texte encore dans le champ, à reprendre à l'enregistrement. */
   onTape?: (texte: string) => void;
   label?: ReactNode;
@@ -70,7 +81,7 @@ export function ChoisirProprio({
           <span className="ini">{ini(value)}</span>
           <span className="pp-selt">
             <b>{p?.name ?? value.trim()}</b>
-            <small>{connu ? (p?.horses.length ? `a déjà ${p.horses.join(", ")}` : "déjà dans tes clients") : "nouveau client"}</small>
+            <small>{connu ? decrire(p?.horses ?? [], cheval) : "nouveau client"}</small>
           </span>
           <button
             type="button"

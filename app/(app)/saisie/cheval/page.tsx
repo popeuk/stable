@@ -134,7 +134,7 @@ function SaisieCheval() {
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. : Pacha" autoComplete="off" />
           {!editing && <em>Son nom suffit pour commencer. Tu pourras compléter le reste plus tard.</em>}
         </label>
-        <ChoisirProprio value={ownerName} onChange={setOwnerName} onTape={setTape} />
+        <ChoisirProprio value={ownerName} onChange={setOwnerName} onTape={setTape} cheval={editing?.name} />
         <div className="field" role="group" aria-label="Sa robe">
           <span>Sa robe</span>
           <div className="ar-robes">
