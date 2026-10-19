@@ -109,7 +109,7 @@ describe("le fichier du comptable et les avoirs : une seule fois", () => {
     const d: StableData = {
       ...d0,
       revenues: d0.revenues.map((r) => (r.id === "rev-pension-h3-2026-10" ? { ...r, payer: "Marc" } : r)),
-      people: [{ id: "m", name: "Marc", role: "proprietaire", active: true, statut: "particulier" }],
+      people: [{ id: "m", name: "Marc", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Marc Durand" }],
       billing: B,
     };
     const inv = emettre(d, brouillon(d, "Marc", { year: 2026, month: 10 }).facture!, "2026-10-20", "i1");

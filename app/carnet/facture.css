@@ -23,6 +23,7 @@
 .carnet .fa-autres { margin-top: 12px; }
 .carnet .fa-print-btn { margin-top: 14px; height: 52px; font-size: 15px; }
 .carnet .fa-send { margin-top: 16px; }
+.carnet .fa-send .fa-pdf { margin-bottom: 6px; }
 .carnet .fa-sendq { margin: 0 0 8px; font-size: 13px; font-weight: 650; color: var(--ink); }
 .carnet .fa-sendb { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .carnet .fa-sendb .btn { padding: 0 6px; }

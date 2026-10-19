@@ -1,6 +1,5 @@
 import type { BillingInfo, Invoice, InvoiceLine, InvoiceVat, Payment, Period, Person, Revenue, StableData, VatKind, VatRate } from "@/lib/domain/types";
 import { billOf, billsFor, cleClient, monthKey } from "@/lib/domain/billing";
-import { prenomDe } from "@/lib/domain/clients";
 import { enMoyen } from "@/lib/domain/paiement";
 import { esc } from "@/lib/utils/esc";
 import { formule, salut, signature } from "@/lib/domain/politesse";
@@ -56,8 +55,20 @@ export const siretEcurie = (d: Pick<StableData, "billing" | "holding">) => siret
 /** Les infos de facturation, SIRET partagé avec le lieu de détention compris. */
 export const facturation = (d: Pick<StableData, "billing" | "holding">): BillingInfo => ({ ...(d.billing ?? {}), siret: siretEcurie(d) || undefined });
 
-/** Le nom du vendeur : sa raison sociale, ou son nom. Jamais deviné (le nom de l'écurie ne la remplace pas). */
-export const nomVendeur = (b: BillingInfo | undefined) => b?.legalName?.trim() ?? "";
+/**
+ * Le nom du vendeur imprimé en tête : pour un entrepreneur individuel, son
+ * nom et son prénom ; pour une société (ou avant le choix du statut), sa
+ * raison sociale. Jamais deviné (le nom de l'écurie ne le remplace pas).
+ */
+export const nomVendeur = (b: BillingInfo | undefined) => (b?.statut === "ei" ? (b.nomPrenom?.trim() ?? "") : (b?.legalName?.trim() ?? ""));
+
+/** « RCS Angers 123 456 789 » : la ville du greffe et le SIREN (les 9 premiers chiffres du SIRET). R123-237 du Code de commerce. */
+export function rcsDit(ville?: string, siret?: string): string {
+  const v = (ville ?? "").replace(/^\s*R\.?\s*C\.?\s*S\.?\s*/i, "").replace(/[\d\s]+$/, "").trim();
+  const d = siretPropre(siret);
+  if (!v) return "";
+  return /^\d{9}/.test(d) ? `RCS ${v} ${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 9)}` : `RCS ${v}`;
+}
 
 /** « FR 12 345678901 » écrit n'importe comment : sans espaces, en capitales. */
 export const tvaIntraPropre = (s?: string) => (s ?? "").replace(/[\s.-]+/g, "").toUpperCase();
@@ -78,16 +89,66 @@ export const tvaIntraDit = (s?: string) => {
 /* ---------- Le statut du vendeur et son IBAN ---------- */
 
 /** L'IBAN sans espaces, en capitales. */
-export const ibanPropre = (s?: string) => (s ?? "").replace(/\s+/g, "").toUpperCase();
-/** Un IBAN français : FR et 25 caractères (contrôle de forme simple, espaces tolérés). */
-export const ibanValide = (s?: string) => /^FR[0-9A-Z]{25}$/.test(ibanPropre(s));
-/** « FR76 3000 6000 0112 3456 7890 189 ». */
+export const ibanPropre = (s?: string) => (s ?? "").replace(/[\s.-]+/g, "").toUpperCase();
+
+/**
+ * La longueur de l'IBAN de chaque pays (registre ISO 13616 tenu par Swift) :
+ * toute la zone SEPA, et les pays proches. Un IBAN de N26 (DE) ou de
+ * Revolut (LT) est accepté comme un IBAN français.
+ */
+export const IBAN_LONGUEUR: Record<string, number> = {
+  AD: 24, AE: 23, AL: 28, AT: 20, AZ: 28, BA: 20, BE: 16, BG: 22, BH: 22, BR: 29, BY: 28, CH: 21, CR: 22, CY: 28, CZ: 24,
+  DE: 22, DK: 18, DO: 28, EE: 20, EG: 29, ES: 24, FI: 18, FO: 18, FR: 27, GB: 22, GE: 22, GI: 23, GL: 18, GR: 27, GT: 28,
+  HR: 21, HU: 28, IE: 22, IL: 23, IQ: 23, IS: 26, IT: 27, JO: 30, KW: 30, KZ: 20, LB: 28, LC: 32, LI: 21, LT: 20, LU: 20,
+  LV: 21, MC: 27, MD: 24, ME: 22, MK: 19, MR: 27, MT: 31, MU: 30, NL: 18, NO: 15, PK: 24, PL: 28, PS: 29, PT: 25, QA: 29,
+  RO: 24, RS: 22, SA: 24, SC: 31, SE: 24, SI: 19, SK: 24, SM: 27, ST: 25, SV: 28, TL: 23, TN: 24, TR: 26, UA: 29, VA: 22,
+  VG: 24, XK: 20,
+};
+const PAYS_IBAN: Record<string, string> = {
+  FR: "français", DE: "allemand", BE: "belge", ES: "espagnol", IT: "italien", NL: "néerlandais", LU: "luxembourgeois",
+  LT: "lituanien", IE: "irlandais", PT: "portugais", CH: "suisse", MC: "monégasque", GB: "britannique", AT: "autrichien",
+};
+
+/** La clé de contrôle (ISO 7064, modulo 97) : les 4 premiers caractères passent à la fin, les lettres deviennent des nombres (A = 10). */
+export function ibanCleOk(s?: string): boolean {
+  const t = ibanPropre(s);
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(t)) return false;
+  const chiffres = (t.slice(4) + t.slice(0, 4)).replace(/[A-Z]/g, (c) => String(c.charCodeAt(0) - 55));
+  let reste = 0;
+  for (const c of chiffres) reste = (reste * 10 + Number(c)) % 97;
+  return reste === 1;
+}
+
+/**
+ * Ce qui ne va pas dans un IBAN, dit simplement, ou "" s'il est bon (ou
+ * vide). Contrôle complet : le pays, la longueur de ce pays, et la clé.
+ */
+export function ibanErreur(s?: string): string {
+  const t = ibanPropre(s);
+  if (!t) return "";
+  if (!/^[A-Z]{2}/.test(t)) return "Un IBAN commence par deux lettres, celles du pays : FR pour la France.";
+  const pays = t.slice(0, 2);
+  const n = IBAN_LONGUEUR[pays];
+  if (!n) return `« ${pays} » n’est pas le début d’un IBAN : vérifie les deux premières lettres (FR pour la France).`;
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]*$/.test(t)) return "Après les deux lettres du pays viennent deux chiffres, puis des chiffres et des lettres seulement.";
+  if (t.length !== n) return `Un IBAN ${PAYS_IBAN[pays] ?? `qui commence par ${pays}`} a ${n} caractères : tu en as ${t.length}.`;
+  if (!ibanCleOk(t)) return "Ce numéro ne passe pas le contrôle de la banque : il y a sans doute une faute de frappe. Relis-le sur ton RIB.";
+  return "";
+}
+
+/** Un IBAN complet et juste : pays connu, bonne longueur, clé de contrôle bonne. */
+export const ibanValide = (s?: string) => !!ibanPropre(s) && !ibanErreur(s);
+/** « FR76 3000 6000 0112 3456 7890 189 » : par groupes de 4. */
 export const ibanDit = (s?: string) => {
   const t = ibanPropre(s);
-  return ibanValide(t) ? (t.match(/.{1,4}/g) ?? []).join(" ") : (s ?? "").trim();
+  return /^[A-Z0-9]+$/.test(t) ? (t.match(/.{1,4}/g) ?? []).join(" ") : (s ?? "").trim();
 };
-/** La ligne du pied de facture quand l'IBAN est noté. */
-export const mentionIban = (iban?: string) => (iban && ibanValide(iban) ? `Paiement par virement : IBAN ${ibanDit(iban)}` : "");
+/**
+ * La ligne du pied de facture. Elle lit l'IBAN figé dans la facture : une
+ * facture déjà faite s'imprime comme elle est partie (une nouvelle facture
+ * ne reçoit qu'un IBAN qui passe le contrôle, voir vendeurDe).
+ */
+export const mentionIban = (iban?: string) => (ibanPropre(iban) ? `Paiement par virement : IBAN ${ibanDit(iban)}` : "");
 
 /** Le capital tel qu'imprimé : « 7 500 € » pour « 7500 », sinon tel que tapé. */
 export function capitalDit(c?: string): string {
@@ -108,20 +169,23 @@ const finitParEI = (n: string) => /(^|\s)(EI|entrepreneur individuel)\.?$/i.test
  * facture faite avant le choix du statut s'imprime comme avant (la forme
  * notée, après le nom).
  */
-export function enteteVendeur(seller: Pick<Invoice["seller"], "name" | "forme" | "ei" | "capital">): { nom: string; sous?: string } {
+export function enteteVendeur(seller: Pick<Invoice["seller"], "name" | "forme" | "ei" | "capital" | "commercial" | "rcs">): { nom: string; sous?: string; rcs?: string } {
   const name = seller.name.trim();
-  if (seller.ei) return { nom: finitParEI(name) ? name : `${name} EI` };
-  if (seller.capital) return { nom: name, sous: `${seller.forme ? `${seller.forme} au capital` : "Capital"} de ${capitalDit(seller.capital)}` };
+  const com = seller.commercial?.trim();
+  if (seller.ei) return { nom: finitParEI(name) ? name : `${name} EI`, ...(com ? { sous: com } : {}) };
+  if (seller.capital) return { nom: name, sous: `${seller.forme ? `${seller.forme} au capital` : "Capital"} de ${capitalDit(seller.capital)}`, ...(seller.rcs ? { rcs: seller.rcs } : {}) };
   return { nom: `${name}${seller.forme ? ` ${seller.forme}` : ""}` };
 }
 
 /** Ce qui peut manquer au vendeur pour faire une facture. */
-export type VendeurManque = "nom" | "statut" | "forme" | "capital" | "adresse" | "siret" | "tva";
+export type VendeurManque = "nom" | "nomPrenom" | "statut" | "forme" | "capital" | "rcs" | "adresse" | "siret" | "tva";
 export const VENDEUR_MANQUE_DIT: Record<VendeurManque, string> = {
-  nom: "ton nom ou ta raison sociale",
+  nom: "ta raison sociale",
+  nomPrenom: "ton nom et ton prénom",
   statut: "ton statut",
   forme: "ta forme juridique",
   capital: "ton capital",
+  rcs: "la ville de ton RCS",
   adresse: "ton adresse",
   siret: "ton SIRET",
   tva: "ton numéro de TVA intracommunautaire",
@@ -129,15 +193,30 @@ export const VENDEUR_MANQUE_DIT: Record<VendeurManque, string> = {
 /** « ton adresse et ton SIRET », « ton nom, ton adresse et ton SIRET ». */
 export const listeDite = (xs: string[]) => (xs.length < 2 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} et ${xs[xs.length - 1]}`);
 
-/** Ce qui manque au vendeur pour émettre une facture. Le numéro de TVA n'est demandé qu'en facturant la TVA. */
+/**
+ * Ce qui manque au vendeur pour émettre une facture, selon les mentions
+ * obligatoires de Service Public Entreprendre
+ * (https://entreprendre.service-public.gouv.fr/vosdroits/F31808, vérifié le
+ * 11 août 2026, relu le 19 octobre 2026) :
+ * - entrepreneur individuel : « nom et prénom de l'entrepreneur individuel
+ *   précédé ou suivi de la mention Entrepreneur individuel ou EI » ; le nom
+ *   commercial peut s'ajouter, il ne remplace pas le nom ;
+ * - société : dénomination, forme juridique et montant du capital social ;
+ *   et le RCS avec la ville du greffe (article R123-237 du Code de commerce,
+ *   « RCS Angers 123 456 789 ») ;
+ * - pour tous : adresse, SIREN (dans le SIRET), et le numéro de TVA quand on
+ *   facture la TVA.
+ */
 export function vendeurManque(b: BillingInfo | undefined): VendeurManque[] {
   const out: VendeurManque[] = [];
-  if (!nomVendeur(b)) out.push("nom");
-  // Entrepreneur individuel ou société : la loi ne demande pas les mêmes mentions.
+  // Entrepreneur individuel ou société : la loi ne demande pas les mêmes mentions. Le nom vient avec le statut.
   if (!b?.statut) out.push("statut");
+  if (b?.statut === "ei" && !b.nomPrenom?.trim()) out.push("nomPrenom");
   if (b?.statut === "societe") {
+    if (!b.legalName?.trim()) out.push("nom");
     if (!b.forme?.trim()) out.push("forme");
     if (!b.capital?.trim()) out.push("capital");
+    if (!rcsDit(b.rcs)) out.push("rcs");
   }
   if (!b?.address?.trim()) out.push("adresse");
   if (!siretValide(b?.siret)) out.push("siret");
@@ -161,14 +240,32 @@ const PENALITES_DIT: Record<"bce10" | "legal3", string> = {
 /** Les conditions de paiement d'un professionnel ne sont pas encore choisies. */
 export const conditionsProManquent = (b: BillingInfo | undefined) => typeof b?.delaiPro !== "number" || !b?.penalites;
 
-export type ClientManque = "statut" | "adresse" | "conditions";
+/** Une civilité ou une forme de société en tête d'un nom : ce n'est pas un prénom. */
+const PAS_PRENOM = /^(m|mr|mme|mlle|mme\.|monsieur|madame|mademoiselle|dr|me|earl|scea|gaec|sarl|sas|sasu|eurl|sci|sa|snc|sca|ei|ste|sté|société|societe|haras|écurie|ecurie|centre|club|association|asso)$/i;
+
+/** « Sophie Martin » oui ; « Claire D. », « Hugo », « M. Dupont » non : il faut le prénom et le nom en entier. */
+export function estNomComplet(name?: string): boolean {
+  const mots = (name ?? "").trim().split(/\s+/).filter(Boolean);
+  if (mots.length < 2) return false;
+  if (PAS_PRENOM.test(mots[0].replace(/\.$/, ""))) return false;
+  return mots.every((m) => !m.endsWith(".") && m.replace(/[^\p{L}]/gu, "").length >= 2);
+}
+
+/** Le nom complet d'un client particulier pour sa facture : celui noté pour la facture, ou le nom de l'app s'il est complet. */
+export const nomCompletDe = (person: Partial<Pick<Person, "name" | "nomComplet">> | undefined) => person?.nomComplet?.trim() || (estNomComplet(person?.name) ? (person?.name ?? "").trim() : "");
+
+export type ClientManque = "statut" | "nomComplet" | "adresse" | "conditions";
 /**
- * Ce qui manque au client : particulier ou professionnel (jamais deviné), et
- * pour un professionnel son adresse et les conditions de paiement.
+ * Ce qui manque au client : particulier ou professionnel (jamais deviné) ;
+ * pour un particulier son nom complet (F31808 : « nom complet, adresse du
+ * client (sauf opposition pour un particulier) ») ; pour un professionnel
+ * son adresse et les conditions de paiement. Son numéro de TVA est
+ * facultatif (imprimé s'il est noté).
  */
-export function clientManque(person: Pick<Person, "statut" | "address"> | undefined, b: BillingInfo | undefined): ClientManque[] {
+export function clientManque(person: (Pick<Person, "statut" | "address"> & Partial<Pick<Person, "name" | "nomComplet">>) | undefined, b: BillingInfo | undefined): ClientManque[] {
   const out: ClientManque[] = [];
   if (!person?.statut) return ["statut"];
+  if (person.statut === "particulier" && !nomCompletDe(person)) out.push("nomComplet");
   if (person.statut === "pro") {
     if (!person.address?.trim()) out.push("adresse");
     if (conditionsProManquent(b)) out.push("conditions");
@@ -385,7 +482,12 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
   out.facture = {
     payer: bill?.payer ?? payer,
     month: mk,
-    buyer: { name: bill?.payer ?? payer, ...(person?.address?.trim() ? { address: person.address.trim() } : {}), ...(pro ? { pro: true } : {}) },
+    buyer: {
+      name: (pro ? "" : nomCompletDe(person)) || (bill?.payer ?? payer),
+      ...(person?.address?.trim() ? { address: person.address.trim() } : {}),
+      ...(pro ? { pro: true } : {}),
+      ...(pro && tvaIntraPropre(person?.tvaIntra) ? { tvaIntra: tvaIntraPropre(person?.tvaIntra) } : {}),
+    },
     franchise,
     lines,
     totalHT: t.totalHT,
@@ -439,13 +541,17 @@ export function vendeurDe(b: BillingInfo | undefined, franchise: boolean): Invoi
   const ei = b?.statut === "ei";
   const forme = ei ? undefined : b?.forme?.trim();
   const capital = b?.statut === "societe" ? b.capital?.trim() : undefined;
+  const commercial = ei && b?.legalName?.trim() && b.legalName.trim().toLowerCase() !== nomVendeur(b).toLowerCase() ? b.legalName.trim() : undefined;
+  const rcs = b?.statut === "societe" ? rcsDit(b.rcs, b.siret) : "";
   const tva = tvaIntraPropre(b?.tvaIntra);
   const iban = ibanValide(b?.iban) ? ibanPropre(b?.iban) : undefined;
   return {
     name: nomVendeur(b),
     ...(ei ? { ei: true } : {}),
+    ...(commercial ? { commercial } : {}),
     ...(forme ? { forme } : {}),
     ...(capital ? { capital } : {}),
+    ...(rcs ? { rcs } : {}),
     ...(iban ? { iban } : {}),
     ...(b?.address?.trim() ? { address: b.address.trim() } : {}),
     ...(siretPropre(b?.siret) ? { siret: siretPropre(b?.siret) } : {}),
@@ -496,6 +602,14 @@ export function resteEnEuros(inv: Invoice, invoices: Invoice[] | undefined): num
  * Le contenu d'un avoir sur une facture : pour chaque ligne, la quantité
  * annulée (`qtes[i]`, bornée à ce qui reste). Les montants sont ceux de la
  * facture, en négatif ; le vendeur et le client sont ceux de la facture.
+ *
+ * Pourquoi le vendeur de la facture, pas celui du jour : l'avoir rectifie
+ * une facture précise (il la cite, art. 242 nonies A de l'annexe II du
+ * CGI) ; il doit venir de la même personne, avec la même identité (nom,
+ * statut, SIRET, TVA). Si le gérant est passé d'EI à société entre-temps,
+ * la société ne peut pas annuler une facture de l'EI. Seule l'adresse
+ * pourrait être plus juste au jour de l'avoir ; elle reste celle de la
+ * facture, pour que les deux documents se répondent.
  */
 export function contenuAvoir(inv: Invoice, qtes: number[], invoices: Invoice[] | undefined): Omit<Invoice, "id" | "number" | "year" | "seq" | "issuedAt"> | null {
   const reste = resteAAnnuler(inv, invoices);
@@ -626,36 +740,67 @@ export function eur2(n: number): string {
   return `${v < 0 ? "−" : ""}${s.replace(/[  ]/g, " ")} €`;
 }
 
+/**
+ * Comment appeler le client dans un message : son prénom quand c'est une
+ * personne (« Claire »), sinon rien (une société, « EARL Les Tilleuls »,
+ * « M. Dupont », un pro).
+ */
+export function prenomClient(buyer: { name?: string; pro?: boolean } | undefined, payer = ""): string {
+  if (buyer?.pro) return "";
+  const nom = (buyer?.name || payer).trim();
+  const premier = nom.split(/\s+/)[0] ?? "";
+  const lettres = premier.replace(/[^\p{L}]/gu, "");
+  // Une civilité (« M. »), une forme de société (« EARL »), une initiale, un mot tout en capitales : pas un prénom.
+  if (!premier || premier.endsWith(".") || PAS_PRENOM.test(premier) || lettres.length < 2 || lettres === lettres.toUpperCase()) return "";
+  return premier;
+}
+
+/** Le nom à dire à l'écran (« L'envoyer à Claire », « faite pour EARL Les Tilleuls ») : le prénom d'une personne, le nom entier sinon. */
+export const appelClient = (buyer: { name?: string; pro?: boolean } | undefined, payer: string) => prenomClient(buyer, payer) || payer;
+
 /** Le message en bas de l'écran (rendu en HTML) : le numéro et le nom du client sont échappés. */
-export const messageFaite = (inv: Pick<Invoice, "kind" | "number" | "payer" | "avoirDe">) =>
+export const messageFaite = (inv: Pick<Invoice, "kind" | "number" | "payer" | "avoirDe"> & { buyer?: Pick<Invoice["buyer"], "name" | "pro"> }) =>
   inv.kind === "avoir"
     ? `Avoir n° ${esc(inv.number)} fait${inv.avoirDe ? ` sur la facture n° ${esc(inv.avoirDe.number)}` : ""}.`
-    : `Facture n° ${esc(inv.number)} faite pour ${esc(prenomDe(inv.payer))}.`;
+    : `Facture n° ${esc(inv.number)} faite pour ${esc(appelClient(inv.buyer, inv.payer))}.`;
 
-/** « Facture n° 2026-0004 », « Avoir n° 2026-0007 ». */
-export const nomDoc = (inv: Pick<Invoice, "kind" | "number">) => `${inv.kind === "avoir" ? "Avoir" : "Facture"} n° ${inv.number}`;
+/** « Facture n° 2026-0004 », « Avoir n° 2026-0007 », « Facture à numéroter » (faite sans réseau). */
+export const nomDoc = (inv: Pick<Invoice, "kind" | "number" | "provisoire">) => (inv.provisoire ? "Facture à numéroter" : `${inv.kind === "avoir" ? "Avoir" : "Facture"} n° ${inv.number}`);
+
+/**
+ * Par où part le message : l'e-mail (on y joint le PDF), le partage du
+ * téléphone avec le PDF en pièce jointe, ou un SMS / WhatsApp (le message
+ * seul, rien n'est joint : il ne promet pas de pièce jointe).
+ */
+export type Canal = "email" | "partage" | "court";
 
 /**
  * Le message prêt à envoyer avec la facture (ou l'avoir) : montant, mois,
- * numéro. Tu ou vous selon le choix de Tes factures (vous par défaut), une
- * majuscule après « Bonjour Claire, », et la signature : le gérant et le
- * nom de l'écurie.
+ * numéro. Tu ou vous selon le choix de Tes factures (vous par défaut). Le
+ * prénom quand le client est une personne (« Bonjour Claire, »), sinon
+ * « Bonjour, ». « Je vous joins la facture en PDF » seulement quand le PDF
+ * part avec (e-mail, partage) ; par SMS ou WhatsApp, une phrase qui ne
+ * promet rien. Et la signature : le gérant et le nom de l'écurie.
  */
 export function messageFacture(
-  inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe">,
+  inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe"> & { buyer?: Pick<Invoice["buyer"], "name" | "pro"> },
   gerant: string,
-  opts: { tu?: boolean; ecurie?: string } = {},
+  opts: { tu?: boolean; ecurie?: string; canal?: Canal } = {},
 ): string {
   const nb = (n: number) => eur2(n).replace(/ /g, " ");
   const f = formule(opts.tu);
+  const prenom = prenomClient(inv.buyer, inv.payer);
+  const bonjour = prenom ? `Bonjour ${prenom},` : "Bonjour,";
+  const doc = inv.kind === "avoir" ? "l’avoir" : "la facture";
+  const pdf = (opts.canal ?? "email") === "court" ? `Je peux ${f.te} l’envoyer en PDF si besoin.` : `Je ${f.te} joins ${doc} en PDF.`;
   const out =
     inv.kind === "avoir"
-      ? [salut(inv.payer), `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} déduits de ${f.ta} facture.`, "L’avoir en PDF suit."]
+      ? [bonjour, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} déduits de ${f.ta} facture.`, pdf]
       : [
-          salut(inv.payer),
+          bonjour,
           `Voici ${f.ta} facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,
           inv.due > 0 && inv.due < inv.totalTTC ? `Reste à payer : ${nb(inv.due)}.` : inv.due <= 0 ? "Elle est déjà réglée." : "Payable à réception.",
-          "La facture en PDF suit.",
+          pdf,
         ];
   out.push(...signature(gerant, opts.ecurie));
   return out.join("\n");

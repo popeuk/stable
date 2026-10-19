@@ -77,6 +77,25 @@ jobs:
           # du dépôt (Settings > Variables) sont vides : rien ne se charge, pas de bandeau.
           NEXT_PUBLIC_GA_ID: ${{ vars.GA_ID }}
           NEXT_PUBLIC_META_PIXEL: ${{ vars.META_PIXEL }}
+      # Le test d'impression sur l'export qui va partir : une vraie facture, un avoir,
+      # la facture réimprimée et le registre, en PDF (Chromium) et dans WebKit (Safari).
+      # S'il échoue, rien n'est publié (scripts/test-impression.cjs).
+      - name: Print test (facture, avoir, registre en PDF)
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pw" --no-save --no-package-lock --no-audit --no-fund playwright@1.56.1
+          # --with-deps met à jour la liste des paquets et installe ce qu'il faut aux navigateurs.
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium webkit
+          sudo apt-get install -y -q poppler-utils >/dev/null
+          (cd out && python3 -m http.server 4601 >/dev/null 2>&1 &)
+          sleep 2
+          BASE=http://localhost:4601 NODE_PATH="$RUNNER_TEMP/pw/node_modules" SORTIE="$RUNNER_TEMP/impression" npm run test:impression
+      - name: Keep the print test PDFs when it fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: impression
+          path: ${{ runner.temp }}/impression
+          if-no-files-found: ignore
       - name: Publish to the vps branch
         run: |
           cd out

@@ -10,12 +10,16 @@
  * en PDF sous Playwright, il émule l'impression et vérifie que la feuille de
  * la facture est la seule chose visible.
  *
- * Le lancer, sur un export servi sous /stable :
- *   DEPLOY_TARGET=pages PAGES_BASE=/stable NEXT_PUBLIC_BASE_PATH=/stable npm run build
- *   mkdir -p /tmp/site && cp -R out /tmp/site/stable && (cd /tmp/site && python3 -m http.server 4601 &)
- *   NODE_PATH=<dossier node_modules qui contient playwright> npm run test:impression
- * Variables : BASE (http://localhost:4601/stable), CLIENT (Hugo L.), SORTIE
- * (dossier des PDF, ./impression-test). Code de sortie 1 au premier échec.
+ * Il tourne avant chaque mise en ligne (.github/workflows/pages.yml, job
+ * vps) : s'il échoue, rien n'est publié.
+ *
+ * Le lancer à la main, sur l'export servi à la racine (comme app.bestable.fr) :
+ *   DEPLOY_TARGET=pages PAGES_BASE= NEXT_PUBLIC_BASE_PATH= npm run build
+ *   (cd out && python3 -m http.server 4601 &)
+ *   BASE=http://localhost:4601 NODE_PATH=<dossier node_modules qui contient playwright> npm run test:impression
+ * Variables : BASE (http://localhost:4601), CLIENT (Hugo L.), NOM_COMPLET
+ * (Hugo Lambert, si la facture le demande), SORTIE (dossier des PDF,
+ * ./impression-test). Code de sortie 1 au premier échec.
  */
 /* eslint-disable @typescript-eslint/no-require-imports -- un script CommonJS : NODE_PATH ne sert qu'à require(). */
 const { chromium, webkit } = require("playwright");
@@ -23,8 +27,11 @@ const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const BASE = process.env.BASE || "http://localhost:4601/stable";
+const BASE = (process.env.BASE || "http://localhost:4601").replace(/\/$/, "");
 const CLIENT = process.env.CLIENT || "Hugo L.";
+const NOM_COMPLET = process.env.NOM_COMPLET || "Hugo Lambert";
+/** Le nom imprimé sur la facture : le nom complet (demandé pour un particulier), sinon le nom de l'app. */
+let nomFacture = CLIENT;
 const OUT = path.resolve(process.env.SORTIE || "impression-test");
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -65,10 +72,13 @@ async function faireFacture(p) {
   await p.goto(`${BASE}/facture/?nom=${encodeURIComponent(CLIENT)}&mois=${mois}`, { waitUntil: "networkidle" });
   const champ = (label) => p.locator("label.field", { hasText: label }).locator("input, textarea").first();
   if (await p.getByText("Pour faire une facture, il faut").count()) {
-    await champ("Nom ou raison sociale").fill("Écurie d’essai");
-    await champ("Forme juridique").fill("EI");
-    await champ("Adresse").fill("12 chemin des Prés\n72000 Le Mans");
-    await champ("SIRET").fill("123 456 789 00012");
+    // Le statut d'abord : entrepreneur individuel, puis son nom et son prénom (« EI » après), le nom commercial dessous.
+    const ei = p.getByRole("radio", { name: /^Entrepreneur individuel/ });
+    if ((await ei.getAttribute("aria-checked")) !== "true") await ei.click();
+    await champ("Ton nom et ton prénom").fill("Julie Essai");
+    await champ("Ton nom commercial").fill("Écurie d’essai");
+    if (await champ("Adresse").count()) await champ("Adresse").fill("12 chemin des Prés\n72000 Le Mans");
+    if (await champ("SIRET").count()) await champ("SIRET").fill("123 456 789 00012");
     await p.getByRole("button", { name: "Continuer" }).click();
   }
   if (await p.getByRole("radio", { name: "Sans TVA" }).count()) {
@@ -77,6 +87,12 @@ async function faireFacture(p) {
   }
   if (await p.getByRole("radio", { name: "Un particulier" }).count()) {
     await p.getByRole("radio", { name: "Un particulier" }).click();
+    // Un particulier : son prénom et son nom, quand le nom de l'app ne suffit pas (« Hugo L. »).
+    const complet = champ("Son prénom et son nom");
+    if (await complet.count()) {
+      if (!(await complet.inputValue()).trim()) await complet.fill(NOM_COMPLET);
+      nomFacture = (await complet.inputValue()).trim();
+    }
     await p.getByRole("button", { name: "Voir l’aperçu" }).click();
   }
   await p.getByRole("button", { name: "Faire la facture" }).click();
@@ -104,8 +120,8 @@ async function pdf(p, nom) {
     ok((await p.title()).startsWith(`Facture ${numero} `), `[${t}] titre du document (nom du PDF) : « ${await p.title()} »`);
     const f = await pdf(p, `facture-${t}`);
     ok(portrait(f) && f.pages === 1, `[${t}] facture : ${f.pages} page A4 portrait (${f.w} x ${f.h})`);
-    ok(f.texte.includes("Facture") && f.texte.includes(numero) && f.texte.includes(CLIENT) && f.texte.includes("Reste à payer"), `[${t}] facture : numéro, client et « Reste à payer » dans le PDF`);
-    ok(f.texte.includes("Écurie d’essai EI") && f.texte.includes("SIRET 123 456 789 00012"), `[${t}] facture : vendeur, EI, SIRET`);
+    ok(f.texte.includes("Facture") && f.texte.includes(numero) && f.texte.includes(nomFacture) && f.texte.includes("Reste à payer"), `[${t}] facture : numéro, client (« ${nomFacture} ») et « Reste à payer » dans le PDF`);
+    ok(/Julie Essai EI/.test(f.texte) && /cu?rie d.essai/.test(f.texte) && f.texte.includes("SIRET 123 456 789 00012"), `[${t}] facture : nom et prénom suivis de « EI », nom commercial, SIRET`);
     ok(f.texte.includes("TVA non applicable, art. 293 B du CGI"), `[${t}] facture : mention de franchise`);
     ok(!/Registre d.élevage/.test(f.texte) && !f.texte.includes("Imprimer ou enregistrer"), `[${t}] facture : ni le pied du registre, ni l’interface`);
 
@@ -117,6 +133,13 @@ async function pdf(p, nom) {
     const a = await pdf(p, `avoir-${t}`);
     ok(portrait(a) && a.pages === 1, `[${t}] avoir n° ${avoir} : ${a.pages} page A4 portrait`);
     ok(a.texte.includes("Avoir") && a.texte.includes(avoir) && a.texte.includes(`Sur la facture n° ${numero}`) && a.texte.includes("−"), `[${t}] avoir : numéro, facture annulée, montants négatifs`);
+
+    // La facture réimprimée après l'avoir est celle qui est partie : même texte, aucune ligne d'avoir.
+    await p.goto(`${BASE}/facture/?n=${encodeURIComponent(numero)}`, { waitUntil: "networkidle" });
+    await p.waitForTimeout(400);
+    const f2 = await pdf(p, `facture-reimprimee-${t}`);
+    ok(f2.texte === f.texte, `[${t}] facture réimprimée après l’avoir : identique à l’originale`);
+    ok(!f2.texte.includes("Annulée") && !f2.texte.includes(`Avoir n° ${avoir}`), `[${t}] facture réimprimée : ni « Annulée », ni ligne d’avoir`);
 
     await p.goto(`${BASE}/registre/`, { waitUntil: "networkidle" });
     await p.waitForTimeout(400);

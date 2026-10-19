@@ -5,7 +5,7 @@ import { dernierMoyen, moyenDit } from "@/lib/domain/paiement";
 import type { BillingInfo, Invoice, StableData } from "@/lib/domain/types";
 
 const oct = { year: 2026, month: 10 };
-const TAUX: BillingInfo = { legalName: "Les Pommiers", statut: "ei", vat: "taux", rates: { pension: 20, cours: 5.5, soins: 20, autre: 10 }, address: "1 rue du Pré\n72000 Le Mans", siret: "123 456 789 00012", tvaIntra: "FR32123456789" };
+const TAUX: BillingInfo = { legalName: "Les Pommiers", nomPrenom: "Julie Martin", statut: "ei", vat: "taux", rates: { pension: 20, cours: 5.5, soins: 20, autre: 10 }, address: "1 rue du Pré\n72000 Le Mans", siret: "123 456 789 00012", tvaIntra: "FR32123456789" };
 
 const base = (billing?: BillingInfo): StableData => ({
   horses: [{ id: "h1", stableId: "s", name: "Tonnerre", entryDate: "2024-01-01", exitDate: null, isArchived: false, ownerName: "Hugo L." }],
@@ -25,7 +25,7 @@ const base = (billing?: BillingInfo): StableData => ({
     { id: "em", name: "Maréchal", isDirect: true },
     { id: "ef", name: "Foin", isDirect: false },
   ],
-  people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true, address: "3 allée des Saules", statut: "particulier" }],
+  people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true, address: "3 allée des Saules", statut: "particulier", nomComplet: "Hugo Durand" }],
   payments: [{ id: "pay", payer: "Hugo L.", month: "2026-10", amount: 100, at: "2026-10-05T10:00:00", method: "cheque", chequeNumber: "1234567" }],
   ...(billing ? { billing } : {}),
 });
@@ -89,7 +89,7 @@ describe("HT, TVA et TTC", () => {
       ["Maréchal refacturé (Tonnerre)", "soins", 1, 20, 60],
     ]);
     expect(f.lines[1].unitHT).toBe(23.7);
-    expect(f).toMatchObject({ totalTTC: 560, paid: 100, due: 460, franchise: false, buyer: { name: "Hugo L.", address: "3 allée des Saules" } });
+    expect(f).toMatchObject({ totalTTC: 560, paid: 100, due: 460, franchise: false, buyer: { name: "Hugo Durand", address: "3 allée des Saules" }, payer: "Hugo L." });
   });
 
   it("en franchise : pas de TVA, HT = TTC", () => {
@@ -110,7 +110,7 @@ describe("HT, TVA et TTC", () => {
   });
 
   it("le vendeur : son nom (jamais celui de l'écurie par défaut), adresse, SIRET de 14 chiffres, TVA intracommunautaire avec la TVA", () => {
-    expect(vendeurManque(undefined)).toEqual(["nom", "statut", "adresse", "siret"]);
+    expect(vendeurManque(undefined)).toEqual(["statut", "adresse", "siret"]);
     expect(vendeurManque(TAUX)).toEqual([]);
     expect(vendeurManque({ ...TAUX, tvaIntra: undefined })).toEqual(["tva"]);
     expect(vendeurManque({ ...TAUX, vat: "franchise", tvaIntra: undefined })).toEqual([]);

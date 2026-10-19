@@ -77,7 +77,9 @@ const jourDe = (p: Payment) => {
  * Les lignes de l'année jusqu'à aujourd'hui compris (`today`, AAAA-MM-JJ) :
  * le comptable ne reçoit rien qui n'a pas encore eu lieu.
  */
-export function lignesComptables(data: StableData, year: number, today: string): LigneComptable[] {
+export function lignesComptables(tout: StableData, year: number, today: string): LigneComptable[] {
+  // Une facture provisoire (faite sans réseau, pas encore de numéro) n'est pas encore émise : ses recettes y sont, sans numéro.
+  const data: StableData = { ...tout, invoices: (tout.invoices ?? []).filter((i) => !i.provisoire) };
   const y = String(year);
   const horse = (id?: string) => data.horses.find((h) => h.id === id);
   const revCat = (id?: string) => data.revenueCategories.find((c) => c.id === id)?.name ?? "";

@@ -305,6 +305,10 @@ export interface Person {
    * pénalités, indemnité de 40 €).
    */
   statut?: "particulier" | "pro";
+  /** Particulier : son nom complet (prénom et nom), demandé à sa première facture quand le nom de l'app ne suffit pas (« Claire D. »). */
+  nomComplet?: string;
+  /** Professionnel : son numéro de TVA intracommunautaire, facultatif, imprimé s'il est noté. */
+  tvaIntra?: string;
   active: boolean;
 }
 
@@ -475,8 +479,16 @@ export type VatRate = 5.5 | 10 | 20;
  * facture demande de choisir.
  */
 export interface BillingInfo {
-  /** Nom ou raison sociale, obligatoire : l'app ne prend pas le nom de l'écurie à sa place. */
+  /**
+   * Une société : sa raison sociale, obligatoire. Un entrepreneur individuel :
+   * son nom commercial, facultatif (« Écurie des Prés »), qui s'ajoute à son
+   * nom et ne le remplace pas. L'app ne prend pas le nom de l'écurie à sa place.
+   */
   legalName?: string;
+  /** Entrepreneur individuel : son nom et son prénom, obligatoires (F31808), suivis de « EI ». */
+  nomPrenom?: string;
+  /** Société : la ville du greffe où elle est immatriculée (« Angers »), imprimée « RCS Angers 123 456 789 ». */
+  rcs?: string;
   /**
    * Le statut du vendeur, choisi une fois : entrepreneur individuel (la loi
    * impose « EI » après le nom) ou société (forme juridique et capital,
@@ -548,9 +560,13 @@ export interface Invoice {
   kind?: "avoir";
   /** Sur un avoir : la facture qu'il annule. */
   avoirDe?: { number: string; issuedAt: ISODate };
-  /** Figé à l'émission. `ei` : « EI » après le nom ; `capital` : la forme et le capital sous le nom ; `iban` : en pied de facture. */
-  seller: { name: string; forme?: string; ei?: boolean; capital?: string; address?: string; siret?: string; tvaIntra?: string; iban?: string };
-  buyer: { name: string; address?: string; pro?: boolean };
+  /**
+   * Figé à l'émission. `ei` : « EI » après le nom (le nom et le prénom), `commercial` : le nom commercial
+   * dessous ; `capital` : la forme et le capital sous le nom, `rcs` : « RCS Angers 123 456 789 » ;
+   * `iban` : en pied de facture.
+   */
+  seller: { name: string; forme?: string; ei?: boolean; capital?: string; address?: string; siret?: string; tvaIntra?: string; iban?: string; commercial?: string; rcs?: string };
+  buyer: { name: string; address?: string; pro?: boolean; tvaIntra?: string };
   /** Client professionnel : la date d'échéance et le taux des pénalités, figés à l'émission. */
   echeance?: ISODate;
   penalites?: "bce10" | "legal3";
@@ -566,6 +582,11 @@ export interface Invoice {
   due: number;
   /** Les recettes facturées : elles ne repassent pas sur une autre facture. */
   revenueIds: string[];
+  /**
+   * Faite sans réseau avec un compte : pas encore de numéro (lib/domain/numeros).
+   * L'heure où elle a été faite (ISO), pour les numéroter dans l'ordre.
+   */
+  provisoire?: string;
 }
 
 /** The full bundle of data the domain functions operate on. */

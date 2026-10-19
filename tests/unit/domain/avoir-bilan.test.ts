@@ -30,8 +30,8 @@ function base() {
     ],
     expenseCategories: [],
     people: [
-      { id: "x", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier" },
-      { id: "y", name: "Hugo L.", role: "proprietaire", active: true, statut: "particulier" },
+      { id: "x", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Claire Durand" },
+      { id: "y", name: "Hugo L.", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Hugo Durand" },
     ],
     billing: B,
   };

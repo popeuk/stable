@@ -26,9 +26,9 @@ import { ensurePensions, pensionRevenueId, premierMoisARattraper } from "@/lib/d
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
-import { compteurMax, contenuAvoir, contenuAvoirMontant, emettre, emettreAvoir, fusionFactures, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
-import { compteurAppareil, facturesEnregistrees, noterCompteur, sousVerrou } from "@/lib/account/factures-seq";
-import { ecrituresFaites } from "@/lib/account/vault";
+import { contenuAvoir, contenuAvoirMontant, emettre, emettreAvoir, fusionFactures, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
+import { compteurAppareil, facturesEnregistrees } from "@/lib/account/factures-seq";
+import { numeroter, numeroterEnAttente as enAttente, type OptionsNumero } from "@/lib/account/numeroter";
 import { scopedKey } from "@/lib/account/session";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { SAISON_MOIS, couvreMois, ensureForfaits, marquerForfaits, moisPlus } from "@/lib/domain/forfaits";
@@ -236,17 +236,21 @@ interface DataState extends StableData {
    * Émet des factures : chacune reçoit le numéro suivant de l'année, jamais
    * réutilisé (lib/account/factures-seq), et un contenu figé. Une facture
    * dont une ligne vient d'être facturée ailleurs (un autre onglet) n'est
-   * pas faite. Rend les factures enregistrées.
+   * pas faite. Rend les factures enregistrées. Si elles n'ont pas pu être
+   * enregistrées (téléphone plein), aucune n'est numérotée et l'erreur
+   * FactureNonEnregistree est levée (lib/account/numeroter).
    */
   issueInvoices: (contenus: NonNullable<Brouillon["facture"]>[], today: string) => Promise<Invoice[]>;
   /** Annule tout ou partie d'une facture par un avoir, numéroté dans la même suite. Rend l'avoir, ou null s'il n'y a rien à annuler. */
   issueAvoir: (number: string, qtes: number[], today: string) => Promise<Invoice | null>;
   /** Un avoir d'un montant libre sur une facture (montant TTC et motif), numéroté à la suite. */
   issueAvoirMontant: (number: string, montant: number, motif: string, today: string) => Promise<Invoice | null>;
+  /** Le réseau est revenu : les factures faites sans réseau reçoivent leur numéro, dans l'ordre. Rend celles numérotées. */
+  numeroterEnAttente: (today: string) => Promise<Invoice[]>;
   /** Réunit les factures d'un autre carnet (sauvegarde reprise, autre onglet) : aucune ne se perd. */
   mergeInvoices: (other: Pick<StableData, "invoices" | "invoiceSeq">) => void;
   /** Ce que la facture d'un client demande : particulier ou professionnel, son adresse. */
-  setClientFacture: (name: string, role: PersonRole, patch: Pick<Partial<Person>, "statut" | "address">) => void;
+  setClientFacture: (name: string, role: PersonRole, patch: Pick<Partial<Person>, "statut" | "address" | "nomComplet" | "tvaIntra">) => void;
   /** Retire un paiement précis (« Annuler »). */
   removePayment: (id: string) => void;
   removePayments: (payer: string, month: string) => void;
@@ -305,31 +309,8 @@ function id(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-/**
- * Numéroter sous verrou : relire le carnet enregistré (un autre onglet a pu
- * faire une facture), prendre le plus grand des compteurs (carnet, appareil),
- * noter les numéros donnés sur l'appareil avant tout, puis attendre que le
- * carnet soit écrit pour rendre la main au prochain onglet.
- */
-async function numeroter(
-  get: () => DataState,
-  set: (p: Partial<DataState>) => void,
-  faire: (s: DataState, haut: Record<string, number>) => Invoice[],
-): Promise<Invoice[]> {
-  return sousVerrou(async () => {
-    const enregistrees = await facturesEnregistrees();
-    if (enregistrees) set(fusionFactures(get(), enregistrees));
-    const haut = compteurAppareil();
-    const out = faire(get(), haut);
-    if (!out.length) return out;
-    const donnes = compteurMax(...out.map((i) => ({ [String(i.year)]: i.seq })));
-    noterCompteur(donnes);
-    const s = get();
-    set({ invoices: [...(s.invoices ?? []), ...out], invoiceSeq: compteurMax(s.invoiceSeq, donnes) });
-    await ecrituresFaites("be-stable-data");
-    return out;
-  });
-}
+/** La copie en ligne a changé les données avant un numéro : l'écran les relit (et ses écritures repartent des bonnes). */
+const RELIRE: OptionsNumero = { relire: async () => void (await useDataStore.persist.rehydrate()) };
 
 export const useDataStore = create<DataState>()(
   persist(
@@ -1178,14 +1159,14 @@ export const useDataStore = create<DataState>()(
             out.push(inv);
           }
           return out;
-        }),
+        }, RELIRE),
 
       issueAvoir: async (number, qtes, today) => {
         const out = await numeroter(get, set, (s, haut) => {
           const inv = (s.invoices ?? []).find((i) => i.number === number && i.kind !== "avoir");
           const c = inv ? contenuAvoir(inv, qtes, s.invoices) : null;
           return c ? [emettreAvoir(s, c, today, id("avo"), haut)] : [];
-        });
+        }, { ...RELIRE, avoir: true });
         return out[0] ?? null;
       },
 
@@ -1194,9 +1175,11 @@ export const useDataStore = create<DataState>()(
           const inv = (s.invoices ?? []).find((i) => i.number === number && i.kind !== "avoir");
           const c = inv ? contenuAvoirMontant(inv, montant, motif, s.invoices) : null;
           return c ? [emettreAvoir(s, c, today, id("avo"), haut)] : [];
-        });
+        }, { ...RELIRE, avoir: true });
         return out[0] ?? null;
       },
+
+      numeroterEnAttente: (today) => enAttente(get, set, today, RELIRE),
 
       mergeInvoices: (other) => set((s) => fusionFactures(s, other, compteurAppareil())),
 
@@ -1206,6 +1189,8 @@ export const useDataStore = create<DataState>()(
         const clean: Partial<Person> = {};
         if (patch.statut) clean.statut = patch.statut;
         if (patch.address !== undefined) clean.address = patch.address.trim() || undefined;
+        if (patch.nomComplet !== undefined) clean.nomComplet = patch.nomComplet.replace(/\s+/g, " ").trim() || undefined;
+        if (patch.tvaIntra !== undefined) clean.tvaIntra = patch.tvaIntra.replace(/[\s.-]+/g, "").toUpperCase() || undefined;
         set((s) => ({ people: (s.people ?? []).map((p) => (p.id === pid ? { ...p, ...clean } : p)) }));
       },
 

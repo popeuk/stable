@@ -14,7 +14,6 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { billsFor, cleClient } from "@/lib/domain/billing";
 import {
-  MENTION_FRANCHISE,
   VENDEUR_MANQUE_DIT,
   avoirsDe,
   brouillon,
@@ -22,33 +21,32 @@ import {
   contenuAvoirMontant,
   dateDite,
   deMois,
-  enteteVendeur,
   eur2,
   facturation,
   facturesDe,
   listeDite,
-  mentionIban,
-  mentionsPaiement,
+  appelClient,
   messageFacture,
+  type Canal,
   messageFaite,
   moisDit,
   nomDoc,
   personneDe,
   resteAAnnuler,
   resteEnEuros,
-  siretDit,
-  tauxDit,
-  tvaIntraDit,
   vendeurDe,
   vendeurManque,
   type Brouillon,
 } from "@/lib/domain/facture";
-import { prenomDe } from "@/lib/domain/clients";
 import { nomEcurie } from "@/lib/domain/politesse";
 import { currentPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { lireMontant, saisieMontant } from "@/lib/utils/montant";
 import { InField } from "@/components/bs/seance-form";
+import { Feuille, resteApresAvoirs } from "@/components/bs/feuille-facture";
+import { facturePdf, nomFichierPdf } from "@/lib/domain/facture-pdf";
+import { AvoirSansReseau, FactureNonEnregistree, MESSAGE_AVOIR_SANS_RESEAU, messageNonEnregistree } from "@/lib/account/numeroter";
+import { MENTION_PROVISOIRE, lienFacture } from "@/lib/domain/numeros";
 import type { Invoice, Period, StableData } from "@/lib/domain/types";
 import { adresseClient, adresseFacture, nomDeLAdresse } from "@/lib/adresse-client";
 
@@ -96,12 +94,14 @@ function useRetourFiche(nom: string | undefined, mk: string | undefined) {
 function FactureRoute() {
   const sp = useSearchParams();
   const n = sp.get("n");
+  const parId = sp.get("id");
   const invoices = useDataStore((s) => s.invoices);
   // Le client de l'adresse (?c=, ou l'ancien ?nom=) : lib/adresse-client.
   const nomAdresse = useDataStore((s) => nomDeLAdresse(sp, s));
-  if (n) {
-    const inv = (invoices ?? []).find((i) => i.number === n);
-    if (!inv) return <Introuvable texte={`On ne trouve pas la facture n° ${n}.`} />;
+  if (n || parId) {
+    // Par son id : une facture provisoire (pas encore de numéro), ou l'une de deux factures au même numéro.
+    const inv = (invoices ?? []).find((i) => (parId ? i.id === parId : i.number === n));
+    if (!inv) return <Introuvable texte={n ? `On ne trouve pas la facture n° ${n}.` : "On ne trouve pas cette facture."} />;
     return <Emise key={inv.id} inv={inv} avoirDe={sp.get("avoir")} faite={sp.get("faite") === "1"} />;
   }
   const lot = parseMois(sp.get("lot"));
@@ -144,6 +144,8 @@ function useEtapes(data: StableData, kinds: Brouillon["kinds"], tvaManque: boole
   const [ouvertes] = useState(() => ({ ...besoin }));
   const [champs] = useState(() => vendeur);
   const [faites, setFaites] = useState<Record<Etape, boolean>>({ vendeur: false, tva: false });
+  // Un gérant qui avait déjà des factures : on lui dit pourquoi on lui demande ça maintenant.
+  const nouveau = (data.invoices ?? []).length > 0 && vendeur.some((m) => m === "statut" || m === "nomPrenom" || m === "rcs");
   const etape = (["vendeur", "tva"] as Etape[]).find((k) => besoin[k] || (ouvertes[k] && !faites[k]));
   const finir = (k: Etape) => setFaites((f) => ({ ...f, [k]: true }));
   const tvaReste = !b.vat ? ["la TVA"] : [...(tvaManque ? ["un taux"] : []), ...(manque.includes("tva") ? [VENDEUR_MANQUE_DIT.tva] : [])];
@@ -151,6 +153,7 @@ function useEtapes(data: StableData, kinds: Brouillon["kinds"], tvaManque: boole
     etape === "vendeur" ? (
       <div className="card fa-card rise">
         <b>Pour faire une facture, il faut {listeDite((champs.length ? champs : vendeur).map((m) => VENDEUR_MANQUE_DIT[m]))}.</b>
+        {nouveau && <p>Depuis le 19 octobre, Be Stable demande tout ce que la loi exige sur une facture : ton statut, et selon lui ton nom et ton prénom (entrepreneur individuel) ou ton RCS (société). Tes factures déjà faites ne changent pas.</p>}
         <p>Tu les notes une fois, ils reviennent sur toutes tes factures.</p>
         <InfosVendeur seulement={champs.length ? champs : vendeur} />
         <BoutonSuite manque={vendeur.map((m) => VENDEUR_MANQUE_DIT[m])} onClick={() => finir("vendeur")} />
@@ -191,17 +194,24 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
   const [clientOuvert, setClientOuvert] = useState(() => draft.client.length > 0);
   const [voir, setVoir] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
-  const qui = prenomDe(nom);
+  const qui = appelClient(person?.statut === "pro" ? { pro: true } : { name: nom }, nom);
   useRetourFiche(nom, mk);
 
   const faire = async () => {
     if (!draft.facture || enCours) return;
     setEnCours(true);
-    const [inv] = await useDataStore.getState().issueInvoices([draft.facture], localToday());
+    let inv: Invoice | undefined;
+    try {
+      [inv] = await useDataStore.getState().issueInvoices([draft.facture], localToday());
+    } catch (e) {
+      setEnCours(false);
+      if (e instanceof FactureNonEnregistree) return say(messageNonEnregistree(e));
+      throw e;
+    }
     setEnCours(false);
     if (!inv) return say("Ces lignes sont déjà sur une facture. Tu la trouves dans Tes factures.");
     // La facture faite s'ouvre avec sa confirmation : « Facture n° … faite », Imprimer, Envoyer.
-    router.replace(`/facture?n=${encodeURIComponent(inv.number)}&faite=1`);
+    router.replace(`${lienFacture(inv)}&faite=1`);
   };
 
   // Une facture déjà faite, et rien de nouveau : elle s'ouvre telle quelle.
@@ -229,8 +239,8 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
               {faites.map((i, k) => (
                 <span key={i.id}>
                   {k > 0 && ", "}
-                  <Link className="lnk" href={`/facture?n=${encodeURIComponent(i.number)}`}>
-                    n° {i.number}
+                  <Link className="lnk" href={lienFacture(i)}>
+                    {i.provisoire ? "à numéroter" : `n° ${i.number}`}
                   </Link>
                 </span>
               ))}
@@ -245,9 +255,9 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
         ) : client ? (
           <div className="card fa-card rise">
             <b>{person?.statut ? `${qui}, pour sa facture` : `${qui} est un particulier ou un professionnel ?`}</b>
-            <p>Pour un professionnel, la loi demande des mentions en plus.</p>
+            <p>La loi demande le nom complet d’un particulier, et des mentions en plus pour un professionnel.</p>
             <ClientFacture nom={nom} role={role} manque={draft.client} />
-            <BoutonSuite manque={draft.client.map((m) => (m === "statut" ? "ta réponse" : m === "adresse" ? "son adresse" : "tes conditions de paiement"))} onClick={() => setClientOuvert(false)} label="Voir l’aperçu" />
+            <BoutonSuite manque={draft.client.map((m) => (m === "statut" ? "ta réponse" : m === "nomComplet" ? "son prénom et son nom" : m === "adresse" ? "son adresse" : "tes conditions de paiement"))} onClick={() => setClientOuvert(false)} label="Voir l’aperçu" />
           </div>
         ) : (
           <p className="fa-who rise">
@@ -324,10 +334,17 @@ function Lot({ period }: { period: Period }) {
   const faire = async () => {
     if (enCours || !prets.length) return;
     setEnCours(true);
-    const out = await useDataStore.getState().issueInvoices(
-      prets.map((c) => c.d.facture!),
-      localToday(),
-    );
+    let out: Invoice[];
+    try {
+      out = await useDataStore.getState().issueInvoices(
+        prets.map((c) => c.d.facture!),
+        localToday(),
+      );
+    } catch (e) {
+      setEnCours(false);
+      if (e instanceof FactureNonEnregistree) return say(messageNonEnregistree(e));
+      throw e;
+    }
     setEnCours(false);
     setFaites(out);
     say(out.length > 1 ? `<strong>${out.length} factures</strong> faites.` : out.length ? "<strong>Une facture</strong> faite." : "Rien de nouveau à facturer.");
@@ -346,10 +363,10 @@ function Lot({ period }: { period: Period }) {
             <p>Ouvre-les une par une pour les imprimer ou les envoyer.</p>
             <div className="fr-list">
               {faites.map((i) => (
-                <Link key={i.id} href={`/facture?n=${encodeURIComponent(i.number)}`} className="fr-inv">
+                <Link key={i.id} href={lienFacture(i)} className="fr-inv">
                   <span>
                     <b>{i.payer}</b>
-                    <small>n° {i.number}</small>
+                    <small>{i.provisoire ? "à numéroter, dès que le réseau revient" : `n° ${i.number}`}</small>
                   </span>
                   <span className="fr-amt">{eur2(i.totalTTC)}</span>
                   <Ic n="chev" className="chev" />
@@ -383,7 +400,7 @@ function Lot({ period }: { period: Period }) {
             {aCompleter.length > 0 && (
               <div className="card fa-card rise">
                 <b>{aCompleter.length > 1 ? `${aCompleter.length} à compléter d’abord` : "Une à compléter d’abord"}</b>
-                <p>Dis-le une fois pour chaque client. Pour un professionnel, il faut aussi son adresse.</p>
+                <p>Dis-le une fois pour chaque client. Pour un particulier, il faut son nom complet ; pour un professionnel, son adresse.</p>
                 <div className="fr-list">
                   {aCompleter.map((c) =>
                     c.d.client.includes("statut") ? (
@@ -405,7 +422,7 @@ function Lot({ period }: { period: Period }) {
                       <Link key={c.nom} href={adresseFacture(c.nom, mk)} className="fr-inv">
                         <span>
                           <b>{c.nom}</b>
-                          <small>{c.d.client.includes("adresse") ? "professionnel : son adresse" : "professionnel : tes conditions de paiement"}</small>
+                          <small>{c.d.client.includes("nomComplet") ? "particulier : son prénom et son nom" : c.d.client.includes("adresse") ? "professionnel : son adresse" : "professionnel : tes conditions de paiement"}</small>
                         </span>
                         <span className="fr-amt">{eur2(c.total)}</span>
                         <Ic n="chev" className="chev" />
@@ -452,17 +469,47 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
   const billing = useDataStore((s) => s.billing);
   const person = (people ?? []).find((p) => cleClient(p.name) === cleClient(inv.payer));
   const avoir = inv.kind === "avoir";
+  const provisoire = !!inv.provisoire;
+  const say = useUiStore((s) => s.say);
+  const [numeroEnCours, setNumeroEnCours] = useState(false);
   const [annuler, setAnnuler] = useState(() => !!avoirDe && !avoir);
   const phone = person?.phone?.replace(/[^\d+]/g, "") ?? "";
   const email = person?.email?.trim() ?? "";
   // Tu ou vous selon le choix de Tes factures ; signé du gérant et de l'écurie.
-  const msg = messageFacture(inv, gerant, { tu: billing?.tutoie, ecurie: nomEcurie(stableName, billing?.legalName) });
-  const enc = encodeURIComponent(msg);
+  // Le même message, selon ce qui part avec : l'e-mail et le partage joignent le PDF ; un SMS ou un WhatsApp, non.
+  const msg = (canal: Canal) => messageFacture(inv, gerant, { tu: billing?.tutoie, ecurie: nomEcurie(stableName, billing?.legalName), canal });
+  const court = encodeURIComponent(msg("court"));
+  const qui = appelClient(inv.buyer, inv.payer);
+  const partage = usePartagePdf();
+  const partagerPdf = async () => {
+    try {
+      const file = new File([facturePdf(inv) as BlobPart], nomFichierPdf(inv), { type: "application/pdf" });
+      await navigator.share({ files: [file], title: nomDoc(inv), text: msg("partage") });
+    } catch (e) {
+      // Partage fermé sans rien choisir : rien à dire. Sinon, les boutons dessous restent là.
+      if ((e as { name?: string })?.name !== "AbortError") say("Le partage n’a pas marché. Envoie le message par SMS, WhatsApp ou e-mail, dessous.");
+    }
+  };
   const objet = encodeURIComponent(nomDoc(inv));
   const avoirs = avoir ? [] : avoirsDe(invoices, inv.number);
   const reste = avoir ? [] : resteAAnnuler(inv, invoices);
-  const peutAnnuler = !avoir && reste.some((q) => q > 0) && resteEnEuros(inv, invoices) > 0;
-  useTitreDocument(`${avoir ? "Avoir" : "Facture"} ${inv.number} ${inv.payer}`);
+  const peutAnnuler = !avoir && !provisoire && reste.some((q) => q > 0) && resteEnEuros(inv, invoices) > 0;
+  useTitreDocument(provisoire ? `Facture provisoire ${inv.payer}` : `${avoir ? "Avoir" : "Facture"} ${inv.number} ${inv.payer}`);
+  // Faite sans réseau : elle reçoit son numéro dès que le serveur répond (ici, ou tout seul au retour du réseau).
+  const donnerNumero = async () => {
+    if (numeroEnCours) return;
+    setNumeroEnCours(true);
+    try {
+      const n = await useDataStore.getState().numeroterEnAttente(localToday());
+      const moi = n.find((i) => i.id === inv.id);
+      say(moi ? `La facture a reçu le n° <strong>${moi.number}</strong>.` : "Toujours pas de réseau : elle recevra son numéro dès qu’il revient.");
+    } catch (e) {
+      if (e instanceof FactureNonEnregistree) say(messageNonEnregistree(e));
+      else throw e;
+    } finally {
+      setNumeroEnCours(false);
+    }
+  };
   useRetourFiche(inv.payer, inv.month);
   return (
     <div className="fa-page">
@@ -475,10 +522,25 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
             {moisDit(inv.month)} · fait{avoir ? "" : "e"} le {dateDite(inv.issuedAt)}
           </p>
         </div>
-        {faite && !avoir && (
+        {provisoire && (
+          <div className="card fa-card fa-faite rise" role="status">
+            <b>Faite, mais pas encore numérotée</b>
+            <p>Pas de réseau : l’app n’a pas pu vérifier en ligne qu’aucun autre appareil n’a déjà pris le numéro suivant. Elle le recevra dès que le réseau revient, dans l’ordre où tu as fait tes factures. D’ici là, tu peux l’imprimer : elle dit « {MENTION_PROVISOIRE} ». Elle s’envoie une fois numérotée.</p>
+            <div className="fa-sendb">
+              <button type="button" className="btn" onClick={donnerNumero} disabled={numeroEnCours}>
+                Lui donner son numéro
+              </button>
+              <button type="button" className="btn line" onClick={() => window.print()}>
+                <Ic n="print" className="" />
+                Imprimer
+              </button>
+            </div>
+          </div>
+        )}
+        {faite && !avoir && !provisoire && (
           <div className="card fa-card fa-faite rise" role="status">
             <b>{nomDoc(inv)} faite</b>
-            <p>Elle est rangée dans Tes factures. Imprime-la (ou enregistre-la en PDF), ou envoie-la à {prenomDe(inv.payer)}.</p>
+            <p>Elle est rangée dans Tes factures. Imprime-la (ou enregistre-la en PDF), ou envoie-la à {qui}.</p>
             <div className="fa-sendb">
               <button type="button" className="btn" onClick={() => window.print()}>
                 <Ic n="print" className="" />
@@ -489,7 +551,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
                 className="btn line"
                 onClick={() => {
                   envoi.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-                  envoi.current?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+                  envoi.current?.querySelector<HTMLElement>("a, button")?.focus({ preventScroll: true });
                 }}
               >
                 Envoyer
@@ -501,7 +563,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
           <div className="chips fa-autres" role="radiogroup" aria-label="Les factures du mois">
             {autres.map((i) => (
               <button key={i.id} type="button" role="radio" aria-checked={i.id === inv.id} className={`chip${i.id === inv.id ? " on" : ""}`} onClick={() => onAutre(i.number)}>
-                n° {i.number}
+                {i.provisoire ? "à numéroter" : `n° ${i.number}`}
               </button>
             ))}
           </div>
@@ -516,6 +578,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
           </p>
         )}
         {avoirs.length > 0 && (
+          // À l'écran seulement : la feuille imprimée reste celle qui est partie (un double est identique à l'original).
           <p className="fa-who">
             {peutAnnuler ? "En partie annulée par " : "Annulée par "}
             {avoirs.length > 1 ? "les avoirs n° " : "l’avoir n° "}
@@ -527,31 +590,43 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
                 </Link>
               </span>
             ))}
-            .
+            {peutAnnuler && inv.due > 0 ? `. Ce qui reste à payer passe de ${eur2(inv.due)} à ${eur2(resteApresAvoirs(inv, avoirs))}.` : "."} La facture s’imprime telle qu’elle est partie : l’avoir est un document à part.
           </p>
         )}
         {/* Juste faite, la carte du haut a déjà son bouton Imprimer : pas deux boutons qui font la même chose. */}
-        {!(faite && !avoir) && (
+        {!(faite && !avoir) && !provisoire && (
           <button type="button" className="btn full fa-print-btn" onClick={() => window.print()}>
             <Ic n="print" className="" />
             Imprimer ou enregistrer en PDF
           </button>
         )}
-        <div className="fa-send" ref={envoi}>
-          <p className="fa-sendq">L’envoyer à {prenomDe(inv.payer)}</p>
-          <div className="fa-sendb">
-            <a className="btn line" href={`sms:${phone}?&body=${enc}`}>
-              SMS
-            </a>
-            <a className="btn line" href={`https://wa.me/?text=${enc}`} target="_blank" rel="noopener noreferrer">
-              WhatsApp
-            </a>
-            <a className="btn line" href={`mailto:${encodeURIComponent(email)}?subject=${objet}&body=${enc}`}>
-              E-mail
-            </a>
+        {!provisoire && (
+          <div className="fa-send" ref={envoi}>
+            <p className="fa-sendq">L’envoyer à {qui}</p>
+            {partage && (
+              <button type="button" className="btn full fa-pdf" onClick={partagerPdf}>
+                <Ic n="arrow" className="" />
+                Envoyer avec le PDF
+              </button>
+            )}
+            <div className="fa-sendb">
+              <a className="btn line" href={`sms:${phone}?&body=${court}`}>
+                SMS
+              </a>
+              <a className="btn line" href={`https://wa.me/?text=${court}`} target="_blank" rel="noopener noreferrer">
+                WhatsApp
+              </a>
+              <a className="btn line" href={`mailto:${encodeURIComponent(email)}?subject=${objet}&body=${encodeURIComponent(msg("email"))}`}>
+                E-mail
+              </a>
+            </div>
+            <p className="fa-hint">
+              {partage
+                ? `« Envoyer avec le PDF » ouvre le partage du téléphone : choisis Messages, WhatsApp ou Mail, ${avoir ? "l’avoir" : "la facture"} en PDF part avec le message. Les trois boutons envoient le message seul.`
+                : `Le message est prêt : montant, mois, numéro. Par SMS ou WhatsApp, il part seul. Par e-mail, il dit que le PDF est joint : enregistre d’abord ${avoir ? "l’avoir" : "la facture"} en PDF, puis joins-le.`}
+            </p>
           </div>
-          <p className="fa-hint">Le message est prêt : montant, mois, numéro. Le PDF ne part pas tout seul : enregistre d’abord {avoir ? "l’avoir" : "la facture"} en PDF, puis joins-le au message.</p>
-        </div>
+        )}
         {peutAnnuler && (
           <button type="button" className="btn line full fa-annuler" onClick={() => setAnnuler(true)}>
             Annuler par un avoir
@@ -567,10 +642,26 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
           </Link>
         </p>
       </div>
-      <Feuille inv={inv} avoirs={avoirs} annulee={avoirs.length > 0 && !peutAnnuler} />
+      <Feuille inv={inv} />
       {annuler && peutAnnuler && <FeuilleAvoir inv={inv} reste={reste} invoices={invoices} preselect={avoirDe ?? undefined} onClose={() => setAnnuler(false)} />}
     </div>
   );
+}
+
+/** Le téléphone sait-il partager un fichier PDF (navigator.share avec fichier) ? Vu une fois, à l'ouverture. */
+function usePartagePdf(): boolean {
+  const [ok, setOk] = useState(false);
+  useEffect(() => {
+    try {
+      const essai = new File(["%PDF-1.4"], "essai.pdf", { type: "application/pdf" });
+      // Vérifié après le premier rendu : l'export statique ne connaît pas le navigateur.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOk(typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [essai] }));
+    } catch {
+      setOk(false);
+    }
+  }, []);
+  return ok;
 }
 
 /** « Annuler par un avoir » : toute la facture, ou une partie, ligne par ligne ou d'un montant libre (avec son motif). */
@@ -595,7 +686,15 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
     if (!c || enCours) return;
     setEnCours(true);
     const st = useDataStore.getState();
-    const a = libre ? await st.issueAvoirMontant(inv.number, m, motif, localToday()) : await st.issueAvoir(inv.number, choix, localToday());
+    let a: Invoice | null;
+    try {
+      a = libre ? await st.issueAvoirMontant(inv.number, m, motif, localToday()) : await st.issueAvoir(inv.number, choix, localToday());
+    } catch (e) {
+      setEnCours(false);
+      if (e instanceof FactureNonEnregistree) return say(messageNonEnregistree(e, true));
+      if (e instanceof AvoirSansReseau) return say(MESSAGE_AVOIR_SANS_RESEAU);
+      throw e;
+    }
     setEnCours(false);
     if (!a) return;
     say(messageFaite(a));
@@ -675,123 +774,3 @@ function FeuilleAvoir({ inv, reste, invoices, preselect, onClose }: { inv: Invoi
   );
 }
 
-/* ---------- La feuille A4 ---------- */
-
-/** La feuille A4 : noir sur blanc, sobre. C'est elle seule qui part à l'impression. */
-function Feuille({ inv, apercu, avoirs = [], annulee }: { inv: Invoice; apercu?: boolean; avoirs?: Invoice[]; annulee?: boolean }) {
-  // Après un avoir, la facture ne dit plus « Reste à payer » comme avant : annulée en entier, elle le dit ; en partie, le reste baisse d'autant.
-  const deduit = avoirs.reduce((t, a) => t + Math.abs(a.totalTTC), 0);
-  const reste = Math.max(0, Math.round((inv.due - deduit) * 100) / 100);
-  const f = inv.franchise;
-  const avoir = inv.kind === "avoir";
-  const mentions = mentionsPaiement(inv);
-  const entete = enteteVendeur(inv.seller);
-  const iban = avoir ? "" : mentionIban(inv.seller.iban);
-  return (
-    <article className={`fa-print${apercu ? " apercu" : ""}`} aria-label={apercu ? "Aperçu de la facture" : nomDoc(inv)}>
-      {apercu && <p className="fa-wm">Aperçu, pas encore de numéro</p>}
-      <header className="fa-top">
-        <div className="fa-from">
-          <b>{entete.nom}</b>
-          {entete.sous && <span>{entete.sous}</span>}
-          {inv.seller.address && <span className="fa-pre">{inv.seller.address}</span>}
-          {inv.seller.siret && <span>SIRET {siretDit(inv.seller.siret)}</span>}
-          {!f && inv.seller.tvaIntra && <span>N° TVA intracommunautaire {tvaIntraDit(inv.seller.tvaIntra)}</span>}
-        </div>
-        <div className="fa-id">
-          <h1>{avoir ? "Avoir" : "Facture"}</h1>
-          <span>n° {apercu ? "à venir" : inv.number}</span>
-          <span>Date : {dateDite(inv.issuedAt)}</span>
-          {avoir && inv.avoirDe && (
-            <span>
-              Sur la facture n° {inv.avoirDe.number} du {dateDite(inv.avoirDe.issuedAt)}
-            </span>
-          )}
-          <span>Prestations {deMois(inv.month)}</span>
-        </div>
-      </header>
-      <div className="fa-to">
-        <small>{avoir ? "Pour" : "Facturé à"}</small>
-        <b>{inv.buyer.name}</b>
-        {inv.buyer.address && <span className="fa-pre">{inv.buyer.address}</span>}
-      </div>
-      <table className="fa-tbl">
-        <thead>
-          <tr>
-            <th>Désignation</th>
-            <th className="n">Qté</th>
-            <th className="n">{f ? "Prix unitaire" : "Prix unitaire HT"}</th>
-            {!f && <th className="n">TVA</th>}
-            <th className="n">{f ? "Total" : "Total HT"}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {inv.lines.map((l, i) => (
-            <tr key={i}>
-              <td>{l.label}</td>
-              <td className="n">{l.qty}</td>
-              <td className="n">{eur2(l.unitHT)}</td>
-              {!f && <td className="n">{tauxDit(l.rate)}</td>}
-              <td className="n">{eur2(l.totalHT)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="fa-tot">
-        {!f && (
-          <>
-            <div>
-              <span>Total HT</span>
-              <span>{eur2(inv.totalHT)}</span>
-            </div>
-            {inv.vat.map((v) => (
-              <div key={v.rate}>
-                <span>
-                  TVA {tauxDit(v.rate)} sur {eur2(v.base)}
-                </span>
-                <span>{eur2(v.amount)}</span>
-              </div>
-            ))}
-          </>
-        )}
-        <div className="fa-ttc">
-          <span>{avoir ? (f ? "Total de l’avoir" : "Total de l’avoir TTC") : f ? "Total" : "Total TTC"}</span>
-          <span>{eur2(inv.totalTTC)}</span>
-        </div>
-        {!avoir && inv.paid > 0 && (
-          <div>
-            <span>Déjà payé</span>
-            <span>{eur2(inv.paid)}</span>
-          </div>
-        )}
-        {!avoir &&
-          !annulee &&
-          avoirs.map((a) => (
-            <div key={a.id}>
-              <span>Avoir n° {a.number}</span>
-              <span>{eur2(a.totalTTC)}</span>
-            </div>
-          ))}
-        {!avoir &&
-          (annulee ? (
-            <div className="fa-due">
-              <span>{avoirs.length > 1 ? `Annulée par les avoirs n° ${avoirs.map((a) => a.number).join(", ")}` : `Annulée par l’avoir n° ${avoirs[0]?.number ?? ""}`}</span>
-              <span />
-            </div>
-          ) : (
-            <div className="fa-due">
-              <span>Reste à payer</span>
-              <span>{eur2(reste)}</span>
-            </div>
-          ))}
-      </div>
-      <footer className="fa-foot">
-        {f && <p>{MENTION_FRANCHISE}.</p>}
-        {mentions.map((m) => (
-          <p key={m}>{m}</p>
-        ))}
-        {iban && <p>{iban}.</p>}
-      </footer>
-    </article>
-  );
-}
