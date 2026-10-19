@@ -17,12 +17,17 @@ export function PageImprimee({ page }: { page: string }) {
 export function useTitreDocument(titre: string | undefined) {
   useEffect(() => {
     if (!titre) return;
-    const avant = document.title;
+    // Le titre que l'écran voudrait (métadonnées) : rendu en partant. En changeant
+    // d'écran, Next pose le titre du suivant avant que celui-ci ne s'en aille :
+    // on rend celui-là, pas « Facture · Be Stable » (Réglages s'appelait « Facture »).
+    let voulu = document.title;
     document.title = titre;
     // Le titre de l'écran (métadonnées « Facture · Be Stable ») arrive parfois
     // après, au premier chargement : il ne doit pas reprendre la place du nom du PDF.
     const garder = () => {
-      if (document.title !== titre) document.title = titre;
+      if (document.title === titre) return;
+      voulu = document.title;
+      document.title = titre;
     };
     const obs = new MutationObserver(garder);
     obs.observe(document.head, { childList: true, subtree: true, characterData: true });
@@ -30,7 +35,7 @@ export function useTitreDocument(titre: string | undefined) {
     return () => {
       obs.disconnect();
       window.removeEventListener("beforeprint", garder);
-      document.title = avant;
+      document.title = voulu;
     };
   }, [titre]);
 }
