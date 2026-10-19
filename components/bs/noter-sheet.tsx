@@ -274,7 +274,7 @@ function NoterInner() {
     if (!d) return;
     if (manque(d)) {
       setTried(true);
-      if (screen === "card") setPick(d.type === "soin" ? "soin" : "m");
+      if (screen === "card") setPick(d.type === "soin" ? "soin" : d.type === "rdv" ? "quoi" : "m");
       return;
     }
     const st = useDataStore.getState();
@@ -660,7 +660,7 @@ function NoterInner() {
     <>
       {tried && d && manque(d) && (
         <p className="nt-miss" role="alert">
-          {d.type === "soin" ? "Choisis d’abord le soin." : "Il manque le montant."}
+          {d.type === "soin" ? "Choisis d’abord le soin." : d.type === "rdv" ? "Dis d’abord ce que c’est." : "Il manque le montant."}
         </p>
       )}
       <button type="button" className="btn full nt-ok" onClick={() => commit()}>
