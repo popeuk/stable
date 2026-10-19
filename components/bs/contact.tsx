@@ -30,9 +30,19 @@ export function appareilEnMots(): string {
   return [`écran ${window.screen.width} × ${window.screen.height}`, `fenêtre ${window.innerWidth} × ${window.innerHeight}`, tactile ? "tactile" : "souris", installee ? "app installée" : "dans le navigateur", navigator.language].join(", ");
 }
 
-/** Le bouton qui ouvre Contact, s'il y a lieu : `render` dessine le bouton (ligne de Réglages, lien de l'aide). */
-export function ContactOuvrir({ render, ecran }: { render: (ouvrir: () => void) => ReactNode; ecran?: string }) {
-  const [dispo, setDispo] = useState(false);
+/** Le lien e-mail de repli : l'adresse écrite en entier, et un lien qui ouvre la messagerie. */
+export const MAILTO_CONTACT = `mailto:${CONTACT_EMAIL}`;
+export const TEXTE_REPLI = `Écris-nous : ${CONTACT_EMAIL}`;
+
+/**
+ * Le bouton qui ouvre Contact, s'il y a lieu : `render` dessine le bouton
+ * (ligne de Réglages, lien de l'aide). Quand le site n'a pas la route
+ * (pc-bestable avant 1.5.0), `repli` s'affiche à la place : l'adresse
+ * e-mail, en texte et en lien.
+ */
+export function ContactOuvrir({ render, ecran, repli }: { render: (ouvrir: () => void) => ReactNode; ecran?: string; repli?: ReactNode }) {
+  // null : on ne sait pas encore (rien n'apparaît) ; false : pas de route, le repli.
+  const [dispo, setDispo] = useState<boolean | null>(null);
   const [ouvert, setOuvert] = useState(false);
   useEffect(() => {
     let fini = false;
@@ -42,7 +52,8 @@ export function ContactOuvrir({ render, ecran }: { render: (ouvrir: () => void) 
       fini = true;
     };
   }, []);
-  if (!dispo) return null;
+  if (dispo === null) return null;
+  if (!dispo) return <>{repli ?? null}</>;
   return (
     <>
       {render(() => setOuvert(true))}
