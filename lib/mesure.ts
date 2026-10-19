@@ -278,16 +278,21 @@ export function choisirMatomo(oui: boolean) {
 }
 
 /** Les seuls paramètres d'adresse qui partent : ceux des campagnes (jamais un nom, jamais une recherche de l'app). */
-const CAMPAGNE = /^(mtm_|utm_|pk_)[a-z_]{1,20}$/;
+export const CAMPAGNE = /^(mtm_|utm_|pk_)[a-z_]{1,20}$/;
 
-/** L'adresse envoyée à Matomo : comme pour Google, plus les paramètres de campagne s'il y en a. */
-export function adresseMatomo(l: { origin: string; pathname: string; search: string } = location): string {
+/** Les seuls paramètres de campagne d'une recherche (« ?mtm_campaign=… »), ou une chaîne vide. */
+export function rechercheCampagne(search: string): string {
   const garde = new URLSearchParams();
-  new URLSearchParams(l.search).forEach((v, k) => {
+  new URLSearchParams(search).forEach((v, k) => {
     if (CAMPAGNE.test(k)) garde.set(k, v.slice(0, 100));
   });
   const q = garde.toString();
-  return l.origin + l.pathname + (q ? `?${q}` : "");
+  return q ? `?${q}` : "";
+}
+
+/** L'adresse envoyée à Matomo : comme pour Google, plus les paramètres de campagne s'il y en a. */
+export function adresseMatomo(l: { origin: string; pathname: string; search: string } = location): string {
+  return l.origin + l.pathname + rechercheCampagne(l.search);
 }
 
 /** D'où l'on vient : l'origine et le chemin, sans la recherche. Rien si l'on vient de l'app elle-même. */

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore, type NoterPrefill } from "@/stores/ui-store";
+import { rechercheCampagne } from "@/lib/mesure";
 
 const installee = (p: { chevaux?: boolean; tarifs?: boolean; factures?: boolean }) => !!(p.chevaux && p.tarifs && p.factures);
 
@@ -13,7 +14,8 @@ export function Redirect({ to, keepQuery }: { to?: string; keepQuery?: boolean }
   const parcours = useSettingsStore((s) => s.parcours);
   useEffect(() => {
     const target = to ?? (installee(parcours) ? "/accueil" : "/bienvenue");
-    router.replace(keepQuery ? `${target}${window.location.search}` : target);
+    // Les paramètres de campagne d'une publicité suivent toujours (lib/mesure) : sinon l'entrée « / » les perd.
+    router.replace(`${target}${keepQuery ? window.location.search : rechercheCampagne(window.location.search)}`);
   }, [to, keepQuery, parcours, router]);
   return null;
 }

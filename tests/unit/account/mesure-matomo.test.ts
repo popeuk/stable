@@ -72,6 +72,13 @@ describe("Matomo, sans cookie", () => {
     expect(m.provenance("", "https://app.bestable.fr")).toBe("");
   });
 
+  it("la redirection d'entrée ne garde que les paramètres de campagne", async () => {
+    const { m } = await charger();
+    expect(m.rechercheCampagne("?mtm_campaign=lancement&nom=Dupont&utm_source=fb")).toBe("?mtm_campaign=lancement&utm_source=fb");
+    expect(m.rechercheCampagne("?c=k3x9")).toBe("");
+    expect(m.rechercheCampagne("")).toBe("");
+  });
+
   it("le résumé de Réglages dit les cookies et les statistiques", async () => {
     const { resumeChoix } = await import("@/components/bs/consentement");
     expect(resumeChoix(null, true, false, false, true)).toBe("Statistiques anonymes");
