@@ -1,5 +1,6 @@
 import type { Invoice } from "@/lib/domain/types";
-import { prochainNumero } from "@/lib/domain/facture";
+import { prochainNumero, recettesFacturees } from "@/lib/domain/facture";
+import { esc } from "@/lib/utils/esc";
 
 /**
  * Les factures « à numéroter » (question 18, réponse A de Samuel) : avec un
@@ -33,25 +34,44 @@ const plus = (iso: string, n: number) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
+/** Une facture provisoire retirée : ses lignes étaient déjà sur une facture faite ailleurs entre-temps. */
+export interface ProvisoireRetiree {
+  facture: Invoice;
+  /** Les numéros des factures qui ont déjà ces lignes. */
+  numeros: string[];
+  /** Toutes ses lignes y étaient (sinon, le reste revient dans Facturer). */
+  toute: boolean;
+}
+
 /**
  * Donne leur numéro aux factures provisoires, dans l'ordre où elles ont été
  * faites, à la suite du plus grand numéro connu. Le numéro suit la date
  * d'émission : elles sont datées du jour où elles le reçoivent (l'échéance
- * d'un professionnel garde son délai). Rend toutes les factures et celles
- * qui viennent d'être numérotées.
+ * d'un professionnel garde son délai). Une provisoire dont une ligne est
+ * déjà sur une facture numérotée (faite sur l'autre appareil pendant ce
+ * temps) n'est pas numérotée : elle est retirée, pour ne pas facturer deux
+ * fois. Rend les factures qui restent, celles qui viennent d'être
+ * numérotées, et celles qui sont retirées.
  */
 export function numeroterProvisoires(
   invoices: Invoice[],
   seqs: Record<string, number> | undefined,
   today: string,
   haut?: Record<string, number>,
-): { invoices: Invoice[]; numerotees: Invoice[] } {
+): { invoices: Invoice[]; numerotees: Invoice[]; retirees: ProvisoireRetiree[] } {
   const attente = invoices.filter(estProvisoire).sort((a, b) => a.provisoire!.localeCompare(b.provisoire!) || a.id.localeCompare(b.id));
-  if (!attente.length) return { invoices, numerotees: [] };
+  if (!attente.length) return { invoices, numerotees: [], retirees: [] };
   const year = Number(today.slice(0, 4));
   let acc = invoices.filter((i) => !estProvisoire(i));
   const numerotees: Invoice[] = [];
+  const retirees: ProvisoireRetiree[] = [];
   for (const p of attente) {
+    const deja = recettesFacturees(acc);
+    const sur = p.revenueIds.filter((id) => deja.has(id));
+    if (sur.length) {
+      retirees.push({ facture: p, numeros: [...new Set(sur.map((id) => deja.get(id)!))].sort(), toute: sur.length === p.revenueIds.length });
+      continue;
+    }
     const { seq, number } = prochainNumero(acc, seqs, year, haut);
     const { provisoire: _p, ...reste } = p;
     void _p;
@@ -60,7 +80,15 @@ export function numeroterProvisoires(
     numerotees.push(inv);
   }
   const parId = new Map(numerotees.map((i) => [i.id, i]));
-  return { invoices: invoices.map((i) => parId.get(i.id) ?? i), numerotees };
+  const sortent = new Set(retirees.map((r) => r.facture.id));
+  return { invoices: invoices.filter((i) => !sortent.has(i.id)).map((i) => parId.get(i.id) ?? i), numerotees, retirees };
+}
+
+/** Ce que dit l'écran d'une provisoire retirée (HTML, le nom échappé). */
+export function messageRetiree(r: ProvisoireRetiree): string {
+  const n = r.numeros.map((x) => `<strong>${esc(x)}</strong>`).join(", ");
+  const reste = r.toute ? "" : " Ce qui n’y était pas revient dans Facturer.";
+  return `Ce mois de ${esc(r.facture.payer)} a déjà été facturé sur ton autre appareil, n° ${n} : la facture provisoire est retirée.${reste}`;
 }
 
 /**

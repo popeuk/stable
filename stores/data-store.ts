@@ -29,6 +29,7 @@ import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRo
 import { contenuAvoir, contenuAvoirMontant, emettre, emettreAvoir, fusionFactures, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
 import { compteurAppareil, facturesEnregistrees } from "@/lib/account/factures-seq";
 import { numeroter, numeroterEnAttente as enAttente, type OptionsNumero } from "@/lib/account/numeroter";
+import type { ProvisoireRetiree } from "@/lib/domain/numeros";
 import { scopedKey } from "@/lib/account/session";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { SAISON_MOIS, couvreMois, ensureForfaits, marquerForfaits, moisPlus } from "@/lib/domain/forfaits";
@@ -245,8 +246,8 @@ interface DataState extends StableData {
   issueAvoir: (number: string, qtes: number[], today: string) => Promise<Invoice | null>;
   /** Un avoir d'un montant libre sur une facture (montant TTC et motif), numéroté à la suite. */
   issueAvoirMontant: (number: string, montant: number, motif: string, today: string) => Promise<Invoice | null>;
-  /** Le réseau est revenu : les factures faites sans réseau reçoivent leur numéro, dans l'ordre. Rend celles numérotées. */
-  numeroterEnAttente: (today: string) => Promise<Invoice[]>;
+  /** Le réseau est revenu : les factures faites sans réseau reçoivent leur numéro, dans l'ordre ; celles déjà facturées ailleurs sont retirées. */
+  numeroterEnAttente: (today: string) => Promise<{ numerotees: Invoice[]; retirees: ProvisoireRetiree[] }>;
   /** Réunit les factures d'un autre carnet (sauvegarde reprise, autre onglet) : aucune ne se perd. */
   mergeInvoices: (other: Pick<StableData, "invoices" | "invoiceSeq">) => void;
   /** Ce que la facture d'un client demande : particulier ou professionnel, son adresse. */

@@ -46,7 +46,7 @@ import { InField } from "@/components/bs/seance-form";
 import { Feuille, resteApresAvoirs } from "@/components/bs/feuille-facture";
 import { facturePdf, nomFichierPdf } from "@/lib/domain/facture-pdf";
 import { AvoirSansReseau, FactureNonEnregistree, MESSAGE_AVOIR_SANS_RESEAU, messageNonEnregistree } from "@/lib/account/numeroter";
-import { MENTION_PROVISOIRE, lienFacture } from "@/lib/domain/numeros";
+import { MENTION_PROVISOIRE, lienFacture, messageRetiree } from "@/lib/domain/numeros";
 import type { Invoice, Period, StableData } from "@/lib/domain/types";
 import { adresseClient, adresseFacture, nomDeLAdresse } from "@/lib/adresse-client";
 
@@ -503,9 +503,10 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
     if (numeroEnCours) return;
     setNumeroEnCours(true);
     try {
-      const n = await useDataStore.getState().numeroterEnAttente(localToday());
-      const moi = n.find((i) => i.id === inv.id);
-      say(moi ? `La facture a reçu le n° <strong>${moi.number}</strong>.` : "Toujours pas de réseau : elle recevra son numéro dès qu’il revient.");
+      const { numerotees, retirees } = await useDataStore.getState().numeroterEnAttente(localToday());
+      const moi = numerotees.find((i) => i.id === inv.id);
+      const retiree = retirees.find((r) => r.facture.id === inv.id);
+      say(moi ? `La facture a reçu le n° <strong>${moi.number}</strong>.` : retiree ? messageRetiree(retiree) : "Toujours pas de réseau : elle recevra son numéro dès qu’il revient.");
     } catch (e) {
       if (e instanceof FactureNonEnregistree) say(messageNonEnregistree(e));
       else throw e;

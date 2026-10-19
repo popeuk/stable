@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lienFacture, numeroDit, numeroterProvisoires, numerosEnDouble, rendreProvisoire } from "@/lib/domain/numeros";
+import { lienFacture, messageRetiree, numeroDit, numeroterProvisoires, numerosEnDouble, rendreProvisoire } from "@/lib/domain/numeros";
 import type { Invoice } from "@/lib/domain/types";
 
 const f = (id: string, seq: number, extra: Partial<Invoice> = {}): Invoice => ({
@@ -55,9 +55,35 @@ describe("les factures à numéroter (sans réseau)", () => {
     expect(r.numerotees[0].number).toBe("2026-0010");
   });
 
+  it("une provisoire dont les lignes ont été facturées sur l'autre appareil n'est pas numérotée : elle est retirée", () => {
+    // Le téléphone, sans réseau, a fait la facture de Claire ; l'ordinateur, en ligne, l'a faite aussi (0001).
+    const provisoire = rendreProvisoire(f("tel", 0, { payer: "Claire", revenueIds: ["r1", "r2"] }), "2026-10-19T09:00:00.000Z");
+    const ailleurs = f("pc", 1, { payer: "Claire", revenueIds: ["r1", "r2"] });
+    const autre = rendreProvisoire(f("hugo", 0), "2026-10-19T10:00:00.000Z");
+    const r = numeroterProvisoires([ailleurs, provisoire, autre], { "2026": 1 }, "2026-10-21");
+    expect(r.numerotees.map((i) => [i.id, i.number])).toEqual([["hugo", "2026-0002"]]);
+    expect(r.retirees).toEqual([{ facture: provisoire, numeros: ["2026-0001"], toute: true }]);
+    expect(r.invoices.map((i) => i.id)).toEqual(["pc", "hugo"]);
+    expect(messageRetiree(r.retirees[0])).toBe("Ce mois de Claire a déjà été facturé sur ton autre appareil, n° <strong>2026-0001</strong> : la facture provisoire est retirée.");
+  });
+
+  it("une seule ligne déjà facturée suffit à la retirer ; le reste revient dans Facturer, et un avoir libère la ligne", () => {
+    const provisoire = rendreProvisoire(f("tel", 0, { payer: "Léa <b>", revenueIds: ["r1", "r9"] }), "2026-10-19T09:00:00.000Z");
+    const ailleurs = f("pc", 1, { revenueIds: ["r1"] });
+    const r = numeroterProvisoires([ailleurs, provisoire], {}, "2026-10-21");
+    expect(r.retirees[0].toute).toBe(false);
+    expect(messageRetiree(r.retirees[0])).toContain("Léa &lt;b&gt;");
+    expect(messageRetiree(r.retirees[0])).toContain("Ce qui n’y était pas revient dans Facturer.");
+    // La facture de l'ordinateur annulée par un avoir : la ligne est libre, la provisoire est numérotée.
+    const avoir = f("av", 2, { kind: "avoir", revenueIds: ["r1"], avoirDe: { number: "2026-0001", issuedAt: "2026-10-18" } });
+    const r2 = numeroterProvisoires([ailleurs, avoir, provisoire], {}, "2026-10-21");
+    expect(r2.retirees).toEqual([]);
+    expect(r2.numerotees.map((i) => i.number)).toEqual(["2026-0003"]);
+  });
+
   it("rien à numéroter : rien ne change", () => {
     const l = [f("a", 1)];
-    expect(numeroterProvisoires(l, {}, "2026-10-21")).toEqual({ invoices: l, numerotees: [] });
+    expect(numeroterProvisoires(l, {}, "2026-10-21")).toEqual({ invoices: l, numerotees: [], retirees: [] });
   });
 });
 

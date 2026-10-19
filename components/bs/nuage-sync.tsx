@@ -6,14 +6,19 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { localToday } from "@/lib/utils/local-date";
+import { messageRetiree } from "@/lib/domain/numeros";
 
 /** Les factures faites sans réseau reçoivent leur numéro dès que le serveur répond (question 18, réponse A). */
 async function numeroterLesProvisoires() {
   const st = useDataStore.getState();
   if (!st.hydrated || !(st.invoices ?? []).some((i) => i.provisoire)) return;
   try {
-    const n = await st.numeroterEnAttente(localToday());
-    if (n.length) useUiStore.getState().say(n.length > 1 ? `Le réseau est revenu : <strong>${n.length} factures</strong> ont reçu leur numéro.` : `Le réseau est revenu : la facture a reçu le n° <strong>${n[0].number}</strong>.`);
+    const { numerotees: n, retirees } = await st.numeroterEnAttente(localToday());
+    const dit = [
+      ...(n.length ? [n.length > 1 ? `Le réseau est revenu : <strong>${n.length} factures</strong> ont reçu leur numéro.` : `Le réseau est revenu : la facture a reçu le n° <strong>${n[0].number}</strong>.`] : []),
+      ...retirees.map(messageRetiree),
+    ];
+    if (dit.length) useUiStore.getState().say(dit.join(" "));
   } catch {
     // Pas pu l'enregistrer (téléphone plein) : elle reste provisoire, le bandeau de place le dit.
   }

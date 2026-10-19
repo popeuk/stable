@@ -108,17 +108,30 @@ describe("deux appareils, un seul compte : des numéros qui ne se croisent jamai
     // Ses lignes sont prises : elles ne repassent pas sur une autre facture.
     expect(brouillon(useDataStore.getState(), "Léa", oct).vide).toBe(true);
     // Toujours pas de réseau : rien ne change.
-    expect(await useDataStore.getState().numeroterEnAttente("2026-10-21")).toEqual([]);
+    expect(await useDataStore.getState().numeroterEnAttente("2026-10-21")).toEqual({ numerotees: [], retirees: [] });
     // Un avoir, lui, attend le réseau.
     await expect(useDataStore.getState().issueAvoir("2026-0002", [1], today)).rejects.toBeInstanceOf(AvoirSansReseau);
 
     serveur.coupe = false;
-    const n = await useDataStore.getState().numeroterEnAttente("2026-10-21");
+    const { numerotees: n } = await useDataStore.getState().numeroterEnAttente("2026-10-21");
     expect(n.map((i) => [i.payer, i.number, i.issuedAt])).toEqual([
       ["Léa", "2026-0003", "2026-10-21"],
       ["Inès", "2026-0004", "2026-10-21"],
     ]);
     expect((useDataStore.getState().invoices ?? []).some((i) => i.provisoire)).toBe(false);
+  });
+
+  it("au retour du réseau, une provisoire déjà facturée sur l'autre appareil est retirée, pas numérotée", async () => {
+    const st = useDataStore.getState();
+    const marie = st.invoices!.find((i) => i.payer === "Marie")!;
+    const doublon = { ...marie, id: "tel-marie", number: "provisoire-tel-marie", seq: 0, provisoire: "2026-10-20T08:00:00.000Z" };
+    useDataStore.setState({ invoices: [...st.invoices!, doublon] });
+    await ecrituresFaites("be-stable-data");
+    const { numerotees, retirees } = await useDataStore.getState().numeroterEnAttente("2026-10-21");
+    expect(numerotees).toEqual([]);
+    expect(retirees.map((r) => [r.facture.id, r.numeros])).toEqual([["tel-marie", [marie.number]]]);
+    expect((useDataStore.getState().invoices ?? []).some((i) => i.id === "tel-marie")).toBe(false);
+    expect(numeros().filter((n) => n === marie.number)).toHaveLength(1);
   });
 
   it("sans compte (essai), rien ne change : un seul appareil, le numéro tout de suite", async () => {

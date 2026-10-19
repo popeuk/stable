@@ -5,7 +5,7 @@ import { ecrituresFaites } from "@/lib/account/vault";
 import { etatPlace } from "@/lib/account/place";
 import { compteurAppareil, facturesEnregistrees, noterCompteur, sousVerrou } from "@/lib/account/factures-seq";
 import { compteurMax, fusionFactures } from "@/lib/domain/facture";
-import { numeroterProvisoires, rendreProvisoire, estProvisoire } from "@/lib/domain/numeros";
+import { numeroterProvisoires, rendreProvisoire, estProvisoire, type ProvisoireRetiree } from "@/lib/domain/numeros";
 import { envoyerMaintenant, relireAvantNumero } from "@/lib/account/nuage";
 import type { Invoice, StableData } from "@/lib/domain/types";
 
@@ -130,17 +130,29 @@ export async function numeroter<S extends Carnet>(
 /**
  * Le réseau est revenu : les factures provisoires reçoivent leur numéro, dans
  * l'ordre où elles ont été faites, après relecture de la copie en ligne.
- * Rend celles qui ont été numérotées (aucune si le serveur ne répond pas).
+ * Celles dont les lignes ont été facturées ailleurs entre-temps sont
+ * retirées. Rend celles qui ont été numérotées et celles qui sont retirées
+ * (rien si le serveur ne répond pas).
  */
-export async function numeroterEnAttente<S extends Carnet>(get: () => S, set: (p: Partial<S>) => void, today: string, opts: OptionsNumero): Promise<Invoice[]> {
-  if (!(get().invoices ?? []).some(estProvisoire)) return [];
+export async function numeroterEnAttente<S extends Carnet>(
+  get: () => S,
+  set: (p: Partial<S>) => void,
+  today: string,
+  opts: OptionsNumero,
+): Promise<{ numerotees: Invoice[]; retirees: ProvisoireRetiree[] }> {
+  const rien = { numerotees: [], retirees: [] };
+  if (!(get().invoices ?? []).some(estProvisoire)) return rien;
   return sousVerrou(async () => {
-    if (!(await toutRelire(get, set, opts))) return [];
+    if (!(await toutRelire(get, set, opts))) return rien;
     const s = get();
-    const { numerotees } = numeroterProvisoires(s.invoices ?? [], s.invoiceSeq, today, compteurAppareil());
-    if (!numerotees.length) return [];
-    await enregistrerFactures(get, set, numerotees, true);
-    void envoyerMaintenant();
-    return numerotees;
+    const { numerotees, retirees } = numeroterProvisoires(s.invoices ?? [], s.invoiceSeq, today, compteurAppareil());
+    if (retirees.length) {
+      const sortent = new Set(retirees.map((r) => r.facture.id));
+      set({ invoices: (get().invoices ?? []).filter((i) => !sortent.has(i.id)) } as Partial<S>);
+      if (!numerotees.length) await ecrituresFaites("be-stable-data");
+    }
+    if (numerotees.length) await enregistrerFactures(get, set, numerotees, true);
+    if (numerotees.length || retirees.length) void envoyerMaintenant();
+    return { numerotees, retirees };
   });
 }
