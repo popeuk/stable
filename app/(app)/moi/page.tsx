@@ -16,7 +16,7 @@ import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { poserTaille, tailleTexte, type Taille } from "@/lib/taille";
 import { useDataStore, VERSION_DONNEES } from "@/stores/data-store";
 import { contenuSauvegarde, telechargerSauvegarde } from "@/lib/sauvegarde";
-import { reprendreSauvegarde } from "@/components/bs/reprendre-sauvegarde";
+import { ouvrirFichierSauvegarde } from "@/components/bs/reprendre-sauvegarde";
 import { useSettingsStore, VERSION_REGLAGES } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { useConfirmer, type Question } from "@/components/bs/confirmer";
@@ -55,7 +55,7 @@ function exportData() {
 }
 
 async function importData(file: File, demander: (q: Question) => Promise<boolean>) {
-  await reprendreSauvegarde(await file.text(), demander);
+  await ouvrirFichierSauvegarde(file, demander);
 }
 
 /** « 7:45 » devient « 7 h 45 », « 7:00 » devient « 7 h ». */

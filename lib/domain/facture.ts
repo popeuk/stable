@@ -150,6 +150,29 @@ export const ibanDit = (s?: string) => {
  */
 export const mentionIban = (iban?: string) => (ibanPropre(iban) ? `Paiement par virement : IBAN ${ibanDit(iban)}` : "");
 
+/**
+ * Ce qu'une sauvegarde changerait de ce qui s'imprime sur tes factures (son
+ * IBAN, son SIRET, le nom du vendeur), dit avant de l'ouvrir : un fichier
+ * « corrigé » envoyé par un tiers ne change pas en silence le compte où
+ * tes clients paient. Rien n'est dit pour ce que l'app n'a pas encore.
+ */
+export function changementsVendeur(app: BillingInfo | undefined, fichier: unknown): string[] {
+  const f = (fichier && typeof fichier === "object" ? fichier : {}) as Record<string, unknown>;
+  const texte = (v: unknown) => (typeof v === "string" ? v : undefined);
+  const b: BillingInfo = { ...f, iban: texte(f.iban), siret: texte(f.siret), nomPrenom: texte(f.nomPrenom), legalName: texte(f.legalName), statut: f.statut === "ei" || f.statut === "societe" ? f.statut : undefined } as BillingInfo;
+  const out: string[] = [];
+  const iA = ibanPropre(app?.iban);
+  const iF = ibanPropre(b.iban);
+  if (iA && iA !== iF) out.push(iF ? `Cette sauvegarde change ton IBAN : ${ibanDit(iF)}.` : "Cette sauvegarde retire ton IBAN.");
+  const sA = siretPropre(app?.siret);
+  const sF = siretPropre(b.siret);
+  if (sA && sA !== sF) out.push(sF ? `Cette sauvegarde change ton SIRET : ${siretDit(sF)}.` : "Cette sauvegarde retire ton SIRET.");
+  const nA = nomVendeur(app);
+  const nF = nomVendeur(b);
+  if (nA && nA.toLowerCase() !== nF.toLowerCase()) out.push(nF ? `Cette sauvegarde change le nom sur tes factures : ${nF}.` : "Cette sauvegarde retire le nom sur tes factures.");
+  return out;
+}
+
 /** Le capital tel qu'imprimé : « 7 500 € » pour « 7500 », sinon tel que tapé. */
 export function capitalDit(c?: string): string {
   const t = (c ?? "").trim();

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { enter, getSession, hasLocaleData, setSession, type LocaleSession } from "@/lib/account/session";
-import { fusionFactures } from "@/lib/domain/facture";
+import { changementsVendeur, fusionFactures } from "@/lib/domain/facture";
 import { compteurAppareil } from "@/lib/account/factures-seq";
 import { lireSauvegarde } from "@/lib/domain/valider";
 import { migrerDonnees, useDataStore, VERSION_DONNEES } from "@/stores/data-store";
@@ -19,6 +19,17 @@ import { useConfirmer, type Question } from "@/components/bs/confirmer";
  * récente de l'app est refusé avec la raison, et rien n'est remplacé.
  */
 const MARQUE = "bs-sauvegarde-ouverte";
+/** Au-delà, ce n'est pas une sauvegarde de l'app (une très grosse écurie en fait 2 ou 3 Mo) : on ne le lit pas. */
+export const TAILLE_MAX_SAUVEGARDE = 10 * 1024 * 1024;
+
+/** Ouvre le fichier choisi : refusé sans être lu s'il dépasse 10 Mo. */
+export async function ouvrirFichierSauvegarde(f: File, demander: (q: Question) => Promise<boolean>, depuisArrivee = false): Promise<void> {
+  if (f.size > TAILLE_MAX_SAUVEGARDE) {
+    await demander({ titre: "Cette sauvegarde ne s’ouvre pas", texte: "Ce fichier fait plus de 10 Mo : ce n’est pas une sauvegarde de Be Stable. Choisis le fichier « be-stable-… .json » de Faire une sauvegarde.", oui: "D’accord", non: null });
+    return;
+  }
+  await reprendreSauvegarde(await f.text(), demander, depuisArrivee);
+}
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function reprendreSauvegarde(texte: string, demander: (q: Question) => Promise<boolean>, depuisArrivee = false): Promise<void> {
@@ -32,6 +43,9 @@ export async function reprendreSauvegarde(texte: string, demander: (q: Question)
     : hasLocaleData()
       ? { titre: "Ouvrir cette sauvegarde ?", texte: "Elle remplace l’essai rangé sur cet appareil. Tes factures faites depuis restent.", oui: "Oui, l’ouvrir" }
       : { titre: "Ouvrir cette sauvegarde ?", texte: "Ton écurie s’ouvre sur cet appareil, sans compte. Tu pourras ensuite créer ton compte pour la garder.", oui: "Oui, l’ouvrir" };
+  // Ce qui s'imprime sur tes factures (IBAN, SIRET, nom) : dit avant d'ouvrir.
+  const change = changementsVendeur(useDataStore.getState().billing, lu.data.billing);
+  if (change.length) Object.assign(question, { texte: `${change.join(" ")} ${question.texte}`, danger: true });
   if (!(await demander(question))) return;
   let session: LocaleSession | null = null;
   if (depuisArrivee && getSession()?.kind !== "compte") {
@@ -69,7 +83,7 @@ export function JaiUneSauvegarde({ className = "lnk" }: { className?: string }) 
           onChange={async (e) => {
             const f = e.target.files?.[0];
             e.target.value = "";
-            if (f) await reprendreSauvegarde(await f.text(), demander, true);
+            if (f) await ouvrirFichierSauvegarde(f, demander, true);
           }}
         />
       </label>
