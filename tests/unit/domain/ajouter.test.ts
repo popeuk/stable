@@ -125,7 +125,16 @@ describe("le brouillon", () => {
     const c = comprendre("Cours collectif demain 18 h, 6 places", { today: TODAY, horses: [], prestations });
     expect(draftFromCompris(c, h, TODAY)).toMatchObject({ coursKey: "prest-cours:collectif", start: "18:00", places: 6, price: 25, date: "2026-10-17" });
     const m = comprendre("Maréchal jeudi, 90 €", { today: TODAY, horses: [], prestations });
-    expect(draftFromCompris(m, h, TODAY)).toMatchObject({ type: "soin", care: "ferrure", price: 90, start: "09:30", provider: "M. Roche" });
+    // Pas d'heure dite : le soin reste sans heure, même si le maréchal vient d'habitude à 9 h 30.
+    expect(draftFromCompris(m, h, TODAY)).toMatchObject({ type: "soin", care: "ferrure", price: 90, start: null, provider: "M. Roche" });
+  });
+  it("un cours sans heure dite : l'heure habituelle s'il y en a une, sinon elle est demandée", () => {
+    const c = comprendre("Cours collectif demain, 6 places", { today: TODAY, horses: [], prestations });
+    expect(draftFromCompris(c, h, TODAY).start).toBe("17:30");
+    const b = draftFromCompris(comprendre("Balade encadrée demain", { today: TODAY, horses: [], prestations }), h, TODAY);
+    expect(b.start).toBeNull();
+    expect(manque(b)).toBe(true);
+    expect(manque({ ...b, start: "14:00" })).toBe(false);
   });
   it("calcule la fin", () => {
     expect(endOf("17:30", 90)).toBe("19:00");

@@ -352,11 +352,15 @@ export function draftFromCompris(c: Compris, h: Habitudes, today: ISODate): Draf
     return d;
   }
   if (c.start) d.start = c.start;
+  // Pas d'heure dite, pas d'heure inventée : un soin reste sans heure ; un cours prend son heure habituelle
+  // (une vraie habitude : deux séances à cette heure, ou chaque semaine), sinon l'heure est demandée.
+  else if (c.type === "soin") d.start = null;
+  else if (c.type === "seance" && !h.cours.find((x) => x.key === d.coursKey)?.habit) d.start = null;
   return d;
 }
 
-/** Seul l'argent exige quelque chose : un montant. */
-export const manque = (d: Draft) => (d.type === "argent" && !(d.amount > 0)) || (d.type === "soin" && !d.care && !d.custom.trim()) || (d.type === "rdv" && !d.quoi.trim());
+/** Ce qu'il faut avant d'enregistrer : un montant pour l'argent, le soin, la chose à faire, l'heure d'un cours. */
+export const manque = (d: Draft) => (d.type === "argent" && !(d.amount > 0)) || (d.type === "soin" && !d.care && !d.custom.trim()) || (d.type === "rdv" && !d.quoi.trim()) || (d.type === "seance" && !d.start);
 
 /** Le nom de ce qu'on ajoute, tel qu'il apparaîtra au planning ou dans le mois. */
 export function titre(d: Draft, h: Habitudes): string {

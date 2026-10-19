@@ -40,7 +40,7 @@ import { nomAffiche } from "@/lib/domain/noms-categories";
  * Rendu en feuille du carnet, portée hors de la coque (iPhone).
  */
 type Screen = "grid" | "listen" | "card" | "q" | "more";
-type PickK = "type" | "cours" | "jour" | "h" | "pl" | "p" | "soin" | "cheval" | "quoi" | "sens" | "m" | "lab" | "pour";
+type PickK = "type" | "cours" | "jour" | "h" | "pl" | "p" | "soin" | "cheval" | "quoi" | "sens" | "m" | "lab" | "pour" | "refac";
 
 const NB = " ";
 const EXEMPLE = `Cours collectif demain 18${NB}h, 6 places`;
@@ -277,7 +277,7 @@ function NoterInner() {
     if (!d) return;
     if (manque(d)) {
       setTried(true);
-      if (screen === "card") setPick(d.type === "soin" ? "soin" : d.type === "rdv" ? "quoi" : "m");
+      if (screen === "card") setPick(d.type === "soin" ? "soin" : d.type === "rdv" ? "quoi" : d.type === "seance" ? "h" : "m");
       return;
     }
     const st = useDataStore.getState();
@@ -342,7 +342,8 @@ function NoterInner() {
     }
 
     if (d.type === "soin") {
-      const start = d.start ?? "09:00";
+      // Sans heure dite, le soin reste sans heure (pas de « 9 h » inventé).
+      const start = d.start ?? undefined;
       if (!d.horseIds.length) {
         // Un soin sans cheval (le maréchal passe jeudi) : un rendez-vous au planning.
         st.addTask({
@@ -351,7 +352,7 @@ function NoterInner() {
           listId: d.listId ?? st.taskLists?.[0]?.id ?? "",
           labels: ["Chevaux"],
           forWho: [],
-          due: `${d.date}T${start}`,
+          due: start ? `${d.date}T${start}` : d.date,
           lieu: d.provider.trim() || undefined,
           cost: d.price ?? undefined,
           notes: d.notes.trim() || undefined,
@@ -818,6 +819,9 @@ function NoterInner() {
     const t = typeOf(x.type);
     const J = { k: "jour" as PickK, l: jourLabel(x.date, today) };
     const horseName = x.horseIds.length === 1 ? horses.find((y) => y.id === x.horseIds[0])?.name : x.horseIds.length > 1 ? `${x.horseIds.length} chevaux` : "";
+    // Le propriétaire qui paiera un soin refacturé : celui du cheval, ou « les propriétaires » pour plusieurs chevaux.
+    const proprios = [...new Set(x.horseIds.map((id) => horses.find((y) => y.id === id)?.ownerName?.trim()).filter(Boolean))];
+    const proprio = proprios.length === 1 ? proprios[0] : proprios.length > 1 ? "leurs propriétaires" : "";
     const parts: { k: PickK; l: ReactNode; ph?: boolean }[] =
       x.type === "seance"
         ? [
@@ -831,7 +835,7 @@ function NoterInner() {
               ),
             },
             J,
-            { k: "h", l: hh(x.start ?? "18:00") },
+            { k: "h", l: x.start ? hh(x.start) : "à quelle heure ?", ph: !x.start },
             ...(x.places ? [{ k: "pl" as PickK, l: `${x.places} place${x.places > 1 ? "s" : ""}` }] : []),
             { k: "p", l: x.price ? `${eurc(x.price)} par cavalier` : "pas de prix pour l’instant" },
           ]
@@ -840,8 +844,10 @@ function NoterInner() {
               { k: "soin", l: x.care || x.custom.trim() ? titre(x, h) : "quel soin ?", ph: !x.care && !x.custom.trim() },
               { k: "cheval", l: horseName ? `pour ${horseName}` : "quel cheval ?", ph: !horseName },
               J,
-              { k: "h", l: hh(x.start ?? "09:00") },
+              { k: "h", l: x.start ? hh(x.start) : "sans heure" },
               { k: "p", l: x.price ? sgc(-x.price) : "sans prix" },
+              // Refacturé au propriétaire : dit, et changé d'un toucher.
+              ...(x.price && proprio ? [{ k: "refac" as PickK, l: x.refac ? `Refacturé à ${proprio}` : "Payé par l’écurie" }] : []),
             ]
           : x.type === "rdv"
             ? [{ k: "quoi", l: x.quoi.trim() || "c’est quoi ?", ph: !x.quoi.trim() }, J, { k: "h", l: x.start ? hh(x.start) : "sans heure" }]
@@ -866,6 +872,7 @@ function NoterInner() {
       m: "Combien ?",
       lab: "C’est quoi ?",
       pour: "C’est pour qui ?",
+      refac: "Qui paie ?",
     };
     const close1 = () => setPick(null);
     const picker = (k: PickK): ReactNode => {
@@ -921,7 +928,14 @@ function NoterInner() {
               {t.l}
             </button>
             {parts.map((p) => (
-              <button key={p.k} type="button" className={`nt-pz${p.ph ? " ph" : ""}${pick === p.k ? " on" : ""}`} aria-expanded={pick === p.k} onClick={() => (setOther(false), setPick(pick === p.k ? null : p.k))}>
+              <button
+                key={p.k}
+                type="button"
+                className={`nt-pz${p.ph ? " ph" : ""}${pick === p.k ? " on" : ""}`}
+                aria-expanded={p.k === "refac" ? undefined : pick === p.k}
+                aria-pressed={p.k === "refac" ? x.refac : undefined}
+                onClick={() => (p.k === "refac" ? set((y) => ({ ...y, refac: !y.refac })) : (setOther(false), setPick(pick === p.k ? null : p.k)))}
+              >
                 {p.l}
               </button>
             ))}
