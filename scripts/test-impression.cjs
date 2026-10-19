@@ -151,6 +151,8 @@ async function pdf(p, nom) {
     ok(/Registre d.élevage/.test(r.texte) && /Page 1 sur/.test(r.texte), `[${t}] registre : titre et numéro de page`);
 
     await p.goto(`${BASE}/accueil/`, { waitUntil: "networkidle" });
+    // Le serveur de construction est lent : on attend le chiffre du mois, pas seulement l'en-tête.
+    await p.getByText(/il te (reste|manque)/i).first().waitFor({ timeout: 15000 }).catch(() => {});
     await p.waitForTimeout(400);
     const acc = await pdf(p, `accueil-${t}`);
     ok(acc.texte.replace(/\s+/g, "").length > 200 && !/Registre d.élevage/.test(acc.texte), `[${t}] accueil imprimé : pas une page blanche (${acc.texte.replace(/\s+/g, "").length} caractères)`);
