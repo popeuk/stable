@@ -402,6 +402,7 @@ function Piste({ delay }: { delay: number }) {
 const LEVERS: { id: Lever; title: string; ill: IllName }[] = [
   { id: "remplir", title: "Remplir les places", ill: "tete-fondu" },
   { id: "facturer", title: "Te faire payer ce qu’on te doit", ill: "sacoche" },
+  { id: "prix", title: "Revoir tes prix", ill: "rosette" },
   { id: "depenser", title: "Dépenser moins", ill: "foin" },
 ];
 const STATUS: Record<Suggestion["status"], [string, string]> = {

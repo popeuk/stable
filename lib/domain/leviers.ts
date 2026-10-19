@@ -1,6 +1,8 @@
 import type { ActionState, Period, StableData } from "@/lib/domain/types";
 import { horseTicket, monthBreakdown } from "@/lib/domain/ticket";
 import { dateInPeriod } from "@/lib/utils/period";
+import { annuleSurCheval } from "@/lib/domain/billing";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Les leviers de rentabilité : remplir, facturer juste, dépenser mieux.
@@ -8,7 +10,7 @@ import { dateInPeriod } from "@/lib/utils/period";
  * gain chiffré et, quand c'est possible, une application en un geste.
  * Domaine pur.
  */
-export type Lever = "remplir" | "facturer" | "depenser";
+export type Lever = "remplir" | "facturer" | "prix" | "depenser";
 
 export type Apply =
   | { type: "rebill"; expenseId: string }
@@ -31,6 +33,9 @@ export interface Suggestion {
 
 /** « 450 », « 450,50 », « 1 200 » : un montant dit à la française. */
 const montantFr = (n: number) => new Intl.NumberFormat("fr-FR", { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 }).format(n).replace(/\u202f/g, "\u00a0");
+
+/** Les postes qui ne se négocient pas avec deux devis : salaires, cotisations sociales, emprunts, impôts. */
+export const NON_NEGOCIABLE = /personnel|salari|salaire|paie\b|msa|urssaf|cotisation|emprunt|pr[êe]t\b|cr[ée]dit|remboursement|imp[ôo]t|taxe/i;
 
 const SOINS_REFACTURABLES = /orthop|ost[eé]o|compl[eé]ment|dentiste|parage/i;
 
@@ -58,7 +63,7 @@ export function suggestions(data: StableData, period: Period, capacity: number):
       id: "remplir-box",
       lever: "remplir",
       title: free > 1 ? `Trouver un cheval pour tes ${free} places libres` : "Trouver un cheval pour ta place libre",
-      sub: free > 1 ? "une place prise te rapporte autant que tes autres chevaux. Tu peux les annoncer sur mon-ecurie.fr, l’annuaire des pensions." : "une place prise te rapporte autant que tes autres chevaux. Tu peux l’annoncer sur mon-ecurie.fr, l’annuaire des pensions.",
+      sub: free > 1 ? "Une place prise te rapporte autant que tes autres chevaux. Tu peux les annoncer sur mon-ecurie.fr, l’annuaire des pensions." : "Une place prise te rapporte autant que tes autres chevaux. Tu peux l’annoncer sur mon-ecurie.fr, l’annuaire des pensions.",
       gain: Math.round(m.contribution * free),
       unit: "par mois",
       apply: { type: "publish" },
@@ -75,7 +80,7 @@ export function suggestions(data: StableData, period: Period, capacity: number):
       id: `rebill-${e.id}`,
       lever: "facturer",
       title: `Faire payer ${avecArticle(e.label)} de ${h.name} à ${h.ownerName}`,
-      sub: `tu l’as payé, mais d’habitude c’est à ${h.ownerName} de le régler. Ajoute-le à sa facture.`,
+      sub: `Tu l’as payé, mais d’habitude c’est à ${h.ownerName} de le régler. Ajoute-le à sa facture.`,
       gain: e.amount,
       unit: "une fois",
       apply: { type: "rebill", expenseId: e.id },
@@ -84,20 +89,22 @@ export function suggestions(data: StableData, period: Period, capacity: number):
     });
   }
 
-  // Facturer juste : un cheval qui te coûte vraiment ce mois (son ticket est
-  // négatif, soins, cours et part comprises) : la pension qui le remet à zéro.
-  // Un cheval dont le ticket est positif ne fait jamais perdre d'argent.
+  // Revoir tes prix (à part de ce qu'on te doit) : un cheval qui te coûte
+  // vraiment ce mois (son ticket est négatif, soins, cours et part comprises) :
+  // la pension qui le remet à zéro. Un avoir est un geste ponctuel, pas un
+  // cheval qui ne paie pas : la recette qu'il annule compte ici comme facturée.
   for (const h of horses) {
     if (!h.pension) continue;
     const t = horseTicket(data, h.id, period);
-    if (t.net >= 0) continue;
-    const floor = Math.ceil((h.pension - t.net) / 10) * 10;
+    const net = r2(t.net + annuleSurCheval(data, h.id, period));
+    if (net >= 0) continue;
+    const floor = Math.ceil((h.pension - net) / 10) * 10;
     if (h.pension < floor) {
       out.push({
         id: `pension-${h.id}`,
-        lever: "facturer",
+        lever: "prix",
         title: `${h.name} : passer la pension de ${montantFr(h.pension)} à ${montantFr(floor)} €`,
-        sub: `Ce mois, une fois ses soins et sa part des frais de l’écurie payés, ${h.name} te coûte ${montantFr(Math.round(-t.net))} €. À ${montantFr(floor)} €, sa pension couvrirait ses frais.`,
+        sub: `Ce mois, une fois ses soins et sa part des frais de l’écurie payés, ${h.name} te coûte ${montantFr(Math.round(-net))} €. À ${montantFr(floor)} €, sa pension couvrirait ses frais.`,
         gain: floor - h.pension,
         unit: "par mois",
         apply: { type: "pension", horseId: h.id, amount: floor },
@@ -105,14 +112,16 @@ export function suggestions(data: StableData, period: Period, capacity: number):
     }
   }
 
-  // Dépenser mieux : le premier poste commun, négocié de 5 %.
-  const top = m.shared[0];
+  // Dépenser mieux : le premier poste commun qui se négocie, de 5 %. Ni les
+  // salaires, ni les cotisations (MSA, URSSAF), ni un emprunt : ils ne se
+  // négocient pas avec deux devis.
+  const top = m.shared.filter((x) => !NON_NEGOCIABLE.test(x.label)).sort((a, b) => b.amount - a.amount)[0];
   if (top && top.amount > 200) {
     out.push({
       id: `depense-${top.label}`,
       lever: "depenser",
       title: `${top.label} : obtenir 5 % moins cher`,
-      sub: `c’est ce qui pèse le plus dans les frais de l’écurie (${Math.round(top.amount)} € ce mois-ci). Demande deux devis pour l’année et compare.`,
+      sub: `C’est ce qui pèse le plus dans les frais de l’écurie que tu peux négocier (${montantFr(Math.round(top.amount))} € ce mois-ci). Demande deux devis pour l’année et compare.`,
       gain: Math.round(top.amount * 0.05),
       unit: "estimé",
       apply: { type: "none" },
