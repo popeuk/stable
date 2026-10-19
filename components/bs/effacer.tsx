@@ -57,7 +57,7 @@ export function ZoneEffacer({ exporter }: { exporter: () => void }) {
             <Ic n="trash" className="" />
             Effacer mon écurie partout
           </button>
-          <small>Ce téléphone, ton ordinateur et ta copie en ligne. On te le redemande avant.</small>
+          <small>Ici, sur tes autres téléphones et ordinateurs, et dans ta copie en ligne. On te le redemande avant.</small>
         </>
       )}
       {kind === "locale" && (
@@ -126,7 +126,7 @@ function FeuilleDeconnexion({ onClose }: { onClose: () => void }) {
         Me déconnecter
       </button>
       <button type="button" className="btn line full" onClick={onClose}>
-        Rester connecté
+        Annuler
       </button>
     </FeuilleConfirmer>
   );
@@ -142,7 +142,7 @@ function FeuilleEffacer({ exporter, onClose }: { exporter: () => void; onClose: 
       <p className="note" style={{ marginTop: 0 }}>
         <b>Ton écurie sera effacée sur {cetAppareil()}, sur tes autres téléphones et ordinateurs, et dans ta copie en ligne.</b> Les chevaux, les clients, les séances, les frais : tout repart de zéro.
       </p>
-      <p className="note">Fais d’abord une sauvegarde : un fichier à garder, qui se reprend dans Réglages, Avancé. Tu pourras aussi récupérer l’écurie d’avant sur {cetAppareil()} pendant {JOURS_RECUPERATION} jours.</p>
+      <p className="note">Fais d’abord une sauvegarde : un fichier à garder, que tu pourras rouvrir dans Réglages, Avancé (« Ouvrir une sauvegarde »). Tu pourras aussi récupérer l’écurie d’avant sur {cetAppareil()} pendant {JOURS_RECUPERATION} jours.</p>
       <button
         type="button"
         className="btn line full"
@@ -164,7 +164,7 @@ function FeuilleEffacer({ exporter, onClose }: { exporter: () => void; onClose: 
           await mettreDeCote();
           useDataStore.getState().startEmpty();
           useSettingsStore.getState().resetParcours();
-          say(`Ton écurie est effacée. Tu peux la récupérer pendant ${JOURS_RECUPERATION} jours dans Réglages, Avancé.`);
+          say(`Ton écurie est effacée. Tu peux la récupérer sur ${cetAppareil()} pendant ${JOURS_RECUPERATION} jours, dans Réglages, Avancé.`);
           router.push("/bienvenue");
         }}
       >
@@ -235,12 +235,13 @@ export function RecupererLigne() {
   }, []);
   if (!eff) return null;
   const jour = new Date(eff.quand).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const limite = new Date(Date.parse(eff.quand) + JOURS_RECUPERATION * 86_400_000).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
   return (
     <>
       <button type="button" className="li np" onClick={() => setOuverte(true)}>
         <span>
           <b>Tu as effacé ton écurie le {jour}.</b>
-          <small>Récupérer l’écurie d’avant</small>
+          <small>Récupérer l’écurie d’avant, jusqu’au {limite}</small>
         </span>
         <Ic n="chev" className="chev" />
       </button>
