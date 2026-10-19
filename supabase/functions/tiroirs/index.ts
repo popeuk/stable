@@ -3,7 +3,8 @@
 // (X-BS-Token) auprès du site, puis on ne touche qu'aux tiroirs de ce compte.
 // Le contenu arrive déjà chiffré par l'app ; il n'est jamais lu ici.
 //
-//   GET                → { tiroirs: [{ nom, rev, contenu, modifie }] }
+//   GET                → { tiroirs: [{ nom, rev, contenu, modifie }], formats }
+//                        (formats : les préfixes acceptés, « bs-enc1: » et « bs-enc2: »)
 //   PUT  { nom, contenu, rev, modifie, appareil }
 //                      → 200 { rev } si `rev` est la version connue du serveur
 //                        (0 = pas encore de copie), sinon 409 { tiroir }
@@ -12,13 +13,13 @@
 //                        (on en garde 30 par tiroir, comme pour les remplacées)
 //
 // Garde-fous (audit du 18 octobre, I6, M1, F4) : 2 Mo au plus par envoi,
-// contenu chiffré seulement (« bs-enc1: »), 6 envois par minute et par compte,
+// contenu chiffré seulement (« bs-enc1: », ou « bs-enc2: » compressé puis chiffré), 6 envois par minute et par compte,
 // jeton au bon format avant tout appel au site, refus gardés 5 minutes,
 // jetons bons gardés 2 minutes, appels au site limités par adresse IP.
 // Les compteurs vivent dans la mémoire de l'instance : ils freinent un abus,
 // ils ne sont pas exacts à l'unité quand Supabase lance plusieurs instances.
 import { createClient } from "npm:@supabase/supabase-js@2.108.2";
-import { CACHE_OK_MS, CACHE_REFUS_MS, Fenetre, MAX, Memoire, VERSIONS, contenuChiffre, jetonBienForme, versionsEnTrop } from "./regles.ts";
+import { CACHE_OK_MS, CACHE_REFUS_MS, FORMATS, Fenetre, MAX, Memoire, VERSIONS, contenuChiffre, jetonBienForme, versionsEnTrop } from "./regles.ts";
 
 const MONECURIE = (Deno.env.get("MONECURIE_API") ?? "https://www.mon-ecurie.fr/wp-json/bestable/v1").replace(/\/$/, "");
 const NOMS = new Set(["be-stable-data", "be-stable-settings"]);
@@ -104,7 +105,7 @@ Deno.serve(async (req) => {
   if (req.method === "GET") {
     const { data, error } = await db.from("tiroirs").select("nom, rev, contenu, modifie").eq("user_id", userId);
     if (error) return rep(500, { code: "erreur", message: "Lecture impossible." });
-    return rep(200, { tiroirs: data ?? [] });
+    return rep(200, { tiroirs: data ?? [], formats: FORMATS });
   }
 
   if (req.method !== "PUT" && req.method !== "POST") return rep(405, { code: "methode" });

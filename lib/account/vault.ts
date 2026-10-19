@@ -2,7 +2,7 @@
 
 import type { StateStorage } from "zustand/middleware";
 import { getSession, LOCALE_SCOPE, scopedKey } from "@/lib/account/session";
-import { brancherCoffre, ecritureBloquee, noterEcriture, relu } from "@/lib/account/nuage";
+import { brancherCoffre, compressionPermise, ecritureBloquee, noterEcriture, relu } from "@/lib/account/nuage";
 import { estPlacePleine, noterPlacePleine, noterRangement, ranger } from "@/lib/account/place";
 
 /**
@@ -14,8 +14,25 @@ import { estPlacePleine, noterPlacePleine, noterRangement, ranger } from "@/lib/
  *
  * Les écritures d'un même tiroir passent l'une après l'autre, pour que la
  * plus récente gagne toujours.
+ *
+ * Deux formats : « bs-enc2: » (19 octobre 2026), le texte compressé (gzip)
+ * puis chiffré : une écurie prend 5 à 10 fois moins de place, sur l'appareil
+ * comme dans la copie en ligne (limite de 2 Mo par envoi). Écrit seulement
+ * quand la copie en ligne l'a annoncé (`compressionPermise`, réponse du
+ * serveur) : avant, une version d'avant de l'app ouverte ailleurs le
+ * recevrait sans savoir le lire. « bs-enc1: », le texte chiffré sans
+ * compression : toujours lu, et écrit sinon.
  */
 const PREFIX = "bs-enc1:";
+const PREFIX2 = "bs-enc2:";
+/** Un contenu chiffré par le coffre, dans l'un ou l'autre format. */
+export const estScelle = (raw: string) => raw.startsWith(PREFIX) || raw.startsWith(PREFIX2);
+const avecCompression = () => typeof CompressionStream === "function" && typeof DecompressionStream === "function" && compressionPermise();
+
+async function passer(bytes: Uint8Array, flux: CompressionStream | DecompressionStream): Promise<Uint8Array> {
+  const sortie = new Blob([bytes as BlobPart]).stream().pipeThrough(flux);
+  return new Uint8Array(await new Response(sortie).arrayBuffer());
+}
 const fresh = new Set<string>();
 const queue = new Map<string, Promise<void>>();
 let keyCache: { b64: string; key: CryptoKey } | null = null;
@@ -39,16 +56,20 @@ async function accountKey(): Promise<CryptoKey | null> {
   return key;
 }
 
-async function seal(plain: string, key: CryptoKey): Promise<string> {
+/** Chiffre (et compresse d'abord, quand le navigateur sait le faire). `compresser: false` force l'ancien format. */
+async function seal(plain: string, key: CryptoKey, compresser = avecCompression()): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(plain));
-  return `${PREFIX}${b64.to(iv)}.${b64.to(ct)}`;
+  const brut = new TextEncoder().encode(plain);
+  const donnees = compresser ? await passer(brut, new CompressionStream("gzip")) : brut;
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, donnees as BufferSource);
+  return `${compresser ? PREFIX2 : PREFIX}${b64.to(iv)}.${b64.to(ct)}`;
 }
 
 async function open(sealed: string, key: CryptoKey): Promise<string> {
+  const v2 = sealed.startsWith(PREFIX2);
   const [iv, ct] = sealed.slice(PREFIX.length).split(".");
-  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64.from(iv) }, key, b64.from(ct));
-  return new TextDecoder().decode(pt);
+  const pt = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64.from(iv) }, key, b64.from(ct)));
+  return new TextDecoder().decode(v2 ? await passer(pt, new DecompressionStream("gzip")) : pt);
 }
 
 /** Ce tiroir était-il vide à l'ouverture ? (un nouveau compte démarre à zéro) */
@@ -85,7 +106,7 @@ async function lire(name: string): Promise<string | null> {
   }
   // Lu plein : il n'est plus « vide à l'ouverture » (une relecture ne doit pas le vider).
   fresh.delete(name);
-  if (!raw.startsWith(PREFIX)) return raw;
+  if (!estScelle(raw)) return raw;
   const key = await accountKey();
   if (!key) return null;
   try {
@@ -122,7 +143,7 @@ export async function relireTiroir(name: string): Promise<string | null> {
   const s = getSession();
   if (!s) return null;
   const raw = localStorage.getItem(scopedKey(name, s));
-  if (raw === null || !raw.startsWith(PREFIX)) return raw;
+  if (raw === null || !estScelle(raw)) return raw;
   const key = await accountKey();
   if (!key) return null;
   try {
@@ -134,7 +155,7 @@ export async function relireTiroir(name: string): Promise<string | null> {
 
 /** Déchiffre un contenu scellé avec la clé du compte (null si elle ne l'ouvre pas). */
 async function ouvrirScelle(raw: string): Promise<string | null> {
-  if (!raw.startsWith(PREFIX)) return raw;
+  if (!estScelle(raw)) return raw;
   const key = await accountKey();
   if (!key) return null;
   try {
@@ -149,6 +170,12 @@ brancherCoffre({
   ouvrir: ouvrirScelle,
   ecrire: async (name, clair) => {
     await ecrire(name, clair);
+  },
+  // Pour un serveur qui ne connaît pas encore « bs-enc2: » : le même contenu, chiffré sans compression.
+  ancienFormat: async (raw) => {
+    const key = await accountKey();
+    const clair = key ? await ouvrirScelle(raw) : null;
+    return key && clair !== null ? seal(clair, key, false) : null;
   },
 });
 
@@ -290,7 +317,7 @@ export async function adoptLocale(keep: "locale" | "compte" = "locale"): Promise
     let accRaw: string | null = null;
     if (accSealed !== null) {
       try {
-        accRaw = accSealed.startsWith(PREFIX) ? await open(accSealed, key) : accSealed;
+        accRaw = estScelle(accSealed) ? await open(accSealed, key) : accSealed;
       } catch {
         accRaw = null;
       }
