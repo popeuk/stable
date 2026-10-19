@@ -43,28 +43,118 @@ export interface DireContext {
   today: ISODate;
   horses: { id: string; name: string }[];
   prestations?: { id: string; label: string; hasFormat?: boolean }[];
-  /** Les clients, pour reconnaître un cavalier nommé. */
-  people?: { name: string }[];
+  /** Les clients, pour reconnaître un cavalier nommé (les cavaliers d'abord, puis les propriétaires). */
+  people?: { name: string; role?: string }[];
 }
 
 /** « à refacturer », « refacturé », « au propriétaire », « faire payer au proprio ». */
 const REFACTURER = /\b(a refacturer|refactur\w*|au proprio(?:taire)?|faire payer)\b/;
 
+/** Les mots qui ferment une liste de noms : « avec Jade et Lou à 18 h sur Pacha ». */
+const FIN_NOMS = new Set(["a", "sur", "pour", "le", "la", "les", "de", "du", "des", "au", "dans", "demain", "aujourd", "hui", "hier", "avant", "apres", "ce", "cette", "soir", "matin", "midi", "places", "place", "euros", "euro", "eur", "cours", "seance", "balade", "chaque", "tous", "toutes", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche", "prochain", "refacturer", "refacture"]);
+
+/** « emma roux » devient « Emma Roux » : un nouveau cavalier, écrit comme dans la phrase (« Léo » garde son accent). */
+function commeUnNom(mots: string[], brut: string): string {
+  const bruts = brut.split(/[^\p{L}\p{N}’'-]+/u).filter(Boolean);
+  return mots
+    .map((m) => {
+      const vu = bruts.find((b) => norm(b) === m) ?? m;
+      return vu.charAt(0).toUpperCase() + vu.slice(1);
+    })
+    .join(" ");
+}
+
 /**
- * Les cavaliers nommés : un client dont le nom entier, ou le prénom (3 lettres
- * au moins), est dit. Pas un nom de cheval.
+ * Les noms dits après « avec » : « avec Jade Martin, Emma Roux et Léo
+ * Petit ». Chaque nom, tel qu'il est dit (normalisé, en mots), sans les
+ * chevaux.
  */
-export function cavaliersDits(text: string, people: { name: string }[], horses: { name: string }[] = []): string[] {
+function nomsApresAvec(text: string, horses: { name: string }[]): string[][] {
+  const chevaux = new Set(horses.map((h) => words(h.name).trim()));
+  const out: string[][] = [];
+  const t = norm(text);
+  for (const m of t.matchAll(/\bavec\s+([^]*)/g)) {
+    const seg = m[1].split(/\bavec\b/)[0];
+    for (const bout of seg.split(/,|;|\bet\b/)) {
+      const toks = bout.split(/[^a-z0-9]+/).filter(Boolean);
+      const nom: string[] = [];
+      for (const x of toks) {
+        if (/\d/.test(x) || FIN_NOMS.has(x)) break;
+        nom.push(x);
+      }
+      if (!nom.length || nom.length > 3 || nom.some((x) => x.length < 2)) {
+        if (nom.length) continue;
+        else break;
+      }
+      if (chevaux.has(nom.join(" "))) continue;
+      out.push(nom);
+    }
+  }
+  return out;
+}
+
+/**
+ * Les cavaliers nommés. Un nom entier dit (« Emma Roux ») ne retrouve que la
+ * personne de ce nom entier ; s'il n'est à personne, c'est un nouveau
+ * cavalier, écrit tel qu'il est dit (jamais Emma Garnier à la place d'Emma
+ * Roux). Un prénom seul (3 lettres au moins) retrouve un cavalier qui le
+ * porte, puis un client, s'il est le seul ; sinon un nouveau cavalier. Pas un
+ * nom de cheval.
+ */
+export function cavaliersDits(text: string, people: { name: string; role?: string }[], horses: { name: string }[] = []): string[] {
   const w = words(text);
   const chevaux = new Set(horses.map((h) => words(h.name).trim()));
+  const gens = people.map((p) => ({ name: p.name, role: p.role, full: words(p.name).trim() })).filter((p) => p.full && !chevaux.has(p.full));
   const out: string[] = [];
-  for (const p of people) {
-    const full = words(p.name).trim();
-    if (!full || chevaux.has(full)) continue;
-    const prenom = full.split(" ")[0];
-    if (w.includes(` ${full} `) || (prenom.length >= 3 && !chevaux.has(prenom) && w.includes(` ${prenom} `))) out.push(p.name);
+  const dits = nomsApresAvec(text, horses);
+  const prenomsVus = new Set<string>();
+  for (const nom of dits) {
+    nom.forEach((x) => prenomsVus.add(x));
+    const dit = nom.join(" ");
+    const entier = gens.find((p) => p.full === dit);
+    if (entier) {
+      out.push(entier.name);
+      continue;
+    }
+    if (nom.length === 1) {
+      if (dit.length < 3) continue;
+      const porte = gens.filter((p) => p.full.split(" ")[0] === dit);
+      const cav = porte.filter((p) => p.role === "cavalier");
+      const choisi = cav.length === 1 ? cav[0] : !cav.length && porte.length === 1 ? porte[0] : undefined;
+      out.push(choisi ? choisi.name : porte.length ? "" : commeUnNom(nom, text));
+      continue;
+    }
+    // Un prénom et un nom que personne ne porte : un nouveau cavalier.
+    out.push(commeUnNom(nom, text));
   }
-  return [...new Set(out)];
+  // Ailleurs dans la phrase : un nom entier connu, ou le prénom d'un seul cavalier (ou client).
+  for (const p of gens) {
+    if (w.includes(` ${p.full} `)) out.push(p.name);
+  }
+  const reste = w.trim().split(" ").filter((x) => x.length >= 3 && !chevaux.has(x) && !prenomsVus.has(x));
+  for (const x of new Set(reste)) {
+    const porte = gens.filter((p) => p.full.split(" ")[0] === x);
+    if (!porte.length) continue;
+    const cav = porte.filter((p) => p.role === "cavalier");
+    const choisi = cav.length === 1 ? cav[0] : !cav.length && porte.length === 1 ? porte[0] : undefined;
+    if (choisi && !out.includes(choisi.name)) out.push(choisi.name);
+  }
+  return [...new Set(out.filter(Boolean))];
+}
+
+/**
+ * Les cavaliers d'une séance dictée, dans la confirmation : « Avec Jade
+ * Martin. Nouveaux cavaliers : Emma Roux, Léo Petit. » Un nouveau nom se
+ * voit avant d'être inscrit.
+ */
+export function cavaliersEnMots(cav: string[], connus: string[]): string {
+  const k = new Set(connus.map((n) => words(n).trim()));
+  const deja = cav.filter((n) => k.has(words(n).trim()));
+  const neufs = cav.filter((n) => !k.has(words(n).trim()));
+  const out: string[] = [];
+  if (deja.length) out.push(`Avec ${deja.join(", ")}.`);
+  if (neufs.length) out.push(neufs.length > 1 ? `Nouveaux cavaliers : ${neufs.join(", ")}.` : `Nouveau cavalier : ${neufs[0]}.`);
+  return out.join(" ");
 }
 
 const SOINS: [RegExp, CareKind][] = [
@@ -115,6 +205,7 @@ export function montantDit(text: string): number | undefined {
  */
 export function montantNu(text: string): number | undefined {
   const t = norm(text)
+    .replace(DATE_MOIS, " ")
     .replace(/\b\d{1,2}\s*(?:heures?|h)(?:\s*\d{2})?\b/g, " ")
     .replace(/\b\d+\s*places?\b/g, " ")
     .replace(/\b(?:le|du|au|dans)\s+\d+(?:\s*jours?)?\b/g, " ")
@@ -124,6 +215,9 @@ export function montantNu(text: string): number | undefined {
   const v = Number(m[1].replace(/[   ]/g, "") + (m[2] ? "." + m[2] : ""));
   return v > 0 && v < 1_000_000 ? v : undefined;
 }
+
+/** « le 15 octobre », « 1er novembre 2026 » : une date dite avec son mois (avec ou sans accents). */
+const DATE_MOIS = /\b(?:le\s+)?\d{1,2}(?:er)?\s+(?:janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre)(?:\s+\d{4})?(?![\p{L}])/giu;
 
 /** « tous les chevaux », « toute l'écurie », « tout le monde » : chaque cheval. */
 const TOUS = /\b(tous les chevaux|toute l ?ecurie|tout le monde)\b/;
@@ -152,8 +246,9 @@ export function nomDit(text: string, horses: { id: string; name: string }[] = []
   cut(/\b\d+\s*places?\b/gi);
   cut(/(?:à\s*)?\b\d{1,2}\s*(?:heures?|h)(?:\s*\d{2})?\b/gi);
   cut(/(?:à\s*)?\bmidi\b/gi);
-  cut(/\b(?:aujourd['’ ]?hui|apr[eè]s[- ]demain|demain|ce soir|ce matin)\b/gi);
-  cut(/\b(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)(?: prochain)?\b/gi);
+  cut(/\b(?:aujourd['’ ]?hui|apr[eè]s[- ]demain|demain|avant[- ]hier|hier|ce soir|ce matin)\b/gi);
+  cut(DATE_MOIS);
+  cut(/\b(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)(?: prochain)?(?:\s+(?:le\s+)?\d{1,2}(?:er)?(?!\d|\s*(?:h\b|heures?|€|euros?|places?)))?\b/gi);
   cut(/\b(?:le|du) \d{1,2}\b/gi);
   cut(/\bdans \d+ jours?\b/gi);
   cut(/\brien à voir avec les chevaux\b|\brien a voir avec les chevaux\b|\bhors chevaux\b/gi);

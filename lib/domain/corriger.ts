@@ -30,8 +30,8 @@ export function factureDeLigne(data: Pick<StableData, "invoices" | "directExpens
   return undefined;
 }
 
-/** « Elle est sur la facture n° 2026-0001 : fais un avoir. » */
-export const messageFacturee = (numero: string) => `Elle est sur la facture n° ${numero} : fais un avoir.`;
+/** « Cette ligne est sur la facture n° 2026-0001 : pour la changer, fais un avoir depuis la facture. » */
+export const messageFacturee = (numero: string) => `Cette ligne est sur la facture n° ${numero} : pour la changer, fais un avoir depuis la facture.`;
 
 /** Ce que la feuille remplit pour une ligne : le sens, le montant, pour qui, ce que c'est, le jour. */
 export interface LigneRemplie {

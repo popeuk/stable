@@ -505,7 +505,7 @@ export function SeanceDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Ha
         </F>
       )}
       <F label="Notes">
-        <textarea className="input ta nt-ta" rows={2} placeholder="Ex. Prévoir les longes" aria-label="Notes" value={d.notes} onChange={(e) => set((x) => ({ ...x, notes: e.target.value }))} />
+        <textarea className="input ta nt-ta" rows={2} placeholder="Ex. : Prévoir les longes" aria-label="Notes" value={d.notes} onChange={(e) => set((x) => ({ ...x, notes: e.target.value }))} />
       </F>
     </>
   );

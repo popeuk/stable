@@ -20,12 +20,14 @@ import { r2 } from "@/lib/utils/arrondi";
 import { questionDedans } from "@/lib/domain/estimation";
 import { norm } from "@/lib/domain/interpret";
 import { cavaliersRetenus } from "@/lib/domain/proprio";
+import { cavaliersEnMots } from "@/lib/domain/dire";
 import { nomsDePros } from "@/lib/domain/pros";
 import { seriesDates } from "@/lib/domain/seances";
 import type { CareKind } from "@/lib/domain/care";
 import type { Frequency } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
 import { currentPeriod } from "@/lib/utils/period";
+import { nomAffiche } from "@/lib/domain/noms-categories";
 
 /**
  * Le + : « Ajouter ». D'abord « Dis-le à voix haute », en grand, puis
@@ -275,7 +277,7 @@ function NoterInner() {
     if (!d) return;
     if (manque(d)) {
       setTried(true);
-      if (screen === "card") setPick(d.type === "soin" ? "soin" : "m");
+      if (screen === "card") setPick(d.type === "soin" ? "soin" : d.type === "rdv" ? "quoi" : "m");
       return;
     }
     const st = useDataStore.getState();
@@ -461,7 +463,7 @@ function NoterInner() {
       if (added) markLine(chosen[0], added.id);
     }
     close();
-    say("C’est dans ton mois.", undo);
+    say("C’est dans ton bilan.", undo);
   }
 
   /** Enregistre la ligne corrigée à sa place (le passé d'une ligne qui revient ne bouge pas). */
@@ -521,7 +523,7 @@ function NoterInner() {
       <>
         <Puces
           scroll={scroll}
-          options={opts.map((o) => [o, o] as [string, string])}
+          options={opts.map((o) => [o, nomAffiche(o)] as [string, string])}
           value={isOther ? null : opts.find((o) => norm(o) === norm(x.label)) ?? null}
           onPick={(label) => {
             setOther(false);
@@ -662,7 +664,7 @@ function NoterInner() {
     <>
       {tried && d && manque(d) && (
         <p className="nt-miss" role="alert">
-          {d.type === "soin" ? "Choisis d’abord le soin." : "Il manque le montant."}
+          {d.type === "soin" ? "Choisis d’abord le soin." : d.type === "rdv" ? "Dis d’abord ce que c’est." : "Il manque le montant."}
         </p>
       )}
       <button type="button" className="btn full nt-ok" onClick={() => commit()}>
@@ -792,7 +794,7 @@ function NoterInner() {
           Revenir
         </button>
         <Q>{questionDedans(dedansQ.nom, eurc(dedansQ.montant))}</Q>
-        <p className="note">Oui : on la décompte de ton estimation, le mois compte toujours {eurc(dedansQ.montant)} en tout. Non : elle s’ajoute.</p>
+        <p className="note">Oui : ce poste reste à {eurc(dedansQ.montant)} en tout ce mois-ci. Non : la dépense s’ajoute aux {eurc(dedansQ.montant)}.</p>
         <div className="nt-stick">
           <button type="button" className="btn full nt-ok" onClick={() => setDedansQ({ ...dedansQ, mois: 1 })}>
             Oui, c’est dedans
@@ -924,6 +926,7 @@ function NoterInner() {
               </button>
             ))}
           </div>
+          {x.type === "seance" && x.cav.length > 0 && <p className="note">{cavaliersEnMots(x.cav, (data.people ?? []).map((p) => p.name))}</p>}
           <p className="nt-hint">Touche ce que tu veux changer.</p>
         </div>
         {pick && (
@@ -1110,7 +1113,7 @@ function NoterInner() {
             </F>
           )}
           <F label="Notes">
-            <textarea className="input ta nt-ta" rows={2} placeholder="Ex. Rappel grippe" aria-label="Notes" value={x.notes} onChange={(e) => set((y) => ({ ...y, notes: e.target.value }))} />
+            <textarea className="input ta nt-ta" rows={2} placeholder="Ex. : Rappel grippe" aria-label="Notes" value={x.notes} onChange={(e) => set((y) => ({ ...y, notes: e.target.value }))} />
           </F>
         </>
       );

@@ -152,7 +152,7 @@ function Tarifs() {
         <div className="ar-new">
           <label className="field" htmlFor="pr-nom">
             <span>Ce que tu proposes</span>
-            <input id="pr-nom" className="input" autoFocus placeholder="Ex. Balade, longe, débourrage" value={nouvelle.nom} autoComplete="off" onChange={(e) => setNouvelle({ ...nouvelle, nom: e.target.value })} onKeyDown={(e) => e.key === "Enter" && ajouter()} />
+            <input id="pr-nom" className="input" autoFocus placeholder="Ex. : Balade, longe, débourrage" value={nouvelle.nom} autoComplete="off" onChange={(e) => setNouvelle({ ...nouvelle, nom: e.target.value })} onKeyDown={(e) => e.key === "Enter" && ajouter()} />
           </label>
           <label className="field" htmlFor="pr-prix">
             <span>Son prix, par cavalier ou par séance</span>

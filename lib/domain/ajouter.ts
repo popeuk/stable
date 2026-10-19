@@ -292,7 +292,8 @@ export function draftFor(type: AjoutType, h: Habitudes, today: ISODate, p: Draft
     if (p.start) d.start = p.start;
     d.refac = true;
   } else if (type === "rdv") {
-    d.quoi = h.quoi[0] ?? "";
+    // Rien de choisi d'avance : « Livraison du foin » coché par défaut finissait noté sans qu'on l'ait dit.
+    d.quoi = "";
     d.start = p.start ?? null;
   } else {
     if (d.sens === "in" && d.pour === "ecurie") d.pour = "hors";
@@ -355,7 +356,7 @@ export function draftFromCompris(c: Compris, h: Habitudes, today: ISODate): Draf
 }
 
 /** Seul l'argent exige quelque chose : un montant. */
-export const manque = (d: Draft) => (d.type === "argent" && !(d.amount > 0)) || (d.type === "soin" && !d.care && !d.custom.trim());
+export const manque = (d: Draft) => (d.type === "argent" && !(d.amount > 0)) || (d.type === "soin" && !d.care && !d.custom.trim()) || (d.type === "rdv" && !d.quoi.trim());
 
 /** Le nom de ce qu'on ajoute, tel qu'il apparaîtra au planning ou dans le mois. */
 export function titre(d: Draft, h: Habitudes): string {

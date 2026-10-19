@@ -204,22 +204,24 @@ function Chevaux() {
       <div className="ar-form">
         <label className="field" htmlFor="h-name">
           <span>Son nom</span>
-          <input id="h-name" className="input" placeholder="Ex. Pacha" value={name} autoComplete="off" onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
+          <input id="h-name" className="input" placeholder="Ex. : Pacha" value={name} autoComplete="off" onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
         </label>
         <ChoisirProprio key={champ} value={owner} onChange={setOwner} onTape={setTape} />
         <div className="field">
           <span>Sa robe</span>
           <div className="ar-robes">
             {COAT_KEYS.map((c) => (
-              <button key={c} type="button" className="ar-robe" aria-pressed={coat === c} aria-label={`Robe ${COATS[c].label}`} onClick={() => setCoat(c)}>
+              <button key={c} type="button" className="ar-robe" aria-pressed={coat === c} onClick={() => setCoat(c)}>
                 <Face horse={{ id: c, name: "", coat: c }} />
                 {COATS[c].label}
               </button>
             ))}
-            <button type="button" className="chip" aria-pressed={blaze} onClick={() => setBlaze(!blaze)}>
+          </div>
+          <span className="chips ar-liste">
+            <button type="button" className={`chip${blaze ? " on" : ""}`} aria-pressed={blaze} onClick={() => setBlaze(!blaze)}>
               Liste en tête
             </button>
-          </div>
+          </span>
         </div>
         <div className="field">
           <span>Sa formule</span>

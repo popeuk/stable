@@ -117,7 +117,9 @@
 .carnet .tb a[aria-current="page"] { color: var(--acc); }
 .carnet .btn:not(.line, .ghost, .danger):hover { background: var(--acc-deep); }
 .carnet .tb .plus:hover, .carnet .cn-side .add:hover { background: var(--acc-deep); }
-.carnet .toast, .carnet .aide-bulle { background: var(--acc-deep); }
+.carnet .toast { background: var(--acc-deep); }
+/* La bulle de la première visite : en rose casaque, encre dessus. En vert, elle se fondait dans la carte « Pour bien démarrer » et son texte semblait posé sur celui de la carte. */
+.carnet .aide-bulle { background: var(--rose); color: var(--ink); box-shadow: 0 0 0 2px var(--paper); }
 .carnet .seg button:is([aria-checked="true"], .on) { color: var(--acc); }
 /* La barre d'objectif : ce qui est fait en vert, ce qui reste en rose casaque. */
 .carnet :is(.ac-cpt, .ar-goal) .bar { background: var(--rose-soft); }

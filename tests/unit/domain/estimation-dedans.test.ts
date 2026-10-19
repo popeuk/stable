@@ -68,6 +68,18 @@ describe("une vraie dépense d'un poste déjà estimé", () => {
     expect(questionDedans("Granulés", "200 €")).toBe("Ces granulés font partie de tes 200 € par mois ?");
     expect(questionDedans("MSA (cotisations sociales)", "250 €")).toBe("Cette dépense, « MSA (cotisations sociales) », fait partie de tes 250 € par mois ?");
   });
+
+  it("accorde les postes connus et reste neutre pour un nom inconnu", () => {
+    expect(questionDedans("Eau", "80 €")).toBe("Cette eau fait partie de tes 80 € par mois ?");
+    expect(questionDedans("Électricité", "120 €")).toBe("Cette électricité fait partie de tes 120 € par mois ?");
+    expect(questionDedans("Assurance", "150 €")).toBe("Cette assurance fait partie de tes 150 € par mois ?");
+    expect(questionDedans("Entretien", "300 €")).toBe("Cet entretien fait partie de tes 300 € par mois ?");
+    expect(questionDedans("Personnel", "2 000 €")).toBe("Ces salaires font partie de tes 2 000 € par mois ?");
+    expect(questionDedans("Fournitures", "50 €")).toBe("Ces fournitures font partie de tes 50 € par mois ?");
+    expect(questionDedans("Abreuvoirs", "40 €")).toBe("Cette dépense, « Abreuvoirs », fait partie de tes 40 € par mois ?");
+    expect(questionDedans("Ostéo", "60 €")).toBe("Cette dépense, « Ostéo », fait partie de tes 60 € par mois ?");
+    expect(questionDedans("Frais communs", "900 €")).toBe("Cette dépense, « Frais de l’écurie », fait partie de tes 900 € par mois ?");
+  });
 });
 
 describe("un achat « dedans » pour plusieurs mois", () => {

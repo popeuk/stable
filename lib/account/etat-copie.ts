@@ -11,8 +11,8 @@ export function texteRefus(refus: RefusCopie): string | null {
 }
 
 /** Ce que Mon compte dit de la copie en ligne (lib/account/nuage : etatNuage). */
-export function texteCopie(e: { allume: boolean; attente: boolean; changements: number; aJour: string | null; refus?: RefusCopie }, maintenant = Date.now()): string {
-  if (!e.allume) return "Copie en ligne éteinte ici";
+export function texteCopie(e: { allume: boolean; attente: boolean; changements: number; aJour: string | null; refus?: RefusCopie }, maintenant = Date.now(), ici = "ce téléphone"): string {
+  if (!e.allume) return `Pas de copie en ligne sur ${ici}`;
   // Un refus passe avant « attend le réseau » : ce n'est pas le réseau, et attendre n'y changera rien.
   const refus = texteRefus(e.refus ?? null);
   if (refus) return refus;

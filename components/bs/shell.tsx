@@ -79,7 +79,7 @@ export function Header() {
         <b className={`num ${tone}`}>{ready ? <CountUp value={Math.round(net)} ms={700} /> : "…"}</b>
         {gain > 0 && (
           <span className="chip-fly hd2-fly" aria-hidden="true">
-            +{gain} €
+            {`+${gain}\u00a0€`}
           </span>
         )}
       </Link>

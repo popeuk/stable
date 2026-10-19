@@ -21,6 +21,8 @@ import { contenuSauvegarde, telechargerSauvegarde } from "@/lib/sauvegarde";
 import { lireSauvegarde } from "@/lib/domain/valider";
 import { migrerReglages, useSettingsStore, VERSION_REGLAGES } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
+import { useConfirmer, type Question } from "@/components/bs/confirmer";
+import { cetAppareil } from "@/lib/appareil";
 import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 import { useFeuille } from "@/components/bs/feuille";
@@ -54,14 +56,14 @@ function exportData() {
   telechargerSauvegarde(out, `be-stable-${new Date().toISOString().slice(0, 10)}.json`);
 }
 
-async function importData(file: File) {
+async function importData(file: File, demander: (q: Question) => Promise<boolean>) {
   // Un fichier abîmé, d'un autre format ou d'une version plus récente de l'app est refusé avec la raison : rien n'est remplacé.
   const lu = lireSauvegarde(await file.text(), { donnees: VERSION_DONNEES, reglages: VERSION_REGLAGES });
   if (!lu.ok) {
-    window.alert(lu.raison);
+    await demander({ titre: "Cette sauvegarde ne s’ouvre pas", texte: lu.raison, oui: "D’accord", non: null });
     return;
   }
-  if (!window.confirm("Remplacer ce qui est dans l’app par cette sauvegarde ?")) return;
+  if (!(await demander({ titre: "Ouvrir cette sauvegarde ?", texte: "Elle remplace ce qui est dans l’app. Tes factures faites depuis restent.", oui: "Oui, l’ouvrir" }))) return;
   // Une sauvegarde d'une version d'avant passe par la même mise à jour qu'au chargement, depuis sa version.
   const repris = migrerDonnees(lu.data, lu.versionDonnees);
   // Les stores réécrivent tout seuls dans le coffre du compte (chiffré).
@@ -129,6 +131,7 @@ function Moi() {
   const say = useUiStore((x) => x.say);
   const openTournee = useUiStore((x) => x.openTournee);
   const desk = useDesk();
+  const [demander, feuille] = useConfirmer();
   const [perm, setPerm] = useState<string>(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   // Le groupe de ?s= ; à défaut, celui d'une ancienne adresse ou ancre.
   const [ancre] = useState<Groupe | null>(() => DEPUIS_ANCRE[window.location.hash] ?? DEPUIS_ADRESSE[path] ?? null);
@@ -236,14 +239,14 @@ function Moi() {
       </button>
       <label className="li np">
         <Li title="Ouvrir une sauvegarde" sub="remplace ce qui est dans l’app" right={<Ic n="upload" className="ec-ico" />} />
-        <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
+        <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && importData(e.target.files[0], demander)} />
       </label>
       {session?.kind === "demo" && (
         <button
           type="button"
           className="li np"
-          onClick={() => {
-            if (window.confirm("Repartir de l’écurie d’exemple ? Ce que tu as noté sera remplacé.")) {
+          onClick={async () => {
+            if (await demander({ titre: "Repartir de l’écurie d’exemple ?", texte: "Ce que tu as noté sera remplacé.", oui: "Oui, repartir", danger: true })) {
               data.resetToDemo();
               s.setIdentity({ stableName: "Les Trois Pommiers" });
               say("L’écurie d’exemple est de retour.");
@@ -278,13 +281,13 @@ function Moi() {
           openTournee();
         }}
       >
-        <Li title="La tournée du matin" sub="hier, aujourd’hui, ton mois : 30 secondes" right={chev} />
+        <Li title="La tournée du matin" sub="hier, aujourd’hui, ton bilan : 30 secondes" right={chev} />
       </button>
     </Sec>
   );
 
   const compte = (
-    <Sec title="Ton compte" delay={0.1}>
+    <Sec title="Mon compte" delay={0.1}>
       <Compte />
       <div className="li np" style={{ marginTop: 8 }}>
         <Li title={<label htmlFor="st-gerant">Ton prénom</label>} sub="pour le bonjour" right={<input id="st-gerant" className="input sm" defaultValue={s.gerant} onChange={(e) => s.setIdentity({ gerant: e.target.value })} />} />
@@ -293,7 +296,7 @@ function Moi() {
   );
   // Le gros texte vaut pour cet appareil (pas pour le compte) : il vit avec l'app du téléphone.
   const app = (
-    <Sec title="L’app sur ton téléphone" delay={0.16}>
+    <Sec title={`L’app sur ${cetAppareil()}`} delay={0.16}>
       <Install />
       <p className="mc-k" style={{ marginTop: 12 }}>Taille du texte</p>
       <Seg
@@ -342,6 +345,7 @@ function Moi() {
           )}
           <div className="end" />
         </div>
+        {feuille}
       </Screen>
     );
   }
@@ -435,10 +439,10 @@ function InstallSheet({ onClose }: { onClose: () => void }) {
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
         <div className="scrim" onClick={onClose} />
-        <div className="sheet" role="dialog" aria-modal="true" aria-label="Installer Be Stable" ref={ref}>
+        <div className="sheet" role="dialog" aria-modal="true" aria-label="Installer l’app" ref={ref}>
           <div className="grab" />
           <div className="shd">
-            <b>Installer Be Stable</b>
+            <b>Installer l’app</b>
             <button type="button" className="x" onClick={onClose} aria-label="Fermer">
               <Ic n="x" className="" />
             </button>

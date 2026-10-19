@@ -98,7 +98,7 @@ function Seuil() {
         {above && free > 0 && (
           <Tip ill="piste">
             <b>
-              Tes {free} place{free > 1 ? "s" : ""} libre{free > 1 ? "s sont" : " est"} ta plus grosse piste.
+              {free > 1 ? `Remplir tes ${free} places libres, c’est ce qui te rapporterait le plus.` : "Remplir ta place libre, c’est ce qui te rapporterait le plus."}
             </b>{" "}
             Tu y es : chaque cheval en plus, c’est presque toute sa pension qui te reste.
           </Tip>

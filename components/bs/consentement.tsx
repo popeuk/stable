@@ -6,11 +6,12 @@ import { createPortal } from "react-dom";
 import { AVEC_GA, AVEC_PIXEL, MESURE_POSEE, OUVRIR_CHOIX, appliquerChoix, enregistrerChoix, lireChoix, mesurerUneFois, type Choix } from "@/lib/mesure";
 
 /**
- * Le bandeau des témoins (cookies) et la mesure d'audience. Rien du tout
- * tant qu'aucun identifiant n'est posé (lib/mesure). Sinon : le bandeau tant
- * qu'il n'y a pas de choix valable (6 mois), trois boutons au même niveau
- * (Refuser, Paramétrer, Accepter), rien de chargé avant l'accord, et
- * Réglages rouvre les choix.
+ * Le bandeau des cookies et la mesure d'audience. Rien du tout tant qu'aucun
+ * identifiant n'est posé (lib/mesure). Sinon : le bandeau tant qu'il n'y a
+ * pas de choix valable (6 mois), trois boutons au même niveau (Refuser,
+ * Choisir, Accepter), rien de chargé avant l'accord, et Réglages rouvre les
+ * choix. Les mots sont ceux d'un gérant : « cookies », « statistiques de
+ * visite », « publicités » ; Google et Meta restent nommés.
  */
 export function Consentement() {
   const [choix, setChoix] = useState<Choix | null | undefined>(undefined);
@@ -60,9 +61,9 @@ export function Consentement() {
   if (panneau) return <Panneau choix={choix} onChoisir={choisir} onClose={() => setPanneau(false)} />;
   if (choix) return null;
   return createPortal(
-    <div className="bs-cs" role="region" aria-label="Témoins et mesure d’audience">
+    <div className="bs-cs" role="region" aria-label="Cookies">
       <p>
-        On aimerait mesurer comment l’app est utilisée{AVEC_PIXEL ? " et l’effet de nos publicités" : ""}, avec des témoins (cookies) de {[AVEC_GA && "Google", AVEC_PIXEL && "Meta"].filter(Boolean).join(" et ")}. Seulement si tu es d’accord : aucun chiffre de ton écurie ne part.{" "}
+        {phraseCookies(AVEC_GA, AVEC_PIXEL)}{" "}
         <Link href="/regles?t=confidentialite">En savoir plus</Link>
       </p>
       <div className="bs-cs-b">
@@ -70,7 +71,7 @@ export function Consentement() {
           Refuser
         </button>
         <button type="button" onClick={() => setPanneau(true)}>
-          Paramétrer
+          Choisir
         </button>
         <button type="button" onClick={() => choisir(AVEC_GA, AVEC_PIXEL)}>
           Accepter
@@ -79,6 +80,12 @@ export function Consentement() {
     </div>,
     document.body,
   );
+}
+
+/** La phrase du bandeau : à quoi servent les cookies, avec qui, et que rien ne part sans accord. */
+export function phraseCookies(ga: boolean, pixel: boolean): string {
+  const quoi = [ga && "comment l’app est utilisée (avec Google)", pixel && "si nos publicités marchent (avec Meta)"].filter(Boolean).join(" et ");
+  return `On aimerait savoir ${quoi}. Il faut pour ça des cookies, seulement si tu es d’accord. Les chiffres de ton écurie ne partent jamais.`;
 }
 
 function Panneau({ choix, onChoisir, onClose }: { choix: Choix | null; onChoisir: (audience: boolean, pub: boolean) => void; onClose: () => void }) {
@@ -93,14 +100,14 @@ function Panneau({ choix, onChoisir, onClose }: { choix: Choix | null; onChoisir
     <div className="bs-cs-wrap">
       <div className="bs-cs-scrim" onClick={onClose} />
       <div className="bs-cs-p" role="dialog" aria-modal="true" aria-labelledby="bs-cs-t">
-        <b id="bs-cs-t">Tes choix de témoins</b>
+        <b id="bs-cs-t">Tes choix de cookies</b>
         <p className="bs-cs-n">Rien n’est chargé sans ton accord. Ton choix est gardé 6 mois ici ; tu le changes quand tu veux dans Réglages.</p>
         {AVEC_GA && (
           <label className="bs-cs-l">
             <input type="checkbox" checked={audience} onChange={(e) => setAudience(e.target.checked)} />
             <span>
-              <b>Mesure d’audience</b>
-              <small>Google Analytics : combien de personnes passent chaque étape (l’histoire, les trois questions, le compte créé, la première facture). Pas tes chiffres.</small>
+              <b>Statistiques de visite</b>
+              <small>Avec Google Analytics : combien de personnes passent chaque étape (l’histoire, les trois questions, le compte créé, la première facture). Pas tes chiffres.</small>
             </span>
           </label>
         )}
@@ -108,8 +115,8 @@ function Panneau({ choix, onChoisir, onClose }: { choix: Choix | null; onChoisir
           <label className="bs-cs-l">
             <input type="checkbox" checked={pub} onChange={(e) => setPub(e.target.checked)} />
             <span>
-              <b>Publicité</b>
-              <small>Pixel Meta : savoir si nos publicités sur Facebook et Instagram amènent des gérants.</small>
+              <b>Publicités (Meta)</b>
+              <small>Savoir si nos publicités sur Facebook et Instagram amènent des gérants.</small>
             </span>
           </label>
         )}

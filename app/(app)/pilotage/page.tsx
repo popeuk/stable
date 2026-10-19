@@ -203,7 +203,7 @@ function Bilans() {
           <div key={w.label} className="ar-wgt">
             <div className="ar-t">
               <span>{libelleFrais(w.label)}</span>
-              <em>{Math.round((w.amount / Math.max(1, charges)) * 100)} %</em>
+              <em>{`${Math.round((w.amount / Math.max(1, charges)) * 100)}\u00a0%`}</em>
               <Money v={-w.amount} />
             </div>
             <div className="ar-tr" aria-hidden="true">

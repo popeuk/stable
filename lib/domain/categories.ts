@@ -14,7 +14,10 @@ export const RECETTES_SYSTEME = [
   { name: "Cours", id: "rev-1", why: "les cours et séances faits se rangent ici" },
   { name: "Refacturation", id: "rev-7", why: "ce que tu fais payer au propriétaire se range ici" },
 ] as const;
-export const DEPENSES_SYSTEME = [{ name: "Frais fixes", why: "le total des frais de l’écurie, noté au départ, se range ici" }] as const;
+export const DEPENSES_SYSTEME = [
+  { name: "Frais communs", why: "le total des frais de l’écurie, noté au départ, se range ici" },
+  { name: "Frais fixes", why: "le total des frais de l’écurie, noté au départ, se range ici" },
+] as const;
 
 const norm = (s: string) => s.trim().toLowerCase();
 

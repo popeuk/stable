@@ -110,9 +110,12 @@ describe("le brouillon", () => {
     d.amount = 350;
     expect(manque(d)).toBe(false);
   });
-  it("un rendez-vous sans heure est une tâche", () => {
+  it("un rendez-vous sans heure est une tâche, et rien n'est choisi d'avance", () => {
     const d = draftFor("rdv", h, TODAY);
     expect(d.start).toBeNull();
+    expect(d.quoi).toBe("");
+    expect(manque(d)).toBe(true);
+    expect(manque({ ...d, quoi: "Livraison du foin" })).toBe(false);
     expect(titre({ ...d, quoi: "" }, h)).toBe("Tâche");
   });
   it("la présélection d’un cheval passe dans l’argent", () => {

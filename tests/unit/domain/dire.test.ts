@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { comprendre, chevauxDits, heureDite, montantDit, nomDit } from "@/lib/domain/dire";
+import { cavaliersEnMots, comprendre, chevauxDits, heureDite, montantDit, nomDit } from "@/lib/domain/dire";
 
 const CTX = {
   today: "2026-10-16", // un vendredi
@@ -158,5 +158,66 @@ describe("la voix comprend le cavalier nommé et « à refacturer » (P3 recette
   });
   it("sans ces mots, rien ne change", () => {
     expect(comprendre("Véto Diva 120 €", ctx).refacturer).toBeUndefined();
+  });
+});
+
+describe("la phrase dictée : la date dite et les cavaliers (audit strict du 19 octobre)", () => {
+  const lundi = { ...CTX, today: "2026-10-19" }; // un lundi
+  const people = [
+    { name: "Jade Martin", role: "cavalier" },
+    { name: "Emma Garnier", role: "proprietaire" },
+    { name: "Lou Bernard", role: "cavalier" },
+    { name: "Claire Dubois", role: "proprietaire" },
+    { name: "Claire Petit", role: "cavalier" },
+  ];
+
+  it("« Jeudi 15 octobre » : la date gagne sur le jour nommé", () => {
+    const c = comprendre("Jeudi 15 octobre 18 h cours collectif avec Jade Martin, Emma Roux et Léo Petit", { ...lundi, people });
+    expect(c).toMatchObject({ type: "seance", date: "2026-10-15", dateSaid: true, start: "18:00", format: "collectif" });
+  });
+
+  it("« le 15 octobre », « 1er novembre », « jeudi 15 », sans année au plus près", () => {
+    expect(comprendre("Vermifuge Pacha le 15 octobre", lundi).date).toBe("2026-10-15");
+    expect(comprendre("Maréchal Diva 1er novembre 9 h", lundi)).toMatchObject({ date: "2026-11-01", start: "09:00" });
+    expect(comprendre("Cours particulier jeudi 15 à 17 h", lundi).date).toBe("2026-10-15");
+    expect(comprendre("Vaccin Pacha 5 janvier", { ...lundi, today: "2026-12-20" }).date).toBe("2027-01-05");
+    // Le jour nommé seul garde sa règle : le prochain.
+    expect(comprendre("Maréchal pour Pacha jeudi 9 h, 85 €", lundi)).toMatchObject({ date: "2026-10-22", start: "09:00", amount: 85 });
+  });
+
+  it("« hier » et « avant-hier »", () => {
+    expect(comprendre("Maréchal pour Pacha hier, 80 euros", lundi)).toMatchObject({ type: "soin", date: "2026-10-18", dateSaid: true, amount: 80 });
+    expect(comprendre("Vermifuge Diva avant-hier", lundi)).toMatchObject({ date: "2026-10-17", dateSaid: true });
+    expect(nomDit("Livraison du foin hier", [])).toBe("Livraison du foin");
+    expect(nomDit("Livraison du foin le 15 octobre", [])).toBe("Livraison du foin");
+  });
+
+  it("un nom entier ne retrouve que la personne de ce nom : Emma Roux n'est pas Emma Garnier", () => {
+    const c = comprendre("Jeudi 15 octobre 18 h cours collectif avec Jade Martin, Emma Roux et Léo Petit", { ...lundi, people });
+    expect(c.cavaliers).toEqual(["Jade Martin", "Emma Roux", "Léo Petit"]);
+  });
+
+  it("un prénom seul cherche d'abord parmi les cavaliers, puis parmi les clients, s'il est le seul", () => {
+    expect(comprendre("Demain 10 h, cours avec Jade et Lou", { ...lundi, people }).cavaliers).toEqual(["Jade Martin", "Lou Bernard"]);
+    // Claire Dubois (propriétaire) et Claire Petit (cavalière) : la cavalière.
+    expect(comprendre("Cours particulier demain avec Claire", { ...lundi, people }).cavaliers).toEqual(["Claire Petit"]);
+    // Emma : seule Emma Garnier la porte.
+    expect(comprendre("Cours demain avec Emma", { ...lundi, people }).cavaliers).toEqual(["Emma Garnier"]);
+    // Un prénom que personne ne porte : un nouveau cavalier.
+    expect(comprendre("Cours demain avec Nina", { ...lundi, people }).cavaliers).toEqual(["Nina"]);
+  });
+
+  it("un nom de cheval reste un cheval, même après « avec »", () => {
+    const c = comprendre("Cours particulier demain avec Jade sur Pacha", { ...lundi, people });
+    expect(c.cavaliers).toEqual(["Jade Martin"]);
+    expect(c.horseIds).toEqual(["h-pacha"]);
+  });
+});
+
+describe("la confirmation montre les cavaliers dictés", () => {
+  it("les connus, puis les nouveaux", () => {
+    expect(cavaliersEnMots(["Jade Martin", "Emma Roux", "Léo Petit"], ["Jade Martin", "Emma Garnier"])).toBe("Avec Jade Martin. Nouveaux cavaliers : Emma Roux, Léo Petit.");
+    expect(cavaliersEnMots(["Nina"], [])).toBe("Nouveau cavalier : Nina.");
+    expect(cavaliersEnMots(["Jade Martin"], ["jade martin"])).toBe("Avec Jade Martin.");
   });
 });

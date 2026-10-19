@@ -5,7 +5,7 @@ import { r2 } from "@/lib/utils/arrondi";
 /**
  * L'interpréteur de commandes en français : « cours collectif demain 14 h
  * avec Belle et Pacha, 25 euros » devient une commande structurée. Version
- * locale, déterministe et testée — le repli hors-ligne de l'assistant.
+ * locale, déterministe et testée : le repli hors-ligne de l'assistant.
  * L'LLM (OpenRouter) produit la même forme de commande.
  */
 export interface Command {
@@ -48,7 +48,59 @@ const KIND_PATTERNS: [RegExp, CareKind][] = [
 
 const WEEKDAYS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 
+const MOIS = ["janvier", "fevrier", "mars", "avril", "mai", "juin", "juillet", "aout", "septembre", "octobre", "novembre", "decembre"];
+const iso = (y: number, m: number, d: number) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+/** Le jour existe-t-il (pas de 31 novembre) ? */
+const existe = (y: number, m: number, d: number) => d >= 1 && new Date(Date.UTC(y, m - 1, d)).getUTCDate() === d;
+const ecart = (a: ISODate, b: ISODate) => Math.abs(Date.parse(a + "T00:00:00Z") - Date.parse(b + "T00:00:00Z"));
+const jourSemaine = (d: ISODate) => new Date(d + "T00:00:00Z").getUTCDay();
+
+/**
+ * Une date dite avec son mois : « 15 octobre », « le 1er novembre »,
+ * « 3 mars 2027 ». Sans année : celle qui la met au plus près d'aujourd'hui
+ * (en décembre, « 5 janvier » est l'an prochain).
+ */
+function dateAvecMois(t: string, today: ISODate): ISODate | null {
+  const m = t.match(new RegExp(`\\b(\\d{1,2})(?:er)?\\s+(${MOIS.join("|")})\\b(?:\\s+(\\d{4}))?`));
+  if (!m) return null;
+  const jour = Number(m[1]);
+  const mois = MOIS.indexOf(m[2]) + 1;
+  if (m[3]) return existe(Number(m[3]), mois, jour) ? iso(Number(m[3]), mois, jour) : null;
+  const y = Number(today.slice(0, 4));
+  const ok = [y - 1, y, y + 1].filter((a) => existe(a, mois, jour)).map((a) => iso(a, mois, jour));
+  return ok.sort((a, b) => ecart(a, today) - ecart(b, today))[0] ?? null;
+}
+
+/**
+ * « Jeudi 15 » : le jour nommé avec un numéro. Le mois proche où le 15 tombe
+ * un jeudi ; à défaut, le 15 le plus proche. Le numéro gagne toujours sur le
+ * nom du jour.
+ */
+function jourEtNumero(t: string, today: ISODate): ISODate | null {
+  const m = t.match(new RegExp(`\\b(${WEEKDAYS.join("|")})\\s+(?:le\\s+)?(\\d{1,2})(?:er)?\\b(?!\\s*(?:h\\b|heures?|€|euros?|places?))`));
+  if (!m) return null;
+  const jour = Number(m[2]);
+  const dow = WEEKDAYS.indexOf(m[1]);
+  const [y, mo] = [Number(today.slice(0, 4)), Number(today.slice(5, 7))];
+  const proches = [-1, 0, 1]
+    .map((k) => {
+      const mm = ((mo - 1 + k + 12) % 12) + 1;
+      const yy = y + Math.floor((mo - 1 + k) / 12);
+      return existe(yy, mm, jour) ? iso(yy, mm, jour) : null;
+    })
+    .filter((x): x is ISODate => !!x)
+    .sort((a, b) => ecart(a, today) - ecart(b, today));
+  return proches.find((d) => jourSemaine(d) === dow) ?? proches[0] ?? null;
+}
+
 export function parseDate(t: string, today: ISODate): ISODate | null {
+  // Une date écrite gagne sur le nom du jour : « jeudi 15 octobre » est le 15 octobre.
+  const avecMois = dateAvecMois(t, today);
+  if (avecMois) return avecMois;
+  const numero = jourEtNumero(t, today);
+  if (numero) return numero;
+  if (/\bavant[- ]hier\b/.test(t)) return addDays(today, -2);
+  if (/\bhier\b/.test(t)) return addDays(today, -1);
   if (/apres[- ]demain/.test(t)) return addDays(today, 2);
   if (/\bdemain\b/.test(t)) return addDays(today, 1);
   if (/aujourd|ce soir|ce matin/.test(t)) return today;

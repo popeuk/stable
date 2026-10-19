@@ -127,7 +127,7 @@ function FeuilleDeconnexion({ onClose }: { onClose: () => void }) {
         Me déconnecter
       </button>
       <button type="button" className="btn line full" onClick={onClose}>
-        Rester connecté
+        Annuler
       </button>
     </FeuilleConfirmer>
   );
@@ -157,7 +157,7 @@ function FeuilleEffacer({ exporter, onClose }: { exporter: () => void; onClose: 
           <b>{texteSansCopie()}</b>
         </p>
       ) : (
-        <p className="note">Fais d’abord une sauvegarde : un fichier à garder, qui se reprend dans Réglages, Avancé. Tu pourras aussi récupérer l’écurie d’avant sur {cetAppareil()} pendant {JOURS_RECUPERATION} jours.</p>
+        <p className="note">Fais d’abord une sauvegarde : un fichier à garder, que tu pourras rouvrir dans Réglages, Avancé (« Ouvrir une sauvegarde »). Tu pourras aussi récupérer l’écurie d’avant sur {cetAppareil()} pendant {JOURS_RECUPERATION} jours.</p>
       )}
       <button
         type="button"
@@ -283,12 +283,13 @@ export function RecupererLigne() {
   }, []);
   if (!eff) return null;
   const jour = new Date(eff.quand).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const limite = new Date(Date.parse(eff.quand) + JOURS_RECUPERATION * 86_400_000).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
   return (
     <>
       <button type="button" className="li np" onClick={() => setOuverte(true)}>
         <span>
           <b>Tu as effacé ton écurie le {jour}.</b>
-          <small>Récupérer l’écurie d’avant</small>
+          <small>Récupérer l’écurie d’avant, jusqu’au {limite}</small>
         </span>
         <Ic n="chev" className="chev" />
       </button>

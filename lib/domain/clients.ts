@@ -1,5 +1,5 @@
 import type { Period, PersonRole, StableData } from "@/lib/domain/types";
-import { formule, nomEcurie, signature } from "@/lib/domain/politesse";
+import { appel, formule, nomEcurie, signature } from "@/lib/domain/politesse";
 import { dateInPeriod } from "@/lib/utils/period";
 import { avanceEtARendre, cleClient, monthKey, moisPlus, notesParMois, surplusDe, type Bill } from "@/lib/domain/billing";
 import { r2 } from "@/lib/utils/arrondi";
@@ -230,7 +230,7 @@ export function dusDuClient(data: StableData, payer: string, period: Period): Cl
 }
 
 /** Le prénom : le premier mot du nom (« Hugo L. » → « Hugo »). */
-export const prenomDe = (name: string) => name.trim().split(/\s+/)[0] || name;
+export const prenomDe = (name: string) => appel(name);
 
 /**
  * Prénoms féminins courants : pour accorder « Elle a payé ». La fiche ne

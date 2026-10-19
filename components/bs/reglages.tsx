@@ -9,6 +9,8 @@ import { localToday } from "@/lib/utils/local-date";
 import { categorieSysteme } from "@/lib/domain/categories";
 import { useUiStore } from "@/stores/ui-store";
 import { esc } from "@/components/bs/ui";
+import { nomAffiche } from "@/lib/domain/noms-categories";
+import { useConfirmer } from "@/components/bs/confirmer";
 
 /**
  * Des parties de Réglages (app/(app)/moi) : l'équipe, les catégories, les
@@ -29,6 +31,7 @@ export function EquipeReglages() {
   const deleteTeamMember = useDataStore((s) => s.deleteTeamMember);
   const [name, setName] = useState("");
   const [job, setJob] = useState("");
+  const [demander, feuille] = useConfirmer();
   const today = localToday();
 
   // Les tâches à venir de chacun, dérivées du planning : rien à ressaisir.
@@ -59,7 +62,7 @@ export function EquipeReglages() {
                 {n > 0 ? ` · ${n} tâche${n > 1 ? "s" : ""} à venir` : ""}
               </small>
             </span>
-            <button type="button" className="x" onClick={() => confirm(`Retirer ${m.name} de l’équipe ? Ce qu’il a fait reste noté dans le carnet des chevaux.`) && deleteTeamMember(m.id)} aria-label={`Retirer ${m.name}`}>
+            <button type="button" className="x" onClick={async () => (await demander({ titre: `Retirer ${m.name} de l’équipe ?`, texte: "Ses soins restent notés sur la fiche des chevaux.", oui: "Oui, retirer" })) && deleteTeamMember(m.id)} aria-label={`Retirer ${m.name}`}>
               <Ic n="x" className="" />
             </button>
           </div>
@@ -68,7 +71,7 @@ export function EquipeReglages() {
       <div className="ec-addp">
         <p className="k">Ajouter quelqu’un</p>
         <label className="input">
-          <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="Son nom, ex. Julie" aria-label="Son nom" />
+          <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="Son nom, ex. : Julie" aria-label="Son nom" />
         </label>
         <label className="input">
           <input value={job} onChange={(e) => setJob(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="Son métier (facultatif)" aria-label="Son métier (facultatif)" />
@@ -85,6 +88,7 @@ export function EquipeReglages() {
         </Link>
         .
       </p>
+      {feuille}
     </Sec>
   );
 }
@@ -150,13 +154,13 @@ export function CategoriesReglages() {
           return (
             <div key={c.id} className="ec-cat">
               <span>
-                {c.name}
+                {nomAffiche(c.name)}
                 {why && <small className="ec-sys">Se garde : {why}.</small>}
               </span>
               {why ? (
                 <span />
               ) : (
-                <button type="button" className="x" onClick={() => remove(c.id, c.name)} aria-label={`Retirer ${c.name}`}>
+                <button type="button" className="x" onClick={() => remove(c.id, c.name)} aria-label={`Retirer ${nomAffiche(c.name)}`}>
                   <Ic n="x" className="" />
                 </button>
               )}

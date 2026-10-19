@@ -32,3 +32,35 @@ export function signature(gerant: string | undefined, ecurie: string | undefined
   const uniques = qui.filter((x, i) => qui.findIndex((y) => y.toLowerCase() === x.toLowerCase()) === i);
   return uniques.length ? ["Merci,", ...uniques] : ["Merci."];
 }
+
+/** Les formes de société et les mots d'une structure : on ne les salue pas comme un prénom. */
+const STRUCTURE = /^(earl|scea|gaec|sarl|sas|sasu|eurl|sa|sci|snc|ei|eirl|selarl|scop|asso|association|haras|[ée]curies?|centre|club|poney-club|ferme|domaine|soci[ée]t[ée]|ets|[ée]tablissements|mairie|commune|lyc[ée]e|[ée]cole|cabinet|clinique|groupe|elevage|[ée]levage)$/i;
+/** Les civilités : « M. Dupont » se dit en entier. */
+const CIVILITE = /^(m\.?|mr\.?|mme\.?|mlle\.?|madame|monsieur|mademoiselle|dr\.?|docteur|me\.?|ma[îi]tre)$/i;
+
+/** Le nom est-il celui d'une structure (« EARL du Haras des Lys », « SCEA Martin ») ? Un sigle en capitales compte aussi. */
+export function estStructure(nom: string): boolean {
+  const premier = nom.trim().split(/\s+/)[0] ?? "";
+  return STRUCTURE.test(premier) || (/^[A-ZÀ-Ý]{2,}$/.test(premier) && nom.trim().split(/\s+/).length > 1);
+}
+
+/**
+ * Comment on appelle un client à l'écran : son prénom (« Hugo L. » → « Hugo »),
+ * mais le nom entier pour une structure (« EARL du Haras des Lys ») ou une
+ * civilité (« M. Dupont »), jamais « EARL » ni « M. » tout seuls.
+ */
+export function appel(nom: string): string {
+  const n = nom.trim();
+  const premier = n.split(/\s+/)[0] ?? "";
+  if (!premier) return nom;
+  if (estStructure(n) || CIVILITE.test(premier)) return n;
+  return premier;
+}
+
+/** « Bonjour Claire, », « Bonjour M. Dupont, », et « Bonjour, » pour une structure. */
+export function salut(nom: string): string {
+  const n = nom.trim();
+  if (!n || estStructure(n)) return "Bonjour,";
+  return `Bonjour ${appel(n)},`;
+}
+

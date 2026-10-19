@@ -144,7 +144,7 @@ export function ContactFeuille({ onClose, ecran }: { onClose: () => void; ecran?
                     <input className="input" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="toi@exemple.fr" />
                   </label>
                 )}
-                <p className="note">Part avec ton message : l’écran où tu es, la version de l’app, ton navigateur et ton modèle de téléphone ou d’ordinateur. Aucun chiffre de ton écurie.</p>
+                <p className="note">Part avec ton message : le nom de ton écurie, l’écran où tu es, la version de l’app, ton navigateur et ton modèle de téléphone ou d’ordinateur. Aucun chiffre.</p>
                 {err && (
                   <p className="ct-err" role="alert">
                     {err}

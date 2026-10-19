@@ -29,13 +29,13 @@ export function EcranErreur({ error, onReessayer }: { error: unknown; onReessaye
   if (recharge) {
     return (
       <Page>
-        <Hello title="Une nouvelle version arrive." sub="L’app se recharge." />
+        <Hello title="Une nouvelle version arrive" sub="L’app se recharge." />
       </Page>
     );
   }
   return (
     <Page>
-      <Hello title="Cet écran a eu un souci." sub="Tes chiffres ne sont pas touchés. Réessaie, ou reviens à l’accueil." />
+      <Hello title="Cet écran a eu un souci" sub="Tes chiffres ne sont pas touchés. Réessaie, ou reviens à l’accueil." />
       <div className="pad rise" style={{ display: "grid", gap: 10, marginTop: 16, animationDelay: ".1s" }}>
         {onReessayer && (
           <button type="button" className="btn full" onClick={onReessayer}>

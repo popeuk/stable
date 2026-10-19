@@ -304,7 +304,7 @@ function AddForm() {
         <label className="field">
           <span>Nom</span>
           <span className="input">
-            <input placeholder="Ex. Longe, transport concours" value={label} onChange={(e) => setLabel(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
+            <input placeholder="Ex. : Longe, transport concours" value={label} onChange={(e) => setLabel(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
           </span>
         </label>
         <label className="field">

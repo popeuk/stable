@@ -84,7 +84,7 @@ export function SejourForm({ horse, onDone }: { horse: Horse; onDone: (parti: bo
             ? `La date va au registre d’élevage. ${cap(il)} compte de nouveau à partir de ce mois-ci.`
             : `${cap(il)} compte de nouveau à partir de ce jour : sa pension et sa part des frais. Ses séjours d’avant ne changent pas.`
           : moisAvant
-            ? `La date va au registre d’élevage. ${cap(moisDe(d))} reste compté. Ensuite, sa pension n’est plus comptée (celle de ce mois est retirée si elle n’est pas facturée).`
+            ? `La date va au registre d’élevage. ${cap(moisDe(d))} reste compté. Ensuite, sa pension n’est plus comptée (celle de ${moisDe(today)} est retirée si elle n’est pas encore facturée).`
             : `Ce qu’${il} a rapporté et coûté reste dans les mois où ${il} était là. Sa pension ne sera plus comptée les mois suivants.`}
       </p>
       <button type="button" className="btn full" disabled={!d} onClick={valider}>

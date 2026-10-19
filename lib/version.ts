@@ -8,5 +8,5 @@ export function versionDite(sha: string | undefined = process.env.NEXT_PUBLIC_VE
   if (!court) return "Version locale";
   const t = quand ? Date.parse(quand) : NaN;
   const jour = Number.isFinite(t) ? new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "long", timeZone: "Europe/Paris" }) : "";
-  return jour ? `Version ${court} · ${jour}` : `Version ${court}`;
+  return jour ? `Version du ${jour} (${court})` : `Version ${court}`;
 }

@@ -12,7 +12,7 @@ export function EtatCopie() {
   useEffect(() => {
     const lire = () => {
       const e = etatNuage();
-      setT(texteCopie(e));
+      setT(texteCopie(e, Date.now(), cetAppareil()));
       setRefuse(!!e.refus);
     };
     lire();

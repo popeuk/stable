@@ -27,7 +27,7 @@ import { heure } from "@/lib/utils/heure";
  */
 
 type Etape = "hier" | "aujourdhui" | "mois";
-const NOMS: Record<Etape, string> = { hier: "Hier", aujourdhui: "Aujourd’hui", mois: "Ton mois" };
+const NOMS: Record<Etape, string> = { hier: "Hier", aujourdhui: "Aujourd’hui", mois: "Ton bilan" };
 
 interface Vu {
   date: string;
@@ -214,7 +214,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                   <p className="ac-dt">
                     {moisNom}, au {Number(today.slice(8))}
                   </p>
-                  <h2>Ton mois</h2>
+                  <h2>Ton bilan</h2>
                 </div>
               </div>
               <MoisQuiCompte depuis={depuis} />
@@ -257,7 +257,7 @@ function MoisQuiCompte({ depuis }: { depuis: number }) {
       </div>
       <div className="card moncard ac-cpt nobag" role="group" aria-label={`Ce mois, ${resteOuManque(net)} ${eur(Math.abs(net))}`}>
         <span className="ac-tx">
-          <span className="k">{estime ? "Si tout est payé, ce mois" : `Ce mois, ${resteOuManque(net)}`}</span>
+          <span className="k">{estime ? "Si tout est payé, ce mois" : `Ce mois-ci, ${resteOuManque(net)}`}</span>
           <span className={`big ${tone}`}>
             <span className="num">{estime ? sg(v) : eur(Math.abs(v))}</span>
           </span>

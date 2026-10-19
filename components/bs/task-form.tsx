@@ -75,7 +75,7 @@ export function TaskDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Habi
       )}
       <F label="Où, ou avec qui ?">
         <InField className="nt-tin">
-          <input placeholder="Ex. Dr Martin, à la sellerie" aria-label="Où, ou avec qui" value={d.lieu} onChange={(e) => set((x) => ({ ...x, lieu: e.target.value }))} />
+          <input placeholder="Ex. : Dr Martin, à la sellerie" aria-label="Où, ou avec qui" value={d.lieu} onChange={(e) => set((x) => ({ ...x, lieu: e.target.value }))} />
         </InField>
       </F>
       {members.length > 0 && (

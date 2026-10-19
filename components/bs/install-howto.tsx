@@ -19,7 +19,7 @@ export function InstallHowto({ onClose }: { onClose: () => void }) {
         <div className="sheet nt-sheet" role="dialog" aria-modal="true" aria-labelledby="bs-install-t" ref={ref}>
           <div className="grab" />
           <div className="shd">
-            <b id="bs-install-t">Installer Be Stable</b>
+            <b id="bs-install-t">Installer l’app</b>
             <button type="button" className="x" onClick={onClose} aria-label="Fermer">
               <Ic n="x" className="" />
             </button>

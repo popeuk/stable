@@ -1,11 +1,11 @@
 /* Ce qui relie l'app au site et aux services (19 octobre 2026) :
-   le bandeau des témoins, Contact, les demandes des cavaliers. */
+   le bandeau des cookies, Contact, les demandes des cavaliers. */
 
-/* ---------- Témoins : bandeau et panneau (hors .carnet : il vit aussi sur l'histoire et les questions) ---------- */
+/* ---------- Cookies : bandeau et panneau (hors .carnet : il vit aussi sur l'histoire et les questions) ---------- */
 .bs-cs { position: fixed; z-index: 90; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; padding: 16px; border-radius: var(--bloc-r); background: var(--sheet); color: var(--ink); box-shadow: var(--shadow-floating), inset 0 0 0 1px var(--line); font-family: var(--font-bricolage), system-ui, sans-serif; font-size: 14px; line-height: 1.45; }
 .bs-cs p { margin: 0 0 12px; }
 .bs-cs a, .bs-cs-lien { color: var(--vert); font-weight: 650; text-decoration: underline; text-underline-offset: 2px; }
-/* Refuser, Paramétrer, Accepter : même taille, même style, même niveau. */
+/* Refuser, Choisir, Accepter : même taille, même style, même niveau. */
 .bs-cs-b { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .bs-cs-b button { min-height: 44px; padding: 0 8px; border: 0; border-radius: var(--ctl-r); background: var(--sheet); color: var(--vert); box-shadow: inset 0 0 0 1.5px var(--vert); font: inherit; font-weight: 700; cursor: pointer; }
 .bs-cs-b button:focus-visible { outline: 2px solid var(--vert); outline-offset: 2px; }
