@@ -10,7 +10,7 @@ import { getSession, type Listing } from "@/lib/account/session";
  */
 export const API = (process.env.NEXT_PUBLIC_MONECURIE_API ?? "https://www.mon-ecurie.fr/wp-json/bestable/v1").replace(/\/$/, "");
 
-/** L'adresse de l'app, pour le lien de l'e-mail « mot de passe oublié ». */
+/** L'adresse de l'app, pour le retour de Google ou d'Apple (app/compte/connexion). */
 export const appUrl = (path: string) => `${typeof window !== "undefined" ? window.location.origin : ""}${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${path}`;
 
 export class ApiError extends Error {
@@ -181,19 +181,13 @@ export interface MessageContact {
 
 export type Choix = Record<"offres" | "hebergement" | "installations" | "services" | "univers", Record<string, string>>;
 
-export const PW_MIN = 10;
-
 export const api = {
-  inscription: (p: { prenom: string; nom: string; email: string; telephone: string; password: string; site: string }) => call<AuthResponse>("POST", "/inscription", p),
-  connexion: (p: { email: string; password: string }) => call<AuthResponse>("POST", "/connexion", p),
   deconnexion: () => call<{ ok: true }>("POST", "/deconnexion", {}),
   envoyerCode: (email: string) => call<{ ok: true; compte?: boolean }>("POST", "/code/envoyer", { email }),
   verifierCode: (email: string, code: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/code/verifier", { email, code }),
   /** Google ou Apple : le jeton signé de Supabase ouvre le compte de cette adresse (lib/account/oauth). */
   connexionSupabase: (accessToken: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/connexion/supabase", { access_token: accessToken }),
   majMoi: (p: { prenom?: string; nom?: string; telephone?: string; ecurie?: string; fiche?: number; projet?: boolean }) => call<{ user: Me }>("PUT", "/moi", p),
-  oubli: (email: string) => call<{ ok: true }>("POST", "/mot-de-passe/oubli", { email, retour: appUrl("/compte/nouveau-mot-de-passe/") }),
-  nouveau: (p: { login: string; key: string; password: string }) => call<AuthResponse>("POST", "/mot-de-passe/nouveau", p),
   moi: () => call<{ user: Me; listing: Listing | null; data_key: string }>("GET", "/moi"),
   chercher: (q: string, dep = "") => call<{ resultats: StableHit[]; total: number }>("GET", `/ecuries?q=${encodeURIComponent(q)}&dep=${encodeURIComponent(dep)}`),
   ecurie: (id: number) => call<Fiche>("GET", `/ecuries/${id}`),
