@@ -57,7 +57,9 @@ async function contexte(type, viewport) {
   const ctx = await b.newContext({ viewport, serviceWorkers: "block", locale: "fr-FR", timezoneId: "Europe/Paris" });
   // Pas de fausses visites dans Matomo (stats.bestable.fr) à chaque mise en ligne.
   await ctx.route(/^https:\/\/stats\.bestable\.fr\//, (r) => r.abort());
+  // Ni le site (bestable.fr, ex mon-ecurie.fr) : l'export de test n'a pas de compte.
   await ctx.route(/mon-ecurie\.fr/, (r) => r.abort());
+  await ctx.route(/^https:\/\/(www\.)?bestable\.fr\//, (r) => r.abort());
   const p = await ctx.newPage();
   const erreurs = [];
   p.on("pageerror", (e) => erreurs.push(e.message));
