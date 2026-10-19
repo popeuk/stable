@@ -52,7 +52,7 @@ describe("le mois d'un départ : un seul diviseur partout (P2-6 recette 2)", () 
       recurringExpenses: [{ id: "r", stableId: "s", label: "Foin", amount: 310, isShared: true, distributionMode: "weighted_by_days", frequency: "monthly", startDate: "2026-01-01", source: "manual" }],
       sharedExpenses: [],
     };
-    expect(partEnMots(d2, "b", oct)).toBe("au prorata de ses 10 jours ici");
+    expect(partEnMots(d2, "b", oct)).toBe("selon ses 10 jours ici");
   });
 });
 

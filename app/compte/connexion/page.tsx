@@ -254,8 +254,8 @@ export default function Page() {
             {top}
             {garder ? (
               <div className="q rise">
-                <h1>Ton compte.</h1>
-                <p>Ton e-mail, puis un code. Ensuite, ton écurie. Tes chiffres passent dedans.</p>
+                <h1>Ton compte</h1>
+                <p>Ton e-mail, puis un code. Ensuite, ton écurie. Tes chiffres vont dans ton compte.</p>
               </div>
             ) : (
               <>

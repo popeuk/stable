@@ -21,6 +21,7 @@ import { lireSauvegarde } from "@/lib/domain/valider";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { useConfirmer, type Question } from "@/components/bs/confirmer";
+import { cetAppareil } from "@/lib/appareil";
 import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 import { useFeuille } from "@/components/bs/feuille";
@@ -290,7 +291,7 @@ function Moi() {
   );
 
   const compte = (
-    <Sec title="Ton compte" delay={0.1}>
+    <Sec title="Mon compte" delay={0.1}>
       <Compte />
       <div className="li np" style={{ marginTop: 8 }}>
         <Li title={<label htmlFor="st-gerant">Ton prénom</label>} sub="pour le bonjour" right={<input id="st-gerant" className="input sm" defaultValue={s.gerant} onChange={(e) => s.setIdentity({ gerant: e.target.value })} />} />
@@ -299,7 +300,7 @@ function Moi() {
   );
   // Le gros texte vaut pour cet appareil (pas pour le compte) : il vit avec l'app du téléphone.
   const app = (
-    <Sec title="L’app sur ton téléphone" delay={0.16}>
+    <Sec title={`L’app sur ${cetAppareil()}`} delay={0.16}>
       <Install />
       <p className="mc-k" style={{ marginTop: 12 }}>Taille du texte</p>
       <Seg
@@ -442,10 +443,10 @@ function InstallSheet({ onClose }: { onClose: () => void }) {
     <div className="carnet carnet-portal">
       <div className="sheet-wrap open">
         <div className="scrim" onClick={onClose} />
-        <div className="sheet" role="dialog" aria-modal="true" aria-label="Installer Be Stable" ref={ref}>
+        <div className="sheet" role="dialog" aria-modal="true" aria-label="Installer l’app" ref={ref}>
           <div className="grab" />
           <div className="shd">
-            <b>Installer Be Stable</b>
+            <b>Installer l’app</b>
             <button type="button" className="x" onClick={onClose} aria-label="Fermer">
               <Ic n="x" className="" />
             </button>

@@ -112,7 +112,7 @@ export function partEnMots(data: StableData, horseId: string, period: Period): s
     const quand = s && debutCompte(s) > ms ? `arrivé le ${j(debutCompte(s))}` : f && f < me ? `parti le ${j(f)}` : "";
     return quand ? `÷ ${n} : une part entière, même ${quand}` : `÷ ${n}`;
   }
-  if (h && !plein) return `au prorata de ses ${jours} jour${jours > 1 ? "s" : ""} ici`;
+  if (h && !plein) return `selon ses ${jours} jour${jours > 1 ? "s" : ""} ici`;
   return "sa part, fixée quand tu l’as notée";
 }
 

@@ -62,7 +62,7 @@ function LesPros() {
     const back = st.pros;
     st.deletePro(id);
     setForm(null);
-    say(`<strong>${esc(name)}</strong> n’est plus dans tes pros. Ce qu’il a fait reste dans le carnet.`, () => useDataStore.setState({ pros: back }));
+    say(`<strong>${esc(name)}</strong> n’est plus dans tes pros. Ses soins restent notés sur la fiche des chevaux.`, () => useDataStore.setState({ pros: back }));
   };
 
   const tel = form?.phone.replace(/[^\d+]/g, "");
@@ -118,7 +118,7 @@ function LesPros() {
         <span style={{ minWidth: 0 }}>
           <b>{v.name}</b>
           <small>
-            {v.pro ? metierDit(v.pro) : "noté dans le carnet · touche pour l’ajouter"}
+            {v.pro ? metierDit(v.pro) : "noté dans un soin · touche pour l’ajouter"}
             {v.pro?.phone && ` · ${v.pro.phone}`}
             {v.soins > 0 && ` · ${v.soins} soin${v.soins > 1 ? "s" : ""}`}
           </small>

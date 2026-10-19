@@ -73,7 +73,7 @@ const AIDES_BRUTES: Record<string, Aide> = {
     points: [
       "En haut, ce qu’on te paie pour lui. En dessous, ce qu’il coûte. Tout en bas, ce qu’il te laisse.",
       "Sa part des frais, c’est son morceau du foin, de la paille, du loyer… de tout ce qui sert à l’écurie.",
-      "Son carnet garde ses soins et ce qui arrive bientôt : vermifuge, maréchal, vaccins.",
+      "Son carnet de soins garde ses soins et ce qui arrive bientôt : vermifuge, maréchal, vaccins.",
     ],
   },
   argent: {

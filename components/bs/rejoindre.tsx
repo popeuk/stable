@@ -74,7 +74,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
     if (ficheId)
       api.ecurie(ficheId).then(
         (f) => setFiche(f),
-        () => setErr("Cette fiche n’est plus en ligne."),
+        () => setErr("Cette fiche n’est plus en ligne. Choisis une autre écurie ou ajoute la tienne."),
       );
   }, [ficheId]);
 
@@ -150,7 +150,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
 
   async function demanderCode(e?: React.FormEvent) {
     e?.preventDefault();
-    if (busy || !/^\S+@\S+\.\S+$/.test(email.trim())) return setErr("Cette adresse ne semble pas complète.");
+    if (busy || !/^\S+@\S+\.\S+$/.test(email.trim())) return setErr("Cette adresse e-mail a l’air incomplète. Vérifie-la.");
     setBusy(true);
     setErr("");
     try {
@@ -409,7 +409,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
         <div className="ar-v">
           {top}
           <div className="q">
-            <h1>{statut === "revendiquee" ? "Elle a déjà son gérant." : statut === "en_verification" ? "Une demande est déjà en cours." : "C’est elle ?"}</h1>
+            <h1>{statut === "revendiquee" ? "Elle est déjà au nom de quelqu’un." : statut === "en_verification" ? "Une demande est déjà en cours." : "C’est elle ?"}</h1>
           </div>
           <div className="ar-apercu" aria-label="Aperçu de la fiche sur mon-ecurie.fr">
             <FicheCarte f={fiche} etat="avant" />

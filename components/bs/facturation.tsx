@@ -103,7 +103,7 @@ function StatutVendeur() {
         <span id="fr-statut-v">Ton statut</span>
         <div className="fr-two" role="radiogroup" aria-labelledby="fr-statut-v">
           <button type="button" role="radio" aria-checked={statut === "ei"} className={`chip${statut === "ei" ? " on" : ""}`} onClick={() => setBilling({ statut: "ei" })}>
-            Entrepreneur individuel (micro)
+            Entreprise individuelle (EI, micro ou non)
           </button>
           <button type="button" role="radio" aria-checked={statut === "societe"} className={`chip${statut === "societe" ? " on" : ""}`} onClick={() => setBilling({ statut: "societe" })}>
             Société (EARL, SCEA, SARL…)
@@ -248,7 +248,7 @@ export function TuVous() {
           </button>
         </div>
       </div>
-      <p className="fr-hint">{tutoie ? "« Bonjour Claire, voici ta facture n° … »" : "« Bonjour Claire, voici votre facture n° … »"} Le message qui part avec la facture suit ce choix.</p>
+      <p className="fr-hint">{tutoie ? "« Bonjour Claire, Voici ta facture n° … »" : "« Bonjour Claire, Voici votre facture n° … »"} Le message qui part avec la facture suit ce choix.</p>
     </div>
   );
 }
@@ -266,7 +266,7 @@ export function ConditionsPro() {
   return (
     <div className="fr-tva">
       <div className="fr-rate">
-        <span id="fr-delai">Il paie</span>
+        <span id="fr-delai">Un client professionnel paie</span>
         <div className="chips" role="radiogroup" aria-labelledby="fr-delai">
           {DELAIS_PRO.map((n) => (
             <button key={n} type="button" role="radio" aria-checked={d === n} className={`chip${d === n ? " on" : ""}`} onClick={() => setBilling({ delaiPro: n })}>
