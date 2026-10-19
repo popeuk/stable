@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { usePerso } from "@/components/bs/perso";
+import { ChampAdresse } from "@/components/bs/champ-adresse";
 import { Ic } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -62,7 +63,7 @@ export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
       {voir("adresse") && (
         <label className="field">
           <span>Adresse</span>
-          <textarea className="input ta fa-adr" rows={3} defaultValue={billing?.address ?? ""} placeholder={"Ex. : 12 chemin des Prés\n72000 Le Mans"} autoComplete="street-address" onChange={(e) => setBilling({ address: e.target.value })} />
+          <ChampAdresse rows={3} defaultValue={billing?.address ?? ""} placeholder={"Ex. : 12 chemin des Prés\n72000 Le Mans"} autoComplete="street-address" onChange={(v) => setBilling({ address: v })} />
         </label>
       )}
       {voir("siret") && (
@@ -412,7 +413,7 @@ export function ClientFacture({ nom, role, manque }: { nom: string; role: Person
       {statut && (
         <label className="field">
           <span>Son adresse</span>
-          <textarea className="input ta fa-adr" rows={2} defaultValue={person?.address ?? ""} placeholder={"Ex. : 3 allée des Saules\n72000 Le Mans"} autoComplete="off" onChange={(e) => setClient(nom, role, { address: e.target.value })} />
+          <ChampAdresse defaultValue={person?.address ?? ""} placeholder={"Ex. : 3 allée des Saules\n72000 Le Mans"} onChange={(v) => setClient(nom, role, { address: v })} />
           <em>{statut === "pro" ? "Obligatoire sur la facture d’un professionnel." : "La loi la demande sur la facture d’un particulier, sauf s’il ne veut pas qu’elle y figure. Elle s’imprime sous son nom."}</em>
         </label>
       )}

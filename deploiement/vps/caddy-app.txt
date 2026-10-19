@@ -3,6 +3,7 @@
 # 19 octobre : politique de contenu en essai (Report-Only), manifeste en application/manifest+json.
 # 19 octobre (audit strict) : Google et Meta retirés de la politique tant que la mesure est éteinte, form-action 'self'.
 # 19 octobre : https://stats.bestable.fr (Matomo sans cookie, sur le VPS) ajouté à connect-src.
+# 19 octobre : https://data.geopf.fr (adresses proposées par l'IGN, lib/adresses-ign.ts) ajouté à connect-src.
 # Fichier seulement : à recopier dans le Caddyfile du VPS, puis « caddy validate » et « systemctl reload caddy ».
 app.bestable.fr, app.187-7-74-179.sslip.io {
 	encode zstd gzip
@@ -32,7 +33,7 @@ app.bestable.fr, app.187-7-74-179.sslip.io {
 		# Pas de point de signalement (report-uri / report-to) : il n'existe encore
 		# aucune adresse qui sache recevoir ces rapports. En attendant, les relever à
 		# la main dans la console (Safari, Chrome) avant de passer la politique en vrai.
-		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://bestable.fr https://www.mon-ecurie.fr; connect-src 'self' https://bestable.fr https://www.mon-ecurie.fr https://wgvithqivsygsoeyqruz.supabase.co https://stats.bestable.fr; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://bestable.fr https://www.mon-ecurie.fr; connect-src 'self' https://bestable.fr https://www.mon-ecurie.fr https://wgvithqivsygsoeyqruz.supabase.co https://stats.bestable.fr https://data.geopf.fr; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
 		-Server
 	}
 	# Le manifeste de l'app installée, avec son vrai type.

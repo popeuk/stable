@@ -5,6 +5,7 @@ import { Suspense, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SaFormule } from "@/components/bs/formule";
+import { ChampAdresse } from "@/components/bs/champ-adresse";
 import { ClientGate } from "@/components/ui/client-gate";
 import { esc } from "@/components/bs/ui";
 import { retirer as retirerLigne } from "@/components/bs/retirer";
@@ -475,7 +476,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         </label>
         <label className="field">
           <span>Adresse</span>
-          <textarea key={`a-${person?.id}`} className="input ta fa-adr" rows={2} defaultValue={person?.address ?? ""} placeholder="Pour ses factures, facultatif" onBlur={(e) => e.target.value.trim() !== (person?.address ?? "") && maj({ address: e.target.value.trim() || undefined })} />
+          <ChampAdresse key={`a-${person?.id}`} defaultValue={person?.address ?? ""} placeholder="Pour ses factures, facultatif" onCommit={(v) => v !== (person?.address ?? "") && maj({ address: v || undefined })} />
         </label>
         <Switch on={seance} onClick={() => maj({ paieALaSeance: !seance })}>
           Paie à la séance

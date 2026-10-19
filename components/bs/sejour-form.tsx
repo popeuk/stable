@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { esc } from "@/components/bs/ui";
+import { ChampAdresse } from "@/components/bs/champ-adresse";
 import { localToday } from "@/lib/utils/local-date";
 import { dernierSejour, sejours, sejourEnMots } from "@/lib/domain/sejours";
 import type { Horse } from "@/lib/domain/types";
@@ -76,7 +77,7 @@ export function SejourForm({ horse, onDone }: { horse: Horse; onDone: (parti: bo
       </label>
       <label className="field">
         <span>{revient ? `D’où ${il} revient` : `Où ${il} part`} <span className="ch-opt">facultatif</span></span>
-        <input className="input" value={lieu} onChange={(e) => setLieu(e.target.value)} placeholder={revient ? "adresse de provenance" : "adresse de destination"} autoComplete="off" />
+        <ChampAdresse surUneLigne value={lieu} onChange={setLieu} placeholder={revient ? "adresse de provenance" : "adresse de destination"} />
       </label>
       <p className="note">
         {revient

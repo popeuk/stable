@@ -9,6 +9,7 @@ import { localToday } from "@/lib/utils/local-date";
 import { categorieSysteme } from "@/lib/domain/categories";
 import { useUiStore } from "@/stores/ui-store";
 import { esc } from "@/components/bs/ui";
+import { ChampAdresse } from "@/components/bs/champ-adresse";
 import { nomAffiche } from "@/lib/domain/noms-categories";
 import { useConfirmer } from "@/components/bs/confirmer";
 import "@/app/carnet/ecurie.css";
@@ -232,7 +233,7 @@ export function LieuReglages({ title = "Les papiers de l’écurie", children }:
             <label key={c.k} className="field">
               <span>{c.label}</span>
               {c.ta ? (
-                <textarea className="input ta" rows={2} defaultValue={holding[c.k] ?? ""} placeholder={c.ph} onBlur={(e) => setHolding({ [c.k]: e.target.value })} />
+                <ChampAdresse className="input" defaultValue={holding[c.k] ?? ""} placeholder={c.ph} onCommit={(v) => setHolding({ [c.k]: v })} />
               ) : (
                 <input className="input" type={c.type ?? "text"} defaultValue={holding[c.k] ?? ""} placeholder={c.ph} autoComplete="off" onBlur={(e) => setHolding({ [c.k]: e.target.value })} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
               )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { LienLegal } from "@/components/bs/texte-legal";
+import { ChampAdresse } from "@/components/bs/champ-adresse";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { withBase } from "@/components/bs/ui";
@@ -394,7 +395,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
               </label>
               <label className="field">
                 <span>Commune</span>
-                <input className="input" value={fiche.commune ?? ""} onChange={(e) => setFiche({ ...fiche, commune: e.target.value })} placeholder="Commune" autoComplete="address-level2" />
+                <ChampAdresse surUneLigne communes value={fiche.commune ?? ""} onChange={(v) => setFiche({ ...fiche, commune: v })} onChoisir={(s) => setFiche({ ...fiche, commune: s.ville, code_postal: s.codePostal || fiche.code_postal })} placeholder="Commune" autoComplete="address-level2" />
               </label>
             </div>
           </div>
