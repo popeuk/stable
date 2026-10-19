@@ -3,7 +3,7 @@ import { billOf, billsFor, cleClient, monthKey } from "@/lib/domain/billing";
 import { prenomDe } from "@/lib/domain/clients";
 import { enMoyen } from "@/lib/domain/paiement";
 import { esc } from "@/lib/utils/esc";
-import { formule, signature } from "@/lib/domain/politesse";
+import { formule, salut, signature } from "@/lib/domain/politesse";
 
 /**
  * La facture d'un client pour un mois. Les prix saisis dans l'app sont ceux
@@ -651,9 +651,9 @@ export function messageFacture(
   const f = formule(opts.tu);
   const out =
     inv.kind === "avoir"
-      ? [`Bonjour ${prenomDe(inv.payer)},`, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} déduits de ${f.ta} facture.`, "L’avoir en PDF suit."]
+      ? [salut(inv.payer), `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} déduits de ${f.ta} facture.`, "L’avoir en PDF suit."]
       : [
-          `Bonjour ${prenomDe(inv.payer)},`,
+          salut(inv.payer),
           `Voici ${f.ta} facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,
           inv.due > 0 && inv.due < inv.totalTTC ? `Reste à payer : ${nb(inv.due)}.` : inv.due <= 0 ? "Elle est déjà réglée." : "Payable à réception.",
           "La facture en PDF suit.",

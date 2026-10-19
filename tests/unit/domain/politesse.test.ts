@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { messageFacture } from "@/lib/domain/facture";
-import { messageDu } from "@/lib/domain/clients";
-import { nomEcurie, signature } from "@/lib/domain/politesse";
+import { messageFacture, messageFaite } from "@/lib/domain/facture";
+import { messageDu, prenomDe } from "@/lib/domain/clients";
+import { appel, nomEcurie, salut, signature } from "@/lib/domain/politesse";
 import type { Bill } from "@/lib/domain/billing";
 
 /** Tu ou vous dans les messages aux clients (décision 2), vous par défaut, signé du gérant et de l'écurie. */
@@ -48,5 +48,25 @@ describe("la signature", () => {
   it("sans nom du tout : un simple merci", () => {
     expect(signature("", "")).toEqual(["Merci."]);
     expect(signature("Julie", "")).toEqual(["Merci,", "Julie"]);
+  });
+});
+
+describe("le salut et le nom du client : jamais « Bonjour EARL, » ni « Bonjour M., »", () => {
+  it("une société est saluée « Bonjour, » et nommée en entier", () => {
+    const m = messageFacture({ ...inv, payer: "EARL du Haras des Lys" }, "Julie").split("\n");
+    expect(m[0]).toBe("Bonjour,");
+    expect(salut("SCEA Martin")).toBe("Bonjour,");
+    expect(appel("EARL du Haras des Lys")).toBe("EARL du Haras des Lys");
+    expect(prenomDe("GAEC des Prés")).toBe("GAEC des Prés");
+  });
+  it("une civilité se dit avec le nom", () => {
+    expect(salut("M. Dupont")).toBe("Bonjour M. Dupont,");
+    expect(salut("Mme Leroy")).toBe("Bonjour Mme Leroy,");
+    expect(prenomDe("M. Dupont")).toBe("M. Dupont");
+  });
+  it("une personne : son prénom, comme avant", () => {
+    expect(salut("Claire Dubois")).toBe("Bonjour Claire,");
+    expect(prenomDe("Hugo L.")).toBe("Hugo");
+    expect(messageFaite({ kind: "facture", number: "2026-0001", payer: "EARL Les Tilleuls" })).toBe("Facture n° 2026-0001 faite pour EARL Les Tilleuls.");
   });
 });
