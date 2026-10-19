@@ -248,7 +248,7 @@ function Mois() {
               <span className="ar-pic">
                 <Ic n={icFor(x.label)} className="ar-ic" />
               </span>
-              <span>{x.label}</span>
+              <span>{nomAffiche(x.label)}</span>
               <Money v={x.amount} prevu={estime} />
             </div>
           ))}

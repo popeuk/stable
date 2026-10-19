@@ -328,6 +328,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           {nomMois(period)}
           <span>
             {eurc(bill.total)} en tout · {eurc(bill.paid)} payé{bill.paid > 1 ? "s" : ""}
+            {(bill.rendu ?? 0) > 0 ? ` · ${eurc(bill.rendu ?? 0)} rendu${(bill.rendu ?? 0) > 1 ? "s" : ""}` : ""}
           </span>
         </h3>
         {lignes.length ? <p className="cl-auto">Ce qui a eu lieu s’ajoute tout seul.</p> : <p className="cl-auto">Rien ce mois pour l’instant.</p>}
