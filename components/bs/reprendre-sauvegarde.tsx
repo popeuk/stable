@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { enter, getSession, hasLocaleData, setSession, type LocaleSession } from "@/lib/account/session";
 import { fusionFactures } from "@/lib/domain/facture";
+import { cetAppareil } from "@/lib/appareil";
 import { compteurAppareil } from "@/lib/account/factures-seq";
 import { lireSauvegarde } from "@/lib/domain/valider";
 import { migrerDonnees, useDataStore, VERSION_DONNEES } from "@/stores/data-store";
@@ -28,10 +29,10 @@ export async function reprendreSauvegarde(texte: string, demander: (q: Question)
     return;
   }
   const question: Question = !depuisArrivee
-    ? { titre: "Ouvrir cette sauvegarde ?", texte: "Elle remplace ce qui est dans l’app. Tes factures faites depuis restent.", oui: "Oui, l’ouvrir" }
+    ? { titre: "Ouvrir cette sauvegarde ?", texte: "Elle remplace ce qui est dans l’app. Les factures faites après cette sauvegarde restent.", oui: "Oui, l’ouvrir" }
     : hasLocaleData()
-      ? { titre: "Ouvrir cette sauvegarde ?", texte: "Elle remplace l’essai rangé sur cet appareil. Tes factures faites depuis restent.", oui: "Oui, l’ouvrir" }
-      : { titre: "Ouvrir cette sauvegarde ?", texte: "Ton écurie s’ouvre sur cet appareil, sans compte. Tu pourras ensuite créer ton compte pour la garder.", oui: "Oui, l’ouvrir" };
+      ? { titre: "Ouvrir cette sauvegarde ?", texte: `Elle remplace l’essai rangé sur ${cetAppareil()}. Les factures faites après cette sauvegarde restent.`, oui: "Oui, l’ouvrir" }
+      : { titre: "Ouvrir cette sauvegarde ?", texte: `Ton écurie s’ouvre sur ${cetAppareil()}, sans compte. Tu pourras ensuite créer ton compte pour la garder.`, oui: "Oui, l’ouvrir" };
   if (!(await demander(question))) return;
   let session: LocaleSession | null = null;
   if (depuisArrivee && getSession()?.kind !== "compte") {
@@ -88,6 +89,6 @@ export function useSauvegardeOuverte() {
     } catch {
       return;
     }
-    say("Ta sauvegarde est ouverte, sur cet appareil seulement. Crée ton compte pour la garder.");
+    say(`Ta sauvegarde est ouverte, sur ${cetAppareil()} seulement. Crée ton compte pour la garder.`);
   }, [say]);
 }

@@ -5,7 +5,7 @@ export type RefusCopie = "trop_gros" | "invalide" | null;
 
 /** La phrase du refus, pour Mon compte et le bandeau (la même partout). */
 export function texteRefus(refus: RefusCopie): string | null {
-  if (refus === "trop_gros") return "Ta copie en ligne ne part plus : ton écurie est trop grosse. Fais une sauvegarde.";
+  if (refus === "trop_gros") return "Ta copie en ligne ne part plus : ton écurie est trop grosse. Fais une sauvegarde, puis écris-nous : on la fera repartir.";
   if (refus === "invalide") return "Ta copie en ligne ne part plus. Fais une sauvegarde et écris-nous.";
   return null;
 }

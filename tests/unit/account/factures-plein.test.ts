@@ -61,7 +61,7 @@ describe("téléphone plein : rien n'est numéroté sans être enregistré", () 
       .then(() => null, (e: unknown) => e);
     expect(err).toBeInstanceOf(FactureNonEnregistree);
     expect((err as InstanceType<typeof FactureNonEnregistree>).plein).toBe(true);
-    expect(messageNonEnregistree(err as InstanceType<typeof FactureNonEnregistree>)).toMatch(/^Ton téléphone est plein : la facture n’a pas reçu de numéro/);
+    expect(messageNonEnregistree(err as InstanceType<typeof FactureNonEnregistree>)).toMatch(/^(Ce téléphone|Cet ordinateur) est plein : la facture n’a pas reçu de numéro/);
     // Rien à l'écran, rien d'enregistré, le compteur de l'appareil n'a pas bougé.
     expect(useDataStore.getState().invoices).toEqual([]);
     expect(useDataStore.getState().invoiceSeq ?? {}).toEqual({});

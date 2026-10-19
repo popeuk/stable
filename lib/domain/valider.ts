@@ -104,7 +104,7 @@ export interface Nettoyage {
 
 /** Garde ce qui est lisible, écarte le reste, et dit ce qui a été écarté. */
 export function nettoyer(raw: unknown): Nettoyage {
-  if (!estObjet(raw)) return { data: {}, problemes: ["toutes les données"] };
+  if (!estObjet(raw)) return { data: {}, problemes: ["tout le fichier"] };
   const data: Record<string, unknown> = { ...raw };
   const problemes: string[] = [];
   for (const k of [...LISTES_ESSENTIELLES, ...LISTES]) {
@@ -169,7 +169,7 @@ export function lireSauvegarde(texte: string, max: { donnees: number; reglages: 
   const state = (json["be-stable-data"] as Record<string, unknown>).state as Record<string, unknown>;
   const n = nettoyer(state);
   if (n.problemes.length) {
-    return { ok: false, raison: `Cette sauvegarde est abîmée (${n.problemes.join(", ")}). Rien n’a changé dans l’app.` };
+    return { ok: false, raison: `Cette sauvegarde est abîmée (${n.problemes.join(", ")}). Rien n’a changé. Essaie une sauvegarde plus ancienne, ou écris-nous.` };
   }
   const st = json["be-stable-settings"];
   const settings = estObjet(st) && estObjet(st.state) ? (st.state as Record<string, unknown>) : undefined;

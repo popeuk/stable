@@ -1,5 +1,6 @@
 "use client";
 
+import { CetAppareil, appareil, cetAppareil } from "@/lib/appareil";
 import { getSession } from "@/lib/account/session";
 import { ecrituresFaites } from "@/lib/account/vault";
 import { etatPlace } from "@/lib/account/place";
@@ -39,8 +40,8 @@ export class FactureNonEnregistree extends Error {
 export function messageNonEnregistree(e: FactureNonEnregistree, avoir = false): string {
   const doc = avoir ? "l’avoir" : "la facture";
   return e.plein
-    ? `Ton téléphone est plein : ${doc} n’a pas reçu de numéro, rien n’est enregistré. Fais une sauvegarde (Réglages, Avancé), libère de la place (photos, vidéos), puis réessaie.`
-    : `${avoir ? "L’avoir n’a" : "La facture n’a"} pas pu être enregistré${avoir ? "" : "e"} sur cet appareil : rien n’est numéroté. Réessaie.`;
+    ? `${CetAppareil()} est plein : ${doc} n’a pas reçu de numéro, rien n’est enregistré. Fais une sauvegarde (Réglages, Avancé), libère de la place (${appareil() === "téléphone" ? "photos, vidéos" : "fichiers et téléchargements"}), puis réessaie.`
+    : `${avoir ? "L’avoir n’a" : "La facture n’a"} pas pu être enregistré${avoir ? "" : "e"} sur ${cetAppareil()} : rien n’est numéroté. Réessaie.`;
 }
 
 export class AvoirSansReseau extends Error {
@@ -49,7 +50,7 @@ export class AvoirSansReseau extends Error {
     this.name = "AvoirSansReseau";
   }
 }
-export const MESSAGE_AVOIR_SANS_RESEAU = "Pas de réseau : l’avoir n’est pas fait. Il prend le numéro qui suit tes factures, et l’app vérifie en ligne qu’aucun autre appareil ne l’a déjà pris. Réessaie quand tu as du réseau.";
+export const MESSAGE_AVOIR_SANS_RESEAU = "Pas de réseau : l’avoir n’est pas fait. Il lui faut le réseau pour prendre le bon numéro. Réessaie dès que tu en as.";
 
 type Carnet = Pick<StableData, "invoices" | "invoiceSeq">;
 

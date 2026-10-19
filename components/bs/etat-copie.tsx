@@ -13,7 +13,7 @@ export function EtatCopie() {
     const lire = () => {
       const e = etatNuage();
       setT(texteCopie(e, Date.now(), cetAppareil()));
-      setRefuse(!!e.refus);
+      setRefuse(!!e.refus || !e.allume);
     };
     lire();
     const minuteur = setInterval(lire, 5000);

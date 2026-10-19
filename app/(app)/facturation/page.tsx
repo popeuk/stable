@@ -48,7 +48,7 @@ function Facturation() {
               {d.factures.length} factures portent le n° {d.number}
             </b>
             <p>
-              Elles ont été faites en même temps sur deux appareils (
+              Elles ont été faites en même temps sur ton téléphone et ton ordinateur (
               {d.factures.map((f, k) => (
                 <span key={f.id}>
                   {k > 0 && (k === d.factures.length - 1 ? " et " : ", ")}
@@ -57,11 +57,11 @@ function Facturation() {
                   </Link>
                 </span>
               ))}
-              ). Un numéro ne sert qu’une fois. Garde celle qui est partie la première. Ouvre l’autre, annule-la par un avoir, puis refais-la depuis la fiche du client : elle prendra un nouveau numéro. Si aucune n’est encore partie, fais pareil avec la seconde.
+              ). Garde celle qui est partie la première ; annule l’autre par un avoir, puis refais-la depuis la fiche du client.
             </p>
           </div>
         ))}
-        {attente > 0 && <p className="fr-hint">{attente > 1 ? `${attente} factures attendent leur numéro` : "Une facture attend son numéro"} : faites sans réseau, elles le reçoivent dès qu’il revient.</p>}
+        {attente > 0 && <p className="fr-hint">{attente > 1 ? `${attente} factures à numéroter` : "Une facture à numéroter"} : faites sans réseau, elles reçoivent leur numéro dès qu’il revient.</p>}
         {list.length ? (
           <div className="fr-list">
             {list.map((i) => (
@@ -90,7 +90,7 @@ function Facturation() {
         <p className="fr-hint">Une facture faite ne se modifie plus. Pour la corriger, ouvre-la et annule-la avec un avoir. Les numéros se suivent, on ne revient jamais en arrière.</p>
         <p className="fr-hint">
           {ou.compte
-            ? "Avant de donner un numéro, l’app relit ta copie en ligne : le téléphone et l’ordinateur ne prennent pas le même. Sans réseau, la facture est faite mais attend son numéro."
+            ? "Avant de donner un numéro, l’app relit ta copie en ligne : le téléphone et l’ordinateur ne prennent pas le même. Sans réseau, la facture est faite, à numéroter."
             : "Fais toujours tes factures sur le même téléphone (ou le même ordinateur) : sans compte, ils ne se les partagent pas, et deux factures pourraient avoir le même numéro."}
         </p>
       </Sec>

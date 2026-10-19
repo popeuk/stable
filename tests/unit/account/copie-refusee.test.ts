@@ -93,7 +93,7 @@ describe("la copie en ligne refusée par le serveur", () => {
     await nuage.envoyer();
     expect(nuage.etatNuage().refus).toBe("trop_gros");
     expect(nuage.refusCopie()).toBe("trop_gros");
-    expect(texteCopie(nuage.etatNuage())).toBe("Ta copie en ligne ne part plus : ton écurie est trop grosse. Fais une sauvegarde.");
+    expect(texteCopie(nuage.etatNuage())).toBe("Ta copie en ligne ne part plus : ton écurie est trop grosse. Fais une sauvegarde, puis écris-nous : on la fera repartir.");
     const avant = serveur.puts.length;
     // Plus de séances : toujours trop gros, rien ne repart.
     await ecrire(220);

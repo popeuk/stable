@@ -38,7 +38,7 @@ describe("un état stocké abîmé ne casse plus les écrans (P2-8)", () => {
   it("un texte qui ne se lit même pas : rien d'inventé, la copie d'origine est gardée", async () => {
     await recharger("{pas du json");
     expect(st().horses).toEqual([]);
-    expect(st().secours).toEqual({ problemes: ["toutes les données"], copie: "{pas du json" });
+    expect(st().secours).toEqual({ problemes: ["tout le fichier"], copie: "{pas du json" });
     st().quitterSecours("repartir");
     expect(st().secours).toBeUndefined();
   });
@@ -54,7 +54,7 @@ describe("une sauvegarde abîmée ou d'un autre format est refusée, rien n'est 
   it("refusée avec la raison", () => {
     const abimee = lireSauvegarde(JSON.stringify({ app: "be-stable", "be-stable-data": { state: { horses: "abc" } } }));
     expect(abimee.ok).toBe(false);
-    expect(!abimee.ok && abimee.raison).toMatch(/abîmée \(les chevaux\)\. Rien n’a changé dans l’app/);
+    expect(!abimee.ok && abimee.raison).toMatch(/abîmée \(les chevaux\)\. Rien n’a changé\./);
     expect(lireSauvegarde("bonjour").ok).toBe(false);
     expect(lireSauvegarde(JSON.stringify({ app: "autre" })).ok).toBe(false);
   });
