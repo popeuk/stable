@@ -67,6 +67,6 @@ describe("le salut et le nom du client : jamais « Bonjour EARL, » ni « Bonjou
   it("une personne : son prénom, comme avant", () => {
     expect(salut("Claire Dubois")).toBe("Bonjour Claire,");
     expect(prenomDe("Hugo L.")).toBe("Hugo");
-    expect(messageFaite({ kind: "facture", number: "2026-0001", payer: "EARL Les Tilleuls" })).toBe("Facture n° 2026-0001 faite pour EARL Les Tilleuls.");
+    expect(messageFaite({ number: "2026-0001", payer: "EARL Les Tilleuls" })).toBe("Facture n° 2026-0001 faite pour EARL Les Tilleuls.");
   });
 });

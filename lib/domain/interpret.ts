@@ -4,7 +4,7 @@ import { addDays, CARE_KINDS, type CareKind } from "@/lib/domain/care";
 /**
  * L'interpréteur de commandes en français : « cours collectif demain 14 h
  * avec Belle et Pacha, 25 euros » devient une commande structurée. Version
- * locale, déterministe et testée — le repli hors-ligne de l'assistant.
+ * locale, déterministe et testée : le repli hors-ligne de l'assistant.
  * L'LLM (OpenRouter) produit la même forme de commande.
  */
 export interface Command {
