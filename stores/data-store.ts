@@ -774,7 +774,8 @@ export const useDataStore = create<DataState>()(
           const value = Math.max(0, Math.round(amount * 100) / 100);
           const rid = pensionRevenueId(horseId, monthKey);
           // Déjà sur une facture : le mois garde son prix (un avoir le corrige), le contrat change pour la suite.
-          const facturee = recettesFacturees(s.invoices).has(rid);
+          // Partagée entre deux propriétaires ce mois-ci (proprio.ts, partPension) : les deux parts gardent leur prix.
+          const facturee = recettesFacturees(s.invoices).has(rid) || s.revenues.some((r) => r.id === `${rid}-suite`);
           return {
             horses: s.horses.map((h) => (h.id === horseId ? { ...h, pension: value } : h)),
             revenues: facturee ? s.revenues : s.revenues.map((r) => (r.id === rid ? { ...r, amount: value } : r)),
@@ -883,14 +884,18 @@ export const useDataStore = create<DataState>()(
           const r = c.revenues.find((x) => x.id === t.id);
           if (r) enqueueMutation("update", "revenues", { ...r });
         }
+        for (const r of c.added) enqueueMutation("insert", "revenues", { ...r });
         set({ horses: c.horses, revenues: c.revenues, people: c.people });
         return () =>
           set((cur) => {
-            const back = new Map(c.touched.map((t) => [t.id, t.before]));
-            const revenues = cur.revenues.map((r) => {
-              if (!back.has(r.id)) return r;
-              const next: Revenue = { ...r, payer: back.get(r.id) };
+            const back = new Map(c.touched.map((t) => [t.id, t]));
+            const partie = new Set(c.added.map((r) => r.id));
+            const revenues = cur.revenues.filter((r) => !partie.has(r.id)).map((r) => {
+              const t = back.get(r.id);
+              if (!t) return r;
+              const next: Revenue = { ...r, payer: t.before, ...(t.amountBefore !== undefined ? { amount: t.amountBefore, note: t.noteBefore } : {}) };
               if (!next.payer) delete next.payer;
+              if (next.note === undefined) delete next.note;
               enqueueMutation("update", "revenues", { ...next });
               return next;
             });

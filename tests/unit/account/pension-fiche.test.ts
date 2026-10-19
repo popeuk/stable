@@ -64,3 +64,18 @@ describe("changer la pension dans la fiche du cheval", () => {
     expect(st().revenues.find((r) => r.id === pensionRevenueId(hid, mois()))?.amount).toBe(420);
   });
 });
+
+describe("changer de propriétaire en cours de mois, puis annuler", () => {
+  it("les deux parts font la pension ; annuler remet tout comme avant", () => {
+    st().startEmpty();
+    const hid = st().addHorse({ name: "Willow", entryDate: "2020-01-01", ownerName: "Julien B.", pension: 390 });
+    const rid = pensionRevenueId(hid, mois());
+    const undo = st().setOwner(hid, "Anne M.");
+    const parts = st().revenues.filter((r) => r.id === rid || r.id === `${rid}-suite`);
+    expect(parts.reduce((t, r) => t + r.amount, 0)).toBe(390);
+    undo();
+    expect(st().revenues.filter((r) => r.id.startsWith(rid))).toHaveLength(1);
+    expect(st().revenues.find((r) => r.id === rid)).toMatchObject({ amount: 390 });
+    expect(st().revenues.find((r) => r.id === rid)?.payer).toBeUndefined();
+  });
+});

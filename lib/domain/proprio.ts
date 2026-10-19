@@ -1,5 +1,7 @@
 import type { Horse, Invoice, Payment, Person, Revenue, StableData } from "@/lib/domain/types";
 import { cleClient } from "@/lib/domain/billing";
+import { recettesFacturees } from "@/lib/domain/facture";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Le lien entre un cheval et son propriétaire. Le cheval porte le nom de son
@@ -129,8 +131,10 @@ export interface ChangementProprio {
   horses: Horse[];
   revenues: Revenue[];
   people: Person[];
-  /** Les recettes dont le payeur a changé (pour la synchro et pour annuler). */
-  touched: { id: string; before?: string; after?: string }[];
+  /** Les recettes dont le payeur (ou le montant, pour une pension partagée) a changé : pour la synchro et pour annuler. */
+  touched: { id: string; before?: string; after?: string; amountBefore?: number; noteBefore?: string }[];
+  /** La part du nouveau propriétaire d'une pension partagée au prorata (pour la synchro et pour annuler). */
+  added: Revenue[];
   /** Le nom retenu (canonique), ou undefined si le cheval n'a plus de propriétaire. */
   owner?: string;
   before?: string;
@@ -141,12 +145,16 @@ export interface ChangementProprio {
  * - Le passé reste au nom d'avant : les recettes du cheval datées d'avant
  *   aujourd'hui, sans payeur noté, reçoivent l'ancien propriétaire comme
  *   payeur. Sans ancien propriétaire, rien à garder : tout suit le nouveau.
+ * - La pension du mois en cours se partage au prorata des jours : l'ancien
+ *   paie jusqu'à la veille, le nouveau à partir d'aujourd'hui (sa part est
+ *   une recette à lui). Déjà facturée, elle reste en entier à l'ancien : la
+ *   facture est faite.
  * - Les refacturations à venir notées à l'ancien passent au nouveau.
  * - Le nouveau propriétaire devient une personne du carnet (une seule fois).
  * `name` vide ou null : le cheval n'a plus de propriétaire.
  */
 export function changerProprio(
-  data: Pick<StableData, "horses" | "revenues" | "people">,
+  data: Pick<StableData, "horses" | "revenues" | "people"> & Partial<Pick<StableData, "invoices">>,
   horseId: string,
   name: string | null | undefined,
   today: string,
@@ -156,12 +164,20 @@ export function changerProprio(
   const horse = data.horses.find((h) => h.id === horseId);
   const before = horse?.ownerName?.trim() || undefined;
   const owner = name?.trim() ? nomConnu(data, name) : undefined;
-  if (!horse) return { horses: data.horses, revenues: data.revenues, people, touched: [], owner, before };
+  if (!horse) return { horses: data.horses, revenues: data.revenues, people, touched: [], added: [], owner, before };
   const nextPeople = owner ? avecProprio(people, owner, mkId) : people;
-  if (before === owner) return { horses: data.horses, revenues: data.revenues, people: nextPeople, touched: [], owner, before };
+  if (before === owner) return { horses: data.horses, revenues: data.revenues, people: nextPeople, touched: [], added: [], owner, before };
   const touched: ChangementProprio["touched"] = [];
+  const added: Revenue[] = [];
+  const facturees = recettesFacturees(data.invoices);
   const revenues = data.revenues.map((r) => {
     if (r.horseId !== horseId) return r;
+    const part = before && !r.payer && !facturees.has(r.id) ? partPension(r, horseId, today) : null;
+    if (part) {
+      touched.push({ id: r.id, before: undefined, after: before, amountBefore: r.amount, noteBefore: r.note });
+      added.push({ ...r, id: `${r.id}-suite`, amount: part.nouveau, date: today, note: part.noteNouveau });
+      return { ...r, payer: before, amount: part.ancien, note: part.noteAncien };
+    }
     if (!r.payer && before && r.date < today) {
       touched.push({ id: r.id, before: undefined, after: before });
       return { ...r, payer: before };
@@ -180,7 +196,36 @@ export function changerProprio(
     if (!owner) delete next.ownerName;
     return next;
   });
-  return { horses, revenues, people: nextPeople, touched, owner, before };
+  return { horses, revenues: [...revenues, ...added], people: nextPeople, touched, added, owner, before };
+}
+
+const jourNum = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10))) / 86400000;
+
+/**
+ * Le partage au prorata des jours de la pension du mois en cours (postée toute
+ * seule, `rev-pension-<cheval>-<mois>`) quand le propriétaire change le jour
+ * `today` : l'ancien paie de son jour (le 1er, ou l'arrivée) à la veille, le
+ * nouveau le reste du mois. Au centime ; null si ce n'est pas une pension du
+ * mois de `today`, ou si elle commence aujourd'hui (tout va au nouveau).
+ */
+export function partPension(r: Pick<Revenue, "id" | "amount" | "date">, horseId: string, today: string): { ancien: number; nouveau: number; noteAncien: string; noteNouveau: string } | null {
+  const mk = today.slice(0, 7);
+  if (r.id !== `rev-pension-${horseId}-${mk}` || r.date.slice(0, 7) !== mk || r.date >= today) return null;
+  const y = Number(mk.slice(0, 4));
+  const m = Number(mk.slice(5, 7));
+  const dernier = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const total = dernier - Number(r.date.slice(8, 10)) + 1;
+  const avant = jourNum(today) - jourNum(r.date);
+  const ancien = r2((r.amount * avant) / total);
+  const mois = new Date(Date.UTC(y, m - 1, 15)).toLocaleDateString("fr-FR", { month: "long", timeZone: "UTC" });
+  const j = (n: number) => (n === 1 ? "1er" : String(n));
+  const veille = Number(today.slice(8, 10)) - 1;
+  return {
+    ancien,
+    nouveau: r2(r.amount - ancien),
+    noteAncien: `Pension du ${j(Number(r.date.slice(8, 10)))} au ${j(veille)} ${mois}`,
+    noteNouveau: `Pension du ${j(veille + 1)} au ${dernier} ${mois}`,
+  };
 }
 
 /**
