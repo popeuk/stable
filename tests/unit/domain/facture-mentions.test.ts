@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capitalDit, emettre, enteteVendeur, ibanDit, ibanValide, mentionIban, vendeurDe, vendeurManque, type Brouillon } from "@/lib/domain/facture";
+import { capitalDit, emettre, enteteVendeur, ibanCleOk, ibanDit, ibanErreur, ibanValide, mentionIban, vendeurDe, vendeurManque, type Brouillon } from "@/lib/domain/facture";
 import type { BillingInfo, Invoice } from "@/lib/domain/types";
 
 /**
@@ -64,12 +64,35 @@ describe("l'en-tête imprimé", () => {
 
 describe("l'IBAN", () => {
   const IBAN = "FR76 3000 6000 0112 3456 7890 189";
-  it("FR et 25 caractères, espaces tolérés", () => {
+  it("contrôle complet : pays, longueur du pays, clé modulo 97 ; espaces et minuscules tolérés", () => {
     expect(ibanValide(IBAN)).toBe(true);
     expect(ibanValide("fr7630006000011234567890189")).toBe(true);
+    expect(ibanCleOk("FR7630006000011234567890189")).toBe(true);
     expect(ibanValide("FR76 3000 6000 0112 3456 7890 18")).toBe(false);
-    expect(ibanValide("DE89370400440532013000")).toBe(false);
     expect(ibanDit("fr7630006000011234567890189")).toBe(IBAN);
+  });
+  it("une faute de frappe ne passe pas : la clé est fausse", () => {
+    // Le « FR00 0000… » de l'audit, et un chiffre changé dans un vrai IBAN.
+    expect(ibanValide("FR00 0000 0000 0000 0000 0000 000")).toBe(false);
+    expect(ibanValide("FR7630006000011234567890188")).toBe(false);
+    expect(ibanValide("FR7630006000011234576890189")).toBe(false);
+    expect(ibanErreur("FR7630006000011234567890188")).toMatch(/faute de frappe/);
+  });
+  it("les IBAN étrangers de la zone SEPA sont acceptés (N26 en Allemagne, Revolut en Lituanie, Belgique)", () => {
+    expect(ibanValide("DE89 3704 0044 0532 0130 00")).toBe(true);
+    expect(ibanValide("LT12 1000 0111 0100 1000")).toBe(true);
+    expect(ibanValide("BE68 5390 0754 7034")).toBe(true);
+    expect(ibanValide("GB82 WEST 1234 5698 7654 32")).toBe(true);
+    expect(ibanValide("CH93 0076 2011 6238 5295 7")).toBe(true);
+  });
+  it("le message dit ce qui ne va pas", () => {
+    expect(ibanErreur("")).toBe("");
+    expect(ibanErreur(IBAN)).toBe("");
+    expect(ibanErreur("FR76 3000 6000 0112 3456 7890 18")).toBe("Un IBAN français a 27 caractères : tu en as 26.");
+    expect(ibanErreur("DE89 3704 0044 0532 0130")).toBe("Un IBAN allemand a 22 caractères : tu en as 20.");
+    expect(ibanErreur("ZZ12 3456")).toMatch(/« ZZ » n’est pas le début d’un IBAN/);
+    expect(ibanErreur("1234")).toMatch(/commence par deux lettres/);
+    expect(ibanErreur("FRAB 3000")).toMatch(/deux chiffres/);
   });
   it("rempli, il part sur la facture et s'imprime en pied", () => {
     const inv = faire({ ...BASE, statut: "ei", iban: "fr76 3000 6000 0112 3456 7890 189" });
@@ -79,7 +102,11 @@ describe("l'IBAN", () => {
   it("vide ou mal formé : rien n'est imprimé", () => {
     expect(faire({ ...BASE, statut: "ei" }).seller.iban).toBeUndefined();
     expect(vendeurDe({ ...BASE, iban: "FR12" }, true).iban).toBeUndefined();
+    expect(vendeurDe({ ...BASE, iban: "FR7630006000011234567890188" }, true).iban).toBeUndefined();
     expect(mentionIban(undefined)).toBe("");
+  });
+  it("une facture déjà figée avec un IBAN d'avant le contrôle s'imprime toujours comme elle est partie", () => {
+    expect(mentionIban("FR0000000000000000000000000")).toBe("Paiement par virement : IBAN FR00 0000 0000 0000 0000 0000 000");
   });
   it("une facture déjà figée garde son vendeur quand les infos changent", () => {
     const inv = faire({ ...BASE, statut: "ei" });

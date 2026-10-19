@@ -13,8 +13,8 @@ import {
   TAUX,
   enteteVendeur,
   ibanDit,
+  ibanErreur,
   ibanPropre,
-  ibanValide,
   personneDe,
   siretDit,
   siretPropre,
@@ -133,7 +133,7 @@ function Iban() {
   const billing = useDataStore((s) => s.billing);
   const setBilling = useDataStore((s) => s.setBilling);
   const [v, setV] = useState(ibanDit(billing?.iban));
-  const ok = ibanValide(v);
+  const erreur = ibanErreur(v);
   return (
     <label className="field">
       <span>
@@ -145,13 +145,14 @@ function Iban() {
         autoCapitalize="characters"
         value={v}
         placeholder="Ex. : FR76 3000 6000 0112 3456 7890 189"
+        aria-invalid={!!erreur}
         onChange={(e) => {
-          const t = e.target.value.slice(0, 40);
+          const t = e.target.value.slice(0, 44);
           setV(t);
           setBilling({ iban: ibanPropre(t) || undefined });
         }}
       />
-      <em>{v.trim() && !ok ? `FR, puis 25 chiffres ou lettres : ${Math.max(0, ibanPropre(v).length - 2)} sur 25.` : "Rempli, il s’imprime en bas de tes factures : « Paiement par virement : IBAN … »."}</em>
+      <em>{erreur ? `${erreur} Tant qu’il n’est pas juste, il ne s’imprime pas.` : "Rempli, il s’imprime en bas de tes factures : « Paiement par virement : IBAN … ». Un IBAN d’une autre banque d’Europe (N26, Revolut…) marche aussi."}</em>
     </label>
   );
 }

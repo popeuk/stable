@@ -79,16 +79,66 @@ export const tvaIntraDit = (s?: string) => {
 /* ---------- Le statut du vendeur et son IBAN ---------- */
 
 /** L'IBAN sans espaces, en capitales. */
-export const ibanPropre = (s?: string) => (s ?? "").replace(/\s+/g, "").toUpperCase();
-/** Un IBAN français : FR et 25 caractères (contrôle de forme simple, espaces tolérés). */
-export const ibanValide = (s?: string) => /^FR[0-9A-Z]{25}$/.test(ibanPropre(s));
-/** « FR76 3000 6000 0112 3456 7890 189 ». */
+export const ibanPropre = (s?: string) => (s ?? "").replace(/[\s.-]+/g, "").toUpperCase();
+
+/**
+ * La longueur de l'IBAN de chaque pays (registre ISO 13616 tenu par Swift) :
+ * toute la zone SEPA, et les pays proches. Un IBAN de N26 (DE) ou de
+ * Revolut (LT) est accepté comme un IBAN français.
+ */
+export const IBAN_LONGUEUR: Record<string, number> = {
+  AD: 24, AE: 23, AL: 28, AT: 20, AZ: 28, BA: 20, BE: 16, BG: 22, BH: 22, BR: 29, BY: 28, CH: 21, CR: 22, CY: 28, CZ: 24,
+  DE: 22, DK: 18, DO: 28, EE: 20, EG: 29, ES: 24, FI: 18, FO: 18, FR: 27, GB: 22, GE: 22, GI: 23, GL: 18, GR: 27, GT: 28,
+  HR: 21, HU: 28, IE: 22, IL: 23, IQ: 23, IS: 26, IT: 27, JO: 30, KW: 30, KZ: 20, LB: 28, LC: 32, LI: 21, LT: 20, LU: 20,
+  LV: 21, MC: 27, MD: 24, ME: 22, MK: 19, MR: 27, MT: 31, MU: 30, NL: 18, NO: 15, PK: 24, PL: 28, PS: 29, PT: 25, QA: 29,
+  RO: 24, RS: 22, SA: 24, SC: 31, SE: 24, SI: 19, SK: 24, SM: 27, ST: 25, SV: 28, TL: 23, TN: 24, TR: 26, UA: 29, VA: 22,
+  VG: 24, XK: 20,
+};
+const PAYS_IBAN: Record<string, string> = {
+  FR: "français", DE: "allemand", BE: "belge", ES: "espagnol", IT: "italien", NL: "néerlandais", LU: "luxembourgeois",
+  LT: "lituanien", IE: "irlandais", PT: "portugais", CH: "suisse", MC: "monégasque", GB: "britannique", AT: "autrichien",
+};
+
+/** La clé de contrôle (ISO 7064, modulo 97) : les 4 premiers caractères passent à la fin, les lettres deviennent des nombres (A = 10). */
+export function ibanCleOk(s?: string): boolean {
+  const t = ibanPropre(s);
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(t)) return false;
+  const chiffres = (t.slice(4) + t.slice(0, 4)).replace(/[A-Z]/g, (c) => String(c.charCodeAt(0) - 55));
+  let reste = 0;
+  for (const c of chiffres) reste = (reste * 10 + Number(c)) % 97;
+  return reste === 1;
+}
+
+/**
+ * Ce qui ne va pas dans un IBAN, dit simplement, ou "" s'il est bon (ou
+ * vide). Contrôle complet : le pays, la longueur de ce pays, et la clé.
+ */
+export function ibanErreur(s?: string): string {
+  const t = ibanPropre(s);
+  if (!t) return "";
+  if (!/^[A-Z]{2}/.test(t)) return "Un IBAN commence par deux lettres, celles du pays : FR pour la France.";
+  const pays = t.slice(0, 2);
+  const n = IBAN_LONGUEUR[pays];
+  if (!n) return `« ${pays} » n’est pas le début d’un IBAN : vérifie les deux premières lettres (FR pour la France).`;
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]*$/.test(t)) return "Après les deux lettres du pays viennent deux chiffres, puis des chiffres et des lettres seulement.";
+  if (t.length !== n) return `Un IBAN ${PAYS_IBAN[pays] ?? `qui commence par ${pays}`} a ${n} caractères : tu en as ${t.length}.`;
+  if (!ibanCleOk(t)) return "Ce numéro ne passe pas le contrôle de la banque : il y a sans doute une faute de frappe. Relis-le sur ton RIB.";
+  return "";
+}
+
+/** Un IBAN complet et juste : pays connu, bonne longueur, clé de contrôle bonne. */
+export const ibanValide = (s?: string) => !!ibanPropre(s) && !ibanErreur(s);
+/** « FR76 3000 6000 0112 3456 7890 189 » : par groupes de 4. */
 export const ibanDit = (s?: string) => {
   const t = ibanPropre(s);
-  return ibanValide(t) ? (t.match(/.{1,4}/g) ?? []).join(" ") : (s ?? "").trim();
+  return /^[A-Z0-9]+$/.test(t) ? (t.match(/.{1,4}/g) ?? []).join(" ") : (s ?? "").trim();
 };
-/** La ligne du pied de facture quand l'IBAN est noté. */
-export const mentionIban = (iban?: string) => (iban && ibanValide(iban) ? `Paiement par virement : IBAN ${ibanDit(iban)}` : "");
+/**
+ * La ligne du pied de facture. Elle lit l'IBAN figé dans la facture : une
+ * facture déjà faite s'imprime comme elle est partie (une nouvelle facture
+ * ne reçoit qu'un IBAN qui passe le contrôle, voir vendeurDe).
+ */
+export const mentionIban = (iban?: string) => (ibanPropre(iban) ? `Paiement par virement : IBAN ${ibanDit(iban)}` : "");
 
 /** Le capital tel qu'imprimé : « 7 500 € » pour « 7500 », sinon tel que tapé. */
 export function capitalDit(c?: string): string {
