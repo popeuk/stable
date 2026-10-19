@@ -22,7 +22,7 @@ function avecFacture() {
       { id: "cc", name: "Cours" },
     ],
     expenseCategories: [],
-    people: [{ id: "x", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier" }],
+    people: [{ id: "x", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Claire Durand" }],
     billing: B,
   };
   const inv = emettre(d, brouillon(d, "Claire D.", oct).facture!, "2026-10-20", "i1");

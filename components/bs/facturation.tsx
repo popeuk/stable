@@ -12,6 +12,9 @@ import {
   PENALITES,
   TAUX,
   enteteVendeur,
+  estNomComplet,
+  rcsDit,
+  vendeurDe,
   ibanDit,
   ibanErreur,
   ibanPropre,
@@ -37,7 +40,10 @@ import type { PersonRole, VatKind } from "@/lib/domain/types";
  * manque quelque chose. Styles : app/carnet/facture.css (fr-).
  */
 
-/** Nom ou raison sociale (obligatoire), statut (EI ou société, forme et capital), adresse, SIRET (le même que celui du registre), IBAN (facultatif). */
+/** Les champs de l'identité du vendeur : le statut, et les noms qui vont avec. */
+const IDENTITE: VendeurManque[] = ["statut", "nom", "nomPrenom", "forme", "capital", "rcs"];
+
+/** Le statut et l'identité (selon le statut), adresse, SIRET (le même que celui du registre), IBAN (facultatif). */
 export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
   const billing = useDataStore((s) => s.billing);
   const siretLieu = useDataStore((s) => s.holding?.siret);
@@ -47,16 +53,7 @@ export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
   const siretOk = siretValide(siret);
   return (
     <div className="fr-form">
-      {voir("nom") && (
-        <>
-          <label className="field">
-            <span>Nom ou raison sociale</span>
-            <input className="input" defaultValue={billing?.legalName ?? ""} placeholder="Ex. : Écurie des Prés, ou ton nom" autoComplete="organization" onChange={(e) => setBilling({ legalName: e.target.value })} />
-            <em>Tel qu’il est inscrit au répertoire Sirene. Il s’imprime en tête de chaque facture.</em>
-          </label>
-        </>
-      )}
-      {(voir("statut") || voir("forme") || voir("capital")) && <StatutVendeur />}
+      {IDENTITE.some(voir) && <StatutVendeur />}
       {voir("adresse") && (
         <label className="field">
           <span>Adresse</span>
@@ -81,38 +78,63 @@ export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
           <em>{siret && !siretOk ? `${siretPropre(siret).length} chiffres sur 14.` : "Sur ton avis de situation Insee ou ton Kbis. Le même que celui de ton registre d’élevage."}</em>
         </label>
       )}
-      {voir("tva") && !voir("nom") && <TvaIntra />}
+      {voir("tva") && seulement && !IDENTITE.some((k) => seulement.includes(k)) && <TvaIntra />}
       {!seulement && <Iban />}
     </div>
   );
 }
 
 /**
- * Entrepreneur individuel ou société : la loi demande « EI » après le nom
- * d'un entrepreneur individuel, la forme juridique et le capital d'une
- * société. Choisi une fois, imprimé sur chaque facture.
+ * Entrepreneur individuel ou société, puis ce que la loi demande pour chacun
+ * (F31808) : pour un entrepreneur individuel, son nom et son prénom suivis
+ * de « EI » (le nom commercial s'ajoute, il ne remplace pas) ; pour une
+ * société, sa raison sociale, sa forme juridique, son capital et son RCS.
+ * Choisi une fois, imprimé sur chaque facture.
  */
 function StatutVendeur() {
   const billing = useDataStore((s) => s.billing);
   const setBilling = useDataStore((s) => s.setBilling);
   const statut = billing?.statut;
-  const nom = billing?.legalName?.trim();
+  const entete = enteteVendeur(vendeurDe(billing, true));
   return (
     <>
       <div className="fr-rate">
         <span id="fr-statut-v">Ton statut</span>
         <div className="fr-two" role="radiogroup" aria-labelledby="fr-statut-v">
           <button type="button" role="radio" aria-checked={statut === "ei"} className={`chip${statut === "ei" ? " on" : ""}`} onClick={() => setBilling({ statut: "ei" })}>
-            Entrepreneur individuel (micro)
+            Entrepreneur individuel (micro ou au réel)
           </button>
           <button type="button" role="radio" aria-checked={statut === "societe"} className={`chip${statut === "societe" ? " on" : ""}`} onClick={() => setBilling({ statut: "societe" })}>
             Société (EARL, SCEA, SARL…)
           </button>
         </div>
       </div>
-      {statut === "ei" && <p className="fr-hint">La loi demande « EI » après ton nom : tes factures diront « {enteteVendeur({ name: nom || "Ton nom", ei: true }).nom} ».</p>}
+      {statut === "ei" && (
+        <>
+          <label className="field">
+            <span>Ton nom et ton prénom</span>
+            <input className="input" defaultValue={billing?.nomPrenom ?? ""} placeholder="Ex. : Julie Martin" autoComplete="name" onChange={(e) => setBilling({ nomPrenom: e.target.value })} />
+            <em>La loi les demande sur chaque facture, suivis de « EI ».</em>
+          </label>
+          <label className="field">
+            <span>
+              Ton nom commercial <span className="ch-opt">facultatif</span>
+            </span>
+            <input className="input" defaultValue={billing?.legalName ?? ""} placeholder="Ex. : Écurie des Prés" autoComplete="organization" onChange={(e) => setBilling({ legalName: e.target.value })} />
+            <em>Il s’imprime sous ton nom, il ne le remplace pas.</em>
+          </label>
+          <p className="fr-hint">
+            Tes factures diront « {billing?.nomPrenom?.trim() ? entete.nom : "Ton nom EI"} »{entete.sous ? `, puis « ${entete.sous} »` : ""}.
+          </p>
+        </>
+      )}
       {statut === "societe" && (
         <>
+          <label className="field">
+            <span>Raison sociale</span>
+            <input className="input" defaultValue={billing?.legalName ?? ""} placeholder="Ex. : Écurie des Prés" autoComplete="organization" onChange={(e) => setBilling({ legalName: e.target.value })} />
+            <em>Telle qu’elle est inscrite sur ton Kbis. Elle s’imprime en tête de chaque facture.</em>
+          </label>
           <label className="field">
             <span>Forme juridique</span>
             <input className="input" defaultValue={billing?.forme ?? ""} placeholder="Ex. : EARL" autoComplete="off" onChange={(e) => setBilling({ forme: e.target.value.trim() || undefined })} />
@@ -121,6 +143,11 @@ function StatutVendeur() {
             <span>Capital</span>
             <input className="input" inputMode="decimal" defaultValue={billing?.capital ?? ""} placeholder="Ex. : 7 500 €" autoComplete="off" onChange={(e) => setBilling({ capital: e.target.value.trim() || undefined })} />
             <em>Sur tes statuts ou ton Kbis. Imprimé sous ton nom : « EARL au capital de 7 500 € ».</em>
+          </label>
+          <label className="field">
+            <span>Ville de ton RCS</span>
+            <input className="input" defaultValue={billing?.rcs ?? ""} placeholder="Ex. : Angers" autoComplete="off" onChange={(e) => setBilling({ rcs: e.target.value.trim() || undefined })} />
+            <em>La ville du greffe, en haut de ton Kbis. Imprimé avec ton SIREN : « {rcsDit(billing?.rcs || "Angers", billing?.siret || "12345678900012")} ».</em>
           </label>
         </>
       )}
@@ -291,12 +318,18 @@ export function ConditionsPro() {
   );
 }
 
-/** Particulier ou professionnel, et son adresse : la facture le demande une fois par client. */
+/**
+ * Particulier ou professionnel, puis ce que la loi demande (F31808) : pour
+ * un particulier son nom complet (prénom et nom), pour un professionnel son
+ * adresse, et son numéro de TVA s'il en a un. Demandé une fois par client,
+ * gardé sur sa fiche.
+ */
 export function ClientFacture({ nom, role, manque }: { nom: string; role: PersonRole; manque: ClientManque[] }) {
   const person = useDataStore((s) => personneDe(s, nom));
   const setClient = useDataStore((s) => s.setClientFacture);
   const statut = person?.statut;
   const qui = prenomDe(nom);
+  const [tva, setTva] = useState(person?.tvaIntra ?? "");
   return (
     <div className="fr-form">
       <div className="fr-rate">
@@ -310,11 +343,37 @@ export function ClientFacture({ nom, role, manque }: { nom: string; role: Person
           </button>
         </div>
       </div>
+      {statut === "particulier" && (
+        <label className="field">
+          <span>Son prénom et son nom</span>
+          <input className="input" defaultValue={person?.nomComplet ?? (estNomComplet(nom) ? nom : "")} placeholder="Ex. : Claire Dubois" autoComplete="off" onChange={(e) => setClient(nom, role, { nomComplet: e.target.value })} />
+          <em>{manque.includes("nomComplet") ? `La loi demande le nom complet sur la facture. Dans l’app, ${qui} garde le nom que tu lui as donné.` : "Il s’imprime sur sa facture."}</em>
+        </label>
+      )}
       {statut && (
         <label className="field">
           <span>Son adresse{statut === "pro" ? "" : ", si tu l’as"}</span>
           <textarea className="input ta fa-adr" rows={2} defaultValue={person?.address ?? ""} placeholder={"Ex. : 3 allée des Saules\n72000 Le Mans"} autoComplete="off" onChange={(e) => setClient(nom, role, { address: e.target.value })} />
           <em>{statut === "pro" ? "Obligatoire sur la facture d’un professionnel." : "Elle s’imprime sous son nom."}</em>
+        </label>
+      )}
+      {statut === "pro" && (
+        <label className="field">
+          <span>
+            Son numéro de TVA <span className="ch-opt">facultatif</span>
+          </span>
+          <input
+            className="input"
+            autoComplete="off"
+            autoCapitalize="characters"
+            value={tva}
+            placeholder="Ex. : FR 12 345678901"
+            onChange={(e) => {
+              setTva(e.target.value.slice(0, 20));
+              setClient(nom, role, { tvaIntra: e.target.value });
+            }}
+          />
+          <em>{tva.trim() && !tvaIntraValide(tva) ? "FR, puis 2 chiffres ou lettres, puis les 9 chiffres de son SIREN." : "S’il en a un, il s’imprime sur sa facture. La loi le demande pour un client qui paie la TVA, au-delà de 150 € hors taxes."}</em>
         </label>
       )}
       {statut === "pro" && manque.includes("conditions") && <ConditionsPro />}

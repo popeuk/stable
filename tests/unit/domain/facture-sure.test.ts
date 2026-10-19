@@ -42,7 +42,7 @@ const base = (extra: Partial<StableData> = {}): StableData => ({
     { id: "cc", name: "Cours" },
   ],
   expenseCategories: [{ id: "ea", name: "Assurance", isDirect: false }],
-  people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true, statut: "particulier" }],
+  people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Hugo Durand" }],
   billing: B,
   ...extra,
 });
@@ -83,7 +83,10 @@ describe("numérotation qui ne recule jamais", () => {
 describe("facture conforme", () => {
   it("le client : particulier ou professionnel jamais deviné ; un professionnel a besoin de son adresse et des conditions", () => {
     expect(clientManque(undefined, B)).toEqual(["statut"]);
-    expect(clientManque({ statut: "particulier" }, B)).toEqual([]);
+    // Un particulier : son nom complet (prénom et nom), demandé quand le nom de l'app ne suffit pas.
+    expect(clientManque({ statut: "particulier", name: "Claire D." }, B)).toEqual(["nomComplet"]);
+    expect(clientManque({ statut: "particulier", name: "Claire D.", nomComplet: "Claire Dubois" }, B)).toEqual([]);
+    expect(clientManque({ statut: "particulier", name: "Sophie Martin" }, B)).toEqual([]);
     expect(clientManque({ statut: "pro" }, B)).toEqual(["adresse", "conditions"]);
     expect(clientManque({ statut: "pro", address: "2 rue" }, { ...B, delaiPro: 30, penalites: "bce10" })).toEqual([]);
     const sans = base({ people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true }] });

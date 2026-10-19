@@ -139,6 +139,8 @@ function useEtapes(data: StableData, kinds: Brouillon["kinds"], tvaManque: boole
   const [ouvertes] = useState(() => ({ ...besoin }));
   const [champs] = useState(() => vendeur);
   const [faites, setFaites] = useState<Record<Etape, boolean>>({ vendeur: false, tva: false });
+  // Un gérant qui avait déjà des factures : on lui dit pourquoi on lui demande ça maintenant.
+  const nouveau = (data.invoices ?? []).length > 0 && vendeur.some((m) => m === "statut" || m === "nomPrenom" || m === "rcs");
   const etape = (["vendeur", "tva"] as Etape[]).find((k) => besoin[k] || (ouvertes[k] && !faites[k]));
   const finir = (k: Etape) => setFaites((f) => ({ ...f, [k]: true }));
   const tvaReste = !b.vat ? ["la TVA"] : [...(tvaManque ? ["un taux"] : []), ...(manque.includes("tva") ? [VENDEUR_MANQUE_DIT.tva] : [])];
@@ -146,6 +148,7 @@ function useEtapes(data: StableData, kinds: Brouillon["kinds"], tvaManque: boole
     etape === "vendeur" ? (
       <div className="card fa-card rise">
         <b>Pour faire une facture, il faut {listeDite((champs.length ? champs : vendeur).map((m) => VENDEUR_MANQUE_DIT[m]))}.</b>
+        {nouveau && <p>Depuis le 19 octobre, Be Stable demande tout ce que la loi exige sur une facture : ton statut, et selon lui ton nom et ton prénom (entrepreneur individuel) ou ton RCS (société). Tes factures déjà faites ne changent pas.</p>}
         <p>Tu les notes une fois, ils reviennent sur toutes tes factures.</p>
         <InfosVendeur seulement={champs.length ? champs : vendeur} />
         <BoutonSuite manque={vendeur.map((m) => VENDEUR_MANQUE_DIT[m])} onClick={() => finir("vendeur")} />
@@ -247,9 +250,9 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
         ) : client ? (
           <div className="card fa-card rise">
             <b>{person?.statut ? `${qui}, pour sa facture` : `${qui} est un particulier ou un professionnel ?`}</b>
-            <p>Pour un professionnel, la loi demande des mentions en plus.</p>
+            <p>La loi demande le nom complet d’un particulier, et des mentions en plus pour un professionnel.</p>
             <ClientFacture nom={nom} role={role} manque={draft.client} />
-            <BoutonSuite manque={draft.client.map((m) => (m === "statut" ? "ta réponse" : m === "adresse" ? "son adresse" : "tes conditions de paiement"))} onClick={() => setClientOuvert(false)} label="Voir l’aperçu" />
+            <BoutonSuite manque={draft.client.map((m) => (m === "statut" ? "ta réponse" : m === "nomComplet" ? "son prénom et son nom" : m === "adresse" ? "son adresse" : "tes conditions de paiement"))} onClick={() => setClientOuvert(false)} label="Voir l’aperçu" />
           </div>
         ) : (
           <p className="fa-who rise">
@@ -392,7 +395,7 @@ function Lot({ period }: { period: Period }) {
             {aCompleter.length > 0 && (
               <div className="card fa-card rise">
                 <b>{aCompleter.length > 1 ? `${aCompleter.length} à compléter d’abord` : "Une à compléter d’abord"}</b>
-                <p>Dis-le une fois pour chaque client. Pour un professionnel, il faut aussi son adresse.</p>
+                <p>Dis-le une fois pour chaque client. Pour un particulier, il faut son nom complet ; pour un professionnel, son adresse.</p>
                 <div className="fr-list">
                   {aCompleter.map((c) =>
                     c.d.client.includes("statut") ? (
@@ -414,7 +417,7 @@ function Lot({ period }: { period: Period }) {
                       <Link key={c.nom} href={`/facture?nom=${encodeURIComponent(c.nom)}&mois=${mk}`} className="fr-inv">
                         <span>
                           <b>{c.nom}</b>
-                          <small>{c.d.client.includes("adresse") ? "professionnel : son adresse" : "professionnel : tes conditions de paiement"}</small>
+                          <small>{c.d.client.includes("nomComplet") ? "particulier : son prénom et son nom" : c.d.client.includes("adresse") ? "professionnel : son adresse" : "professionnel : tes conditions de paiement"}</small>
                         </span>
                         <span className="fr-amt">{eur2(c.total)}</span>
                         <Ic n="chev" className="chev" />

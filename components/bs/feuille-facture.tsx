@@ -27,6 +27,7 @@ export function Feuille({ inv, apercu }: { inv: Invoice; apercu?: boolean }) {
         <div className="fa-from">
           <b>{entete.nom}</b>
           {entete.sous && <span>{entete.sous}</span>}
+          {entete.rcs && <span>{entete.rcs}</span>}
           {inv.seller.address && <span className="fa-pre">{inv.seller.address}</span>}
           {inv.seller.siret && <span>SIRET {siretDit(inv.seller.siret)}</span>}
           {!f && inv.seller.tvaIntra && <span>N° TVA intracommunautaire {tvaIntraDit(inv.seller.tvaIntra)}</span>}
@@ -47,6 +48,7 @@ export function Feuille({ inv, apercu }: { inv: Invoice; apercu?: boolean }) {
         <small>{avoir ? "Pour" : "Facturé à"}</small>
         <b>{inv.buyer.name}</b>
         {inv.buyer.address && <span className="fa-pre">{inv.buyer.address}</span>}
+        {inv.buyer.tvaIntra && <span>N° TVA {tvaIntraDit(inv.buyer.tvaIntra)}</span>}
       </div>
       <table className="fa-tbl">
         <thead>

@@ -57,8 +57,20 @@ export const siretEcurie = (d: Pick<StableData, "billing" | "holding">) => siret
 /** Les infos de facturation, SIRET partagé avec le lieu de détention compris. */
 export const facturation = (d: Pick<StableData, "billing" | "holding">): BillingInfo => ({ ...(d.billing ?? {}), siret: siretEcurie(d) || undefined });
 
-/** Le nom du vendeur : sa raison sociale, ou son nom. Jamais deviné (le nom de l'écurie ne la remplace pas). */
-export const nomVendeur = (b: BillingInfo | undefined) => b?.legalName?.trim() ?? "";
+/**
+ * Le nom du vendeur imprimé en tête : pour un entrepreneur individuel, son
+ * nom et son prénom ; pour une société (ou avant le choix du statut), sa
+ * raison sociale. Jamais deviné (le nom de l'écurie ne le remplace pas).
+ */
+export const nomVendeur = (b: BillingInfo | undefined) => (b?.statut === "ei" ? (b.nomPrenom?.trim() ?? "") : (b?.legalName?.trim() ?? ""));
+
+/** « RCS Angers 123 456 789 » : la ville du greffe et le SIREN (les 9 premiers chiffres du SIRET). R123-237 du Code de commerce. */
+export function rcsDit(ville?: string, siret?: string): string {
+  const v = (ville ?? "").replace(/^\s*R\.?\s*C\.?\s*S\.?\s*/i, "").replace(/[\d\s]+$/, "").trim();
+  const d = siretPropre(siret);
+  if (!v) return "";
+  return /^\d{9}/.test(d) ? `RCS ${v} ${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 9)}` : `RCS ${v}`;
+}
 
 /** « FR 12 345678901 » écrit n'importe comment : sans espaces, en capitales. */
 export const tvaIntraPropre = (s?: string) => (s ?? "").replace(/[\s.-]+/g, "").toUpperCase();
@@ -159,20 +171,23 @@ const finitParEI = (n: string) => /(^|\s)(EI|entrepreneur individuel)\.?$/i.test
  * facture faite avant le choix du statut s'imprime comme avant (la forme
  * notée, après le nom).
  */
-export function enteteVendeur(seller: Pick<Invoice["seller"], "name" | "forme" | "ei" | "capital">): { nom: string; sous?: string } {
+export function enteteVendeur(seller: Pick<Invoice["seller"], "name" | "forme" | "ei" | "capital" | "commercial" | "rcs">): { nom: string; sous?: string; rcs?: string } {
   const name = seller.name.trim();
-  if (seller.ei) return { nom: finitParEI(name) ? name : `${name} EI` };
-  if (seller.capital) return { nom: name, sous: `${seller.forme ? `${seller.forme} au capital` : "Capital"} de ${capitalDit(seller.capital)}` };
+  const com = seller.commercial?.trim();
+  if (seller.ei) return { nom: finitParEI(name) ? name : `${name} EI`, ...(com ? { sous: com } : {}) };
+  if (seller.capital) return { nom: name, sous: `${seller.forme ? `${seller.forme} au capital` : "Capital"} de ${capitalDit(seller.capital)}`, ...(seller.rcs ? { rcs: seller.rcs } : {}) };
   return { nom: `${name}${seller.forme ? ` ${seller.forme}` : ""}` };
 }
 
 /** Ce qui peut manquer au vendeur pour faire une facture. */
-export type VendeurManque = "nom" | "statut" | "forme" | "capital" | "adresse" | "siret" | "tva";
+export type VendeurManque = "nom" | "nomPrenom" | "statut" | "forme" | "capital" | "rcs" | "adresse" | "siret" | "tva";
 export const VENDEUR_MANQUE_DIT: Record<VendeurManque, string> = {
-  nom: "ton nom ou ta raison sociale",
+  nom: "ta raison sociale",
+  nomPrenom: "ton nom et ton prénom",
   statut: "ton statut",
   forme: "ta forme juridique",
   capital: "ton capital",
+  rcs: "la ville de ton RCS",
   adresse: "ton adresse",
   siret: "ton SIRET",
   tva: "ton numéro de TVA intracommunautaire",
@@ -180,15 +195,30 @@ export const VENDEUR_MANQUE_DIT: Record<VendeurManque, string> = {
 /** « ton adresse et ton SIRET », « ton nom, ton adresse et ton SIRET ». */
 export const listeDite = (xs: string[]) => (xs.length < 2 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} et ${xs[xs.length - 1]}`);
 
-/** Ce qui manque au vendeur pour émettre une facture. Le numéro de TVA n'est demandé qu'en facturant la TVA. */
+/**
+ * Ce qui manque au vendeur pour émettre une facture, selon les mentions
+ * obligatoires de Service Public Entreprendre
+ * (https://entreprendre.service-public.gouv.fr/vosdroits/F31808, vérifié le
+ * 11 août 2026, relu le 19 octobre 2026) :
+ * - entrepreneur individuel : « nom et prénom de l'entrepreneur individuel
+ *   précédé ou suivi de la mention Entrepreneur individuel ou EI » ; le nom
+ *   commercial peut s'ajouter, il ne remplace pas le nom ;
+ * - société : dénomination, forme juridique et montant du capital social ;
+ *   et le RCS avec la ville du greffe (article R123-237 du Code de commerce,
+ *   « RCS Angers 123 456 789 ») ;
+ * - pour tous : adresse, SIREN (dans le SIRET), et le numéro de TVA quand on
+ *   facture la TVA.
+ */
 export function vendeurManque(b: BillingInfo | undefined): VendeurManque[] {
   const out: VendeurManque[] = [];
-  if (!nomVendeur(b)) out.push("nom");
-  // Entrepreneur individuel ou société : la loi ne demande pas les mêmes mentions.
+  // Entrepreneur individuel ou société : la loi ne demande pas les mêmes mentions. Le nom vient avec le statut.
   if (!b?.statut) out.push("statut");
+  if (b?.statut === "ei" && !b.nomPrenom?.trim()) out.push("nomPrenom");
   if (b?.statut === "societe") {
+    if (!b.legalName?.trim()) out.push("nom");
     if (!b.forme?.trim()) out.push("forme");
     if (!b.capital?.trim()) out.push("capital");
+    if (!rcsDit(b.rcs)) out.push("rcs");
   }
   if (!b?.address?.trim()) out.push("adresse");
   if (!siretValide(b?.siret)) out.push("siret");
@@ -212,14 +242,32 @@ const PENALITES_DIT: Record<"bce10" | "legal3", string> = {
 /** Les conditions de paiement d'un professionnel ne sont pas encore choisies. */
 export const conditionsProManquent = (b: BillingInfo | undefined) => typeof b?.delaiPro !== "number" || !b?.penalites;
 
-export type ClientManque = "statut" | "adresse" | "conditions";
+/** Une civilité ou une forme de société en tête d'un nom : ce n'est pas un prénom. */
+const PAS_PRENOM = /^(m|mr|mme|mlle|mme\.|monsieur|madame|mademoiselle|dr|me|earl|scea|gaec|sarl|sas|sasu|eurl|sci|sa|snc|sca|ei|ste|sté|société|societe|haras|écurie|ecurie|centre|club|association|asso)$/i;
+
+/** « Sophie Martin » oui ; « Claire D. », « Hugo », « M. Dupont » non : il faut le prénom et le nom en entier. */
+export function estNomComplet(name?: string): boolean {
+  const mots = (name ?? "").trim().split(/\s+/).filter(Boolean);
+  if (mots.length < 2) return false;
+  if (PAS_PRENOM.test(mots[0].replace(/\.$/, ""))) return false;
+  return mots.every((m) => !m.endsWith(".") && m.replace(/[^\p{L}]/gu, "").length >= 2);
+}
+
+/** Le nom complet d'un client particulier pour sa facture : celui noté pour la facture, ou le nom de l'app s'il est complet. */
+export const nomCompletDe = (person: Partial<Pick<Person, "name" | "nomComplet">> | undefined) => person?.nomComplet?.trim() || (estNomComplet(person?.name) ? (person?.name ?? "").trim() : "");
+
+export type ClientManque = "statut" | "nomComplet" | "adresse" | "conditions";
 /**
- * Ce qui manque au client : particulier ou professionnel (jamais deviné), et
- * pour un professionnel son adresse et les conditions de paiement.
+ * Ce qui manque au client : particulier ou professionnel (jamais deviné) ;
+ * pour un particulier son nom complet (F31808 : « nom complet, adresse du
+ * client (sauf opposition pour un particulier) ») ; pour un professionnel
+ * son adresse et les conditions de paiement. Son numéro de TVA est
+ * facultatif (imprimé s'il est noté).
  */
-export function clientManque(person: Pick<Person, "statut" | "address"> | undefined, b: BillingInfo | undefined): ClientManque[] {
+export function clientManque(person: (Pick<Person, "statut" | "address"> & Partial<Pick<Person, "name" | "nomComplet">>) | undefined, b: BillingInfo | undefined): ClientManque[] {
   const out: ClientManque[] = [];
   if (!person?.statut) return ["statut"];
+  if (person.statut === "particulier" && !nomCompletDe(person)) out.push("nomComplet");
   if (person.statut === "pro") {
     if (!person.address?.trim()) out.push("adresse");
     if (conditionsProManquent(b)) out.push("conditions");
@@ -436,7 +484,12 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
   out.facture = {
     payer: bill?.payer ?? payer,
     month: mk,
-    buyer: { name: bill?.payer ?? payer, ...(person?.address?.trim() ? { address: person.address.trim() } : {}), ...(pro ? { pro: true } : {}) },
+    buyer: {
+      name: (pro ? "" : nomCompletDe(person)) || (bill?.payer ?? payer),
+      ...(person?.address?.trim() ? { address: person.address.trim() } : {}),
+      ...(pro ? { pro: true } : {}),
+      ...(pro && tvaIntraPropre(person?.tvaIntra) ? { tvaIntra: tvaIntraPropre(person?.tvaIntra) } : {}),
+    },
     franchise,
     lines,
     totalHT: t.totalHT,
@@ -490,13 +543,17 @@ export function vendeurDe(b: BillingInfo | undefined, franchise: boolean): Invoi
   const ei = b?.statut === "ei";
   const forme = ei ? undefined : b?.forme?.trim();
   const capital = b?.statut === "societe" ? b.capital?.trim() : undefined;
+  const commercial = ei && b?.legalName?.trim() && b.legalName.trim().toLowerCase() !== nomVendeur(b).toLowerCase() ? b.legalName.trim() : undefined;
+  const rcs = b?.statut === "societe" ? rcsDit(b.rcs, b.siret) : "";
   const tva = tvaIntraPropre(b?.tvaIntra);
   const iban = ibanValide(b?.iban) ? ibanPropre(b?.iban) : undefined;
   return {
     name: nomVendeur(b),
     ...(ei ? { ei: true } : {}),
+    ...(commercial ? { commercial } : {}),
     ...(forme ? { forme } : {}),
     ...(capital ? { capital } : {}),
+    ...(rcs ? { rcs } : {}),
     ...(iban ? { iban } : {}),
     ...(b?.address?.trim() ? { address: b.address.trim() } : {}),
     ...(siretPropre(b?.siret) ? { siret: siretPropre(b?.siret) } : {}),
