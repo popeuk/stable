@@ -12,7 +12,7 @@ import "@/app/carnet/registre.css";
  * l'autorise pour app.bestable.fr (CORS). On ne garde que les balises de
  * texte, sans style ni classe.
  */
-export const SITE = "https://www.mon-ecurie.fr";
+export const SITE = "https://bestable.fr";
 export const TEXTES = {
   confidentialite: { titre: "Confidentialité", chemin: "/confidentialite/" },
   cgu: { titre: "Conditions d’utilisation", chemin: "/cgu/" },
@@ -88,7 +88,7 @@ export function TexteLegal({ t, onTexte }: { t: Texte; onTexte: (t: Texte) => vo
       <div className="rg-vide">
         <p>Pas de réseau : le texte ne peut pas s’ouvrir.</p>
         <a className="btn" href={`${SITE}${TEXTES[t].chemin}`} target="_blank" rel="noreferrer">
-          Le lire sur mon-ecurie.fr
+          Le lire sur bestable.fr
         </a>
       </div>
     );

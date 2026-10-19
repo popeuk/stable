@@ -347,7 +347,7 @@ function MaFiche() {
         )}
         <p className="ec-help">
           Les cours et les stages se complètent sur{" "}
-          <a href="https://www.mon-ecurie.fr/mon-compte/" target="_blank" rel="noreferrer" className="lnk" style={{ fontSize: 12 }}>
+          <a href="https://bestable.fr/mon-compte/" target="_blank" rel="noreferrer" className="lnk" style={{ fontSize: 12 }}>
             ton espace mon-ecurie.fr
           </a>
           , avec le même compte.

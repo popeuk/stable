@@ -85,7 +85,7 @@ export async function signalerErreur(type: Sorte, erreur: unknown, o: { chemin?:
   if (vus.has(cle) || envoyes >= MAX_PAR_PAGE) return false;
   vus.add(cle);
   envoyes++;
-  const api = o.api ?? (process.env.NEXT_PUBLIC_MONECURIE_API ?? "https://www.mon-ecurie.fr/wp-json/bestable/v1").replace(/\/$/, "");
+  const api = o.api ?? (process.env.NEXT_PUBLIC_MONECURIE_API ?? "https://bestable.fr/wp-json/bestable/v1").replace(/\/$/, "");
   try {
     const status = await (o.envoi ?? parFetch)(`${api}/erreurs`, JSON.stringify(r));
     if (status === 404) {

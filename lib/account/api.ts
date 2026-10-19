@@ -8,7 +8,7 @@ import { getSession, type Listing } from "@/lib/account/session";
  * créer, compléter). Tout passe par l'API « bestable/v1 » du site.
  * Rien de la gestion (chevaux, argent, planning) ne part d'ici.
  */
-export const API = (process.env.NEXT_PUBLIC_MONECURIE_API ?? "https://www.mon-ecurie.fr/wp-json/bestable/v1").replace(/\/$/, "");
+export const API = (process.env.NEXT_PUBLIC_MONECURIE_API ?? "https://bestable.fr/wp-json/bestable/v1").replace(/\/$/, "");
 
 /** L'adresse de l'app, pour le retour de Google ou d'Apple (app/compte/connexion). */
 export const appUrl = (path: string) => `${typeof window !== "undefined" ? window.location.origin : ""}${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${path}`;
