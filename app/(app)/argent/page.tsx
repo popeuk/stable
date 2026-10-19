@@ -480,7 +480,7 @@ function Leviers() {
               title={
                 <>
                   {lv.title}
-                  <small>{acts.length ? `${acts.length} piste${acts.length > 1 ? "s" : ""}` : "rien à faire ce mois-ci"}</small>
+                  <small>{acts.length ? `${acts.length} idée${acts.length > 1 ? "s" : ""}` : "rien à faire ce mois-ci"}</small>
                 </>
               }
               action={<span className="act">{sg(leverPotential(list, lv.id))} possibles</span>}

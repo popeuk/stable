@@ -155,7 +155,7 @@ const AIDES_BRUTES: Record<string, Aide> = {
     bulle: "Un paiement ? Touche le bouton sous la somme",
     cible: "haut",
     points: [
-      "« Hugo te doit 114 € » : ce qu’il te doit, tout compris.",
+      "« Hugo te doit 114,50 € » : tout ce qu’il te doit, mois d’avant compris.",
       "Il a payé ? Touche « Il a payé ». Juste une partie ? « Il a payé une partie ».",
       "Une ligne qui n’a pas eu lieu ? Retire-la avec ×.",
     ],

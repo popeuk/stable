@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePerso } from "@/components/bs/perso";
 import { Ic } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -92,6 +93,7 @@ export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
  * Choisi une fois, imprimé sur chaque facture.
  */
 function StatutVendeur() {
+  const perso = usePerso();
   const billing = useDataStore((s) => s.billing);
   const setBilling = useDataStore((s) => s.setBilling);
   const statut = billing?.statut;
@@ -102,7 +104,7 @@ function StatutVendeur() {
         <span id="fr-statut-v">Ton statut</span>
         <div className="fr-two" role="radiogroup" aria-labelledby="fr-statut-v">
           <button type="button" role="radio" aria-checked={statut === "ei"} className={`chip${statut === "ei" ? " on" : ""}`} onClick={() => setBilling({ statut: "ei" })}>
-            Entrepreneur individuel (micro ou au réel)
+            {perso === "m" ? "Entrepreneur individuel" : "Entrepreneuse individuelle"} (micro ou au réel)
           </button>
           <button type="button" role="radio" aria-checked={statut === "societe"} className={`chip${statut === "societe" ? " on" : ""}`} onClick={() => setBilling({ statut: "societe" })}>
             Société (EARL, SCEA, SARL…)
@@ -124,7 +126,7 @@ function StatutVendeur() {
             <em>Il s’imprime sous ton nom, il ne le remplace pas.</em>
           </label>
           <p className="fr-hint">
-            Tes factures diront « {billing?.nomPrenom?.trim() ? entete.nom : "Ton nom EI"} »{entete.sous ? `, puis « ${entete.sous} »` : ""}.
+            Tes factures diront « {billing?.nomPrenom?.trim() ? entete.nom : "Julie Martin EI"} »{entete.sous ? `, puis « ${entete.sous} »` : ""}.
           </p>
         </>
       )}
@@ -160,7 +162,10 @@ function Iban() {
   const billing = useDataStore((s) => s.billing);
   const setBilling = useDataStore((s) => s.setBilling);
   const [v, setV] = useState(ibanDit(billing?.iban));
-  const erreur = ibanErreur(v);
+  const [quitte, setQuitte] = useState(false);
+  // On ne reprend pas quelqu'un qui n'a pas fini : l'erreur vient une fois le champ quitté, ou à la longueur d'un IBAN français.
+  const brut = ibanPropre(v);
+  const erreur = quitte || (brut.startsWith("FR") && brut.length >= 27) ? ibanErreur(v) : null;
   return (
     <label className="field">
       <span>
@@ -173,6 +178,8 @@ function Iban() {
         value={v}
         placeholder="Ex. : FR76 3000 6000 0112 3456 7890 189"
         aria-invalid={!!erreur}
+        onFocus={() => setQuitte(false)}
+        onBlur={() => setQuitte(true)}
         onChange={(e) => {
           const t = e.target.value.slice(0, 44);
           setV(t);

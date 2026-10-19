@@ -19,7 +19,7 @@ export function UnSeulOnglet() {
         <div className="scrim" />
         <div className="sheet" role="alertdialog" aria-modal="true" aria-labelledby="onglet-t">
           <div className="shd">
-            <b id="onglet-t">Be Stable est ouvert dans un autre onglet.</b>
+            <b id="onglet-t">Be Stable est ouvert dans un autre onglet</b>
           </div>
           <div className="pad" style={{ display: "grid", gap: 10, paddingBottom: 16 }}>
             <p className="note" style={{ marginTop: 0 }}>

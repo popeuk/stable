@@ -58,7 +58,7 @@ function Reste() {
   };
   return (
     <div className="ar-fin ar-reste obn-fin">
-      <h1 className="ar-t1 rise">Voilà ton mois.</h1>
+      <h1 className="ar-t1 rise">Voilà ton bilan</h1>
       <div className="perch es-perch rise" style={{ animationDelay: ".08s" }}>
         {net < 0 ? (
           <div className="es-bag">
