@@ -70,3 +70,16 @@ export function repartirPaiement(dus: { month: string; due: number }[], montant:
   if (reste > 0 && out.length) out[out.length - 1].amount = r2((out[out.length - 1].amount + reste));
   return out;
 }
+
+/**
+ * Ce que devient un paiement reçu d'un client, d'où qu'il vienne (sa fiche ou
+ * le +) : il solde ses mois dus du plus ancien au plus récent (le mois `mk`
+ * compris), et ce qui dépasse tout ce qu'il doit devient son avance, déduite
+ * toute seule des mois qui suivent.
+ */
+export function encaissement(c: { anciens: { month: string; due: number }[]; dueMois: number; due: number }, montant: number, mk: string): { parts: { month: string; amount: number }[]; avance: number } {
+  const m = r2(Math.max(0, montant));
+  const vise = Math.min(m, c.due);
+  const parts = vise > 0 ? repartirPaiement([...c.anciens, { month: mk, due: c.dueMois }], vise) : [];
+  return { parts, avance: r2(m - vise) };
+}

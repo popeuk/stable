@@ -304,7 +304,7 @@ export function recettesFacturees(invoices: Invoice[] | undefined): Map<string, 
 /** Comment un client a soldé son mois : le jour de son dernier paiement, et le moyen s'il est noté. */
 export function regleeDe(payments: Payment[] | undefined, payer: string, month: string): { date: string; moyen?: string } | undefined {
   const k = cleClient(payer);
-  const ps = (payments ?? []).filter((p) => p.month === month && cleClient(p.payer) === k).sort((a, b) => (a.at ?? "").localeCompare(b.at ?? ""));
+  const ps = (payments ?? []).filter((p) => p.kind !== "remboursement" && p.month === month && cleClient(p.payer) === k).sort((a, b) => (a.at ?? "").localeCompare(b.at ?? ""));
   if (!ps.length) return undefined;
   const last = ps[ps.length - 1];
   const d = last.at ? new Date(last.at) : null;

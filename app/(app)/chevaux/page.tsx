@@ -6,7 +6,8 @@ import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { cap } from "@/components/bs/ui";
-import { Chips, CountUp, Empty, Face, Ic, Ill, Money, Page as Ecran, Pill, Sec, Seg, coatFilter, eur, ini, sg } from "@/components/carnet/ui";
+import { Chips, CountUp, Empty, Face, Ic, Ill, Money, Page as Ecran, Pill, Sec, Seg, coatFilter, eur, eurc, ini, sg } from "@/components/carnet/ui";
+import { r2 } from "@/lib/utils/arrondi";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { reconciledNets, monthBreakdown, horseTicket, estAuGerant } from "@/lib/domain/ticket";
@@ -127,8 +128,8 @@ function FinDuMois({ today }: { today: string }) {
   const data = useDataStore();
   const fin = useMemo(() => clientsAFairePayer(data, today), [data, today]);
   if (!fin) return null;
-  const { period, bills } = fin;
-  const n = bills.length;
+  const { period, clients, total } = fin;
+  const n = clients.length;
   const mois = MOIS_COURT(period);
   const enCours = today.slice(0, 7) === monthKey(period);
   const reste = daysInMonth(period) - Number(today.slice(8, 10));
@@ -151,17 +152,17 @@ function FinDuMois({ today }: { today: string }) {
       <Ill n="gerant-buste" />
       <div>
         <b>
-          Fin du mois : {n} client{n > 1 ? "s" : ""} à faire payer
+          Fin du mois : {n} client{n > 1 ? "s" : ""} te {n > 1 ? "doivent" : "doit"} {eurc(total)}
         </b>
         <span>
           {quand} Envoie à chacun ce qu’il te doit, puis touche «&nbsp;Il a payé&nbsp;».
         </span>
         {!enCours && (
           <span className="cl-banw">
-            {bills.map((b, i) => (
-              <Fragment key={b.payer}>
+            {clients.map((c, i) => (
+              <Fragment key={c.name}>
                 {i > 0 && ", "}
-                <Link href={ficheDe(b.payer, monthKey(period))}>{prenomDe(b.payer)}</Link>
+                <Link href={ficheDe(c.name, monthKey(period))}>{prenomDe(c.name)}</Link>
               </Fragment>
             ))}
           </span>
@@ -182,7 +183,7 @@ const sousLigne = (c: ClientDue) =>
   c.due > 0 ? (c.horses.length ? `${c.horses.join(", ")} · ${c.paieALaSeance ? "à la séance" : "au mois"}` : c.paieALaSeance ? "à la séance" : quiEst(c)) : quiEst(c);
 
 /** Les impayés des mois d'avant, chacun avec son mois : « dont 350 € de septembre ». */
-const anciensDits = (c: ClientDue, period: { year: number; month: number }) => anciensEnMots(c, period, eur);
+const anciensDits = (c: ClientDue, period: { year: number; month: number }) => anciensEnMots(c, period, eurc);
 
 function LigneClient({ c, period }: { c: ClientDue; period: { year: number; month: number } }) {
   return (
@@ -192,11 +193,13 @@ function LigneClient({ c, period }: { c: ClientDue; period: { year: number; mont
         <b>{c.name}</b>
         <small>{sousLigne(c)}</small>
         {c.anciens.length > 0 && <small>{anciensDits(c, period)}</small>}
+        {c.aRendre > 0 && <small>À lui rendre {eurc(c.aRendre)}</small>}
+        {c.avance > 0 && <small>Avance {eurc(c.avance)}</small>}
       </span>
       {c.due > 0 ? (
         <span className="cl-amt">
           <small>te doit</small>
-          <b>{eur(c.due)}</b>
+          <b>{eurc(c.due)}</b>
         </span>
       ) : (
         <span className="cl-ok">à jour</span>
@@ -322,13 +325,13 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
   const rows = useMemo(() => clientDues(data, period), [data, period]);
   const match = (c: ClientDue) => !q || c.name.toLowerCase().includes(q.trim().toLowerCase());
   const doivent = rows.filter((c) => c.due > 0);
-  const total = doivent.reduce((t, c) => t + c.due, 0);
+  const total = r2(doivent.reduce((t, c) => t + c.due, 0));
   const n = doivent.length;
   const owe = doivent.filter(match);
   const ok = rows.filter((c) => c.due <= 0 && match(c)).sort((a, b) => a.name.localeCompare(b.name, "fr"));
   const sub = n ? (
     <>
-      {n} client{n > 1 ? "s" : ""} te {n > 1 ? "doivent" : "doit"} <b>{eur(total)}</b>
+      {n} client{n > 1 ? "s" : ""} te {n > 1 ? "doivent" : "doit"} <b>{eurc(total)}</b>
     </>
   ) : (
     rows.length ? "Tout le monde t’a payé." : "Pas encore de client."
@@ -425,7 +428,7 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
                   <td className="n">{c.total ? eur(c.total) : "·"}</td>
                   <td className="n m">{c.paid ? eur(c.paid) : "·"}</td>
                   <td className="n">
-                    {c.due > 0 ? <b>{eur(c.due)}</b> : <span className="m">à jour</span>}
+                    {c.due > 0 ? <b>{eurc(c.due)}</b> : <span className="m">à jour</span>}
                     {c.anciens.length > 0 && <small className="m" style={{ display: "block" }}>{anciensDits(c, period)}</small>}
                   </td>
                 </tr>
@@ -448,7 +451,7 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
         <p className="k">Tes clients</p>
         {n ? (
           <h2>
-            {n} te {n > 1 ? "doivent" : "doit"} <span className="num">{eur(total)}</span>
+            {n} te {n > 1 ? "doivent" : "doit"} <span className="num">{eurc(total)}</span>
           </h2>
         ) : (
           <h2>{rows.length ? "Tout le monde t’a payé." : "Pas encore de client."}</h2>

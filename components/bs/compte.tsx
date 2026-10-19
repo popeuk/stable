@@ -7,7 +7,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { DayBlock, moneyCls } from "@/components/bs/day-block";
 import { ligneDe, retirer } from "@/components/bs/retirer";
-import { Ic, Ill, sg } from "@/components/carnet/ui";
+import { Ic, Ill, eurc, sg } from "@/components/carnet/ui";
 import { aCompteLe, clientsAFairePayer, demandePresence, estCollectif } from "@/lib/domain/compte-auto";
 import { addDays } from "@/lib/domain/care";
 import { scopedKey } from "@/lib/account/session";
@@ -97,14 +97,14 @@ export function LigneHier() {
  */
 export function useFinDuMois() {
   const hydrated = useDataStore((s) => s.hydrated);
-  const data = useDataStore(useShallow((s) => ({ horses: s.horses, revenues: s.revenues, revenueCategories: s.revenueCategories, people: s.people, payments: s.payments })));
+  const data = useDataStore(useShallow((s) => ({ horses: s.horses, revenues: s.revenues, revenueCategories: s.revenueCategories, people: s.people, payments: s.payments, invoices: s.invoices })));
   const { today } = useMaintenant();
   return useMemo(() => {
     if (!hydrated) return null;
     const r = clientsAFairePayer(data as unknown as StableData, today);
     if (!r) return null;
     const enCours = today.slice(0, 7) === `${r.period.year}-${String(r.period.month).padStart(2, "0")}`;
-    return { ...r, count: r.bills.length, total: r.bills.reduce((t, b) => t + b.due, 0), mois: MOIS[r.period.month - 1], enCours, today };
+    return { ...r, count: r.clients.length, mois: MOIS[r.period.month - 1], enCours, today };
   }, [hydrated, data, today]);
 }
 
@@ -120,7 +120,9 @@ export function BandeauFinDuMois({ className = "" }: { className?: string }) {
     <Link href="/chevaux?vue=clients" className={`cp-ban rise ${className}`}>
       <Ill n="gerant-buste" alt="" />
       <span>
-        <b>Fin du mois : {pl(fin.count, "client")} à faire payer</b>
+        <b>
+          Fin du mois : {pl(fin.count, "client")} te {fin.count > 1 ? "doivent" : "doit"} {eurc(fin.total)}
+        </b>
         <small>{quand} Envoie à chacun ce qu’il te doit, puis touche « Il a payé ».</small>
       </span>
       <Ic n="chev" className="chev" />

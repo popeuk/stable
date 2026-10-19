@@ -444,6 +444,13 @@ export interface Payment {
   method?: PaymentMethod;
   /** Le numéro du chèque, facultatif. */
   chequeNumber?: string;
+  /**
+   * Absent : un paiement d'un mois. « avance » : ce qu'il a payé en plus de
+   * ce qu'il devait, reçu ce mois-là, déduit tout seul de ce qu'il devra
+   * ensuite. « remboursement » : ce que tu lui as rendu (un avoir sur un mois
+   * déjà payé), montant positif.
+   */
+  kind?: "avance" | "remboursement";
 }
 
 /** Les moyens de paiement que le comptable veut voir. */

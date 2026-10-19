@@ -44,7 +44,7 @@ export interface LigneComptable {
   libelle: string;
   cheval: string;
   client: string;
-  /** Le montant, positif pour une recette, une dépense ou un encaissement ; négatif pour un avoir. */
+  /** Le montant, positif pour une recette, une dépense ou un encaissement ; négatif pour un avoir ou un remboursement. */
   montant: number;
   moyen: string;
   facture: string;
@@ -95,7 +95,7 @@ export function lignesComptables(data: StableData, year: number, today: string):
   const moyenDuMois = new Map<string, string>();
   const parMois = new Map<string, Payment[]>();
   for (const p of payments) {
-    if (p.seanceId) continue;
+    if (p.seanceId || p.kind) continue;
     const k = `${cleClient(p.payer)}|${p.month}`;
     parMois.set(k, [...(parMois.get(k) ?? []), p]);
   }
@@ -178,15 +178,16 @@ export function lignesComptables(data: StableData, year: number, today: string):
   for (const p of payments) {
     const d = jourDe(p);
     if (d.slice(0, 4) !== y) continue;
-    const nums = (data.invoices ?? []).filter((i) => i.kind !== "avoir" && i.month === p.month && cleClient(i.payer) === cleClient(p.payer)).map((i) => i.number);
+    const nums = p.kind ? [] : (data.invoices ?? []).filter((i) => i.kind !== "avoir" && i.month === p.month && cleClient(i.payer) === cleClient(p.payer)).map((i) => i.number);
+    // Une avance est de l'argent reçu ; un remboursement, de l'argent rendu (en moins dans les encaissements).
     out.push({
       date: d,
       type: "Encaissement",
-      categorie: "Paiement reçu",
-      libelle: p.seanceId ? "Payé sur place" : `Paiement ${deMois(p.month)}`,
+      categorie: p.kind === "remboursement" ? "Remboursement" : p.kind === "avance" ? "Avance reçue" : "Paiement reçu",
+      libelle: p.kind === "remboursement" ? "Rendu au client (avoir sur un mois payé)" : p.kind === "avance" ? "Avance, déduite des mois suivants" : p.seanceId ? "Payé sur place" : `Paiement ${deMois(p.month)}`,
       cheval: "",
       client: p.payer,
-      montant: p.amount,
+      montant: p.kind === "remboursement" ? -p.amount : p.amount,
       moyen: moyenDit(p),
       facture: nums.join(", "),
     });

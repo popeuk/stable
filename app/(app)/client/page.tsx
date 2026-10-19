@@ -13,7 +13,8 @@ import { CountUp, Empty, Face, Ic, Ill, Page as Ecran, Switch, eur, eurc, ini, s
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { billOf, cleClient, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
-import { accord, duMois, impayesAnciens, prenomDe } from "@/lib/domain/clients";
+import { accord, duMois, dusDuClient, prenomDe } from "@/lib/domain/clients";
+import { avanceDite, noterPaiement } from "@/components/bs/noter-paiement";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
 import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
@@ -95,8 +96,12 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const role: PersonRole = person?.role ?? (horses.length ? "proprietaire" : "cavalier");
   const bill: Bill = billOf(data, nom, period) ?? { payer: nom, role, lines: [], total: 0, paid: 0, due: 0 };
   const avant = monthsBefore(data, nom, now, 3);
-  // Ce qu'il doit encore des mois d'avant : dit sous ce qu'il doit ce mois-ci, chaque somme avec son mois.
-  const anciens = useMemo(() => (monthKey(period) === monthKey(now) ? (impayesAnciens(data, now).get(cleClient(nom)) ?? []) : []), [data, now, period, nom]);
+  // Tout ce qu'il doit, tous mois confondus (le même chiffre que la liste et le +), avec le détail des mois d'avant.
+  const dus = useMemo(() => dusDuClient(data, nom, period), [data, nom, period]);
+  const anciens = dus?.anciens ?? [];
+  const dueMois = dus?.dueMois ?? 0;
+  const avance = dus?.avance ?? 0;
+  const aRendre = dus?.aRendre ?? 0;
   const [feuille, setFeuille] = useState<Ouverte>(null);
   const [vientDePayer, setVientDePayer] = useState(false);
   // Comment il paie : le dernier moyen noté pour lui, changé d'un toucher.
@@ -108,14 +113,14 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const qui = prenomDe(nom);
   const Il = accord(nom, "Il", "Elle");
   const seance = !!person?.paieALaSeance;
-  const due = bill.due;
+  const due = dus?.due ?? bill.due;
   const phone = person?.phone?.trim();
   const email = person?.email?.trim();
   const notes = person?.notes ?? [];
   const quiEst = role === "proprietaire" ? (horses.length ? `propriétaire de ${horses.map((h) => h.name).join(" et ")}` : accord(nom, "propriétaire", "propriétaire")) : accord(nom, "cavalier", "cavalière");
   const lignes = [...bill.lines].sort((a, b) => (fixe(a) === fixe(b) ? a.date.localeCompare(b.date) : fixe(a) ? -1 : 1));
   const ouvertes = lignes.filter((l) => !l.onSite && !fixe(l));
-  const paiements = (data.payments ?? []).filter((p) => p.payer === nom && p.month === mk && !p.seanceId);
+  const paiements = (data.payments ?? []).filter((p) => cleClient(p.payer) === cleClient(nom) && p.month === mk && !p.seanceId);
 
   /** La personne existe dans le carnet (un propriétaire noté seulement sur son cheval n'a pas encore de fiche). */
   const pid = () => person?.id ?? useDataStore.getState().ensurePerson(nom, role);
@@ -128,16 +133,22 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const payer = (montant: number, m = moyen, chq = cheque) => {
     if (montant <= 0) return;
     if (!m) return setDemande(true);
-    const id = useDataStore.getState().addPayment(nom, mk, montant, undefined, { method: m, chequeNumber: chq });
+    // Le plus ancien d'abord, comme depuis le + ; au-delà de tout ce qu'il doit, une avance.
+    const ids = noterPaiement({ name: nom, anciens, dueMois, due }, montant, mk, { method: m, chequeNumber: chq });
     vibrer();
     setVientDePayer(true);
     setMoyen(m);
     setCheque("");
     setDemande(false);
-    say(`${esc(qui)} t’a payé <strong>${eurc(montant)}</strong> ${enMoyen(m)}.`, () => {
-      useDataStore.getState().removePayment(id);
+    say(`${esc(qui)} t’a payé <strong>${eurc(montant)}</strong> ${enMoyen(m)}.${esc(avanceDite({ name: nom, due }, montant))}`, () => {
+      for (const id of ids) useDataStore.getState().removePayment(id);
       setVientDePayer(false);
     });
+  };
+  const rembourser = () => {
+    const id = useDataStore.getState().addPayment(nom, monthKey(now), aRendre, undefined, { method: moyen, kind: "remboursement" });
+    vibrer();
+    say(`Tu as rendu <strong>${eurc(aRendre)}</strong> à ${esc(qui)}.`, () => useDataStore.getState().removePayment(id));
   };
 
   const retirer = (l: BillLine, row: HTMLElement | null, malgre = false) => {
@@ -182,8 +193,8 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       <div className="card cl-due rise">
         <div className="cl-dtop">
           <span>
-            <span className="cl-lab">{due > 0 ? `${qui} te doit` : anciens.length ? `${Il} a tout payé ce mois-ci.` : `${Il} a tout payé.`}</span>
-            <b className="cl-big">{due > 0 ? <CountUp value={due} fmt={eur} ms={700} /> : eur(0)}</b>
+            <span className="cl-lab">{due > 0 ? `${qui} te doit` : `${Il} a tout payé.`}</span>
+            <b className="cl-big">{due > 0 ? <CountUp value={due} fmt={eurc} ms={700} /> : eur(0)}</b>
           </span>
           {due <= 0 && <Ill n="rosette" className="cl-ros" />}
         </div>
@@ -191,10 +202,26 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         {anciens.map((a) => (
           <p key={a.month} className="cl-cnt">
             <Link className="lnk" href={`/client?nom=${encodeURIComponent(nom)}&mois=${a.month}`}>
-              {due > 0 ? "Plus" : "Encore"} {eurc(a.due)} {duMois(a.month, now)}
+              {dueMois > 0 ? "Dont " : ""}
+              {eurc(a.due)} {duMois(a.month, period)}
             </Link>
           </p>
         ))}
+        {avance > 0 && (
+          <p className="cl-cnt">
+            Avance {eurc(avance)}. Elle se déduit toute seule de ce qu’{accord(nom, "il", "elle")} te devra ensuite.
+          </p>
+        )}
+        {aRendre > 0 && (
+          <>
+            <p className="cl-cnt">À lui rendre {eurc(aRendre)} : un avoir sur un mois déjà payé.</p>
+            <div className="cl-acts">
+              <button type="button" className="btn line" onClick={rembourser}>
+                Je l’ai {accord(nom, "remboursé", "remboursée")}
+              </button>
+            </div>
+          </>
+        )}
         {seance && due > 0 && ouvertes.length > 0 && (
           <p className="cl-cnt">
             D’habitude, {qui} paie sur place. Là, {pl(ouvertes.length, "séance")} attend{ouvertes.length > 1 ? "ent" : ""}.
@@ -295,13 +322,19 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         {paiements.map((p) => (
           <div key={p.id} className="cl-pd">
             <span>
-              Payé le {jour(p.at || `${mk}-01`)}
+              {p.kind === "remboursement" ? "Remboursé le" : p.kind === "avance" ? "Avance reçue le" : "Payé le"} {jour(p.at || `${mk}-01`)}
               {p.method ? ` · ${moyenDit(p)}` : ""}
             </span>
-            {/* Le seul argent rentré de la fiche : en vert, avec son signe. */}
-            <span className="in">{sgc(p.amount)}</span>
+            {/* L'argent rentré : en vert, avec son signe ; rendu : à l'encre, en moins. */}
+            {p.kind === "remboursement" ? <span>{sgc(-p.amount)}</span> : <span className="in">{sgc(p.amount)}</span>}
           </div>
         ))}
+        {(bill.avance ?? 0) > 0 && (
+          <div className="cl-pd">
+            <span>Pris sur son avance</span>
+            <span>{sgc(-(bill.avance ?? 0))}</span>
+          </div>
+        )}
         {(bill.avoirs ?? []).map((a) => (
           <Link key={a.number} className="cl-pd cl-pdl" href={`/facture?n=${encodeURIComponent(a.number)}`}>
             <span>Avoir n° {a.number}</span>
@@ -405,7 +438,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           moyen={moyen}
           onOk={(v, m, chq) => {
             setFeuille(null);
-            payer(Math.min(v, due), m, chq);
+            payer(v, m, chq);
           }}
         />
       )}
@@ -544,7 +577,7 @@ function PartSheet({ qui, nom, due, moyen, onClose, onOk }: { qui: string; nom: 
         <button type="button" className="btn full" disabled={val <= 0} onClick={ok}>
           C’est noté
         </button>
-        <p className="cl-hint">Le reste, {accord(nom, "il", "elle")} te le doit encore.</p>
+        <p className="cl-hint">Le reste, {accord(nom, "il", "elle")} te le doit encore. Au-delà de {eurc(due)}, c’est une avance.</p>
       </div>
     </Feuille>
   );

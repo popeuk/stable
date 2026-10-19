@@ -4,15 +4,16 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Face, Ic, Money } from "@/components/carnet/ui";
+import { Face, Ic, Money, eurc } from "@/components/carnet/ui";
 import { Picto } from "@/components/bs/picto";
-import { eur, signed } from "@/components/bs/ui";
+import { signed } from "@/components/bs/ui";
 import { useUiStore } from "@/stores/ui-store";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { estEstimation } from "@/lib/domain/estimation";
 import { monthBreakdown } from "@/lib/domain/ticket";
-import { billTotals, billsFor } from "@/lib/domain/billing";
+import { clientDues } from "@/lib/domain/clients";
+import { r2 } from "@/lib/utils/arrondi";
 import { suggestions } from "@/lib/domain/leviers";
 import { OBSTACLES } from "@/stores/settings-store";
 import { currentPeriod } from "@/lib/utils/period";
@@ -39,7 +40,8 @@ export function useNavCounts() {
     const period = currentPeriod();
     const done = data.taskLists?.find((l) => l.isDone)?.id;
     return {
-      due: billTotals(billsFor(data, period)).due,
+      // Le même « te doit » que la liste des clients : tout ce qui n'est pas payé, tous mois confondus.
+      due: r2(clientDues(data, period).reduce((t, c) => t + c.due, 0)),
       acts: suggestions(data, period, capacity).filter((x) => x.status !== "faite" && x.status !== "ecartee").length,
       net: monthBreakdown(data, period).net,
       estime: estEstimation(data, period),
@@ -247,7 +249,7 @@ function PaletteInner() {
       { id: "a-soin", group: "Faire", label: "Noter un soin", sub: "maréchal, véto, vermifuge…", ic: "shoe", run: add("soin") },
       { id: "a-tache", group: "Faire", label: "Ajouter une tâche d’équipe", ic: "board", run: add("tache") },
       { id: "a-depense", group: "Faire", label: "Noter une dépense", sub: "ou une recette", ic: "euro", run: add("depense") },
-      { id: "a-facturer", group: "Faire", label: "Faire payer tes clients", sub: c.due ? `${eur(c.due)} en attente` : undefined, ic: "doc", run: go("/chevaux?vue=clients") },
+      { id: "a-facturer", group: "Faire", label: "Faire payer tes clients", sub: c.due ? `${eurc(c.due)} en attente` : undefined, ic: "doc", run: go("/chevaux?vue=clients") },
       { id: "g-accueil", group: "Aller à", label: "Accueil", ic: "home", hint: "G A", run: go("/accueil") },
       { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
       { id: "g-chevaux", group: "Aller à", label: "Clients", sub: "tes clients et leurs chevaux", ic: "people", hint: "G C", run: go("/chevaux") },

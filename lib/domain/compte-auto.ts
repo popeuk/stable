@@ -1,6 +1,6 @@
 import type { ISODate, Period, StableData } from "@/lib/domain/types";
 import { addDays } from "@/lib/domain/care";
-import { billsFor, type Bill } from "@/lib/domain/billing";
+import { clientDues, type ClientDue } from "@/lib/domain/clients";
 import { careToValidate, dayItems, seanceToValidate, type DayItem } from "@/lib/domain/seances";
 import { addMonths, daysInMonth } from "@/lib/utils/period";
 import { r2 } from "@/lib/utils/arrondi";
@@ -85,10 +85,14 @@ export function finDuMois(today: ISODate): Period | null {
   return null;
 }
 
-/** Les clients qui te doivent encore pour le mois qui se termine, pendant la fin du mois. */
-export function clientsAFairePayer(data: StableData, today: ISODate): { period: Period; bills: Bill[] } | null {
+/**
+ * Les clients qui te doivent encore, jusqu'au mois qui se termine, pendant la
+ * fin du mois : le même « te doit » que la liste des clients (tous mois
+ * confondus, au centime), et leur total.
+ */
+export function clientsAFairePayer(data: StableData, today: ISODate): { period: Period; clients: ClientDue[]; total: number } | null {
   const period = finDuMois(today);
   if (!period) return null;
-  const bills = billsFor(data, period).filter((b) => b.due > 0 && !b.orphan);
-  return { period, bills };
+  const clients = clientDues(data, period).filter((c) => c.due > 0);
+  return { period, clients, total: r2(clients.reduce((t, c) => t + c.due, 0)) };
 }

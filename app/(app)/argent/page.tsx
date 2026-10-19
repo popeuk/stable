@@ -9,7 +9,8 @@ import { PORTEE_PREVU, plannedRest } from "@/components/bs/goal-card";
 import { phrasePistes } from "@/lib/domain/objectif";
 import { partageLabel, repartition } from "@/lib/domain/presence";
 import { useDesk } from "@/components/bs/desk-hook";
-import { Chips, CountUp, Empty, Ic, Ill, Money, Page, Sec, Seg, eur, sg, type IllName } from "@/components/carnet/ui";
+import { Chips, CountUp, Empty, Ic, Ill, Money, Page, Sec, Seg, eur, eurc, sg, type IllName } from "@/components/carnet/ui";
+import { r2 } from "@/lib/utils/arrondi";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { usePeriodStore } from "@/stores/period-store";
@@ -125,7 +126,7 @@ function Mois() {
   const capacity = useSettingsStore((s) => s.capacity);
   const places = seuilEtPlaces(m, capacity);
   const dues = useMemo(() => clientDues(data, active).filter((c) => c.due > 0), [data, active]);
-  const duTotal = dues.reduce((t, c) => t + c.due, 0);
+  const duTotal = r2(dues.reduce((t, c) => t + c.due, 0));
   const isNow = samePeriod(active, currentPeriod());
   const today = localToday();
   const rest = useMemo(() => (isNow ? plannedRest(data, today) : 0), [data, today, isNow]);
@@ -331,7 +332,7 @@ function Mois() {
               </span>
               <span>
                 <span className="k">Qui te doit quoi</span>
-                <b>{dues.length ? `${dues.length} client${dues.length > 1 ? "s" : ""} te ${dues.length > 1 ? "doivent" : "doit"} ${eur(duTotal)}. Tu les retrouves dans Clients.` : "Tout le monde t’a payé ce mois-ci."}</b>
+                <b>{dues.length ? `${dues.length} client${dues.length > 1 ? "s" : ""} te ${dues.length > 1 ? "doivent" : "doit"} ${eurc(duTotal)}. Tu les retrouves dans Clients.` : "Tout le monde t’a payé ce mois-ci."}</b>
               </span>
               <Ic n="chev" className="chev" />
             </Link>

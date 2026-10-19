@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Ic, eur, eurc } from "@/components/carnet/ui";
+import { Ic, eurc } from "@/components/carnet/ui";
 import { MoyenChoix } from "@/components/bs/moyen-paiement";
 import { useDataStore } from "@/stores/data-store";
 import { accord, anciensEnMots, clientDues, duMois, prenomDe, type ClientDue } from "@/lib/domain/clients";
 import { monthKey } from "@/lib/domain/billing";
-import { dernierMoyen, enMoyen, repartirPaiement, suggestionsPartielles } from "@/lib/domain/paiement";
+import { dernierMoyen, enMoyen, suggestionsPartielles } from "@/lib/domain/paiement";
+import { avanceDite, noterPaiement } from "@/components/bs/noter-paiement";
 import { esc } from "@/components/bs/ui";
 import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 import { currentPeriod } from "@/lib/utils/period";
@@ -43,11 +44,11 @@ export function Encaisser({ onBack, onDone }: { onBack: () => void; onDone: (htm
                 </span>
                 <span className="cl-rt">
                   <b>{c.name}</b>
-                  {c.anciens.length > 0 && <small>{anciensEnMots(c, period, eur)}</small>}
+                  {c.anciens.length > 0 && <small>{anciensEnMots(c, period, eurc)}</small>}
                 </span>
                 <span className="cl-amt">
                   <small>te doit</small>
-                  <b>{eur(c.due)}</b>
+                  <b>{eurc(c.due)}</b>
                 </span>
                 <Ic n="chev" className="chev" />
               </button>
@@ -70,15 +71,12 @@ function Payer({ c, period, onBack, onDone }: { c: ClientDue; period: { year: nu
   const [v, setV] = useState("");
   const Il = accord(c.name, "Il", "Elle");
   const val = montantOuZero(v);
-  const dus = [...c.anciens, { month: monthKey(period), due: c.dueMois }];
-
   const payer = (montant: number) => {
     if (montant <= 0) return;
     if (!moyen) return setDemande(true);
-    const st = useDataStore.getState();
-    const ids = repartirPaiement(dus, Math.min(montant, c.due)).map((p) => st.addPayment(c.name, p.month, p.amount, undefined, { method: moyen, chequeNumber: cheque }));
+    const ids = noterPaiement(c, montant, monthKey(period), { method: moyen, chequeNumber: cheque });
     vibrer();
-    onDone(`${esc(prenomDe(c.name))} t’a payé <strong>${eurc(Math.min(montant, c.due))}</strong> ${enMoyen(moyen)}.`, () => {
+    onDone(`${esc(prenomDe(c.name))} t’a payé <strong>${eurc(montant)}</strong> ${enMoyen(moyen)}.${esc(avanceDite(c, montant))}`, () => {
       for (const id of ids) useDataStore.getState().removePayment(id);
     });
   };
@@ -92,12 +90,12 @@ function Payer({ c, period, onBack, onDone }: { c: ClientDue; period: { year: nu
       <div className="cl-pform">
         <span>
           <span className="cl-lab">{prenomDe(c.name)} te doit</span>
-          <b className="cl-big">{eur(c.due)}</b>
+          <b className="cl-big">{eurc(c.due)}</b>
         </span>
-        {c.anciens.length > 0 && <p className="note">{c.dueMois > 0 ? "Dont" : "C’est"} {c.anciens.map((a) => `${eur(a.due)} ${duMois(a.month, period)}`).join(", ")}. Un paiement solde d’abord le plus ancien.</p>}
+        {c.anciens.length > 0 && <p className="note">{c.dueMois > 0 ? "Dont" : "C’est"} {c.anciens.map((a) => `${eurc(a.due)} ${duMois(a.month, period)}`).join(", ")}. Un paiement solde d’abord le plus ancien.</p>}
         {partie && (
           <>
-            <p className="note">Combien {accord(c.name, "t’a-t-il", "t’a-t-elle")} payé ?</p>
+            <p className="note">Combien {accord(c.name, "t’a-t-il", "t’a-t-elle")} payé ? Au-delà de ce qu’{accord(c.name, "il", "elle")} doit, c’est une avance.</p>
             <label className="input cl-amtin">
               <input type="text" inputMode="decimal" value={v} placeholder="0" autoFocus onChange={(e) => setV(saisieMontant(e.target.value))} onKeyDown={(e) => e.key === "Enter" && val > 0 && payer(val)} aria-label="Montant payé" />
               <span className="u">€</span>
@@ -105,7 +103,7 @@ function Payer({ c, period, onBack, onDone }: { c: ClientDue; period: { year: nu
             <div className="chips">
               {suggestionsPartielles(c.due).map((x) => (
                 <button key={x} type="button" className={`chip${val === x ? " on" : ""}`} aria-pressed={val === x} onClick={() => setV(String(x))}>
-                  {eur(x)}
+                  {eurc(x)}
                 </button>
               ))}
             </div>

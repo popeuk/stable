@@ -1,7 +1,7 @@
 import type { Period, PersonRole, StableData } from "@/lib/domain/types";
 import { formule, nomEcurie, signature } from "@/lib/domain/politesse";
 import { dateInPeriod } from "@/lib/utils/period";
-import { cleClient, monthKey, moisPlus, notesParMois, type Bill } from "@/lib/domain/billing";
+import { avanceEtARendre, cleClient, monthKey, moisPlus, notesParMois, surplusDe, type Bill } from "@/lib/domain/billing";
 import { r2 } from "@/lib/utils/arrondi";
 
 /**
@@ -105,6 +105,10 @@ export interface ClientDue {
   dueMois: number;
   /** Ce qu'il doit encore des mois d'avant, du plus ancien au plus récent (AAAA-MM). */
   anciens: { month: string; due: number }[];
+  /** Son avance : payée en plus, pas encore déduite (elle se déduit toute seule des mois qui suivent). */
+  avance: number;
+  /** Ce que tu dois lui rendre : un avoir sur un mois déjà payé, moins ce que tu lui as remboursé. */
+  aRendre: number;
   paieALaSeance: boolean;
   phone?: string;
 }
@@ -183,6 +187,8 @@ export function clientDues(data: StableData, period: Period): ClientDue[] {
       due: 0,
       dueMois: 0,
       anciens: [],
+      avance: 0,
+      aRendre: 0,
       paieALaSeance: !!p?.paieALaSeance,
       phone: p?.phone,
     };
@@ -200,6 +206,15 @@ export function clientDues(data: StableData, period: Period): ClientDue[] {
     const c = add(mois[0].name, mois[0].role);
     c.anciens = mois.map(({ month, due }) => ({ month, due }));
     c.due = r2(c.dueMois + mois.reduce((t, m) => t + m.due, 0));
+  }
+  // Une avance ou un trop-perçu : seulement pour qui a déjà payé quelque chose d'à part.
+  const aPart = new Set((data.payments ?? []).filter((p) => p.kind && p.month <= pk).map((p) => cleClient(p.payer)));
+  const avecTrop = new Set<string>();
+  for (const bs of notes.values()) for (const b of bs) if (!b.orphan && surplusDe(b) > 0) avecTrop.add(cleClient(b.payer));
+  for (const k of new Set([...aPart, ...avecTrop])) {
+    const nom = [...notes.values()].flat().find((b) => !b.orphan && cleClient(b.payer) === k)?.payer ?? (data.payments ?? []).find((p) => cleClient(p.payer) === k)!.payer;
+    const c = add(nom, "cavalier");
+    Object.assign(c, avanceEtARendre(data, notes, nom, pk));
   }
   for (const p of data.people ?? []) if (p.active) add(p.name, p.role);
   for (const h of data.horses) if (!h.isArchived && h.ownerName) add(h.ownerName, "proprietaire");

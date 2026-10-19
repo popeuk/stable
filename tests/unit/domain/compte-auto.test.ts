@@ -240,6 +240,7 @@ describe("la fin du mois", () => {
     expect(clientsAFairePayer(d, "2026-10-15")).toBeNull();
     const r = clientsAFairePayer(d, "2026-11-03")!;
     expect(r.period).toEqual({ year: 2026, month: 10 });
-    expect(r.bills.map((b) => [b.payer, b.due])).toEqual([["Léa B.", 591], ["Emma", 50]]);
+    expect(r.clients.map((c) => [c.name, c.due])).toEqual([["Léa B.", 591], ["Emma", 50]]);
+    expect(r.total).toBe(641);
   });
 });
