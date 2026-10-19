@@ -37,7 +37,8 @@ export const MESURE_POSEE = AVEC_GA || AVEC_PIXEL;
 
 /**
  * Les adresses à autoriser dans la politique de contenu le jour où les
- * identifiants sont posés (deploiement/vps/caddy-app.txt). Gardées ici pour
+ * identifiants sont posés : elles n'y sont PAS tant que la mesure est
+ * éteinte (deploiement/vps/caddy-app.txt dit quoi ajouter). Gardées ici pour
  * que le code et l'en-tête disent la même chose.
  */
 export const ADRESSES_MESURE = {
