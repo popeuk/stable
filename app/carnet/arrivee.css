@@ -170,8 +170,10 @@
 .carnet .ar-pc .portrait { height: 150px; }
 .carnet .ar-pc .portrait .disc { width: 136px; height: 136px; }
 .carnet .ar-robes { display: flex; flex-wrap: wrap; gap: 6px; }
-.carnet .ar-robe { display: inline-flex; align-items: center; gap: 6px; border: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); border-radius: 20px; padding: 3px 11px 3px 3px; font-size: 13px; font-weight: 600; color: var(--ink2); cursor: pointer; }
-.carnet .ar-robe .face { width: 26px; height: 26px; }
+/* Les robes : 44 px de haut, le nom écrit à côté de la couleur ; « Liste en tête » à part, ce n'est pas une robe. */
+.carnet .ar-robe { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; border: 0; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); border-radius: 20px; padding: 5px 14px 5px 5px; font-size: 14px; font-weight: 600; color: var(--ink2); cursor: pointer; }
+.carnet .ar-robe .face { width: 34px; height: 34px; }
+.carnet .ar-liste { display: flex; margin-top: 8px; }
 .carnet .ar-robe[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--ink); color: var(--ink); }
 .carnet .ar-herd { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 12px 6px; margin: 12px 22px 0; }
 .carnet .ar-herd > span { display: grid; justify-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--ink2); text-align: center; min-width: 0; overflow-wrap: anywhere; }

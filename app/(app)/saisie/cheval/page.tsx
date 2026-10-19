@@ -136,16 +136,19 @@ function SaisieCheval() {
         <ChoisirProprio value={ownerName} onChange={setOwnerName} onTape={setTape} />
         <div className="field" role="group" aria-label="Sa robe">
           <span>Sa robe</span>
-          <div className="ch-sws">
+          <div className="ar-robes">
             {COAT_KEYS.map((c) => (
-              <button key={c} type="button" className="ch-sw" style={{ background: COATS[c].swatch }} aria-label={`Robe ${COATS[c].label.toLowerCase()}`} aria-pressed={coat === c} onClick={() => setCoat(c)} />
-            ))}
-            <span className="chips">
-              <button type="button" className={`chip${blaze ? " on" : ""}`} aria-pressed={!!blaze} onClick={() => setBlaze(!blaze)}>
-                Liste en tête
+              <button key={c} type="button" className="ar-robe" aria-pressed={coat === c} onClick={() => setCoat(c)}>
+                <Face horse={{ id: c, name: "", coat: c }} />
+                {COATS[c].label}
               </button>
-            </span>
+            ))}
           </div>
+          <span className="chips ar-liste">
+            <button type="button" className={`chip${blaze ? " on" : ""}`} aria-pressed={!!blaze} onClick={() => setBlaze(!blaze)}>
+              Liste en tête
+            </button>
+          </span>
         </div>
         <div className="field" role="group" aria-label="Sa formule de pension">
           <span>Sa formule de pension</span>
