@@ -22,13 +22,25 @@ import { ongletEnPause } from "@/lib/onglet";
  * quand la copie en ligne l'a annoncé (`compressionPermise`, réponse du
  * serveur) : avant, une version d'avant de l'app ouverte ailleurs le
  * recevrait sans savoir le lire. « bs-enc1: », le texte chiffré sans
- * compression : toujours lu, et écrit sinon.
+ * compression : toujours lu, et écrit sinon, et toujours en dessous
+ * d'environ 1,5 Mo (`SEUIL_COMPRESSION`).
  */
 const PREFIX = "bs-enc1:";
 const PREFIX2 = "bs-enc2:";
 /** Un contenu chiffré par le coffre, dans l'un ou l'autre format. */
 export const estScelle = (raw: string) => raw.startsWith(PREFIX) || raw.startsWith(PREFIX2);
-const avecCompression = () => typeof CompressionStream === "function" && typeof DecompressionStream === "function" && compressionPermise();
+/**
+ * Compresser seulement au-delà d'environ 1,5 Mo de contenu (en chiffré sans
+ * compression, il dépasserait les 2 Mo d'un envoi) : en dessous, « bs-enc1: »,
+ * que toutes les versions de l'app savent lire.
+ */
+export const SEUIL_COMPRESSION = 1_500_000;
+let seuil = SEUIL_COMPRESSION;
+/** Pour les tests : un autre seuil (sans argument, le vrai). */
+export function _seuilCompression(n = SEUIL_COMPRESSION) {
+  seuil = n;
+}
+const avecCompression = (taille: number) => taille > seuil && typeof CompressionStream === "function" && typeof DecompressionStream === "function" && compressionPermise();
 
 async function passer(bytes: Uint8Array, flux: CompressionStream | DecompressionStream): Promise<Uint8Array> {
   const sortie = new Blob([bytes as BlobPart]).stream().pipeThrough(flux);
@@ -57,10 +69,11 @@ async function accountKey(): Promise<CryptoKey | null> {
   return key;
 }
 
-/** Chiffre (et compresse d'abord, quand le navigateur sait le faire). `compresser: false` force l'ancien format. */
-async function seal(plain: string, key: CryptoKey, compresser = avecCompression()): Promise<string> {
+/** Chiffre (et compresse d'abord quand c'est gros et que le navigateur sait le faire). `forcerAncien` : toujours l'ancien format. */
+async function seal(plain: string, key: CryptoKey, forcerAncien = false): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const brut = new TextEncoder().encode(plain);
+  const compresser = !forcerAncien && avecCompression(brut.length);
   const donnees = compresser ? await passer(brut, new CompressionStream("gzip")) : brut;
   const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, donnees as BufferSource);
   return `${compresser ? PREFIX2 : PREFIX}${b64.to(iv)}.${b64.to(ct)}`;
@@ -178,7 +191,7 @@ brancherCoffre({
   ancienFormat: async (raw) => {
     const key = await accountKey();
     const clair = key ? await ouvrirScelle(raw) : null;
-    return key && clair !== null ? seal(clair, key, false) : null;
+    return key && clair !== null ? seal(clair, key, true) : null;
   },
 });
 

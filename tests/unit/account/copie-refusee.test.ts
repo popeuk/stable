@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 // Un localStorage minimal par appareil, comme dans le navigateur.
 class Mem {
@@ -45,7 +45,7 @@ g.fetch = (async (_url: string, init: RequestInit) => {
   return rep(200, { rev: b.rev + 1 });
 }) as unknown as typeof fetch;
 
-const { vault } = await import("@/lib/account/vault");
+const { vault, _seuilCompression, SEUIL_COMPRESSION } = await import("@/lib/account/vault");
 const { setSession } = await import("@/lib/account/session");
 const nuage = await import("@/lib/account/nuage");
 const { texteCopie } = await import("@/lib/account/etat-copie");
@@ -140,7 +140,10 @@ describe("la copie compressée avant d'être chiffrée", () => {
     serveur.tiroirs.clear();
     serveur.puts = [];
     serveur.max = 2_000_000;
+    // Ici, des écuries de quelques kilo-octets passent pour grosses.
+    _seuilCompression(1000);
   });
+  afterEach(() => _seuilCompression());
 
   it("la fonction tiroirs accepte le nouveau préfixe et garde l'ancien", () => {
     expect(contenuChiffre("bs-enc2:iv.ct")).toBe(true);
@@ -206,5 +209,35 @@ describe("la copie compressée avant d'être chiffrée", () => {
     tel.entrer();
     await sync();
     expect(JSON.parse((await vault.getItem("be-stable-data")) as string).state.seances).toHaveLength(20);
+  });
+});
+
+describe("compresser seulement quand c'est gros (les anciennes versions ne lisent que bs-enc1)", () => {
+  beforeEach(() => {
+    serveur.tiroirs.clear();
+    serveur.puts = [];
+    serveur.max = 4_000_000;
+    serveur.formats = ["bs-enc1:", "bs-enc2:"];
+  });
+
+  it("annoncé par le serveur, mais sous 1,5 Mo : l'ancien format, sur l'appareil et en ligne", async () => {
+    const pc = appareil();
+    pc.entrer();
+    await sync();
+    await ecrire(500);
+    expect([...pc.m.m.values()].some((v) => v.startsWith("bs-enc2:"))).toBe(false);
+    await nuage.envoyer();
+    expect(serveur.tiroirs.get("be-stable-data")?.contenu.startsWith("bs-enc1:")).toBe(true);
+  });
+
+  it("au-delà de 1,5 Mo : compressé", async () => {
+    const pc = appareil();
+    pc.entrer();
+    await sync();
+    const n = Math.ceil(SEUIL_COMPRESSION / 90);
+    expect(donnees(n).length).toBeGreaterThan(SEUIL_COMPRESSION);
+    await ecrire(n);
+    await nuage.envoyer();
+    expect(serveur.tiroirs.get("be-stable-data")?.contenu.startsWith("bs-enc2:")).toBe(true);
   });
 });
