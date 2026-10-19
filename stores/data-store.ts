@@ -46,6 +46,7 @@ import { POSTES_VERSION, ajouterPostesManquants } from "@/lib/domain/postes-comm
 import { avecCategoriesSysteme, categorieSysteme } from "@/lib/domain/categories";
 import { nettoyer, vide } from "@/lib/domain/valider";
 import type { MontantSaisi } from "@/lib/domain/types";
+import { donneesPlusRecentes, noterVersionLue } from "@/lib/version-donnees";
 
 /**
  * Client-side data store. In the full product this is the IndexedDB-backed
@@ -278,9 +279,13 @@ const stockageSur: PersistStorage<unknown> = {
       return { state: { [BRUT]: str }, version: 5 };
     }
   },
-  setItem: (name, value) => vault.setItem(name, JSON.stringify(value)),
+  // Des données d'une version plus récente de l'app : rien n'est écrit par-dessus (lib/version-donnees).
+  setItem: (name, value) => (donneesPlusRecentes() ? undefined : vault.setItem(name, JSON.stringify(value))),
   removeItem: (name) => vault.removeItem(name),
 };
+
+/** La version des données de l'app (persist, et le fichier de sauvegarde). */
+export const VERSION_DONNEES = 5;
 
 /**
  * Les données d'une version d'avant, mises à la version d'aujourd'hui. Sert
@@ -1240,7 +1245,7 @@ export const useDataStore = create<DataState>()(
     }),
     {
       name: "be-stable-data",
-      version: 5,
+      version: VERSION_DONNEES,
       // Un tiroir par compte, chiffré avec la clé du compte (lib/account/vault).
       storage: stockageSur,
       // v2 : séances, personnes, tâches d'équipe, actions, paiements. Une
@@ -1251,6 +1256,8 @@ export const useDataStore = create<DataState>()(
       //      les catégories dont dépend l'autopilote (Pension, Cours…) retirées avant reviennent.
       migrate: (old, v) => {
         const n = nettoyer(old);
+        // Plus récentes que l'app : lues telles quelles, sans migration, et jamais réécrites.
+        if (noterVersionLue(v, VERSION_DONNEES)) return n.data as never;
         if (n.problemes.length) abime = { problemes: n.problemes, copie: copieDe(old) };
         return migrerDonnees(n.data, v) as never;
       },

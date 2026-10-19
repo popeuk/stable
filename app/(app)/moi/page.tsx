@@ -16,9 +16,10 @@ import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { poserTaille, tailleTexte, type Taille } from "@/lib/taille";
 import { fusionFactures } from "@/lib/domain/facture";
 import { compteurAppareil } from "@/lib/account/factures-seq";
-import { migrerDonnees, useDataStore } from "@/stores/data-store";
+import { migrerDonnees, useDataStore, VERSION_DONNEES } from "@/stores/data-store";
+import { contenuSauvegarde, telechargerSauvegarde } from "@/lib/sauvegarde";
 import { lireSauvegarde } from "@/lib/domain/valider";
-import { useSettingsStore } from "@/stores/settings-store";
+import { migrerReglages, useSettingsStore, VERSION_REGLAGES } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
@@ -49,30 +50,25 @@ export default function Page() {
 const plain = (o: object) => JSON.parse(JSON.stringify(o, (_k, v) => (typeof v === "function" ? undefined : v)));
 
 function exportData() {
-  const out: Record<string, unknown> = { app: "be-stable", version: 2, exportedAt: new Date().toISOString(), "be-stable-data": { state: plain(useDataStore.getState()) }, "be-stable-settings": { state: plain(useSettingsStore.getState()) } };
-  const blob = new Blob([JSON.stringify(out)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `be-stable-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  const out = contenuSauvegarde({ data: plain(useDataStore.getState()), settings: plain(useSettingsStore.getState()), versionDonnees: VERSION_DONNEES, versionReglages: VERSION_REGLAGES });
+  telechargerSauvegarde(out, `be-stable-${new Date().toISOString().slice(0, 10)}.json`);
 }
 
 async function importData(file: File) {
-  // Un fichier abîmé ou d'un autre format est refusé avec la raison : rien n'est remplacé.
-  const lu = lireSauvegarde(await file.text());
+  // Un fichier abîmé, d'un autre format ou d'une version plus récente de l'app est refusé avec la raison : rien n'est remplacé.
+  const lu = lireSauvegarde(await file.text(), { donnees: VERSION_DONNEES, reglages: VERSION_REGLAGES });
   if (!lu.ok) {
     window.alert(lu.raison);
     return;
   }
   if (!window.confirm("Remplacer ce qui est dans l’app par cette sauvegarde ?")) return;
-  // Une sauvegarde d'une version d'avant passe par la même mise à jour qu'au chargement.
-  const repris = migrerDonnees(lu.data, 4);
+  // Une sauvegarde d'une version d'avant passe par la même mise à jour qu'au chargement, depuis sa version.
+  const repris = migrerDonnees(lu.data, lu.versionDonnees);
   // Les stores réécrivent tout seuls dans le coffre du compte (chiffré).
   // Les factures faites depuis la sauvegarde restent, et le compteur ne recule jamais.
   const avant = useDataStore.getState();
   useDataStore.setState({ ...(repris as Partial<ReturnType<typeof useDataStore.getState>>), ...fusionFactures(repris, avant, compteurAppareil()), secours: undefined, hydrated: true });
-  if (lu.settings) useSettingsStore.setState(lu.settings);
+  if (lu.settings) useSettingsStore.setState(lu.versionReglages !== null && lu.versionReglages < VERSION_REGLAGES ? migrerReglages(lu.settings, lu.versionReglages) : lu.settings);
   setTimeout(() => window.location.reload(), 400);
 }
 

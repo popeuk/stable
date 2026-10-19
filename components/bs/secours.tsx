@@ -2,8 +2,9 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { Hello, Ic, Page } from "@/components/carnet/ui";
-import { useDataStore } from "@/stores/data-store";
-import { useSettingsStore } from "@/stores/settings-store";
+import { useDataStore, VERSION_DONNEES } from "@/stores/data-store";
+import { useSettingsStore, VERSION_REGLAGES } from "@/stores/settings-store";
+import { contenuSauvegarde, telechargerSauvegarde } from "@/lib/sauvegarde";
 
 /** Le fichier de ce qui reste : les données lisibles, plus la copie d'origine telle qu'elle était enregistrée. */
 export function exporterCeQuiReste(origine?: string) {
@@ -21,13 +22,8 @@ export function exporterCeQuiReste(origine?: string) {
   } catch {
     /* rien de lisible */
   }
-  const out = { app: "be-stable", version: 2, exportedAt: new Date().toISOString(), "be-stable-data": { state: data }, "be-stable-settings": { state: settings }, ...(origine ? { "copie-d-origine": origine } : {}) };
-  const blob = new Blob([JSON.stringify(out)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `be-stable-ce-qui-reste-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  const out = contenuSauvegarde({ data, settings, versionDonnees: VERSION_DONNEES, versionReglages: VERSION_REGLAGES, plus: origine ? { "copie-d-origine": origine } : {} });
+  telechargerSauvegarde(out, `be-stable-ce-qui-reste-${new Date().toISOString().slice(0, 10)}.json`);
 }
 
 /** L'écran de secours : ce qui était abîmé, et deux gestes clairs. */

@@ -14,7 +14,7 @@ import { Secours } from "@/components/bs/secours";
 import { TutoPlus } from "@/components/bs/tuto-plus";
 import { LimiteCoque } from "@/components/bs/ecran-erreur";
 import { PlaceBandeau } from "@/components/bs/place-bandeau";
-import { CopieBandeau } from "@/components/bs/copie-bandeau";
+import { CopieBandeau, VersionBandeau } from "@/components/bs/copie-bandeau";
 
 /**
  * La coque de l'app, dans le carnet illustré. Au téléphone : une colonne au
@@ -56,6 +56,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <GarderBandeau />
         <PlaceBandeau />
         <CopieBandeau />
+        <VersionBandeau />
         <TabBar />
         <FeuillesDifferees />
         <ClientGate>

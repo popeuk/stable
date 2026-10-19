@@ -91,6 +91,18 @@ interface SettingsState {
 }
 
 /** Granular, opt-in notification preferences (spec 1.3 / 9.4) + stable config. */
+/** La version des réglages (persist, et le fichier de sauvegarde). */
+export const VERSION_REGLAGES = 7;
+
+/** Les réglages d'une version d'avant, mis à la version d'aujourd'hui (au chargement et à la reprise d'une sauvegarde). */
+export function migrerReglages(old: unknown, v: number): Record<string, unknown> {
+  const { openRouterKey: _cle, ...reste } = (old ?? {}) as { openRouterKey?: string };
+  void _cle;
+  const o = { objective: 0, capacity: 0, ...reste } as { capacity: number };
+  const capacity = v < 6 && o.capacity === 12 && getSession()?.kind !== "demo" ? 0 : o.capacity;
+  return { ...o, capacity, ...(v < 4 ? { parcours: { ...NO_OBSTACLE }, arrived: false } : {}) };
+}
+
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
@@ -135,7 +147,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "be-stable-settings",
-      version: 7,
+      version: VERSION_REGLAGES,
       storage: createJSONStorage(() => vault),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
@@ -149,13 +161,7 @@ export const useSettingsStore = create<SettingsState>()(
       // v4 : le parcours de démarrage arrive ; les anciens réglages sont gardés.
       // v6 : les 12 boxes d'office n'étaient jamais demandés : hors démo, ils redeviennent « pas encore donné ».
       // v7 : la clé OpenRouter n'est plus lue nulle part (l'interprète de la saisie est local) ; si elle avait été saisie, elle quitte l'appareil.
-      migrate: (old, v) => {
-        const { openRouterKey: _cle, ...reste } = (old ?? {}) as { openRouterKey?: string };
-        void _cle;
-        const o = { objective: 0, capacity: 0, ...reste } as { capacity: number };
-        const capacity = v < 6 && o.capacity === 12 && getSession()?.kind !== "demo" ? 0 : o.capacity;
-        return { ...o, capacity, ...(v < 4 ? { parcours: { ...NO_OBSTACLE }, arrived: false } : {}) } as never;
-      },
+      migrate: (old, v) => migrerReglages(old, v) as never,
     },
   ),
 );
