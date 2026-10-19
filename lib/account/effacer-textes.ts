@@ -6,7 +6,7 @@ import { cetAppareil, type Appareil } from "@/lib/appareil";
  */
 
 /** Sous le bouton : ce qui sera effacé, dit selon l'appareil où l'on est. */
-export function ouEfface(a?: Appareil): string {
+export function ouEfface(): string {
   return `Ici, sur tes autres téléphones et ordinateurs, et dans ta copie en ligne. On te le redemande avant.`;
 }
 

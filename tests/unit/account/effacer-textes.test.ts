@@ -17,9 +17,8 @@ describe("effacer : ne rien promettre qu'on ne tient pas", () => {
     expect(texteSansCopie("téléphone")).toBe("La copie de secours n’a pas pu être gardée sur ce téléphone. Fais une sauvegarde avant d’effacer.");
     expect(texteSansCopie("ordinateur")).toContain("sur cet ordinateur");
   });
-  it("le texte sous le bouton suit l'appareil", () => {
-    expect(ouEfface("téléphone").startsWith("Ici, sur tes autres téléphones et ordinateurs")).toBe(true);
-    expect(ouEfface("ordinateur").startsWith("Ici, sur tes autres téléphones et ordinateurs")).toBe(true);
+  it("le texte sous le bouton dit ce qui est effacé", () => {
+    expect(ouEfface().startsWith("Ici, sur tes autres téléphones et ordinateurs")).toBe(true);
   });
 });
 

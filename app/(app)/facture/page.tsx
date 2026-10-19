@@ -494,7 +494,8 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
       if ((e as { name?: string })?.name !== "AbortError") say("Le partage n’a pas marché. Envoie le message par SMS, WhatsApp ou e-mail, juste en dessous.");
     }
   };
-  const objet = encodeURIComponent(nomDoc(inv));
+  const ecurieObjet = nomEcurie(stableName, billing?.legalName);
+  const objet = encodeURIComponent(provisoire || !ecurieObjet ? nomDoc(inv) : `${nomDoc(inv)} · ${ecurieObjet}`);
   const avoirs = avoir ? [] : avoirsDe(invoices, inv.number);
   const reste = avoir ? [] : resteAAnnuler(inv, invoices);
   const peutAnnuler = !avoir && !provisoire && reste.some((q) => q > 0) && resteEnEuros(inv, invoices) > 0;

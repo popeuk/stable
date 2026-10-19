@@ -119,6 +119,8 @@ describe("les mots", () => {
     expect(msg).toContain("Déjà payé : 590 €");
     expect(msg).toContain("Reste à payer : 39 €.");
     expect(msg.endsWith("Merci,\nClaire\nLes Trois Pommiers")).toBe(true);
+    const centimes = messageDu({ ...hugo, due: 307.4 }, oct, "Les Trois Pommiers", "Claire");
+    expect(centimes).toContain("Reste à payer : 307,40\u00a0€.");
     const emma = billsFor(d, oct).find((b) => b.payer === "Emma")!;
     const m2 = messageDu(emma, oct, "Les Trois Pommiers", "Claire");
     expect(m2).toContain("Balade : 50 €");

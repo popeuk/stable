@@ -267,7 +267,8 @@ export function chezEcurie(stableName: string): string {
   return `à ${n}`;
 }
 
-const eur0 = (n: number) => `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(Math.round(n)).replace(/ /g, " ")} €`;
+/** Un montant pour un message : au centime, sans « ,00 » quand il tombe rond (« 125 € », « 307,40 € »). */
+const eur0 = (n: number) => `${new Intl.NumberFormat("fr-FR", { minimumFractionDigits: Number.isInteger(r2(n)) ? 0 : 2, maximumFractionDigits: 2 }).format(r2(n)).replace(/[\u202f\u00a0]/g, "\u00a0")}\u00a0€`;
 
 /**
  * Le message tout prêt « ce que tu me dois » : les pensions une à une, le
