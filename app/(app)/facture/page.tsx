@@ -480,7 +480,8 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
   const email = person?.email?.trim() ?? "";
   // Tu ou vous selon le choix de Tes factures ; signé du gérant et de l'écurie.
   // Le même message, selon ce qui part avec : l'e-mail et le partage joignent le PDF ; un SMS ou un WhatsApp, non.
-  const msg = (canal: Canal) => messageFacture(inv, gerant, { tu: billing?.tutoie, ecurie: nomEcurie(stableName, billing?.legalName), canal });
+  const mois = avoir && inv.avoirDe ? (invoices ?? []).find((i) => i.kind !== "avoir" && i.number === inv.avoirDe?.number) : undefined;
+  const msg = (canal: Canal) => messageFacture(inv, gerant, { tu: billing?.tutoie, ecurie: nomEcurie(stableName, billing?.legalName), canal, rembourse: !!mois && mois.due <= 0 });
   const court = encodeURIComponent(msg("court"));
   const qui = appelClient(inv.buyer, inv.payer);
   const partage = usePartagePdf();

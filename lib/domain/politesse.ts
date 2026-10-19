@@ -36,10 +36,12 @@ export function signature(gerant: string | undefined, ecurie: string | undefined
 /** Les formes de société et les mots d'une structure : on ne les salue pas comme un prénom. */
 const STRUCTURE = /^(earl|scea|gaec|sarl|sas|sasu|eurl|sa|sca|sci|snc|ei|eirl|selarl|scop|ste|st[ée]|asso|association|haras|[ée]curies?|centre|club|poney-club|ferme|domaine|soci[ée]t[ée]|ets|[ée]tablissements|mairie|commune|lyc[ée]e|[ée]cole|cabinet|clinique|groupe|[ée]levage)$/i;
 /** Les civilités : « M. Dupont » n'est pas un prénom. */
+/** Les particules et articles qui ouvrent un nom écrit à l'endroit ou à l'envers (« de Villiers », « Le Haras », « d'Aubigny ») : pas un prénom. */
+const PARTICULE = /^(de|du|des|d['’].*|le|la|les|l['’].*)$/i;
 const CIVILITE = /^(m\.?|mr\.?|mme\.?|mlle\.?|madame|monsieur|mademoiselle|dr\.?|docteur|me\.?|ma[îi]tre)$/i;
 
 /** Ce premier mot est-il une civilité ou une forme de société (« M. », « EARL », « Haras ») ? */
-export const pasUnPrenom = (mot: string) => STRUCTURE.test(mot) || CIVILITE.test(mot);
+export const pasUnPrenom = (mot: string) => STRUCTURE.test(mot) || CIVILITE.test(mot) || PARTICULE.test(mot);
 
 /** Le nom est-il celui d'une structure (« EARL du Haras des Lys », « SCEA Martin ») ? Un sigle en capitales compte aussi. */
 export function estStructure(nom: string): boolean {

@@ -801,7 +801,7 @@ export type Canal = "email" | "partage" | "court";
 export function messageFacture(
   inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe"> & { buyer?: Pick<Invoice["buyer"], "name" | "pro">; echeance?: string },
   gerant: string,
-  opts: { tu?: boolean; ecurie?: string; canal?: Canal } = {},
+  opts: { tu?: boolean; ecurie?: string; canal?: Canal; rembourse?: boolean } = {},
 ): string {
   const nb = (n: number) => eur2(n).replace(/ /g, " ");
   const f = formule(opts.tu);
@@ -810,7 +810,7 @@ export function messageFacture(
   const pdf = (opts.canal ?? "email") === "court" ? `Je peux ${f.te} l’envoyer en PDF si besoin.` : `Je ${f.te} joins ${doc} en PDF.`;
   const out =
     inv.kind === "avoir"
-      ? [bonjour, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} déduits de ${f.ta} facture.`, pdf]
+      ? [bonjour, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${opts.rembourse ? `${opts.tu ? "Je te rembourse" : "Nous vous remboursons"} ${nb(-inv.totalTTC)}.` : `${nb(-inv.totalTTC)} déduits de ${f.ta} facture.`}`, pdf]
       : [
           bonjour,
           `Voici ${f.ta} facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,

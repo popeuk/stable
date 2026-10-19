@@ -52,6 +52,13 @@ describe("la pièce jointe", () => {
     expect(a).not.toMatch(/joins/);
     expect(a).toContain("Je peux te l’envoyer en PDF si besoin.");
   });
+  it("l'avoir d'un mois déjà payé rembourse, celui d'un mois à payer déduit", () => {
+    const av = { ...inv, kind: "avoir" as const, totalTTC: -87.5, due: 0, avoirDe: { number: "2026-0001", issuedAt: "2026-10-05" } };
+    expect(messageFacture(av, "Julie", { rembourse: true })).toContain("Nous vous remboursons 87,50 €.");
+    expect(messageFacture(av, "Julie", { rembourse: true, tu: true })).toContain("Je te rembourse 87,50 €.");
+    expect(messageFacture(av, "Julie", { rembourse: true })).not.toMatch(/déduits/);
+    expect(messageFacture(av, "Julie")).toContain("déduits de votre facture");
+  });
 });
 
 describe("la facture en PDF, faite sur le téléphone", () => {
