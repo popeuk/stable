@@ -31,7 +31,7 @@ export function exporterCeQuiReste(origine?: string, nom = "be-stable-ce-qui-res
     /* rien de lisible */
   }
   const out = contenuSauvegarde({ data, settings, versionDonnees: VERSION_DONNEES, versionReglages: VERSION_REGLAGES, plus: origine ? { "copie-d-origine": origine } : {} });
-  telechargerSauvegarde(out, `be-stable-ce-qui-reste-${new Date().toISOString().slice(0, 10)}.json`);
+  telechargerSauvegarde(out, `${nom}-${new Date().toISOString().slice(0, 10)}.json`);
 }
 
 /** L'écran de secours : ce qui était abîmé, et deux gestes clairs. */
