@@ -25,6 +25,7 @@ import "./carnet/livret.css";
 import "./carnet/ob-fort.css";
 import "./carnet/liens.css";
 import { UnSeulOnglet } from "@/components/bs/un-seul-onglet";
+import { SuiviErreurs } from "@/components/bs/suivi-erreurs";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -93,6 +94,7 @@ export default function RootLayout({
         <Consentement />
         <TypoFr />
         <UnSeulOnglet />
+        <SuiviErreurs />
       </body>
     </html>
   );

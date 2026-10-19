@@ -5,6 +5,7 @@ import { fusionFactures } from "@/lib/domain/facture";
 import { fusionner3 } from "@/lib/account/fusion";
 import type { StableData } from "@/lib/domain/types";
 import { estPlacePleine, noterPlacePleine } from "@/lib/account/place";
+import { signalerErreur } from "@/lib/suivi-erreurs";
 
 /**
  * La copie en ligne des tiroirs d'un compte (Supabase, projet `bestable`).
@@ -409,6 +410,8 @@ export async function envoyer(): Promise<void> {
       // Trop gros, ou mal formé : il sera refusé encore. On le dit (Mon compte, bandeau) sans réessayer.
       majTiroir(nom, { refus: { code: r.status === 413 ? "trop_gros" : "invalide", taille: raw.length, prefixe: raw.slice(0, 8), quand: new Date().toISOString() } });
       signalerRefus();
+      // Samuel le sait aussi : seulement le code du refus et la taille, rien du contenu.
+      void signalerErreur("copie", `copie en ligne refusée : ${r.status === 413 ? "trop_gros" : "invalide"}, ${Math.round(raw.length / 1000)} Ko`);
       refuse = true;
     } else {
       // 429 (trop d'envois d'un coup), réseau, serveur : on réessaie dans une minute, sans rien dire.
