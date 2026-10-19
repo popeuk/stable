@@ -14,6 +14,7 @@ import { localToday } from "@/lib/utils/local-date";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { esc } from "@/components/bs/ui";
 import { useSettingsStore } from "@/stores/settings-store";
+import { adresseClient, nomDeLAdresse } from "@/lib/adresse-client";
 
 const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Écurie active", "Retraite", "Pré", A_MOI] as const;
 
@@ -38,7 +39,7 @@ function Chevaux() {
   const sp = useSearchParams();
   const retour = sp.get("retour");
   // ?proprietaire=Nom : les chevaux ajoutés un par un sont à lui ; « Terminé » ramène à sa fiche (?retour=client).
-  const proprietaire = sp.get("proprietaire")?.trim() ?? "";
+  const proprietaire = useDataStore((s) => nomDeLAdresse(sp, s, "proprietaire")).trim();
   const allHorses = useDataStore((s) => s.horses);
   const horses = allHorses.filter((h) => !h.isArchived);
   const addHorse = useDataStore((s) => s.addHorse);
@@ -68,7 +69,7 @@ function Chevaux() {
 
   const suite = () => {
     if (!retour) pass("chevaux");
-    if (retour === "client" && proprietaire) return router.push(`/client?nom=${encodeURIComponent(proprietaire)}`);
+    if (retour === "client" && proprietaire) return router.push(adresseClient(proprietaire));
     router.push(retour ? `/${retour}` : "/parcours/tarifs");
   };
 

@@ -15,6 +15,7 @@ import { montantEnTexte, montantOuZero, saisieMontant } from "@/lib/utils/montan
 import { useUiStore } from "@/stores/ui-store";
 import { esc } from "@/lib/utils/esc";
 import { useParentIci } from "@/components/bs/nav";
+import { adresseClient, nomDeLAdresse } from "@/lib/adresse-client";
 
 const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"];
 
@@ -55,12 +56,12 @@ function SaisieCheval() {
   // ?proprietaire=Nom le préremplit ; ?retour=client ramène à sa fiche après.
   const editId = search.get("edit");
   const editing = editId ? horses.find((h) => h.id === editId) : undefined;
-  const proprietaire = search.get("proprietaire")?.trim() ?? "";
+  const proprietaire = useDataStore((s) => nomDeLAdresse(search, s, "proprietaire")).trim();
   const retour = search.get("retour");
   // La flèche du haut : la fiche du cheval qu'on modifie, sinon la liste des chevaux.
   const poserParent = useParentIci((s) => s.poser);
   useEffect(() => {
-    poserParent(editId ? `/ticket?id=${editId}` : retour === "client" && proprietaire ? `/client?nom=${encodeURIComponent(proprietaire)}` : "/chevaux?vue=chevaux");
+    poserParent(editId ? `/ticket?id=${editId}` : retour === "client" && proprietaire ? adresseClient(proprietaire) : "/chevaux?vue=chevaux");
     return () => poserParent(null);
   }, [editId, retour, proprietaire, poserParent]);
 
@@ -94,7 +95,7 @@ function SaisieCheval() {
     // Retour à la fiche du client, sous le nom tel qu'il est noté dans le carnet.
     const versClient = (hid: string) => {
       const nom = retour === "client" ? useDataStore.getState().horses.find((h) => h.id === hid)?.ownerName : undefined;
-      return nom ? `/client?nom=${encodeURIComponent(nom)}` : null;
+      return nom ? adresseClient(nom) : null;
     };
     if (editing) {
       updateHorse(editing.id, common);

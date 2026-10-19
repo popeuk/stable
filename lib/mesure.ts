@@ -12,6 +12,15 @@
  * perdus, pas mis de côté.
  *
  * Aucun chiffre de l'écurie ne part : seulement le nom de l'étape franchie.
+ * Ni aucun nom de client (audit sécurité N1) : les adresses des écrans n'en
+ * contiennent plus (lib/adresse-client), et Google ne reçoit que l'adresse
+ * sans sa recherche (`?…`) avec un titre fixe. Meta : pas de collecte
+ * automatique (autoConfig coupé, changements d'écran non suivis), seulement
+ * les étapes de `mesurer()`.
+ *
+ * Le jour de l'allumage, dans les consoles : GA, « mesure améliorée » sans
+ * les changements d'historique, conservation 14 mois au plus ; Meta,
+ * correspondance avancée automatique désactivée.
  */
 
 export const GA_ID = (process.env.NEXT_PUBLIC_GA_ID ?? "").trim();
@@ -36,6 +45,28 @@ export const ADRESSES_MESURE = {
   connect: ["https://www.google-analytics.com", "https://*.google-analytics.com", "https://*.analytics.google.com", "https://www.googletagmanager.com", "https://www.facebook.com", "https://connect.facebook.net"],
   img: ["https://www.google-analytics.com", "https://*.google-analytics.com", "https://www.googletagmanager.com", "https://www.facebook.com"],
 } as const;
+
+/** Les témoins de Google : 13 mois au plus (CNIL), au lieu de 2 ans par défaut. */
+export const DUREE_TEMOINS_S = 34_164_000;
+/** Le seul titre de page envoyé : jamais celui de l'écran (il peut porter un nom). */
+export const TITRE_MESURE = "Be Stable";
+
+/** L'adresse de la page telle qu'elle part chez Google : sans la recherche ni l'ancre. */
+export function adresseMesuree(l: { origin: string; pathname: string } = location): string {
+  return l.origin + l.pathname;
+}
+
+/** Les réglages de GA4 : pas de page vue automatique, pas de signaux publicitaires, témoins 13 mois. */
+export function reglagesGa(l?: { origin: string; pathname: string }) {
+  return {
+    send_page_view: false,
+    allow_google_signals: false,
+    allow_ad_personalization_signals: false,
+    cookie_expires: DUREE_TEMOINS_S,
+    page_location: adresseMesuree(l),
+    page_title: TITRE_MESURE,
+  };
+}
 
 /** Les étapes mesurées. */
 export type Evenement = "histoire_vue" | "questions_finies" | "voila_ton_mois" | "compte_cree" | "premiere_saisie" | "facture_faite";
@@ -108,8 +139,11 @@ function chargerGa() {
     w.dataLayer!.push(arguments);
   };
   w.gtag("js", new Date());
-  // Pas de signaux publicitaires Google, adresse IP tronquée côté Google (GA4 par défaut).
-  w.gtag("config", GA_ID, { allow_google_signals: false, allow_ad_personalization_signals: false });
+  // Pas de signaux publicitaires Google, adresse IP tronquée côté Google (GA4 par défaut),
+  // et une seule page vue, envoyée à la main avec l'adresse nettoyée.
+  const r = reglagesGa();
+  w.gtag("config", GA_ID, r);
+  w.gtag("event", "page_view", { page_location: r.page_location, page_title: r.page_title });
   script(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_ID)}`);
 }
 
@@ -129,6 +163,9 @@ function chargerPixel() {
     w.fbq = f;
     w._fbq = f;
   }
+  // Pas de collecte automatique (texte des boutons, champs des formulaires), pas de suivi des changements d'écran.
+  (w.fbq as { disablePushState?: boolean }).disablePushState = true;
+  w.fbq("set", "autoConfig", false, META_PIXEL);
   w.fbq("init", META_PIXEL);
   w.fbq("track", "PageView");
   script("https://connect.facebook.net/fr_FR/fbevents.js");
@@ -173,7 +210,7 @@ export function mesurer(e: Evenement) {
   if (typeof window === "undefined" || !MESURE_POSEE) return;
   const w = window as Fenetre;
   try {
-    if (gaCharge) w.gtag?.("event", e);
+    if (gaCharge) w.gtag?.("event", e, { page_location: adresseMesuree(), page_title: TITRE_MESURE });
     if (pixelCharge) {
       const std = META_STANDARD[e];
       if (std) w.fbq?.("track", std);

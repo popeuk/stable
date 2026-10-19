@@ -11,6 +11,7 @@ import { cleSouple, filtrerProprios, proprietaires } from "@/lib/domain/proprio"
 import { accord, prenomDe } from "@/lib/domain/clients";
 import type { Horse } from "@/lib/domain/types";
 import { useFeuille } from "@/components/bs/feuille";
+import { adresseChevalDe } from "@/lib/adresse-client";
 
 /**
  * Le lien cheval ↔ propriétaire, en deux pièces réutilisables.
@@ -271,7 +272,7 @@ export function ChevauxDuClient({
           </div>
         ))}
         {!libres.length && !autres.length && <p className="note">Aucun autre cheval dans ton écurie.</p>}
-        <Link href={`/saisie/cheval?proprietaire=${encodeURIComponent(nom)}&retour=${encodeURIComponent(retour)}`} className="btn line full pp-nouveau" onClick={onLeave}>
+        <Link href={adresseChevalDe("/saisie/cheval", nom, retour)} className="btn line full pp-nouveau" onClick={onLeave}>
           <Ic n="plus" className="" />
           Nouveau cheval
         </Link>

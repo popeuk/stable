@@ -50,9 +50,10 @@ import { localToday } from "@/lib/utils/local-date";
 import { lireMontant, saisieMontant } from "@/lib/utils/montant";
 import { InField } from "@/components/bs/seance-form";
 import type { Invoice, Period, StableData } from "@/lib/domain/types";
+import { adresseClient, adresseFacture, nomDeLAdresse } from "@/lib/adresse-client";
 
 /**
- * La facture d'un client pour un mois (`/facture?nom=Hugo L.&mois=2026-10`),
+ * La facture d'un client pour un mois (`/facture?c=…&mois=2026-10`, lib/adresse-client ; l'ancien `?nom=` marche encore),
  * une facture ou un avoir faits (`/facture?n=2026-0004`), ou les factures du
  * mois de tous les clients (`/facture?lot=2026-10`). Tant qu'elle n'est pas
  * faite : ce qui manque (le vendeur, la TVA, le client) se règle ici, une
@@ -76,7 +77,7 @@ const parseMois = (m: string | null): Period | null => {
   return r && +r[2] >= 1 && +r[2] <= 12 ? { year: +r[1], month: +r[2] } : null;
 };
 const mkDe = (p: Period) => `${p.year}-${String(p.month).padStart(2, "0")}`;
-const ficheDe = (nom: string, mk: string) => `/client?nom=${encodeURIComponent(nom)}&mois=${mk}`;
+const ficheDe = (nom: string, mk: string) => adresseClient(nom, mk);
 const plusJoursIso = (iso: string, n: number) => {
   const d = new Date(`${iso}T12:00:00`);
   d.setDate(d.getDate() + n);
@@ -96,6 +97,8 @@ function FactureRoute() {
   const sp = useSearchParams();
   const n = sp.get("n");
   const invoices = useDataStore((s) => s.invoices);
+  // Le client de l'adresse (?c=, ou l'ancien ?nom=) : lib/adresse-client.
+  const nomAdresse = useDataStore((s) => nomDeLAdresse(sp, s));
   if (n) {
     const inv = (invoices ?? []).find((i) => i.number === n);
     if (!inv) return <Introuvable texte={`On ne trouve pas la facture n° ${n}.`} />;
@@ -103,7 +106,7 @@ function FactureRoute() {
   }
   const lot = parseMois(sp.get("lot"));
   if (lot) return <Lot period={lot} />;
-  const nom = sp.get("nom")?.trim() ?? "";
+  const nom = nomAdresse.trim();
   if (!nom) return <Introuvable texte="Choisis un client pour faire sa facture." />;
   return <DuMois nom={nom} period={parseMois(sp.get("mois")) ?? currentPeriod()} />;
 }
@@ -365,7 +368,7 @@ function Lot({ period }: { period: Period }) {
                 <b>{prets.length > 1 ? `${prets.length} factures prêtes` : "Une facture prête"}</b>
                 <div className="fr-list">
                   {prets.map((c) => (
-                    <Link key={c.nom} href={`/facture?nom=${encodeURIComponent(c.nom)}&mois=${mk}`} className="fr-inv">
+                    <Link key={c.nom} href={adresseFacture(c.nom, mk)} className="fr-inv">
                       <span>
                         <b>{c.nom}</b>
                         <small>{c.d.facture!.due > 0 ? `reste ${eur2(c.d.facture!.due)}` : "déjà payée"} · voir l’aperçu</small>
@@ -399,7 +402,7 @@ function Lot({ period }: { period: Period }) {
                         </span>
                       </div>
                     ) : (
-                      <Link key={c.nom} href={`/facture?nom=${encodeURIComponent(c.nom)}&mois=${mk}`} className="fr-inv">
+                      <Link key={c.nom} href={adresseFacture(c.nom, mk)} className="fr-inv">
                         <span>
                           <b>{c.nom}</b>
                           <small>{c.d.client.includes("adresse") ? "professionnel : son adresse" : "professionnel : tes conditions de paiement"}</small>

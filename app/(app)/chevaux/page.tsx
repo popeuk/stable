@@ -28,6 +28,7 @@ import { Partis } from "@/components/bs/partis";
 import { useFeuille } from "@/components/bs/feuille";
 import { useTitreOnglet } from "@/components/bs/titre-onglet";
 import { echeance } from "@/lib/utils/heure";
+import { adresseClient } from "@/lib/adresse-client";
 
 /**
  * Clients : un onglet, deux vues.
@@ -120,7 +121,7 @@ function FacturesDuMois({ data, today }: { data: StableData; today: string }) {
     </Link>
   );
 }
-const ficheDe = (name: string, mois?: string) => `/client?nom=${encodeURIComponent(name)}${mois ? `&mois=${mois}` : ""}`;
+const ficheDe = (name: string, mois?: string) => adresseClient(name, mois);
 
 /** Le bandeau de fin de mois : les 3 derniers jours, puis les 5 premiers du mois suivant. */
 function FinDuMois({ today }: { today: string }) {
