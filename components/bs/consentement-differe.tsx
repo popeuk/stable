@@ -7,7 +7,14 @@ import dynamic from "next/dynamic";
  * posé au build (GA_ID, META_PIXEL, MATOMO_URL vides), rien ne se charge ;
  * sinon il arrive juste après le premier affichage (components/bs/consentement.tsx).
  */
-const Consentement = dynamic(() => import("@/components/bs/consentement").then((m) => m.Consentement), { ssr: false });
+// Un chargement coupé (page quittée, réseau perdu) ne doit jamais remonter en erreur : sans mesure, l'app marche pareil.
+const Consentement = dynamic(
+  () =>
+    import("@/components/bs/consentement")
+      .then((m) => m.Consentement)
+      .catch(() => () => null),
+  { ssr: false },
+);
 const POSEE = !!((process.env.NEXT_PUBLIC_GA_ID ?? "").trim() || (process.env.NEXT_PUBLIC_META_PIXEL ?? "").trim() || (process.env.NEXT_PUBLIC_MATOMO_URL ?? "").trim());
 
 export function ConsentementDiffere() {

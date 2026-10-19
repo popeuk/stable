@@ -59,7 +59,7 @@ export function Consentement() {
         if (!tout(avant.parcours) && tout(apres.parcours)) mesurerUneFois("questions_finies");
       });
       fin = () => (d(), s());
-    });
+    }).catch(() => {});
     return () => {
       annule = true;
       fin();
