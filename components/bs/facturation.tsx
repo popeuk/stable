@@ -9,12 +9,15 @@ import {
   DELAIS_PRO,
   KINDS,
   KIND_LABEL,
+  MENTION_ASSOCIATION,
   MENTION_FRANCHISE,
   PENALITES,
   TAUX,
   enteteVendeur,
   estNomComplet,
   rcsDit,
+  rnaPropre,
+  rnaValide,
   vendeurDe,
   ibanDit,
   ibanErreur,
@@ -43,7 +46,7 @@ import "@/app/carnet/facture.css";
  */
 
 /** Les champs de l'identité du vendeur : le statut, et les noms qui vont avec. */
-const IDENTITE: VendeurManque[] = ["statut", "nom", "nomPrenom", "forme", "capital", "rcs"];
+const IDENTITE: VendeurManque[] = ["statut", "nom", "nomAsso", "nomPrenom", "forme", "capital", "rcs", "rna"];
 
 /** Le statut et l'identité (selon le statut), adresse, SIRET (le même que celui du registre), IBAN (facultatif). */
 export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
@@ -64,7 +67,9 @@ export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
       )}
       {voir("siret") && (
         <label className="field">
-          <span>SIRET</span>
+          <span>
+            SIRET{billing?.statut === "association" && <span className="ch-opt"> si elle en a un</span>}
+          </span>
           <input
             className="input"
             inputMode="numeric"
@@ -77,7 +82,7 @@ export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
               setBilling({ siret: siretPropre(v) });
             }}
           />
-          <em>{siret && !siretOk ? `${siretPropre(siret).length} chiffres sur 14.` : "Sur ton avis de situation Insee ou ton Kbis. Le même que celui de ton registre d’élevage."}</em>
+          <em>{siret && !siretOk ? `${siretPropre(siret).length} chiffres sur 14.` : billing?.statut === "association" ? "Sur son avis de situation Insee. Sans SIRET, laisse vide : rien ne s’imprime." : "Sur ton avis de situation Insee ou ton Kbis. Le même que celui de ton registre d’élevage."}</em>
         </label>
       )}
       {voir("tva") && seulement && !IDENTITE.some((k) => seulement.includes(k)) && <TvaIntra />}
@@ -90,7 +95,8 @@ export function InfosVendeur({ seulement }: { seulement?: VendeurManque[] }) {
  * Entrepreneur individuel ou société, puis ce que la loi demande pour chacun
  * (F31808) : pour un entrepreneur individuel, son nom et son prénom suivis
  * de « EI » (le nom commercial s'ajoute, il ne remplace pas) ; pour une
- * société, sa raison sociale, sa forme juridique, son capital et son RCS.
+ * société, sa raison sociale, sa forme juridique, son capital et son RCS ;
+ * pour une association, son nom, son RNA s'il est noté, ni capital ni RCS.
  * Choisi une fois, imprimé sur chaque facture.
  */
 function StatutVendeur() {
@@ -99,16 +105,22 @@ function StatutVendeur() {
   const setBilling = useDataStore((s) => s.setBilling);
   const statut = billing?.statut;
   const entete = enteteVendeur(vendeurDe(billing, true));
+  // Quitter « Association » : sa mention de TVA (art. 261-7-1°) ne vaut plus, la TVA est à rechoisir.
+  const choisir = (st: "ei" | "societe" | "association") => setBilling({ statut: st, ...(st !== "association" && billing?.vat === "association" ? { vat: undefined } : {}) });
+  const [rna, setRna] = useState(billing?.rna ?? "");
   return (
     <>
       <div className="fr-rate">
         <span id="fr-statut-v">Ton statut</span>
         <div className="fr-two" role="radiogroup" aria-labelledby="fr-statut-v">
-          <button type="button" role="radio" aria-checked={statut === "ei"} className={`chip${statut === "ei" ? " on" : ""}`} onClick={() => setBilling({ statut: "ei" })}>
+          <button type="button" role="radio" aria-checked={statut === "ei"} className={`chip${statut === "ei" ? " on" : ""}`} onClick={() => choisir("ei")}>
             {perso === "m" ? "Entrepreneur individuel" : "Entrepreneuse individuelle"} (micro ou au réel)
           </button>
-          <button type="button" role="radio" aria-checked={statut === "societe"} className={`chip${statut === "societe" ? " on" : ""}`} onClick={() => setBilling({ statut: "societe" })}>
+          <button type="button" role="radio" aria-checked={statut === "societe"} className={`chip${statut === "societe" ? " on" : ""}`} onClick={() => choisir("societe")}>
             Société (EARL, SCEA, SARL…)
+          </button>
+          <button type="button" role="radio" aria-checked={statut === "association"} className={`chip${statut === "association" ? " on" : ""}`} onClick={() => choisir("association")}>
+            Association
           </button>
         </div>
       </div>
@@ -152,6 +164,32 @@ function StatutVendeur() {
             <input className="input" defaultValue={billing?.rcs ?? ""} placeholder="Ex. : Angers" autoComplete="off" onChange={(e) => setBilling({ rcs: e.target.value.trim() || undefined })} />
             <em>La ville du greffe, en haut de ton Kbis. Imprimé avec ton SIREN : « {rcsDit(billing?.rcs || "Angers", billing?.siret || "12345678900012")} ».</em>
           </label>
+        </>
+      )}
+      {statut === "association" && (
+        <>
+          <label className="field">
+            <span>Nom de l’association</span>
+            <input className="input" defaultValue={billing?.legalName ?? ""} placeholder="Ex. : Les Cavaliers des Prés" autoComplete="organization" onChange={(e) => setBilling({ legalName: e.target.value })} />
+            <em>Tel qu’il est déclaré en préfecture. Il s’imprime en tête de chaque facture.</em>
+          </label>
+          <label className="field">
+            <span>
+              Numéro RNA <span className="ch-opt">facultatif</span>
+            </span>
+            <input
+              className="input"
+              autoComplete="off"
+              value={rna}
+              placeholder="Ex. : W723000123"
+              onChange={(e) => {
+                setRna(e.target.value);
+                setBilling({ rna: rnaPropre(e.target.value) || undefined });
+              }}
+            />
+            <em>{rnaPropre(rna) && !rnaValide(rna) ? "Un numéro RNA, c’est un W suivi de 9 chiffres." : "Sur le récépissé de la préfecture. Imprimé sous le nom : « Association, RNA W723000123 »."}</em>
+          </label>
+          <p className="fr-hint">Pas de capital ni de RCS pour une association.</p>
         </>
       )}
     </>
@@ -221,24 +259,32 @@ function TvaIntra() {
 
 /**
  * La TVA : pas de TVA (franchise), ou un taux par type de prestation choisi
- * parmi 5,5 %, 10 %, 20 %. Rien n'est choisi d'avance. Avec la TVA, le
- * numéro de TVA intracommunautaire.
+ * parmi 5,5 %, 10 %, 20 %. Une association peut aussi ne pas être
+ * assujettie (art. 261-7-1° du CGI, lib/domain/facture MENTION_ASSOCIATION).
+ * Rien n'est choisi d'avance. Avec la TVA, le numéro de TVA intracommunautaire.
  */
 export function TvaReglage({ kinds = KINDS }: { kinds?: VatKind[] }) {
   const billing = useDataStore((s) => s.billing);
   const setBilling = useDataStore((s) => s.setBilling);
   const vat = billing?.vat;
+  const asso = billing?.statut === "association";
   return (
     <div className="fr-tva">
       <div className="fr-two" role="radiogroup" aria-label="La TVA sur tes factures">
+        {asso && (
+          <button type="button" role="radio" aria-checked={vat === "association"} className={`chip${vat === "association" ? " on" : ""}`} onClick={() => setBilling({ vat: "association" })}>
+            Pas assujettie à la TVA
+          </button>
+        )}
         <button type="button" role="radio" aria-checked={vat === "franchise"} className={`chip${vat === "franchise" ? " on" : ""}`} onClick={() => setBilling({ vat: "franchise" })}>
-          Sans TVA
+          {asso ? "Franchise en base" : "Sans TVA"}
         </button>
         <button type="button" role="radio" aria-checked={vat === "taux"} className={`chip${vat === "taux" ? " on" : ""}`} onClick={() => setBilling({ vat: "taux" })}>
           Avec TVA
         </button>
       </div>
       {vat === "franchise" && <p className="fr-hint">Franchise en base : tes factures diront « {MENTION_FRANCHISE} ».</p>}
+      {vat === "association" && <p className="fr-hint">Une association à gestion désintéressée, pour les services à ses membres : tes factures diront « {MENTION_ASSOCIATION} ».</p>}
       {vat === "taux" && (
         <div className="fr-rates">
           {kinds.map((k) => {

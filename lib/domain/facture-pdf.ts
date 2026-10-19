@@ -1,5 +1,5 @@
 import type { Invoice } from "@/lib/domain/types";
-import { MENTION_FRANCHISE, dateDite, deMois, enteteVendeur, eur2, mentionIban, mentionsPaiement, siretDit, tauxDit, tvaIntraDit } from "@/lib/domain/facture";
+import { mentionTvaDe, dateDite, deMois, enteteVendeur, eur2, mentionIban, mentionsPaiement, siretDit, tauxDit, tvaIntraDit } from "@/lib/domain/facture";
 import { MENTION_PROVISOIRE } from "@/lib/domain/numeros";
 
 /**
@@ -212,7 +212,7 @@ export function facturePdf(inv: Invoice): Uint8Array {
   p.y -= 24;
 
   // Les mentions, en bas.
-  const pied = [...(f ? [`${MENTION_FRANCHISE}.`] : []), ...mentionsPaiement(inv), ...(avoir ? [] : [mentionIban(inv.seller.iban)].filter(Boolean).map((m) => `${m}.`))];
+  const pied = [...(mentionTvaDe(inv) ? [`${mentionTvaDe(inv)}.`] : []), ...mentionsPaiement(inv), ...(avoir ? [] : [mentionIban(inv.seller.iban)].filter(Boolean).map((m) => `${m}.`))];
   for (const m of pied) for (const l of couper(m, 8.5, droite - M)) p.ligne(l, 8.5);
 
   return assembler(p.pages);

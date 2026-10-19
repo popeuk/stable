@@ -8,7 +8,7 @@ import { ConditionsPro, ExportComptable, InfosVendeur, TuVous, TvaReglage } from
 import { useDataStore } from "@/stores/data-store";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { lienFacture, numerosEnDouble } from "@/lib/domain/numeros";
-import { conditionsProManquent, enteteVendeur, etatAnnulation, eur2, facturation, moisDit, nomDoc, vendeurDe, vendeurManque } from "@/lib/domain/facture";
+import { conditionsProManquent, enteteVendeur, etatAnnulation, eur2, facturation, moisDit, nomDoc, sansTva, vendeurDe, vendeurManque } from "@/lib/domain/facture";
 import "@/app/carnet/facture.css";
 import "@/app/carnet/registre.css";
 
@@ -102,7 +102,7 @@ function Facturation() {
             <span>
               <b>{ouvert ? "Replier" : "Modifier"}</b>
               <small>
-                {enteteVendeur(vendeurDe(b, b.vat === "franchise")).nom} · {b.vat === "franchise" ? "sans TVA" : "avec TVA"}
+                {enteteVendeur(vendeurDe(b, sansTva(b))).nom} · {sansTva(b) ? "sans TVA" : "avec TVA"}
                 {b.iban ? " · IBAN noté" : ""}
                 {pro ? " · conditions pour les pros notées" : ""}
               </small>

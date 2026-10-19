@@ -1,4 +1,4 @@
-import { MENTION_FRANCHISE, dateDite, deMois, enteteVendeur, eur2, mentionIban, mentionsPaiement, nomDoc, siretDit, tauxDit, tvaIntraDit } from "@/lib/domain/facture";
+import { mentionTvaDe, dateDite, deMois, enteteVendeur, eur2, mentionIban, mentionsPaiement, nomDoc, siretDit, tauxDit, tvaIntraDit } from "@/lib/domain/facture";
 import { MENTION_PROVISOIRE } from "@/lib/domain/numeros";
 import type { Invoice } from "@/lib/domain/types";
 import "@/app/carnet/facture.css";
@@ -114,7 +114,7 @@ export function Feuille({ inv, apercu }: { inv: Invoice; apercu?: boolean }) {
         )}
       </div>
       <footer className="fa-foot">
-        {f && <p>{MENTION_FRANCHISE}.</p>}
+        {mentionTvaDe(inv) && <p>{mentionTvaDe(inv)}.</p>}
         {mentions.map((m) => (
           <p key={m}>{m}</p>
         ))}

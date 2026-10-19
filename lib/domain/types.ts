@@ -501,9 +501,12 @@ export interface BillingInfo {
   /**
    * Le statut du vendeur, choisi une fois : entrepreneur individuel (la loi
    * impose « EI » après le nom) ou société (forme juridique et capital,
-   * imprimés sous le nom). Absent : pas encore choisi, la facture le demande.
+   * imprimés sous le nom), ou association (son nom, son RNA s'il est noté,
+   * sans capital ni RCS). Absent : pas encore choisi, la facture le demande.
    */
-  statut?: "ei" | "societe";
+  statut?: "ei" | "societe" | "association";
+  /** Association : son numéro RNA (« W123456789 »), facultatif, imprimé sous son nom. */
+  rna?: string;
   /** Forme juridique d'une société : « EARL », « SCEA », « SARL »… (avant le choix du statut : imprimée après le nom). */
   forme?: string;
   /** Le capital social d'une société, tel que tapé (« 7 500 »). */
@@ -515,8 +518,11 @@ export interface BillingInfo {
   address?: string;
   /** Le SIRET, le même que celui du lieu de détention (Holding.siret) : saisi une fois. */
   siret?: string;
-  /** « franchise » : pas de TVA (art. 293 B du CGI). « taux » : un taux par type. */
-  vat?: "franchise" | "taux";
+  /**
+   * « franchise » : pas de TVA (art. 293 B du CGI). « taux » : un taux par type.
+   * « association » : une association non assujettie, pas de TVA (art. 261-7-1° du CGI).
+   */
+  vat?: "franchise" | "taux" | "association";
   rates?: Partial<Record<VatKind, VatRate>>;
   /** Le numéro de TVA intracommunautaire, demandé dès qu'on facture la TVA. */
   tvaIntra?: string;
@@ -574,7 +580,7 @@ export interface Invoice {
    * dessous ; `capital` : la forme et le capital sous le nom, `rcs` : « RCS Angers 123 456 789 » ;
    * `iban` : en pied de facture.
    */
-  seller: { name: string; forme?: string; ei?: boolean; capital?: string; address?: string; siret?: string; tvaIntra?: string; iban?: string; commercial?: string; rcs?: string };
+  seller: { name: string; forme?: string; ei?: boolean; association?: boolean; rna?: string; capital?: string; address?: string; siret?: string; tvaIntra?: string; iban?: string; commercial?: string; rcs?: string };
   buyer: { name: string; address?: string; pro?: boolean; tvaIntra?: string };
   /** Client professionnel : la date d'échéance et le taux des pénalités, figés à l'émission. */
   echeance?: ISODate;
@@ -582,6 +588,8 @@ export interface Invoice {
   /** Soldée à l'émission : le jour du dernier paiement et comment (« chèque »). */
   reglee?: { date: ISODate; moyen?: string };
   franchise: boolean;
+  /** La mention de TVA imprimée, figée à l'émission quand ce n'est pas celle de la franchise (une association). */
+  mentionTva?: string;
   lines: InvoiceLine[];
   totalHT: number;
   vat: InvoiceVat[];

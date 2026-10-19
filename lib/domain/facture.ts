@@ -28,6 +28,28 @@ export const TAUX: VatRate[] = [5.5, 10, 20];
 
 /** La mention imprimée en franchise de TVA. */
 export const MENTION_FRANCHISE = "TVA non applicable, art. 293 B du CGI";
+/**
+ * La mention d'une association non assujettie (ses services aux membres,
+ * gestion désintéressée : CGI, art. 261, 7-1°). Une facture d'opération
+ * exonérée doit porter la référence à la disposition du CGI qui l'exonère,
+ * ou toute autre mention qui le dit (CGI, ann. II, art. 242 nonies A ;
+ * BOFiP BOI-TVA-DECLA-30-20-20-10, § 490 ; l'exonération des associations :
+ * BOI-TVA-CHAMP-30-10-30-10). Aucun texte officiel n'impose de formule :
+ * celle-ci cite la disposition. Vérifié sur bofip.impots.gouv.fr le
+ * 19 octobre 2026.
+ */
+export const MENTION_ASSOCIATION = "TVA non applicable, art. 261-7-1° du CGI";
+
+/** La mention de TVA d'une facture : celle figée à l'émission, sinon celle de la franchise (factures d'avant). */
+export const mentionTvaDe = (inv: Pick<Invoice, "franchise" | "mentionTva">) => inv.mentionTva ?? (inv.franchise ? MENTION_FRANCHISE : "");
+
+/** Pas de TVA sur la facture : franchise en base, ou association non assujettie. */
+export const sansTva = (b: BillingInfo | undefined) => b?.vat === "franchise" || b?.vat === "association";
+
+/** « W123456789 » écrit n'importe comment : sans espaces, en capitales. */
+export const rnaPropre = (s?: string) => (s ?? "").replace(/[\s.-]+/g, "").toUpperCase();
+/** Un numéro RNA : W suivi de 9 chiffres. */
+export const rnaValide = (s?: string) => /^W\d{9}$/.test(rnaPropre(s));
 
 /** Le type de prestation d'une recette (même règle que les clients : pension, cours, soins, le reste). */
 export function kindOf(r: Pick<Revenue, "rebillOf" | "seanceId" | "note" | "categoryId">, catName = ""): VatKind {
@@ -162,7 +184,7 @@ export const mentionIban = (iban?: string) => (ibanPropre(iban) ? `Paiement par 
 export function changementsVendeur(app: BillingInfo | undefined, fichier: unknown): string[] {
   const f = (fichier && typeof fichier === "object" ? fichier : {}) as Record<string, unknown>;
   const texte = (v: unknown) => (typeof v === "string" ? v : undefined);
-  const b: BillingInfo = { ...f, iban: texte(f.iban), siret: texte(f.siret), nomPrenom: texte(f.nomPrenom), legalName: texte(f.legalName), statut: f.statut === "ei" || f.statut === "societe" ? f.statut : undefined } as BillingInfo;
+  const b: BillingInfo = { ...f, iban: texte(f.iban), siret: texte(f.siret), nomPrenom: texte(f.nomPrenom), legalName: texte(f.legalName), statut: f.statut === "ei" || f.statut === "societe" || f.statut === "association" ? f.statut : undefined } as BillingInfo;
   const out: string[] = [];
   const iA = ibanPropre(app?.iban);
   const iF = ibanPropre(b.iban);
@@ -195,23 +217,26 @@ const finitParEI = (n: string) => /(^|\s)(EI|entrepreneur individuel)\.?$/i.test
  * facture faite avant le choix du statut s'imprime comme avant (la forme
  * notée, après le nom).
  */
-export function enteteVendeur(seller: Pick<Invoice["seller"], "name" | "forme" | "ei" | "capital" | "commercial" | "rcs">): { nom: string; sous?: string; rcs?: string } {
+export function enteteVendeur(seller: Pick<Invoice["seller"], "name" | "forme" | "ei" | "association" | "rna" | "capital" | "commercial" | "rcs">): { nom: string; sous?: string; rcs?: string } {
   const name = seller.name.trim();
   const com = seller.commercial?.trim();
+  if (seller.association) return { nom: name, sous: seller.rna ? `Association, RNA ${seller.rna}` : "Association" };
   if (seller.ei) return { nom: finitParEI(name) ? name : `${name} EI`, ...(com ? { sous: com } : {}) };
   if (seller.capital) return { nom: name, sous: `${seller.forme ? `${seller.forme} au capital` : "Capital"} de ${capitalDit(seller.capital)}`, ...(seller.rcs ? { rcs: seller.rcs } : {}) };
   return { nom: `${name}${seller.forme ? ` ${seller.forme}` : ""}` };
 }
 
 /** Ce qui peut manquer au vendeur pour faire une facture. */
-export type VendeurManque = "nom" | "nomPrenom" | "statut" | "forme" | "capital" | "rcs" | "adresse" | "siret" | "tva";
+export type VendeurManque = "nom" | "nomAsso" | "nomPrenom" | "statut" | "forme" | "capital" | "rcs" | "rna" | "adresse" | "siret" | "tva";
 export const VENDEUR_MANQUE_DIT: Record<VendeurManque, string> = {
   nom: "ta raison sociale",
+  nomAsso: "le nom de ton association",
   nomPrenom: "ton nom et ton prénom",
   statut: "ton statut",
   forme: "ta forme juridique",
   capital: "ton capital",
   rcs: "la ville de ton RCS",
+  rna: "un numéro RNA juste (W et 9 chiffres)",
   adresse: "ton adresse",
   siret: "ton SIRET",
   tva: "ton numéro de TVA intracommunautaire",
@@ -230,6 +255,8 @@ export const listeDite = (xs: string[]) => (xs.length < 2 ? (xs[0] ?? "") : `${x
  * - société : dénomination, forme juridique et montant du capital social ;
  *   et le RCS avec la ville du greffe (article R123-237 du Code de commerce,
  *   « RCS Angers 123 456 789 ») ;
+ * - association : son nom ; ni capital ni RCS ; son RNA et son SIRET si
+ *   elle en a (un SIRET tapé doit être juste) ;
  * - pour tous : adresse, SIREN (dans le SIRET), et le numéro de TVA quand on
  *   facture la TVA.
  */
@@ -244,8 +271,13 @@ export function vendeurManque(b: BillingInfo | undefined): VendeurManque[] {
     if (!b.capital?.trim()) out.push("capital");
     if (!rcsDit(b.rcs)) out.push("rcs");
   }
+  if (b?.statut === "association") {
+    if (!b.legalName?.trim()) out.push("nomAsso");
+    if (rnaPropre(b.rna) && !rnaValide(b.rna)) out.push("rna");
+  }
   if (!b?.address?.trim()) out.push("adresse");
-  if (!siretValide(b?.siret)) out.push("siret");
+  // Une association sans SIRET n'en met pas ; un SIRET noté doit être juste.
+  if (b?.statut === "association" ? !!siretPropre(b.siret) && !siretValide(b.siret) : !siretValide(b?.siret)) out.push("siret");
   if (b?.vat === "taux" && !tvaIntraValide(b.tvaIntra)) out.push("tva");
   return out;
 }
@@ -315,13 +347,13 @@ export function mentionsPaiement(inv: Pick<Invoice, "kind" | "buyer" | "due" | "
 
 /** Les types dont le taux n'est pas encore choisi. Franchise : aucun. Rien choisi : tous ceux demandés. */
 export function tauxManquants(b: BillingInfo | undefined, kinds: VatKind[] = KINDS): VatKind[] {
-  if (b?.vat === "franchise") return [];
+  if (sansTva(b)) return [];
   return kinds.filter((k) => !b?.rates?.[k]);
 }
 
 /** Le taux d'un type de prestation (0 en franchise), ou undefined s'il n'est pas choisi. */
 export function tauxDe(b: BillingInfo | undefined, k: VatKind): number | undefined {
-  if (b?.vat === "franchise") return 0;
+  if (sansTva(b)) return 0;
   if (b?.vat !== "taux") return undefined;
   return b.rates?.[k];
 }
@@ -444,7 +476,7 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
   const client = clientManque(person, b);
   const out: Brouillon = { vide: list.length === 0, kinds, tvaAChoisir, manquants, client, montant: r2(list.reduce((t, g) => t + g.unitTTC * g.qty, 0)) };
   if (out.vide || tvaAChoisir || manquants.length || client.length) return out;
-  const franchise = b?.vat === "franchise";
+  const franchise = sansTva(b);
   const lines: InvoiceLine[] = list.map((g) => {
     const rate = tauxDe(b, g.kind) ?? 0;
     const totalTTC = r2(g.unitTTC * g.qty);
@@ -474,6 +506,8 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
       ...(pro && tvaIntraPropre(person?.tvaIntra) ? { tvaIntra: tvaIntraPropre(person?.tvaIntra) } : {}),
     },
     franchise,
+    // Une association non assujettie : sa mention, figée avec la facture.
+    ...(b?.vat === "association" ? { mentionTva: MENTION_ASSOCIATION } : {}),
     lines,
     totalHT: t.totalHT,
     vat: t.vat,
@@ -534,7 +568,9 @@ const plusJours = (iso: string, n: number) => {
  */
 export function vendeurDe(b: BillingInfo | undefined, franchise: boolean): Invoice["seller"] {
   const ei = b?.statut === "ei";
-  const forme = ei ? undefined : b?.forme?.trim();
+  const association = b?.statut === "association";
+  const rna = association && rnaValide(b?.rna) ? rnaPropre(b?.rna) : undefined;
+  const forme = ei || association ? undefined : b?.forme?.trim();
   const capital = b?.statut === "societe" ? b.capital?.trim() : undefined;
   const commercial = ei && b?.legalName?.trim() && b.legalName.trim().toLowerCase() !== nomVendeur(b).toLowerCase() ? b.legalName.trim() : undefined;
   const rcs = b?.statut === "societe" ? rcsDit(b.rcs, b.siret) : "";
@@ -543,6 +579,8 @@ export function vendeurDe(b: BillingInfo | undefined, franchise: boolean): Invoi
   return {
     name: nomVendeur(b),
     ...(ei ? { ei: true } : {}),
+    ...(association ? { association: true } : {}),
+    ...(rna ? { rna } : {}),
     ...(commercial ? { commercial } : {}),
     ...(forme ? { forme } : {}),
     ...(capital ? { capital } : {}),
@@ -642,6 +680,7 @@ export function contenuAvoir(inv: Invoice, qtes: number[], invoices: Invoice[] |
     seller: inv.seller,
     buyer: inv.buyer,
     franchise: inv.franchise,
+    ...(inv.mentionTva ? { mentionTva: inv.mentionTva } : {}),
     lines: pos.map((l) => ({ ...l, totalTTC: neg(l.totalTTC), totalHT: neg(l.totalHT) })),
     totalHT: neg(t.totalHT),
     vat: t.vat.map((v) => ({ rate: v.rate, base: neg(v.base), amount: neg(v.amount) })),
@@ -694,6 +733,7 @@ export function contenuAvoirMontant(inv: Invoice, montant: number, motif: string
     seller: inv.seller,
     buyer: inv.buyer,
     franchise: inv.franchise,
+    ...(inv.mentionTva ? { mentionTva: inv.mentionTva } : {}),
     lines: pos.map((l) => ({ ...l, totalTTC: neg(l.totalTTC), totalHT: neg(l.totalHT) })),
     totalHT: neg(t.totalHT),
     vat: t.vat.map((v) => ({ rate: v.rate, base: neg(v.base), amount: neg(v.amount) })),
