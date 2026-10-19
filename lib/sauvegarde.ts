@@ -7,6 +7,8 @@
  * (format 2, sans version) sont repris comme des données en version 4.
  */
 export const FORMAT_SAUVEGARDE = 3;
+/** Sous « Faire une sauvegarde » : le fichier n'est pas chiffré, contrairement à la copie en ligne. */
+export const SAUVEGARDE_NON_PROTEGEE = "Ce fichier n’est pas protégé : range-le en lieu sûr.";
 /** La version des données d'un fichier d'avant, qui ne la disait pas. */
 export const VERSION_DONNEES_ANCIENNE = 4;
 

@@ -16,7 +16,7 @@ import { useInstall } from "@/lib/pwa";
 import { INSTALL_HOWTO } from "@/lib/pwa-gestes";
 import { poserTaille, tailleTexte, type Taille } from "@/lib/taille";
 import { useDataStore, VERSION_DONNEES } from "@/stores/data-store";
-import { contenuSauvegarde, telechargerSauvegarde } from "@/lib/sauvegarde";
+import { SAUVEGARDE_NON_PROTEGEE, contenuSauvegarde, telechargerSauvegarde } from "@/lib/sauvegarde";
 import { ouvrirFichierSauvegarde } from "@/components/bs/reprendre-sauvegarde";
 import { useSettingsStore, VERSION_REGLAGES } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -221,7 +221,9 @@ function Moi() {
       <RecupererLigne />
       <OuNote />
       <button type="button" className="li np" onClick={() => (exportData(), say("La sauvegarde est dans tes téléchargements."))}>
-        <Li title="Faire une sauvegarde" sub="un fichier avec toute ton écurie" right={<Ic n="download" className="ec-ico" />} />
+        <Li title="Faire une sauvegarde" sub="un fichier avec toute ton écurie" right={<Ic n="download" className="ec-ico" />}>
+          <small>{SAUVEGARDE_NON_PROTEGEE}</small>
+        </Li>
       </button>
       <label className="li np">
         <Li title="Ouvrir une sauvegarde" sub="remplace ce qui est dans l’app" right={<Ic n="upload" className="ec-ico" />} />
