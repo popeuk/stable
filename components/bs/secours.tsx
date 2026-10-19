@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Hello, Ic, Page } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useConfirmer } from "@/components/bs/confirmer";
 
 /** Le fichier de ce qui reste : les données lisibles, plus la copie d'origine telle qu'elle était enregistrée. */
 export function exporterCeQuiReste(origine?: string) {
@@ -33,6 +34,7 @@ export function exporterCeQuiReste(origine?: string) {
 /** L'écran de secours : ce qui était abîmé, et deux gestes clairs. */
 export function SecoursEcran({ problemes, origine, onRepartir, onGarder, garder = "Continuer avec ce qui reste" }: { problemes: string[]; origine?: string; onRepartir: () => void; onGarder?: () => void; garder?: string }) {
   const [exporte, setExporte] = useState(false);
+  const [demander, feuille] = useConfirmer();
   return (
     <Page>
       <Hello
@@ -60,14 +62,15 @@ export function SecoursEcran({ problemes, origine, onRepartir, onGarder, garder 
         <button
           type="button"
           className="btn line full"
-          onClick={() => {
-            if (window.confirm(exporte ? "Repartir de zéro ? Ce qui reste sera effacé." : "Repartir sans copie ? Ce qui reste sera effacé. Garde-en une copie d’abord si tu en as besoin.")) onRepartir();
+          onClick={async () => {
+            if (await demander(exporte ? { titre: "Repartir de zéro ?", texte: "Ce qui reste sera effacé.", oui: "Oui, repartir de zéro", danger: true } : { titre: "Repartir sans copie ?", texte: "Ce qui reste sera effacé. Garde-en une copie d’abord si tu en as besoin.", oui: "Oui, repartir sans copie", danger: true })) onRepartir();
           }}
         >
           Repartir de zéro
         </button>
       </div>
       <div className="end" />
+      {feuille}
     </Page>
   );
 }

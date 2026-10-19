@@ -13,6 +13,7 @@ import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { resumeLocale, type ResumeEssai } from "@/lib/account/vault";
 import { Stories } from "@/components/bs/histoire";
 import { mesurer } from "@/lib/mesure";
+import { useConfirmer } from "@/components/bs/confirmer";
 
 /**
  * Essayer avant le compte : un premier écran, puis le même parcours que
@@ -60,6 +61,7 @@ export function Essayer() {
   const [busy, setBusy] = useState(false);
   const [reprendre, setReprendre] = useState(false);
   const [essai, setEssai] = useState<ResumeEssai | null>(null);
+  const [demander, feuille] = useConfirmer();
 
   useEffect(() => {
     // Un compte connecté n'a rien à essayer : il retrouve son écurie.
@@ -79,7 +81,7 @@ export function Essayer() {
   const repartir = async () => {
     if (busy) return;
     const quoi = essai?.chevaux ? `Ton essai (${essai.chevaux} cheva${essai.chevaux > 1 ? "ux" : "l"})` : "Ton essai";
-    if (!window.confirm(`${quoi} sera effacé d’ici. Repartir de zéro ?`)) return;
+    if (!(await demander({ titre: "Repartir de zéro ?", texte: `${quoi} sera effacé d’ici.`, oui: "Oui, repartir de zéro", danger: true }))) return;
     await commencer();
   };
   const reprendreEssai = () => enter({ kind: "locale", at: new Date().toISOString() });
@@ -126,6 +128,7 @@ export function Essayer() {
         <p className="k">Be Stable</p>
         <p className="ar-big">Ton écurie, ce qu’elle te rapporte.</p>
       </aside>
+      {feuille}
     </div>
   );
 }

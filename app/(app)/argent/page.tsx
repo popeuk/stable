@@ -27,6 +27,7 @@ import { localToday } from "@/lib/utils/local-date";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { nomAffiche } from "@/lib/domain/noms-categories";
+import { useConfirmer } from "@/components/bs/confirmer";
 
 /**
  * Mon bilan : le chiffre du mois en tête, puis ce qui rentre
@@ -542,6 +543,7 @@ function Mouvements() {
   const [kind, setKind] = useState<"tout" | "in" | "out">("tout");
   const desk = useDesk();
   const [horse, setHorse] = useState("");
+  const [demander, feuille] = useConfirmer();
   const name = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "";
   const cat = (id?: string) => { const n = [...data.revenueCategories, ...data.expenseCategories].find((c) => c.id === id)?.name; return n && nomAffiche(n); };
   const rows = useMemo(() => {
@@ -723,7 +725,7 @@ function Mouvements() {
                     type="button"
                     className="lnk"
                     aria-label={`Arrêter ${r.label ?? "la pension"}`}
-                    onClick={() => confirm(`Arrêter cette rentrée d’argent ? ${cap(moisEnCours())} compte encore. Plus rien à partir du mois prochain.`) && useDataStore.getState().stopRecurringRevenue(r.id)}
+                    onClick={async () => (await demander({ titre: "Arrêter cette rentrée d’argent ?", texte: `${cap(moisEnCours())} compte encore. Plus rien à partir du mois prochain.`, oui: "Oui, l’arrêter" })) && useDataStore.getState().stopRecurringRevenue(r.id)}
                   >
                     Arrêter
                   </button>
@@ -750,7 +752,7 @@ function Mouvements() {
                     type="button"
                     className="lnk"
                     aria-label={`Arrêter ${r.label}`}
-                    onClick={() => confirm(`Arrêter « ${r.label} » ? ${cap(moisEnCours())} compte encore. Plus rien à partir du mois prochain.`) && useDataStore.getState().stopRecurringExpense(r.id)}
+                    onClick={async () => (await demander({ titre: `Arrêter « ${r.label} » ?`, texte: `${cap(moisEnCours())} compte encore. Plus rien à partir du mois prochain.`, oui: "Oui, l’arrêter" })) && useDataStore.getState().stopRecurringExpense(r.id)}
                   >
                     Arrêter
                   </button>
@@ -770,6 +772,7 @@ function Mouvements() {
         </span>
         <Ic n="chev" className="chev" />
       </Link>
+      {feuille}
     </>
   );
 }

@@ -10,6 +10,7 @@ import { categorieSysteme } from "@/lib/domain/categories";
 import { useUiStore } from "@/stores/ui-store";
 import { esc } from "@/components/bs/ui";
 import { nomAffiche } from "@/lib/domain/noms-categories";
+import { useConfirmer } from "@/components/bs/confirmer";
 
 /**
  * Des parties de Réglages (app/(app)/moi) : l'équipe, les catégories, les
@@ -30,6 +31,7 @@ export function EquipeReglages() {
   const deleteTeamMember = useDataStore((s) => s.deleteTeamMember);
   const [name, setName] = useState("");
   const [job, setJob] = useState("");
+  const [demander, feuille] = useConfirmer();
   const today = localToday();
 
   // Les tâches à venir de chacun, dérivées du planning : rien à ressaisir.
@@ -60,7 +62,7 @@ export function EquipeReglages() {
                 {n > 0 ? ` · ${n} tâche${n > 1 ? "s" : ""} à venir` : ""}
               </small>
             </span>
-            <button type="button" className="x" onClick={() => confirm(`Retirer ${m.name} de l’équipe ? Ce qu’il a fait reste noté dans le carnet des chevaux.`) && deleteTeamMember(m.id)} aria-label={`Retirer ${m.name}`}>
+            <button type="button" className="x" onClick={async () => (await demander({ titre: `Retirer ${m.name} de l’équipe ?`, texte: "Ses soins restent notés sur la fiche des chevaux.", oui: "Oui, retirer" })) && deleteTeamMember(m.id)} aria-label={`Retirer ${m.name}`}>
               <Ic n="x" className="" />
             </button>
           </div>
@@ -86,6 +88,7 @@ export function EquipeReglages() {
         </Link>
         .
       </p>
+      {feuille}
     </Sec>
   );
 }

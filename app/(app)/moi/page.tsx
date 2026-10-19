@@ -20,6 +20,7 @@ import { migrerDonnees, useDataStore } from "@/stores/data-store";
 import { lireSauvegarde } from "@/lib/domain/valider";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
+import { useConfirmer, type Question } from "@/components/bs/confirmer";
 import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 import { useFeuille } from "@/components/bs/feuille";
@@ -58,14 +59,14 @@ function exportData() {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
-async function importData(file: File) {
+async function importData(file: File, demander: (q: Question) => Promise<boolean>) {
   // Un fichier abîmé ou d'un autre format est refusé avec la raison : rien n'est remplacé.
   const lu = lireSauvegarde(await file.text());
   if (!lu.ok) {
-    window.alert(lu.raison);
+    await demander({ titre: "Cette sauvegarde ne s’ouvre pas", texte: lu.raison, oui: "D’accord", non: null });
     return;
   }
-  if (!window.confirm("Remplacer ce qui est dans l’app par cette sauvegarde ?")) return;
+  if (!(await demander({ titre: "Ouvrir cette sauvegarde ?", texte: "Elle remplace ce qui est dans l’app. Tes factures faites depuis restent.", oui: "Oui, l’ouvrir" }))) return;
   // Une sauvegarde d'une version d'avant passe par la même mise à jour qu'au chargement.
   const repris = migrerDonnees(lu.data, 4);
   // Les stores réécrivent tout seuls dans le coffre du compte (chiffré).
@@ -133,6 +134,7 @@ function Moi() {
   const say = useUiStore((x) => x.say);
   const openTournee = useUiStore((x) => x.openTournee);
   const desk = useDesk();
+  const [demander, feuille] = useConfirmer();
   const [perm, setPerm] = useState<string>(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   // Le groupe de ?s= ; à défaut, celui d'une ancienne adresse ou ancre.
   const [ancre] = useState<Groupe | null>(() => DEPUIS_ANCRE[window.location.hash] ?? DEPUIS_ADRESSE[path] ?? null);
@@ -240,14 +242,14 @@ function Moi() {
       </button>
       <label className="li np">
         <Li title="Ouvrir une sauvegarde" sub="remplace ce qui est dans l’app" right={<Ic n="upload" className="ec-ico" />} />
-        <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
+        <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && importData(e.target.files[0], demander)} />
       </label>
       {session?.kind === "demo" && (
         <button
           type="button"
           className="li np"
-          onClick={() => {
-            if (window.confirm("Repartir de l’écurie d’exemple ? Ce que tu as noté sera remplacé.")) {
+          onClick={async () => {
+            if (await demander({ titre: "Repartir de l’écurie d’exemple ?", texte: "Ce que tu as noté sera remplacé.", oui: "Oui, repartir", danger: true })) {
               data.resetToDemo();
               s.setIdentity({ stableName: "Les Trois Pommiers" });
               say("L’écurie d’exemple est de retour.");
@@ -346,6 +348,7 @@ function Moi() {
           )}
           <div className="end" />
         </div>
+        {feuille}
       </Screen>
     );
   }
