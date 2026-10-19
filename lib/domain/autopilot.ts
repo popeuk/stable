@@ -1,6 +1,7 @@
 import type { Category, Horse, ISODate, Revenue } from "@/lib/domain/types";
 import { debutCompte, finCompte, sejours } from "@/lib/domain/sejours";
 import { periodEnd } from "@/lib/utils/period";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * L'autopilote des pensions : le loyer d'une place est un CONTRAT (le champ
@@ -64,19 +65,40 @@ export function ensurePensions(
       const rid = pensionRevenueId(h.id, monthKey);
       if (skip.has(rid)) continue;
       const from = debutCompte(stay);
+      const date = from > monthStart ? from : monthStart;
+      // Un cheval entré en cours de mois paie ce mois-là au prorata des jours, depuis son entrée.
+      const { amount, note } = pensionDuMois(h.pension, date);
       out.push({
         id: rid,
         stableId: h.stableId,
         horseId: h.id,
         categoryId: pensionCat.id,
-        amount: h.pension,
-        // Un cheval entré en cours de mois est facturé depuis son entrée.
-        date: from > monthStart ? from : monthStart,
+        amount,
+        date,
+        ...(note ? { note } : {}),
         source: "recurring",
       });
     }
   }
   return out;
+}
+
+const jourDit = (n: number) => (n === 1 ? "1er" : String(n));
+export const moisDit = (y: number, m: number) => new Date(Date.UTC(y, m - 1, 15)).toLocaleDateString("fr-FR", { month: "long", timeZone: "UTC" });
+
+/**
+ * La pension d'un mois qui commence le jour `debut` : entière si c'est le 1er,
+ * sinon au prorata des jours, de l'arrivée au dernier jour du mois (la même
+ * règle que le changement de propriétaire, proprio.ts partPension), au
+ * centime, avec sa note (« Pension du 12 au 31 octobre »).
+ */
+export function pensionDuMois(pension: number, debut: ISODate): { amount: number; note?: string } {
+  const y = Number(debut.slice(0, 4));
+  const m = Number(debut.slice(5, 7));
+  const j = Number(debut.slice(8, 10));
+  if (j <= 1) return { amount: pension };
+  const dernier = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return { amount: r2((pension * (dernier - j + 1)) / dernier), note: `Pension du ${jourDit(j)} au ${dernier} ${moisDit(y, m)}` };
 }
 
 /** Les mois de `depuis` à `jusqua` inclus (AAAA-MM), les 24 derniers au plus ; `jusqua` seul sans `depuis`. */

@@ -11,6 +11,8 @@ import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 import { debutCompte, dernierSejour } from "@/lib/domain/sejours";
 import { pensionFigee, textePrixChange } from "@/lib/domain/facture";
+import { pensionRevenueId } from "@/lib/domain/autopilot";
+import { textePensionArrivee } from "@/lib/domain/pension-arrivee";
 import type { Horse } from "@/lib/domain/types";
 import { montantEnTexte, montantOuZero, saisieMontant } from "@/lib/utils/montant";
 import { useUiStore } from "@/stores/ui-store";
@@ -59,6 +61,8 @@ function SaisieCheval() {
   const editing = editId ? horses.find((h) => h.id === editId) : undefined;
   const moisCourant = localToday().slice(0, 7);
   const figee = useDataStore((s) => (editId ? pensionFigee(s, editId, moisCourant) : null));
+  // La pension de ce mois déjà posée : au prorata (elle a sa note) ou entière (posée avant le 19 octobre 2026).
+  const auProrata = useDataStore((s) => (editId ? !!s.revenues.find((r) => r.id === pensionRevenueId(editId, moisCourant))?.note : false));
   const proprietaire = useDataStore((s) => nomDeLAdresse(search, s, "proprietaire")).trim();
   const retour = search.get("retour");
   // La flèche du haut : la fiche du cheval qu'on modifie, sinon la liste des chevaux.
@@ -79,6 +83,8 @@ function SaisieCheval() {
   // Un nouveau cheval arrive avec le tarif de la grille, modifiable ici.
   const [pension, setPension] = useState(montantEnTexte(editing ? editing.pension : tariffs?.pension));
   const [entryDate, setEntryDate] = useState(editing?.entryDate ?? localToday());
+  // Arrivé en cours de mois : la fiche dit que ce mois-ci est au prorata (ou déjà facturé).
+  const prorataDit = !editing || entryDate !== editing.entryDate || auProrata || figee === "facturee" ? textePensionArrivee(montantOuZero(pension), entryDate, localToday(), figee === "facturee") : "";
   const pensionNum = montantOuZero(pension);
   const others = horses.filter((h) => !h.isArchived && h.id !== editing?.id);
 
@@ -189,6 +195,7 @@ function SaisieCheval() {
           <span>Date d’arrivée</span>
           <input className="input" type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
           <em>{arriveeEnMots(entryDate, editing)}</em>
+          {prorataDit && <em>{prorataDit}</em>}
         </label>
         <button type="submit" className="btn full" disabled={!name.trim()}>
           <Ic n="ck" className="" />

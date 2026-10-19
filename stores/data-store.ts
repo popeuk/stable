@@ -22,7 +22,7 @@ import type { Holding } from "@/lib/domain/registre";
 import { CARE_META } from "@/lib/domain/care";
 import type { Rhythm } from "@/lib/domain/rhythm";
 import { materializeRhythms } from "@/lib/domain/rhythm";
-import { ensurePensions, pensionRevenueId, premierMoisARattraper } from "@/lib/domain/autopilot";
+import { ensurePensions, pensionDuMois, pensionRevenueId, premierMoisARattraper } from "@/lib/domain/autopilot";
 import { buildDemoData } from "@/lib/data/demo-data";
 import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
 import { fusionFactures, pensionFigee, personneDe, recettesFacturees } from "@/lib/domain/factures-base";
@@ -45,7 +45,7 @@ import { prosDeLEquipe } from "@/lib/domain/pros";
 import { avecProprio, changerProprio, nomConnu, renommerClient, retirerClient } from "@/lib/domain/proprio";
 import { arreterRecurrentes, migrerSejours, presentDans } from "@/lib/domain/presence";
 import { corrigerRecurrente } from "@/lib/domain/corriger";
-import { avecSejours, changerArrivee, changerInfosSejour, compteDepuis, partirLe, revenirLe, type InfosEntree, type InfosSortie } from "@/lib/domain/sejours";
+import { avecSejours, changerArrivee, changerInfosSejour, compteDepuis, debutCompte, partirLe, revenirLe, sejours, type InfosEntree, type InfosSortie } from "@/lib/domain/sejours";
 import { currentPeriod } from "@/lib/utils/period";
 import { POSTES_VERSION, ajouterPostesManquants } from "@/lib/domain/postes-communs";
 import { avecCategoriesSysteme, categorieSysteme } from "@/lib/domain/categories";
@@ -309,6 +309,15 @@ export function migrerDonnees(old: unknown, v: number): StableData {
   return avecCategoriesSysteme(prosDeLEquipe(d));
 }
 
+/** La pension du mois au prix `pension`, entière ou au prorata depuis son premier jour (la note suit). */
+function avecPension<T extends { amount: number; date: string; note?: string }>(r: T, pension: number): T {
+  const { amount, note } = pensionDuMois(pension, r.date);
+  const out = { ...r, amount };
+  if (note) out.note = note;
+  else delete out.note;
+  return out;
+}
+
 function id(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -382,6 +391,20 @@ export const useDataStore = create<DataState>()(
           if (Object.keys(infos).length) next = changerInfosSejour(next, infos);
           return { horses: s.horses.map((h) => (h.id === horseId ? next : h)) };
         });
+        // L'arrivée changée ce mois-ci : la pension du mois suit son premier jour, au prorata (sauf déjà facturée ou partagée).
+        if (patch.entryDate) {
+          const today = localToday();
+          const mois = today.slice(0, 7);
+          const rid = pensionRevenueId(horseId, mois);
+          const s1 = get();
+          const horse = s1.horses.find((h) => h.id === horseId);
+          const r = s1.revenues.find((x) => x.id === rid);
+          const debut = horse ? sejours(horse).at(-1) : undefined;
+          if (horse && r && r.source === "recurring" && debut && !pensionFigee(s1, horseId, mois)) {
+            const date = debutCompte(debut) > `${mois}-01` ? debutCompte(debut) : `${mois}-01`;
+            if (date.slice(0, 7) === mois && date <= today && date !== r.date) set((st) => ({ revenues: st.revenues.map((x) => (x.id === rid ? avecPension({ ...x, date }, horse.pension ?? x.amount) : x)) }));
+          }
+        }
         // Une pension changée dans la fiche vaut pour le mois en cours (sauf déjà facturée) ; le passé ne bouge pas.
         if ("pension" in patch && (patch.pension ?? 0) !== (avant ?? 0)) {
           const mois = localToday().slice(0, 7);
@@ -751,7 +774,8 @@ export const useDataStore = create<DataState>()(
           const facturee = !!pensionFigee(s, horseId, monthKey);
           return {
             horses: s.horses.map((h) => (h.id === horseId ? { ...h, pension: value } : h)),
-            revenues: facturee ? s.revenues : s.revenues.map((r) => (r.id === rid ? { ...r, amount: value } : r)),
+            // Un mois commencé à l'arrivée reste au prorata de ses jours (autopilot, pensionDuMois).
+            revenues: facturee ? s.revenues : s.revenues.map((r) => (r.id === rid ? avecPension(r, value) : r)),
           };
         }),
 

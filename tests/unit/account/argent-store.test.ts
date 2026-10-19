@@ -12,6 +12,7 @@ const { localToday } = await import("@/lib/utils/local-date");
 const { monthBreakdown } = await import("@/lib/domain/ticket");
 const { currentPeriod } = await import("@/lib/utils/period");
 const { billsFor } = await import("@/lib/domain/billing");
+const { pensionDuMois } = await import("@/lib/domain/autopilot");
 
 const st = () => useDataStore.getState();
 
@@ -19,7 +20,8 @@ describe("le magasin de données : l'argent reste juste", () => {
   it("un cheval ajouté compte sa pension tout de suite, sans rechargement (P2-2)", () => {
     st().startEmpty();
     st().addHorse({ name: "Sirius", pension: 450, entryDate: localToday(), ownerName: "Léa B." });
-    expect(monthBreakdown(st(), currentPeriod()).revenue).toBe(450);
+    // Arrivé aujourd'hui : son premier mois au prorata des jours (le 1er du mois, entier).
+    expect(monthBreakdown(st(), currentPeriod()).revenue).toBe(pensionDuMois(450, localToday()).amount);
   });
 
   it("supprimer une dépense retire aussi sa refacturation au propriétaire (P2-14)", () => {
