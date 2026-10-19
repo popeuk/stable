@@ -1,5 +1,6 @@
 "use client";
 
+import { JaiUneSauvegarde } from "@/components/bs/reprendre-sauvegarde";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
@@ -276,6 +277,7 @@ export default function Page() {
               <button className="btn full" disabled={busy || !email.trim()}>
                 {busy ? "Envoi…" : "Recevoir mon code"}
               </button>
+              {!garder && <JaiUneSauvegarde className="lnk ar-sauv" />}
               {AVEC_GOOGLE && (
                 <button type="button" className="btn line full" disabled={busy} onClick={() => avec("google")}>
                   Continuer avec Google

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { getSession, leave } from "@/lib/account/session";
+import { useSauvegardeOuverte } from "@/components/bs/reprendre-sauvegarde";
 import { ClientGate } from "@/components/ui/client-gate";
 import { useDesk } from "@/components/bs/desk-hook";
 import { dayItems } from "@/lib/domain/seances";
@@ -37,6 +38,7 @@ export default function AccueilPage() {
 }
 
 function Accueil() {
+  useSauvegardeOuverte();
   const desk = useDesk();
 
   if (!desk)

@@ -14,6 +14,7 @@ import { resumeLocale, type ResumeEssai } from "@/lib/account/vault";
 import { Stories } from "@/components/bs/histoire";
 import { mesurer } from "@/lib/mesure";
 import { useConfirmer } from "@/components/bs/confirmer";
+import { JaiUneSauvegarde } from "@/components/bs/reprendre-sauvegarde";
 
 /**
  * Essayer avant le compte : un premier écran, puis le même parcours que
@@ -87,7 +88,7 @@ export function Essayer() {
   const reprendreEssai = () => enter({ kind: "locale", at: new Date().toISOString() });
 
   // Un nouveau venu ouvre sur l'histoire (matin, soir, avec Be Stable) ; un essai déjà commencé, sur Reprendre.
-  if (!reprendre) return <Stories onStart={commencer} login loginLabel="J’ai déjà un compte" busy={busy} />;
+  if (!reprendre) return <Stories onStart={commencer} login loginLabel="J’ai déjà un compte" busy={busy} sous={<JaiUneSauvegarde className="lnk ar-sauv" />} />;
 
   return (
     <div className="ar ar-duo es-bien">
@@ -117,6 +118,7 @@ export function Essayer() {
             <button type="button" className="btn line full" disabled={busy} onClick={repartir}>
               {busy ? "On prépare ton écurie…" : "Repartir de zéro"}
             </button>
+            <JaiUneSauvegarde className="lnk ar-sauv" />
           </div>
         </div>
       </div>

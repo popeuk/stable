@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Ill } from "@/components/carnet/ui";
 import { illPerso, usePerso } from "@/components/bs/perso";
 
@@ -43,11 +43,14 @@ export function Stories({
   login,
   loginLabel = "Me connecter",
   busy = false,
+  sous,
 }: {
   onStart: () => void;
   login: boolean;
   loginLabel?: string;
   busy?: boolean;
+  /** Sous « Commencer » : « J'ai une sauvegarde ». */
+  sous?: ReactNode;
 }) {
   const [i, setI] = useState(0);
   const perso = usePerso();
@@ -104,6 +107,7 @@ export function Stories({
           <button type="button" className="btn" disabled={busy} onClick={onStart}>
             {busy ? "On prépare ton écurie…" : "Commencer"}
           </button>
+          {sous}
         </div>
       </div>
     </div>

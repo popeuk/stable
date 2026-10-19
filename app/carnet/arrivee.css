@@ -361,3 +361,6 @@
 .carnet .fo-fois { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink2); }
 .carnet .fo-fois .chip { min-height: 40px; }
 .carnet .ar-back.ar-back-l { width: auto; gap: 2px; padding-right: 6px; font-size: 14.5px; font-weight: 650; white-space: nowrap; }
+
+/* « J'ai une sauvegarde » : un lien sous le bouton de l'arrivée, cible de 44 px. */
+.ar-sauv { display: block; min-height: 44px; line-height: 44px; text-align: center; font-size: 14px; font-weight: 600; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; }

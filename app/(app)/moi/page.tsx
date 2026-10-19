@@ -14,12 +14,10 @@ import { CategoriesReglages, EquipeReglages, LieuReglages } from "@/components/b
 import { getSession, leave } from "@/lib/account/session";
 import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
 import { poserTaille, tailleTexte, type Taille } from "@/lib/taille";
-import { fusionFactures } from "@/lib/domain/facture";
-import { compteurAppareil } from "@/lib/account/factures-seq";
-import { migrerDonnees, useDataStore, VERSION_DONNEES } from "@/stores/data-store";
+import { useDataStore, VERSION_DONNEES } from "@/stores/data-store";
 import { contenuSauvegarde, telechargerSauvegarde } from "@/lib/sauvegarde";
-import { lireSauvegarde } from "@/lib/domain/valider";
-import { migrerReglages, useSettingsStore, VERSION_REGLAGES } from "@/stores/settings-store";
+import { reprendreSauvegarde } from "@/components/bs/reprendre-sauvegarde";
+import { useSettingsStore, VERSION_REGLAGES } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { useConfirmer, type Question } from "@/components/bs/confirmer";
 import { cetAppareil } from "@/lib/appareil";
@@ -57,21 +55,7 @@ function exportData() {
 }
 
 async function importData(file: File, demander: (q: Question) => Promise<boolean>) {
-  // Un fichier abîmé, d'un autre format ou d'une version plus récente de l'app est refusé avec la raison : rien n'est remplacé.
-  const lu = lireSauvegarde(await file.text(), { donnees: VERSION_DONNEES, reglages: VERSION_REGLAGES });
-  if (!lu.ok) {
-    await demander({ titre: "Cette sauvegarde ne s’ouvre pas", texte: lu.raison, oui: "D’accord", non: null });
-    return;
-  }
-  if (!(await demander({ titre: "Ouvrir cette sauvegarde ?", texte: "Elle remplace ce qui est dans l’app. Tes factures faites depuis restent.", oui: "Oui, l’ouvrir" }))) return;
-  // Une sauvegarde d'une version d'avant passe par la même mise à jour qu'au chargement, depuis sa version.
-  const repris = migrerDonnees(lu.data, lu.versionDonnees);
-  // Les stores réécrivent tout seuls dans le coffre du compte (chiffré).
-  // Les factures faites depuis la sauvegarde restent, et le compteur ne recule jamais.
-  const avant = useDataStore.getState();
-  useDataStore.setState({ ...(repris as Partial<ReturnType<typeof useDataStore.getState>>), ...fusionFactures(repris, avant, compteurAppareil()), secours: undefined, hydrated: true });
-  if (lu.settings) useSettingsStore.setState(lu.versionReglages !== null && lu.versionReglages < VERSION_REGLAGES ? migrerReglages(lu.settings, lu.versionReglages) : lu.settings);
-  setTimeout(() => window.location.reload(), 400);
+  await reprendreSauvegarde(await file.text(), demander);
 }
 
 /** « 7:45 » devient « 7 h 45 », « 7:00 » devient « 7 h ». */
