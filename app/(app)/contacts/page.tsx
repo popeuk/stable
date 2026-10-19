@@ -10,6 +10,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { METIERS, metierDit, prosVus, type ProVu } from "@/lib/domain/pros";
 import type { ProMetier } from "@/lib/domain/types";
+import "@/app/carnet/ecurie.css";
 
 /**
  * Les pros (`/contacts`, décision 16) : maréchal, véto, dentiste, ostéo,

@@ -1,7 +1,7 @@
 "use client";
 
 import { getSession, scopedKey } from "@/lib/account/session";
-import { fusionFactures } from "@/lib/domain/facture";
+import { fusionFactures } from "@/lib/domain/factures-base";
 import { fusionner3 } from "@/lib/account/fusion";
 import type { StableData } from "@/lib/domain/types";
 import { estPlacePleine, noterPlacePleine } from "@/lib/account/place";

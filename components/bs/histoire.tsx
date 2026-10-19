@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Ill } from "@/components/carnet/ui";
 import { illPerso, usePerso } from "@/components/bs/perso";
+import "@/app/carnet/ob-fort.css";
 
 /**
  * L'histoire d'ouverture : trois scènes de la gérante (ou du gérant), le

@@ -1,6 +1,6 @@
 import type { ISODate, Period, StableData } from "@/lib/domain/types";
 import { addDays } from "@/lib/domain/care";
-import { clientDues, type ClientDue } from "@/lib/domain/clients";
+import { clientDues, type ClientDue } from "@/lib/domain/clients-dus";
 import { careToValidate, dayItems, seanceToValidate, type DayItem } from "@/lib/domain/seances";
 import { addMonths, daysInMonth } from "@/lib/utils/period";
 import { r2 } from "@/lib/utils/arrondi";

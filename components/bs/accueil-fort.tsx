@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useMemo, useState } from "react";
 import { Ic, Ill, sgc, type IllName } from "@/components/carnet/ui";
-import { estAMoi } from "@/components/bs/parcours";
+import { estAMoi } from "@/components/bs/parcours-base";
 import { premiersJours } from "@/components/bs/compte";
 import { getSession } from "@/lib/account/session";
 import { api } from "@/lib/account/api";
-import { ficheRows } from "@/components/bs/account-ui";
+import { ficheRows } from "@/components/bs/fiche-lignes";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { estEstimation } from "@/lib/domain/estimation";
 import { currentPeriod } from "@/lib/utils/period";
@@ -18,9 +17,6 @@ import { useUiStore, type AddMode } from "@/stores/ui-store";
 /**
  * L'accueil d'une écurie qui démarre (18 octobre 2026, décision de Samuel :
  * « plus fort » quand l'app est vide). Les blocs, dans l'ordre de l'accueil :
- *   - Stories : des ronds en haut, une histoire courte par geste de l'app.
- *     Un rond vu passe au gris ; la rangée part quand tout est vu. Retirées
- *     de l'accueil pour le moment (Samuel, 18 octobre), gardées ici.
  *   - CeQuiManque : sous le chiffre, tant qu'aucune charge n'existe, ce qui
  *     rentre (en vert) et ce qui manque (hachuré), avec de quoi l'ajouter.
  *   - Chemin : cinq pas lus dans les données (prix, chevaux et propriétaires
@@ -348,179 +344,5 @@ export function JourneeMontree() {
         ))}
       </div>
     </div>
-  );
-}
-
-/* ---------- Les stories ---------- */
-
-type Story = { id: string; nom: string; rond: ReactNode; ill: IllName; titre: string; texte: string; cta: string; href?: string; noter?: boolean };
-
-const STORIES: Story[] = [
-  {
-    id: "journee",
-    nom: "Ta journée",
-    rond: <Ill n="matin" />,
-    ill: "matin",
-    titre: "Le matin, ta journée est là.",
-    texte: "Les séances, les soins, les tâches de l’équipe. Coche ce qui est fait : ça compte tout seul dans tes chiffres.",
-    cta: "Voir le planning",
-    href: "/planning",
-  },
-  {
-    id: "micro",
-    nom: "Au micro",
-    rond: <Ic n="mic" className="" />,
-    ill: "carnet",
-    titre: "Tu parles, c’est rangé.",
-    texte: "« Vermifuge pour Cheval 3, 12 € » : l’app range le soin, le cheval et le prix.",
-    cta: "Essayer le micro",
-    noter: true,
-  },
-  {
-    id: "bilan",
-    nom: "Ton bilan",
-    rond: <Ill n="sacoche" />,
-    ill: "sacoche",
-    titre: "Chaque cheval a son chiffre.",
-    texte: "Ce qu’il rapporte, ce qu’il coûte. Tu vois tout de suite lequel te coûte.",
-    cta: "Voir mon bilan",
-    href: "/argent",
-  },
-  {
-    id: "pension",
-    nom: "Le 1er du mois",
-    rond: <Ill n="sereine" />,
-    ill: "sereine",
-    titre: "Les pensions se comptent toutes seules.",
-    texte: "Le 1er du mois, chaque pension est comptée. Toi, tu regardes qui a payé.",
-    cta: "Voir mes clients",
-    href: "/chevaux?vue=clients",
-  },
-];
-const VUES = "be-stable-stories-vues";
-const DUREE = 6500;
-
-export function Stories() {
-  const [vues, setVues] = useState<string[]>(() => {
-    try {
-      return JSON.parse(lire(VUES) ?? "[]");
-    } catch {
-      return [];
-    }
-  });
-  const [ouvert, setOuvert] = useState<number | null>(null);
-  const [garder] = useState(() => STORIES.some((s) => !vues.includes(s.id)));
-  if (!garder || demo()) return null;
-
-  const voir = (id: string) =>
-    setVues((v) => {
-      if (v.includes(id)) return v;
-      const n = [...v, id];
-      ecrire(VUES, JSON.stringify(n));
-      return n;
-    });
-
-  return (
-    <>
-      <div className="af-stories rise" role="list" aria-label="Découvrir l’app">
-        {STORIES.map((s, i) => (
-          <button key={s.id} type="button" role="listitem" className={`af-story${vues.includes(s.id) ? " vu" : ""}`} onClick={() => setOuvert(i)}>
-            <span className="ring">
-              <span className={`in ${s.id}`}>{s.rond}</span>
-            </span>
-            {s.nom}
-          </button>
-        ))}
-      </div>
-      {ouvert !== null && <Lecteur depart={ouvert} onVoir={voir} onClose={() => setOuvert(null)} />}
-    </>
-  );
-}
-
-function Lecteur({ depart, onVoir, onClose }: { depart: number; onVoir: (id: string) => void; onClose: () => void }) {
-  const [i, setI] = useState(depart);
-  const [pause, setPause] = useState(false);
-  const openNoter = useUiStore((s) => s.openNoter);
-  const s = STORIES[i];
-  const reste = useRef(DUREE);
-  const debut = useRef(0);
-
-  useEffect(() => onVoir(s.id), [s.id, onVoir]);
-  // L'avance automatique, qui s'arrête quand on garde le doigt posé.
-  useEffect(() => {
-    reste.current = DUREE;
-  }, [i]);
-  useEffect(() => {
-    if (pause || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    debut.current = performance.now();
-    const t = setTimeout(() => (i < STORIES.length - 1 ? setI(i + 1) : onClose()), reste.current);
-    return () => {
-      clearTimeout(t);
-      reste.current = Math.max(0, reste.current - (performance.now() - debut.current));
-    };
-  }, [i, pause, onClose]);
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowRight") setI((x) => (x < STORIES.length - 1 ? x + 1 : x));
-      if (e.key === "ArrowLeft") setI((x) => Math.max(0, x - 1));
-    };
-    window.addEventListener("keydown", k);
-    const o = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", k);
-      document.body.style.overflow = o;
-    };
-  }, [onClose]);
-
-  const suivant = () => (i < STORIES.length - 1 ? setI(i + 1) : onClose());
-  const precedent = () => setI(Math.max(0, i - 1));
-
-  return createPortal(
-    <div className="carnet carnet-portal">
-      <div className="af-lecteur" role="dialog" aria-modal="true" aria-label={s.nom}>
-        <div className="af-prog" aria-hidden="true">
-          {STORIES.map((x, k) => (
-            <i key={x.id} className={k < i ? "fait" : k === i ? `ici${pause ? " pause" : ""}` : ""} style={k === i ? { animationDuration: `${DUREE}ms` } : undefined} />
-          ))}
-        </div>
-        <button type="button" className="af-x" onClick={onClose} aria-label="Fermer">
-          <Ic n="x" className="" />
-        </button>
-        <div
-          className="af-scene"
-          key={s.id}
-          onPointerDown={() => setPause(true)}
-          onPointerUp={() => setPause(false)}
-          onPointerLeave={() => setPause(false)}
-        >
-          <Ill n={s.ill} className="af-scene-ill" prio />
-          <button type="button" className="af-zone g" onClick={precedent} aria-label="Histoire précédente" />
-          <button type="button" className="af-zone d" onClick={suivant} aria-label="Histoire suivante" />
-        </div>
-        <div className="af-texte" key={`t-${s.id}`}>
-          <h2>{s.titre}</h2>
-          <p>{s.texte}</p>
-          {s.noter ? (
-            <button
-              type="button"
-              className="af-btn rose"
-              onClick={() => {
-                onClose();
-                openNoter({});
-              }}
-            >
-              {s.cta}
-            </button>
-          ) : (
-            <Link href={s.href!} className="af-btn rose" onClick={onClose}>
-              {s.cta}
-            </Link>
-          )}
-        </div>
-      </div>
-    </div>,
-    document.body,
   );
 }

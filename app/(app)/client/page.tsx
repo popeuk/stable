@@ -28,6 +28,9 @@ import type { PaymentMethod } from "@/lib/domain/types";
 import { useFeuille } from "@/components/bs/feuille";
 import { vibrer } from "@/lib/utils/vibrer";
 import { adresseClient, adresseFacture, nomDeLAdresse } from "@/lib/adresse-client";
+import "@/app/carnet/client.css";
+import "@/app/carnet/proprio.css";
+import "@/app/carnet/facture.css";
 
 /**
  * La fiche d'un client (`/client?c=…`, le nom retrouvé par lib/adresse-client ; l'ancien `?nom=` marche encore ; `&mois=2026-10` pour un mois

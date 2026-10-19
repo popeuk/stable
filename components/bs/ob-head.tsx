@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Ic, Ill, type IllName } from "@/components/carnet/ui";
 import { saisieMontant } from "@/lib/utils/montant";
 import { MoisLigne, type Apercu } from "@/components/bs/ob-fort";
+import "@/app/carnet/ob-fort.css";
 
 /** L'image de chaque question des premiers pas, la même que sur le chemin. */
 const CHAP: Record<number, { ill: IllName; alt: string }> = {

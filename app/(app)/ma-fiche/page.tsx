@@ -10,6 +10,7 @@ import { Empty, Hello, Ic, Sec } from "@/components/carnet/ui";
 import { useUiStore } from "@/stores/ui-store";
 import { api, ApiError, type Choix, type Fiche, type Formule } from "@/lib/account/api";
 import { getSession, updateAccount } from "@/lib/account/session";
+import "@/app/carnet/ecurie.css";
 
 /**
  * Ma fiche mon-ecurie.fr, depuis Be Stable : ce que voient les cavaliers,

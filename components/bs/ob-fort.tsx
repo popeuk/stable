@@ -6,6 +6,7 @@ import { estAMoi, fraisDuMois } from "@/components/bs/parcours";
 import { useDataStore } from "@/stores/data-store";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
+import "@/app/carnet/ob-fort.css";
 
 /**
  * L'arrivée tenue (18 octobre 2026) : chaque partie dans une case blanche

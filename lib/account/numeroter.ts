@@ -5,7 +5,7 @@ import { getSession } from "@/lib/account/session";
 import { ecrituresFaites } from "@/lib/account/vault";
 import { etatPlace } from "@/lib/account/place";
 import { compteurAppareil, facturesEnregistrees, noterCompteur, sousVerrou } from "@/lib/account/factures-seq";
-import { compteurMax, fusionFactures } from "@/lib/domain/facture";
+import { compteurMax, fusionFactures } from "@/lib/domain/factures-base";
 import { numeroterProvisoires, rendreProvisoire, estProvisoire, type ProvisoireRetiree } from "@/lib/domain/numeros";
 import { envoyerMaintenant, relireAvantNumero, type CodeRefus } from "@/lib/account/nuage";
 import type { Invoice, StableData } from "@/lib/domain/types";

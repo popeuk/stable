@@ -24,16 +24,20 @@ import type { Rhythm } from "@/lib/domain/rhythm";
 import { materializeRhythms } from "@/lib/domain/rhythm";
 import { ensurePensions, pensionRevenueId, premierMoisARattraper } from "@/lib/domain/autopilot";
 import { buildDemoData } from "@/lib/data/demo-data";
-import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
-import { contenuAvoir, contenuAvoirMontant, emettre, emettreAvoir, fusionFactures, pensionFigee, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
+import { fusionFactures, pensionFigee, personneDe, recettesFacturees } from "@/lib/domain/factures-base";
+import type { Brouillon } from "@/lib/domain/facture";
+/** Composer et émettre une facture : chargé au moment d'en faire une (l'écran des factures l'a déjà). */
+const metierFacture = () => import("@/lib/domain/facture");
+/** Donner un numéro (lib/account/numeroter) : chargé à la première facture, pas à l'ouverture de l'app. */
+const numeroteur = () => import("@/lib/account/numeroter");
 import { compteurAppareil, facturesEnregistrees } from "@/lib/account/factures-seq";
-import { numeroter, numeroterEnAttente as enAttente, type OptionsNumero } from "@/lib/account/numeroter";
+import type { OptionsNumero } from "@/lib/account/numeroter";
 import type { ProvisoireRetiree } from "@/lib/domain/numeros";
 import { scopedKey } from "@/lib/account/session";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { SAISON_MOIS, couvreMois, ensureForfaits, marquerForfaits, moisPlus } from "@/lib/domain/forfaits";
-import { sansPrixDExemple } from "@/lib/domain/ajouter";
+import { sansPrixDExemple } from "@/lib/domain/prix-exemple";
 import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
@@ -50,10 +54,9 @@ import type { MontantSaisi } from "@/lib/domain/types";
 import { donneesPlusRecentes, noterVersionLue } from "@/lib/version-donnees";
 
 /**
- * Client-side data store. In the full product this is the IndexedDB-backed
- * local store fronting a Supabase sync layer (section 13). Here it persists
- * to localStorage so the app is fully usable offline / standalone, and is
- * seeded with the demo stable on first run.
+ * Client-side data store. It persists to localStorage (lib/account/vault.ts),
+ * so the app is fully usable offline; the encrypted online copy lives in
+ * lib/account/nuage.ts.
  */
 interface DataState extends StableData {
   hydrated: boolean;
@@ -321,19 +324,16 @@ export const useDataStore = create<DataState>()(
 
       addRevenue: (r) => {
         const entity = { ...r, id: id("rev"), stableId: STABLE_ID };
-        enqueueMutation("insert", "revenues", entity);
         set((s) => ({ revenues: [...s.revenues, entity] }));
       },
 
       addDirectExpense: (e) => {
         const entity = { ...e, id: id("dexp"), stableId: STABLE_ID };
-        enqueueMutation("insert", "direct_expenses", entity);
         set((s) => ({ directExpenses: [...s.directExpenses, entity] }));
       },
 
       addSharedExpense: (e) => {
         const entity = { ...e, id: id("shared"), stableId: STABLE_ID };
-        enqueueMutation("insert", "shared_expenses", entity);
         set((s) => ({ sharedExpenses: [...s.sharedExpenses, entity] }));
       },
 
@@ -348,7 +348,6 @@ export const useDataStore = create<DataState>()(
           [{ entry, countFrom: compteDepuis(entry, today), origin: h.origin, entryReason: h.entryReason }],
         );
         if (!owner) delete entity.ownerName;
-        enqueueMutation("insert", "horses", { ...entity });
         set((s) => ({
           horses: [...s.horses, entity],
           ...(owner ? { people: avecProprio(s.people ?? [], owner, () => id("pers")) } : {}),
@@ -381,7 +380,6 @@ export const useDataStore = create<DataState>()(
           if (entryDate) next = changerArrivee(next, entryDate, localToday());
           const infos = Object.fromEntries(Object.entries({ origin, entryReason, destination, exitReason }).filter(([k]) => k in patch));
           if (Object.keys(infos).length) next = changerInfosSejour(next, infos);
-          enqueueMutation("update", "horses", { ...next });
           return { horses: s.horses.map((h) => (h.id === horseId ? next : h)) };
         });
         // Une pension changée dans la fiche vaut pour le mois en cours (sauf déjà facturée) ; le passé ne bouge pas.
@@ -404,7 +402,6 @@ export const useDataStore = create<DataState>()(
           if (!horse) return s;
           const today = localToday();
           const next = partirLe(horse, date ?? today, today, infos);
-          enqueueMutation("update", "horses", { ...next });
           // Parti avant ce mois-ci : sa pension de ce mois, postée toute seule et pas encore facturée, s'en va.
           const rid = pensionRevenueId(horseId, today.slice(0, 7));
           const facturee = (s.invoices ?? []).some((i) => i.revenueIds.includes(rid));
@@ -421,7 +418,6 @@ export const useDataStore = create<DataState>()(
           const horse = s.horses.find((h) => h.id === horseId);
           if (!horse) return s;
           const next = revenirLe(horse, date ?? today, today, infos);
-          enqueueMutation("update", "horses", { ...next });
           return { horses: s.horses.map((h) => (h.id === horseId ? next : h)) };
         });
         // Sa pension du mois, s'il en a une et qu'elle n'est pas déjà là.
@@ -429,7 +425,6 @@ export const useDataStore = create<DataState>()(
       },
 
       deleteHorse: (horseId) => {
-        enqueueMutation("delete", "horses", { id: horseId });
         set((s) => ({
           horses: s.horses.filter((h) => h.id !== horseId),
           revenues: s.revenues.filter((r) => r.horseId !== horseId),
@@ -442,7 +437,6 @@ export const useDataStore = create<DataState>()(
       },
 
       deleteRevenue: (rid) => {
-        enqueueMutation("delete", "revenues", { id: rid });
         set((s) => ({
           revenues: s.revenues.filter((r) => r.id !== rid),
           // Une pension auto-postée supprimée ne revient jamais.
@@ -453,11 +447,9 @@ export const useDataStore = create<DataState>()(
       },
 
       deleteDirectExpense: (eid) => {
-        enqueueMutation("delete", "direct_expenses", { id: eid });
         set((s) => {
           // Sa refacturation au propriétaire s'en va avec, et le soin lié perd sa dépense.
           const gone = s.revenues.filter((r) => r.rebillOf === eid);
-          for (const r of gone) enqueueMutation("delete", "revenues", { id: r.id });
           return {
             directExpenses: s.directExpenses.filter((e) => e.id !== eid),
             revenues: gone.length ? s.revenues.filter((r) => r.rebillOf !== eid) : s.revenues,
@@ -469,7 +461,6 @@ export const useDataStore = create<DataState>()(
       },
 
       deleteSharedExpense: (sid) => {
-        enqueueMutation("delete", "shared_expenses", { id: sid });
         set((s) => ({ sharedExpenses: s.sharedExpenses.filter((e) => e.id !== sid) }));
       },
 
@@ -501,7 +492,6 @@ export const useDataStore = create<DataState>()(
                 date: base.date,
                 source: "manual" as const,
               };
-              enqueueMutation("insert", "direct_expenses", expense);
               directExpenses = [...directExpenses, expense];
             }
             if (!pending && base.revenue && base.revenue > 0) {
@@ -515,7 +505,6 @@ export const useDataStore = create<DataState>()(
                 date: base.date,
                 source: "manual" as const,
               };
-              enqueueMutation("insert", "revenues", rev);
               revenues = [...revenues, rev];
             }
             return { ...base, id: careId, stableId: STABLE_ID, horseId, groupId, pending, expenseId, revenueId };
@@ -560,7 +549,6 @@ export const useDataStore = create<DataState>()(
                 date: actualDate,
                 source: "manual" as const,
               };
-              enqueueMutation("insert", "direct_expenses", expense);
               directExpenses = [...directExpenses, expense];
             }
             if (!revenueId && e.revenue && e.revenue > 0) {
@@ -574,7 +562,6 @@ export const useDataStore = create<DataState>()(
                 date: actualDate,
                 source: "manual" as const,
               };
-              enqueueMutation("insert", "revenues", rev);
               revenues = [...revenues, rev];
             }
             // Refacturer au propriétaire, décidé à la saisie : ça se fait maintenant qu'il compte.
@@ -672,7 +659,6 @@ export const useDataStore = create<DataState>()(
             today,
           );
           if (pensions.length === 0 && events.length === 0 && advanced.length === 0) return s.pensionsAu === pensionsAu ? s : { pensionsAu };
-          for (const p of pensions) enqueueMutation("insert", "revenues", { ...p });
           const until = new Map(advanced.map((a) => [a.id, a.materializedUntil]));
           return {
             pensionsAu,
@@ -803,8 +789,6 @@ export const useDataStore = create<DataState>()(
       updateRevenue: (rid, patch) =>
         set((s) => {
           const revenues = s.revenues.map((r) => (r.id === rid ? { ...r, ...patch } : r));
-          const next = revenues.find((r) => r.id === rid);
-          if (next) enqueueMutation("update", "revenues", { ...next });
           return { revenues };
         }),
 
@@ -813,7 +797,6 @@ export const useDataStore = create<DataState>()(
           const e = s.directExpenses.find((x) => x.id === eid);
           if (!e) return s;
           const next = { ...e, ...patch };
-          enqueueMutation("update", "direct_expenses", { ...next });
           const montant = patch.amount !== undefined && patch.amount !== e.amount;
           // Refacturée : la recette du propriétaire suit le montant et le jour.
           const revenues = e.rebillRevenueId && (montant || patch.date) ? s.revenues.map((r) => (r.id === e.rebillRevenueId ? { ...r, amount: next.amount, date: next.date } : r)) : s.revenues;
@@ -824,8 +807,6 @@ export const useDataStore = create<DataState>()(
       updateSharedExpense: (sid, patch) =>
         set((s) => {
           const sharedExpenses = s.sharedExpenses.map((x) => (x.id === sid ? { ...x, ...patch } : x));
-          const next = sharedExpenses.find((x) => x.id === sid);
-          if (next) enqueueMutation("update", "shared_expenses", { ...next });
           return { sharedExpenses };
         }),
 
@@ -855,8 +836,6 @@ export const useDataStore = create<DataState>()(
           if (!before || !to || to === before.name) return { people };
           // Renommer : le nom suit sur ses chevaux, ses recettes et ses paiements.
           const r = renommerClient({ ...s, people: s.people ?? [] }, before.name, to);
-          for (const h of r.horses) if (h.ownerName === to && s.horses.find((x) => x.id === h.id)?.ownerName !== to) enqueueMutation("update", "horses", { ...h });
-          for (const x of r.revenues) if (x.payer === to && s.revenues.find((y) => y.id === x.id)?.payer !== to) enqueueMutation("update", "revenues", { ...x });
           return { ...r, people: r.people!.map((p) => (p.id === pid ? { ...p, ...patch, name: to } : p)) };
         }),
 
@@ -865,13 +844,6 @@ export const useDataStore = create<DataState>()(
         const c = changerProprio(s, horseId, name, localToday(), () => id("pers"));
         const hadPerson = new Set((s.people ?? []).map((p) => p.id));
         const prevPeople = s.people ?? [];
-        const horse = c.horses.find((h) => h.id === horseId);
-        if (horse && c.before !== c.owner) enqueueMutation("update", "horses", { ...horse });
-        for (const t of c.touched) {
-          const r = c.revenues.find((x) => x.id === t.id);
-          if (r) enqueueMutation("update", "revenues", { ...r });
-        }
-        for (const r of c.added) enqueueMutation("insert", "revenues", { ...r });
         set({ horses: c.horses, revenues: c.revenues, people: c.people });
         return () =>
           set((cur) => {
@@ -883,14 +855,12 @@ export const useDataStore = create<DataState>()(
               const next: Revenue = { ...r, payer: t.before, ...(t.amountBefore !== undefined ? { amount: t.amountBefore, note: t.noteBefore } : {}) };
               if (!next.payer) delete next.payer;
               if (next.note === undefined) delete next.note;
-              enqueueMutation("update", "revenues", { ...next });
               return next;
             });
             const horses = cur.horses.map((h) => {
               if (h.id !== horseId) return h;
               const next: Horse = { ...h, ownerName: c.before };
               if (!c.before) delete next.ownerName;
-              enqueueMutation("update", "horses", { ...next });
               return next;
             });
             // La personne créée pour l'occasion repart, si rien d'autre ne la cite.
@@ -906,8 +876,6 @@ export const useDataStore = create<DataState>()(
       deletePerson: (pid) =>
         set((s) => {
           const r = retirerClient(s, pid, localToday(), () => id("pers"));
-          for (const h of r.horses) if (s.horses.find((x) => x.id === h.id)?.ownerName !== h.ownerName) enqueueMutation("update", "horses", { ...h });
-          for (const x of r.revenues) if (s.revenues.find((y) => y.id === x.id)?.payer !== x.payer) enqueueMutation("update", "revenues", { ...x });
           return r;
         }),
 
@@ -1011,7 +979,6 @@ export const useDataStore = create<DataState>()(
             rev: target.rev + 1,
           }, s.abonnements);
           const revs = revenuesForSeance(done, s, () => id("rev"), STABLE_ID);
-          for (const r of revs) enqueueMutation("insert", "revenues", { ...r });
           return {
             seances: all.map((x) => (x.id === sid ? done : x)),
             revenues: [...s.revenues.filter((r) => r.seanceId !== sid), ...revs],
@@ -1052,7 +1019,6 @@ export const useDataStore = create<DataState>()(
             payer: horse?.ownerName,
             rebillOf: e.id,
           };
-          enqueueMutation("insert", "revenues", rev);
           return {
             revenues: [...s.revenues, rev],
             directExpenses: s.directExpenses.map((x) => (x.id === eid ? { ...x, rebillRevenueId: rid } : x)),
@@ -1147,8 +1113,9 @@ export const useDataStore = create<DataState>()(
           return { billing: b, holding };
         }),
 
-      issueInvoices: (contenus, today) =>
-        numeroter(get, set, (s, haut) => {
+      issueInvoices: async (contenus, today) => {
+        const [{ emettre }, { numeroter }] = await Promise.all([metierFacture(), numeroteur()]);
+        return numeroter(get, set, (s, haut) => {
           const pris = recettesFacturees(s.invoices);
           const acc = { invoices: s.invoices ?? [], invoiceSeq: s.invoiceSeq, billing: s.billing, holding: s.holding };
           const out: Invoice[] = [];
@@ -1160,9 +1127,11 @@ export const useDataStore = create<DataState>()(
             out.push(inv);
           }
           return out;
-        }, RELIRE),
+        }, RELIRE);
+      },
 
       issueAvoir: async (number, qtes, today) => {
+        const [{ contenuAvoir, emettreAvoir }, { numeroter }] = await Promise.all([metierFacture(), numeroteur()]);
         const out = await numeroter(get, set, (s, haut) => {
           const inv = (s.invoices ?? []).find((i) => i.number === number && i.kind !== "avoir");
           const c = inv ? contenuAvoir(inv, qtes, s.invoices) : null;
@@ -1172,6 +1141,7 @@ export const useDataStore = create<DataState>()(
       },
 
       issueAvoirMontant: async (number, montant, motif, today) => {
+        const [{ contenuAvoirMontant, emettreAvoir }, { numeroter }] = await Promise.all([metierFacture(), numeroteur()]);
         const out = await numeroter(get, set, (s, haut) => {
           const inv = (s.invoices ?? []).find((i) => i.number === number && i.kind !== "avoir");
           const c = inv ? contenuAvoirMontant(inv, montant, motif, s.invoices) : null;
@@ -1180,7 +1150,7 @@ export const useDataStore = create<DataState>()(
         return out[0] ?? null;
       },
 
-      numeroterEnAttente: (today) => enAttente(get, set, today, RELIRE),
+      numeroterEnAttente: async (today) => (await numeroteur()).numeroterEnAttente(get, set, today, RELIRE),
 
       mergeInvoices: (other) => set((s) => fusionFactures(s, other, compteurAppareil())),
 

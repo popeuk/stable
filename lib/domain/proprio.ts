@@ -1,6 +1,6 @@
 import type { Horse, Invoice, Payment, Person, Revenue, StableData } from "@/lib/domain/types";
 import { cleClient } from "@/lib/domain/billing";
-import { recettesFacturees } from "@/lib/domain/facture";
+import { recettesFacturees } from "@/lib/domain/factures-base";
 import { r2 } from "@/lib/utils/arrondi";
 
 /**

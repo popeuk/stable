@@ -8,6 +8,7 @@ import { lireMontant, montantEnTexte } from "@/lib/utils/montant";
 import { localToday } from "@/lib/utils/local-date";
 import type { PersonRole, Prestation, Tariffs } from "@/lib/domain/types";
 import { accord } from "@/lib/domain/clients";
+import "@/app/carnet/client.css";
 
 /**
  * Les forfaits à l'écran : dans Mes prix, sous chaque cours, ce qu'il coûte

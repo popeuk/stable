@@ -1,21 +1,24 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { getSession, leave } from "@/lib/account/session";
-import { useSauvegardeOuverte } from "@/components/bs/reprendre-sauvegarde";
+import { useSauvegardeOuverte } from "@/components/bs/sauvegarde-ouverte";
 import { ClientGate } from "@/components/ui/client-gate";
 import { useDesk } from "@/components/bs/desk-hook";
 import { dayItems } from "@/lib/domain/seances";
 import { Compteur } from "@/components/bs/compteur";
 import { BandeauFinDuMois, LigneHier, LigneJour, useDebutant, useFinDuMois, useMaintenant } from "@/components/bs/compte";
 import { AideCarte } from "@/components/bs/nav";
-import { PromoMonEcurie } from "@/components/bs/promo-mon-ecurie";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 import { Empty, Face, Ic, Page, Sec } from "@/components/carnet/ui";
 import { CeQuiManque, Chemin, JourneeMontree, useCheminActif, useJamaisNote } from "@/components/bs/accueil-fort";
 import "@/app/carnet/accueil-fort.css";
+
+/** L'encart mon-ecurie.fr, tout en bas : chargé après le reste de l'accueil. */
+const PromoMonEcurie = dynamic(() => import("@/components/bs/promo-mon-ecurie").then((m) => m.PromoMonEcurie), { ssr: false });
 
 /**
  * L'accueil, dans l'ordre : le chiffre du mois (le personnage à côté) et, sans aucun frais, ce qui lui

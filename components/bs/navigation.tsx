@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useAide, useParentIci } from "@/components/bs/nav";
+import { useParentIci } from "@/components/bs/nav";
 import { Ic } from "@/components/carnet/ui";
 
 /**
@@ -67,7 +67,7 @@ export function useRetour2() {
 
 /** Ordinateur : la ligne de retour au-dessus d'un écran qui n'est pas un onglet, avec le nom de l'écran où il mène. */
 export function RetourOrdinateur() {
-  const { path } = useAide();
+  const path = usePathname() ?? "";
   const retour = useRetour2();
   if (isRoot2(path)) return null;
   return (

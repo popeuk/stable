@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { enter, getSession, hasLocaleData, setSession, type LocaleSession } from "@/lib/account/session";
 import { changementsVendeur, fusionFactures } from "@/lib/domain/facture";
 import { cetAppareil } from "@/lib/appareil";
@@ -8,8 +7,8 @@ import { compteurAppareil } from "@/lib/account/factures-seq";
 import { lireSauvegarde } from "@/lib/domain/valider";
 import { migrerDonnees, useDataStore, VERSION_DONNEES } from "@/stores/data-store";
 import { migrerReglages, useSettingsStore, VERSION_REGLAGES } from "@/stores/settings-store";
-import { useUiStore } from "@/stores/ui-store";
 import { useConfirmer, type Question } from "@/components/bs/confirmer";
+import { MARQUE } from "@/components/bs/sauvegarde-ouverte";
 
 /**
  * Reprendre une sauvegarde (le fichier de « Faire une sauvegarde »). Dans
@@ -19,7 +18,6 @@ import { useConfirmer, type Question } from "@/components/bs/confirmer";
  * partout : un fichier abîmé, d'un autre format ou d'une version plus
  * récente de l'app est refusé avec la raison, et rien n'est remplacé.
  */
-const MARQUE = "bs-sauvegarde-ouverte";
 /** Au-delà, ce n'est pas une sauvegarde de l'app (une très grosse écurie en fait 2 ou 3 Mo) : on ne le lit pas. */
 export const TAILLE_MAX_SAUVEGARDE = 10 * 1024 * 1024;
 
@@ -91,18 +89,4 @@ export function JaiUneSauvegarde({ className = "lnk" }: { className?: string }) 
       {feuille}
     </>
   );
-}
-
-/** À l'accueil, juste après : la sauvegarde est ouverte sur cet appareil, le compte la gardera. */
-export function useSauvegardeOuverte() {
-  const say = useUiStore((s) => s.say);
-  useEffect(() => {
-    try {
-      if (sessionStorage.getItem(MARQUE) !== "1") return;
-      sessionStorage.removeItem(MARQUE);
-    } catch {
-      return;
-    }
-    say(`Ta sauvegarde est ouverte, sur ${cetAppareil()} seulement. Crée ton compte pour la garder.`);
-  }, [say]);
 }

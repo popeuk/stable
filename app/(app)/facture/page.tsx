@@ -50,6 +50,7 @@ import { AvoirSansReseau, FactureNonEnregistree, MESSAGE_AVOIR_COPIE_REFUSEE, ME
 import { MENTION_PROVISOIRE, lienFacture, messageRetiree } from "@/lib/domain/numeros";
 import type { Invoice, Period, StableData } from "@/lib/domain/types";
 import { adresseClient, adresseFacture, nomDeLAdresse } from "@/lib/adresse-client";
+import "@/app/carnet/facture.css";
 
 /**
  * La facture d'un client pour un mois (`/facture?c=…&mois=2026-10`, lib/adresse-client ; l'ancien `?nom=` marche encore),

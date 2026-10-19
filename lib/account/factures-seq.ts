@@ -2,7 +2,7 @@
 
 import { scopedKey } from "@/lib/account/session";
 import { relireTiroir } from "@/lib/account/vault";
-import { compteurMax } from "@/lib/domain/facture";
+import { compteurMax } from "@/lib/domain/factures-base";
 import { estPlacePleine, noterPlacePleine } from "@/lib/account/place";
 import type { Invoice } from "@/lib/domain/types";
 

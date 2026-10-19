@@ -6,7 +6,6 @@ import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
 import { localToday } from "@/lib/utils/local-date";
-import { messageRetiree } from "@/lib/domain/numeros";
 
 /** Les factures faites sans réseau reçoivent leur numéro dès que le serveur répond (question 18, réponse A). */
 async function numeroterLesProvisoires() {
@@ -14,6 +13,7 @@ async function numeroterLesProvisoires() {
   if (!st.hydrated || !(st.invoices ?? []).some((i) => i.provisoire)) return;
   try {
     const { numerotees: n, retirees } = await st.numeroterEnAttente(localToday());
+    const { messageRetiree } = await import("@/lib/domain/numeros");
     const dit = [
       ...(n.length ? [n.length > 1 ? `Le réseau est revenu : <strong>${n.length} factures</strong> ont reçu leur numéro.` : `Le réseau est revenu : la facture a reçu le n° <strong>${n[0].number}</strong>.`] : []),
       ...retirees.map(messageRetiree),

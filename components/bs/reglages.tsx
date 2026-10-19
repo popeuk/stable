@@ -11,6 +11,8 @@ import { useUiStore } from "@/stores/ui-store";
 import { esc } from "@/components/bs/ui";
 import { nomAffiche } from "@/lib/domain/noms-categories";
 import { useConfirmer } from "@/components/bs/confirmer";
+import "@/app/carnet/ecurie.css";
+import "@/app/carnet/registre.css";
 
 /**
  * Des parties de Réglages (app/(app)/moi) : l'équipe, les catégories, les

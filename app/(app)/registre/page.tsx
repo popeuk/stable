@@ -33,6 +33,7 @@ import {
 import type { Horse } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
 import { siretDit } from "@/lib/domain/facture";
+import "@/app/carnet/registre.css";
 
 /**
  * Le registre d'élevage, prêt à imprimer : le détenteur et le lieu, les

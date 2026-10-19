@@ -81,6 +81,10 @@ jobs:
           # variables du dépôt sont vides (lib/account/oauth.ts).
           NEXT_PUBLIC_GOOGLE: ${{ vars.GOOGLE }}
           NEXT_PUBLIC_APPLE: ${{ vars.APPLE }}
+      # Le poids de l'accueil : au-delà de 230 Ko de JavaScript compressé, rien ne part
+      # (scripts/poids-accueil.mjs ; 219 Ko le 19 octobre 2026).
+      - name: Weight check (accueil under 230 KB of gzipped JS)
+        run: node scripts/poids-accueil.mjs 230 out
       # Le test d'impression sur l'export qui va partir : une vraie facture, un avoir,
       # la facture réimprimée et le registre, en PDF (Chromium) et dans WebKit (Safari).
       # S'il échoue, rien n'est publié (scripts/test-impression.cjs).

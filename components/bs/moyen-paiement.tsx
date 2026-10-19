@@ -6,6 +6,7 @@ import { useFeuille } from "@/components/bs/feuille";
 import { Ic } from "@/components/carnet/ui";
 import { MOYENS, saisieCheque } from "@/lib/domain/paiement";
 import type { PaymentMethod } from "@/lib/domain/types";
+import "@/app/carnet/facture.css";
 
 /**
  * Comment il a payé, en un toucher : chèque, espèces, virement, autre. Pour

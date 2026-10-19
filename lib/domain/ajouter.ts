@@ -3,6 +3,9 @@ import { addDays, type CareKind } from "@/lib/domain/care";
 import { norm } from "@/lib/domain/interpret";
 import type { Compris, Pour } from "@/lib/domain/dire";
 import { FOIS_PAR_DEFAUT, type Connu } from "@/lib/domain/montant-saisi";
+import { sansPrixDExemple } from "@/lib/domain/prix-exemple";
+
+export { sansPrixDExemple };
 
 /**
  * Le + : ce que l'app propose d'avance. Les habitudes viennent des données
@@ -390,17 +393,3 @@ export function habitues(seances: Seance[], s: Seance, max = 6): string[] {
   return [...score.entries()].sort((a, b) => b[1] - a[1]).slice(0, max).map(([id]) => id);
 }
 
-/**
- * Les cours d'une écurie partie de zéro venaient avec les prix de l'écurie
- * d'exemple (35 € le cours particulier…), que le gérant n'avait jamais
- * saisis. Une prestation encore à son prix d'exemple et jamais employée dans
- * une séance perd ce prix : « Pas de prix pour l'instant ». Les tarifs saisis
- * prennent alors le relais (prixDe).
- */
-export function sansPrixDExemple(prestations: Prestation[], exemple: Prestation[], seances: Pick<Seance, "prestationId">[]): Prestation[] {
-  const used = new Set(seances.map((s) => s.prestationId));
-  return prestations.map((p) => {
-    const ex = exemple.find((e) => e.id === p.id);
-    return ex && ex.price === p.price && p.price > 0 && !used.has(p.id) ? { ...p, price: 0 } : p;
-  });
-}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import { FeuilleConfirmer } from "@/components/bs/effacer";
+import { FeuilleConfirmer } from "@/components/bs/feuille-confirmer";
 
 /**
  * Une question « oui ou non » posée dans une feuille de l'app, à la place de

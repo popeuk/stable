@@ -13,6 +13,7 @@ import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 import { currentPeriod } from "@/lib/utils/period";
 import type { PaymentMethod } from "@/lib/domain/types";
 import { vibrer } from "@/lib/utils/vibrer";
+import "@/app/carnet/client.css";
 
 /**
  * « Un client m'a payé », depuis le + (Argent > Ça rentre) : la liste de ceux

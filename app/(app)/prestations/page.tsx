@@ -14,6 +14,7 @@ import { currentPeriod, samePeriod } from "@/lib/utils/period";
 import type { Prestation, Tariffs } from "@/lib/domain/types";
 import { prixDe } from "@/lib/domain/ajouter";
 import { lireMontant, montantEnTexte, montantOuZero, saisieMontant } from "@/lib/utils/montant";
+import "@/app/carnet/ecurie.css";
 
 /**
  * Les prestations : ce que l'écurie vend en plus des pensions (cours,

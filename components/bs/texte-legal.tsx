@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Ic } from "@/components/carnet/ui";
+import "@/app/carnet/registre.css";
 
 /**
  * Les textes légaux (18 octobre 2026) : communs à l'app et à mon-ecurie.fr,

@@ -12,6 +12,7 @@ import { accord, prenomDe } from "@/lib/domain/clients";
 import type { Horse } from "@/lib/domain/types";
 import { useFeuille } from "@/components/bs/feuille";
 import { adresseChevalDe } from "@/lib/adresse-client";
+import "@/app/carnet/proprio.css";
 
 /**
  * Le lien cheval ↔ propriétaire, en deux pièces réutilisables.

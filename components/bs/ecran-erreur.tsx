@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { unstable_catchError, type ErrorInfo } from "next/error";
 import { Hello, Ic, Page } from "@/components/carnet/ui";
 import { withBase } from "@/components/bs/ui";
 import { rangementSession, rechargerUneFois } from "@/lib/erreur";
@@ -54,20 +53,3 @@ export function EcranErreur({ error, onReessayer }: { error: unknown; onReessaye
     </Page>
   );
 }
-
-function SecoursCoque(_props: object, { error, unstable_retry }: ErrorInfo) {
-  return (
-    <div className="carnet">
-      <main className="cn-main">
-        <EcranErreur error={error} onReessayer={() => unstable_retry()} />
-      </main>
-    </div>
-  );
-}
-
-/**
- * La limite d'erreur autour de la coque (en-tête, barre d'onglets, feuilles,
- * synchronisation) : si l'une d'elles plante, l'écran d'erreur remplace la
- * page blanche.
- */
-export const LimiteCoque = unstable_catchError(SecoursCoque);

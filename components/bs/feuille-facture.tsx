@@ -1,6 +1,7 @@
 import { MENTION_FRANCHISE, dateDite, deMois, enteteVendeur, eur2, mentionIban, mentionsPaiement, nomDoc, siretDit, tauxDit, tvaIntraDit } from "@/lib/domain/facture";
 import { MENTION_PROVISOIRE } from "@/lib/domain/numeros";
 import type { Invoice } from "@/lib/domain/types";
+import "@/app/carnet/facture.css";
 
 /* La feuille A4 d'une facture ou d'un avoir (styles : app/carnet/facture.css, fa-print). */
 

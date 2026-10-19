@@ -1,5 +1,5 @@
 import type { Invoice } from "@/lib/domain/types";
-import { prochainNumero, recettesFacturees } from "@/lib/domain/facture";
+import { prochainNumero, recettesFacturees } from "@/lib/domain/factures-base";
 import { esc } from "@/lib/utils/esc";
 
 /**

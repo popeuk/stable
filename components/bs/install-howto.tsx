@@ -2,7 +2,8 @@
 
 import { createPortal } from "react-dom";
 import { Ic, Ill } from "@/components/carnet/ui";
-import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
+import { useInstall } from "@/lib/pwa";
+import { INSTALL_HOWTO } from "@/lib/pwa-gestes";
 import { useFeuille } from "@/components/bs/feuille";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
 

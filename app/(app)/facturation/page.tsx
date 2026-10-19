@@ -9,6 +9,8 @@ import { useDataStore } from "@/stores/data-store";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { lienFacture, numerosEnDouble } from "@/lib/domain/numeros";
 import { conditionsProManquent, enteteVendeur, etatAnnulation, eur2, facturation, moisDit, nomDoc, vendeurDe, vendeurManque } from "@/lib/domain/facture";
+import "@/app/carnet/facture.css";
+import "@/app/carnet/registre.css";
 
 /**
  * Tes factures (`/facturation`) : d'abord les factures et avoirs faits, puis

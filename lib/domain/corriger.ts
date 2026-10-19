@@ -1,5 +1,5 @@
 import type { ISODate, StableData } from "@/lib/domain/types";
-import { recettesFacturees } from "@/lib/domain/facture";
+import { recettesFacturees } from "@/lib/domain/factures-base";
 import { jourDepense } from "@/lib/domain/presence";
 
 /**

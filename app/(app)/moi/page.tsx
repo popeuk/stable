@@ -12,7 +12,8 @@ import { useDesk } from "@/components/bs/desk-hook";
 import { Hello, Ic, Sec, Seg, Switch, ini } from "@/components/carnet/ui";
 import { CategoriesReglages, EquipeReglages, LieuReglages } from "@/components/bs/reglages";
 import { getSession, leave } from "@/lib/account/session";
-import { INSTALL_HOWTO, useInstall } from "@/lib/pwa";
+import { useInstall } from "@/lib/pwa";
+import { INSTALL_HOWTO } from "@/lib/pwa-gestes";
 import { poserTaille, tailleTexte, type Taille } from "@/lib/taille";
 import { useDataStore, VERSION_DONNEES } from "@/stores/data-store";
 import { contenuSauvegarde, telechargerSauvegarde } from "@/lib/sauvegarde";
@@ -27,6 +28,7 @@ import { useFeuille } from "@/components/bs/feuille";
 import { DeconnexionLigne, RecupererLigne, ZoneEffacer } from "@/components/bs/effacer";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { EtatCopie } from "@/components/bs/etat-copie";
+import "@/app/carnet/ecurie.css";
 
 /**
  * Les pages de réglage, une par sujet (?s=…) : sous Mon écurie, Mes places,

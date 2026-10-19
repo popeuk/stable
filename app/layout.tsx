@@ -3,8 +3,12 @@ import { Bricolage_Grotesque, IBM_Plex_Mono } from "next/font/google";
 import { EARLY_INSTALL_SCRIPT, PwaRegister } from "@/components/pwa-register";
 import { SANS_ZOOM } from "@/lib/sans-zoom";
 import { TAILLE_TOT } from "@/lib/taille";
-import { Consentement } from "@/components/bs/consentement";
+import { ConsentementDiffere } from "@/components/bs/consentement-differe";
 import { TypoFr } from "@/components/typo-fr";
+// Les feuilles de style partagées, dans l'ordre de la cascade : livret.css et
+// liens.css passent par-dessus les chapitres d'avant, qui restent donc ici.
+// Celles d'un seul écran (ecurie, client, proprio, facture, registre, ob-fort)
+// sont importées par la page ou le composant qui s'en sert.
 import "./globals.css";
 import "./bs.css";
 import "./carnet.css";
@@ -12,17 +16,11 @@ import "./carnet/matin.css";
 import "./carnet/journee.css";
 import "./carnet/chevaux.css";
 import "./carnet/argent.css";
-import "./carnet/ecurie.css";
 import "./carnet/arrivee.css";
 import "./carnet/noter.css";
 import "./carnet/essayer.css";
 import "./carnet/accueil2.css";
-import "./carnet/client.css";
-import "./carnet/proprio.css";
-import "./carnet/facture.css";
-import "./carnet/registre.css";
 import "./carnet/livret.css";
-import "./carnet/ob-fort.css";
 import "./carnet/liens.css";
 import { UnSeulOnglet } from "@/components/bs/un-seul-onglet";
 import { SuiviErreurs } from "@/components/bs/suivi-erreurs";
@@ -91,7 +89,7 @@ export default function RootLayout({
       <body>
         {children}
         <PwaRegister />
-        <Consentement />
+        <ConsentementDiffere />
         <TypoFr />
         <UnSeulOnglet />
         <SuiviErreurs />

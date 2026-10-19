@@ -1,20 +1,24 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { esc } from "@/components/bs/ui";
 import { Check, Ic, eur, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { useParcours } from "@/components/bs/parcours";
+import { useParcours } from "@/components/bs/parcours-base";
 import type { DayItem } from "@/lib/domain/seances";
 import { ligneDe, retirer } from "@/components/bs/retirer";
 import { localToday } from "@/lib/utils/local-date";
-import { PayeSurPlaceSheet } from "@/components/bs/moyen-paiement";
 import { dernierMoyen, enMoyen } from "@/lib/domain/paiement";
 import type { PaymentMethod } from "@/lib/domain/types";
 import { vibrer } from "@/lib/utils/vibrer";
 import { heure } from "@/lib/utils/heure";
+import "@/app/carnet/client.css";
+
+/** « Payé sur place » : la feuille se charge quand on la touche. */
+const PayeSurPlaceSheet = dynamic(() => import("@/components/bs/moyen-paiement").then((m) => m.PayeSurPlaceSheet), { ssr: false });
 
 /** Le pictogramme d'un élément de la journée (créneaux, semaine sur ordinateur). */
 export function iconOf(it: DayItem): string {

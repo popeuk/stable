@@ -34,6 +34,7 @@ import { prenomDe } from "@/lib/domain/clients";
 import { localToday } from "@/lib/utils/local-date";
 import { anneesComptables, csvComptable, lignesComptables } from "@/lib/domain/comptable";
 import type { PersonRole, VatKind } from "@/lib/domain/types";
+import "@/app/carnet/facture.css";
 
 /**
  * Les infos de facturation de l'écurie et le tableau du comptable, partagés

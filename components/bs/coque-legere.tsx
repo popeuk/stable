@@ -41,6 +41,8 @@ export function FeuillesDifferees() {
       quandCalme(() => {
         void chargerNoter();
         void chargerSeance();
+        // Ce qui s'ouvre à la demande, rangé aussi (le service worker le garde) : utilisable sans réseau dans la cour.
+        void import("@/components/bs/precharger");
       });
     if (document.readyState === "complete") go();
     else window.addEventListener("load", go, { once: true });
@@ -116,4 +118,46 @@ export function AjouterDepuisIcone() {
       <AjouterDepuisIconeInner />
     </Suspense>
   );
+}
+
+const Installer = dynamic(() => import("@/components/pwa-install-prompt").then((m) => m.PwaInstallPrompt), { ssr: false });
+const Tuto = dynamic(() => import("@/components/bs/tuto-plus").then((m) => m.TutoPlus), { ssr: false });
+
+/** La proposition d'installer l'app : une fois la page calme, jamais avant le premier affichage. */
+export function InstallerDiffere() {
+  const [pret, setPret] = useState(false);
+  useEffect(() => quandCalme(() => setPret(true)), []);
+  return pret ? <Installer /> : null;
+}
+
+/** La bulle qui montre le + : chargée seulement quand elle doit s'ouvrir. */
+export function TutoDiffere() {
+  const actif = useUiStore((s) => s.tutoPlus);
+  return actif ? <Tuto /> : null;
+}
+
+const GarderBandeau = dynamic(() => import("@/components/bs/garder").then((m) => m.GarderBandeau), { ssr: false });
+const PlaceBandeau = dynamic(() => import("@/components/bs/place-bandeau").then((m) => m.PlaceBandeau), { ssr: false });
+const CopieBandeau = dynamic(() => import("@/components/bs/copie-bandeau").then((m) => m.CopieBandeau), { ssr: false });
+const VersionBandeau = dynamic(() => import("@/components/bs/copie-bandeau").then((m) => m.VersionBandeau), { ssr: false });
+const MorningNudge = dynamic(() => import("@/components/bs/morning-nudge").then((m) => m.MorningNudge), { ssr: false });
+
+/**
+ * Les bandeaux du bas (garder l'essai, place pleine, copie refusée, données
+ * plus récentes) : chargés juste après le premier affichage.
+ */
+export function BandeauxDifferes() {
+  return (
+    <>
+      <GarderBandeau />
+      <PlaceBandeau />
+      <CopieBandeau />
+      <VersionBandeau />
+    </>
+  );
+}
+
+/** Le rappel du matin (notification), branché juste après le premier affichage. */
+export function RappelDuMatin() {
+  return <MorningNudge />;
 }

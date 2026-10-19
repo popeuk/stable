@@ -4,7 +4,7 @@ import { esc } from "@/components/bs/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { estCollectif } from "@/lib/domain/compte-auto";
-import { recettesFacturees } from "@/lib/domain/facture";
+import { recettesFacturees } from "@/lib/domain/factures-base";
 import type { DayItem } from "@/lib/domain/seances";
 
 /**

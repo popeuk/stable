@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ToastHost } from "@/components/bs/shell";
 import { OnboardingGate } from "@/components/ed/onboarding-gate";
+import "@/app/carnet/ob-fort.css";
 
 export const metadata: Metadata = { title: "Premiers pas" };
 

@@ -30,6 +30,8 @@ import { useFeuille } from "@/components/bs/feuille";
 import { useTitreOnglet } from "@/components/bs/titre-onglet";
 import { echeance } from "@/lib/utils/heure";
 import { adresseClient } from "@/lib/adresse-client";
+import "@/app/carnet/client.css";
+import "@/app/carnet/facture.css";
 
 /**
  * Clients : un onglet, deux vues.

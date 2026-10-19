@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Hello, Ic, Page } from "@/components/carnet/ui";
 import { useDataStore, VERSION_DONNEES } from "@/stores/data-store";
 import { useSettingsStore, VERSION_REGLAGES } from "@/stores/settings-store";
@@ -82,12 +82,3 @@ export function SecoursEcran({ problemes, origine, onRepartir, onGarder, garder 
  * Au chargement, des données abîmées ont été lues (stores/data-store,
  * `secours`) : l'écran de secours passe devant, au lieu d'écrans qui tombent.
  */
-export function Secours({ children }: { children: ReactNode }) {
-  const secours = useDataStore((s) => s.secours);
-  const quitter = useDataStore((s) => s.quitterSecours);
-  const [mounted, setMounted] = useState(false);
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setMounted(true), []);
-  if (!mounted || !secours) return <>{children}</>;
-  return <SecoursEcran problemes={secours.problemes} origine={secours.copie} onGarder={() => quitter("garder")} onRepartir={() => quitter("repartir")} />;
-}

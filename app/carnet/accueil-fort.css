@@ -1,4 +1,4 @@
-/* L'accueil d'une écurie qui démarre : stories, ce qui manque au chiffre,
+/* L'accueil d'une écurie qui démarre : ce qui manque au chiffre,
    le chemin en cinq pas, la journée montrée (components/bs/accueil-fort.tsx).
    Couleurs de la charte seulement : vert anglais, vert profond, rose casaque. */
 
@@ -7,46 +7,6 @@
 .carnet .af-btn:active { transform: scale(.98); }
 .carnet .af-btn.rose { background: var(--rose); color: var(--vert-deep); }
 .carnet .af-btn.rose:hover { background: #f3a2c0; }
-
-/* ---------- Les stories ---------- */
-.carnet .af-stories { display: flex; gap: 14px; overflow-x: auto; padding: 14px var(--gut) 2px; scrollbar-width: none; }
-.carnet .af-stories::-webkit-scrollbar { display: none; }
-.carnet .af-story { flex: none; width: 70px; display: grid; justify-items: center; gap: 5px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 11.5px; font-weight: 600; line-height: 1.15; text-align: center; cursor: pointer; }
-.carnet .af-story .ring { width: 64px; height: 64px; border-radius: 50%; padding: 3px; background: conic-gradient(from 200deg, var(--rose), var(--acc), var(--rose)); transition: transform .25s var(--ease); }
-.carnet .af-story:active .ring { transform: scale(.94); }
-.carnet .af-story.vu { color: var(--ink3); }
-.carnet .af-story.vu .ring { background: var(--line); }
-.carnet .af-story .in { width: 100%; height: 100%; border-radius: 50%; border: 2.5px solid var(--paper); background: var(--cream); overflow: hidden; display: grid; place-items: center; }
-.carnet .af-story .in .ill { width: 118%; max-width: none; height: auto; margin-top: 22%; }
-.carnet .af-story .in.bilan .ill { width: 86%; margin-top: 4%; }
-.carnet .af-story .in.pension { place-items: start center; }
-.carnet .af-story .in.pension .ill { width: 150%; margin-top: 4px; }
-.carnet .af-story .in.micro { background: var(--acc); color: var(--on-ink); }
-.carnet .af-story .in svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-
-/* Le lecteur : plein écran, vert profond, la barre de progression en haut. */
-.af-lecteur { position: fixed; inset: 0; z-index: 90; display: grid; grid-template-rows: auto 1fr auto; background: var(--vert-deep); color: var(--on-ink); padding: calc(env(safe-area-inset-top) + 10px) var(--gut) calc(env(safe-area-inset-bottom) + 22px); animation: af-in .35s var(--ease) both; }
-@keyframes af-in { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
-.af-prog { display: grid; grid-auto-flow: column; gap: 4px; padding-right: 52px; padding-top: 6px; }
-.af-prog i { display: block; height: 3px; border-radius: 2px; background: rgba(191, 214, 203, .28); overflow: hidden; position: relative; }
-.af-prog i.fait { background: var(--rose); }
-.af-prog i.ici::after { content: ""; position: absolute; inset: 0; background: var(--rose); transform-origin: left; animation: af-prog linear both; animation-duration: inherit; }
-.af-prog i.ici.pause::after { animation-play-state: paused; }
-@keyframes af-prog { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.af-x { position: absolute; top: calc(env(safe-area-inset-top) + 2px); right: 8px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; color: var(--on-ink); display: grid; place-items: center; cursor: pointer; z-index: 2; }
-.af-x svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-.af-scene { position: relative; display: grid; place-items: center; min-height: 0; padding: 18px 0 8px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
-.af-scene::before { content: ""; position: absolute; width: min(78vw, 360px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(246, 179, 203, .22), rgba(246, 179, 203, 0) 68%); }
-.af-scene-ill { position: relative; max-width: min(84vw, 380px); max-height: 100%; width: auto; height: auto; object-fit: contain; animation: af-ill .9s var(--ease) both; }
-@keyframes af-ill { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
-.af-zone { position: absolute; top: 0; bottom: 0; width: 38%; border: 0; background: none; cursor: pointer; }
-.af-zone.g { left: 0; width: 30%; }
-.af-zone.d { right: 0; width: 70%; }
-.af-texte { animation: af-txt .6s var(--ease) .1s both; }
-@keyframes af-txt { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.af-texte h2 { margin: 0; font-size: 34px; line-height: .98; letter-spacing: -.035em; font-weight: 760; font-variation-settings: "wdth" 86; text-wrap: balance; }
-.af-texte p { margin: 12px 0 0; font-size: 16px; line-height: 1.45; color: var(--on-vert); max-width: 40ch; }
-.af-texte .af-btn { width: 100%; margin-top: 20px; min-height: 52px; }
 
 /* ---------- Sous le chiffre : ce qui manque ---------- */
 .carnet .af-manque { margin: 10px 14px 0; padding: 14px 16px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); }
@@ -124,13 +84,11 @@
 
 /* Ordinateur : les blocs suivent la colonne de gauche, sans marge propre. */
 @media (min-width: 1024px) {
-  .carnet .ac-desk .af-stories { padding: 14px 0 2px; }
   .carnet .ac-desk .af-manque, .carnet .ac-desk .af-chemin { margin-left: 0; margin-right: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .af-lecteur, .af-scene-ill, .af-texte, .carnet .af-gr, .carnet .af-gagne .af-rosette { animation: none; }
+  .carnet .af-gr, .carnet .af-gagne .af-rosette { animation: none; }
   .carnet .af-st.now::after { animation: none; }
   .carnet .af-seg::after, .carnet .af-bar .tr i { transition: none; }
-  .af-prog i.ici::after { animation: none; transform: none; }
 }

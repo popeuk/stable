@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Ill } from "@/components/carnet/ui";
+import { ILL_TAILLES } from "@/components/carnet/ill-tailles";
 
 /**
  * Legacy deep-links put the id in the path (/cheval/<id>, /decouvertes/<id>).
@@ -19,13 +19,20 @@ var d=p.match(/\\/decouvertes\\/([^\\/]+)$/);
 if(d&&d[1]!=='detail'){location.replace(p.slice(0,d.index)+'/argent?vue=leviers');return;}
 }catch(e){}})();`;
 
+const [L, H] = ILL_TAILLES.introuvable;
+
+/**
+ * Le dessin en simple image (sans personnage, il n'a pas besoin de Ill) : la
+ * page introuvable, présente sous chaque écran, n'ajoute ainsi aucun script.
+ */
 export default function NotFound() {
   return (
     <div className="carnet">
       <main className="ar ar-v ar-nf">
         <script dangerouslySetInnerHTML={{ __html: LEGACY_REDIRECT }} />
         <div className="empty">
-          <Ill n="introuvable" className="e-introuvable" alt="" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="ill e-introuvable" src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/img/carnet/introuvable.webp`} alt="" style={{ aspectRatio: `auto ${L} / ${H}` }} draggable={false} decoding="async" />
         </div>
         <div className="q" style={{ paddingTop: 6 }}>
           <h1>Page introuvable</h1>

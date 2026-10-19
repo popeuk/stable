@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Ic } from "@/components/carnet/ui";
-import { useFeuille } from "@/components/bs/feuille";
+import { FeuilleConfirmer } from "@/components/bs/feuille-confirmer";
 import { api } from "@/lib/account/api";
 import { envoyer } from "@/lib/account/nuage";
 import { getSession, leave } from "@/lib/account/session";
@@ -15,6 +14,7 @@ import { facturesDeLEssai, issueEffacement, messageEfface, ouEfface, texteSansCo
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
+import "@/app/carnet/ecurie.css";
 
 /**
  * Se déconnecter, effacer (décision 9 du 18 octobre). Avec un compte, deux
@@ -84,29 +84,6 @@ export function ZoneEffacer({ exporter }: { exporter: () => void }) {
       {ouverte === "essai" && <FeuilleEssai exporter={exporter} onClose={() => setOuverte(null)} />}
       {ouverte === "demo" && <FeuilleDemo onClose={() => setOuverte(null)} />}
     </div>
-  );
-}
-
-/** Une feuille de confirmation de l'app, rendue dans document.body (iPhone). */
-export function FeuilleConfirmer({ titre, onClose, children }: { titre: string; onClose: () => void; children: ReactNode }) {
-  const ref = useFeuille(onClose, { verrou: true });
-  return createPortal(
-    <div className="carnet carnet-portal">
-      <div className="sheet-wrap open">
-        <div className="scrim" onClick={onClose} />
-        <div className="sheet" role="alertdialog" aria-modal="true" aria-label={titre} ref={ref}>
-          <div className="grab" />
-          <div className="shd">
-            <b>{titre}</b>
-            <button type="button" className="x" onClick={onClose} aria-label="Fermer">
-              <Ic n="x" className="" />
-            </button>
-          </div>
-          <div className="pad" style={{ display: "grid", gap: 10, paddingBottom: 8 }}>{children}</div>
-        </div>
-      </div>
-    </div>,
-    document.body,
   );
 }
 

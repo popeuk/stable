@@ -6,6 +6,7 @@ import { Ic } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { GAP_LABEL, SEX_LABEL, horseGaps, selonSexe, type HorseSex } from "@/lib/domain/registre";
 import type { Horse } from "@/lib/domain/types";
+import "@/app/carnet/registre.css";
 
 type TextKey = "sireNumber" | "chipNumber" | "origin" | "entryReason" | "destination" | "exitReason";
 

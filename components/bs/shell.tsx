@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { ECURIE, isRoot2, useRetour2 } from "@/components/bs/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -13,7 +14,9 @@ import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { useFinDuMois } from "@/components/bs/compte";
 import { BILAN, CLIENTS_CHEVAUX, under, useParentIci } from "@/components/bs/nav";
-import { EnveloppeBouton } from "@/components/bs/demandes";
+
+/** L'enveloppe des demandes : chargée après le premier affichage (elle ne vit qu'avec un compte). */
+const EnveloppeBouton = dynamic(() => import("@/components/bs/demandes").then((m) => m.EnveloppeBouton), { ssr: false });
 
 /**
  * L'en-tête : à gauche « be stable » sur les onglets, sinon le retour, qui
