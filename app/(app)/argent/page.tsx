@@ -196,7 +196,7 @@ function Mois() {
           </div>
           <div className="ar-mlab" aria-hidden="true">
             <span>{mois.debut}</span>
-            <span className="ar-auj" style={{ left: `${Math.max(22, Math.min(78, mois.pct))}%` }}>
+            <span className="ar-auj" style={{ left: `${Math.max(22, Math.min(72, mois.pct))}%` }}>
               aujourd’hui
             </span>
             <span>{mois.fin}</span>

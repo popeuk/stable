@@ -368,6 +368,22 @@ html[data-taille="tres-grand"] .carnet .seg button { min-width: 0; white-space: 
    d'un mot par ligne. Le texte prend toute la largeur. */
 html[data-taille="tres-grand"] .carnet .ac-cpt { grid-template-columns: minmax(0, 1fr); }
 html[data-taille="tres-grand"] .carnet .ac-cpt .ac-ill { display: none; }
+/* Mon bilan : même chose, le dessin s'efface et le chiffre garde toute la
+   largeur (il passait sous la gérante) ; « aujourd'hui » passe sous la barre. */
+html[data-taille="tres-grand"] .carnet .ar-goal { grid-template-columns: minmax(0, 1fr); }
+html[data-taille="tres-grand"] .carnet .ar-goal .ar-gill { display: none; }
+html[data-taille="tres-grand"] .carnet .ar-mlab { padding-bottom: 1.3em; }
+html[data-taille="tres-grand"] .carnet .ar-mlab .ar-auj { top: 1.3em; }
+/* Planning : le titre de la semaine et Semaine / Mois sur deux lignes ; dans
+   la journée, le montant passe sous le nom du soin au lieu de le chevaucher. */
+html[data-taille="tres-grand"] .carnet .jr-ttl2 { flex-wrap: wrap; row-gap: 8px; padding-right: 16px; }
+html[data-taille="tres-grand"] .carnet .jr-ttl2 .seg { width: 100%; }
+html[data-taille="tres-grand"] .carnet .jr-pnav h1 { white-space: normal; }
+html[data-taille="tres-grand"] .carnet .row.jr-row { grid-template-columns: auto minmax(0, 1fr) 28px; row-gap: 2px; }
+html[data-taille="tres-grand"] .carnet .row.jr-row > time { grid-row: 1 / span 2; }
+html[data-taille="tres-grand"] .carnet .row.jr-row > :is(span, .jr-open) { grid-column: 2; grid-row: 1; overflow-wrap: anywhere; }
+html[data-taille="tres-grand"] .carnet .row.jr-row > .amt { grid-column: 2; grid-row: 2; justify-self: start; }
+html[data-taille="tres-grand"] .carnet .row.jr-row > :last-child { grid-column: 3; grid-row: 1 / span 2; }
 /* Les têtes de « Combien de chevaux » : six par ligne, la grille se réduit d'un
    bloc (le trait et son « il en faut » suivent) pour tenir dans la carte. */
 html[data-taille="grand"] .carnet .ar-grid12 { zoom: 0.94; }
