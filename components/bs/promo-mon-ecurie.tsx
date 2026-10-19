@@ -8,7 +8,7 @@ import { useAnnuaire } from "@/components/bs/account-ui";
 import { EcuriesTexte } from "@/lib/annuaire";
 
 /**
- * L'encart mon-ecurie.fr de l'accueil : de la promo assumée, réduite et
+ * L'encart de l'annuaire bestable.fr sur l'accueil : de la promo assumée, réduite et
  * toujours en dernier, jamais dans l'écurie d'exemple. Le message suit où en est le gérant : pas encore de fiche (la
  * reprendre), fiche en vérification (préparer la suite), fiche en ligne (la
  * tenir à jour). Rien de promis que le site ne tient pas : un annuaire,
@@ -16,7 +16,7 @@ import { EcuriesTexte } from "@/lib/annuaire";
  * les 30 premiers jours d'usage : le gérant découvre d'abord son écurie
  * (le premier jour d'usage noté sur l'appareil, le même que celui de
  * l'indice « Pas eu lieu ? », components/bs/compte.tsx). En tête,
- * la marque telle que sur le site : la rosette et « mon écurie, par Be Stable ».
+ * la marque telle que sur le site : la rosette et « be stable, l’annuaire des écuries ».
  */
 const KEY = "be-stable-promo-mon-ecurie";
 const PAUSE = 15 * 24 * 3600 * 1000;
@@ -85,7 +85,7 @@ export function PromoMonEcurie({ small }: { small?: boolean }) {
   );
 }
 
-/** La rosette de mon-ecurie.fr, dessinée comme sur le site (pc-signe). */
+/** La rosette du site bestable.fr, dessinée comme sur le site (pc-signe). */
 const PERLES: [number, number][] = [
   [43.4, 24], [42.23, 30.64], [38.86, 36.47], [33.7, 40.8], [27.37, 43.11], [20.63, 43.11], [14.3, 40.8], [9.14, 36.47], [5.77, 30.64],
   [4.6, 24], [5.77, 17.36], [9.14, 11.53], [14.3, 7.2], [20.63, 4.89], [27.37, 4.89], [33.7, 7.2], [38.86, 11.53], [42.23, 17.36],
@@ -111,8 +111,8 @@ function Marque({ etat }: { etat: ReactNode }) {
         </g>
       </svg>
       <span className="me-txt">
-        <span className="me-nom">mon écurie</span>
-        <span className="me-par">par Be Stable</span>
+        <span className="me-nom">be stable</span>
+        <span className="me-par">l’annuaire des écuries</span>
       </span>
       <span className="me-etat">{etat}</span>
     </span>

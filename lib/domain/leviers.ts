@@ -63,7 +63,7 @@ export function suggestions(data: StableData, period: Period, capacity: number):
       id: "remplir-box",
       lever: "remplir",
       title: free > 1 ? `Trouver un cheval pour tes ${free} places libres` : "Trouver un cheval pour ta place libre",
-      sub: free > 1 ? "Une place prise te rapporte autant que tes autres chevaux. Tu peux les annoncer sur mon-ecurie.fr, l’annuaire des pensions." : "Une place prise te rapporte autant que tes autres chevaux. Tu peux l’annoncer sur mon-ecurie.fr, l’annuaire des pensions.",
+      sub: free > 1 ? "Une place prise te rapporte autant que tes autres chevaux. Tu peux les annoncer sur bestable.fr, l’annuaire des pensions." : "Une place prise te rapporte autant que tes autres chevaux. Tu peux l’annoncer sur bestable.fr, l’annuaire des pensions.",
       gain: Math.round(m.contribution * free),
       unit: "par mois",
       apply: { type: "publish" },

@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
   const userId = await compte(token, ip(req));
   if (userId === "trop") return rep(429, { code: "trop_d_essais", message: "Trop d’essais. Réessaie dans une minute." });
   if (userId === "refuse") return rep(401, { code: "session_expiree", message: "Connexion nécessaire." });
-  if (userId === "injoignable") return rep(503, { code: "monecurie_injoignable", message: "mon-ecurie.fr ne répond pas." });
+  if (userId === "injoignable") return rep(503, { code: "monecurie_injoignable", message: "bestable.fr ne répond pas." });
 
   if (req.method === "GET") {
     const { data, error } = await db.from("tiroirs").select("nom, rev, contenu, modifie").eq("user_id", userId);

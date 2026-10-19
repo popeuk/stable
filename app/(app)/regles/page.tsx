@@ -24,7 +24,7 @@ function Regles() {
     <div className="ce">
       <header className="ce-hd rise">
         <h1>{TEXTES[t].titre}</h1>
-        <p>Les mêmes règles pour Be Stable et mon-ecurie.fr.</p>
+        <p>Les mêmes règles pour l’app et le site Be Stable.</p>
       </header>
       <TexteLegal t={t} onTexte={(c) => router.push(`/regles?t=${c}`)} />
     </div>

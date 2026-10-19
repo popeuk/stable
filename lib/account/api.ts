@@ -37,8 +37,8 @@ function clean<T>(v: T): T {
   return v;
 }
 
-const SLOW = "mon-ecurie.fr met trop de temps à répondre. Réessaie dans quelques minutes.";
-const OFFLINE = "Impossible de joindre mon-ecurie.fr. Vérifie ta connexion et réessaie.";
+const SLOW = "bestable.fr met trop de temps à répondre. Réessaie dans quelques minutes.";
+const OFFLINE = "Impossible de joindre bestable.fr. Vérifie ta connexion et réessaie.";
 
 export interface Demande {
   fonction?: string;

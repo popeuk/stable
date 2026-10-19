@@ -124,7 +124,7 @@ export function usePas(): Pas[] {
       {
         id: "fiche",
         fait: fiche,
-        titre: "Ta fiche sur mon-ecurie.fr",
+        titre: "Ta fiche sur bestable.fr",
         sous: "Les cavaliers y cherchent leur pension. Tes photos, tes places libres et tes tarifs : c’est ce qu’ils regardent avant d’écrire.",
         gain: "gratuit",
         ill: "cavaliere",

@@ -445,7 +445,7 @@ function Leviers() {
       say(`Pension changée : <strong>+${eur(s.gain)}</strong> par mois à partir du 1er.`, undo);
     } else if (s.apply.type === "publish") {
       st().setActionStatus(s.id, "en_cours");
-      say("Noté, tu t’en occupes. Tu peux annoncer ta place dans Ma fiche mon-ecurie.fr.", undo);
+      say("Noté, tu t’en occupes. Tu peux annoncer ta place dans Ma fiche bestable.fr.", undo);
     } else {
       st().setActionStatus(s.id, "en_cours");
       say(`Noté, tu t’en occupes : <strong>${esc(s.title)}</strong>.`, undo);

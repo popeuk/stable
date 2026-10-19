@@ -13,7 +13,7 @@ import { getSession, updateAccount } from "@/lib/account/session";
 import "@/app/carnet/ecurie.css";
 
 /**
- * Ma fiche mon-ecurie.fr, depuis Be Stable : ce que voient les cavaliers,
+ * Ma fiche bestable.fr (l'annuaire), depuis l'app : ce que voient les cavaliers,
  * ce qui manque, et tout ce qui se remplit en quelques gestes (places,
  * formules, ce que tu proposes, contact, photos). Pendant la vérification,
  * la saisie est gardée et posée sur la fiche dès la validation.
@@ -83,7 +83,7 @@ function MaFiche() {
   if (s?.kind === "demo")
     return (
       <Seul>
-        <Hello title="Ta fiche mon-ecurie.fr" sub="Dans l’écurie d’exemple, il n’y a pas de vraie fiche. Crée ton compte pour reprendre celle de ton écurie : c’est gratuit et sans commission." />
+        <Hello title="Ta fiche sur bestable.fr" sub="Dans l’écurie d’exemple, il n’y a pas de vraie fiche. Crée ton compte pour reprendre celle de ton écurie : c’est gratuit et sans commission." />
         <div className="pad rise" style={{ marginTop: 16, animationDelay: ".1s" }}>
           <Link href="/compte/inscription?retrouver=1" className="btn full">
             Trouver mon écurie
@@ -95,20 +95,20 @@ function MaFiche() {
   if (etat === "charge")
     return (
       <Seul>
-        <Hello title="Ta fiche mon-ecurie.fr" sub="Chargement de ta fiche…" />
+        <Hello title="Ta fiche sur bestable.fr" sub="Chargement de ta fiche…" />
       </Seul>
     );
   if (etat === "erreur")
     return (
       <Seul>
         <Hello title="Impossible d’ouvrir ta fiche." />
-        <Empty ill="hors-ligne">mon-ecurie.fr ne répond pas pour le moment. Vérifie ta connexion internet. Le reste de l’app marche normalement.</Empty>
+        <Empty ill="hors-ligne">bestable.fr ne répond pas pour le moment. Vérifie ta connexion internet. Le reste de l’app marche normalement.</Empty>
       </Seul>
     );
   if (etat === "aucune" || !f)
     return (
       <Seul>
-        <Hello title="Ton écurie n’a pas encore sa fiche." sub="Cherche ton écurie sur mon-ecurie.fr et mets-la à ton nom. Si elle n’y est pas, ajoute-la. C’est gratuit, sans commission." />
+        <Hello title="Ton écurie n’a pas encore sa fiche." sub="Cherche ton écurie sur bestable.fr et mets-la à ton nom. Si elle n’y est pas, ajoute-la. C’est gratuit, sans commission." />
         <div className="pad rise" style={{ marginTop: 16, animationDelay: ".1s" }}>
           <Link href="/compte/inscription?retrouver=1" className="btn full">
             Trouver mon écurie
@@ -132,7 +132,7 @@ function MaFiche() {
       setF(r);
       setBase(JSON.stringify(r));
       updateAccount({ listing: s?.kind === "compte" && s.listing ? { ...s.listing, title: r.title } : undefined });
-      say(r.en_attente ? "C’est enregistré. Ça apparaîtra sur ta fiche dès qu’elle sera validée." : `Ta fiche est à jour sur mon-ecurie.fr : <strong>${esc(r.title)}</strong>.`);
+      say(r.en_attente ? "C’est enregistré. Ça apparaîtra sur ta fiche dès qu’elle sera validée." : `Ta fiche est à jour sur bestable.fr : <strong>${esc(r.title)}</strong>.`);
     } catch (e) {
       say(e instanceof ApiError ? esc(e.message) : "Ce n’est pas enregistré. Réessaie dans un instant.");
     } finally {
@@ -183,7 +183,7 @@ function MaFiche() {
   );
 
   const apercu = (
-    <Sec ill="foin" title="Sur mon-ecurie.fr" delay={0.18}>
+    <Sec ill="foin" title="Sur bestable.fr" delay={0.18}>
       <FicheApercu f={f} claimed={!f.en_attente} />
     </Sec>
   );
@@ -348,7 +348,7 @@ function MaFiche() {
         <p className="ec-help">
           Les cours et les stages se complètent sur{" "}
           <a href="https://bestable.fr/mon-compte/" target="_blank" rel="noreferrer" className="lnk" style={{ fontSize: 12 }}>
-            ton espace mon-ecurie.fr
+            ton espace bestable.fr
           </a>
           , avec le même compte.
         </p>
@@ -363,7 +363,7 @@ function MaFiche() {
     </div>
   );
 
-  const hello = <Hello title="Ta fiche, c’est ta vitrine." sub={`Ce que les cavaliers voient de ${f.title || "ton écurie"} sur mon-ecurie.fr. Plus elle est complète, mieux ils comprennent ce que tu proposes.`} />;
+  const hello = <Hello title="Ta fiche, c’est ta vitrine." sub={`Ce que les cavaliers voient de ${f.title || "ton écurie"} sur bestable.fr. Plus elle est complète, mieux ils comprennent ce que tu proposes.`} />;
 
   return (
     <Screen wide={desk}>
@@ -380,7 +380,7 @@ function MaFiche() {
                 {f.url && (
                   <div className="pad" style={{ marginTop: 12 }}>
                     <a href={f.url} target="_blank" rel="noreferrer" className="btn line full">
-                      Voir ma fiche sur mon-ecurie.fr
+                      Voir ma fiche sur bestable.fr
                     </a>
                   </div>
                 )}

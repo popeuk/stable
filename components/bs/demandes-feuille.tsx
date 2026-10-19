@@ -35,7 +35,7 @@ export function DemandesFeuille({ onClose }: { onClose: () => void }) {
             {!fiche ? (
               <>
                 <p className="note" style={{ marginTop: 0 }}>
-                  Les cavaliers t’écrivent depuis ta fiche sur mon-ecurie.fr. Dès qu’elle est à ton nom, leurs demandes arrivent ici.
+                  Les cavaliers t’écrivent depuis ta fiche sur bestable.fr. Dès qu’elle est à ton nom, leurs demandes arrivent ici.
                 </p>
                 <Link href="/ma-fiche" className="btn full" onClick={onClose}>
                   Reprendre ma fiche

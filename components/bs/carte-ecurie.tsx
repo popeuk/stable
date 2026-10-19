@@ -98,13 +98,13 @@ function TonEcurie() {
           </span>
           <span className="ce-tx">
             <b>{listing.title || stableName}</b>
-            <small>{listing.status === "validee" ? "Ta fiche mon-ecurie.fr est en ligne. Touche pour la modifier." : "Ta demande est en cours de vérification."}</small>
+            <small>{listing.status === "validee" ? "Ta fiche bestable.fr est en ligne. Touche pour la modifier." : "Ta demande est en cours de vérification."}</small>
           </span>
           <Ic n="chev" className="ce-chev" />
         </Link>
       ) : (
         <div className="ce-cherche">
-          <label htmlFor="ce-q">Cherche-la sur mon-ecurie.fr</label>
+          <label htmlFor="ce-q">Cherche-la sur bestable.fr</label>
           <p>{EcuriesTexte(annuaire?.ecuries)} y sont déjà. Retrouve la tienne : ton nom, ta commune et ta fiche se remplissent d’un coup.</p>
           <span className="ce-in">
             <Ic n="search" className="" />

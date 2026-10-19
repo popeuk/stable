@@ -10,14 +10,14 @@ import { ficheRows } from "@/components/bs/fiche-lignes";
 export { ficheRows };
 import "@/app/carnet/ecurie.css";
 
-/** Le haut des écrans de compte : be stable, avec mon-ecurie.fr. */
+/** Le haut des écrans de compte : be stable, avec l'annuaire. */
 export function AccTop({ right }: { right?: ReactNode }) {
   return (
     <div className="bs-acc-top">
       <span>
         <span className="bs-wm">be stable</span>
         <span className="with" style={{ display: "block", marginTop: 3 }}>
-          avec <b>mon-ecurie.fr</b>
+          avec <b>l’annuaire</b>
         </span>
       </span>
       {right}
@@ -107,7 +107,7 @@ export function FichePreview({ f, claimed, pending }: { f: Partial<Fiche>; claim
   const price = Number(f.prix_min);
   const places = f.places_libres;
   return (
-    <div className="bs-prev" aria-label="Aperçu de la fiche sur mon-ecurie.fr">
+    <div className="bs-prev" aria-label="Aperçu de la fiche sur bestable.fr">
       <div className="img" style={photo ? { backgroundImage: `url(${photo})` } : undefined}>
         {!photo && (
           <>
@@ -175,7 +175,7 @@ export function FicheApercu({ f, claimed, pending }: { f: Partial<Fiche>; claime
   const price = Number(f.prix_min);
   const places = f.places_libres;
   return (
-    <div className="ec-fp" aria-label="Aperçu de la fiche sur mon-ecurie.fr">
+    <div className="ec-fp" aria-label="Aperçu de la fiche sur bestable.fr">
       <div className="ph" style={photo ? { backgroundImage: `url(${photo})` } : undefined}>
         {!photo && (
           <>

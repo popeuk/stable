@@ -49,11 +49,11 @@
 .carnet .cp-revoir { display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 650; color: var(--ink2); white-space: nowrap; }
 .carnet .cp-revoir .chev { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .ac-jour { padding-top: 14px; }
-/* L'encart mon-ecurie.fr (components/bs/promo-mon-ecurie.tsx) : « Plus tard » posé sur l'image. */
+/* L'encart de l'annuaire bestable.fr (components/bs/promo-mon-ecurie.tsx) : « Plus tard » posé sur l'image. */
 .carnet .ac-promo { position: relative; }
 .carnet .ac-promo-x { position: absolute; top: 10px; right: 24px; z-index: 1; height: 36px; padding: 0 12px; border: 0; border-radius: 15px; background: color-mix(in srgb, var(--on-ink) 86%, transparent); color: var(--ink2); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .carnet .ac-promo-x:hover { color: var(--ink); }
-/* La marque mon-ecurie.fr, comme l'en-tête du site (pc-logo). */
+/* La marque du site bestable.fr (rosette, « be stable », « l’annuaire des écuries »), comme son en-tête (pc-logo). */
 .carnet .ac-promo .tag { font-family: inherit; letter-spacing: 0; }
 .carnet .me-marque { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; row-gap: 6px; }
 .carnet .me-signe { width: 30px; height: 30px; flex: none; }

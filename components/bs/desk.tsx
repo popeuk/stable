@@ -475,7 +475,7 @@ function HelpInner({ close }: { close: () => void }) {
     ["Idées pour gagner plus", ["G", "L"]],
     ["Faire payer tes clients", ["G", "F"]],
     ["Sur plusieurs mois", ["G", "B"]],
-    ["Ma fiche mon-ecurie.fr", ["G", "O"]],
+    ["Ma fiche bestable.fr", ["G", "O"]],
     ["Mes prix", ["G", "S"]],
     ["Réglages", ["G", "R"]],
     ["Planning : semaine précédente, suivante", ["←", "→"]],

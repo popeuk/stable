@@ -204,7 +204,7 @@ export default function Page() {
             {top}
             <div className="q rise">
               <h1>Ton écurie s’appelle comment ?</h1>
-              <p>Si elle est sur mon-ecurie.fr, choisis-la. Rien ne change sur sa fiche.</p>
+              <p>Si elle est sur bestable.fr, choisis-la. Rien ne change sur sa fiche.</p>
             </div>
             <label className="input ar-in">
               <Ic n="search" className="ar-ico" />
@@ -288,7 +288,7 @@ export default function Page() {
                   Continuer avec Apple
                 </button>
               )}
-              <p className="ar-proof">Le même compte que sur mon-ecurie.fr. Pas de mot de passe.</p>
+              <p className="ar-proof">Le même compte que sur bestable.fr. Pas de mot de passe.</p>
             </div>
           </form>
         )}

@@ -60,7 +60,7 @@ const TITRES: [string, string][] = [
   ["/contacts", "Les pros"],
   ["/equipe", "Tâches de l’équipe"],
   ["/prestations", "Mes prix"],
-  ["/ma-fiche", "Ma fiche mon-ecurie.fr"],
+  ["/ma-fiche", "Ma fiche bestable.fr"],
   ["/reglages", "Réglages"],
   ["/moi", "Réglages"],
   ["/parametres", "Réglages"],

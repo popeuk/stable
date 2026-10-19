@@ -293,7 +293,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
           <div className="q rise" style={{ animationDelay: ".08s" }}>
             <h1>D’abord, on retrouve ton écurie.</h1>
             <p>
-              Elle a sans doute déjà sa fiche sur <b>mon-ecurie.fr</b>, l’annuaire des pensions pour chevaux : <b className="num">{ecuriesTexte(chiffres?.ecuries)}</b> y sont, partout en France. En la reprenant :
+              Elle a sans doute déjà sa fiche sur <b>bestable.fr</b>, l’annuaire des pensions pour chevaux : <b className="num">{ecuriesTexte(chiffres?.ecuries)}</b> y sont, partout en France. En la reprenant :
             </p>
           </div>
           <ul className="ar-pts rise" style={{ animationDelay: ".16s" }}>
@@ -412,7 +412,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
           <div className="q">
             <h1>{statut === "revendiquee" ? "Elle est déjà au nom de quelqu’un." : statut === "en_verification" ? "Une demande est déjà en cours." : "C’est elle ?"}</h1>
           </div>
-          <div className="ar-apercu" aria-label="Aperçu de la fiche sur mon-ecurie.fr">
+          <div className="ar-apercu" aria-label="Aperçu de la fiche sur bestable.fr">
             <FicheCarte f={fiche} etat="avant" />
           </div>
           {erreur}
@@ -543,7 +543,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
             </button>
             <p className="ar-proof">
               Pas de mot de passe. En continuant, tu acceptes les{" "}
-              <LienLegal t="cgu">conditions</LienLegal> de Be Stable et mon-ecurie.fr. Ce qu’on fait de tes informations :{" "}
+              <LienLegal t="cgu">conditions</LienLegal> de Be Stable. Ce qu’on fait de tes informations :{" "}
               <LienLegal t="confidentialite">confidentialité</LienLegal>.
             </p>
           </div>

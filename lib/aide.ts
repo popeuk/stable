@@ -173,11 +173,11 @@ const AIDES_BRUTES: Record<string, Aide> = {
   },
   "ma-fiche": {
     id: "ma-fiche",
-    titre: "Ta fiche sur mon-ecurie.fr",
+    titre: "Ta fiche sur bestable.fr",
     bulle: "Ta fiche, comme la voient les cavaliers",
     cible: "haut",
     points: [
-      "mon-ecurie.fr, c’est l’annuaire où les cavaliers cherchent une pension pour leur cheval.",
+      "bestable.fr, c’est l’annuaire où les cavaliers cherchent une pension pour leur cheval.",
       "Places libres, prix, photos, présentation : une fois ta fiche validée, ce que tu changes ici apparaît sur l’annuaire.",
       "C’est gratuit, et aucune commission n’est prise sur tes pensions.",
     ],

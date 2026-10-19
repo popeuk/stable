@@ -145,7 +145,7 @@ function Moi() {
   const ecurie = (
     <Sec delay={0.1} id="ecurie">
       <div className="li np">
-        <Li title={<label htmlFor="st-name">Nom de l’écurie</label>} sub="si elle n’est pas encore sur mon-ecurie.fr" right={<input id="st-name" className="input sm" defaultValue={s.stableName} onChange={(e) => s.setIdentity({ stableName: e.target.value })} />} />
+        <Li title={<label htmlFor="st-name">Nom de l’écurie</label>} sub="si elle n’est pas encore sur bestable.fr" right={<input id="st-name" className="input sm" defaultValue={s.stableName} onChange={(e) => s.setIdentity({ stableName: e.target.value })} />} />
       </div>
       <div className="li np">
         <Li
@@ -375,7 +375,7 @@ function Compte() {
         <span>
           <b>{qui || s.email}</b>
           <small className="tw">{s.email}</small>
-          <small className="tw">le même compte que sur mon-ecurie.fr</small>
+          <small className="tw">le même compte que sur bestable.fr</small>
         </span>
         <span />
       </div>

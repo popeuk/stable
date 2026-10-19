@@ -33,7 +33,7 @@ export function AdoptChoice({ to = "/accueil", source = "legacy" }: { to?: strin
     <div className="mt-atop">
       <span className="mt-wm">be stable</span>
       <span className="mt-with">
-        avec <b>mon-ecurie.fr</b>
+        avec <b>l’annuaire</b>
       </span>
     </div>
   );

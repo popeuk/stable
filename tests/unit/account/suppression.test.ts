@@ -81,9 +81,9 @@ describe("supprimer mon compte", () => {
 
   it("pas partie (hors ligne) : rien n'est effacé, on peut réessayer", async () => {
     const r = await sup.demanderLaSuppression(compte, async () => {
-      throw new ApiError("hors_ligne", "Impossible de joindre mon-ecurie.fr.");
+      throw new ApiError("hors_ligne", "Impossible de joindre bestable.fr.");
     });
-    expect(r).toEqual({ issue: "erreur", message: "Impossible de joindre mon-ecurie.fr." });
+    expect(r).toEqual({ issue: "erreur", message: "Impossible de joindre bestable.fr." });
     expect(getSession()).not.toBeNull();
     expect(store.getItem("be-stable-data@u42")).toBe("chiffré");
   });
