@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { changerProprio, partPension } from "@/lib/domain/proprio";
 import { billsFor } from "@/lib/domain/billing";
+import { pensionFigee, textePrixChange } from "@/lib/domain/facture";
 import type { Invoice, StableData } from "@/lib/domain/types";
 
 const oct = { year: 2026, month: 10 };
@@ -66,3 +67,20 @@ describe("un cheval change de propriétaire en cours de mois", () => {
 function r(n: number) {
   return Math.round(n * 100) / 100;
 }
+
+describe("la fiche du cheval dit ce que fait vraiment un nouveau prix", () => {
+  it("partagée entre deux propriétaires ce mois-ci : l'ancien prix reste, le nouveau compte le mois suivant", () => {
+    const c = changerProprio(data(), "h1", "Anne M.", "2026-10-15", () => "p2");
+    const d = { ...data(), ...c, revenues: [...c.revenues, ...c.added] };
+    expect(pensionFigee(d, "h1", "2026-10")).toBe("partagee");
+    expect(textePrixChange("partagee", "2026-10")).toBe("Ce mois-ci, la pension est partagée entre l’ancien et le nouveau propriétaire : les deux parts gardent l’ancien prix. Le nouveau compte à partir de novembre 2026.");
+  });
+
+  it("déjà facturée : elle le dit ; ni l'un ni l'autre : le prix compte dès ce mois", () => {
+    const inv = { id: "i1", number: "2026-0001", payer: "Julien B.", month: "2026-10", revenueIds: ["rev-pension-h1-2026-10"], lines: [] } as unknown as Invoice;
+    expect(pensionFigee({ ...data(), invoices: [inv] }, "h1", "2026-10")).toBe("facturee");
+    expect(textePrixChange("facturee", "2026-12")).toBe("Ce mois-ci est déjà facturé : il garde l’ancien prix (un avoir le corrige). Le nouveau prix compte à partir de janvier 2027.");
+    expect(pensionFigee(data(), "h1", "2026-10")).toBeNull();
+    expect(textePrixChange(null, "2026-10")).toBe("Le nouveau prix compte dès ce mois-ci. Les mois passés ne changent pas.");
+  });
+});

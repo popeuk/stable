@@ -4,6 +4,7 @@ import { enMoyen } from "@/lib/domain/paiement";
 import { esc } from "@/lib/utils/esc";
 import { appel, formule, pasUnPrenom, prenom, salut, signature } from "@/lib/domain/politesse";
 import { r2 } from "@/lib/utils/arrondi";
+import { pensionRevenueId } from "@/lib/domain/autopilot";
 
 /**
  * La facture d'un client pour un mois. Les prix saisis dans l'app sont ceux
@@ -555,6 +556,27 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
     revenueIds: list.flatMap((g) => g.ids),
   };
   return out;
+}
+
+/**
+ * La pension d'un cheval pour un mois garde-t-elle son prix quand on le
+ * change ? « facturee » : elle est sur une facture (un avoir la corrige) ;
+ * « partagee » : le propriétaire a changé en cours de mois, elle est en deux
+ * parts (proprio.ts, partPension). Sinon null : le nouveau prix compte dès
+ * ce mois.
+ */
+export function pensionFigee(data: Pick<StableData, "invoices" | "revenues">, horseId: string, mk: string): "facturee" | "partagee" | null {
+  const rid = pensionRevenueId(horseId, mk);
+  if (data.revenues.some((r) => r.id === `${rid}-suite`)) return "partagee";
+  return recettesFacturees(data.invoices).has(rid) ? "facturee" : null;
+}
+
+/** Ce que dit la fiche du cheval quand sa pension change (le mois `mk`). */
+export function textePrixChange(figee: ReturnType<typeof pensionFigee>, mk: string): string {
+  const suivant = moisDit(monthKey({ year: Number(mk.slice(0, 4)) + (mk.slice(5, 7) === "12" ? 1 : 0), month: (Number(mk.slice(5, 7)) % 12) + 1 }));
+  if (figee === "facturee") return `Ce mois-ci est déjà facturé : il garde l’ancien prix (un avoir le corrige). Le nouveau prix compte à partir de ${suivant}.`;
+  if (figee === "partagee") return `Ce mois-ci, la pension est partagée entre l’ancien et le nouveau propriétaire : les deux parts gardent l’ancien prix. Le nouveau compte à partir de ${suivant}.`;
+  return "Le nouveau prix compte dès ce mois-ci. Les mois passés ne changent pas.";
 }
 
 /** Les clients qui ont quelque chose à facturer ce mois (une ligne qui n'est sur aucune facture). */

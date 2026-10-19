@@ -26,7 +26,7 @@ import { ensurePensions, pensionRevenueId, premierMoisARattraper } from "@/lib/d
 import { buildDemoData } from "@/lib/data/demo-data";
 import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
-import { contenuAvoir, contenuAvoirMontant, emettre, emettreAvoir, fusionFactures, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
+import { contenuAvoir, contenuAvoirMontant, emettre, emettreAvoir, fusionFactures, pensionFigee, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
 import { compteurAppareil, facturesEnregistrees } from "@/lib/account/factures-seq";
 import { numeroter, numeroterEnAttente as enAttente, type OptionsNumero } from "@/lib/account/numeroter";
 import type { ProvisoireRetiree } from "@/lib/domain/numeros";
@@ -762,7 +762,7 @@ export const useDataStore = create<DataState>()(
           const rid = pensionRevenueId(horseId, monthKey);
           // Déjà sur une facture : le mois garde son prix (un avoir le corrige), le contrat change pour la suite.
           // Partagée entre deux propriétaires ce mois-ci (proprio.ts, partPension) : les deux parts gardent leur prix.
-          const facturee = recettesFacturees(s.invoices).has(rid) || s.revenues.some((r) => r.id === `${rid}-suite`);
+          const facturee = !!pensionFigee(s, horseId, monthKey);
           return {
             horses: s.horses.map((h) => (h.id === horseId ? { ...h, pension: value } : h)),
             revenues: facturee ? s.revenues : s.revenues.map((r) => (r.id === rid ? { ...r, amount: value } : r)),

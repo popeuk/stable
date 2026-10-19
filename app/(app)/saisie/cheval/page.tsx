@@ -10,6 +10,7 @@ import { ChoisirProprio } from "@/components/bs/choisir-proprio";
 import { useDataStore } from "@/stores/data-store";
 import { localToday } from "@/lib/utils/local-date";
 import { debutCompte, dernierSejour } from "@/lib/domain/sejours";
+import { pensionFigee, textePrixChange } from "@/lib/domain/facture";
 import type { Horse } from "@/lib/domain/types";
 import { montantEnTexte, montantOuZero, saisieMontant } from "@/lib/utils/montant";
 import { useUiStore } from "@/stores/ui-store";
@@ -56,6 +57,8 @@ function SaisieCheval() {
   // ?proprietaire=Nom le préremplit ; ?retour=client ramène à sa fiche après.
   const editId = search.get("edit");
   const editing = editId ? horses.find((h) => h.id === editId) : undefined;
+  const moisCourant = localToday().slice(0, 7);
+  const figee = useDataStore((s) => (editId ? pensionFigee(s, editId, moisCourant) : null));
   const proprietaire = useDataStore((s) => nomDeLAdresse(search, s, "proprietaire")).trim();
   const retour = search.get("retour");
   // La flèche du haut : la fiche du cheval qu'on modifie, sinon la liste des chevaux.
@@ -174,7 +177,7 @@ function SaisieCheval() {
             />
             <span className="u">€ / mois</span>
           </span>
-          <em>{editing && montantOuZero(pension) !== (editing.pension ?? 0) ? "Le nouveau prix compte dès ce mois-ci. Les mois passés ne changent pas." : "Comptée chaque mois dans ce qui rentre. Tu ne la notes qu’une fois."}</em>
+          <em>{editing && montantOuZero(pension) !== (editing.pension ?? 0) ? textePrixChange(figee, moisCourant) : "Comptée chaque mois dans ce qui rentre. Tu ne la notes qu’une fois."}</em>
         </label>
         <label className="field">
           <span>
