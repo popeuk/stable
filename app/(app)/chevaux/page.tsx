@@ -17,7 +17,7 @@ import { useAideIci } from "@/components/bs/nav";
 import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
 import { useRouter, useSearchParams } from "next/navigation";
 import { accord, anciensEnMots, clientDues, prenomDe, type ClientDue } from "@/lib/domain/clients";
-import { billsFor, monthKey } from "@/lib/domain/billing";
+import { billsFor, cleClient, monthKey } from "@/lib/domain/billing";
 import { clientsAFairePayer } from "@/lib/domain/compte-auto";
 import { addMonths, currentPeriod, daysInMonth } from "@/lib/utils/period";
 import { chevauxDuMois, chevauxPresents } from "@/lib/domain/presence";
@@ -383,9 +383,12 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
 
   if (desk) {
     const shown = [...owe, ...ok];
-    // Les avoirs du mois, lus dans ce qui reste dû : « Ce mois − Payé − Avoirs = Te doit » se vérifie au crayon.
-    // (Affichage seul : clientDues ne donne pas encore les avoirs à part.)
-    const avoirDe = (c: (typeof shown)[number]) => Math.max(0, Math.round((c.total - c.paid - c.dueMois) * 100) / 100);
+    // Les avoirs du mois et l'argent rendu, lus sur les notes du mois : « Ce mois − Payé − Avoirs = Te doit »
+    // se vérifie au crayon (Payé : ce qui est resté payé, une fois l'argent rendu après un avoir retiré).
+    const notesMois = new Map(billsFor(data, period).filter((b) => !b.orphan).map((b) => [cleClient(b.payer), b]));
+    const noteDe = (c: (typeof shown)[number]) => notesMois.get(cleClient(c.name));
+    const avoirDe = (c: (typeof shown)[number]) => r2((noteDe(c)?.avoirs ?? []).reduce((t, a) => t + a.amount, 0));
+    const payeDe = (c: (typeof shown)[number]) => r2(c.paid - (noteDe(c)?.rendu ?? 0));
     const avecAvoirs = shown.some((c) => avoirDe(c) > 0);
     return (
       <Ecran wide className="ch-desk">
@@ -433,7 +436,7 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
                   <td className="m">{c.phone ?? ""}</td>
                   <td className="m">{c.paieALaSeance ? "à la séance" : "au mois"}</td>
                   <td className="n">{c.total ? eur(c.total) : "·"}</td>
-                  <td className="n m">{c.paid ? eur(c.paid) : "·"}</td>
+                  <td className="n m">{payeDe(c) ? eur(payeDe(c)) : "·"}</td>
                   {avecAvoirs && <td className="n m">{avoirDe(c) ? sg(-avoirDe(c)) : "·"}</td>}
                   <td className="n">
                     {c.due > 0 ? <b>{eurc(c.due)}</b> : <span className="m">à jour</span>}
