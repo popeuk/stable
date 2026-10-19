@@ -43,7 +43,7 @@ const TU: Record<string, string> = {
   email_invalide: "Cette adresse e-mail a l’air incomplète. Vérifie-la.",
   hors_ligne: "Pas de connexion. Vérifie ton réseau et réessaie.",
   revendication_en_cours: "Une demande est déjà en cours pour cette fiche. Si c’est la tienne, tu recevras un e-mail.",
-  deja_revendiquee: "Cette fiche a déjà un gérant. Si c’est une erreur, écris à bonjour@mon-ecurie.fr.",
+  deja_revendiquee: "Cette fiche est déjà au nom de quelqu’un. Si c’est une erreur, écris à bonjour@mon-ecurie.fr.",
 };
 const dire = (x: unknown, defaut: string) => (x instanceof ApiError ? TU[x.code] ?? x.message : defaut);
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

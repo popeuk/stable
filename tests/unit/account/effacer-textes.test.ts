@@ -4,7 +4,7 @@ import { facturesDeLEssai, issueEffacement, messageEfface, ouEfface, texteSansCo
 describe("effacer : ne rien promettre qu'on ne tient pas", () => {
   it("la copie de secours a été gardée : on efface, récupérable", () => {
     expect(issueEffacement({ misDeCote: true, sauve: false, confirme: false })).toBe("recuperable");
-    expect(messageEfface("recuperable", 7, false)).toContain("récupérer pendant 7 jours");
+    expect(messageEfface("recuperable", 7, false)).toContain("récupérer sur ce téléphone pendant 7 jours");
   });
   it("pas de copie de secours : bloqué tant qu'il n'a pas fait de sauvegarde ou confirmé", () => {
     expect(issueEffacement({ misDeCote: false, sauve: false, confirme: false })).toBe("attendre");
@@ -17,9 +17,8 @@ describe("effacer : ne rien promettre qu'on ne tient pas", () => {
     expect(texteSansCopie("téléphone")).toBe("La copie de secours n’a pas pu être gardée sur ce téléphone. Fais une sauvegarde avant d’effacer.");
     expect(texteSansCopie("ordinateur")).toContain("sur cet ordinateur");
   });
-  it("le texte sous le bouton suit l'appareil", () => {
-    expect(ouEfface("téléphone").startsWith("Ce téléphone, tes autres appareils")).toBe(true);
-    expect(ouEfface("ordinateur").startsWith("Cet ordinateur, tes autres appareils")).toBe(true);
+  it("le texte sous le bouton dit ce qui est effacé", () => {
+    expect(ouEfface().startsWith("Ici, sur tes autres téléphones et ordinateurs")).toBe(true);
   });
 });
 
@@ -29,8 +28,8 @@ describe("effacer l'essai : les factures citées d'abord", () => {
     expect(facturesDeLEssai(undefined)).toBeNull();
   });
   it("une, quelques-unes, beaucoup", () => {
-    expect(facturesDeLEssai([{ number: "2026-0001" }])).toBe("Ton essai a 1 facture (n° 2026-0001). Une facture faite se garde 10 ans : fais d’abord une sauvegarde.");
-    expect(facturesDeLEssai([{ number: "2026-0002" }, { number: "2026-0001" }, { number: "2026-0003", kind: "avoir" }])).toContain("3 factures et avoirs (n° 2026-0001, n° 2026-0002 et n° 2026-0003)");
+    expect(facturesDeLEssai([{ number: "2026-0001" }])).toBe("Ton essai a une facture (n° 2026-0001). Une facture faite se garde 10 ans : fais d’abord une sauvegarde.");
+    expect(facturesDeLEssai([{ number: "2026-0002" }, { number: "2026-0001" }, { number: "2026-0003", kind: "avoir" }])).toContain("2 factures et un avoir (n° 2026-0001, n° 2026-0002 et n° 2026-0003)");
     const beaucoup = Array.from({ length: 12 }, (_, i) => ({ number: `2026-${String(i + 1).padStart(4, "0")}` }));
     expect(facturesDeLEssai(beaucoup)).toContain("12 factures (du n° 2026-0001 au n° 2026-0012)");
   });

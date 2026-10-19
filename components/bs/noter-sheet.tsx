@@ -734,7 +734,7 @@ function NoterInner() {
             ) : voiceMsg ? (
               voiceMsg
             ) : (
-              `Ex. «${NB}${EXEMPLE}${NB}»`
+              `Ex. :${NB}«${NB}${EXEMPLE}${NB}»`
             )}
           </p>
         </div>
@@ -747,7 +747,7 @@ function NoterInner() {
             }}
           >
             <InField className="nt-tin">
-              <input autoFocus value={typed} placeholder={`Ex. ${EXEMPLE}`} aria-label="Dis-le en une phrase" enterKeyHint="go" onChange={(e) => setTyped(e.target.value)} />
+              <input autoFocus value={typed} placeholder={`Ex. : ${EXEMPLE}`} aria-label="Dis-le en une phrase" enterKeyHint="go" onChange={(e) => setTyped(e.target.value)} />
             </InField>
             <button type="submit" className="btn full" disabled={!typed.trim()}>
               C’est dit
@@ -849,7 +849,7 @@ function NoterInner() {
               { k: "h", l: x.start ? hh(x.start) : "sans heure" },
               { k: "p", l: x.price ? sgc(-x.price) : "sans prix" },
               // Refacturé au propriétaire : dit, et changé d'un toucher.
-              ...(x.price && proprio ? [{ k: "refac" as PickK, l: x.refac ? `Refacturé à ${proprio}` : "Payé par l’écurie" }] : []),
+              ...(x.price && proprio ? [{ k: "refac" as PickK, l: x.refac ? `À faire payer à ${proprio}` : "Payé par l’écurie" }] : []),
             ]
           : x.type === "rdv"
             ? [{ k: "quoi", l: x.quoi.trim() || "c’est quoi ?", ph: !x.quoi.trim() }, J, { k: "h", l: x.start ? hh(x.start) : "sans heure" }]
@@ -1032,7 +1032,7 @@ function NoterInner() {
           {x.dansMois !== undefined && (
             <>
               <Q>Dans ton estimation, pour combien de mois ?</Q>
-              <Puces options={MOIS_DEDANS.map((m) => [String(m), m === 1 ? "Son mois" : `${m} mois`] as [string, string])} value={String(x.dansMois)} onPick={(v) => set((y) => ({ ...y, dansMois: Number(v) }))} />
+              <Puces options={MOIS_DEDANS.map((m) => [String(m), m === 1 ? "Ce mois-ci" : `${m} mois`] as [string, string])} value={String(x.dansMois)} onPick={(v) => set((y) => ({ ...y, dansMois: Number(v) }))} />
             </>
           )}
         </>

@@ -61,7 +61,7 @@ export function Identite({ horse }: { horse: Horse }) {
           </summary>
           <div className="rg-id-body">
             <p className="note">Recopie ce qui est sur son livret. Tout est facultatif.</p>
-            {text("sireNumber", "Numéro SIRE ou UELN", "ex. 25012345X", { caps: true })}
+            {text("sireNumber", "Numéro SIRE ou UELN", "Ex. : 25012345X", { caps: true })}
             {text("chipNumber", "Numéro de puce (transpondeur)", "15 chiffres", { inputMode: "numeric" })}
             <div className="field" role="group" aria-label="Son sexe">
               <span>Sexe</span>

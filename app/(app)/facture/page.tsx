@@ -481,7 +481,8 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
   const email = person?.email?.trim() ?? "";
   // Tu ou vous selon le choix de Tes factures ; signé du gérant et de l'écurie.
   // Le même message, selon ce qui part avec : l'e-mail et le partage joignent le PDF ; un SMS ou un WhatsApp, non.
-  const msg = (canal: Canal) => messageFacture(inv, gerant, { tu: billing?.tutoie, ecurie: nomEcurie(stableName, billing?.legalName), canal });
+  const mois = avoir && inv.avoirDe ? (invoices ?? []).find((i) => i.kind !== "avoir" && i.number === inv.avoirDe?.number) : undefined;
+  const msg = (canal: Canal) => messageFacture(inv, gerant, { tu: billing?.tutoie, ecurie: nomEcurie(stableName, billing?.legalName), canal, rembourse: !!mois && mois.due <= 0 });
   const court = encodeURIComponent(msg("court"));
   const qui = appelClient(inv.buyer, inv.payer);
   const partage = usePartagePdf();
@@ -491,14 +492,15 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
       await navigator.share({ files: [file], title: nomDoc(inv), text: msg("partage") });
     } catch (e) {
       // Partage fermé sans rien choisir : rien à dire. Sinon, les boutons dessous restent là.
-      if ((e as { name?: string })?.name !== "AbortError") say("Le partage n’a pas marché. Envoie le message par SMS, WhatsApp ou e-mail, dessous.");
+      if ((e as { name?: string })?.name !== "AbortError") say("Le partage n’a pas marché. Envoie le message par SMS, WhatsApp ou e-mail, juste en dessous.");
     }
   };
-  const objet = encodeURIComponent(nomDoc(inv));
+  const ecurieObjet = nomEcurie(stableName, billing?.legalName);
+  const objet = encodeURIComponent(provisoire || !ecurieObjet ? nomDoc(inv) : `${nomDoc(inv)} · ${ecurieObjet}`);
   const avoirs = avoir ? [] : avoirsDe(invoices, inv.number);
   const reste = avoir ? [] : resteAAnnuler(inv, invoices);
   const peutAnnuler = !avoir && !provisoire && reste.some((q) => q > 0) && resteEnEuros(inv, invoices) > 0;
-  useTitreDocument(provisoire ? `Facture provisoire ${inv.payer}` : `${avoir ? "Avoir" : "Facture"} ${inv.number} ${inv.payer}`);
+  useTitreDocument(provisoire ? `Facture à numéroter ${inv.payer}` : `${avoir ? "Avoir" : "Facture"} ${inv.number} ${inv.payer}`);
   // Faite sans réseau : elle reçoit son numéro dès que le serveur répond (ici, ou tout seul au retour du réseau).
   const donnerNumero = async () => {
     if (numeroEnCours) return;
@@ -529,7 +531,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
         </div>
         {provisoire && (
           <div className="card fa-card fa-faite rise" role="status">
-            <b>Faite, mais pas encore numérotée</b>
+            <b>Facture à numéroter</b>
             <p>{raisonProvisoire(refusCopie())} D’ici là, tu peux l’imprimer : elle dit « {MENTION_PROVISOIRE} ». Elle s’envoie une fois numérotée.</p>
             <div className="fa-sendb">
               <button type="button" className="btn" onClick={donnerNumero} disabled={numeroEnCours}>

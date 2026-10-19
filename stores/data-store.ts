@@ -1273,7 +1273,7 @@ export const useDataStore = create<DataState>()(
       merge: (persisted, current) => {
         if (persisted === undefined || persisted === null) return current;
         const brut = (persisted as Record<string, unknown>)[BRUT];
-        if (typeof brut === "string") return { ...current, ...(vide() as Partial<DataState>), secours: { problemes: ["toutes les données"], copie: brut } };
+        if (typeof brut === "string") return { ...current, ...(vide() as Partial<DataState>), secours: { problemes: ["tout le fichier"], copie: brut } };
         const n = nettoyer(persisted);
         const pb = abime ?? (n.problemes.length ? { problemes: n.problemes, copie: copieDe(persisted) } : undefined);
         abime = undefined;

@@ -140,6 +140,7 @@ function FeuilleEffacer({ exporter, onClose }: { exporter: () => void; onClose: 
   const [enCours, setEnCours] = useState(false);
   // La copie de secours n'a pas pu être gardée (place pleine) : on ne promet plus la récupération.
   const [sansCopie, setSansCopie] = useState(false);
+  const avecFactures = useDataStore((s) => (s.invoices ?? []).length > 0);
   const effacer = (issue: "recuperable" | "sans-copie") => {
     useDataStore.getState().startEmpty();
     useSettingsStore.getState().resetParcours();
@@ -150,7 +151,7 @@ function FeuilleEffacer({ exporter, onClose }: { exporter: () => void; onClose: 
   return (
     <FeuilleConfirmer titre="Effacer mon écurie partout" onClose={onClose}>
       <p className="note" style={{ marginTop: 0 }}>
-        <b>Ton écurie sera effacée sur {cetAppareil()}, sur tes autres téléphones et ordinateurs, et dans ta copie en ligne.</b> Les chevaux, les clients, les séances, les frais : tout repart de zéro.
+        <b>Ton écurie sera effacée sur {cetAppareil()}, sur tes autres téléphones et ordinateurs, et dans ta copie en ligne.</b> Les chevaux, les clients, les séances, les frais{avecFactures ? ", et tes factures" : ""} : tout repart de zéro.{avecFactures ? " Une facture se garde 10 ans : fais d’abord une sauvegarde." : ""}
       </p>
       {sansCopie ? (
         <p className="note" role="alert">

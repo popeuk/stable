@@ -68,6 +68,10 @@ describe("le salut et le nom du client : jamais « Bonjour EARL, » ni « Bonjou
     expect(prenomDe("M. Dupont")).toBe("M. Dupont");
     expect(appel("C. Dubois")).toBe("C. Dubois");
   });
+  it("une particule ou un article en premier, un nom en capitales : « Bonjour, »", () => {
+    for (const n of ["de Villiers Anne", "du Fresne Paul", "d'Aubigny Marie", "Le Haras", "La Ferme", "les Tilleuls", "l'Étrier", "DUBOIS Claire"]) expect(salut(n)).toBe("Bonjour,");
+    expect(salut("Delphine Martin")).toBe("Bonjour Delphine,");
+  });
   it("la relance suit la même règle", () => {
     const bill = { payer: "EARL du Haras des Lys", lines: [{ id: "r", label: "Pension de Pacha", amount: 350 }], total: 350, paid: 0, due: 350 } as unknown as Bill;
     expect(messageDu(bill, { year: 2026, month: 10 }, "Les Trois Pommiers", "Julie").split("\n")[0]).toBe("Bonjour,");

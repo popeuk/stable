@@ -22,7 +22,7 @@ export function CopieBandeau() {
         <b>{texte}</b>
       </span>
       <button type="button" className="btn" onClick={() => exporterSauvegarde()}>
-        Sauvegarder
+        Faire une sauvegarde
       </button>
     </div>
   );
@@ -39,7 +39,7 @@ export function VersionBandeau() {
   return (
     <div className="es-keep bs-place fort" role="alert">
       <span>
-        <b>Tes données viennent d’une version plus récente de Be Stable. Recharge l’app : rien n’est enregistré ici en attendant.</b>
+        <b>Ton écurie a été ouverte avec une version plus récente de Be Stable. Recharge l’app : rien n’est enregistré ici en attendant.</b>
       </span>
       <button type="button" className="btn" onClick={() => window.location.reload()}>
         Recharger

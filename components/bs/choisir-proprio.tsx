@@ -114,7 +114,7 @@ export function ChoisirProprio({
           e.preventDefault();
           pick(exact?.name ?? (shown.length === 1 ? shown[0].name : t));
         }}
-        placeholder={list.length ? "Choisis ou tape un nom" : "Ex. Julie P."}
+        placeholder={list.length ? "Choisis ou tape un nom" : "Ex. : Julie P."}
         autoComplete="off"
         aria-describedby={`${uid}-h`}
       />
