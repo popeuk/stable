@@ -55,6 +55,8 @@ const paysage = (p) => p.w > p.h && Math.abs(p.h - 595) < 3;
 async function contexte(type, viewport) {
   const b = await type.launch();
   const ctx = await b.newContext({ viewport, serviceWorkers: "block", locale: "fr-FR", timezoneId: "Europe/Paris" });
+  // Pas de fausses visites dans Matomo (stats.bestable.fr) à chaque mise en ligne.
+  await ctx.route(/^https:\/\/stats\.bestable\.fr\//, (r) => r.abort());
   await ctx.route(/mon-ecurie\.fr/, (r) => r.abort());
   const p = await ctx.newPage();
   const erreurs = [];
