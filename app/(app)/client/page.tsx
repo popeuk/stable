@@ -187,7 +187,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           </span>
           {due <= 0 && <Ill n="rosette" className="cl-ros" />}
         </div>
-        {vientDePayer && <p className="cl-cnt">Déjà compté dans ton mois.</p>}
+        {vientDePayer && <p className="cl-cnt">Déjà compté dans ton bilan.</p>}
         {anciens.map((a) => (
           <p key={a.month} className="cl-cnt">
             <Link className="lnk" href={`/client?nom=${encodeURIComponent(nom)}&mois=${a.month}`}>

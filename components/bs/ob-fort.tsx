@@ -44,7 +44,7 @@ export function MoisLigne({ apercu }: { apercu?: Apercu }) {
   if (!chevaux || !pension)
     return (
       <p className="obn-mois obn-mois-vide" aria-live="polite">
-        Ton mois se calcule ici, réponse après réponse.
+        Ton bilan se calcule ici, réponse après réponse.
       </p>
     );
   return (

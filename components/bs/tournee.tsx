@@ -27,7 +27,7 @@ import { heure } from "@/lib/utils/heure";
  */
 
 type Etape = "hier" | "aujourdhui" | "mois";
-const NOMS: Record<Etape, string> = { hier: "Hier", aujourdhui: "Aujourd’hui", mois: "Ton mois" };
+const NOMS: Record<Etape, string> = { hier: "Hier", aujourdhui: "Aujourd’hui", mois: "Ton bilan" };
 
 interface Vu {
   date: string;
@@ -214,7 +214,7 @@ function TourneeEcran({ prev, onClose }: { prev: Vu | null; onClose: () => void 
                   <p className="ac-dt">
                     {moisNom}, au {Number(today.slice(8))}
                   </p>
-                  <h2>Ton mois</h2>
+                  <h2>Ton bilan</h2>
                 </div>
               </div>
               <MoisQuiCompte depuis={depuis} />

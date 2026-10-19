@@ -65,23 +65,23 @@ function Parcours() {
 
       <div className="pas-hero">
         <div className="pas-hero-t rise">
-          <h1 className="pas-t1">{setupDone ? "Ton écurie est prête." : premiere ? "Trois questions, et tu vois ton mois." : "On continue ?"}</h1>
+          <h1 className="pas-t1">{setupDone ? "Ton écurie est prête." : premiere ? "Trois questions, et tu vois ton bilan." : "On continue ?"}</h1>
           <p className="pas-sub">
             {setupDone
               ? tout
-                ? "Tu as fait le tour. Ton mois t’attend."
+                ? "Tu as fait le tour. Ton bilan t’attend."
                 : "Le reste vient tout seul, en utilisant l’app."
               : premiere
                 ? "Trois minutes. Des chiffres à peu près suffisent, tu pourras tout changer."
                 : reste === 1
-                  ? "Encore une question, et tu vois ton mois."
-                  : "Encore deux questions, et tu vois ton mois."}
+                  ? "Encore une question, et tu vois ton bilan."
+                  : "Encore deux questions, et tu vois ton bilan."}
           </p>
         </div>
         <Ill n={setupDone ? "rosette" : "carnet"} className="pas-hero-ill" prio alt={setupDone ? "La gérante brandit une rosette." : "La gérante, son carnet à la main."} />
       </div>
 
-      <ol className="pas-path" aria-label="Les trois questions, puis ton mois">
+      <ol className="pas-path" aria-label="Les trois questions, puis ton bilan">
         {CHAPITRES.map((c, k) => {
           const m = OBSTACLE_META[c.id];
           const fait = parcours[c.id];
@@ -131,10 +131,10 @@ function Parcours() {
           {setupDone ? (
             <Link href="/parcours/arrivee" className="pas-card">
               <span className="pas-card-t">
-                <b>Ton mois</b>
+                <b>Ton bilan</b>
                 <span>Ce qu’il te reste, cheval par cheval.</span>
                 <span className="btn pas-go">
-                  Voir mon mois
+                  Voir mon bilan
                   <Ic n="arrow" className="ar-ico" />
                 </span>
               </span>
@@ -143,7 +143,7 @@ function Parcours() {
           ) : (
             <span className="pas-row">
               <span className="pas-row-t">
-                <b>Ton mois</b>
+                <b>Ton bilan</b>
                 <span>Ce qu’il te reste, cheval par cheval.</span>
               </span>
             </span>

@@ -282,7 +282,7 @@ function Moi() {
           openTournee();
         }}
       >
-        <Li title="La tournée du matin" sub="hier, aujourd’hui, ton mois : 30 secondes" right={chev} />
+        <Li title="La tournée du matin" sub="hier, aujourd’hui, ton bilan : 30 secondes" right={chev} />
       </button>
     </Sec>
   );

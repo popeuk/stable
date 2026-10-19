@@ -92,7 +92,7 @@ export function usePas(): Pas[] {
     const h = aFinir[0];
     return [
       // Sans cheval (questions passées, ou écurie vidée), ce pas est à faire : il mène aux trois questions.
-      { id: "prix", fait: actifs.length > 0, titre: "Tes prix et ton mois", sous: actifs.length ? "Faits pendant les questions." : "Tes chevaux, tes prix, tes frais : trois questions, et tu vois ton mois.", ill: "tete", cta: "Répondre aux trois questions", href: "/parcours" },
+      { id: "prix", fait: actifs.length > 0, titre: "Tes prix et ton bilan", sous: actifs.length ? "Faits pendant les questions." : "Tes chevaux, tes prix, tes frais : trois questions, et tu vois ton bilan.", ill: "tete", cta: "Répondre aux trois questions", href: "/parcours" },
       {
         id: "chevaux",
         fait: actifs.length > 0 && !aFinir.length,

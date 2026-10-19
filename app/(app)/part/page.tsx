@@ -74,7 +74,7 @@ function Part() {
         <p className="ch-div">
           {horses.length
             ? `${eur(m.sharedTotal)} ÷ ${horses.length} ${horses.length > 1 ? "chevaux" : "cheval"} ≈ ${eur(m.sharedTotal / n)} ${egal ? "chacun" : "en moyenne, au prorata des jours de chacun"}`
-            : `Aucun cheval pour se partager ces ${eur(m.sharedTotal)}. Cette somme compte quand même dans ton mois.`}
+            : `Aucun cheval pour se partager ces ${eur(m.sharedTotal)}. Cette somme compte quand même dans ton bilan.`}
         </p>
         {libres > 0 && (
           <>

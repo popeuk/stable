@@ -457,7 +457,7 @@ function NoterInner() {
       if (added) markLine(chosen[0], added.id);
     }
     close();
-    say("C’est dans ton mois.", undo);
+    say("C’est dans ton bilan.", undo);
   }
 
   /** Enregistre la ligne corrigée à sa place (le passé d'une ligne qui revient ne bouge pas). */
