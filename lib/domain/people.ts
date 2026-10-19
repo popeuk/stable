@@ -1,4 +1,5 @@
 import type { StableData } from "@/lib/domain/types";
+import { cleClient } from "@/lib/domain/billing";
 
 /**
  * Les personnes, dérivées du graphe — jamais saisies pour elles-mêmes.
@@ -23,7 +24,7 @@ export interface Person {
 export function derivePeople(data: StableData): Person[] {
   const map = new Map<string, Person>();
   const get = (rawName: string): Person => {
-    const key = rawName.trim().toLowerCase();
+    const key = cleClient(rawName);
     let p = map.get(key);
     if (!p) {
       p = { name: rawName.trim(), roles: [], horseIds: [], actCount: 0, totalBilled: 0 };

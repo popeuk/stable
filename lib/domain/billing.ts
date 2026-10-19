@@ -1,5 +1,6 @@
 import type { Invoice, Period, Revenue, StableData } from "@/lib/domain/types";
-import { addMonths, dateInPeriod } from "@/lib/utils/period";
+import { addMonths } from "@/lib/utils/period";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Ce qu'il faut facturer, personne par personne, pour un mois (le décompte
@@ -53,28 +54,47 @@ export const SANS_PROPRIETAIRE = "Sans propriétaire";
 /** Un même client, quelle que soit la casse ou les espaces (« hugo l. » = « Hugo L. »). */
 export const cleClient = (n: string) => n.trim().replace(/\s+/g, " ").toLowerCase();
 
-export function billsFor(data: StableData, period: Period): Bill[] {
+/** Le mois (AAAA-MM) qui est `k` mois après `mk` (avant si négatif). */
+export function moisPlus(mk: string, k: number): string {
+  return monthKey(addMonths({ year: Number(mk.slice(0, 4)), month: Number(mk.slice(5, 7)) }, k));
+}
+
+/**
+ * Les notes de chaque client pour tous les mois de `de` à `a` (AAAA-MM
+ * compris), en une seule passe sur les recettes, les paiements et les
+ * avoirs : « Ils te doivent » regarde deux ans de mois sans relire deux ans
+ * de recettes par mois. Rend, pour chaque mois qui a quelque chose, les notes
+ * triées comme `billsFor`.
+ */
+export function notesParMois(data: StableData, de: string, a: string): Map<string, Bill[]> {
   // Rangées par client, casse et espaces confondus : Facturer et Clients
   // donnent le même dû pour la même personne.
-  const map = new Map<string, Bill>();
+  const parMois = new Map<string, Map<string, Bill>>();
+  if (de > a) return new Map();
   const owners = new Set((data.horses.map((h) => h.ownerName).filter(Boolean) as string[]).map(cleClient));
-  const nomDe = (n: string) => data.people?.find((p) => cleClient(p.name) === cleClient(n))?.name ?? n.trim();
-  const catName = (id?: string) => data.revenueCategories.find((c) => c.id === id)?.name;
+  const personnes = new Map<string, NonNullable<StableData["people"]>[number]>();
+  for (const p of data.people ?? []) if (!personnes.has(cleClient(p.name))) personnes.set(cleClient(p.name), p);
+  const chevaux = new Map(data.horses.map((h) => [h.id, h]));
+  const categories = new Map(data.revenueCategories.map((c) => [c.id, c.name]));
   for (const r of data.revenues) {
-    if (!dateInPeriod(r.date, period)) continue;
+    const mk = r.date.slice(0, 7);
+    if (mk < de || mk > a) continue;
     // L'argent hors chevaux (PAC, subvention) ne se facture à personne, sauf payeur nommé.
     if (!r.horseId && !r.payer) continue;
-    const horse = data.horses.find((h) => h.id === r.horseId);
+    const horse = r.horseId ? chevaux.get(r.horseId) : undefined;
     const brut = r.payer?.trim() || horse?.ownerName?.trim();
     const orphan = !brut;
-    const payer = orphan ? SANS_PROPRIETAIRE : nomDe(brut);
-    const key = orphan ? "\u0000orphan" : cleClient(payer);
-    const person = data.people?.find((p) => cleClient(p.name) === key);
+    const key = orphan ? "\u0000orphan" : cleClient(brut);
+    const person = orphan ? undefined : personnes.get(key);
+    const payer = orphan ? SANS_PROPRIETAIRE : (person?.name ?? brut);
     const role = orphan ? "proprietaire" : (person?.role ?? (owners.has(key) ? "proprietaire" : "cavalier"));
-    const b = map.get(key) ?? { payer, role, lines: [], total: 0, paid: 0, due: 0, ...(orphan ? { orphan: true } : {}) };
+    let mois = parMois.get(mk);
+    if (!mois) parMois.set(mk, (mois = new Map()));
+    let b = mois.get(key);
+    if (!b) mois.set(key, (b = { payer, role, lines: [], total: 0, paid: 0, due: 0, ...(orphan ? { orphan: true } : {}) }));
     b.lines.push({
       id: r.id,
-      label: r.note || catName(r.categoryId) || "Recette",
+      label: r.note || (r.categoryId ? categories.get(r.categoryId) : undefined) || "Recette",
       horse: horse?.name,
       horseId: horse?.id,
       amount: r.amount,
@@ -83,12 +103,9 @@ export function billsFor(data: StableData, period: Period): Bill[] {
       ...(r.rebillOf ? { rebillOf: r.rebillOf } : {}),
     });
     b.total += r.amount;
-    map.set(key, b);
   }
-  const mk = monthKey(period);
   for (const p of data.payments ?? []) {
-    if (p.month !== mk) continue;
-    const b = map.get(cleClient(p.payer));
+    const b = parMois.get(p.month)?.get(cleClient(p.payer));
     if (!b) continue;
     if (p.seanceId) {
       // Payé sur place : ne compte que si la séance est bien sur sa note du mois.
@@ -98,17 +115,37 @@ export function billsFor(data: StableData, period: Period): Bill[] {
     }
     b.paid += p.amount;
   }
-  for (const a of avoirsDuMois(data, mk)) {
-    const b = map.get(cleClient(a.payer));
-    if (b && !b.orphan && a.amount > 0) b.avoirs = [...(b.avoirs ?? []), { number: a.number, amount: a.amount }];
+  const out = new Map<string, Bill[]>();
+  for (const [mk, mois] of parMois) {
+    for (const x of avoirsDuMois(data, mk)) {
+      const b = mois.get(cleClient(x.payer));
+      if (b && !b.orphan && x.amount > 0) b.avoirs = [...(b.avoirs ?? []), { number: x.number, amount: x.amount }];
+    }
+    for (const b of mois.values()) {
+      b.total = r2(b.total);
+      b.paid = r2(b.paid);
+      const credit = (b.avoirs ?? []).reduce((t, x) => t + x.amount, 0);
+      // Ce qui est payé en trop ou rendu par un avoir ne passe pas en négatif ici (voir surplusDe).
+      b.due = b.orphan ? 0 : Math.max(0, r2(b.total - b.paid - credit));
+    }
+    out.set(mk, [...mois.values()].sort((x, y) => Number(!!x.orphan) - Number(!!y.orphan) || y.due - x.due || x.payer.localeCompare(y.payer)));
   }
-  for (const b of map.values()) {
-    b.total = Math.round(b.total * 100) / 100;
-    const credit = (b.avoirs ?? []).reduce((t, a) => t + a.amount, 0);
-    b.due = Math.max(0, Math.round((b.total - b.paid - credit) * 100) / 100);
-  }
-  for (const b of map.values()) if (b.orphan) b.due = 0;
-  return [...map.values()].sort((a, b) => Number(!!a.orphan) - Number(!!b.orphan) || b.due - a.due || a.payer.localeCompare(b.payer));
+  return out;
+}
+
+/**
+ * Ce qu'une note a reçu au-delà de ce qu'elle demandait (paiements et avoirs
+ * au-delà du total) : 0 aujourd'hui dans les comptes, gardé ici pour le jour
+ * où l'app notera l'avance ou le remboursement.
+ */
+export function surplusDe(b: Pick<Bill, "total" | "paid" | "avoirs">): number {
+  const credit = (b.avoirs ?? []).reduce((t, x) => t + x.amount, 0);
+  return Math.max(0, r2(b.paid + credit - b.total));
+}
+
+export function billsFor(data: StableData, period: Period): Bill[] {
+  const mk = monthKey(period);
+  return notesParMois(data, mk, mk).get(mk) ?? [];
 }
 
 /** Ce qu'un avoir retire d'un mois : pour le client, et cheval par cheval (`""` : l'argent sans cheval). */
@@ -121,7 +158,7 @@ export interface Annulation {
   parCheval: { horseId: string; amount: number }[];
 }
 
-const cacheAnnulations = new WeakMap<Invoice[], { revenues: Revenue[]; parMois: Map<string, Annulation[]> }>();
+const cacheAnnulations = new WeakMap<Invoice[], { revenues: Revenue[]; parMois: Map<string, Annulation[]>; n: Map<string, number>; rev: Map<string, Revenue> }>();
 
 /**
  * Ce que chaque avoir d'un mois (le mois de la facture) retire, une seule
@@ -137,16 +174,16 @@ export function annulationsDuMois(data: Pick<StableData, "invoices" | "revenues"
   if (!invoices.some((i) => i.kind === "avoir")) return [];
   let c = cacheAnnulations.get(invoices);
   if (!c || c.revenues !== data.revenues) {
-    c = { revenues: data.revenues, parMois: new Map() };
+    // Combien de fois chaque recette est facturée (un avoir la rend), et les recettes par id : une fois pour tous les mois.
+    const n = new Map<string, number>();
+    for (const i of invoices) for (const id of i.revenueIds) n.set(id, (n.get(id) ?? 0) + (i.kind === "avoir" ? -1 : 1));
+    c = { revenues: data.revenues, parMois: new Map(), n, rev: new Map(data.revenues.map((r) => [r.id, r])) };
     cacheAnnulations.set(invoices, c);
   }
   const vu = c.parMois.get(month);
   if (vu) return vu;
-  const n = new Map<string, number>();
-  for (const i of invoices) for (const id of i.revenueIds) n.set(id, (n.get(id) ?? 0) + (i.kind === "avoir" ? -1 : 1));
-  const rev = new Map(data.revenues.map((r) => [r.id, r]));
+  const { n, rev } = c;
   const rendue = (id: string) => rev.has(id) && (n.get(id) ?? 0) <= 0;
-  const r2 = (x: number) => Math.round(x * 100) / 100;
   const out: Annulation[] = [];
   for (const a of invoices) {
     if (a.kind !== "avoir" || a.month !== month) continue;
@@ -195,7 +232,7 @@ export function avoirsDuMois(data: Pick<StableData, "invoices" | "revenues">, mo
 export function annuleSurCheval(data: Pick<StableData, "invoices" | "revenues">, horseId: string, period: Period): number {
   let t = 0;
   for (const a of annulationsDuMois(data, monthKey(period))) for (const x of a.parCheval) if (x.horseId === horseId) t += x.amount;
-  return Math.round(t * 100) / 100;
+  return r2(t);
 }
 
 /** La note d'un client ce mois-ci (casse et espaces confondus), ou undefined. */
@@ -215,7 +252,6 @@ export function dueOf(data: StableData, payer: string, period: Period): number {
  */
 export function billTotals(bills: Bill[]) {
   const real = bills.filter((b) => !b.orphan);
-  const r2 = (n: number) => Math.round(n * 100) / 100;
   const total = r2(real.reduce((t, b) => t + b.total, 0));
   const paid = r2(real.reduce((t, b) => t + Math.min(b.paid, b.total), 0));
   return { total, paid, due: r2(real.reduce((t, b) => t + b.due, 0)), sansProprietaire: r2(bills.filter((b) => b.orphan).reduce((t, b) => t + b.total, 0)) };
@@ -234,10 +270,13 @@ export interface MonthSummary {
  */
 export function monthsBefore(data: StableData, payer: string, period: Period, count = 3, lookback = 12): MonthSummary[] {
   const out: MonthSummary[] = [];
-  for (let k = 1; k <= lookback && out.length < count; k++) {
-    const p = addMonths(period, -k);
-    const b = billOf(data, payer, p);
-    if (b && b.total > 0) out.push({ period: p, total: b.total, paid: Math.round(b.paid * 100) / 100, due: b.due });
+  const mk = monthKey(period);
+  const notes = notesParMois(data, moisPlus(mk, -lookback), moisPlus(mk, -1));
+  const k = cleClient(payer);
+  for (let i = 1; i <= lookback && out.length < count; i++) {
+    const p = addMonths(period, -i);
+    const b = notes.get(monthKey(p))?.find((x) => !x.orphan && cleClient(x.payer) === k);
+    if (b && b.total > 0) out.push({ period: p, total: b.total, paid: b.paid, due: b.due });
   }
   return out;
 }

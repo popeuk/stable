@@ -1,4 +1,5 @@
 import type { Horse, Invoice, Payment, Person, Revenue, StableData } from "@/lib/domain/types";
+import { cleClient } from "@/lib/domain/billing";
 
 /**
  * Le lien entre un cheval et son propriétaire. Le cheval porte le nom de son
@@ -8,7 +9,8 @@ import type { Horse, Invoice, Payment, Person, Revenue, StableData } from "@/lib
  * applique.
  */
 
-const cle = (n: string) => n.trim().toLowerCase();
+/** La clé d'un client : la même partout (cleClient, lib/domain/billing). */
+const cle = cleClient;
 /** La clé souple d'un nom : sans casse, sans accents, espaces confondus (« Hélène  Roy » = « helene roy »). */
 export const cleSouple = (n: string) =>
   n

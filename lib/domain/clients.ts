@@ -1,7 +1,8 @@
 import type { Period, PersonRole, StableData } from "@/lib/domain/types";
 import { formule, nomEcurie, signature } from "@/lib/domain/politesse";
-import { addMonths, dateInPeriod } from "@/lib/utils/period";
-import { billsFor, cleClient, monthKey, type Bill } from "@/lib/domain/billing";
+import { dateInPeriod } from "@/lib/utils/period";
+import { cleClient, monthKey, moisPlus, notesParMois, type Bill } from "@/lib/domain/billing";
+import { r2 } from "@/lib/utils/arrondi";
 
 /**
  * Ce que chaque client a rapporté sur un mois : ce qu'il paie, rangé en
@@ -32,27 +33,26 @@ export function clientRevenues(
   data: StableData,
   period: Period,
 ): ClientRevenue[] {
-  const owners = new Set(
-    data.horses.map((h) => h.ownerName).filter(Boolean) as string[],
-  );
+  const owners = new Set((data.horses.map((h) => h.ownerName).filter(Boolean) as string[]).map(cleClient));
   const catName = (id?: string) =>
     data.revenueCategories.find((c) => c.id === id)?.name ?? "";
   const map = new Map<string, ClientRevenue>();
   for (const r of data.revenues) {
     if (!dateInPeriod(r.date, period)) continue;
     const horse = data.horses.find((h) => h.id === r.horseId);
-    const name = r.payer ?? horse?.ownerName;
+    const name = (r.payer ?? horse?.ownerName)?.trim();
     if (!name) continue;
+    const k = cleClient(name);
     const role =
-      data.people?.find((p) => p.name === name)?.role ??
-      (owners.has(name) ? "proprietaire" : "cavalier");
+      data.people?.find((p) => cleClient(p.name) === k)?.role ??
+      (owners.has(k) ? "proprietaire" : "cavalier");
     const c =
-      map.get(name) ??
+      map.get(k) ??
       ({
         name,
         role,
         horses: data.horses
-          .filter((h) => !h.isArchived && h.ownerName === name)
+          .filter((h) => !h.isArchived && !!h.ownerName && cleClient(h.ownerName) === k)
           .map((h) => h.name),
         buckets: { pension: 0, seances: 0, soins: 0, autres: 0 },
         total: 0,
@@ -73,10 +73,10 @@ export function clientRevenues(
               : "autres";
     c.buckets[bucket] += r.amount;
     c.total += r.amount;
-    map.set(name, c);
+    map.set(k, c);
   }
   return [...map.values()]
-    .map((c) => ({ ...c, total: Math.round(c.total * 100) / 100 }))
+    .map((c) => ({ ...c, total: r2(c.total) }))
     .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "fr"));
 }
 
@@ -112,50 +112,72 @@ export interface ClientDue {
 /** Jusqu'où remonter pour retrouver un impayé ancien : deux ans. */
 const RECUL = 24;
 
-/**
- * Les impayés des mois d'avant `period`, client par client (casse et espaces
- * confondus) : pour chaque mois encore dû, le mois et ce qui reste. Du plus
- * ancien au plus récent. Le premier mois regardé est celui de la plus
- * ancienne recette, sans remonter plus de deux ans.
- */
-export function impayesAnciens(data: StableData, period: Period): Map<string, { name: string; role: PersonRole; month: string; due: number }[]> {
-  const out = new Map<string, { name: string; role: PersonRole; month: string; due: number }[]>();
-  const pk = monthKey(period);
-  const premier = data.revenues.reduce((m, r) => (r.date.slice(0, 7) < m ? r.date.slice(0, 7) : m), pk);
-  for (let k = RECUL; k >= 1; k--) {
-    const p = addMonths(period, -k);
-    const mk = monthKey(p);
-    if (mk < premier) continue;
-    for (const b of billsFor(data, p)) {
+type Ancien = { name: string; role: PersonRole; month: string; due: number };
+
+/** Le premier mois à regarder : celui de la plus ancienne recette, sans remonter plus de deux ans avant `pk`. */
+function premierMois(data: StableData, pk: string): string {
+  let premier = pk;
+  for (const r of data.revenues) if (r.date.slice(0, 7) < premier) premier = r.date.slice(0, 7);
+  const borne = moisPlus(pk, -RECUL);
+  return premier < borne ? borne : premier;
+}
+
+/** Les impayés des mois d'avant `pk`, lus dans des notes déjà faites (notesParMois). */
+function anciensDe(notes: Map<string, Bill[]>, pk: string): Map<string, Ancien[]> {
+  const out = new Map<string, Ancien[]>();
+  for (const mk of [...notes.keys()].filter((m) => m < pk).sort()) {
+    for (const b of notes.get(mk)!) {
       if (b.orphan || b.due <= 0) continue;
       const key = cleClient(b.payer);
-      out.set(key, [...(out.get(key) ?? []), { name: b.payer, role: b.role, month: mk, due: b.due }]);
+      const l = out.get(key);
+      const x = { name: b.payer, role: b.role, month: mk, due: b.due };
+      if (l) l.push(x);
+      else out.set(key, [x]);
     }
   }
   return out;
 }
 
 /**
+ * Les impayés des mois d'avant `period`, client par client (casse et espaces
+ * confondus, cleClient) : pour chaque mois encore dû, le mois et ce qui reste.
+ * Du plus ancien au plus récent. Le premier mois regardé est celui de la plus
+ * ancienne recette, sans remonter plus de deux ans.
+ */
+export function impayesAnciens(data: StableData, period: Period): Map<string, Ancien[]> {
+  const pk = monthKey(period);
+  return anciensDe(notesParMois(data, premierMois(data, pk), moisPlus(pk, -1)), pk);
+}
+
+/**
  * Qui te doit quoi au mois `period` : ce qui a compté ce mois, ce qu'il a
  * payé, et ce qu'il doit encore, tous mois confondus. Un impayé de
- * septembre reste dans « Ils te doivent » en novembre, avec son mois.
+ * septembre reste dans « Ils te doivent » en novembre, avec son mois. Tout
+ * est lu en une passe (notesParMois), du premier mois regardé à `period`.
  */
 export function clientDues(data: StableData, period: Period): ClientDue[] {
-  const bills = billsFor(data, period).filter((b) => !b.orphan);
-  const people = data.people ?? [];
-  // Un même client, quelle que soit la casse ou les espaces (« hugo l. » = « Hugo L. »).
-  const cle = (n: string) => n.trim().toLowerCase();
-  const ownerOf = (name: string) =>
-    data.horses.filter((h) => !h.isArchived && h.ownerName && cle(h.ownerName) === cle(name)).map((h) => h.name);
+  const pk = monthKey(period);
+  const notes = notesParMois(data, premierMois(data, pk), pk);
+  const bills = (notes.get(pk) ?? []).filter((b) => !b.orphan);
+  const personnes = new Map<string, NonNullable<StableData["people"]>[number]>();
+  for (const p of data.people ?? []) if (!personnes.has(cleClient(p.name))) personnes.set(cleClient(p.name), p);
+  const chevaux = new Map<string, string[]>();
+  for (const h of data.horses) {
+    if (h.isArchived || !h.ownerName) continue;
+    const k = cleClient(h.ownerName);
+    chevaux.set(k, [...(chevaux.get(k) ?? []), h.name]);
+  }
   const map = new Map<string, ClientDue>();
   const add = (name: string, role: PersonRole) => {
-    if (map.has(cle(name))) return map.get(cle(name))!;
-    const p = people.find((x) => cle(x.name) === cle(name));
+    const k = cleClient(name);
+    const deja = map.get(k);
+    if (deja) return deja;
+    const p = personnes.get(k);
     const c: ClientDue = {
       name,
       personId: p?.id,
       role: p?.role ?? role,
-      horses: ownerOf(name),
+      horses: chevaux.get(k) ?? [],
       total: 0,
       paid: 0,
       due: 0,
@@ -164,26 +186,32 @@ export function clientDues(data: StableData, period: Period): ClientDue[] {
       paieALaSeance: !!p?.paieALaSeance,
       phone: p?.phone,
     };
-    map.set(cle(name), c);
+    map.set(k, c);
     return c;
   };
   for (const b of bills) {
     const c = add(b.payer, b.role);
-    c.total = Math.round((c.total + b.total) * 100) / 100;
-    c.paid = Math.round((c.paid + b.paid) * 100) / 100;
-    c.due = Math.round((c.due + b.due) * 100) / 100;
+    c.total = r2(c.total + b.total);
+    c.paid = r2(c.paid + b.paid);
+    c.due = r2(c.due + b.due);
     c.dueMois = c.due;
   }
-  for (const [, mois] of impayesAnciens(data, period)) {
+  for (const [, mois] of anciensDe(notes, pk)) {
     const c = add(mois[0].name, mois[0].role);
     c.anciens = mois.map(({ month, due }) => ({ month, due }));
-    c.due = Math.round((c.dueMois + mois.reduce((t, m) => t + m.due, 0)) * 100) / 100;
+    c.due = r2(c.dueMois + mois.reduce((t, m) => t + m.due, 0));
   }
-  for (const p of people) if (p.active) add(p.name, p.role);
+  for (const p of data.people ?? []) if (p.active) add(p.name, p.role);
   for (const h of data.horses) if (!h.isArchived && h.ownerName) add(h.ownerName, "proprietaire");
   return [...map.values()].sort(
     (a, b) => (b.due > 0 ? 1 : 0) - (a.due > 0 ? 1 : 0) || b.due - a.due || a.name.localeCompare(b.name, "fr"),
   );
+}
+
+/** Ce qu'un client doit en tout au mois `period` (tous mois confondus, avec le détail), ou undefined s'il n'est pas connu. */
+export function dusDuClient(data: StableData, payer: string, period: Period): ClientDue | undefined {
+  const k = cleClient(payer);
+  return clientDues(data, period).find((c) => cleClient(c.name) === k);
 }
 
 /** Le prénom : le premier mot du nom (« Hugo L. » → « Hugo »). */
@@ -247,7 +275,7 @@ export function messageDu(bill: Bill, period: Period, stableName: string, gerant
     grp.set(l.label, g);
   }
   const onSite = bill.lines.filter((l) => l.onSite).reduce((t, l) => t + l.amount, 0);
-  const deja = Math.round((bill.paid - onSite) * 100) / 100;
+  const deja = r2(bill.paid - onSite);
   const out = [
     `Bonjour ${qui},`,
     `Voici ce que ${f.doit} pour ${moisNom(period)} ${chezEcurie(stableName)} :`,
