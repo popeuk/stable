@@ -1,6 +1,5 @@
 import type { BillingInfo, Invoice, InvoiceLine, InvoiceVat, Payment, Period, Person, Revenue, StableData, VatKind, VatRate } from "@/lib/domain/types";
 import { billOf, billsFor, cleClient, monthKey } from "@/lib/domain/billing";
-import { prenomDe } from "@/lib/domain/clients";
 import { enMoyen } from "@/lib/domain/paiement";
 import { esc } from "@/lib/utils/esc";
 import { formule, signature } from "@/lib/domain/politesse";
@@ -742,36 +741,67 @@ export function eur2(n: number): string {
   return `${v < 0 ? "−" : ""}${s.replace(/[  ]/g, " ")} €`;
 }
 
+/**
+ * Comment appeler le client dans un message : son prénom quand c'est une
+ * personne (« Claire »), sinon rien (une société, « EARL Les Tilleuls »,
+ * « M. Dupont », un pro).
+ */
+export function prenomClient(buyer: { name?: string; pro?: boolean } | undefined, payer = ""): string {
+  if (buyer?.pro) return "";
+  const nom = (buyer?.name || payer).trim();
+  const premier = nom.split(/\s+/)[0] ?? "";
+  const lettres = premier.replace(/[^\p{L}]/gu, "");
+  // Une civilité (« M. »), une forme de société (« EARL »), une initiale, un mot tout en capitales : pas un prénom.
+  if (!premier || premier.endsWith(".") || PAS_PRENOM.test(premier) || lettres.length < 2 || lettres === lettres.toUpperCase()) return "";
+  return premier;
+}
+
+/** Le nom à dire à l'écran (« L'envoyer à Claire », « faite pour EARL Les Tilleuls ») : le prénom d'une personne, le nom entier sinon. */
+export const appelClient = (buyer: { name?: string; pro?: boolean } | undefined, payer: string) => prenomClient(buyer, payer) || payer;
+
 /** Le message en bas de l'écran (rendu en HTML) : le numéro et le nom du client sont échappés. */
-export const messageFaite = (inv: Pick<Invoice, "kind" | "number" | "payer" | "avoirDe">) =>
+export const messageFaite = (inv: Pick<Invoice, "kind" | "number" | "payer" | "avoirDe"> & { buyer?: Pick<Invoice["buyer"], "name" | "pro"> }) =>
   inv.kind === "avoir"
     ? `Avoir n° ${esc(inv.number)} fait${inv.avoirDe ? ` sur la facture n° ${esc(inv.avoirDe.number)}` : ""}.`
-    : `Facture n° ${esc(inv.number)} faite pour ${esc(prenomDe(inv.payer))}.`;
+    : `Facture n° ${esc(inv.number)} faite pour ${esc(appelClient(inv.buyer, inv.payer))}.`;
 
 /** « Facture n° 2026-0004 », « Avoir n° 2026-0007 », « Facture à numéroter » (faite sans réseau). */
 export const nomDoc = (inv: Pick<Invoice, "kind" | "number" | "provisoire">) => (inv.provisoire ? "Facture à numéroter" : `${inv.kind === "avoir" ? "Avoir" : "Facture"} n° ${inv.number}`);
 
 /**
+ * Par où part le message : l'e-mail (on y joint le PDF), le partage du
+ * téléphone avec le PDF en pièce jointe, ou un SMS / WhatsApp (le message
+ * seul, rien n'est joint : il ne promet pas de pièce jointe).
+ */
+export type Canal = "email" | "partage" | "court";
+
+/**
  * Le message prêt à envoyer avec la facture (ou l'avoir) : montant, mois,
- * numéro. Tu ou vous selon le choix de Tes factures (vous par défaut), une
- * majuscule après « Bonjour Claire, », et la signature : le gérant et le
- * nom de l'écurie.
+ * numéro. Tu ou vous selon le choix de Tes factures (vous par défaut). Le
+ * prénom quand le client est une personne (« Bonjour Claire, »), sinon
+ * « Bonjour, ». « Je vous joins la facture en PDF » seulement quand le PDF
+ * part avec (e-mail, partage) ; par SMS ou WhatsApp, une phrase qui ne
+ * promet rien. Et la signature : le gérant et le nom de l'écurie.
  */
 export function messageFacture(
-  inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe">,
+  inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe"> & { buyer?: Pick<Invoice["buyer"], "name" | "pro"> },
   gerant: string,
-  opts: { tu?: boolean; ecurie?: string } = {},
+  opts: { tu?: boolean; ecurie?: string; canal?: Canal } = {},
 ): string {
   const nb = (n: number) => eur2(n).replace(/ /g, " ");
   const f = formule(opts.tu);
+  const prenom = prenomClient(inv.buyer, inv.payer);
+  const bonjour = prenom ? `Bonjour ${prenom},` : "Bonjour,";
+  const doc = inv.kind === "avoir" ? "l’avoir" : "la facture";
+  const pdf = (opts.canal ?? "email") === "court" ? `Je peux ${f.te} l’envoyer en PDF si besoin.` : `Je ${f.te} joins ${doc} en PDF.`;
   const out =
     inv.kind === "avoir"
-      ? [`Bonjour ${prenomDe(inv.payer)},`, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} en moins.`, `Je ${f.te} joins l’avoir en PDF.`]
+      ? [bonjour, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${nb(-inv.totalTTC)} en moins.`, pdf]
       : [
-          `Bonjour ${prenomDe(inv.payer)},`,
+          bonjour,
           `Voici ${f.ta} facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,
           inv.due > 0 && inv.due < inv.totalTTC ? `Reste à payer : ${nb(inv.due)}.` : inv.due <= 0 ? "Elle est déjà réglée." : "Payable à réception.",
-          `Je ${f.te} joins la facture en PDF.`,
+          pdf,
         ];
   out.push(...signature(gerant, opts.ecurie));
   return out.join("\n");

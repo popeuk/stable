@@ -25,7 +25,9 @@ import {
   facturation,
   facturesDe,
   listeDite,
+  appelClient,
   messageFacture,
+  type Canal,
   messageFaite,
   moisDit,
   nomDoc,
@@ -36,13 +38,13 @@ import {
   vendeurManque,
   type Brouillon,
 } from "@/lib/domain/facture";
-import { prenomDe } from "@/lib/domain/clients";
 import { nomEcurie } from "@/lib/domain/politesse";
 import { currentPeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { lireMontant, saisieMontant } from "@/lib/utils/montant";
 import { InField } from "@/components/bs/seance-form";
 import { Feuille, resteApresAvoirs } from "@/components/bs/feuille-facture";
+import { facturePdf, nomFichierPdf } from "@/lib/domain/facture-pdf";
 import { AvoirSansReseau, FactureNonEnregistree, MESSAGE_AVOIR_SANS_RESEAU, messageNonEnregistree } from "@/lib/account/numeroter";
 import { MENTION_PROVISOIRE, lienFacture } from "@/lib/domain/numeros";
 import type { Invoice, Period, StableData } from "@/lib/domain/types";
@@ -189,7 +191,7 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
   const [clientOuvert, setClientOuvert] = useState(() => draft.client.length > 0);
   const [voir, setVoir] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
-  const qui = prenomDe(nom);
+  const qui = appelClient(person?.statut === "pro" ? { pro: true } : { name: nom }, nom);
   useRetourFiche(nom, mk);
 
   const faire = async () => {
@@ -471,8 +473,20 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
   const phone = person?.phone?.replace(/[^\d+]/g, "") ?? "";
   const email = person?.email?.trim() ?? "";
   // Tu ou vous selon le choix de Tes factures ; signé du gérant et de l'écurie.
-  const msg = messageFacture(inv, gerant, { tu: billing?.tutoie, ecurie: nomEcurie(stableName, billing?.legalName) });
-  const enc = encodeURIComponent(msg);
+  // Le même message, selon ce qui part avec : l'e-mail et le partage joignent le PDF ; un SMS ou un WhatsApp, non.
+  const msg = (canal: Canal) => messageFacture(inv, gerant, { tu: billing?.tutoie, ecurie: nomEcurie(stableName, billing?.legalName), canal });
+  const court = encodeURIComponent(msg("court"));
+  const qui = appelClient(inv.buyer, inv.payer);
+  const partage = usePartagePdf();
+  const partagerPdf = async () => {
+    try {
+      const file = new File([facturePdf(inv) as BlobPart], nomFichierPdf(inv), { type: "application/pdf" });
+      await navigator.share({ files: [file], title: nomDoc(inv), text: msg("partage") });
+    } catch (e) {
+      // Partage fermé sans rien choisir : rien à dire. Sinon, les boutons dessous restent là.
+      if ((e as { name?: string })?.name !== "AbortError") say("Le partage n’a pas marché. Envoie le message par SMS, WhatsApp ou e-mail, dessous.");
+    }
+  };
   const objet = encodeURIComponent(nomDoc(inv));
   const avoirs = avoir ? [] : avoirsDe(invoices, inv.number);
   const reste = avoir ? [] : resteAAnnuler(inv, invoices);
@@ -523,7 +537,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
         {faite && !avoir && !provisoire && (
           <div className="card fa-card fa-faite rise" role="status">
             <b>{nomDoc(inv)} faite</b>
-            <p>Elle est rangée dans Tes factures. Imprime-la (ou enregistre-la en PDF), ou envoie-la à {prenomDe(inv.payer)}.</p>
+            <p>Elle est rangée dans Tes factures. Imprime-la (ou enregistre-la en PDF), ou envoie-la à {qui}.</p>
             <div className="fa-sendb">
               <button type="button" className="btn" onClick={() => window.print()}>
                 <Ic n="print" className="" />
@@ -534,7 +548,7 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
                 className="btn line"
                 onClick={() => {
                   envoi.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-                  envoi.current?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+                  envoi.current?.querySelector<HTMLElement>("a, button")?.focus({ preventScroll: true });
                 }}
               >
                 Envoyer
@@ -585,19 +599,29 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
         )}
         {!provisoire && (
           <div className="fa-send" ref={envoi}>
-            <p className="fa-sendq">L’envoyer à {prenomDe(inv.payer)}</p>
+            <p className="fa-sendq">L’envoyer à {qui}</p>
+            {partage && (
+              <button type="button" className="btn full fa-pdf" onClick={partagerPdf}>
+                <Ic n="arrow" className="" />
+                Envoyer avec le PDF
+              </button>
+            )}
             <div className="fa-sendb">
-              <a className="btn line" href={`sms:${phone}?&body=${enc}`}>
+              <a className="btn line" href={`sms:${phone}?&body=${court}`}>
                 SMS
               </a>
-              <a className="btn line" href={`https://wa.me/?text=${enc}`} target="_blank" rel="noopener noreferrer">
+              <a className="btn line" href={`https://wa.me/?text=${court}`} target="_blank" rel="noopener noreferrer">
                 WhatsApp
               </a>
-              <a className="btn line" href={`mailto:${encodeURIComponent(email)}?subject=${objet}&body=${enc}`}>
+              <a className="btn line" href={`mailto:${encodeURIComponent(email)}?subject=${objet}&body=${encodeURIComponent(msg("email"))}`}>
                 E-mail
               </a>
             </div>
-            <p className="fa-hint">Le message est prêt : montant, mois, numéro. Le PDF ne part pas tout seul : enregistre d’abord {avoir ? "l’avoir" : "la facture"} en PDF, puis joins-le au message.</p>
+            <p className="fa-hint">
+              {partage
+                ? `« Envoyer avec le PDF » ouvre le partage du téléphone : choisis Messages, WhatsApp ou Mail, ${avoir ? "l’avoir" : "la facture"} en PDF part avec le message. Les trois boutons envoient le message seul.`
+                : `Le message est prêt : montant, mois, numéro. Par SMS ou WhatsApp, il part seul. Par e-mail, il dit que le PDF est joint : enregistre d’abord ${avoir ? "l’avoir" : "la facture"} en PDF, puis joins-le.`}
+            </p>
           </div>
         )}
         {peutAnnuler && (
@@ -619,6 +643,22 @@ function Emise({ inv, autres, onAutre, avoirDe, faite }: { inv: Invoice; autres?
       {annuler && peutAnnuler && <FeuilleAvoir inv={inv} reste={reste} invoices={invoices} preselect={avoirDe ?? undefined} onClose={() => setAnnuler(false)} />}
     </div>
   );
+}
+
+/** Le téléphone sait-il partager un fichier PDF (navigator.share avec fichier) ? Vu une fois, à l'ouverture. */
+function usePartagePdf(): boolean {
+  const [ok, setOk] = useState(false);
+  useEffect(() => {
+    try {
+      const essai = new File(["%PDF-1.4"], "essai.pdf", { type: "application/pdf" });
+      // Vérifié après le premier rendu : l'export statique ne connaît pas le navigateur.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOk(typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [essai] }));
+    } catch {
+      setOk(false);
+    }
+  }, []);
+  return ok;
 }
 
 /** « Annuler par un avoir » : toute la facture, ou une partie, ligne par ligne ou d'un montant libre (avec son motif). */

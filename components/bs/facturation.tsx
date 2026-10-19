@@ -276,7 +276,7 @@ export function TuVous() {
           </button>
         </div>
       </div>
-      <p className="fr-hint">{tutoie ? "« Bonjour Claire, voici ta facture n° … »" : "« Bonjour Claire, voici votre facture n° … »"} Le message qui part avec la facture suit ce choix.</p>
+      <p className="fr-hint">{tutoie ? "« Bonjour Claire, » puis « Voici ta facture n° … »." : "« Bonjour Claire, » puis « Voici votre facture n° … »."} Le message qui part avec la facture suit ce choix. À une société ou un professionnel : « Bonjour, ».</p>
     </div>
   );
 }
