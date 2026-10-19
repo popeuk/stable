@@ -255,7 +255,7 @@ function DuMois({ nom, period }: { nom: string; period: Period }) {
         ) : client ? (
           <div className="card fa-card rise">
             <b>{person?.statut ? `${qui}, pour sa facture` : `${qui} est un particulier ou un professionnel ?`}</b>
-            <p>La loi demande le nom complet d’un particulier, et des mentions en plus pour un professionnel.</p>
+            <p>La loi demande le nom complet et l’adresse d’un particulier, et des mentions en plus pour un professionnel.</p>
             <ClientFacture nom={nom} role={role} manque={draft.client} />
             <BoutonSuite manque={draft.client.map((m) => (m === "statut" ? "ta réponse" : m === "nomComplet" ? "son prénom et son nom" : m === "adresse" ? "son adresse" : "tes conditions de paiement"))} onClick={() => setClientOuvert(false)} label="Voir l’aperçu" />
           </div>

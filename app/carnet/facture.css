@@ -170,3 +170,5 @@
   .carnet .fa-tot, .carnet .fa-foot { break-inside: avoid; }
 }
 .carnet .fr-annulee { font-style: normal; font-weight: 650; color: var(--out); }
+.carnet .fa-refus { justify-self: start; font-size: 13px; }
+.carnet .fa-refus.on { background: var(--sheet); color: var(--ink); box-shadow: inset 0 0 0 2px var(--acc); }

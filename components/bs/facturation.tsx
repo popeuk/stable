@@ -363,7 +363,8 @@ export function ClientFacture({ nom, role, manque }: { nom: string; role: Person
         </label>
       )}
       {statut === "particulier" && !person?.address?.trim() && (
-        <button type="button" role="checkbox" aria-checked={!!person?.adresseRefusee} className={`chip${person?.adresseRefusee ? " on" : ""}`} onClick={() => setClient(nom, role, { adresseRefusee: !person?.adresseRefusee })}>
+        <button type="button" role="checkbox" aria-checked={!!person?.adresseRefusee} className={`chip fa-refus${person?.adresseRefusee ? " on" : ""}`} onClick={() => setClient(nom, role, { adresseRefusee: !person?.adresseRefusee })}>
+          {person?.adresseRefusee ? "✓ " : ""}
           {qui} ne veut pas que son adresse y figure
         </button>
       )}
