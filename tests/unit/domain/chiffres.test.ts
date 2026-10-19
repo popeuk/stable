@@ -71,6 +71,15 @@ describe("la journée compte tout, partout (P1-1 design)", () => {
     const types = new Set(items.map((i) => i.type));
     expect(types.size).toBeGreaterThan(0);
   });
+  it("un soin refacturé au propriétaire ne compte pas en argent sorti dans le planning", () => {
+    const d = buildDemoData(NOW);
+    const h = d.horses[0];
+    d.careEvents = [{ id: "v1", stableId: "s", horseId: h.id, kind: "vermifuge", date: "2026-10-18", start: "09:00", cost: 12, refacturer: true }];
+    const it1 = dayItems(d, "2026-10-18", "2026-10-19", "12:00").find((i) => i.key === "v1")!;
+    expect(it1.money).toBeUndefined();
+    d.careEvents[0].refacturer = false;
+    expect(dayItems(d, "2026-10-18", "2026-10-19", "12:00").find((i) => i.key === "v1")!.money).toBe(-12);
+  });
   it("la ligne de la tournée dit aussi ce qui est déjà fait", () => {
     const mk = (done: boolean, type: "seance" | "soin" | "task") => ({ key: `${type}${done}`, type, title: type, sub: "", tone: "n" as const, done, late: false });
     const r = resumeJournee([mk(true, "seance"), mk(true, "soin"), mk(false, "task")]);

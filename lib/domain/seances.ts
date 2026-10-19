@@ -188,7 +188,8 @@ export function dayItems(data: StableData, date: ISODate, today: ISODate, nowHHM
   }
   for (const [k, evs] of groups) {
     const e0 = evs[0];
-    const cost = evs.reduce((t, e) => t + (e.cost ?? 0), 0);
+    // Un soin refacturé au propriétaire ne coûte rien à l'écurie : il ne compte pas en « sorti » dans le planning.
+    const cost = evs.reduce((t, e) => t + (e.refacturer ? 0 : (e.cost ?? 0)), 0);
     const rev = evs.reduce((t, e) => t + (e.revenue ?? 0), 0);
     const isCours = e0.kind === "cours_collectif" || e0.kind === "cours_individuel";
     items.push({
