@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { billOf, cleClient } from "@/lib/domain/billing";
+import { billOf, cleClient, partsARendre } from "@/lib/domain/billing";
 import { clientDues, dusDuClient } from "@/lib/domain/clients";
 import { clientsAFairePayer } from "@/lib/domain/compte-auto";
 import { encaissement } from "@/lib/domain/paiement";
@@ -113,7 +113,7 @@ describe("un avoir sur un mois déjà payé : à lui rendre", () => {
       sharedExpenses: [],
       revenueCategories: [{ id: "cp", name: "Pension" }],
       expenseCategories: [],
-      people: [{ id: "x", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier" }],
+      people: [{ id: "x", name: "Claire D.", nomComplet: "Claire Dubois", role: "proprietaire", active: true, statut: "particulier" }],
       billing: B,
       payments: [{ id: "y", payer: "Claire D.", month: "2026-10", amount: 350, at: "2026-10-05T10:00:00", method: "virement" }],
     };
@@ -142,5 +142,31 @@ describe("un avoir sur un mois déjà payé : à lui rendre", () => {
     expect(somme("Avoir")).toBe(-350);
     expect(somme("Encaissement")).toBe(0);
     expect(l.find((x) => x.categorie === "Remboursement")!.montant).toBe(-350);
+  });
+
+  it("le remboursement va sur le mois du trop-perçu : septembre ne dit plus « à lui rendre »", () => {
+    const d = payeEtAvoir();
+    expect(partsARendre(d, "Claire D.", "2026-11")).toEqual([{ month: "2026-10", amount: 350 }]);
+    d.payments!.push({ id: "r", payer: "Claire D.", month: "2026-10", amount: 350, at: "2026-11-02T10:00:00", kind: "remboursement" });
+    expect(billOf(d, "Claire D.", oct)).toMatchObject({ due: 0, rendu: 350 });
+    expect(partsARendre(d, "Claire D.", "2026-11")).toEqual([]);
+  });
+
+  it("refaire la facture après l'avoir : elle dit déjà payée, et rien n'est plus à rendre", () => {
+    const d = payeEtAvoir();
+    const b = brouillon(d, "Claire D.", oct).facture!;
+    expect(b).toMatchObject({ totalTTC: 350, paid: 350, due: 0 });
+    const i2 = emettre(d, b, "2026-10-22", "i2");
+    d.invoices = [...d.invoices!, i2];
+    expect(dusDuClient(d, "Claire D.", oct)).toMatchObject({ due: 0, aRendre: 0 });
+  });
+
+  it("remboursée puis refacturée : la nouvelle facture est due en entier, comme la fiche", () => {
+    const d = payeEtAvoir();
+    d.payments!.push({ id: "r", payer: "Claire D.", month: "2026-10", amount: 350, at: "2026-10-22T10:00:00", kind: "remboursement" });
+    const b = brouillon(d, "Claire D.", oct).facture!;
+    expect(b).toMatchObject({ paid: 0, due: 350 });
+    d.invoices = [...d.invoices!, emettre(d, b, "2026-10-23", "i2")];
+    expect(dusDuClient(d, "Claire D.", oct)).toMatchObject({ due: 350, aRendre: 0 });
   });
 });

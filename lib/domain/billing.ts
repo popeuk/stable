@@ -43,6 +43,8 @@ export interface Bill {
   avoirs?: { number: string; amount: number }[];
   /** Ce que son avance (payée un mois d'avant ou ce mois-ci) a réglé sur ce mois. */
   avance?: number;
+  /** Ce que tu lui as rendu sur ce mois (« Je l'ai remboursé » après un avoir) : de l'argent reçu qui ne compte plus. */
+  rendu?: number;
   due: number;
 }
 
@@ -112,6 +114,12 @@ export function notesParMois(data: StableData, de: string, a: string): Map<strin
     b.total += r.amount;
   }
   for (const p of data.payments ?? []) {
+    if (p.kind === "remboursement") {
+      // Rendu sur le mois du trop-perçu : il se retire de ce qui a été payé ce mois-là.
+      const b = parMois.get(p.month)?.get(cleClient(p.payer));
+      if (b) b.rendu = r2((b.rendu ?? 0) + p.amount);
+      continue;
+    }
     if (p.kind) continue;
     const b = parMois.get(p.month)?.get(cleClient(p.payer));
     if (!b) continue;
@@ -145,7 +153,7 @@ export function notesParMois(data: StableData, de: string, a: string): Map<strin
       b.paid = r2(b.paid);
       const credit = (b.avoirs ?? []).reduce((t, x) => t + x.amount, 0);
       // Ce qui est payé en trop ou rendu par un avoir ne passe pas en négatif ici (voir surplusDe).
-      b.due = b.orphan ? 0 : Math.max(0, r2(b.total - b.paid - credit));
+      b.due = b.orphan ? 0 : Math.max(0, r2(b.total - (b.paid - (b.rendu ?? 0)) - credit));
       const r = reserve.get(k) ?? 0;
       if (r > 0 && b.due > 0) {
         const pris = Math.min(r, b.due);
@@ -164,9 +172,9 @@ export function notesParMois(data: StableData, de: string, a: string): Map<strin
  * au-delà du total (un avoir sur un mois déjà payé, une séance retirée après
  * paiement). C'est de l'argent à lui rendre (voir avanceEtARendre).
  */
-export function surplusDe(b: Pick<Bill, "total" | "paid" | "avoirs">): number {
+export function surplusDe(b: Pick<Bill, "total" | "paid" | "avoirs" | "rendu">): number {
   const credit = (b.avoirs ?? []).reduce((t, x) => t + x.amount, 0);
-  return Math.max(0, r2(b.paid + credit - b.total));
+  return Math.max(0, r2(b.paid - (b.rendu ?? 0) + credit - b.total));
 }
 
 /**
@@ -191,8 +199,27 @@ export function avanceEtARendre(data: StableData, notes: Map<string, Bill[]>, pa
     if (!b) continue;
     pris += b.avance ?? 0;
     trop += surplusDe(b);
+    // Ce qui est rendu sur un mois connu est déjà retiré de son trop-perçu.
+    rendu -= b.rendu ?? 0;
   }
   return { avance: Math.max(0, r2(recu - pris)), aRendre: Math.max(0, r2(trop - rendu)) };
+}
+
+/**
+ * « Je l'ai remboursé » : ce que tu rends, mois par mois, le plus ancien
+ * d'abord. Chaque part va sur le mois de son trop-perçu, pour que ce mois
+ * dise juste (Facturer, la fiche, le comptable).
+ */
+export function partsARendre(data: StableData, payer: string, pk: string): { month: string; amount: number }[] {
+  const k = cleClient(payer);
+  const premier = [...data.revenues.map((r) => r.date.slice(0, 7)), ...(data.payments ?? []).map((p) => p.month)].filter((m) => m <= pk).sort()[0] ?? pk;
+  const out: { month: string; amount: number }[] = [];
+  for (const [mk, bills] of [...notesParMois(data, premier, pk)].sort(([x], [y]) => x.localeCompare(y))) {
+    const b = bills.find((x) => !x.orphan && cleClient(x.payer) === k);
+    const s = b ? surplusDe(b) : 0;
+    if (s > 0) out.push({ month: mk, amount: s });
+  }
+  return out;
 }
 
 export function billsFor(data: StableData, period: Period): Bill[] {

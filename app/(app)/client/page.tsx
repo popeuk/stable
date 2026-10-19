@@ -12,7 +12,8 @@ import { ChevauxDuClient } from "@/components/bs/choisir-proprio";
 import { CountUp, Empty, Face, Ic, Ill, Page as Ecran, Switch, eur, eurc, ini, sgc } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
-import { billOf, cleClient, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
+import { billOf, cleClient, monthKey, monthsBefore, partsARendre, type Bill, type BillLine } from "@/lib/domain/billing";
+import { r2 } from "@/lib/utils/arrondi";
 import { accord, duMois, dusDuClient, prenomDe } from "@/lib/domain/clients";
 import { avanceDite, noterPaiement } from "@/components/bs/noter-paiement";
 import { lienFacture } from "@/lib/domain/numeros";
@@ -149,9 +150,21 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
     });
   };
   const rembourser = () => {
-    const id = useDataStore.getState().addPayment(nom, monthKey(now), aRendre, undefined, { method: moyen, kind: "remboursement" });
+    // Chaque part sur le mois de son trop-perçu (le plus ancien d'abord) ; le reste, s'il y en a, sur ce mois-ci.
+    let reste = aRendre;
+    const parts: { month: string; amount: number }[] = [];
+    for (const p of partsARendre(data, nom, mk)) {
+      const x = r2(Math.min(reste, p.amount));
+      if (x > 0) parts.push({ month: p.month, amount: x });
+      reste = r2(reste - x);
+    }
+    if (reste > 0) parts.push({ month: mk, amount: reste });
+    const st = useDataStore.getState();
+    const ids = parts.map((p) => st.addPayment(nom, p.month, p.amount, undefined, { method: moyen, kind: "remboursement" }));
     vibrer();
-    say(`Tu as rendu <strong>${eurc(aRendre)}</strong> à ${esc(qui)}.`, () => useDataStore.getState().removePayment(id));
+    say(`Tu as rendu <strong>${eurc(aRendre)}</strong> à ${esc(qui)}.`, () => {
+      for (const id of ids) useDataStore.getState().removePayment(id);
+    });
   };
 
   const retirer = (l: BillLine, row: HTMLElement | null, malgre = false) => {
