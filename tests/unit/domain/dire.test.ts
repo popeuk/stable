@@ -220,4 +220,11 @@ describe("la confirmation montre les cavaliers dictés", () => {
     expect(cavaliersEnMots(["Nina"], [])).toBe("Nouveau cavalier : Nina.");
     expect(cavaliersEnMots(["Jade Martin"], ["jade martin"])).toBe("Avec Jade Martin.");
   });
+
+  it("« cours avec Jade Martin et Emma Roux » : un cours, pas un cours nommé « Cours et »", () => {
+    const c = comprendre("Jeudi 15 octobre, cours avec Jade Martin et Emma Roux", { ...CTX, today: "2026-10-19", people: [{ name: "Jade Martin", role: "cavalier" }] });
+    expect(c).toMatchObject({ type: "seance", date: "2026-10-15", prestationId: "prest-cours", format: "collectif" });
+    expect(c.coursName).toBeUndefined();
+    expect(c.cavaliers).toEqual(["Jade Martin", "Emma Roux"]);
+  });
 });

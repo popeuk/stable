@@ -306,9 +306,9 @@ export function comprendre(text: string, ctx: DireContext): Compris {
   const soin = SOINS.find(([re]) => re.test(t));
   if (soin) return { ...base, type: "soin", care: soin[1], amount: nu, ...(REFACTURER.test(t) ? { refacturer: true } : {}) };
   const cavaliers = cavaliersDits(text, ctx.people ?? [], ctx.horses);
-  // Le nom du cours, sans « avec Emma ».
+  // Le nom du cours, sans « avec Jade Martin et Emma Roux » (ni le « et » qui les liait).
   let sansCav = label;
-  for (const n of cavaliers) for (const part of [n, n.split(/\s+/)[0]]) sansCav = sansCav.replace(new RegExp(`\\s*(?:avec|pour|de)?\\s*${escRe(part)}(?![\\p{L}])`, "giu"), "").trim();
+  for (const n of cavaliers) for (const part of [n, n.split(/\s+/)[0]]) sansCav = sansCav.replace(new RegExp(`\\s*(?:(?:avec|pour|de|et|,)\\s*)*${escRe(part)}(?![\\p{L}])`, "giu"), "").trim();
 
   const ps = ctx.prestations ?? [];
   const prestaWord = ps.some((p) => norm(p.label).split(/[^a-z0-9]+/).some((x) => x.length >= 4 && !STOP.has(x) && words(t).includes(` ${x} `)));
