@@ -21,7 +21,7 @@ function data(): StableData {
       { id: "msa", name: "MSA (cotisations sociales)", isDirect: false },
       { id: "pret", name: "Remboursement d’emprunt", isDirect: false },
     ],
-    people: [{ id: "x", name: "Emma Garnier", role: "proprietaire", active: true, statut: "particulier" }],
+    people: [{ id: "x", name: "Emma Garnier", role: "proprietaire", active: true, statut: "particulier", address: "3 allée des Saules" }],
     billing: B,
   };
 }

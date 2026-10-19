@@ -66,7 +66,7 @@ describe("facture : la quantité fois le prix unitaire imprimé (P3)", () => {
       sharedExpenses: [],
       revenueCategories: [{ id: "cc", name: "Cours" }],
       expenseCategories: [],
-      people: [{ id: "p", name: "Hugo L.", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Hugo Durand" }],
+      people: [{ id: "p", name: "Hugo L.", role: "proprietaire", active: true, statut: "particulier", address: "3 allée des Saules", nomComplet: "Hugo Durand" }],
       billing,
     };
     const f = brouillon(d, "Hugo L.", oct).facture!;

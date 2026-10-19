@@ -250,7 +250,7 @@ interface DataState extends StableData {
   /** Réunit les factures d'un autre carnet (sauvegarde reprise, autre onglet) : aucune ne se perd. */
   mergeInvoices: (other: Pick<StableData, "invoices" | "invoiceSeq">) => void;
   /** Ce que la facture d'un client demande : particulier ou professionnel, son adresse. */
-  setClientFacture: (name: string, role: PersonRole, patch: Pick<Partial<Person>, "statut" | "address" | "nomComplet" | "tvaIntra">) => void;
+  setClientFacture: (name: string, role: PersonRole, patch: Pick<Partial<Person>, "statut" | "address" | "nomComplet" | "tvaIntra" | "adresseRefusee">) => void;
   /** Retire un paiement précis (« Annuler »). */
   removePayment: (id: string) => void;
   removePayments: (payer: string, month: string) => void;
@@ -1190,6 +1190,7 @@ export const useDataStore = create<DataState>()(
         if (patch.statut) clean.statut = patch.statut;
         if (patch.address !== undefined) clean.address = patch.address.trim() || undefined;
         if (patch.nomComplet !== undefined) clean.nomComplet = patch.nomComplet.replace(/\s+/g, " ").trim() || undefined;
+        if (patch.adresseRefusee !== undefined) clean.adresseRefusee = patch.adresseRefusee || undefined;
         if (patch.tvaIntra !== undefined) clean.tvaIntra = patch.tvaIntra.replace(/[\s.-]+/g, "").toUpperCase() || undefined;
         set((s) => ({ people: (s.people ?? []).map((p) => (p.id === pid ? { ...p, ...clean } : p)) }));
       },

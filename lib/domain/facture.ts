@@ -259,10 +259,13 @@ export type ClientManque = "statut" | "nomComplet" | "adresse" | "conditions";
  * son adresse et les conditions de paiement. Son numéro de TVA est
  * facultatif (imprimé s'il est noté).
  */
-export function clientManque(person: (Pick<Person, "statut" | "address"> & Partial<Pick<Person, "name" | "nomComplet">>) | undefined, b: BillingInfo | undefined): ClientManque[] {
+export function clientManque(person: (Pick<Person, "statut" | "address"> & Partial<Pick<Person, "name" | "nomComplet" | "adresseRefusee">>) | undefined, b: BillingInfo | undefined): ClientManque[] {
   const out: ClientManque[] = [];
   if (!person?.statut) return ["statut"];
   if (person.statut === "particulier" && !nomCompletDe(person)) out.push("nomComplet");
+  // Service Public Entreprendre, F31808 « Mentions obligatoires sur une facture » (vérifié le 11 août 2026, relu le
+  // 19 octobre 2026) : pour un client particulier, « nom complet, adresse du client (sauf opposition pour un particulier) ».
+  if (person.statut === "particulier" && !person.address?.trim() && !person.adresseRefusee) out.push("adresse");
   if (person.statut === "pro") {
     if (!person.address?.trim()) out.push("adresse");
     if (conditionsProManquent(b)) out.push("conditions");

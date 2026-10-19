@@ -25,7 +25,7 @@ const base = (billing?: BillingInfo): StableData => ({
     { id: "em", name: "Maréchal", isDirect: true },
     { id: "ef", name: "Foin", isDirect: false },
   ],
-  people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true, address: "3 allée des Saules", statut: "particulier", nomComplet: "Hugo Durand" }],
+  people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true, address: "3 allée des Saules", statut: "particulier", address: "3 allée des Saules", nomComplet: "Hugo Durand" }],
   payments: [{ id: "pay", payer: "Hugo L.", month: "2026-10", amount: 100, at: "2026-10-05T10:00:00", method: "cheque", chequeNumber: "1234567" }],
   ...(billing ? { billing } : {}),
 });

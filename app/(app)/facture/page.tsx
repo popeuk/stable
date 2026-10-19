@@ -422,7 +422,7 @@ function Lot({ period }: { period: Period }) {
                       <Link key={c.nom} href={adresseFacture(c.nom, mk)} className="fr-inv">
                         <span>
                           <b>{c.nom}</b>
-                          <small>{c.d.client.includes("nomComplet") ? "particulier : son prénom et son nom" : c.d.client.includes("adresse") ? "professionnel : son adresse" : "professionnel : tes conditions de paiement"}</small>
+                          <small>{c.d.client.includes("nomComplet") ? "particulier : son prénom et son nom" : c.d.client.includes("adresse") ? `${personneDe(data, c.nom)?.statut === "pro" ? "professionnel" : "particulier"} : son adresse` : "professionnel : tes conditions de paiement"}</small>
                         </span>
                         <span className="fr-amt">{eur2(c.total)}</span>
                         <Ic n="chev" className="chev" />

@@ -158,9 +158,9 @@ describe("le client sur la facture (F31808)", () => {
       billing: { ...BASE, statut: "ei", delaiPro: 30, penalites: "bce10" },
     });
     const oct = { year: 2026, month: 10 };
-    const claire = brouillon(data({ id: "c", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier" }), "Claire D.", oct);
+    const claire = brouillon(data({ id: "c", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier", address: "3 allée des Saules" }), "Claire D.", oct);
     expect(claire.client).toEqual(["nomComplet"]);
-    const avec = brouillon(data({ id: "c", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Claire Dubois" }), "Claire D.", oct);
+    const avec = brouillon(data({ id: "c", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier", address: "3 allée des Saules", nomComplet: "Claire Dubois" }), "Claire D.", oct);
     expect(avec.facture?.buyer.name).toBe("Claire Dubois");
     expect(avec.facture?.payer).toBe("Claire D.");
     const pro = brouillon(data({ id: "e", name: "EARL Les Tilleuls", role: "proprietaire", active: true, statut: "pro", address: "2 rue", tvaIntra: "FR32123456789" }), "EARL Les Tilleuls", oct);

@@ -42,7 +42,7 @@ const base = (extra: Partial<StableData> = {}): StableData => ({
     { id: "cc", name: "Cours" },
   ],
   expenseCategories: [{ id: "ea", name: "Assurance", isDirect: false }],
-  people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Hugo Durand" }],
+  people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true, statut: "particulier", address: "3 allée des Saules", nomComplet: "Hugo Durand" }],
   billing: B,
   ...extra,
 });
@@ -84,9 +84,12 @@ describe("facture conforme", () => {
   it("le client : particulier ou professionnel jamais deviné ; un professionnel a besoin de son adresse et des conditions", () => {
     expect(clientManque(undefined, B)).toEqual(["statut"]);
     // Un particulier : son nom complet (prénom et nom), demandé quand le nom de l'app ne suffit pas.
-    expect(clientManque({ statut: "particulier", name: "Claire D." }, B)).toEqual(["nomComplet"]);
-    expect(clientManque({ statut: "particulier", name: "Claire D.", nomComplet: "Claire Dubois" }, B)).toEqual([]);
-    expect(clientManque({ statut: "particulier", name: "Sophie Martin" }, B)).toEqual([]);
+    expect(clientManque({ statut: "particulier", address: "3 allée des Saules", name: "Claire D." }, B)).toEqual(["nomComplet"]);
+    expect(clientManque({ statut: "particulier", address: "3 allée des Saules", name: "Claire D.", nomComplet: "Claire Dubois" }, B)).toEqual([]);
+    expect(clientManque({ statut: "particulier", address: "3 allée des Saules", name: "Sophie Martin" }, B)).toEqual([]);
+    // Son adresse aussi (F31808), sauf s'il ne veut pas qu'elle figure sur la facture.
+    expect(clientManque({ statut: "particulier", name: "Sophie Martin" }, B)).toEqual(["adresse"]);
+    expect(clientManque({ statut: "particulier", name: "Sophie Martin", adresseRefusee: true }, B)).toEqual([]);
     expect(clientManque({ statut: "pro" }, B)).toEqual(["adresse", "conditions"]);
     expect(clientManque({ statut: "pro", address: "2 rue" }, { ...B, delaiPro: 30, penalites: "bce10" })).toEqual([]);
     const sans = base({ people: [{ id: "x", name: "Hugo L.", role: "proprietaire", active: true }] });

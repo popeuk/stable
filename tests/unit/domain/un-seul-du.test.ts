@@ -113,7 +113,7 @@ describe("un avoir sur un mois déjà payé : à lui rendre", () => {
       sharedExpenses: [],
       revenueCategories: [{ id: "cp", name: "Pension" }],
       expenseCategories: [],
-      people: [{ id: "x", name: "Claire D.", nomComplet: "Claire Dubois", role: "proprietaire", active: true, statut: "particulier" }],
+      people: [{ id: "x", name: "Claire D.", nomComplet: "Claire Dubois", role: "proprietaire", active: true, statut: "particulier", address: "3 allée des Saules" }],
       billing: B,
       payments: [{ id: "y", payer: "Claire D.", month: "2026-10", amount: 350, at: "2026-10-05T10:00:00", method: "virement" }],
     };

@@ -307,6 +307,11 @@ export interface Person {
   statut?: "particulier" | "pro";
   /** Particulier : son nom complet (prénom et nom), demandé à sa première facture quand le nom de l'app ne suffit pas (« Claire D. »). */
   nomComplet?: string;
+  /**
+   * Particulier : il s'oppose à ce que son adresse figure sur ses factures
+   * (F31808 : « adresse du client (sauf opposition pour un particulier) »).
+   */
+  adresseRefusee?: boolean;
   /** Professionnel : son numéro de TVA intracommunautaire, facultatif, imprimé s'il est noté. */
   tvaIntra?: string;
   active: boolean;

@@ -93,6 +93,9 @@ async function faireFacture(p) {
       if (!(await complet.inputValue()).trim()) await complet.fill(NOM_COMPLET);
       nomFacture = (await complet.inputValue()).trim();
     }
+    // Et son adresse (F31808 : demandée pour un particulier, sauf s'il s'y oppose).
+    const adr = champ("Son adresse");
+    if ((await adr.count()) && !(await adr.inputValue()).trim()) await adr.fill("3 allée des Saules\n72000 Le Mans");
     await p.getByRole("button", { name: "Voir l’aperçu" }).click();
   }
   await p.getByRole("button", { name: "Faire la facture" }).click();

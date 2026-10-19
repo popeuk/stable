@@ -324,8 +324,9 @@ export function ConditionsPro() {
 
 /**
  * Particulier ou professionnel, puis ce que la loi demande (F31808) : pour
- * un particulier son nom complet (prénom et nom), pour un professionnel son
- * adresse, et son numéro de TVA s'il en a un. Demandé une fois par client,
+ * un particulier son nom complet (prénom et nom) et son adresse (sauf s'il
+ * s'y oppose), pour un professionnel son adresse, et son numéro de TVA s'il
+ * en a un. Demandé une fois par client,
  * gardé sur sa fiche.
  */
 export function ClientFacture({ nom, role, manque }: { nom: string; role: PersonRole; manque: ClientManque[] }) {
@@ -356,10 +357,15 @@ export function ClientFacture({ nom, role, manque }: { nom: string; role: Person
       )}
       {statut && (
         <label className="field">
-          <span>Son adresse{statut === "pro" ? "" : ", si tu l’as"}</span>
+          <span>Son adresse</span>
           <textarea className="input ta fa-adr" rows={2} defaultValue={person?.address ?? ""} placeholder={"Ex. : 3 allée des Saules\n72000 Le Mans"} autoComplete="off" onChange={(e) => setClient(nom, role, { address: e.target.value })} />
-          <em>{statut === "pro" ? "Obligatoire sur la facture d’un professionnel." : "Elle s’imprime sous son nom."}</em>
+          <em>{statut === "pro" ? "Obligatoire sur la facture d’un professionnel." : "La loi la demande sur la facture d’un particulier, sauf s’il ne veut pas qu’elle y figure. Elle s’imprime sous son nom."}</em>
         </label>
+      )}
+      {statut === "particulier" && !person?.address?.trim() && (
+        <button type="button" role="checkbox" aria-checked={!!person?.adresseRefusee} className={`chip${person?.adresseRefusee ? " on" : ""}`} onClick={() => setClient(nom, role, { adresseRefusee: !person?.adresseRefusee })}>
+          {qui} ne veut pas que son adresse y figure
+        </button>
       )}
       {statut === "pro" && (
         <label className="field">

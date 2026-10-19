@@ -53,9 +53,9 @@ function moisType() {
     // L'« à peu près » de Mes frais : le foin, 900 € par mois.
     recurringExpenses: [{ id: "est-foin", stableId: "s", label: "Foin", amount: 900, categoryId: "foin", isShared: true, distributionMode: "equal", frequency: "monthly", startDate: "2026-01-01", endDate: null, source: "manual" }],
     people: [
-      { id: "c", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Claire Durand" },
-      { id: "h", name: "Hugo L.", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Hugo Durand" },
-      { id: "l", name: "Léa M.", role: "proprietaire", active: true, statut: "particulier", nomComplet: "Léa Durand" },
+      { id: "c", name: "Claire D.", role: "proprietaire", active: true, statut: "particulier", address: "3 allée des Saules", nomComplet: "Claire Durand" },
+      { id: "h", name: "Hugo L.", role: "proprietaire", active: true, statut: "particulier", address: "3 allée des Saules", nomComplet: "Hugo Durand" },
+      { id: "l", name: "Léa M.", role: "proprietaire", active: true, statut: "particulier", address: "3 allée des Saules", nomComplet: "Léa Durand" },
     ],
     payments: [
       // Léa règle septembre le 5 octobre ; Claire paie 200 € sur ses 375 €.

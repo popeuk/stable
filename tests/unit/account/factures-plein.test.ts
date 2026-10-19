@@ -40,7 +40,7 @@ function poser() {
     horses: [{ id: "h1", stableId: "s", name: "Tonnerre", entryDate: "2024-01-01", exitDate: null, isArchived: false }],
     revenues: ["Marie", "Hugo"].map((n, i) => ({ id: `r${i}`, stableId: "s", horseId: "h1", categoryId: "cc", amount: 25, date: "2026-10-08", source: "manual" as const, payer: n, seanceId: `s${i}` })),
     revenueCategories: [{ id: "cc", name: "Cours" }],
-    people: ["Marie", "Hugo"].map((n, i) => ({ id: `p${i}`, name: n, role: "cavalier" as const, active: true, statut: "particulier" as const, nomComplet: `${n} Durand` })),
+    people: ["Marie", "Hugo"].map((n, i) => ({ id: `p${i}`, name: n, role: "cavalier" as const, active: true, statut: "particulier", address: "3 allée des Saules" as const, nomComplet: `${n} Durand` })),
     billing: { legalName: "Les Pommiers", statut: "ei", address: "1 rue du Pré", siret: "12345678900012", vat: "franchise" },
     invoices: [],
     invoiceSeq: {},
