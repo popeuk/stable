@@ -12,7 +12,9 @@ describe("la ligne de la copie en ligne dans Mon compte", () => {
     expect(texteCopie({ allume: true, attente: true, changements: 1, aJour: null }, midi)).toBe("1 changement attend le réseau");
   });
   it("éteinte, ou pas encore vérifiée", () => {
-    expect(texteCopie({ allume: false, attente: false, changements: 0, aJour: null })).toBe("Copie en ligne éteinte ici");
+    expect(texteCopie({ allume: false, attente: false, changements: 0, aJour: null })).toBe("Pas de copie en ligne sur ce téléphone");
+    expect(texteCopie({ allume: false, attente: false, changements: 0, aJour: null }, midi, "cet ordinateur")).toBe("Pas de copie en ligne sur cet ordinateur");
+    expect(texteCopie({ allume: true, attente: false, changements: 0, aJour: new Date(2026, 9, 19, 9, 0).toISOString() }, midi)).toBe("Copie en ligne à jour à 9 h");
     expect(texteCopie({ allume: true, attente: false, changements: 0, aJour: null })).toBe("Copie en ligne : on vérifie…");
   });
 });

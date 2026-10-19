@@ -109,10 +109,10 @@ export function ecouterPlace(f: () => void) {
   };
 }
 
-/** « 10 h 42 » ; un autre jour : « le 18 octobre à 10 h 42 ». */
+/** « 10 h 42 », « 9 h » ; un autre jour : « le 18 octobre à 10 h 42 ». */
 export function heureDepuis(ms: number, maintenant = Date.now()): string {
   const d = new Date(ms);
-  const h = `${d.getHours()} h ${String(d.getMinutes()).padStart(2, "0")}`;
+  const h = d.getMinutes() ? `${d.getHours()} h ${String(d.getMinutes()).padStart(2, "0")}` : `${d.getHours()} h`;
   if (new Date(maintenant).toDateString() === d.toDateString()) return h;
   return `le ${d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} à ${h}`;
 }
@@ -121,10 +121,11 @@ export function heureDepuis(ms: number, maintenant = Date.now()): string {
 export function messagePlace(e: EtatPlace, cetAppareil: string, maintenant = Date.now()): { fort: boolean; texte: string } | null {
   const nom = cetAppareil.replace(/^cet?\s+/, "ton ");
   if (e.plein) {
-    const depuis = e.depuis !== null ? ` Rien n’est enregistré depuis ${heureDepuis(e.depuis, maintenant)}.` : " Ce que tu notes n’est plus enregistré.";
-    return { fort: true, texte: `${nom[0].toUpperCase()}${nom.slice(1)} n’a plus de place pour Be Stable.${depuis}` };
+    const depuis = e.depuis !== null ? `rien n’est enregistré depuis ${heureDepuis(e.depuis, maintenant)}` : "ce que tu notes n’est plus enregistré";
+    const quoi = /t[ée]l[ée]phone/.test(nom) ? "photos, vidéos, applis dont tu ne te sers plus" : "fichiers et téléchargements dont tu n’as plus besoin";
+    return { fort: true, texte: `${nom[0].toUpperCase()}${nom.slice(1)} n’a plus de place pour Be Stable : ${depuis}. Fais une sauvegarde, puis libère de la place (${quoi}).` };
   }
-  if (e.part >= SEUIL_PROCHE) return { fort: false, texte: `La place de Be Stable sur ${cetAppareil} se remplit. Garde une sauvegarde de temps en temps (Réglages, Avancé).` };
+  if (e.part >= SEUIL_PROCHE) return { fort: false, texte: `La place de Be Stable sur ${cetAppareil} se remplit. Fais une sauvegarde de temps en temps (Réglages, Avancé).` };
   return null;
 }
 

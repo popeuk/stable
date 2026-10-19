@@ -7,7 +7,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useConfirmer } from "@/components/bs/confirmer";
 
 /** Le fichier de ce qui reste : les données lisibles, plus la copie d'origine telle qu'elle était enregistrée. */
-export function exporterCeQuiReste(origine?: string) {
+export function exporterCeQuiReste(origine?: string, nom = "be-stable-ce-qui-reste") {
   const plain = (o: object) => JSON.parse(JSON.stringify(o, (_k, v) => (typeof v === "function" ? undefined : v)));
   let data: Record<string, unknown> = {};
   let settings: Record<string, unknown> = {};
@@ -26,7 +26,7 @@ export function exporterCeQuiReste(origine?: string) {
   const blob = new Blob([JSON.stringify(out)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `be-stable-ce-qui-reste-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `${nom}-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }

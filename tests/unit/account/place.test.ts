@@ -57,7 +57,7 @@ describe("plus de place sur l'appareil", () => {
     expect(store.getItem("be-stable-data@locale")).toBe('{"state":{"a":1}}');
     const msg = place.messagePlace(e, "ce téléphone")!;
     expect(msg.fort).toBe(true);
-    expect(msg.texte).toMatch(/^Ton téléphone n’a plus de place pour Be Stable\. Rien n’est enregistré depuis \d+ h \d\d\.$/);
+    expect(msg.texte).toMatch(/^Ton téléphone n’a plus de place pour Be Stable : rien n’est enregistré depuis \d+ h( \d\d)?\. Fais une sauvegarde, puis libère de la place \(photos, vidéos, applis dont tu ne te sers plus\)\.$/);
     // La place revient : le bandeau s'en va à la prochaine écriture.
     store.plein = false;
     await vault.setItem("be-stable-data", '{"state":{"a":3}}');

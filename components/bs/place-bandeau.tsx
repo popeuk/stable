@@ -34,8 +34,8 @@ export function PlaceBandeau() {
     <div className={`es-keep bs-place${msg.fort ? " fort" : ""}`} role={msg.fort ? "alert" : "status"}>
       <span>{msg.fort ? <b>{msg.texte}</b> : msg.texte}</span>
       {msg.fort ? (
-        <button type="button" className="btn" onClick={() => exporterCeQuiReste()}>
-          Sauvegarder
+        <button type="button" className="btn" onClick={() => exporterCeQuiReste(undefined, "be-stable")}>
+          Faire une sauvegarde
         </button>
       ) : (
         <button
