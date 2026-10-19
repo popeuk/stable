@@ -24,6 +24,7 @@ import "./carnet/registre.css";
 import "./carnet/livret.css";
 import "./carnet/ob-fort.css";
 import "./carnet/liens.css";
+import { UnSeulOnglet } from "@/components/bs/un-seul-onglet";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -91,6 +92,7 @@ export default function RootLayout({
         <PwaRegister />
         <Consentement />
         <TypoFr />
+        <UnSeulOnglet />
       </body>
     </html>
   );

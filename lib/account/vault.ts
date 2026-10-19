@@ -4,6 +4,7 @@ import type { StateStorage } from "zustand/middleware";
 import { getSession, LOCALE_SCOPE, scopedKey } from "@/lib/account/session";
 import { brancherCoffre, compressionPermise, ecritureBloquee, noterEcriture, relu } from "@/lib/account/nuage";
 import { estPlacePleine, noterPlacePleine, noterRangement, ranger } from "@/lib/account/place";
+import { ongletEnPause } from "@/lib/onglet";
 
 /**
  * Le coffre de l'appareil : le stockage des données de gestion, rangé par
@@ -125,6 +126,8 @@ export const vault: StateStorage = {
     return v;
   },
   setItem(name, value) {
+    // Un autre onglet a pris la main (lib/onglet) : celui-ci n'écrit plus, il écraserait ce qui y est noté.
+    if (ongletEnPause()) return;
     // La copie en ligne vient de remplacer ce tiroir et l'écran ne l'a pas encore relu :
     // cette écriture vient d'anciennes données, elle effacerait ce qui est arrivé.
     if (ecritureBloquee(name)) return;
