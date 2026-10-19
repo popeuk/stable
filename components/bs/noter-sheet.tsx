@@ -261,6 +261,8 @@ function NoterInner() {
   function backToGrid() {
     abortRec();
     setListening(false);
+    // Revenir abandonne la phrase : la prochaine dictée part d'un champ vide (« Le redire » garde la phrase pour la corriger).
+    setTyped("");
     setPick(null);
     setOther(false);
     setScreen("grid");
@@ -665,7 +667,7 @@ function NoterInner() {
     <>
       {tried && d && manque(d) && (
         <p className="nt-miss" role="alert">
-          {d.type === "soin" ? "Choisis d’abord le soin." : d.type === "rdv" ? "Dis d’abord ce que c’est." : "Il manque le montant."}
+          {d.type === "soin" ? "Choisis d’abord le soin." : d.type === "rdv" ? "Dis d’abord ce que c’est." : d.type === "seance" ? "Choisis l’heure du cours." : "Il manque le montant."}
         </p>
       )}
       <button type="button" className="btn full nt-ok" onClick={() => commit()}>
