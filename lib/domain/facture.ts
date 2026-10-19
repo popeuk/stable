@@ -440,6 +440,8 @@ export interface Brouillon {
   manquants: VatKind[];
   /** Ce qui manque au client (particulier ou pro, son adresse, les conditions d'un pro). */
   client: ClientManque[];
+  /** Ce qui reste à facturer (TTC), même tant que la facture attend une réponse. */
+  montant: number;
   /** Le contenu, dès que tous les taux sont connus et le client complet. */
   facture?: Omit<Invoice, "id" | "number" | "year" | "seq" | "issuedAt" | "seller" | "echeance" | "penalites">;
 }
@@ -479,7 +481,7 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
   const tvaAChoisir = !b?.vat;
   const manquants = tvaAChoisir ? kinds : tauxManquants(b, kinds);
   const client = clientManque(person, b);
-  const out: Brouillon = { vide: list.length === 0, kinds, tvaAChoisir, manquants, client };
+  const out: Brouillon = { vide: list.length === 0, kinds, tvaAChoisir, manquants, client, montant: r2(list.reduce((t, g) => t + g.unitTTC * g.qty, 0)) };
   if (out.vide || tvaAChoisir || manquants.length || client.length) return out;
   const franchise = b?.vat === "franchise";
   const lines: InvoiceLine[] = list.map((g) => {

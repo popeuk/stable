@@ -168,6 +168,7 @@ describe("un avoir sur un mois déjà payé : à lui rendre", () => {
 
   it("refaire la facture après l'avoir : elle dit déjà payée, et rien n'est plus à rendre", () => {
     const d = payeEtAvoir();
+    expect(brouillon(d, "Claire D.", oct).montant).toBe(350);
     const b = brouillon(d, "Claire D.", oct).facture!;
     expect(b).toMatchObject({ totalTTC: 350, paid: 350, due: 0 });
     const i2 = emettre(d, b, "2026-10-22", "i2");

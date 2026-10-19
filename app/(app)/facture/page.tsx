@@ -321,7 +321,10 @@ function Lot({ period }: { period: Period }) {
   const clients = useMemo(
     () =>
       bills
-        .map((x) => ({ nom: x.payer, role: x.role, total: x.total, d: brouillon(data, x.payer, period) }))
+        .map((x) => {
+          const d = brouillon(data, x.payer, period);
+          return { nom: x.payer, role: x.role, total: d.montant, d };
+        })
         .filter((x) => !x.d.vide)
         .sort((a, c) => a.nom.localeCompare(c.nom, "fr")),
     [bills, data, period],
@@ -400,7 +403,7 @@ function Lot({ period }: { period: Period }) {
             {aCompleter.length > 0 && (
               <div className="card fa-card rise">
                 <b>{aCompleter.length > 1 ? `${aCompleter.length} à compléter d’abord` : "Une à compléter d’abord"}</b>
-                <p>Dis-le une fois pour chaque client. Pour un particulier, il faut son nom complet ; pour un professionnel, son adresse.</p>
+                <p>Dis-le une fois pour chaque client. Pour un particulier, son nom complet et son adresse ; pour un professionnel, son adresse.</p>
                 <div className="fr-list">
                   {aCompleter.map((c) =>
                     c.d.client.includes("statut") ? (

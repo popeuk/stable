@@ -366,7 +366,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         {paiements.map((p) => (
           <div key={p.id} className="cl-pd">
             <span>
-              {p.kind === "remboursement" ? "Remboursé le" : p.kind === "avance" ? "Avance reçue le" : "Payé le"} {jour(p.at || `${mk}-01`)}
+              {p.kind === "remboursement" ? (p.deAvance ? "Avance rendue le" : "Remboursé le") : p.kind === "avance" ? "Avance reçue le" : "Payé le"} {jour(p.at || `${mk}-01`)}
               {p.method ? ` · ${moyenDit(p)}` : ""}
             </span>
             {/* L'argent rentré : en vert, avec son signe ; rendu : à l'encre, en moins. */}
