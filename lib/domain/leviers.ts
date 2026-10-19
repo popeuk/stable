@@ -121,7 +121,7 @@ export function suggestions(data: StableData, period: Period, capacity: number):
       id: `depense-${top.label}`,
       lever: "depenser",
       // Le total posé aux premiers pas se dit comme dans Mon bilan : « les frais de l'écurie ».
-      title: `${/^(Frais communs en un total|Frais fixes \(foin, loyer, salaires\))$/.test(top.label) ? "Les frais de l’écurie" : top.label} : obtenir 5 % moins cher`,
+      title: `${/^(Frais communs(?: en un total)?|Frais fixes(?: \(foin, loyer, salaires\))?)$/.test(top.label) ? "Les frais de l’écurie" : top.label} : obtenir 5 % moins cher`,
       sub: `C’est ce qui pèse le plus dans les frais de l’écurie que tu peux négocier (${montantFr(Math.round(top.amount))} € ce mois-ci). Demande deux devis pour l’année et compare.`,
       gain: Math.round(top.amount * 0.05),
       unit: "estimé",

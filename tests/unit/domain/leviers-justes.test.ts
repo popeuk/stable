@@ -59,6 +59,8 @@ describe("les idées « Gagner plus » restent crédibles", () => {
     const d = data();
     d.sharedExpenses = [frais("tot", "Frais communs en un total", 600)];
     expect(suggestions(d, oct, 0).find((s) => s.lever === "depenser")!.title).toBe("Les frais de l’écurie : obtenir 5 % moins cher");
+    d.sharedExpenses = [frais("cat", "Frais communs", 600)];
+    expect(suggestions(d, oct, 0).find((s) => s.lever === "depenser")!.title).toBe("Les frais de l’écurie : obtenir 5 % moins cher");
   });
 
   it("seulement des postes qui ne se négocient pas : aucune idée « Dépenser moins »", () => {
