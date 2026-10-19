@@ -312,6 +312,8 @@ export interface Person {
    * (F31808 : « adresse du client (sauf opposition pour un particulier) »).
    */
   adresseRefusee?: boolean;
+  /** Son avance reste sur sa fiche (il n'a plus de cheval ici, le gérant la garde) : on ne propose plus de la rendre. */
+  garderAvance?: boolean;
   /** Professionnel : son numéro de TVA intracommunautaire, facultatif, imprimé s'il est noté. */
   tvaIntra?: string;
   active: boolean;
@@ -468,6 +470,8 @@ export interface Payment {
    * déjà payé), montant positif.
    */
   kind?: "avance" | "remboursement";
+  /** Un remboursement de son avance (un ancien propriétaire qui ne devra plus rien) : l'avance baisse d'autant. */
+  deAvance?: boolean;
 }
 
 /** Les moyens de paiement que le comptable veut voir. */

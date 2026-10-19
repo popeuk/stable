@@ -189,7 +189,7 @@ export function lignesComptables(tout: StableData, year: number, today: string):
       date: d,
       type: "Encaissement",
       categorie: p.kind === "remboursement" ? "Remboursement" : p.kind === "avance" ? "Avance reçue" : "Paiement reçu",
-      libelle: p.kind === "remboursement" ? "Rendu au client (avoir sur un mois payé)" : p.kind === "avance" ? "Avance, déduite des mois suivants" : p.seanceId ? "Payé sur place" : `Paiement ${deMois(p.month)}`,
+      libelle: p.kind === "remboursement" ? (p.deAvance ? "Avance rendue au client" : "Rendu au client (avoir sur un mois payé)") : p.kind === "avance" ? "Avance, déduite des mois suivants" : p.seanceId ? "Payé sur place" : `Paiement ${deMois(p.month)}`,
       cheval: "",
       client: p.payer,
       montant: p.kind === "remboursement" ? -p.amount : p.amount,

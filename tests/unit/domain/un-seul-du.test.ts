@@ -103,6 +103,20 @@ describe("le paiement en trop devient une avance", () => {
   });
 });
 
+describe("l'avance d'un ancien propriétaire, rendue", () => {
+  it("rendue, elle tombe à zéro et ne se déduit plus de rien ; le comptable la voit sortir", () => {
+    const d = data();
+    payer(d, "Marc Leroy", 900, "2026-10");
+    expect(dusDuClient(d, "Marc Leroy", oct)).toMatchObject({ avance: 120 });
+    d.payments!.push({ id: "ra", payer: "Marc Leroy", month: "2026-10", amount: 120, at: "2026-10-25T10:00:00", kind: "remboursement", deAvance: true });
+    expect(dusDuClient(d, "Marc Leroy", oct)).toMatchObject({ due: 0, avance: 0, aRendre: 0 });
+    expect(dusDuClient(d, "Marc Leroy", nov)).toMatchObject({ due: 390, avance: 0 });
+    const enc = lignesComptables(d, 2026, "2026-12-31").filter((l) => l.type === "Encaissement" && l.client === "Marc Leroy");
+    expect(enc.reduce((t, l) => t + l.montant, 0)).toBe(780);
+    expect(enc.find((l) => l.libelle === "Avance rendue au client")!.montant).toBe(-120);
+  });
+});
+
 describe("un avoir sur un mois déjà payé : à lui rendre", () => {
   const B: BillingInfo = { legalName: "Les Pommiers", forme: "EI", vat: "franchise", address: "1 rue du Pré", siret: "12345678900012" };
   function payeEtAvoir() {

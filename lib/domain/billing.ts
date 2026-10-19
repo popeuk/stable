@@ -76,7 +76,8 @@ export function notesParMois(data: StableData, de: string, a: string): Map<strin
   const parMois = new Map<string, Map<string, Bill>>();
   if (de > a) return new Map();
   // Une avance se déduit des mois qui suivent : il faut les notes depuis la première avance.
-  const avances = (data.payments ?? []).filter((p) => p.kind === "avance" && p.month <= a);
+  // Une avance rendue (deAvance) la fait baisser le mois où elle est rendue.
+  const avances = (data.payments ?? []).filter((p) => (p.kind === "avance" || (p.kind === "remboursement" && p.deAvance)) && p.month <= a);
   const debut = avances.reduce((m, p) => (p.month < m ? p.month : m), de);
   const voulu = de;
   de = debut;
@@ -114,6 +115,7 @@ export function notesParMois(data: StableData, de: string, a: string): Map<strin
     b.total += r.amount;
   }
   for (const p of data.payments ?? []) {
+    if (p.kind === "remboursement" && p.deAvance) continue;
     if (p.kind === "remboursement") {
       // Rendu sur le mois du trop-perçu : il se retire de ce qui a été payé ce mois-là.
       const b = parMois.get(p.month)?.get(cleClient(p.payer));
@@ -136,14 +138,14 @@ export function notesParMois(data: StableData, de: string, a: string): Map<strin
   const recues = new Map<string, Map<string, number>>();
   for (const p of avances) {
     const m = recues.get(p.month) ?? new Map<string, number>();
-    m.set(cleClient(p.payer), (m.get(cleClient(p.payer)) ?? 0) + p.amount);
+    m.set(cleClient(p.payer), (m.get(cleClient(p.payer)) ?? 0) + (p.kind === "avance" ? p.amount : -p.amount));
     recues.set(p.month, m);
   }
   const out = new Map<string, Bill[]>();
   const tous = [...new Set([...parMois.keys(), ...recues.keys()])].sort();
   for (const mk of tous) {
     const mois = parMois.get(mk) ?? new Map<string, Bill>();
-    for (const [k, x] of recues.get(mk) ?? []) reserve.set(k, r2((reserve.get(k) ?? 0) + x));
+    for (const [k, x] of recues.get(mk) ?? []) reserve.set(k, Math.max(0, r2((reserve.get(k) ?? 0) + x)));
     for (const x of avoirsDuMois(data, mk)) {
       const b = mois.get(cleClient(x.payer));
       if (b && !b.orphan && x.amount > 0) b.avoirs = [...(b.avoirs ?? []), { number: x.number, amount: x.amount }];
@@ -189,6 +191,7 @@ export function avanceEtARendre(data: StableData, notes: Map<string, Bill[]>, pa
   for (const p of data.payments ?? []) {
     if (p.month > pk || cleClient(p.payer) !== k) continue;
     if (p.kind === "avance") recu += p.amount;
+    else if (p.kind === "remboursement" && p.deAvance) recu -= p.amount;
     else if (p.kind === "remboursement") rendu += p.amount;
   }
   let pris = 0;

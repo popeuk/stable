@@ -167,6 +167,14 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
     });
   };
 
+  // Un ancien propriétaire (plus de cheval ici) : son avance ne se déduira de rien, on propose de la rendre.
+  const ancien = role === "proprietaire" && horses.length === 0;
+  const rendreAvance = () => {
+    const id = useDataStore.getState().addPayment(nom, mk, avance, undefined, { method: moyen, kind: "remboursement", deAvance: true });
+    vibrer();
+    say(`Tu as rendu son avance de <strong>${eurc(avance)}</strong> à ${esc(qui)}.`, () => useDataStore.getState().removePayment(id));
+  };
+
   const retirer = (l: BillLine, row: HTMLElement | null, malgre = false) => {
     // Une ligne déjà sur une facture : la facture ne change pas, on le dit d'abord et on propose l'avoir.
     const facture = recettesFacturees(data.invoices).get(l.id);
@@ -223,10 +231,29 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
             </Link>
           </p>
         ))}
-        {avance > 0 && (
+        {avance > 0 && !ancien && (
           <p className="cl-cnt">
             Avance {eurc(avance)}. Elle se déduit toute seule de ce qu’{accord(nom, "il", "elle")} te devra ensuite.
           </p>
+        )}
+        {avance > 0 && ancien && (
+          <>
+            <p className="cl-cnt">
+              {person?.garderAvance
+                ? `Avance ${eurc(avance)}, gardée sur sa fiche.`
+                : `Avance ${eurc(avance)}. ${qui} n’a plus de cheval chez toi : à lui rendre, ou à garder sur sa fiche ?`}
+            </p>
+            {!person?.garderAvance && (
+              <div className="cl-acts">
+                <button type="button" className="btn line" onClick={rendreAvance}>
+                  Je la lui ai rendue
+                </button>
+                <button type="button" className="btn line" onClick={() => maj({ garderAvance: true })}>
+                  La garder sur sa fiche
+                </button>
+              </div>
+            )}
+          </>
         )}
         {aRendre > 0 && (
           <>
