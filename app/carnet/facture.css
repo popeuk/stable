@@ -169,3 +169,4 @@
   .carnet .fa-print .fa-tbl tr { break-inside: avoid; }
   .carnet .fa-tot, .carnet .fa-foot { break-inside: avoid; }
 }
+.carnet .fr-annulee { font-style: normal; font-weight: 650; color: var(--out); }

@@ -171,3 +171,15 @@ describe("un avoir sur un mois déjà payé : à lui rendre", () => {
     expect(dusDuClient(d, "Claire D.", oct)).toMatchObject({ due: 0, aRendre: 0 });
   });
 });
+
+describe("la liste des factures dit ce qu'un avoir a annulé", () => {
+  it("« Annulée » quand l'avoir couvre tout, « En partie annulée » sinon, rien pour l'avoir lui-même", async () => {
+    const { etatAnnulation } = await import("@/lib/domain/facture");
+    const f = { kind: undefined, number: "2026-0001", totalTTC: 350 } as never;
+    const a = (n: number) => ({ kind: "avoir", number: "2026-0002", totalTTC: -n, avoirDe: { number: "2026-0001", issuedAt: "2026-10-05" } }) as never;
+    expect(etatAnnulation(f, [f])).toBeNull();
+    expect(etatAnnulation(f, [f, a(350)])).toBe("Annulée");
+    expect(etatAnnulation(f, [f, a(50)])).toBe("En partie annulée");
+    expect(etatAnnulation(a(50), [f, a(50)])).toBeNull();
+  });
+});

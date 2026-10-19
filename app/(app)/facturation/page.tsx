@@ -8,7 +8,7 @@ import { ConditionsPro, ExportComptable, InfosVendeur, TuVous, TvaReglage } from
 import { useDataStore } from "@/stores/data-store";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { lienFacture, numerosEnDouble } from "@/lib/domain/numeros";
-import { conditionsProManquent, enteteVendeur, eur2, facturation, moisDit, nomDoc, vendeurDe, vendeurManque } from "@/lib/domain/facture";
+import { conditionsProManquent, enteteVendeur, etatAnnulation, eur2, facturation, moisDit, nomDoc, vendeurDe, vendeurManque } from "@/lib/domain/facture";
 
 /**
  * Tes factures (`/facturation`) : d'abord les factures et avoirs faits, puis
@@ -70,6 +70,7 @@ function Facturation() {
                   <b>{nomDoc(i)}</b>
                   <small>
                     {i.payer} · {i.kind === "avoir" && i.avoirDe ? `sur la facture n° ${i.avoirDe.number}` : moisDit(i.month)}
+                    {etatAnnulation(i, invoices) && <> · <em className="fr-annulee">{etatAnnulation(i, invoices)}</em></>}
                   </small>
                 </span>
                 <span className="fr-amt">{eur2(i.totalTTC)}</span>

@@ -618,6 +618,12 @@ export function resteEnEuros(inv: Invoice, invoices: Invoice[] | undefined): num
   return r2(Math.max(0, inv.totalTTC + avoirsDe(invoices, inv.number).reduce((t, a) => t + a.totalTTC, 0)));
 }
 
+/** « Annulée » (un avoir la couvre en entier) ou « En partie annulée », pour la liste des factures. Rien pour un avoir. */
+export function etatAnnulation(inv: Invoice, invoices: Invoice[] | undefined): "Annulée" | "En partie annulée" | null {
+  if (estAvoir(inv) || !avoirsDe(invoices, inv.number).length) return null;
+  return resteEnEuros(inv, invoices) <= 0 ? "Annulée" : "En partie annulée";
+}
+
 /**
  * Le contenu d'un avoir sur une facture : pour chaque ligne, la quantité
  * annulée (`qtes[i]`, bornée à ce qui reste). Les montants sont ceux de la
