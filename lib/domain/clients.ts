@@ -1,5 +1,5 @@
 import type { Period, PersonRole, StableData } from "@/lib/domain/types";
-import { appel, formule, nomEcurie, signature } from "@/lib/domain/politesse";
+import { appel, formule, nomEcurie, salut, signature } from "@/lib/domain/politesse";
 import { dateInPeriod } from "@/lib/utils/period";
 import { avanceEtARendre, cleClient, monthKey, moisPlus, notesParMois, surplusDe, type Bill } from "@/lib/domain/billing";
 import { r2 } from "@/lib/utils/arrondi";
@@ -278,7 +278,6 @@ const eur0 = (n: number) => `${new Intl.NumberFormat("fr-FR", { maximumFractionD
  */
 export function messageDu(bill: Bill, period: Period, stableName: string, gerant: string, tu?: boolean): string {
   const f = formule(tu);
-  const qui = prenomDe(bill.payer);
   const lines = bill.lines.filter((l) => !l.onSite);
   const fixes = lines.filter((l) => /pension/i.test(l.label));
   const grp = new Map<string, { n: number; v: number }>();
@@ -292,7 +291,7 @@ export function messageDu(bill: Bill, period: Period, stableName: string, gerant
   const onSite = bill.lines.filter((l) => l.onSite).reduce((t, l) => t + l.amount, 0);
   const deja = r2(bill.paid - onSite);
   const out = [
-    `Bonjour ${qui},`,
+    salut(bill.payer),
     `Voici ce que ${f.doit} pour ${moisNom(period)} ${chezEcurie(stableName)} :`,
     ...fixes.map((l) => `${l.label} : ${eur0(l.amount)}`),
     ...[...grp.entries()].map(([t, g]) => `${t}${g.n > 1 ? ` (${g.n})` : ""} : ${eur0(g.v)}`),

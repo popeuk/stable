@@ -12,20 +12,21 @@ describe("le message de la facture", () => {
     const m = messageFacture(inv, "Julie", { ecurie: "Écurie des Tilleuls" }).split("\n");
     expect(m[0]).toBe("Bonjour Claire,");
     expect(m[1]).toBe("Voici votre facture n° 2026-0001 pour octobre 2026 : 350,00 €.");
-    expect(m).toContain("La facture en PDF suit.");
+    // Par e-mail (le canal par défaut), le PDF part avec.
+    expect(m).toContain("Je vous joins la facture en PDF.");
     expect(m.slice(-3)).toEqual(["Merci,", "Julie", "Écurie des Tilleuls"]);
   });
   it("tu quand le gérant l'a choisi", () => {
     const m = messageFacture(inv, "Julie", { tu: true, ecurie: "Écurie des Tilleuls" });
     expect(m).toContain("Voici ta facture n° 2026-0001");
-    expect(m).toContain("La facture en PDF suit.");
+    expect(m).toContain("Je te joins la facture en PDF.");
     expect(m).not.toContain("votre");
   });
   it("l'avoir suit la même règle", () => {
     const m = messageFacture({ ...inv, number: "2026-0002", kind: "avoir", totalTTC: -50, due: 0, avoirDe: { number: "2026-0001", issuedAt: "2026-10-05" } }, "Julie");
     expect(m).toContain("Voici l’avoir n° 2026-0002 sur la facture n° 2026-0001");
     expect(m).toContain(" : 50,00 € déduits de votre facture.");
-    expect(m).toContain("L’avoir en PDF suit.");
+    expect(m).toContain("Je vous joins l’avoir en PDF.");
   });
 });
 
@@ -59,10 +60,17 @@ describe("le salut et le nom du client : jamais « Bonjour EARL, » ni « Bonjou
     expect(appel("EARL du Haras des Lys")).toBe("EARL du Haras des Lys");
     expect(prenomDe("GAEC des Prés")).toBe("GAEC des Prés");
   });
-  it("une civilité se dit avec le nom", () => {
-    expect(salut("M. Dupont")).toBe("Bonjour M. Dupont,");
-    expect(salut("Mme Leroy")).toBe("Bonjour Mme Leroy,");
+  it("une civilité : « Bonjour, » dans le message, le nom entier à l'écran", () => {
+    expect(salut("M. Dupont")).toBe("Bonjour,");
+    expect(salut("Mme Leroy")).toBe("Bonjour,");
+    expect(salut("C. Dubois")).toBe("Bonjour,");
+    expect(salut("Claire Dubois", true)).toBe("Bonjour,");
     expect(prenomDe("M. Dupont")).toBe("M. Dupont");
+    expect(appel("C. Dubois")).toBe("C. Dubois");
+  });
+  it("la relance suit la même règle", () => {
+    const bill = { payer: "EARL du Haras des Lys", lines: [{ id: "r", label: "Pension de Pacha", amount: 350 }], total: 350, paid: 0, due: 350 } as unknown as Bill;
+    expect(messageDu(bill, { year: 2026, month: 10 }, "Les Trois Pommiers", "Julie").split("\n")[0]).toBe("Bonjour,");
   });
   it("une personne : son prénom, comme avant", () => {
     expect(salut("Claire Dubois")).toBe("Bonjour Claire,");

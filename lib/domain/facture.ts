@@ -2,7 +2,7 @@ import type { BillingInfo, Invoice, InvoiceLine, InvoiceVat, Payment, Period, Pe
 import { billOf, billsFor, cleClient, monthKey } from "@/lib/domain/billing";
 import { enMoyen } from "@/lib/domain/paiement";
 import { esc } from "@/lib/utils/esc";
-import { formule, salut, signature } from "@/lib/domain/politesse";
+import { appel, formule, pasUnPrenom, prenom, salut, signature } from "@/lib/domain/politesse";
 import { r2 } from "@/lib/utils/arrondi";
 
 /**
@@ -240,14 +240,11 @@ const PENALITES_DIT: Record<"bce10" | "legal3", string> = {
 /** Les conditions de paiement d'un professionnel ne sont pas encore choisies. */
 export const conditionsProManquent = (b: BillingInfo | undefined) => typeof b?.delaiPro !== "number" || !b?.penalites;
 
-/** Une civilité ou une forme de société en tête d'un nom : ce n'est pas un prénom. */
-const PAS_PRENOM = /^(m|mr|mme|mlle|mme\.|monsieur|madame|mademoiselle|dr|me|earl|scea|gaec|sarl|sas|sasu|eurl|sci|sa|snc|sca|ei|ste|sté|société|societe|haras|écurie|ecurie|centre|club|association|asso)$/i;
-
 /** « Sophie Martin » oui ; « Claire D. », « Hugo », « M. Dupont » non : il faut le prénom et le nom en entier. */
 export function estNomComplet(name?: string): boolean {
   const mots = (name ?? "").trim().split(/\s+/).filter(Boolean);
   if (mots.length < 2) return false;
-  if (PAS_PRENOM.test(mots[0].replace(/\.$/, ""))) return false;
+  if (pasUnPrenom(mots[0])) return false;
   return mots.every((m) => !m.endsWith(".") && m.replace(/[^\p{L}]/gu, "").length >= 2);
 }
 
@@ -474,8 +471,11 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
     return { label: g.label, kind: g.kind, qty: g.qty, rate, unitTTC: g.unitTTC, unitHT, totalTTC, totalHT: r2(unitHT * g.qty), revenueIds: g.ids };
   });
   const t = totaux(lines);
-  const dejaFacture = avant.reduce((s, i) => s + i.totalTTC, 0);
-  const paid = r2(Math.min(t.totalTTC, Math.max(0, (bill?.paid ?? 0) - dejaFacture)));
+  // Ce que les factures d'avant prennent déjà sur ce qui est payé : leur total, moins leurs avoirs (une facture annulée ne prend rien).
+  const dejaFacture = avant.reduce((s, i) => s + resteEnEuros(i, data.invoices), 0);
+  // Ce qui est payé, moins ce que tu lui as rendu sur ce mois.
+  const recu = (bill?.paid ?? 0) - (bill?.rendu ?? 0);
+  const paid = r2(Math.min(t.totalTTC, Math.max(0, recu - dejaFacture)));
   const due = r2(Math.max(0, t.totalTTC - paid));
   const reglee = due <= 0 ? regleeDe(data.payments, payer, mk) : undefined;
   const pro = person?.statut === "pro";
@@ -740,23 +740,11 @@ export function eur2(n: number): string {
   return `${v < 0 ? "−" : ""}${s.replace(/[  ]/g, " ")} €`;
 }
 
-/**
- * Comment appeler le client dans un message : son prénom quand c'est une
- * personne (« Claire »), sinon rien (une société, « EARL Les Tilleuls »,
- * « M. Dupont », un pro).
- */
-export function prenomClient(buyer: { name?: string; pro?: boolean } | undefined, payer = ""): string {
-  if (buyer?.pro) return "";
-  const nom = (buyer?.name || payer).trim();
-  const premier = nom.split(/\s+/)[0] ?? "";
-  const lettres = premier.replace(/[^\p{L}]/gu, "");
-  // Une civilité (« M. »), une forme de société (« EARL »), une initiale, un mot tout en capitales : pas un prénom.
-  if (!premier || premier.endsWith(".") || PAS_PRENOM.test(premier) || lettres.length < 2 || lettres === lettres.toUpperCase()) return "";
-  return premier;
-}
+/** Le prénom du client pour un message (règle unique : lib/domain/politesse.ts), « » pour un pro, une société, une civilité. */
+export const prenomClient = (buyer: { name?: string; pro?: boolean } | undefined, payer = ""): string => prenom(buyer?.name || payer, buyer?.pro);
 
 /** Le nom à dire à l'écran (« L'envoyer à Claire », « faite pour EARL Les Tilleuls ») : le prénom d'une personne, le nom entier sinon. */
-export const appelClient = (buyer: { name?: string; pro?: boolean } | undefined, payer: string) => prenomClient(buyer, payer) || payer;
+export const appelClient = (buyer: { name?: string; pro?: boolean } | undefined, payer: string) => prenomClient(buyer, payer) || appel(buyer?.name || payer) || payer;
 
 /** Le message en bas de l'écran (rendu en HTML) : le numéro et le nom du client sont échappés. */
 export const messageFaite = (inv: Pick<Invoice, "kind" | "number" | "payer" | "avoirDe"> & { buyer?: Pick<Invoice["buyer"], "name" | "pro"> }) =>
@@ -789,8 +777,7 @@ export function messageFacture(
 ): string {
   const nb = (n: number) => eur2(n).replace(/ /g, " ");
   const f = formule(opts.tu);
-  const prenom = prenomClient(inv.buyer, inv.payer);
-  const bonjour = prenom ? `Bonjour ${prenom},` : "Bonjour,";
+  const bonjour = salut(inv.buyer?.name || inv.payer, inv.buyer?.pro);
   const doc = inv.kind === "avoir" ? "l’avoir" : "la facture";
   const pdf = (opts.canal ?? "email") === "court" ? `Je peux ${f.te} l’envoyer en PDF si besoin.` : `Je ${f.te} joins ${doc} en PDF.`;
   const out =

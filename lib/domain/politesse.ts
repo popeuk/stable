@@ -34,9 +34,12 @@ export function signature(gerant: string | undefined, ecurie: string | undefined
 }
 
 /** Les formes de société et les mots d'une structure : on ne les salue pas comme un prénom. */
-const STRUCTURE = /^(earl|scea|gaec|sarl|sas|sasu|eurl|sa|sci|snc|ei|eirl|selarl|scop|asso|association|haras|[ée]curies?|centre|club|poney-club|ferme|domaine|soci[ée]t[ée]|ets|[ée]tablissements|mairie|commune|lyc[ée]e|[ée]cole|cabinet|clinique|groupe|elevage|[ée]levage)$/i;
-/** Les civilités : « M. Dupont » se dit en entier. */
+const STRUCTURE = /^(earl|scea|gaec|sarl|sas|sasu|eurl|sa|sca|sci|snc|ei|eirl|selarl|scop|ste|st[ée]|asso|association|haras|[ée]curies?|centre|club|poney-club|ferme|domaine|soci[ée]t[ée]|ets|[ée]tablissements|mairie|commune|lyc[ée]e|[ée]cole|cabinet|clinique|groupe|[ée]levage)$/i;
+/** Les civilités : « M. Dupont » n'est pas un prénom. */
 const CIVILITE = /^(m\.?|mr\.?|mme\.?|mlle\.?|madame|monsieur|mademoiselle|dr\.?|docteur|me\.?|ma[îi]tre)$/i;
+
+/** Ce premier mot est-il une civilité ou une forme de société (« M. », « EARL », « Haras ») ? */
+export const pasUnPrenom = (mot: string) => STRUCTURE.test(mot) || CIVILITE.test(mot);
 
 /** Le nom est-il celui d'une structure (« EARL du Haras des Lys », « SCEA Martin ») ? Un sigle en capitales compte aussi. */
 export function estStructure(nom: string): boolean {
@@ -45,22 +48,31 @@ export function estStructure(nom: string): boolean {
 }
 
 /**
- * Comment on appelle un client à l'écran : son prénom (« Hugo L. » → « Hugo »),
- * mais le nom entier pour une structure (« EARL du Haras des Lys ») ou une
- * civilité (« M. Dupont »), jamais « EARL » ni « M. » tout seuls.
+ * La seule règle du prénom d'un client (messages, écrans, factures, relances) :
+ * le premier mot quand le client est une personne (« Hugo L. » → « Hugo »),
+ * rien pour un professionnel, une société (« EARL… », « SCEA… », un sigle en
+ * capitales), une civilité (« M. Dupont », « Mme Leroy ») ou une initiale
+ * (« C. Dubois »).
  */
-export function appel(nom: string): string {
-  const n = nom.trim();
-  const premier = n.split(/\s+/)[0] ?? "";
-  if (!premier) return nom;
-  if (estStructure(n) || CIVILITE.test(premier)) return n;
+export function prenom(nom: string | undefined, pro?: boolean): string {
+  if (pro) return "";
+  const premier = (nom ?? "").trim().split(/\s+/)[0] ?? "";
+  const lettres = premier.replace(/[^\p{L}]/gu, "");
+  if (!premier || premier.endsWith(".") || pasUnPrenom(premier) || lettres.length < 2 || lettres === lettres.toUpperCase()) return "";
   return premier;
 }
 
-/** « Bonjour Claire, », « Bonjour M. Dupont, », et « Bonjour, » pour une structure. */
-export function salut(nom: string): string {
-  const n = nom.trim();
-  if (!n || estStructure(n)) return "Bonjour,";
-  return `Bonjour ${appel(n)},`;
+/**
+ * Comment on appelle un client à l'écran : son prénom (« Hugo L. » → « Hugo »),
+ * sinon le nom en entier (« EARL du Haras des Lys », « M. Dupont »), jamais
+ * « EARL » ni « M. » tout seuls.
+ */
+export function appel(nom: string, pro?: boolean): string {
+  return prenom(nom, pro) || nom.trim() || nom;
 }
 
+/** « Bonjour Claire, » pour une personne ; « Bonjour, » pour un pro, une société, une civilité, une initiale. */
+export function salut(nom: string | undefined, pro?: boolean): string {
+  const p = prenom(nom, pro);
+  return p ? `Bonjour ${p},` : "Bonjour,";
+}
