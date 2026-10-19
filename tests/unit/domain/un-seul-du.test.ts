@@ -3,7 +3,7 @@ import { billOf, cleClient, partsARendre } from "@/lib/domain/billing";
 import { clientDues, dusDuClient } from "@/lib/domain/clients";
 import { clientsAFairePayer } from "@/lib/domain/compte-auto";
 import { encaissement } from "@/lib/domain/paiement";
-import { brouillon, contenuAvoir, emettre, emettreAvoir } from "@/lib/domain/facture";
+import { brouillon, clientsAFacturer, contenuAvoir, emettre, emettreAvoir } from "@/lib/domain/facture";
 import { lignesComptables } from "@/lib/domain/comptable";
 import type { BillingInfo, Payment, StableData } from "@/lib/domain/types";
 
@@ -161,12 +161,13 @@ describe("un avoir sur un mois déjà payé : à lui rendre", () => {
     expect(dusDuClient(d, "Claire D.", oct)).toMatchObject({ due: 0, aRendre: 0 });
   });
 
-  it("remboursée puis refacturée : la nouvelle facture est due en entier, comme la fiche", () => {
+  it("une fois remboursée, la pension annulée ne revient plus dans Facturer", () => {
     const d = payeEtAvoir();
+    // Avant le remboursement, on peut encore refaire la facture (corriger).
+    expect(clientsAFacturer(d, oct)).toContain("Claire D.");
     d.payments!.push({ id: "r", payer: "Claire D.", month: "2026-10", amount: 350, at: "2026-10-22T10:00:00", kind: "remboursement" });
-    const b = brouillon(d, "Claire D.", oct).facture!;
-    expect(b).toMatchObject({ paid: 0, due: 350 });
-    d.invoices = [...d.invoices!, emettre(d, b, "2026-10-23", "i2")];
-    expect(dusDuClient(d, "Claire D.", oct)).toMatchObject({ due: 350, aRendre: 0 });
+    expect(clientsAFacturer(d, oct)).not.toContain("Claire D.");
+    expect(brouillon(d, "Claire D.", oct).vide).toBe(true);
+    expect(dusDuClient(d, "Claire D.", oct)).toMatchObject({ due: 0, aRendre: 0 });
   });
 });

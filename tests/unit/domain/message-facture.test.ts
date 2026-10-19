@@ -29,6 +29,15 @@ describe("le bonjour", () => {
   });
 });
 
+describe("l'échéance d'un client professionnel", () => {
+  it("le message dit la date de la facture, pas « Payable à réception »", () => {
+    const m = messageFacture({ ...inv, payer: "EARL Les Tilleuls", buyer: { name: "EARL Les Tilleuls", pro: true }, echeance: "2026-11-18" }, "Julie");
+    expect(m).toContain("À régler avant le 18 novembre 2026.");
+    expect(m).not.toContain("Payable à réception");
+    expect(messageFacture({ ...inv, due: 100, echeance: "2026-11-18" }, "Julie")).toContain("Reste à payer : 100,00 €, avant le 18 novembre 2026.");
+  });
+});
+
 describe("la pièce jointe", () => {
   it("« Je vous joins la facture en PDF » seulement par e-mail ou avec le partage du téléphone", () => {
     expect(messageFacture(inv, "Julie", { canal: "email" })).toContain("Je vous joins la facture en PDF.");

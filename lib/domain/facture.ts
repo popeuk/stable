@@ -1,5 +1,5 @@
 import type { BillingInfo, Invoice, InvoiceLine, InvoiceVat, Payment, Period, Person, Revenue, StableData, VatKind, VatRate } from "@/lib/domain/types";
-import { billOf, billsFor, cleClient, monthKey } from "@/lib/domain/billing";
+import { billOf, billsFor, cleClient, monthKey, type Bill } from "@/lib/domain/billing";
 import { enMoyen } from "@/lib/domain/paiement";
 import { esc } from "@/lib/utils/esc";
 import { appel, formule, pasUnPrenom, prenom, salut, signature } from "@/lib/domain/politesse";
@@ -395,6 +395,23 @@ export function recettesFacturees(invoices: Invoice[] | undefined): Map<string, 
   return out;
 }
 
+/** Les recettes rendues par un avoir et sur aucune facture en cours. */
+export function recettesAnnulees(invoices: Invoice[] | undefined): Set<string> {
+  const n = new Map<string, number>();
+  for (const i of invoices ?? []) for (const id of i.revenueIds) n.set(id, (n.get(id) ?? 0) + (estAvoir(i) ? -1 : 1));
+  return new Set([...n].filter(([, c]) => c <= 0).map(([id]) => id));
+}
+
+/**
+ * Ce qui reste à facturer sur une note : les lignes sur aucune facture. Une
+ * ligne annulée par un avoir peut repasser sur une facture (on corrige),
+ * sauf quand le client a été remboursé ce mois-là : l'avoir est alors
+ * définitif, la ligne ne revient pas dans Facturer.
+ */
+export function aFacturer(b: Pick<Bill, "lines" | "rendu">, deja: Map<string, string>, annulees: Set<string>): Bill["lines"] {
+  return b.lines.filter((l) => l.amount && !deja.has(l.id) && !((b.rendu ?? 0) > 0 && annulees.has(l.id)));
+}
+
 /** Comment un client a soldé son mois : le jour de son dernier paiement, et le moyen s'il est noté. */
 export function regleeDe(payments: Payment[] | undefined, payer: string, month: string): { date: string; moyen?: string } | undefined {
   const k = cleClient(payer);
@@ -443,8 +460,7 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
   const person = personneDe(data, payer);
   type G = { label: string; kind: VatKind; unitTTC: number; qty: number; ids: string[] };
   const groups = new Map<string, G>();
-  for (const l of bill?.lines ?? []) {
-    if (deja.has(l.id) || !l.amount) continue;
+  for (const l of bill ? aFacturer(bill, deja, recettesAnnulees(data.invoices)) : []) {
     const r = data.revenues.find((x) => x.id === l.id);
     const kind = r ? kindOf(r, catName(r.categoryId)) : "autre";
     const label = (kind === "pension" || kind === "soins") && l.horse && !l.label.includes(l.horse) ? `${l.label} (${l.horse})` : l.label;
@@ -504,8 +520,9 @@ export function brouillon(data: StableData, payer: string, period: Period): Brou
 /** Les clients qui ont quelque chose à facturer ce mois (une ligne qui n'est sur aucune facture). */
 export function clientsAFacturer(data: StableData, period: Period): string[] {
   const deja = recettesFacturees(data.invoices);
+  const annulees = recettesAnnulees(data.invoices);
   return billsFor(data, period)
-    .filter((b) => !b.orphan && b.lines.some((l) => l.amount && !deja.has(l.id)))
+    .filter((b) => !b.orphan && aFacturer(b, deja, annulees).length > 0)
     .map((b) => b.payer);
 }
 
@@ -771,7 +788,7 @@ export type Canal = "email" | "partage" | "court";
  * promet rien. Et la signature : le gérant et le nom de l'écurie.
  */
 export function messageFacture(
-  inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe"> & { buyer?: Pick<Invoice["buyer"], "name" | "pro"> },
+  inv: Pick<Invoice, "payer" | "number" | "month" | "totalTTC" | "due" | "kind" | "avoirDe"> & { buyer?: Pick<Invoice["buyer"], "name" | "pro">; echeance?: string },
   gerant: string,
   opts: { tu?: boolean; ecurie?: string; canal?: Canal } = {},
 ): string {
@@ -786,7 +803,13 @@ export function messageFacture(
       : [
           bonjour,
           `Voici ${f.ta} facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,
-          inv.due > 0 && inv.due < inv.totalTTC ? `Reste à payer : ${nb(inv.due)}.` : inv.due <= 0 ? "Elle est déjà réglée." : "Payable à réception.",
+          inv.due > 0 && inv.due < inv.totalTTC
+            ? `Reste à payer : ${nb(inv.due)}${inv.echeance ? `, avant le ${dateDite(inv.echeance)}` : ""}.`
+            : inv.due <= 0
+              ? "Elle est déjà réglée."
+              : inv.echeance
+                ? `À régler avant le ${dateDite(inv.echeance)}.`
+                : "Payable à réception.",
           pdf,
         ];
   out.push(...signature(gerant, opts.ecurie));
