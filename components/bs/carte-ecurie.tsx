@@ -225,7 +225,7 @@ export function Reglages() {
           { href: "/regles?t=mentions-legales", ic: "flag", t: "Mentions légales", s: "Qui édite Be Stable, qui l’héberge" },
         ]}
       >
-        <ChoixTemoinsLigne className="ce-li">{(resume) => <LigneTx ic="chart" t="Témoins et mesure" s={`${resume} · changer d’avis`} />}</ChoixTemoinsLigne>
+        <ChoixTemoinsLigne className="ce-li">{(resume) => <LigneTx ic="chart" t="Cookies" s={`${resume} · changer d’avis`} />}</ChoixTemoinsLigne>
       </Case>
       <ContactOuvrir
         ecran="/reglages"
