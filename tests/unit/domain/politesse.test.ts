@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { messageFacture, messageFaite } from "@/lib/domain/facture";
 import { messageDu, prenomDe } from "@/lib/domain/clients";
-import { appel, nomEcurie, salut, signature } from "@/lib/domain/politesse";
+import { appel, nomEcurie, peutTutoyer, salut, signature } from "@/lib/domain/politesse";
 import type { Bill } from "@/lib/domain/billing";
 
 /** Tu ou vous dans les messages aux clients (décision 2), vous par défaut, signé du gérant et de l'écurie. */
@@ -80,5 +80,14 @@ describe("le salut et le nom du client : jamais « Bonjour EARL, » ni « Bonjou
     expect(salut("Claire Dubois")).toBe("Bonjour Claire,");
     expect(prenomDe("Hugo L.")).toBe("Hugo");
     expect(messageFaite({ number: "2026-0001", payer: "EARL Les Tilleuls" })).toBe("Facture n° 2026-0001 faite pour EARL Les Tilleuls.");
+  });
+});
+
+describe("peutTutoyer", () => {
+  it("jamais une société, une association, un pro ou une civilité", () => {
+    expect(peutTutoyer(true, "Claire Dubois")).toBe(true);
+    expect(peutTutoyer(false, "Claire Dubois")).toBe(false);
+    for (const n of ["EARL Les Tilleuls", "Association des cavaliers", "Mme Leroy", "M. Dupont", "GAEC Martin"]) expect(peutTutoyer(true, n)).toBe(false);
+    expect(peutTutoyer(true, "Claire Dubois", true)).toBe(false);
   });
 });

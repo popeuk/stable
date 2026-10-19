@@ -25,12 +25,13 @@ export function nomEcurie(stableName: string | undefined, legalName?: string): s
   return (legalName ?? "").trim();
 }
 
-/** « Merci, » puis le prénom du gérant et le nom de l'écurie, chacun sur sa ligne. */
-export function signature(gerant: string | undefined, ecurie: string | undefined): string[] {
+/** « Merci, » (ou « Bonne journée, » pour un remboursement) puis le prénom du gérant et le nom de l'écurie, chacun sur sa ligne. */
+export function signature(gerant: string | undefined, ecurie: string | undefined, rembourse?: boolean): string[] {
   const qui = [(gerant ?? "").trim(), (ecurie ?? "").trim()].filter(Boolean);
   // Le prénom du gérant est souvent le même mot que l'écurie (« Claire », « Écurie Claire ») : pas de doublon exact.
   const uniques = qui.filter((x, i) => qui.findIndex((y) => y.toLowerCase() === x.toLowerCase()) === i);
-  return uniques.length ? ["Merci,", ...uniques] : ["Merci."];
+  const formule = rembourse ? "Bonne journée" : "Merci";
+  return uniques.length ? [`${formule},`, ...uniques] : [`${formule}.`];
 }
 
 /** Les formes de société et les mots d'une structure : on ne les salue pas comme un prénom. */
@@ -42,6 +43,17 @@ const CIVILITE = /^(m\.?|mr\.?|mme\.?|mlle\.?|madame|monsieur|mademoiselle|dr\.?
 
 /** Ce premier mot est-il une civilité ou une forme de société (« M. », « EARL », « Haras ») ? */
 export const pasUnPrenom = (mot: string) => STRUCTURE.test(mot) || CIVILITE.test(mot) || PARTICULE.test(mot);
+
+/**
+ * On ne tutoie qu'une personne : une société, une association, un client
+ * professionnel ou une civilité (« M. Dupont ») reçoivent toujours le vous,
+ * quel que soit le réglage général.
+ */
+export function peutTutoyer(tu: boolean | undefined, nom: string | undefined, pro?: boolean): boolean {
+  if (!tu || pro) return false;
+  const n = (nom ?? "").trim();
+  return !estStructure(n) && !CIVILITE.test(n.split(/\s+/)[0] ?? "");
+}
 
 /** Le nom est-il celui d'une structure (« EARL du Haras des Lys », « SCEA Martin ») ? Un sigle en capitales compte aussi. */
 export function estStructure(nom: string): boolean {

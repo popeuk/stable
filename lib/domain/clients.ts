@@ -1,5 +1,5 @@
 import type { Period } from "@/lib/domain/types";
-import { appel, formule, nomEcurie, salut, signature } from "@/lib/domain/politesse";
+import { appel, formule, nomEcurie, peutTutoyer, salut, signature } from "@/lib/domain/politesse";
 import type { Bill } from "@/lib/domain/billing";
 import { r2 } from "@/lib/utils/arrondi";
 import { BUCKET_LABEL, clientRevenues, impayesAnciens, clientDues, dusDuClient, type ClientBucket, type ClientRevenue, type ClientDue } from "@/lib/domain/clients-dus";
@@ -57,7 +57,7 @@ const eur0 = (n: number) => `${new Intl.NumberFormat("fr-FR", { minimumFractionD
  * gérant et de l'écurie.
  */
 export function messageDu(bill: Bill, period: Period, stableName: string, gerant: string, tu?: boolean): string {
-  const f = formule(tu);
+  const f = formule(peutTutoyer(tu, bill.payer));
   const lines = bill.lines.filter((l) => !l.onSite);
   const fixes = lines.filter((l) => /pension/i.test(l.label));
   const grp = new Map<string, { n: number; v: number }>();

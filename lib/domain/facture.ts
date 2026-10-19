@@ -2,7 +2,7 @@ import type { BillingInfo, Invoice, InvoiceLine, InvoiceVat, Payment, Period, Pe
 import { billOf, billsFor, cleClient, monthKey, type Bill } from "@/lib/domain/billing";
 import { enMoyen } from "@/lib/domain/paiement";
 import { esc } from "@/lib/utils/esc";
-import { appel, formule, pasUnPrenom, prenom, salut, signature } from "@/lib/domain/politesse";
+import { appel, formule, pasUnPrenom, peutTutoyer, prenom, salut, signature } from "@/lib/domain/politesse";
 import { r2 } from "@/lib/utils/arrondi";
 import { compteurMax, estAvoir, fusionFactures, pensionFigee, personneDe, prochainNumero, recettesAnnulees, recettesFacturees } from "@/lib/domain/factures-base";
 
@@ -185,16 +185,23 @@ export function changementsVendeur(app: BillingInfo | undefined, fichier: unknow
   const f = (fichier && typeof fichier === "object" ? fichier : {}) as Record<string, unknown>;
   const texte = (v: unknown) => (typeof v === "string" ? v : undefined);
   const b: BillingInfo = { ...f, iban: texte(f.iban), siret: texte(f.siret), nomPrenom: texte(f.nomPrenom), legalName: texte(f.legalName), statut: f.statut === "ei" || f.statut === "societe" || f.statut === "association" ? f.statut : undefined } as BillingInfo;
-  const out: string[] = [];
+  // Une seule phrase pour tout ce qui change, une seule pour tout ce qui est retiré.
+  const change: { objet: string; valeur: string }[] = [];
+  const retire: string[] = [];
+  const range = (objet: string, avant: boolean, apres: string) => (apres ? change.push({ objet, valeur: apres }) : avant && retire.push(objet));
   const iA = ibanPropre(app?.iban);
   const iF = ibanPropre(b.iban);
-  if (iA && iA !== iF) out.push(iF ? `Cette sauvegarde change ton IBAN : ${ibanDit(iF)}.` : "Cette sauvegarde retire ton IBAN.");
+  if (iA && iA !== iF) range("ton IBAN", true, iF ? `${ibanDit(iF)}` : "");
   const sA = siretPropre(app?.siret);
   const sF = siretPropre(b.siret);
-  if (sA && sA !== sF) out.push(sF ? `Cette sauvegarde change ton SIRET : ${siretDit(sF)}.` : "Cette sauvegarde retire ton SIRET.");
+  if (sA && sA !== sF) range("ton SIRET", true, sF ? siretDit(sF) : "");
   const nA = nomVendeur(app);
   const nF = nomVendeur(b);
-  if (nA && nA.toLowerCase() !== nF.toLowerCase()) out.push(nF ? `Cette sauvegarde change le nom sur tes factures : ${nF}.` : "Cette sauvegarde retire le nom sur tes factures.");
+  if (nA && nA.toLowerCase() !== nF.toLowerCase()) range("le nom sur tes factures", true, nF);
+  const liste = (l: string[]) => (l.length > 1 ? `${l.slice(0, -1).join(", ")} et ${l[l.length - 1]}` : l[0]);
+  const out: string[] = [];
+  if (change.length) out.push(`Cette sauvegarde change ${liste(change.map((c) => c.objet))} : ${change.map((c) => c.valeur).join(", ")}.`);
+  if (retire.length) out.push(`Cette sauvegarde retire ${liste(retire)}.`);
   return out;
 }
 
@@ -817,13 +824,14 @@ export function messageFacture(
   opts: { tu?: boolean; ecurie?: string; canal?: Canal; rembourse?: boolean } = {},
 ): string {
   const nb = (n: number) => eur2(n).replace(/ /g, " ");
-  const f = formule(opts.tu);
+  const tu = peutTutoyer(opts.tu, inv.buyer?.name || inv.payer, inv.buyer?.pro);
+  const f = formule(tu);
   const bonjour = salut(inv.buyer?.name || inv.payer, inv.buyer?.pro);
   const doc = inv.kind === "avoir" ? "l’avoir" : "la facture";
   const pdf = (opts.canal ?? "email") === "court" ? `Je peux ${f.te} l’envoyer en PDF si besoin.` : `Je ${f.te} joins ${doc} en PDF.`;
   const out =
     inv.kind === "avoir"
-      ? [bonjour, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${opts.rembourse ? `${opts.tu ? "Je te rembourse" : "Nous vous remboursons"} ${nb(-inv.totalTTC)}.` : `${nb(-inv.totalTTC)} déduits de ${f.ta} facture.`}`, pdf]
+      ? [bonjour, `Voici l’avoir n° ${inv.number}${inv.avoirDe ? ` sur la facture n° ${inv.avoirDe.number}` : ""} : ${opts.rembourse ? `${tu ? "je te rembourse" : "nous vous remboursons"} ${nb(-inv.totalTTC)}.` : `${nb(-inv.totalTTC)} déduits de ${f.ta} facture.`}`, pdf]
       : [
           bonjour,
           `Voici ${f.ta} facture n° ${inv.number} pour ${moisDit(inv.month)} : ${nb(inv.totalTTC)}.`,
@@ -836,6 +844,6 @@ export function messageFacture(
                 : "Payable à réception.",
           pdf,
         ];
-  out.push(...signature(gerant, opts.ecurie));
+  out.push(...signature(gerant, opts.ecurie, inv.kind === "avoir" && !!opts.rembourse));
   return out.join("\n");
 }

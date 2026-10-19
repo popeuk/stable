@@ -29,6 +29,25 @@ describe("le bonjour", () => {
   });
 });
 
+describe("fins de message", () => {
+  const av = { ...inv, kind: "avoir" as const, totalTTC: -87.5, due: 0, avoirDe: { number: "2026-0001", issuedAt: "2026-10-05" } };
+  it("un remboursement finit par « Bonne journée », sans « Merci »", () => {
+    const m = messageFacture(av, "Julie", { rembourse: true, ecurie: "Les Tilleuls" });
+    expect(m.endsWith("Bonne journée,\nJulie\nLes Tilleuls")).toBe(true);
+    expect(m).not.toMatch(/Merci/);
+    expect(messageFacture(av, "Julie", { ecurie: "Les Tilleuls" })).toMatch(/Merci,\nJulie/);
+  });
+  it("une société, un pro ou une civilité reçoivent le vous même avec le réglage « tu »", () => {
+    for (const name of ["EARL Les Tilleuls", "M. Dupont", "Haras du Pin"]) {
+      const m = messageFacture({ ...av, payer: name, buyer: { name } }, "Julie", { rembourse: true, tu: true });
+      expect(m).toContain("nous vous remboursons");
+      expect(m).toContain("Je vous joins");
+    }
+    expect(messageFacture({ ...av, buyer: { name: "Claire Dubois", pro: true } }, "Julie", { rembourse: true, tu: true })).toContain("nous vous remboursons");
+    expect(messageFacture(av, "Julie", { rembourse: true, tu: true })).toContain("je te rembourse");
+  });
+});
+
 describe("l'échéance d'un client professionnel", () => {
   it("le message dit la date de la facture, pas « Payable à réception »", () => {
     const m = messageFacture({ ...inv, payer: "EARL Les Tilleuls", buyer: { name: "EARL Les Tilleuls", pro: true }, echeance: "2026-11-18" }, "Julie");
@@ -54,8 +73,10 @@ describe("la pièce jointe", () => {
   });
   it("l'avoir d'un mois déjà payé rembourse, celui d'un mois à payer déduit", () => {
     const av = { ...inv, kind: "avoir" as const, totalTTC: -87.5, due: 0, avoirDe: { number: "2026-0001", issuedAt: "2026-10-05" } };
-    expect(messageFacture(av, "Julie", { rembourse: true })).toContain("Nous vous remboursons 87,50 €.");
-    expect(messageFacture(av, "Julie", { rembourse: true, tu: true })).toContain("Je te rembourse 87,50 €.");
+    expect(messageFacture(av, "Julie", { rembourse: true })).toContain(": nous vous remboursons 87,50 €.");
+    expect(messageFacture(av, "Julie", { rembourse: true, tu: true })).toContain("je te rembourse 87,50 €.");
+    expect(messageFacture(av, "Julie", { rembourse: true, tu: true })).not.toContain(": Je ");
+    expect(messageFacture(av, "Julie", { rembourse: true })).toContain(": nous vous remboursons");
     expect(messageFacture(av, "Julie", { rembourse: true })).not.toMatch(/déduits/);
     expect(messageFacture(av, "Julie")).toContain("déduits de votre facture");
   });
