@@ -99,6 +99,8 @@ export interface Draft {
   connu?: Connu;
   /** En plusieurs fois : combien de fois dans l'année. */
   fois?: number;
+  /** Corriger une dépense de l'écurie « dedans » : sur combien de mois elle se décompte de l'estimation. */
+  dansMois?: number;
 }
 
 /** Comment une dépense de l'écurie qui revient est connue. Un « chaque année » ou « chaque trimestre » d'avant se lit à l'année ou en 4 fois. */

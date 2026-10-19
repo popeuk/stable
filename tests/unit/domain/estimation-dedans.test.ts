@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { horsePnl, stablePnl } from "@/lib/domain/calculations";
 import { monthBreakdown } from "@/lib/domain/ticket";
-import { estimationDuPoste, montantsDuMois } from "@/lib/domain/recurring";
+import { estimationDuPoste, montantsDuMois, partDuMois } from "@/lib/domain/recurring";
 import { questionDedans } from "@/lib/domain/estimation";
+import { ligneRemplie } from "@/lib/domain/corriger";
 import type { SharedExpense, StableData } from "@/lib/domain/types";
 
 const oct = { year: 2026, month: 10 };
@@ -66,5 +67,36 @@ describe("une vraie dépense d'un poste déjà estimé", () => {
     expect(questionDedans("Paille", "300 €")).toBe("Cette paille fait partie de tes 300 € par mois ?");
     expect(questionDedans("Granulés", "200 €")).toBe("Ces granulés font partie de tes 200 € par mois ?");
     expect(questionDedans("MSA (cotisations sociales)", "250 €")).toBe("Cette dépense, « MSA (cotisations sociales) », fait partie de tes 250 € par mois ?");
+  });
+});
+
+describe("un achat « dedans » pour plusieurs mois", () => {
+  const mois = (k: number) => ({ year: 2026 + Math.floor((9 + k) / 12), month: ((9 + k) % 12) + 1 });
+
+  it("5 400 € de foin pour 6 mois : 900 € décomptés chaque mois, l'année ne compte pas double", () => {
+    const d = data({ dansEstimation: true, totalAmount: 5400, dansMois: 6 });
+    expect(stablePnl(d, oct).sharedCosts).toBe(5400);
+    for (let k = 1; k < 6; k++) expect(stablePnl(d, mois(k)).sharedCosts).toBe(0);
+    // Le septième mois, l'estimation revient.
+    expect(stablePnl(d, mois(6)).sharedCosts).toBe(900);
+    const six = [0, 1, 2, 3, 4, 5].reduce((t, k) => t + stablePnl(d, mois(k)).sharedCosts, 0);
+    expect(six).toBe(6 * 900);
+  });
+
+  it("Corriger reprend le choix : la feuille se rouvre sur « 6 mois »", () => {
+    expect(ligneRemplie(data({ dansEstimation: true, dansMois: 6 }), { t: "sh", id: "se1" })?.dansMois).toBe(6);
+    expect(ligneRemplie(data({ dansEstimation: true }), { t: "sh", id: "se1" })?.dansMois).toBe(1);
+    expect(ligneRemplie(data({}), { t: "sh", id: "se1" })?.dansMois).toBeUndefined();
+  });
+
+  it("pour un seul mois (le choix par défaut) : comme avant", () => {
+    const d = data({ dansEstimation: true, totalAmount: 5400, dansMois: 1 });
+    expect(stablePnl(d, mois(1)).sharedCosts).toBe(900);
+  });
+
+  it("le décompte tombe juste au centime : 100 € sur 3 mois", () => {
+    const se = { totalAmount: 100, periodYear: 2026, periodMonth: 10, dansMois: 3 };
+    expect([0, 1, 2, 3].map((k) => partDuMois(se, mois(k)))).toEqual([33.33, 33.33, 33.34, 0]);
+    expect(partDuMois(se, { year: 2026, month: 9 })).toBe(0);
   });
 });

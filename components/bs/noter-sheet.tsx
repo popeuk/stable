@@ -15,7 +15,8 @@ import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
 import { comprendre } from "@/lib/domain/dire";
 import { ligneRemplie } from "@/lib/domain/corriger";
 import { Encaisser } from "@/components/bs/encaisser";
-import { estimationDuPoste } from "@/lib/domain/recurring";
+import { MOIS_DEDANS, estimationDuPoste } from "@/lib/domain/recurring";
+import { r2 } from "@/lib/utils/arrondi";
 import { questionDedans } from "@/lib/domain/estimation";
 import { norm } from "@/lib/domain/interpret";
 import { cavaliersRetenus } from "@/lib/domain/proprio";
@@ -83,6 +84,7 @@ function startFrom(p: NoterPrefill, h: Habitudes, today: string): { screen: Scre
     d.pour = l.pour;
     d.label = l.label;
     d.moneyRep = l.revient ? "monthly" : "once";
+    if (l.dansMois !== undefined) d.dansMois = l.dansMois;
     return { screen: "q", d };
   }
   const base = { date: p.date, start: p.start, horseIds: p.horseIds, prestationId: p.prestationId, amount: p.amount };
@@ -263,12 +265,13 @@ function NoterInner() {
   }
 
   // Une vraie dépense d'un poste déjà estimé dans Mes frais : fait-elle partie de l'estimation ?
-  const [dedansQ, setDedansQ] = useState<{ nom: string; montant: number } | null>(null);
+  // Puis, si oui : pour combien de mois (une livraison de foin pour six mois), 1 par défaut.
+  const [dedansQ, setDedansQ] = useState<{ nom: string; montant: number; mois?: number } | null>(null);
   // « Un client m'a payé » : la liste de ceux qui doivent, puis le paiement (components/bs/encaisser).
   const [encaisser, setEncaisser] = useState(false);
 
   /* ---------- Enregistrer ---------- */
-  function commit(dedans?: boolean) {
+  function commit(dedans?: boolean, dansMois = 1) {
     if (!d) return;
     if (manque(d)) {
       setTried(true);
@@ -444,7 +447,7 @@ function NoterInner() {
         // y compris ceux qui arrivent après ; sans cheval, elle compte quand même (presence.ts).
         allocations: [],
         note,
-        ...(dedans ? { dansEstimation: true } : {}),
+        ...(dedans ? { dansEstimation: true, ...(dansMois > 1 ? { dansMois } : {}) } : {}),
       });
     } else {
       const before = new Set([...st.revenues.map((r) => r.id), ...st.directExpenses.map((x) => x.id)]);
@@ -478,7 +481,7 @@ function NoterInner() {
     } else if (edit.t === "sh") {
       const cat = trouve(st.expenseCategories.filter((c) => !c.isDirect));
       const p = currentPeriod(new Date(x.date + "T12:00:00"));
-      st.updateSharedExpense(edit.id, { totalAmount: v, periodMonth: p.month, periodYear: p.year, ...(change ? { label: label || cat?.name || "Frais de l’écurie", ...(cat ? { categoryId: cat.id } : {}) } : {}) });
+      st.updateSharedExpense(edit.id, { totalAmount: v, periodMonth: p.month, periodYear: p.year, ...(x.dansMois !== undefined ? { dansMois: x.dansMois > 1 ? x.dansMois : undefined } : {}), ...(change ? { label: label || cat?.name || "Frais de l’écurie", ...(cat ? { categoryId: cat.id } : {}) } : {}) });
     } else if (edit.t === "recrev") {
       const cat = trouve(st.revenueCategories);
       st.updateRecurringRevenue(edit.id, { amount: v, ...(horseId ? { horseId } : {}), ...(change ? (cat ? { categoryId: cat.id, label: undefined } : { label: label || undefined }) : {}) });
@@ -762,6 +765,24 @@ function NoterInner() {
         }}
       />
     );
+  } else if (d && dedansQ && dedansQ.mois !== undefined) {
+    const n = dedansQ.mois;
+    body = (
+      <>
+        <button type="button" className="nt-bk" onClick={() => setDedansQ({ ...dedansQ, mois: undefined })}>
+          <Ic n="back" className="" />
+          Revenir
+        </button>
+        <Q>Pour combien de mois ?</Q>
+        <Puces options={MOIS_DEDANS.map((m) => [String(m), m === 1 ? "Ce mois-ci" : `${m} mois`] as [string, string])} value={String(n)} onPick={(v) => setDedansQ({ ...dedansQ, mois: Number(v) })} />
+        <p className="note">{n > 1 ? `On décompte ${eurc(r2(d.amount / n))} de ton estimation chaque mois, pendant ${n} mois.` : `On la décompte de ton estimation de ce mois-ci.`}</p>
+        <div className="nt-stick">
+          <button type="button" className="btn full nt-ok" onClick={() => commit(true, n)}>
+            C’est noté
+          </button>
+        </div>
+      </>
+    );
   } else if (d && dedansQ) {
     body = (
       <>
@@ -772,7 +793,7 @@ function NoterInner() {
         <Q>{questionDedans(dedansQ.nom, eurc(dedansQ.montant))}</Q>
         <p className="note">Oui : on la décompte de ton estimation, le mois compte toujours {eurc(dedansQ.montant)} en tout. Non : elle s’ajoute.</p>
         <div className="nt-stick">
-          <button type="button" className="btn full nt-ok" onClick={() => commit(true)}>
+          <button type="button" className="btn full nt-ok" onClick={() => setDedansQ({ ...dedansQ, mois: 1 })}>
             Oui, c’est dedans
           </button>
           <button type="button" className="btn line full" onClick={() => commit(false)}>
@@ -986,6 +1007,12 @@ function NoterInner() {
             <>
               <Q>Quel jour ?</Q>
               <Quand date={x.date} today={today} onDate={(date) => set((y) => ({ ...y, date }))} />
+            </>
+          )}
+          {x.dansMois !== undefined && (
+            <>
+              <Q>Dans ton estimation, pour combien de mois ?</Q>
+              <Puces options={MOIS_DEDANS.map((m) => [String(m), m === 1 ? "Son mois" : `${m} mois`] as [string, string])} value={String(x.dansMois)} onPick={(v) => set((y) => ({ ...y, dansMois: Number(v) }))} />
             </>
           )}
         </>

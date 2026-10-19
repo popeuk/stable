@@ -1,4 +1,4 @@
-import type { Period, RecurringSchedule, StableData } from "@/lib/domain/types";
+import type { Period, RecurringSchedule, SharedExpense, StableData } from "@/lib/domain/types";
 import { distribute } from "@/lib/domain/distribution";
 import { periodEnd, periodStart } from "@/lib/utils/period";
 import { chevauxPresents, recurrenteDuCheval } from "@/lib/domain/presence";
@@ -47,8 +47,9 @@ export function recurringList(data: StableData) {
 export function montantsDuMois(data: StableData, period: Period): Map<string, number> {
   const dedans = new Map<string, number>();
   for (const se of data.sharedExpenses) {
-    if (!se.dansEstimation || !se.categoryId || se.periodYear !== period.year || se.periodMonth !== period.month) continue;
-    dedans.set(se.categoryId, (dedans.get(se.categoryId) ?? 0) + se.totalAmount);
+    if (!se.dansEstimation || !se.categoryId) continue;
+    const part = partDuMois(se, period);
+    if (part > 0) dedans.set(se.categoryId, r2((dedans.get(se.categoryId) ?? 0) + part));
   }
   const out = new Map<string, number>();
   for (const r of recurringList(data)) {
@@ -62,6 +63,24 @@ export function montantsDuMois(data: StableData, period: Period): Map<string, nu
     out.set(r.id, a);
   }
   return out;
+}
+
+/** Les choix « pour combien de mois » d'un achat qui fait partie de l'estimation. */
+export const MOIS_DEDANS = [1, 2, 3, 6, 12] as const;
+
+/**
+ * La part d'une vraie dépense « dedans » décomptée de l'estimation un mois
+ * donné : la dépense répartie à parts égales sur ses `dansMois` mois (le
+ * dernier prend le centime qui reste), à partir de son mois. Hors de ces
+ * mois : 0. Une livraison de foin de 5 400 € pour 6 mois décompte 900 € par
+ * mois, d'octobre à mars, au lieu de 5 400 € en octobre seulement.
+ */
+export function partDuMois(se: Pick<SharedExpense, "totalAmount" | "periodYear" | "periodMonth" | "dansMois">, period: Period): number {
+  const n = Math.max(1, Math.round(se.dansMois ?? 1));
+  const k = (period.year - se.periodYear) * 12 + (period.month - se.periodMonth);
+  if (k < 0 || k >= n) return 0;
+  const parMois = r2(se.totalAmount / n);
+  return k === n - 1 ? r2(se.totalAmount - parMois * (n - 1)) : parMois;
 }
 
 /** L'estimation d'un poste de l'écurie pour un mois (ce qui revient chaque mois dans cette catégorie), avant toute vraie dépense. */

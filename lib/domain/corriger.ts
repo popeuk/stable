@@ -42,6 +42,8 @@ export interface LigneRemplie {
   date: ISODate;
   /** Une ligne qui revient chaque mois (rentrée ou frais). */
   revient: boolean;
+  /** Une dépense de l'écurie qui fait partie de l'estimation : sur combien de mois elle se décompte. */
+  dansMois?: number;
 }
 
 /** La ligne telle que la feuille la remplit, ou null si elle n'existe plus. */
@@ -60,7 +62,7 @@ export function ligneRemplie(data: StableData, l: LigneArgent): LigneRemplie | n
   if (l.t === "sh") {
     const s = data.sharedExpenses.find((x) => x.id === l.id);
     if (!s) return null;
-    return { sens: "out", amount: s.totalAmount, pour: "ecurie", horseIds: [], label: s.label || cat(s.categoryId), date: `${s.periodYear}-${String(s.periodMonth).padStart(2, "0")}-01`, revient: false };
+    return { sens: "out", amount: s.totalAmount, pour: "ecurie", horseIds: [], label: s.label || cat(s.categoryId), date: `${s.periodYear}-${String(s.periodMonth).padStart(2, "0")}-01`, revient: false, ...(s.dansEstimation ? { dansMois: s.dansMois ?? 1 } : {}) };
   }
   if (l.t === "recrev") {
     const r = (data.recurringRevenues ?? []).find((x) => x.id === l.id);

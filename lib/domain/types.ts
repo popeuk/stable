@@ -130,6 +130,14 @@ export interface SharedExpense {
    * elle s'ajoute.
    */
   dansEstimation?: boolean;
+  /**
+   * Avec `dansEstimation` : sur combien de mois elle se décompte de
+   * l'estimation, à partir de son mois (une livraison de foin pour six mois).
+   * Absent : 1, son mois seulement.
+   */
+  dansMois?: number;
+  /** Le jour où elle a été notée (ou choisi). Absent sur les dépenses d'avant : le 1er de son mois. */
+  date?: ISODate;
 }
 
 /** A calendar period the whole app is scoped to (the Time Ribbon). */
