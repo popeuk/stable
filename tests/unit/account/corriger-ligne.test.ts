@@ -53,7 +53,7 @@ describe("corriger une ligne d'argent", () => {
     expect(factureDeLigne(d, { t: "rev", id: "r1" })).toBe("2026-0001");
     expect(factureDeLigne(d, { t: "dir", id: "e1" })).toBe("2026-0001");
     expect(factureDeLigne(d, { t: "rev", id: "r2" })).toBeUndefined();
-    expect(messageFacturee("2026-0001")).toBe("Elle est sur la facture n° 2026-0001 : fais un avoir.");
+    expect(messageFacturee("2026-0001")).toBe("Cette ligne est sur la facture n° 2026-0001 : pour la changer, fais un avoir depuis la facture.");
   });
 });
 

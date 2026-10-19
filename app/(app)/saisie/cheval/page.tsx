@@ -130,7 +130,7 @@ function SaisieCheval() {
       >
         <label className="field">
           <span>Son nom</span>
-          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Pacha" autoComplete="off" />
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. : Pacha" autoComplete="off" />
           {!editing && <em>Son nom suffit pour commencer. Tu pourras compléter le reste plus tard.</em>}
         </label>
         <ChoisirProprio value={ownerName} onChange={setOwnerName} onTape={setTape} />
@@ -176,7 +176,7 @@ function SaisieCheval() {
           <span>
             Race <span className="ch-opt">facultatif</span>
           </span>
-          <input className="input" value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="Ex. Connemara" autoComplete="off" />
+          <input className="input" value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="Ex. : Connemara" autoComplete="off" />
         </label>
         <label className="field">
           <span>Date d’arrivée</span>

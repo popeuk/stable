@@ -203,7 +203,7 @@ function Chevaux() {
       <div className="ar-form">
         <label className="field" htmlFor="h-name">
           <span>Son nom</span>
-          <input id="h-name" className="input" placeholder="Ex. Pacha" value={name} autoComplete="off" onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
+          <input id="h-name" className="input" placeholder="Ex. : Pacha" value={name} autoComplete="off" onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
         </label>
         <ChoisirProprio key={champ} value={owner} onChange={setOwner} onTape={setTape} />
         <div className="field">

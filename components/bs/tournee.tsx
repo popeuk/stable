@@ -257,7 +257,7 @@ function MoisQuiCompte({ depuis }: { depuis: number }) {
       </div>
       <div className="card moncard ac-cpt nobag" role="group" aria-label={`Ce mois, ${resteOuManque(net)} ${eur(Math.abs(net))}`}>
         <span className="ac-tx">
-          <span className="k">{estime ? "Si tout est payé, ce mois" : `Ce mois, ${resteOuManque(net)}`}</span>
+          <span className="k">{estime ? "Si tout est payé, ce mois" : `Ce mois-ci, ${resteOuManque(net)}`}</span>
           <span className={`big ${tone}`}>
             <span className="num">{estime ? sg(v) : eur(Math.abs(v))}</span>
           </span>

@@ -1083,7 +1083,7 @@ function NoterInner() {
             </F>
           )}
           <F label="Notes">
-            <textarea className="input ta nt-ta" rows={2} placeholder="Ex. Rappel grippe" aria-label="Notes" value={x.notes} onChange={(e) => set((y) => ({ ...y, notes: e.target.value }))} />
+            <textarea className="input ta nt-ta" rows={2} placeholder="Ex. : Rappel grippe" aria-label="Notes" value={x.notes} onChange={(e) => set((y) => ({ ...y, notes: e.target.value }))} />
           </F>
         </>
       );

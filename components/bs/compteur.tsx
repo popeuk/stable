@@ -78,7 +78,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
   const inner: ReactNode = (
     <>
       <span className="ac-tx">
-        <span className="k">{estime ? "Si tout est payé, ce mois" : `Ce mois, ${resteOuManque(net)}`}</span>
+        <span className="k">{estime ? "Si tout est payé, ce mois" : `Ce mois-ci, ${resteOuManque(net)}`}</span>
         <span className={`big ${tone}`}>
           <CountUp value={net} ms={900} fmt={estime ? undefined : sansSigne} />
         </span>
@@ -96,7 +96,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
       )}
       {(objective > 0 || prevuTxt) && (
         <span className="bar-lab">
-          {objective > 0 && <span>{Math.round(pct)} % de ton objectif</span>}
+          {objective > 0 && <span>{`${Math.round(pct)} % de ton objectif`}</span>}
           {prevuTxt && <span>{prevuTxt}</span>}
         </span>
       )}

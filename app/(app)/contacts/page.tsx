@@ -70,7 +70,7 @@ function LesPros() {
     <div className="ec-addp">
       <p className="k">{form.id ? `Modifier ${form.name || "ce pro"}` : "Ajouter un pro"}</p>
       <label className="input">
-        <input value={form.name} autoFocus onChange={(e) => setForm({ ...form, name: e.target.value })} onKeyDown={(e) => e.key === "Enter" && enregistrer()} placeholder="Son nom, ex. M. Roche" aria-label="Son nom" autoComplete="off" />
+        <input value={form.name} autoFocus onChange={(e) => setForm({ ...form, name: e.target.value })} onKeyDown={(e) => e.key === "Enter" && enregistrer()} placeholder="Son nom, ex. : M. Roche" aria-label="Son nom" autoComplete="off" />
       </label>
       <div className="chips" role="radiogroup" aria-label="Son métier">
         {METIERS.map(([k, l]) => (
@@ -81,7 +81,7 @@ function LesPros() {
       </div>
       {form.metier === "autre" && (
         <label className="input">
-          <input value={form.job} onChange={(e) => setForm({ ...form, job: e.target.value })} onKeyDown={(e) => e.key === "Enter" && enregistrer()} placeholder="Son métier, ex. sellier" aria-label="Son métier" autoComplete="off" />
+          <input value={form.job} onChange={(e) => setForm({ ...form, job: e.target.value })} onKeyDown={(e) => e.key === "Enter" && enregistrer()} placeholder="Son métier, ex. : sellier" aria-label="Son métier" autoComplete="off" />
         </label>
       )}
       <label className="input">

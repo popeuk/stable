@@ -384,7 +384,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
           <div className="ar-form">
             <label className="field">
               <span>Nom de l’écurie</span>
-              <input className="input" autoFocus value={fiche.title ?? ""} onChange={(e) => setFiche({ ...fiche, title: e.target.value })} placeholder="Ex. Les Trois Pommiers" autoComplete="organization" />
+              <input className="input" autoFocus value={fiche.title ?? ""} onChange={(e) => setFiche({ ...fiche, title: e.target.value })} placeholder="Ex. : Les Trois Pommiers" autoComplete="organization" />
             </label>
             <div className="ar-two">
               <label className="field">

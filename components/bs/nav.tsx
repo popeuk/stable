@@ -248,7 +248,7 @@ const TITRES: [string, string][] = [
   ["/scenarios", "Et si… ?"],
   ["/clients", "Clients"],
   ["/client", "Fiche client"],
-  ["/facturation", "Mes factures"],
+  ["/facturation", "Tes factures"],
   ["/facture", "La facture"],
   ["/contacts", "Les pros"],
   ["/equipe", "Tâches de l’équipe"],

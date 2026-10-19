@@ -39,8 +39,8 @@ import { nomAffiche } from "@/lib/domain/noms-categories";
 type Vue = "mois" | "leviers" | "mouvements";
 const VUES: [Vue, string][] = [
   ["mois", "Le mois"],
-  ["leviers", "Gagner plus"],
-  ["mouvements", "Historique"],
+  ["leviers", "Idées pour gagner plus"],
+  ["mouvements", "Ce qui rentre et ce qui sort"],
 ];
 const TITRES: Record<Vue, string> = { mois: "Mon bilan", leviers: "Idées pour gagner plus", mouvements: "Ce qui rentre et ce qui sort" };
 
@@ -174,7 +174,7 @@ function Mois() {
   const goal = (
     <div className="card ar-goal rise" style={{ animationDelay: ".1s" }}>
       <div className="ar-gtx">
-        <p className="k">{estime ? "Si tout est payé, environ" : isNow ? `Ce mois, ${resteOuManque(m.net)}` : Math.round(m.net) < 0 ? `En ${mName}, il t’a manqué` : `En ${mName}, il t’est resté`}</p>
+        <p className="k">{estime ? "Si tout est payé, environ" : isNow ? `Ce mois-ci, ${resteOuManque(m.net)}` : Math.round(m.net) < 0 ? `En ${mName}, il t’a manqué` : `En ${mName}, il t’est resté`}</p>
         <p className={`big ${estime ? "" : m.net > 0 ? "in" : m.net < 0 ? "out" : ""}`}>
           <CountUp value={m.net} fmt={estime ? undefined : (n) => eur(Math.abs(n))} />
         </p>
@@ -531,7 +531,7 @@ const moisEnCours = () => new Date().toLocaleDateString("fr-FR", { month: "long"
 const finEnMots = (iso: string) => {
   const mois = new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { month: "long" });
   const dernier = new Date(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)), 0).getDate() === Number(iso.slice(8, 10));
-  return dernier ? `jusqu’à fin ${mois}` : `arrêtée le ${shortDate(iso)}, ${mois} compte en entier`;
+  return dernier ? `jusqu’à fin ${mois}` : `arrêtée le ${shortDate(iso)} (${mois} compte encore en entier)`;
 };
 
 function Mouvements() {
@@ -723,7 +723,7 @@ function Mouvements() {
                     type="button"
                     className="lnk"
                     aria-label={`Arrêter ${r.label ?? "la pension"}`}
-                    onClick={() => confirm(`Arrêter cette rentrée d’argent qui revient chaque mois ? ${cap(moisEnCours())} compte en entier. À partir du mois prochain, elle ne rapportera plus rien. Ce qu’elle a déjà rapporté reste dans les mois passés.`) && useDataStore.getState().stopRecurringRevenue(r.id)}
+                    onClick={() => confirm(`Arrêter cette rentrée d’argent ? ${cap(moisEnCours())} compte encore. Plus rien à partir du mois prochain.`) && useDataStore.getState().stopRecurringRevenue(r.id)}
                   >
                     Arrêter
                   </button>
@@ -750,7 +750,7 @@ function Mouvements() {
                     type="button"
                     className="lnk"
                     aria-label={`Arrêter ${r.label}`}
-                    onClick={() => confirm(`Arrêter « ${r.label} » ? ${cap(moisEnCours())} compte en entier, même si tu arrêtes en cours de mois. À partir du mois prochain, plus rien ne sera ajouté. Les mois passés ne changent pas.`) && useDataStore.getState().stopRecurringExpense(r.id)}
+                    onClick={() => confirm(`Arrêter « ${r.label} » ? ${cap(moisEnCours())} compte encore. Plus rien à partir du mois prochain.`) && useDataStore.getState().stopRecurringExpense(r.id)}
                   >
                     Arrêter
                   </button>

@@ -38,4 +38,20 @@ describe("les insécables sur tout l'écran", () => {
     typographier(d);
     expect(d.textContent).toBe("10:30https://mon-ecurie.fr");
   });
+
+  it("corrige aussi les textes d'exemple des champs, pas ce qu'on y tape", async () => {
+    const d = document.createElement("div");
+    d.innerHTML = `<input placeholder="Ex. : 50" value="a : b"><textarea placeholder="Ex. : une semaine"></textarea>`;
+    typographier(d);
+    expect(d.querySelector("input")!.getAttribute("placeholder")).toBe(`Ex.${NB}: 50`);
+    expect(d.querySelector("input")!.value).toBe("a : b");
+    expect(d.querySelector("textarea")!.getAttribute("placeholder")).toBe(`Ex.${NB}: une semaine`);
+    document.body.appendChild(d);
+    const stop = suivreTypo(d);
+    d.querySelector("input")!.setAttribute("placeholder", "Ex. : 80");
+    await attendre();
+    expect(d.querySelector("input")!.getAttribute("placeholder")).toBe(`Ex.${NB}: 80`);
+    stop();
+    d.remove();
+  });
 });

@@ -69,7 +69,7 @@ export function EquipeReglages() {
       <div className="ec-addp">
         <p className="k">Ajouter quelqu’un</p>
         <label className="input">
-          <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="Son nom, ex. Julie" aria-label="Son nom" />
+          <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="Son nom, ex. : Julie" aria-label="Son nom" />
         </label>
         <label className="input">
           <input value={job} onChange={(e) => setJob(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="Son métier (facultatif)" aria-label="Son métier (facultatif)" />

@@ -241,7 +241,7 @@ function MaFiche() {
         {f.formules.map((x, i) => (
           <div key={i} className="ec-fm">
             <span className="input nm">
-              <input aria-label="Nom de la formule" value={x.nom} placeholder="Ex. Box + paddock" onChange={(e) => formule(i, { nom: e.target.value })} />
+              <input aria-label="Nom de la formule" value={x.nom} placeholder="Ex. : Box + paddock" onChange={(e) => formule(i, { nom: e.target.value })} />
             </span>
             <button type="button" className="x" aria-label={`Retirer ${x.nom || "la formule"}`} onClick={() => set({ formules: f.formules.filter((_, j) => j !== i) })}>
               <Ic n="x" className="" />
