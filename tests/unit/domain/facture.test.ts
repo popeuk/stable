@@ -162,7 +162,8 @@ describe("le tableau du comptable", () => {
     expect(lines[0]).toBe(COLONNES.join(";"));
     expect(lines[0]).toBe("Date;Nature;Catégorie;Libellé;Cheval;Client;Recette TTC;Dépense TTC;Encaissement TTC;Avoir TTC;Moyen de paiement;N° de facture");
     // Le libellé n'est pas la catégorie répétée.
-    expect(csv).toContain("01/10/2026;Recette;Pension;;Tonnerre;Hugo L.;450,00;;;;chèque;2026-0001");
+    // Hugo n'a payé que 100 € sur 560 € : sa pension n'est pas « payée par chèque ».
+    expect(csv).toContain("01/10/2026;Recette;Pension;;Tonnerre;Hugo L.;450,00;;;;;2026-0001");
     expect(csv).toContain('01/10/2026;Dépense;Foin;"Foin; luzerne";commun;;;1234,50;;;;');
     expect(csv).toContain("10/10/2026;Dépense;Maréchal;;Tonnerre;;;60,00;;;;");
     expect(csv).toContain("05/10/2026;Encaissement;Paiement reçu;Paiement d’octobre 2026;;Hugo L.;;;100,00;;chèque n° 1234567;2026-0001");
@@ -180,6 +181,13 @@ describe("le tableau du comptable", () => {
     expect(ls.some((l) => l.date.startsWith("2025"))).toBe(false);
     // Le 14 octobre, l'assurance du 15 n'a pas encore eu lieu.
     expect(lignesComptables(d, 2026, "2026-10-14").filter((l) => l.libelle === "Assurance")).toHaveLength(0);
+  });
+
+  it("le moyen de paiement d'une recette : seulement quand le mois du client est soldé", () => {
+    const d = withInv();
+    d.payments = [...(d.payments ?? []), { id: "reste", payer: "Hugo L.", month: "2026-10", amount: 460, at: "2026-10-20T10:00:00", method: "cheque" as const }];
+    const pension = lignesComptables(d, 2026, "2026-10-31").find((l) => l.type === "Recette" && l.categorie === "Pension")!;
+    expect(pension.moyen).toBe("chèque");
   });
 
   it("les cellules à risque sont protégées, les nombres à la française", () => {

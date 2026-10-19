@@ -1,5 +1,5 @@
 import type { Payment, StableData } from "@/lib/domain/types";
-import { cleClient } from "@/lib/domain/billing";
+import { cleClient, notesParMois } from "@/lib/domain/billing";
 import { KIND_LABEL, deMois, kindOf, recettesFacturees } from "@/lib/domain/facture";
 import { moyenDit, nomMoyen } from "@/lib/domain/paiement";
 import { recurringDirectDue, recurringRevenuesDue } from "@/lib/domain/recurring";
@@ -105,12 +105,15 @@ export function lignesComptables(tout: StableData, year: number, today: string):
     const ms = new Set(ps.map((p) => p.method ?? ""));
     if (ms.size === 1 && ps[0].method) moyenDuMois.set(k, nomMoyen(ps[0].method));
   }
+  // Le moyen du mois ne se dit que si le mois du client est soldé : une recette encore due n'a pas été payée.
+  const notes = notesParMois(data, `${y}-01`, `${y}-12`);
+  const solde = (client: string, month: string) => (notes.get(month) ?? []).some((b) => !b.orphan && cleClient(b.payer) === cleClient(client) && b.due <= 0);
   const moyenRecette = (client: string, month: string, seanceId?: string) => {
     if (seanceId) {
       const p = payments.find((x) => x.seanceId === seanceId && cleClient(x.payer) === cleClient(client));
       if (p) return nomMoyen(p.method);
     }
-    return moyenDuMois.get(`${cleClient(client)}|${month}`) ?? "";
+    return solde(client, month) ? (moyenDuMois.get(`${cleClient(client)}|${month}`) ?? "") : "";
   };
 
   const out: LigneComptable[] = [];
