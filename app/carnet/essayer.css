@@ -76,7 +76,8 @@
   .carnet:has(> :is(.es-keep, .bs-install)) .cn-main { padding-bottom: 132px; }
   .carnet .es-hero-d { display: block; }
   .carnet .es-scene { display: none; }
-  .carnet .es-keep { left: 232px; bottom: 16px; max-width: 560px; border: 0; border-radius: var(--bloc-r); box-shadow: inset 0 0 0 1px var(--line); }
+  /* En bas à droite, sous « Ta journée » : au milieu, il couvrait le chemin « Pour bien démarrer ». */
+  .carnet .es-keep { left: auto; right: 24px; bottom: 16px; width: min(420px, calc(100vw - 232px - 48px)); max-width: none; margin: 0; border: 0; border-radius: var(--bloc-r); box-shadow: inset 0 0 0 1px var(--line); }
 }
 
 /* Bienvenue sur ordinateur : une seule composition. La question, puis les boutons juste dessous,
