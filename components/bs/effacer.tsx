@@ -11,6 +11,9 @@ import { effacerLocale } from "@/lib/account/vault";
 import { ecurieEffacee, JOURS_RECUPERATION, mettreDeCote, recupererEcurie } from "@/lib/account/effacement";
 import { cetAppareil } from "@/lib/appareil";
 import { facturesDeLEssai, issueEffacement, messageEfface, ouEfface, texteSansCopie } from "@/lib/account/effacer-textes";
+import { CONTACT_EMAIL, VERSION_APP, appareilEnMots } from "@/components/bs/contact";
+import { SAUVEGARDE_NON_PROTEGEE } from "@/lib/sauvegarde";
+import { MESSAGE_SUPPRESSION_FAITE, demandeSuppression, demanderLaSuppression, mailtoSuppression } from "@/lib/account/suppression";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -318,5 +321,103 @@ export function DeconnexionLigne() {
       </button>
       {ouverte && <FeuilleDeconnexion onClose={() => setOuverte(false)} />}
     </>
+  );
+}
+
+/** Réglages, Mon compte : « Supprimer mon compte » (lib/account/suppression). */
+export function SuppressionLigne({ exporter }: { exporter: () => void }) {
+  const [ouverte, setOuverte] = useState(false);
+  return (
+    <>
+      <button type="button" className="li np" onClick={() => setOuverte(true)}>
+        <span>
+          <b>Supprimer mon compte</b>
+          <small>ton compte et ta copie en ligne, sous 30 jours</small>
+        </span>
+        <span />
+      </button>
+      {ouverte && <FeuilleSuppression exporter={exporter} onClose={() => setOuverte(false)} />}
+    </>
+  );
+}
+
+function FeuilleSuppression({ exporter, onClose }: { exporter: () => void; onClose: () => void }) {
+  const stableName = useSettingsStore((x) => x.stableName);
+  const [sauve, setSauve] = useState(false);
+  const [etat, setEtat] = useState<"avant" | "envoi" | "demandee" | "repli">("avant");
+  const [err, setErr] = useState("");
+  // La session lue à l'ouverture : la demande partie, elle n'existe plus, la feuille reste pour le dire.
+  const [s] = useState(getSession);
+  if (s?.kind !== "compte") return null;
+  const ecurie = stableName && stableName !== "Mon écurie" ? stableName : undefined;
+  // La demande est partie et l'appareil effacé : fermer, c'est quitter.
+  const fermer = etat === "demandee" ? () => leave("/bienvenue") : onClose;
+  const supprimer = async () => {
+    setEtat("envoi");
+    setErr("");
+    const r = await demanderLaSuppression(
+      s,
+      () => api.contact(demandeSuppression(s, { ecran: "/moi?s=compte", version: VERSION_APP, navigateur: navigator.userAgent, appareil: appareilEnMots(), ecurie })),
+      { deconnexion: () => api.deconnexion() },
+    );
+    if (r.issue === "erreur") {
+      setEtat("avant");
+      setErr(r.message ?? "");
+    } else setEtat(r.issue);
+  };
+  return (
+    <FeuilleConfirmer titre="Supprimer mon compte" onClose={fermer}>
+      {etat === "demandee" ? (
+        <>
+          <p className="note" role="status" style={{ marginTop: 0 }}>
+            <b>{MESSAGE_SUPPRESSION_FAITE}</b>
+          </p>
+          <button type="button" className="btn full" onClick={fermer}>
+            Fermer
+          </button>
+        </>
+      ) : etat === "repli" ? (
+        <>
+          <p className="note" style={{ marginTop: 0 }}>
+            La demande ne part pas d’ici pour l’instant. Écris-nous à <b>{CONTACT_EMAIL}</b> : le message est prêt, envoie-le depuis ton adresse {s.email}. Rien n’est effacé avant.
+          </p>
+          <a className="btn full" href={mailtoSuppression(s, ecurie)}>
+            Écrire à {CONTACT_EMAIL}
+          </a>
+          <button type="button" className="btn line full" onClick={onClose}>
+            Fermer
+          </button>
+        </>
+      ) : (
+        <>
+          <p className="note" style={{ marginTop: 0 }}>
+            <b>Ton compte et ta copie en ligne seront supprimés.</b> Garde tes factures dix ans : la loi le demande. Fais d’abord une sauvegarde, elle les contient.
+          </p>
+          <button
+            type="button"
+            className={sauve ? "btn line full" : "btn full"}
+            onClick={() => {
+              exporter();
+              setSauve(true);
+            }}
+          >
+            <Ic n="download" className="" />
+            Faire une sauvegarde
+          </button>
+          <p className="note">{sauve ? "La sauvegarde est dans tes téléchargements. " : ""}{SAUVEGARDE_NON_PROTEGEE}</p>
+          {err && (
+            <p className="note" role="alert">
+              {err}
+            </p>
+          )}
+          <button type="button" className="btn danger full" disabled={etat === "envoi"} onClick={() => void supprimer()}>
+            {etat === "envoi" ? "Envoi…" : "Oui, supprimer mon compte"}
+          </button>
+          <button type="button" className="btn line full" onClick={onClose}>
+            Annuler
+          </button>
+        </>
+      )}
+    </FeuilleConfirmer>
   );
 }

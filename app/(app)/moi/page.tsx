@@ -25,7 +25,7 @@ import { cetAppareil } from "@/lib/appareil";
 import { dayItems, resumeJournee } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 import { useFeuille } from "@/components/bs/feuille";
-import { DeconnexionLigne, RecupererLigne, ZoneEffacer } from "@/components/bs/effacer";
+import { DeconnexionLigne, RecupererLigne, SuppressionLigne, ZoneEffacer } from "@/components/bs/effacer";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { EtatCopie } from "@/components/bs/etat-copie";
 import "@/app/carnet/ecurie.css";
@@ -342,7 +342,7 @@ function Moi() {
   return null;
 }
 
-/** Le compte : qui est connecté, sa fiche, se déconnecter. Dans la démo : créer son compte. */
+/** Le compte : qui est connecté, sa fiche, se déconnecter, le supprimer. Dans la démo : créer son compte. */
 function Compte() {
   const s = getSession();
   const ou = useOuChiffres();
@@ -382,6 +382,7 @@ function Compte() {
       <EtatCopie />
       <RecupererLigne />
       <DeconnexionLigne />
+      <SuppressionLigne exporter={exportData} />
     </>
   );
 }
