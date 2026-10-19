@@ -9,6 +9,7 @@ import { derivePeople } from "@/lib/domain/people";
 import { LESSONS } from "@/content/lessons";
 import { Explain } from "@/components/ed/explain";
 import { Empty, Face, Ic, Money, Page, ini } from "@/components/carnet/ui";
+import { nomAffiche } from "@/lib/domain/noms-categories";
 
 /**
  * La recherche instantanée : un champ, tout le graphe. Chevaux, carnet,
@@ -79,7 +80,7 @@ function Recherche() {
       ...data.revenues.map((r) => ({
         id: r.id,
         date: r.date,
-        label: data.revenueCategories.find((c) => c.id === r.categoryId)?.name ?? "Revenu",
+        label: nomAffiche(data.revenueCategories.find((c) => c.id === r.categoryId)?.name ?? "Revenu"),
         sub: horseName(r.horseId),
         amount: r.amount,
         isIn: true,

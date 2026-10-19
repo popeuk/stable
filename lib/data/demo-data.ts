@@ -60,7 +60,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
   ...["Maréchal-ferrant", "Vétérinaire", "Médicaments", "Équipement", "Concours", "Transport", "Compléments"].map(
     (name, i) => ({ id: `exp-d-${i}`, name, isDirect: true }),
   ),
-  ...["Foin", "Granulés", "Litière", "Personnel", "Loyer / foncier", "Eau", "Électricité", "Assurance", "Entretien", "Fournitures"].map(
+  ...["Foin", "Granulés", "Paille et litière", "Salaires", "Loyer", "Eau", "Électricité", "Assurance", "Entretien", "Fournitures"].map(
     (name, i) => ({ id: `exp-s-${i}`, name, isDirect: false }),
   ),
   // Emprunt, MSA, carburant, soins non refacturés : les mêmes pour une écurie déjà enregistrée (postes-communs.ts).
@@ -174,9 +174,9 @@ export function buildDemoData(now = new Date()): StableData {
     const sharedDefs: { label: string; cat: number; total: number; mode: "equal" | "weighted_by_days" }[] = [
       { label: "Foin", cat: 7, total: 930 + Math.round(rng() * 100), mode: "weighted_by_days" },
       { label: "Granulés", cat: 8, total: 480 + Math.round(rng() * 80), mode: "weighted_by_days" },
-      { label: "Litière", cat: 9, total: 380, mode: "equal" },
-      { label: "Personnel", cat: 10, total: 1100, mode: "equal" },
-      { label: "Loyer / foncier", cat: 11, total: 780, mode: "equal" },
+      { label: "Paille et litière", cat: 9, total: 380, mode: "equal" },
+      { label: "Salaires", cat: 10, total: 1100, mode: "equal" },
+      { label: "Loyer", cat: 11, total: 780, mode: "equal" },
     ];
 
     for (const def of sharedDefs) {

@@ -9,6 +9,7 @@ import { localToday } from "@/lib/utils/local-date";
 import { categorieSysteme } from "@/lib/domain/categories";
 import { useUiStore } from "@/stores/ui-store";
 import { esc } from "@/components/bs/ui";
+import { nomAffiche } from "@/lib/domain/noms-categories";
 
 /**
  * Des parties de Réglages (app/(app)/moi) : l'équipe, les catégories, les
@@ -150,13 +151,13 @@ export function CategoriesReglages() {
           return (
             <div key={c.id} className="ec-cat">
               <span>
-                {c.name}
+                {nomAffiche(c.name)}
                 {why && <small className="ec-sys">Se garde : {why}.</small>}
               </span>
               {why ? (
                 <span />
               ) : (
-                <button type="button" className="x" onClick={() => remove(c.id, c.name)} aria-label={`Retirer ${c.name}`}>
+                <button type="button" className="x" onClick={() => remove(c.id, c.name)} aria-label={`Retirer ${nomAffiche(c.name)}`}>
                   <Ic n="x" className="" />
                 </button>
               )}

@@ -26,6 +26,7 @@ import { currentPeriod, dateInPeriod, samePeriod } from "@/lib/utils/period";
 import { localToday } from "@/lib/utils/local-date";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
+import { nomAffiche } from "@/lib/domain/noms-categories";
 
 /**
  * Mon bilan : le chiffre du mois en tête, puis ce qui rentre
@@ -542,14 +543,14 @@ function Mouvements() {
   const desk = useDesk();
   const [horse, setHorse] = useState("");
   const name = (id: string) => data.horses.find((h) => h.id === id)?.name ?? "";
-  const cat = (id?: string) => [...data.revenueCategories, ...data.expenseCategories].find((c) => c.id === id)?.name;
+  const cat = (id?: string) => { const n = [...data.revenueCategories, ...data.expenseCategories].find((c) => c.id === id)?.name; return n && nomAffiche(n); };
   const rows = useMemo(() => {
     const r = data.revenues
       .filter((x) => dateInPeriod(x.date, active))
       .map((x) => ({ id: x.id, t: "rev" as const, date: x.date, label: x.note || cat(x.categoryId) || "Rentrée d’argent", sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.payer].filter(Boolean).join(" · "), amount: x.amount, horseId: x.horseId }));
     const d = data.directExpenses
       .filter((x) => dateInPeriod(x.date, active))
-      .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: x.label, sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.rebillRevenueId ? "remis sur sa facture" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
+      .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: nomAffiche(x.label), sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.rebillRevenueId ? "remis sur sa facture" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
     const s = data.sharedExpenses
       .filter((x) => x.periodYear === active.year && x.periodMonth === active.month)
       .map((x) => ({ id: x.id, t: "sh" as const, date: `${active.year}-${String(active.month).padStart(2, "0")}-01`, label: libelleFrais(x.label), sub: partageLabel(repartition(data, x).length), amount: -x.totalAmount, horseId: "" }));

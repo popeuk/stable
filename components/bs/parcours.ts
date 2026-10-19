@@ -10,6 +10,7 @@ import { currentPeriod } from "@/lib/utils/period";
 import { estimationDuPoste, recurringDue } from "@/lib/domain/recurring";
 import { relire, type Connu } from "@/lib/domain/montant-saisi";
 import type { MontantSaisi } from "@/lib/domain/types";
+import { nomAffiche } from "@/lib/domain/noms-categories";
 
 /**
  * Le parcours de démarrage : six obstacles. Les trois premiers installent
@@ -69,7 +70,7 @@ const ANCIENS_LABEL = ["Frais fixes (foin, loyer, salaires)"];
 export const estFraisCat = (name: string) => name === FRAIS_CAT || ANCIENS_CAT.includes(name);
 /** Un seul mot pour les frais de l'écurie : l'ancien libellé du total se lit « Frais communs en un total ». */
 /** Le libellé affiché : les anciens noms enregistrés et celui du parcours se lisent « frais de l'écurie ». */
-export const libelleFrais = (label: string) => (label === FRAIS_LABEL || ANCIENS_LABEL.includes(label) || ANCIENS_CAT.includes(label) ? "Frais de l’écurie, en un total" : label === FRAIS_CAT ? "Frais de l’écurie" : label);
+export const libelleFrais = (label: string) => (label === FRAIS_LABEL || ANCIENS_LABEL.includes(label) || ANCIENS_CAT.includes(label) ? "Frais de l’écurie, en un total" : nomAffiche(label));
 
 type Data = ReturnType<typeof useDataStore.getState>;
 

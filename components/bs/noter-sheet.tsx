@@ -25,6 +25,7 @@ import type { CareKind } from "@/lib/domain/care";
 import type { Frequency } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
 import { currentPeriod } from "@/lib/utils/period";
+import { nomAffiche } from "@/lib/domain/noms-categories";
 
 /**
  * Le + : « Ajouter ». D'abord « Dis-le à voix haute », en grand, puis
@@ -517,7 +518,7 @@ function NoterInner() {
       <>
         <Puces
           scroll={scroll}
-          options={opts.map((o) => [o, o] as [string, string])}
+          options={opts.map((o) => [o, nomAffiche(o)] as [string, string])}
           value={isOther ? null : opts.find((o) => norm(o) === norm(x.label)) ?? null}
           onPick={(label) => {
             setOther(false);
@@ -770,7 +771,7 @@ function NoterInner() {
           Revenir
         </button>
         <Q>{questionDedans(dedansQ.nom, eurc(dedansQ.montant))}</Q>
-        <p className="note">Oui : on la décompte de ton estimation, le mois compte toujours {eurc(dedansQ.montant)} en tout. Non : elle s’ajoute.</p>
+        <p className="note">Oui : ce poste reste à {eurc(dedansQ.montant)} en tout ce mois-ci. Non : la dépense s’ajoute aux {eurc(dedansQ.montant)}.</p>
         <div className="nt-stick">
           <button type="button" className="btn full nt-ok" onClick={() => commit(true)}>
             Oui, c’est dedans
