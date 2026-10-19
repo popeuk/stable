@@ -6,6 +6,13 @@ import { useDataStore, VERSION_DONNEES } from "@/stores/data-store";
 import { useSettingsStore, VERSION_REGLAGES } from "@/stores/settings-store";
 import { contenuSauvegarde, telechargerSauvegarde } from "@/lib/sauvegarde";
 
+/** Une sauvegarde ordinaire de ce qui est à l'écran (le bandeau de la copie en ligne refusée). */
+export function exporterSauvegarde() {
+  const plain = (o: object) => JSON.parse(JSON.stringify(o, (_k, v) => (typeof v === "function" ? undefined : v)));
+  const out = contenuSauvegarde({ data: plain(useDataStore.getState()), settings: plain(useSettingsStore.getState()), versionDonnees: VERSION_DONNEES, versionReglages: VERSION_REGLAGES });
+  telechargerSauvegarde(out, `be-stable-${new Date().toISOString().slice(0, 10)}.json`);
+}
+
 /** Le fichier de ce qui reste : les données lisibles, plus la copie d'origine telle qu'elle était enregistrée. */
 export function exporterCeQuiReste(origine?: string) {
   const plain = (o: object) => JSON.parse(JSON.stringify(o, (_k, v) => (typeof v === "function" ? undefined : v)));

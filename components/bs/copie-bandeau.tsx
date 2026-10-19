@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { ecouterRefus, refusCopie } from "@/lib/account/nuage";
 import { texteRefus } from "@/lib/account/etat-copie";
-import { exporterCeQuiReste } from "@/components/bs/secours";
+import { exporterSauvegarde } from "@/components/bs/secours";
 import { donneesPlusRecentes, ecouterVersion } from "@/lib/version-donnees";
 
 /**
@@ -21,7 +21,7 @@ export function CopieBandeau() {
       <span>
         <b>{texte}</b>
       </span>
-      <button type="button" className="btn" onClick={() => exporterCeQuiReste()}>
+      <button type="button" className="btn" onClick={() => exporterSauvegarde()}>
         Sauvegarder
       </button>
     </div>
