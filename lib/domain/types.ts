@@ -551,6 +551,11 @@ export interface Invoice {
   due: number;
   /** Les recettes facturées : elles ne repassent pas sur une autre facture. */
   revenueIds: string[];
+  /**
+   * Faite sans réseau avec un compte : pas encore de numéro (lib/domain/numeros).
+   * L'heure où elle a été faite (ISO), pour les numéroter dans l'ordre.
+   */
+  provisoire?: string;
 }
 
 /** The full bundle of data the domain functions operate on. */

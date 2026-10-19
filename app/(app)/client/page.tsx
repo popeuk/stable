@@ -14,6 +14,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { billOf, cleClient, monthKey, monthsBefore, type Bill, type BillLine } from "@/lib/domain/billing";
 import { accord, duMois, impayesAnciens, prenomDe } from "@/lib/domain/clients";
+import { lienFacture } from "@/lib/domain/numeros";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
 import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
@@ -311,7 +312,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         ))}
         {bill.total > 0 &&
           (faitesDuMois.length && brouillonDuMois.vide ? (
-            <Link className="btn line cl-sendb" href={`/facture?n=${encodeURIComponent(faitesDuMois[faitesDuMois.length - 1].number)}`}>
+            <Link className="btn line cl-sendb" href={lienFacture(faitesDuMois[faitesDuMois.length - 1])}>
               <Ic n="arrow" className="" />
               Lui envoyer sa facture
             </Link>

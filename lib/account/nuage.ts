@@ -401,6 +401,41 @@ export async function synchroniser(): Promise<Set<string>> {
   return changes;
 }
 
+/**
+ * Juste avant de donner un numéro de facture (question 18, réponse A) : tirer
+ * la dernière version du tiroir des données et la réunir à l'appareil, pour
+ * numéroter à partir du plus grand numéro connu, ici ou ailleurs.
+ * - « seul » : pas de compte (essai, démo) ou copie éteinte, un seul appareil ;
+ * - « a-jour » : le serveur a été lu ; `change` dit si l'appareil a changé
+ *   (il faut alors relire les données à l'écran avant de numéroter) ;
+ * - « hors-ligne » : le serveur n'a pas répondu, on ne sait pas.
+ */
+export async function relireAvantNumero(): Promise<{ etat: "seul" | "a-jour" | "hors-ligne"; change: boolean }> {
+  if (!actif() || !coffre) return { etat: "seul", change: false };
+  if (enCours) await enCours;
+  const r = await appel("GET");
+  if (r.status !== 200) {
+    derniere = { quand: new Date().toISOString(), ok: false };
+    return { etat: "hors-ligne", change: false };
+  }
+  const nom: Nom = "be-stable-data";
+  const d = ((r.json.tiroirs ?? []) as Distant[]).find((x) => x.nom === nom);
+  const e = lireEtat()[nom];
+  if (!d || (e?.vu && d.rev === e.rev)) return { etat: "a-jour", change: false };
+  if (e?.vu && d.rev < e.rev) majTiroir(nom, { rev: d.rev });
+  const raw = localStorage.getItem(scopedKey(nom));
+  const change = await resoudre(nom, d, !raw || (!!e?.vu && !e.sale));
+  if (change) notifier(new Set([nom]));
+  return { etat: "a-jour", change };
+}
+
+/** Envoie tout de suite ce qui attend (une facture vient d'être numérotée : l'autre appareil doit la voir vite). */
+export async function envoyerMaintenant(): Promise<void> {
+  if (!actif()) return;
+  await notesFaites();
+  await envoyer();
+}
+
 /** Où en est la copie en ligne, pour l'écran Mon compte. */
 export function etatNuage(): { allume: boolean; attente: boolean; changements: number; aJour: string | null; derniere: { quand: string; ok: boolean } | null } {
   const e = lireEtat();

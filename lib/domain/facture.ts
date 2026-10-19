@@ -683,8 +683,8 @@ export const messageFaite = (inv: Pick<Invoice, "kind" | "number" | "payer" | "a
     ? `Avoir n° ${esc(inv.number)} fait${inv.avoirDe ? ` sur la facture n° ${esc(inv.avoirDe.number)}` : ""}.`
     : `Facture n° ${esc(inv.number)} faite pour ${esc(prenomDe(inv.payer))}.`;
 
-/** « Facture n° 2026-0004 », « Avoir n° 2026-0007 ». */
-export const nomDoc = (inv: Pick<Invoice, "kind" | "number">) => `${inv.kind === "avoir" ? "Avoir" : "Facture"} n° ${inv.number}`;
+/** « Facture n° 2026-0004 », « Avoir n° 2026-0007 », « Facture à numéroter » (faite sans réseau). */
+export const nomDoc = (inv: Pick<Invoice, "kind" | "number" | "provisoire">) => (inv.provisoire ? "Facture à numéroter" : `${inv.kind === "avoir" ? "Avoir" : "Facture"} n° ${inv.number}`);
 
 /**
  * Le message prêt à envoyer avec la facture (ou l'avoir) : montant, mois,

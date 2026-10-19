@@ -7,6 +7,7 @@ import { Hello, Ic, Page as Ecran, Sec } from "@/components/carnet/ui";
 import { ConditionsPro, ExportComptable, InfosVendeur, TuVous, TvaReglage } from "@/components/bs/facturation";
 import { useDataStore } from "@/stores/data-store";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
+import { lienFacture, numerosEnDouble } from "@/lib/domain/numeros";
 import { conditionsProManquent, enteteVendeur, eur2, facturation, moisDit, nomDoc, vendeurDe, vendeurManque } from "@/lib/domain/facture";
 
 /**
@@ -33,16 +34,38 @@ function Facturation() {
   const b = facturation({ billing, holding });
   const rempli = vendeurManque(b).length === 0 && !!b.vat;
   const [ouvert, setOuvert] = useState(() => !rempli);
-  const list = [...(invoices ?? [])].sort((a, c) => c.year - a.year || c.seq - a.seq);
+  const list = [...(invoices ?? [])].sort((a, c) => Number(!!c.provisoire) - Number(!!a.provisoire) || c.year - a.year || c.seq - a.seq);
   const pro = !conditionsProManquent(b);
+  const doubles = numerosEnDouble(invoices);
+  const attente = (invoices ?? []).filter((i) => i.provisoire).length;
   return (
     <Ecran className="fr-pg">
       <Hello title="Tes factures" sub="Tes factures, ce qui est imprimé dessus, et le tableau de l’année pour ton comptable." />
       <Sec title="Tes factures faites" blk delay={0.08}>
+        {doubles.map((d) => (
+          <div key={d.number} className="card fa-card" role="alert">
+            <b>
+              {d.factures.length} factures portent le n° {d.number}
+            </b>
+            <p>
+              Elles ont été faites en même temps sur deux appareils (
+              {d.factures.map((f, k) => (
+                <span key={f.id}>
+                  {k > 0 && (k === d.factures.length - 1 ? " et " : ", ")}
+                  <Link className="lnk" href={`/facture?id=${encodeURIComponent(f.id)}`}>
+                    {f.kind === "avoir" ? "avoir" : "facture"} de {f.payer}
+                  </Link>
+                </span>
+              ))}
+              ). Un numéro ne sert qu’une fois. Garde celle qui est partie la première. Ouvre l’autre, annule-la par un avoir, puis refais-la depuis la fiche du client : elle prendra un nouveau numéro. Si aucune n’est encore partie, fais pareil avec la seconde.
+            </p>
+          </div>
+        ))}
+        {attente > 0 && <p className="fr-hint">{attente > 1 ? `${attente} factures attendent leur numéro` : "Une facture attend son numéro"} : faites sans réseau, elles le reçoivent dès qu’il revient.</p>}
         {list.length ? (
           <div className="fr-list">
             {list.map((i) => (
-              <Link key={i.id} href={`/facture?n=${encodeURIComponent(i.number)}`} className="fr-inv">
+              <Link key={i.id} href={doubles.some((d) => d.number === i.number) ? `/facture?id=${encodeURIComponent(i.id)}` : lienFacture(i)} className="fr-inv">
                 <span>
                   <b>{nomDoc(i)}</b>
                   <small>
@@ -66,7 +89,7 @@ function Facturation() {
         <p className="fr-hint">Une facture faite ne se modifie plus. Pour la corriger, ouvre-la et annule-la avec un avoir. Les numéros se suivent, on ne revient jamais en arrière.</p>
         <p className="fr-hint">
           {ou.compte
-            ? "Si le téléphone et l’ordinateur font chacun une facture sans réseau, elles peuvent avoir le même numéro : fais tes factures plutôt au même endroit."
+            ? "Avant de donner un numéro, l’app relit ta copie en ligne : le téléphone et l’ordinateur ne prennent pas le même. Sans réseau, la facture est faite mais attend son numéro."
             : "Fais toujours tes factures sur le même téléphone (ou le même ordinateur) : sans compte, ils ne se les partagent pas, et deux factures pourraient avoir le même numéro."}
         </p>
       </Sec>

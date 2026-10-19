@@ -28,7 +28,7 @@ import { enqueueMutation } from "@/lib/data/sync";
 import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
 import { contenuAvoir, contenuAvoirMontant, emettre, emettreAvoir, fusionFactures, personneDe, recettesFacturees, type Brouillon } from "@/lib/domain/facture";
 import { compteurAppareil, facturesEnregistrees } from "@/lib/account/factures-seq";
-import { numeroter } from "@/lib/account/numeroter";
+import { numeroter, numeroterEnAttente as enAttente, type OptionsNumero } from "@/lib/account/numeroter";
 import { scopedKey } from "@/lib/account/session";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { SAISON_MOIS, couvreMois, ensureForfaits, marquerForfaits, moisPlus } from "@/lib/domain/forfaits";
@@ -244,6 +244,8 @@ interface DataState extends StableData {
   issueAvoir: (number: string, qtes: number[], today: string) => Promise<Invoice | null>;
   /** Un avoir d'un montant libre sur une facture (montant TTC et motif), numéroté à la suite. */
   issueAvoirMontant: (number: string, montant: number, motif: string, today: string) => Promise<Invoice | null>;
+  /** Le réseau est revenu : les factures faites sans réseau reçoivent leur numéro, dans l'ordre. Rend celles numérotées. */
+  numeroterEnAttente: (today: string) => Promise<Invoice[]>;
   /** Réunit les factures d'un autre carnet (sauvegarde reprise, autre onglet) : aucune ne se perd. */
   mergeInvoices: (other: Pick<StableData, "invoices" | "invoiceSeq">) => void;
   /** Ce que la facture d'un client demande : particulier ou professionnel, son adresse. */
@@ -301,6 +303,9 @@ export function migrerDonnees(old: unknown, v: number): StableData {
 function id(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
+
+/** La copie en ligne a changé les données avant un numéro : l'écran les relit (et ses écritures repartent des bonnes). */
+const RELIRE: OptionsNumero = { relire: async () => void (await useDataStore.persist.rehydrate()) };
 
 export const useDataStore = create<DataState>()(
   persist(
@@ -1128,14 +1133,14 @@ export const useDataStore = create<DataState>()(
             out.push(inv);
           }
           return out;
-        }),
+        }, RELIRE),
 
       issueAvoir: async (number, qtes, today) => {
         const out = await numeroter(get, set, (s, haut) => {
           const inv = (s.invoices ?? []).find((i) => i.number === number && i.kind !== "avoir");
           const c = inv ? contenuAvoir(inv, qtes, s.invoices) : null;
           return c ? [emettreAvoir(s, c, today, id("avo"), haut)] : [];
-        });
+        }, { ...RELIRE, avoir: true });
         return out[0] ?? null;
       },
 
@@ -1144,9 +1149,11 @@ export const useDataStore = create<DataState>()(
           const inv = (s.invoices ?? []).find((i) => i.number === number && i.kind !== "avoir");
           const c = inv ? contenuAvoirMontant(inv, montant, motif, s.invoices) : null;
           return c ? [emettreAvoir(s, c, today, id("avo"), haut)] : [];
-        });
+        }, { ...RELIRE, avoir: true });
         return out[0] ?? null;
       },
+
+      numeroterEnAttente: (today) => enAttente(get, set, today, RELIRE),
 
       mergeInvoices: (other) => set((s) => fusionFactures(s, other, compteurAppareil())),
 
