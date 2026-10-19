@@ -378,6 +378,10 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
 
   if (desk) {
     const shown = [...owe, ...ok];
+    // Les avoirs du mois, lus dans ce qui reste dû : « Ce mois − Payé − Avoirs = Te doit » se vérifie au crayon.
+    // (Affichage seul : clientDues ne donne pas encore les avoirs à part.)
+    const avoirDe = (c: (typeof shown)[number]) => Math.max(0, Math.round((c.total - c.paid - c.dueMois) * 100) / 100);
+    const avecAvoirs = shown.some((c) => avoirDe(c) > 0);
     return (
       <Ecran wide className="ch-desk">
         <div className="dhead rise">
@@ -407,6 +411,7 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
                 <th>Paiement</th>
                 <th className="n">Ce mois</th>
                 <th className="n">Payé</th>
+                {avecAvoirs && <th className="n">Avoirs</th>}
                 <th className="n">Te doit</th>
               </tr>
             </thead>
@@ -424,6 +429,7 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
                   <td className="m">{c.paieALaSeance ? "à la séance" : "au mois"}</td>
                   <td className="n">{c.total ? eur(c.total) : "·"}</td>
                   <td className="n m">{c.paid ? eur(c.paid) : "·"}</td>
+                  {avecAvoirs && <td className="n m">{avoirDe(c) ? sg(-avoirDe(c)) : "·"}</td>}
                   <td className="n">
                     {c.due > 0 ? <b>{eur(c.due)}</b> : <span className="m">à jour</span>}
                     {c.anciens.length > 0 && <small className="m" style={{ display: "block" }}>{anciensDits(c, period)}</small>}
