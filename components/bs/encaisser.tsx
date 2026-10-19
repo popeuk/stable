@@ -3,6 +3,9 @@
 import { useMemo, useState } from "react";
 import { Ic, eurc } from "@/components/carnet/ui";
 import { MoyenChoix } from "@/components/bs/moyen-paiement";
+import { JourChoix } from "@/components/bs/jour-paiement";
+import { horodatage, jourDit } from "@/lib/domain/jour-paiement";
+import { localToday } from "@/lib/utils/local-date";
 import { useDataStore } from "@/stores/data-store";
 import { accord, anciensEnMots, clientDues, duMois, prenomDe, type ClientDue } from "@/lib/domain/clients";
 import { monthKey } from "@/lib/domain/billing";
@@ -70,14 +73,16 @@ function Payer({ c, period, onBack, onDone }: { c: ClientDue; period: { year: nu
   const [demande, setDemande] = useState(false);
   const [partie, setPartie] = useState(false);
   const [v, setV] = useState("");
+  const [today] = useState(localToday);
+  const [jour, setJour] = useState(today);
   const Il = accord(c.name, "Il", "Elle");
   const val = montantOuZero(v);
   const payer = (montant: number) => {
     if (montant <= 0) return;
     if (!moyen) return setDemande(true);
-    const ids = noterPaiement(c, montant, monthKey(period), { method: moyen, chequeNumber: cheque });
+    const ids = noterPaiement(c, montant, monthKey(period), { method: moyen, chequeNumber: cheque, at: horodatage(jour, today) });
     vibrer();
-    onDone(`${esc(prenomDe(c.name))} t’a payé <strong>${eurc(montant)}</strong> ${enMoyen(moyen)}.${esc(avanceDite(c, montant))}`, () => {
+    onDone(`${esc(prenomDe(c.name))} t’a payé <strong>${eurc(montant)}</strong> ${enMoyen(moyen)}${jour !== today ? `, ${jourDit(jour, today)}` : ""}.${esc(avanceDite(c, montant))}`, () => {
       for (const id of ids) useDataStore.getState().removePayment(id);
     });
   };
@@ -120,6 +125,7 @@ function Payer({ c, period, onBack, onDone }: { c: ClientDue; period: { year: nu
           onCheque={setCheque}
           demande={demande}
         />
+        <JourChoix value={jour} onChange={setJour} today={today} />
         {partie ? (
           <button type="button" className="btn full" disabled={val <= 0} onClick={() => payer(val)}>
             C’est noté

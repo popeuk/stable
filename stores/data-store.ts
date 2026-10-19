@@ -233,7 +233,7 @@ interface DataState extends StableData {
   moveTask: (id: string, listId: string) => void;
   deleteTask: (id: string) => void;
   /** Un paiement reçu (tout ou une partie du mois). Avec `seanceId` : payé sur place pour cette séance. Renvoie son id. */
-  addPayment: (payer: string, month: string, amount: number, seanceId?: string, how?: { method?: PaymentMethod; chequeNumber?: string; kind?: "avance" | "remboursement"; deAvance?: boolean }) => string;
+  addPayment: (payer: string, month: string, amount: number, seanceId?: string, how?: { method?: PaymentMethod; chequeNumber?: string; kind?: "avance" | "remboursement"; deAvance?: boolean; /** Le jour du paiement, en horodatage ISO (lib/domain/jour-paiement) ; maintenant sinon. */ at?: string }) => string;
   /** Les infos de facturation de l'écurie (nom, adresse, SIRET, TVA). */
   setBilling: (patch: Partial<BillingInfo>) => void;
   /**
@@ -1095,7 +1095,7 @@ export const useDataStore = create<DataState>()(
         set((s) => ({
           payments: [
             ...(s.payments ?? []),
-            { id: pid, payer, month, amount: amt, at: new Date().toISOString(), ...(seanceId ? { seanceId } : {}), ...(how?.method ? { method: how.method } : {}), ...(cheque ? { chequeNumber: cheque } : {}), ...(how?.kind ? { kind: how.kind } : {}), ...(how?.deAvance ? { deAvance: true } : {}) },
+            { id: pid, payer, month, amount: amt, at: how?.at ?? new Date().toISOString(), ...(seanceId ? { seanceId } : {}), ...(how?.method ? { method: how.method } : {}), ...(cheque ? { chequeNumber: cheque } : {}), ...(how?.kind ? { kind: how.kind } : {}), ...(how?.deAvance ? { deAvance: true } : {}) },
           ],
         }));
         return pid;

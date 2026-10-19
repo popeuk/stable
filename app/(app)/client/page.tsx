@@ -21,6 +21,9 @@ import { currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
 import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 import { MoyenChoix } from "@/components/bs/moyen-paiement";
+import { JourChoix } from "@/components/bs/jour-paiement";
+import { horodatage, jourDit } from "@/lib/domain/jour-paiement";
+import { localToday } from "@/lib/utils/local-date";
 import { dernierMoyen, enMoyen, moyenDit, suggestionsPartielles } from "@/lib/domain/paiement";
 import { brouillon, deMois, facturesDe, recettesFacturees } from "@/lib/domain/facture";
 import { FeuilleMoyen } from "@/components/bs/moyen-paiement";
@@ -114,6 +117,9 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   // Comment il paie : le dernier moyen noté pour lui, changé d'un toucher.
   const [moyen, setMoyen] = useState<PaymentMethod | undefined>(() => dernierMoyen(data.payments, nom));
   const [cheque, setCheque] = useState("");
+  // Le jour du paiement : aujourd'hui, sauf si on le change (lib/domain/jour-paiement).
+  const [today] = useState(localToday);
+  const [jourPaye, setJourPaye] = useState(today);
   const [demande, setDemande] = useState(false);
   const infos = useRef<HTMLDivElement>(null);
 
@@ -137,17 +143,18 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
     setTimeout(() => infos.current?.querySelector("input")?.focus(), calme() ? 0 : 350);
   };
 
-  const payer = (montant: number, m = moyen, chq = cheque) => {
+  const payer = (montant: number, m = moyen, chq = cheque, j = jourPaye) => {
     if (montant <= 0) return;
     if (!m) return setDemande(true);
     // Le plus ancien d'abord, comme depuis le + ; au-delà de tout ce qu'il doit, une avance.
-    const ids = noterPaiement({ name: nom, anciens, dueMois, due }, montant, mk, { method: m, chequeNumber: chq });
+    const ids = noterPaiement({ name: nom, anciens, dueMois, due }, montant, mk, { method: m, chequeNumber: chq, at: horodatage(j, today) });
     vibrer();
     setVientDePayer(true);
     setMoyen(m);
     setCheque("");
     setDemande(false);
-    say(`${esc(qui)} t’a payé <strong>${eurc(montant)}</strong> ${enMoyen(m)}.${esc(avanceDite({ name: nom, due }, montant))}`, () => {
+    setJourPaye(today);
+    say(`${esc(qui)} t’a payé <strong>${eurc(montant)}</strong> ${enMoyen(m)}${j !== today ? `, ${jourDit(j, today)}` : ""}.${esc(avanceDite({ name: nom, due }, montant))}`, () => {
       for (const id of ids) useDataStore.getState().removePayment(id);
       setVientDePayer(false);
     });
@@ -285,6 +292,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
             demande={demande}
           />
         )}
+        {due > 0 && <JourChoix value={jourPaye} onChange={setJourPaye} today={today} />}
         {due > 0 && (
           <div className="cl-acts">
             <button type="button" className="btn" onClick={() => payer(due)}>
@@ -483,9 +491,11 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           due={due}
           onClose={() => setFeuille(null)}
           moyen={moyen}
-          onOk={(v, m, chq) => {
+          jour={jourPaye}
+          today={today}
+          onOk={(v, m, chq, j) => {
             setFeuille(null);
-            payer(v, m, chq);
+            payer(v, m, chq, j);
           }}
         />
       )}
@@ -594,14 +604,15 @@ function Feuille({ titre, onClose, children }: { titre: string; onClose: () => v
   );
 }
 
-function PartSheet({ qui, nom, due, moyen, onClose, onOk }: { qui: string; nom: string; due: number; moyen?: PaymentMethod; onClose: () => void; onOk: (v: number, m: PaymentMethod, cheque: string) => void }) {
+function PartSheet({ qui, nom, due, moyen, jour: jour0, today, onClose, onOk }: { qui: string; nom: string; due: number; moyen?: PaymentMethod; jour: string; today: string; onClose: () => void; onOk: (v: number, m: PaymentMethod, cheque: string, jour: string) => void }) {
   // Rien de prérempli : on tape ce qui a été payé, ou on touche une suggestion.
   const [v, setV] = useState("");
   const [m, setM] = useState<PaymentMethod | undefined>(moyen);
   const [chq, setChq] = useState("");
   const [demande, setDemande] = useState(false);
+  const [jour, setJour] = useState(jour0);
   const val = montantOuZero(v);
-  const ok = () => (m ? onOk(val, m, chq) : setDemande(true));
+  const ok = () => (m ? onOk(val, m, chq, jour) : setDemande(true));
   return (
     <Feuille titre={`${qui} a payé une partie`} onClose={onClose}>
       <div className="pad cl-pform">
@@ -621,6 +632,7 @@ function PartSheet({ qui, nom, due, moyen, onClose, onOk }: { qui: string; nom: 
             ))}
         </div>
         <MoyenChoix value={m} onChange={(x) => (setM(x), setDemande(false))} cheque={chq} onCheque={setChq} demande={demande} />
+        <JourChoix value={jour} onChange={setJour} today={today} />
         <button type="button" className="btn full" disabled={val <= 0} onClick={ok}>
           C’est noté
         </button>

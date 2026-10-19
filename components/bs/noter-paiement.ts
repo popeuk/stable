@@ -10,10 +10,10 @@ const eurTxt = (n: number) => `${new Intl.NumberFormat("fr-FR", { minimumFractio
 /**
  * Noter un paiement reçu d'un client, de la même façon depuis sa fiche et
  * depuis le + : ses mois dus du plus ancien au plus récent, puis le reste en
- * avance (lib/domain/paiement, encaissement). Rend les paiements notés, pour
- * pouvoir annuler.
+ * avance (lib/domain/paiement, encaissement), au jour choisi (`how.at`). Rend
+ * les paiements notés, pour pouvoir annuler.
  */
-export function noterPaiement(c: Pick<ClientDue, "name" | "anciens" | "dueMois" | "due">, montant: number, mk: string, how: { method?: PaymentMethod; chequeNumber?: string }): string[] {
+export function noterPaiement(c: Pick<ClientDue, "name" | "anciens" | "dueMois" | "due">, montant: number, mk: string, how: { method?: PaymentMethod; chequeNumber?: string; at?: string }): string[] {
   const st = useDataStore.getState();
   const { parts, avance } = encaissement(c, montant, mk);
   const ids = parts.map((p) => st.addPayment(c.name, p.month, p.amount, undefined, how));
