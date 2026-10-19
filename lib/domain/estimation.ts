@@ -1,5 +1,6 @@
 import type { Period, StableData } from "@/lib/domain/types";
 import { billsFor, monthKey } from "@/lib/domain/billing";
+import { demonstratif, nomAffiche } from "@/lib/domain/noms-categories";
 
 /**
  * Le chiffre du mois est-il une estimation ? Oui tant que tout ce qui rentre
@@ -27,14 +28,13 @@ export const GAGNER_SA_VIE = 1400;
 /**
  * La question posée quand une vraie dépense tombe sur un poste déjà estimé
  * dans « Mes frais » : « Ce foin fait partie de tes 900 € par mois ? ».
- * `montant` arrive déjà écrit (« 900 € »). Un nom d'un seul mot reçoit son
- * article ; un nom composé se cite tel quel.
+ * `montant` arrive déjà écrit (« 900 € »). Un poste connu reçoit son
+ * démonstratif (« Cette eau », « Ces salaires ») ; un nom inconnu se cite
+ * tel quel, sans risquer une faute d'accord.
  */
 export function questionDedans(nom: string, montant: string): string {
   const n = nom.trim();
-  if (!/^[\p{L}’'-]+$/u.test(n)) return `Cette dépense, « ${n} », fait partie de tes ${montant} par mois ?`;
-  const mot = n.toLowerCase();
-  if (/s$/.test(mot)) return `Ces ${mot} font partie de tes ${montant} par mois ?`;
-  if (/^[aeiouyhéèêàâîôû]/.test(mot)) return `${/e$/.test(mot) ? "Cette" : "Cet"} ${mot} fait partie de tes ${montant} par mois ?`;
-  return `${/e$/.test(mot) ? "Cette" : "Ce"} ${mot} fait partie de tes ${montant} par mois ?`;
+  const d = demonstratif(n);
+  if (!d) return `Cette dépense, « ${nomAffiche(n)} », fait partie de tes ${montant} par mois ?`;
+  return `${d.dit} ${d.pluriel ? "font" : "fait"} partie de tes ${montant} par mois ?`;
 }
