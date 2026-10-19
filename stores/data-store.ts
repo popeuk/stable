@@ -381,6 +381,7 @@ export const useDataStore = create<DataState>()(
           patch = rest;
         }
         if (!Object.keys(patch).length) return;
+        const avant = get().horses.find((h) => h.id === horseId)?.pension;
         set((s) => {
           const horse = s.horses.find((h) => h.id === horseId);
           if (!horse) return s;
@@ -396,6 +397,18 @@ export const useDataStore = create<DataState>()(
           enqueueMutation("update", "horses", { ...next });
           return { horses: s.horses.map((h) => (h.id === horseId ? next : h)) };
         });
+        // Une pension changée dans la fiche vaut pour le mois en cours (sauf déjà facturée) ; le passé ne bouge pas.
+        if ("pension" in patch && (patch.pension ?? 0) !== (avant ?? 0)) {
+          const mois = localToday().slice(0, 7);
+          if (patch.pension && patch.pension > 0) {
+            get().setPension(horseId, patch.pension, mois);
+            get().runAutopilot(localToday());
+          }
+          else {
+            const rid = pensionRevenueId(horseId, mois);
+            if (!recettesFacturees(get().invoices).has(rid)) set((s) => ({ revenues: s.revenues.filter((r) => r.id !== rid) }));
+          }
+        }
       },
 
       archiveHorse: (horseId, date, infos) =>
@@ -759,10 +772,12 @@ export const useDataStore = create<DataState>()(
       setPension: (horseId, amount, monthKey) =>
         set((s) => {
           const value = Math.max(0, Math.round(amount * 100) / 100);
-          const rid = `rev-pension-${horseId}-${monthKey}`;
+          const rid = pensionRevenueId(horseId, monthKey);
+          // Déjà sur une facture : le mois garde son prix (un avoir le corrige), le contrat change pour la suite.
+          const facturee = recettesFacturees(s.invoices).has(rid);
           return {
             horses: s.horses.map((h) => (h.id === horseId ? { ...h, pension: value } : h)),
-            revenues: s.revenues.map((r) => (r.id === rid ? { ...r, amount: value } : r)),
+            revenues: facturee ? s.revenues : s.revenues.map((r) => (r.id === rid ? { ...r, amount: value } : r)),
           };
         }),
 

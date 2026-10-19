@@ -170,7 +170,7 @@ function SaisieCheval() {
             />
             <span className="u">€ / mois</span>
           </span>
-          <em>Comptée chaque mois dans ce qui rentre. Tu ne la notes qu’une fois.</em>
+          <em>{editing && montantOuZero(pension) !== (editing.pension ?? 0) ? "Le nouveau prix compte dès ce mois-ci. Les mois passés ne changent pas." : "Comptée chaque mois dans ce qui rentre. Tu ne la notes qu’une fois."}</em>
         </label>
         <label className="field">
           <span>
