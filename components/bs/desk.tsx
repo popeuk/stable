@@ -25,6 +25,7 @@ import { useFinDuMois } from "@/components/bs/compte";
 import { BILAN, CLIENTS_CHEVAUX, under, useParentIci, usePlusItems } from "@/components/bs/nav";
 import { ECURIE } from "@/components/bs/navigation";
 import { EnveloppeLigne } from "@/components/bs/demandes";
+import { adresseClient } from "@/lib/adresse-client";
 
 /* ------------------------------------------------------------------ */
 /* L'écran large                                                        */
@@ -272,7 +273,7 @@ function PaletteInner() {
         .map((h) => ({ id: `h-${h.id}`, group: "Chevaux", label: h.name, sub: [h.pensionType, h.ownerName].filter(Boolean).join(" · "), face: h.id, run: go(`/ticket?id=${h.id}`) })),
       ...(data.people ?? [])
         .filter((p) => p.active)
-        .map((p) => ({ id: `p-${p.id}`, group: "Clients", label: p.name, sub: p.role === "proprietaire" ? "propriétaire" : "cavalier", ic: "user", run: go(`/client?nom=${encodeURIComponent(p.name)}`) })),
+        .map((p) => ({ id: `p-${p.id}`, group: "Clients", label: p.name, sub: p.role === "proprietaire" ? "propriétaire" : "cavalier", ic: "user", run: go(adresseClient(p.name)) })),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, c, plus],

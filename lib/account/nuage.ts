@@ -5,6 +5,7 @@ import { fusionFactures } from "@/lib/domain/facture";
 import { fusionner3 } from "@/lib/account/fusion";
 import type { StableData } from "@/lib/domain/types";
 import { estPlacePleine, noterPlacePleine } from "@/lib/account/place";
+import { signalerErreur } from "@/lib/suivi-erreurs";
 
 /**
  * La copie en ligne des tiroirs d'un compte (Supabase, projet `bestable`).
@@ -56,6 +57,21 @@ interface EtatTiroir {
   n?: number;
   /** Quand la copie en ligne a été à jour pour la dernière fois (ISO). */
   aligne?: string;
+  /**
+   * Le serveur a refusé ce tiroir et le refusera encore : trop gros (413) ou
+   * mal formé (400). On ne renvoie plus pour rien : seulement quand le contenu
+   * a rapetissé (trop gros) ou changé de forme, ou le lendemain (mal formé).
+   */
+  refus?: Refus;
+}
+export type CodeRefus = "trop_gros" | "invalide";
+interface Refus {
+  code: CodeRefus;
+  /** La taille de ce qui a été refusé (en caractères). */
+  taille: number;
+  /** Le début de ce qui a été refusé (le préfixe du chiffrement). */
+  prefixe: string;
+  quand: string;
 }
 type Etat = Partial<Record<Nom, EtatTiroir>>;
 
@@ -67,6 +83,8 @@ export interface Coffre {
   ouvrir(scelle: string): Promise<string | null>;
   /** Écrit un contenu en clair dans le tiroir (il est chiffré au passage). */
   ecrire(nom: string, clair: string): Promise<void>;
+  /** Rechiffre un contenu rangé dans l'ancien format, sans compression (pour un serveur pas encore à jour). */
+  ancienFormat?(scelle: string): Promise<string | null>;
 }
 let coffre: Coffre | null = null;
 export function brancherCoffre(c: Coffre) {
@@ -77,6 +95,15 @@ let tire = false;
 let minuteur: ReturnType<typeof setTimeout> | null = null;
 let enCours: Promise<void> | null = null;
 let derniere: { quand: string; ok: boolean } | null = null;
+/** Le serveur ne connaît pas encore le contenu compressé (bs-enc2) : on lui envoie l'ancien format. */
+let sansCompression = false;
+
+/** Un refus qui tient encore : renvoyer la même chose serait refusé pareil. */
+export function refusTient(r: Refus | undefined, raw: string, maintenant = Date.now()): boolean {
+  if (!r) return false;
+  if (r.code === "trop_gros") return raw.length >= r.taille;
+  return raw.slice(0, 8) === r.prefixe && maintenant - Date.parse(r.quand) < 24 * 3600_000;
+}
 
 export function nuageAllume(): boolean {
   try {
@@ -84,6 +111,26 @@ export function nuageAllume(): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Le serveur accepte-t-il le contenu compressé (« bs-enc2: ») ? Il le dit
+ * dans la réponse du GET (`formats`) ; tant qu'il ne l'a pas dit, le coffre
+ * écrit l'ancien format (lib/account/vault).
+ */
+const GZIP = "bs-nuage-gzip";
+export function compressionPermise(): boolean {
+  try {
+    return localStorage.getItem(GZIP) === "1";
+  } catch {
+    return false;
+  }
+}
+function noterFormats(formats: unknown) {
+  try {
+    if (Array.isArray(formats) && formats.includes("bs-enc2:")) localStorage.setItem(GZIP, "1");
+    else localStorage.removeItem(GZIP);
+  } catch {}
 }
 
 /** Lit ?nuage=1 / ?nuage=0 dans l'adresse et le garde sur l'appareil. */
@@ -327,30 +374,77 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
 /** Envoie ce qui attend. */
 export async function envoyer(): Promise<void> {
   if (!actif() || !tire) return;
+  let refuse = false;
   for (const nom of TIROIRS) {
     const e = lireEtat()[nom];
     if (!e?.sale) continue;
     const raw = localStorage.getItem(scopedKey(nom));
     if (!raw) continue;
+    // Refusé tel quel juste avant : renvoyer la même chose ne servirait à rien.
+    if (refusTient(e.refus, raw)) {
+      refuse = true;
+      continue;
+    }
     const envoye = e.locale;
-    const r = await appel("PUT", { nom, contenu: raw, rev: e.rev, modifie: e.modifie ?? new Date().toISOString(), appareil: appareil() });
+    const corps = (contenu: string) => ({ nom, contenu, rev: e.rev, modifie: e.modifie ?? new Date().toISOString(), appareil: appareil() });
+    let contenu = sansCompression ? await versAncienFormat(raw) : raw;
+    let r = await appel("PUT", corps(contenu));
+    // Un serveur pas encore à jour refuse le format compressé : on renvoie dans l'ancien, et on s'en souvient.
+    if (r.status === 400 && !sansCompression && raw.startsWith("bs-enc2:") && coffre?.ancienFormat) {
+      sansCompression = true;
+      contenu = await versAncienFormat(raw);
+      r = await appel("PUT", corps(contenu));
+    }
     if (r.status === 200 && typeof r.json.rev === "number") {
       garderBase(nom, raw);
       const now = lireEtat()[nom];
       const toujours = now?.locale === envoye;
-      majTiroir(nom, { rev: r.json.rev, vu: true, ...(toujours ? { sale: false, empreinte: envoye, n: 0, aligne: new Date().toISOString() } : {}) });
+      majTiroir(nom, { rev: r.json.rev, vu: true, refus: undefined, ...(toujours ? { sale: false, empreinte: envoye, n: 0, aligne: new Date().toISOString() } : {}) });
+      if (e.refus) signalerRefus();
       if (!toujours) planifierEnvoi();
     } else if (r.status === 409) {
       const changed = await resoudre(nom, (r.json.tiroir as Distant | null) ?? null);
       if (changed) notifier(new Set([nom]));
       planifierEnvoi(500);
+    } else if (r.status === 413 || r.status === 400) {
+      // Trop gros, ou mal formé : il sera refusé encore. On le dit (Mon compte, bandeau) sans réessayer.
+      majTiroir(nom, { refus: { code: r.status === 413 ? "trop_gros" : "invalide", taille: raw.length, prefixe: raw.slice(0, 8), quand: new Date().toISOString() } });
+      signalerRefus();
+      // Samuel le sait aussi : seulement le code du refus et la taille, rien du contenu.
+      void signalerErreur("copie", `copie en ligne refusée : ${r.status === 413 ? "trop_gros" : "invalide"}, ${Math.round(raw.length / 1000)} Ko`);
+      refuse = true;
     } else {
+      // 429 (trop d'envois d'un coup), réseau, serveur : on réessaie dans une minute, sans rien dire.
       derniere = { quand: new Date().toISOString(), ok: false };
       if (r.status !== 401) planifierEnvoi(60000);
       return;
     }
   }
-  derniere = { quand: new Date().toISOString(), ok: true };
+  derniere = { quand: new Date().toISOString(), ok: !refuse };
+}
+
+async function versAncienFormat(raw: string): Promise<string> {
+  if (!raw.startsWith("bs-enc2:") || !coffre?.ancienFormat) return raw;
+  return (await coffre.ancienFormat(raw)) ?? raw;
+}
+
+/** Ce que le serveur refuse en ce moment, le plus grave d'abord (trop gros). */
+export function refusCopie(): CodeRefus | null {
+  if (!actif()) return null;
+  const e = lireEtat();
+  const codes = TIROIRS.map((n) => e[n]?.refus?.code).filter((c): c is CodeRefus => !!c);
+  return codes.includes("trop_gros") ? "trop_gros" : (codes[0] ?? null);
+}
+const ecoutesRefus = new Set<() => void>();
+/** Pour le bandeau : prévenu quand un refus arrive ou s'en va. */
+export function ecouterRefus(f: () => void) {
+  ecoutesRefus.add(f);
+  return () => {
+    ecoutesRefus.delete(f);
+  };
+}
+function signalerRefus() {
+  for (const f of ecoutesRefus) f();
 }
 
 /**
@@ -372,6 +466,7 @@ export async function synchroniser(): Promise<Set<string>> {
       derniere = { quand: new Date().toISOString(), ok: false };
       return changes;
     }
+    noterFormats(r.json.formats);
     const distants = new Map(((r.json.tiroirs ?? []) as Distant[]).map((d) => [d.nom, d]));
     for (const nom of TIROIRS) {
       const d = distants.get(nom);
@@ -402,14 +497,14 @@ export async function synchroniser(): Promise<Set<string>> {
 }
 
 /** Où en est la copie en ligne, pour l'écran Mon compte. */
-export function etatNuage(): { allume: boolean; attente: boolean; changements: number; aJour: string | null; derniere: { quand: string; ok: boolean } | null } {
+export function etatNuage(): { allume: boolean; attente: boolean; changements: number; aJour: string | null; derniere: { quand: string; ok: boolean } | null; refus: CodeRefus | null } {
   const e = lireEtat();
   const sales = TIROIRS.filter((n) => e[n]?.sale);
   const changements = sales.reduce((t, n) => t + Math.max(1, e[n]?.n ?? 1), 0);
   // À jour : le dernier envoi ou la dernière lecture réussis, ici ou gardés d'une visite d'avant.
   const dates = [derniere?.ok ? derniere.quand : null, ...TIROIRS.map((n) => e[n]?.aligne ?? null)].filter((d): d is string => !!d);
   const aJour = dates.length ? dates.reduce((a, b) => (Date.parse(a) >= Date.parse(b) ? a : b)) : null;
-  return { allume: actif(), attente: sales.length > 0, changements, aJour, derniere };
+  return { allume: actif(), attente: sales.length > 0, changements, aJour, derniere, refus: refusCopie() };
 }
 
 /* Les écrans qui doivent relire leurs données quand un tiroir change. */
@@ -428,6 +523,7 @@ export function _reinitialiser() {
   tire = false;
   enCours = null;
   derniere = null;
+  sansCompression = false;
   if (minuteur) clearTimeout(minuteur);
   minuteur = null;
 }

@@ -1,6 +1,7 @@
 # L'app Be Stable (18 octobre 2026) : fichiers statiques, mis à jour par
 # bestable-app-maj depuis la branche « vps ». Le micro est permis (saisie à la voix).
 # 19 octobre : politique de contenu en essai (Report-Only), manifeste en application/manifest+json.
+# 19 octobre (audit strict) : Google et Meta retirés de la politique tant que la mesure est éteinte, form-action 'self'.
 # Fichier seulement : à recopier dans le Caddyfile du VPS, puis « caddy validate » et « systemctl reload caddy ».
 app.bestable.fr, app.187-7-74-179.sslip.io {
 	encode zstd gzip
@@ -13,12 +14,24 @@ app.bestable.fr, app.187-7-74-179.sslip.io {
 		Permissions-Policy "camera=(), microphone=(self), geolocation=()"
 		Content-Security-Policy "frame-ancestors 'none'"
 		# Politique de contenu à l'essai (19 octobre 2026) : le navigateur signale dans
-		# sa console ce qu'elle bloquerait, sans rien bloquer. Google et Meta y sont
-		# déjà, pour le jour où la mesure est allumée (lib/mesure.ts, ADRESSES_MESURE).
-		# style-src permet les styles en ligne de React (attributs style), sinon tout
-		# écran en signalerait. À passer en Content-Security-Policy quand la console
-		# reste propre une semaine.
-		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.mon-ecurie.fr https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com; connect-src 'self' https://www.mon-ecurie.fr https://wgvithqivsygsoeyqruz.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.facebook.com https://connect.facebook.net; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+		# sa console ce qu'elle bloquerait, sans rien bloquer. style-src permet les
+		# styles en ligne de React (attributs style), sinon tout écran en signalerait.
+		# À passer en Content-Security-Policy quand la console reste propre une semaine.
+		#
+		# Sans Google ni Meta tant que la mesure est éteinte (audit sécurité N2 : un
+		# domaine autorisé est une sortie possible pour un script injecté). Le jour où
+		# NEXT_PUBLIC_GA_ID ou NEXT_PUBLIC_META_PIXEL est posé, ajouter les adresses de
+		# lib/mesure.ts (ADRESSES_MESURE), le même jour :
+		#   script-src  https://www.googletagmanager.com https://connect.facebook.net
+		#   img-src     https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com
+		#   connect-src https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.facebook.com https://connect.facebook.net
+		# (seulement celles de Google si seul GA est posé, de Meta si seul le pixel l'est).
+		#
+		# form-action 'self' : aucun formulaire ne peut envoyer ailleurs.
+		# Pas de point de signalement (report-uri / report-to) : il n'existe encore
+		# aucune adresse qui sache recevoir ces rapports. En attendant, les relever à
+		# la main dans la console (Safari, Chrome) avant de passer la politique en vrai.
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.mon-ecurie.fr; connect-src 'self' https://www.mon-ecurie.fr https://wgvithqivsygsoeyqruz.supabase.co; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
 		-Server
 	}
 	# Le manifeste de l'app installée, avec son vrai type.

@@ -10,6 +10,7 @@ import { derivePeople } from "@/lib/domain/people";
 import { LESSONS } from "@/content/lessons";
 import { Explain } from "@/components/ed/explain";
 import { Empty, Face, Ic, Money, Page, ini } from "@/components/carnet/ui";
+import { adresseClient } from "@/lib/adresse-client";
 
 /**
  * La recherche instantanée : un champ, tout le graphe. Chevaux, carnet,
@@ -191,7 +192,7 @@ function Recherche() {
           {results.people.length > 0 && (
             <Group title="Clients et pros" delay={next()}>
               {results.people.map((p) => (
-                <Link key={p.name} href={p.roles.includes("proprietaire") ? `/client?nom=${encodeURIComponent(p.name)}` : "/contacts"} className="li">
+                <Link key={p.name} href={p.roles.includes("proprietaire") ? adresseClient(p.name) : "/contacts"} className="li">
                   <span className="ini" aria-hidden="true">
                     {ini(p.name)}
                   </span>

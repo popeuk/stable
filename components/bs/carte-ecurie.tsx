@@ -12,7 +12,7 @@ import { cetAppareil } from "@/lib/appareil";
 import { versionDite } from "@/lib/version";
 import { useAnnuaire } from "@/components/bs/account-ui";
 import { EcuriesTexte } from "@/lib/annuaire";
-import { ContactOuvrir } from "@/components/bs/contact";
+import { ContactOuvrir, MAILTO_CONTACT, TEXTE_REPLI } from "@/components/bs/contact";
 import { ChoixTemoinsLigne } from "@/components/bs/consentement";
 import { heure } from "@/lib/utils/heure";
 
@@ -237,6 +237,14 @@ export function Reglages() {
             </button>
           </section>
         )}
+        repli={
+          <section className="ce-case rise">
+            <h2>Une question</h2>
+            <a className="ce-li" href={MAILTO_CONTACT}>
+              <LigneTx ic="mail" t="Contact" s={TEXTE_REPLI} />
+            </a>
+          </section>
+        }
       />
       <p className="ce-ver">{versionDite()}</p>
     </div>

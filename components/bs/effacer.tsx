@@ -11,6 +11,7 @@ import { getSession, leave } from "@/lib/account/session";
 import { effacerLocale } from "@/lib/account/vault";
 import { ecurieEffacee, JOURS_RECUPERATION, mettreDeCote, recupererEcurie } from "@/lib/account/effacement";
 import { cetAppareil } from "@/lib/appareil";
+import { facturesDeLEssai, issueEffacement, messageEfface, ouEfface, texteSansCopie } from "@/lib/account/effacer-textes";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -57,7 +58,7 @@ export function ZoneEffacer({ exporter }: { exporter: () => void }) {
             <Ic n="trash" className="" />
             Effacer mon écurie partout
           </button>
-          <small>Ce téléphone, ton ordinateur et ta copie en ligne. On te le redemande avant.</small>
+          <small>{ouEfface()}</small>
         </>
       )}
       {kind === "locale" && (
@@ -80,7 +81,7 @@ export function ZoneEffacer({ exporter }: { exporter: () => void }) {
       )}
       {ouverte === "deconnexion" && <FeuilleDeconnexion onClose={() => setOuverte(null)} />}
       {ouverte === "effacer" && <FeuilleEffacer exporter={exporter} onClose={() => setOuverte(null)} />}
-      {ouverte === "essai" && <FeuilleEssai onClose={() => setOuverte(null)} />}
+      {ouverte === "essai" && <FeuilleEssai exporter={exporter} onClose={() => setOuverte(null)} />}
       {ouverte === "demo" && <FeuilleDemo onClose={() => setOuverte(null)} />}
     </div>
   );
@@ -137,15 +138,30 @@ function FeuilleEffacer({ exporter, onClose }: { exporter: () => void; onClose: 
   const say = useUiStore((x) => x.say);
   const [sauve, setSauve] = useState(false);
   const [enCours, setEnCours] = useState(false);
+  // La copie de secours n'a pas pu être gardée (place pleine) : on ne promet plus la récupération.
+  const [sansCopie, setSansCopie] = useState(false);
+  const effacer = (issue: "recuperable" | "sans-copie") => {
+    useDataStore.getState().startEmpty();
+    useSettingsStore.getState().resetParcours();
+    say(messageEfface(issue, JOURS_RECUPERATION, sauve));
+    router.push("/bienvenue");
+  };
+  const issue = issueEffacement({ misDeCote: false, sauve, confirme: false });
   return (
     <FeuilleConfirmer titre="Effacer mon écurie partout" onClose={onClose}>
       <p className="note" style={{ marginTop: 0 }}>
         <b>Ton écurie sera effacée sur {cetAppareil()}, sur tes autres téléphones et ordinateurs, et dans ta copie en ligne.</b> Les chevaux, les clients, les séances, les frais : tout repart de zéro.
       </p>
-      <p className="note">Fais d’abord une sauvegarde : un fichier à garder, qui se reprend dans Réglages, Avancé. Tu pourras aussi récupérer l’écurie d’avant sur {cetAppareil()} pendant {JOURS_RECUPERATION} jours.</p>
+      {sansCopie ? (
+        <p className="note" role="alert">
+          <b>{texteSansCopie()}</b>
+        </p>
+      ) : (
+        <p className="note">Fais d’abord une sauvegarde : un fichier à garder, qui se reprend dans Réglages, Avancé. Tu pourras aussi récupérer l’écurie d’avant sur {cetAppareil()} pendant {JOURS_RECUPERATION} jours.</p>
+      )}
       <button
         type="button"
-        className="btn line full"
+        className={sansCopie && !sauve ? "btn full" : "btn line full"}
         onClick={() => {
           exporter();
           setSauve(true);
@@ -158,19 +174,29 @@ function FeuilleEffacer({ exporter, onClose }: { exporter: () => void; onClose: 
       <button
         type="button"
         className="btn danger full"
-        disabled={enCours}
+        disabled={enCours || (sansCopie && issue === "attendre")}
         onClick={async () => {
           setEnCours(true);
-          await mettreDeCote();
-          useDataStore.getState().startEmpty();
-          useSettingsStore.getState().resetParcours();
-          say(`Ton écurie est effacée. Tu peux la récupérer pendant ${JOURS_RECUPERATION} jours dans Réglages, Avancé.`);
-          router.push("/bienvenue");
+          if (sansCopie) return effacer("sans-copie");
+          const garde = await mettreDeCote();
+          const suite = issueEffacement({ misDeCote: garde, sauve, confirme: false });
+          if (suite === "attendre") {
+            // Rien de gardé ici et pas de sauvegarde : on n'efface pas, on le dit.
+            setSansCopie(true);
+            setEnCours(false);
+            return;
+          }
+          effacer(suite);
         }}
       >
         <Ic n="trash" className="" />
         Effacer mon écurie partout
       </button>
+      {sansCopie && !sauve && (
+        <button type="button" className="btn line full" disabled={enCours} onClick={() => effacer(issueEffacement({ misDeCote: false, sauve, confirme: true }) as "sans-copie")}>
+          Effacer quand même, sans copie de secours
+        </button>
+      )}
       <button type="button" className="btn line full" onClick={onClose}>
         Annuler
       </button>
@@ -178,10 +204,31 @@ function FeuilleEffacer({ exporter, onClose }: { exporter: () => void; onClose: 
   );
 }
 
-function FeuilleEssai({ onClose }: { onClose: () => void }) {
+function FeuilleEssai({ exporter, onClose }: { exporter: () => void; onClose: () => void }) {
+  const factures = facturesDeLEssai(useDataStore((s) => s.invoices));
+  const [sauve, setSauve] = useState(false);
   return (
     <FeuilleConfirmer titre="Effacer l’essai" onClose={onClose}>
       <p className="note" style={{ marginTop: 0 }}>Ton essai sera effacé de {cetAppareil()}, et tu repars du début. Rien n’est gardé ailleurs.</p>
+      {factures && (
+        <>
+          <p className="note">
+            <b>{factures}</b>
+          </p>
+          <button
+            type="button"
+            className="btn full"
+            onClick={() => {
+              exporter();
+              setSauve(true);
+            }}
+          >
+            <Ic n="download" className="" />
+            Faire une sauvegarde
+          </button>
+          {sauve && <p className="note">La sauvegarde est dans tes téléchargements.</p>}
+        </>
+      )}
       <button
         type="button"
         className="btn danger full"
@@ -229,6 +276,7 @@ export function RecupererLigne() {
   const [eff, setEff] = useState<{ quand: string } | null>(null);
   const [ouverte, setOuverte] = useState(false);
   const [enCours, setEnCours] = useState(false);
+  const [rate, setRate] = useState(false);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setEff(ecurieEffacee());
@@ -255,11 +303,19 @@ export function RecupererLigne() {
               setEnCours(true);
               const ok = await recupererEcurie();
               if (ok) window.location.reload();
-              else setEnCours(false);
+              else {
+                setEnCours(false);
+                setRate(true);
+              }
             }}
           >
             Récupérer l’écurie d’avant
           </button>
+          {rate && (
+            <p className="note" role="alert">
+              La place manque sur {cetAppareil()} pour la remettre. Rien n’a changé : fais une sauvegarde, puis écris-nous.
+            </p>
+          )}
           <button type="button" className="btn line full" onClick={() => setOuverte(false)}>
             Annuler
           </button>

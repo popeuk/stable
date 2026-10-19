@@ -5,6 +5,7 @@ import { unstable_catchError, type ErrorInfo } from "next/error";
 import { Hello, Ic, Page } from "@/components/carnet/ui";
 import { withBase } from "@/components/bs/ui";
 import { rangementSession, rechargerUneFois } from "@/lib/erreur";
+import { signalerErreur } from "@/lib/suivi-erreurs";
 
 /**
  * L'écran d'erreur honnête : un écran a planté, les chiffres ne sont pas
@@ -20,7 +21,10 @@ export function EcranErreur({ error, onReessayer }: { error: unknown; onReessaye
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setRecharge(true);
       window.location.reload();
+      return;
     }
+    // Samuel le sait (le message, l'écran, la version, le navigateur ; rien de l'écurie).
+    void signalerErreur("ecran", error);
   }, [error]);
   if (recharge) {
     return (

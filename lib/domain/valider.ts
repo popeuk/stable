@@ -135,13 +135,23 @@ export function nettoyer(raw: unknown): Nettoyage {
   return { data: data as Nettoyage["data"], problemes };
 }
 
-export type Lecture = { ok: true; data: Record<string, unknown>; settings?: Record<string, unknown> } | { ok: false; raison: string };
+export type Lecture =
+  | { ok: true; data: Record<string, unknown>; settings?: Record<string, unknown>; versionDonnees: number; versionReglages: number | null }
+  | { ok: false; raison: string };
+
+const versionDe = (x: unknown): number | null => {
+  const v = estObjet(x) ? x.version : undefined;
+  return typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : null;
+};
 
 /**
  * Une sauvegarde à reprendre : faite par « Exporter mes données », et
  * entière. Sinon elle est refusée avec la raison, et rien n'est remplacé.
+ * Elle dit la version de ses données (format 3, lib/sauvegarde) ; un fichier
+ * d'avant est pris en version 4. Un fichier fait par une version plus
+ * récente de l'app (`max`) est refusé : cette app ne sait pas le lire.
  */
-export function lireSauvegarde(texte: string): Lecture {
+export function lireSauvegarde(texte: string, max: { donnees: number; reglages: number } = { donnees: Infinity, reglages: Infinity }): Lecture {
   let json: unknown;
   try {
     json = JSON.parse(texte);
@@ -151,6 +161,11 @@ export function lireSauvegarde(texte: string): Lecture {
   if (!estObjet(json) || json.app !== "be-stable" || !estObjet(json["be-stable-data"]) || !estObjet((json["be-stable-data"] as Record<string, unknown>).state)) {
     return { ok: false, raison: "Ce fichier n’est pas une sauvegarde Be Stable. Choisis celui créé avec « Faire une sauvegarde »." };
   }
+  const versionDonnees = versionDe(json["be-stable-data"]) ?? 4;
+  const versionReglages = versionDe(json["be-stable-settings"]);
+  if (versionDonnees > max.donnees || (versionReglages ?? 0) > max.reglages) {
+    return { ok: false, raison: "Cette sauvegarde vient d’une version plus récente de Be Stable. Recharge l’app pour la mettre à jour, puis reprends-la. Rien n’a changé." };
+  }
   const state = (json["be-stable-data"] as Record<string, unknown>).state as Record<string, unknown>;
   const n = nettoyer(state);
   if (n.problemes.length) {
@@ -158,5 +173,5 @@ export function lireSauvegarde(texte: string): Lecture {
   }
   const st = json["be-stable-settings"];
   const settings = estObjet(st) && estObjet(st.state) ? (st.state as Record<string, unknown>) : undefined;
-  return { ok: true, data: n.data, settings };
+  return { ok: true, data: n.data, settings, versionDonnees, versionReglages };
 }

@@ -25,9 +25,10 @@ import { FeuilleMoyen } from "@/components/bs/moyen-paiement";
 import type { PaymentMethod } from "@/lib/domain/types";
 import { useFeuille } from "@/components/bs/feuille";
 import { vibrer } from "@/lib/utils/vibrer";
+import { adresseClient, adresseFacture, nomDeLAdresse } from "@/lib/adresse-client";
 
 /**
- * La fiche d'un client (`/client?nom=Hugo L.`, `&mois=2026-10` pour un mois
+ * La fiche d'un client (`/client?c=…`, le nom retrouvé par lib/adresse-client ; l'ancien `?nom=` marche encore ; `&mois=2026-10` pour un mois
  * précis). En haut, sans défiler : Appeler, Message, E-mail (ou un seul
  * « Ajoute son numéro » tant qu'il manque), Notes, son
  * téléphone, ses chevaux, sa dernière note, puis « Hugo te doit 114 € » et
@@ -61,7 +62,8 @@ const fixe = (l: BillLine) => /pension/i.test(l.label) && !l.seanceId;
 
 function FicheRoute() {
   const sp = useSearchParams();
-  const nom = sp.get("nom") ?? "";
+  // Le client de l'adresse (?c=, ou l'ancien ?nom=) : lib/adresse-client.
+  const nom = useDataStore((s) => nomDeLAdresse(sp, s));
   const mois = parseMois(sp.get("mois"));
   const connu = useDataStore((s) => !!nom && ((s.people ?? []).some((p) => p.name === nom) || s.horses.some((h) => h.ownerName?.trim().toLowerCase() === nom.trim().toLowerCase()) || s.revenues.some((r) => r.payer === nom)));
   if (!connu) {
@@ -201,7 +203,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         {vientDePayer && <p className="cl-cnt">Déjà compté dans ton mois.</p>}
         {anciens.map((a) => (
           <p key={a.month} className="cl-cnt">
-            <Link className="lnk" href={`/client?nom=${encodeURIComponent(nom)}&mois=${a.month}`}>
+            <Link className="lnk" href={adresseClient(nom, a.month)}>
               {dueMois > 0 ? "Dont " : ""}
               {eurc(a.due)} {duMois(a.month, period)}
             </Link>
@@ -349,7 +351,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
               Lui envoyer sa facture
             </Link>
           ) : (
-            <Link className="btn line cl-sendb" href={`/facture?nom=${encodeURIComponent(nom)}&mois=${mk}`}>
+            <Link className="btn line cl-sendb" href={adresseFacture(nom, mk)}>
               <Ic n="doc" className="" />
               Sa facture {deMois(mk).replace(/ \d{4}$/, "")}
             </Link>
@@ -369,7 +371,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
               </>
             );
             return m.due > 0 ? (
-              <Link key={monthKey(m.period)} href={`/client?nom=${encodeURIComponent(nom)}&mois=${monthKey(m.period)}`} className="cl-pd cl-pdl">
+              <Link key={monthKey(m.period)} href={adresseClient(nom, monthKey(m.period))} className="cl-pd cl-pdl">
                 {body}
               </Link>
             ) : (
@@ -382,7 +384,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       )}
       {mois && monthKey(mois) !== monthKey(now) && (
         <div className="cl-blk">
-          <Link className="lnk" href={`/client?nom=${encodeURIComponent(nom)}`}>
+          <Link className="lnk" href={adresseClient(nom)}>
             Revenir à {nomMois(now).toLowerCase()}
           </Link>
         </div>
@@ -406,7 +408,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
               }
               // Le nom suit partout : ses chevaux, ce qu'il te doit, ses paiements.
               maj({ name: n });
-              router.replace(`/client?nom=${encodeURIComponent(n)}${mois ? `&mois=${monthKey(mois)}` : ""}`);
+              router.replace(adresseClient(n, mois ? monthKey(mois) : undefined));
             }}
           />
         </label>

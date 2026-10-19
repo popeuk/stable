@@ -37,6 +37,7 @@ const PHOTO = withBase("/img/exemple-pre.jpg");
 /** Les messages du site sont au « vous » : l'app parle au « tu ». */
 const TU: Record<string, string> = {
   trop_d_essais: "Trop d’essais. Attends quelques minutes et réessaie.",
+  code_ralenti: "Par sécurité, cette adresse n’accepte qu’un code par quart d’heure aujourd’hui. Réessaie dans quelques minutes.",
   code_faux: "Ce code ne correspond pas. Vérifie les six chiffres.",
   code_expire: "Ce code n’est plus valable. Demande-en un nouveau.",
   email_invalide: "Cette adresse e-mail a l’air incomplète. Vérifie-la.",
