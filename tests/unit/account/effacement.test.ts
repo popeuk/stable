@@ -78,6 +78,44 @@ describe("effacer mon écurie partout, récupérable 7 jours", () => {
     expect(eff.ecurieEffacee()).toBeNull();
   });
 
+  it("plus de place pour la copie de secours : mettreDeCote le dit (rien n'est promis)", async () => {
+    setSession(compte(key()));
+    await vault.setItem("be-stable-data", '{"state":{"horses":["A"]}}');
+    const set = store.setItem.bind(store);
+    store.setItem = (k: string, v: string) => {
+      if (k.startsWith("bs-avant-effacement")) throw Object.assign(new Error("plein"), { name: "QuotaExceededError" });
+      set(k, v);
+    };
+    try {
+      expect(await eff.mettreDeCote()).toBe(false);
+      expect(eff.ecurieEffacee()).toBeNull();
+    } finally {
+      store.setItem = set;
+    }
+  });
+
+  it("une récupération qui manque de place ne laisse rien à moitié : l'écurie d'après reste, la copie aussi", async () => {
+    setSession(compte(key()));
+    await vault.setItem("be-stable-data", '{"state":{"horses":["Sirius"]}}');
+    await vault.setItem("be-stable-settings", '{"state":{"stableName":"Le Clos"}}');
+    expect(await eff.mettreDeCote()).toBe(true);
+    await vault.setItem("be-stable-data", '{"state":{"horses":[]}}');
+    await vault.setItem("be-stable-settings", '{"state":{"stableName":"Neuf"}}');
+    const set = store.setItem.bind(store);
+    store.setItem = (k: string, v: string) => {
+      if (k.startsWith("be-stable-settings")) throw Object.assign(new Error("plein"), { name: "QuotaExceededError" });
+      set(k, v);
+    };
+    try {
+      expect(await eff.recupererEcurie()).toBe(false);
+    } finally {
+      store.setItem = set;
+    }
+    expect(await vault.getItem("be-stable-data")).toBe('{"state":{"horses":[]}}');
+    expect(eff.ecurieEffacee()).not.toBeNull();
+    _reinitialiser();
+  });
+
   it("la fenêtre de 7 jours", () => {
     const t = Date.parse("2026-10-19T10:00:00Z");
     expect(eff.encoreRecuperable("2026-10-19T09:00:00Z", t)).toBe(true);

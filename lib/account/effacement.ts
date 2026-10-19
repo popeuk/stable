@@ -3,6 +3,7 @@
 import { getSession, scopedKey } from "@/lib/account/session";
 import { ecrituresFaites, relireTiroir } from "@/lib/account/vault";
 import { noterEcriture, TIROIRS } from "@/lib/account/nuage";
+import { estPlacePleine, noterPlacePleine } from "@/lib/account/place";
 
 /**
  * « Effacer mon écurie partout », récupérable 7 jours. Juste avant
@@ -85,16 +86,35 @@ export async function mettreDeCote(maintenant = new Date()): Promise<boolean> {
 /**
  * Remet l'écurie d'avant sur cet appareil et la marque à envoyer : au
  * rechargement, elle repart dans la copie en ligne. Rend false si elle n'est
- * plus là. L'appelant recharge l'app tout de suite après.
+ * plus là, ou si la place manque (rien n'est alors changé, la copie reste).
+ * L'appelant recharge l'app tout de suite après.
  */
 export async function recupererEcurie(): Promise<boolean> {
   if (getSession()?.kind !== "compte") return false;
   const m = lire();
   if (!m || !encoreRecuperable(m.quand)) return false;
   for (const nom of TIROIRS) await ecrituresFaites(nom);
-  for (const [nom, raw] of Object.entries(m.tiroirs)) {
-    if (!(TIROIRS as readonly string[]).includes(nom)) continue;
-    localStorage.setItem(scopedKey(nom), raw);
+  // Faute de place, on remet ce qui était là avant : jamais une récupération à moitié faite.
+  const avant = new Map<string, string | null>();
+  const remis: string[] = [];
+  try {
+    for (const [nom, raw] of Object.entries(m.tiroirs)) {
+      if (!(TIROIRS as readonly string[]).includes(nom)) continue;
+      avant.set(nom, localStorage.getItem(scopedKey(nom)));
+      localStorage.setItem(scopedKey(nom), raw);
+      remis.push(nom);
+    }
+  } catch (err) {
+    if (estPlacePleine(err)) noterPlacePleine();
+    for (const [nom, v] of avant) {
+      try {
+        if (v === null) localStorage.removeItem(scopedKey(nom));
+        else localStorage.setItem(scopedKey(nom), v);
+      } catch {}
+    }
+    return false;
+  }
+  for (const nom of remis) {
     const clair = await relireTiroir(nom);
     if (clair !== null) await noterEcriture(nom, clair);
   }
