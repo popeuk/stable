@@ -898,7 +898,7 @@ function NoterInner() {
       if (k === "cours") return <CoursTiles d={x} set={set} h={h} other={other} setOther={setOther} onDone={close1} />;
       if (k === "soin") return soinTiles(x);
       if (k === "quoi") return <QuoiTiles d={x} set={set} h={h} other={other} setOther={setOther} onDone={close1} />;
-      if (k === "jour") return <Jours date={x.date} today={today} onDate={(date) => (set((y) => ({ ...y, date })), close1())} />;
+      if (k === "jour") return <Jours date={x.date} today={today} passe={x.type === "argent"} onDate={(date) => (set((y) => ({ ...y, date })), close1())} />;
       if (k === "h") return <Wheel value={x.start} onPick={(start) => (set((y) => ({ ...y, start })), close1())} taskChip={x.type === "rdv"} onTask={() => (set((y) => ({ ...y, start: null })), close1())} />;
       if (k === "pl") return <Puces options={[1, 2, 4, 6, 8, 10].map((n) => [n, `${n} place${n > 1 ? "s" : ""}`] as [number, string])} value={x.places} onPick={(places) => (set((y) => ({ ...y, places })), close1())} />;
       if (k === "p") return <Keypad value={x.price ?? 0} onChange={(n) => set((y) => ({ ...y, price: n || null }))} onOk={close1} />;
@@ -1024,7 +1024,7 @@ function NoterInner() {
           {x.moneyRep === "once" && (
             <>
               <Q>Quel jour ?</Q>
-              <Quand date={x.date} today={today} onDate={(date) => set((y) => ({ ...y, date }))} />
+              <Quand passe date={x.date} today={today} onDate={(date) => set((y) => ({ ...y, date }))} />
             </>
           )}
           {x.dansMois !== undefined && (
@@ -1154,7 +1154,7 @@ function NoterInner() {
             {labChips(x)}
           </F>
           <F label="Quel jour">
-            <Jours date={x.date} today={today} onDate={(date) => set((y) => ({ ...y, date }))} />
+            <Jours passe date={x.date} today={today} onDate={(date) => set((y) => ({ ...y, date }))} />
           </F>
           {x.pour === "ecurie" && x.sens === "out" && (
             <F label="Ça revient ?">

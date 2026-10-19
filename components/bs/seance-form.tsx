@@ -32,6 +32,8 @@ export const hh = (t: string) => heure(t);
 export function jourLabel(date: string, today: string) {
   if (date === today) return "aujourd’hui";
   if (date === addDays(today, 1)) return "demain";
+  if (date === addDays(today, -1)) return "hier";
+  if (date === addDays(today, -2)) return "avant-hier";
   const d = new Date(date + "T12:00:00");
   const wd = d.toLocaleDateString("fr-FR", { weekday: "long" });
   const sameMonth = date.slice(0, 7) === today.slice(0, 7);
@@ -261,19 +263,23 @@ export function Keypad({ value, onChange, onOk, sens }: { value: number; onChang
 }
 
 /** Quel jour ? Aujourd’hui, Demain, ou un autre jour (les deux semaines à venir, ou une date). */
-export function Quand({ date, today, onDate }: { date: string; today: string; onDate: (d: string) => void }) {
-  const tomorrow = addDays(today, 1);
-  const near = date === today || date === tomorrow;
+/**
+ * Aujourd'hui, demain, ou un autre jour. `passe` : pour l'argent déjà dépensé
+ * ou reçu, les jours d'avant (hier, avant-hier) au lieu de demain.
+ */
+export function Quand({ date, today, onDate, passe = false }: { date: string; today: string; onDate: (d: string) => void; passe?: boolean }) {
+  const second = addDays(today, passe ? -1 : 1);
+  const near = date === today || date === second;
   const [open, setOpen] = useState(false);
-  const days = Array.from({ length: 12 }, (_, i) => addDays(today, i + 2));
+  const days = Array.from({ length: 12 }, (_, i) => addDays(today, passe ? -(i + 2) : i + 2));
   return (
     <>
       <div className="nt-q3">
         <button type="button" className={date === today ? "on" : ""} onClick={() => (onDate(today), setOpen(false))}>
           Aujourd’hui
         </button>
-        <button type="button" className={date === tomorrow ? "on" : ""} onClick={() => (onDate(tomorrow), setOpen(false))}>
-          Demain
+        <button type="button" className={date === second ? "on" : ""} onClick={() => (onDate(second), setOpen(false))}>
+          {passe ? "Hier" : "Demain"}
         </button>
         <button type="button" className={near ? "" : "on"} aria-expanded={open} onClick={() => setOpen(!open)}>
           {near ? "Autre jour" : cap(jourLabel(date, today))}
@@ -290,8 +296,8 @@ export function Quand({ date, today, onDate }: { date: string; today: string; on
 }
 
 /** Les jours en puces, puis une date libre (hier, ou plus loin). */
-export function Jours({ date, today, days, onDate }: { date: string; today: string; days?: string[]; onDate: (d: string) => void }) {
-  const list = days ?? Array.from({ length: 14 }, (_, i) => addDays(today, i));
+export function Jours({ date, today, days, onDate, passe = false }: { date: string; today: string; days?: string[]; onDate: (d: string) => void; passe?: boolean }) {
+  const list = days ?? Array.from({ length: 14 }, (_, i) => addDays(today, passe ? -i : i));
   return (
     <>
       <div className="nt-scroll">
