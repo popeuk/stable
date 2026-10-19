@@ -19,6 +19,7 @@ import { estimationDuPoste } from "@/lib/domain/recurring";
 import { questionDedans } from "@/lib/domain/estimation";
 import { norm } from "@/lib/domain/interpret";
 import { cavaliersRetenus } from "@/lib/domain/proprio";
+import { cavaliersEnMots } from "@/lib/domain/dire";
 import { nomsDePros } from "@/lib/domain/pros";
 import { seriesDates } from "@/lib/domain/seances";
 import type { CareKind } from "@/lib/domain/care";
@@ -903,6 +904,7 @@ function NoterInner() {
               </button>
             ))}
           </div>
+          {x.type === "seance" && x.cav.length > 0 && <p className="note">{cavaliersEnMots(x.cav, (data.people ?? []).map((p) => p.name))}</p>}
           <p className="nt-hint">Touche ce que tu veux changer.</p>
         </div>
         {pick && (
