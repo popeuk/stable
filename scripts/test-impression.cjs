@@ -73,7 +73,7 @@ async function faireFacture(p) {
   const champ = (label) => p.locator("label.field", { hasText: label }).locator("input, textarea").first();
   if (await p.getByText("Pour faire une facture, il faut").count()) {
     // Le statut d'abord : entrepreneur individuel, puis son nom et son prénom (« EI » après), le nom commercial dessous.
-    const ei = p.getByRole("radio", { name: /^Entrepreneur individuel/ });
+    const ei = p.getByRole("radio", { name: /^Entrepreneu(r|se) individuel/ });
     if ((await ei.getAttribute("aria-checked")) !== "true") await ei.click();
     await champ("Ton nom et ton prénom").fill("Julie Essai");
     await champ("Ton nom commercial").fill("Écurie d’essai");
