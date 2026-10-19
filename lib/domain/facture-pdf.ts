@@ -16,7 +16,7 @@ const M = 42;
 
 /* ---------- Le texte en WinAnsi (l'encodage des polices standard) ---------- */
 
-const SPECIAUX: Record<string, number> = { "€": 0x80, "‚": 0x82, "„": 0x84, "…": 0x85, "Œ": 0x8c, "‘": 0x91, "’": 0x92, "“": 0x93, "”": 0x94, "•": 0x95, "–": 0x96, "—": 0x97, "œ": 0x9c, "Ÿ": 0x9f };
+const SPECIAUX: Record<string, number> = { "€": 0x80, "‚": 0x82, "„": 0x84, "…": 0x85, "Œ": 0x8c, "‘": 0x91, "’": 0x92, "“": 0x93, "”": 0x94, "•": 0x95, "–": 0x96, "\u2014": 0x97, "œ": 0x9c, "Ÿ": 0x9f };
 const REMPLACE: Record<string, string> = { "−": "-", " ": " ", " ": " ", " ": " " };
 
 /** Un caractère en un octet WinAnsi (« ? » s'il n'existe pas dans la police). */
