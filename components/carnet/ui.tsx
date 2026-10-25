@@ -105,6 +105,9 @@ export type IllName =
  * (gérante ou gérant, usePerso) ; fixe : l'image telle quelle (un client, pas
  * le gérant). Une version gérant pas encore dessinée retombe sur la gérante.
  */
+/** Les scènes en décor papier (fond compris) : un cadre arrondi, jamais détourées. */
+const DECOR = new Set(["matin", "soir", "sereine", "accueil-premier"]);
+
 /** prio : l'image principale de l'écran (souvent le plus grand élément affiché) se charge tout de suite, avant les autres. */
 export function Ill({ n, alt = "", className = "", style, fixe, prio }: { n: IllName; alt?: string; className?: string; style?: CSSProperties; fixe?: boolean; prio?: boolean }) {
   const perso = usePerso();
@@ -117,7 +120,7 @@ export function Ill({ n, alt = "", className = "", style, fixe, prio }: { n: Ill
     // eslint-disable-next-line @next/next/no-img-element
     <img
       key={choix.n}
-      className={`ill ${className}`}
+      className={`ill${DECOR.has(choix.n.replace(/^gerant-/, "")) ? " deco" : ""} ${className}`}
       src={withBase(`/img/carnet/${choix.n}.webp`)}
       alt={fixe ? alt : altPerso(alt, perso)}
       style={st}

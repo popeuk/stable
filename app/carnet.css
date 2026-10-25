@@ -27,6 +27,8 @@
 .carnet .tb .plus svg { width: 24px; height: 24px; stroke-width: 2; }
 .carnet .ill { display: block; user-select: none; -webkit-user-drag: none; }
 .carnet .mul { mix-blend-mode: multiply; }
+/* Une scène en décor papier : posée dans un cadre arrondi, avec une ombre douce, jamais fondue dans le papier. */
+.carnet .ill.deco { border-radius: var(--bloc-r); mix-blend-mode: normal; box-shadow: 0 10px 28px -14px color-mix(in srgb, var(--ink) 45%, transparent); }
 .carnet .in { color: var(--in); font-weight: 700; font-variant-numeric: tabular-nums; }
 .carnet .out { color: var(--out); font-weight: 700; font-variant-numeric: tabular-nums; }
 .carnet .num { font-variant-numeric: tabular-nums; }
@@ -242,9 +244,10 @@
    souffle avant le titre ; .art-fit a le format exact de l'image, pour que la
    lueur (soleil, lampe) se pose sur le dessin. */
 .carnet .stories .art { position: relative; overflow: hidden; container-type: size; margin-bottom: 14px; }
-.carnet .stories .art-fit { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; width: min(100cqw, calc(100cqh * var(--r))); aspect-ratio: var(--r); transform: scale(1.02); transform-origin: 50% 100%; transition: transform 7s var(--slow); }
-.carnet .stories .slide.on .art-fit { transform: scale(1.09); }
-.carnet .stories .art .ill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.carnet .stories .art-fit { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; width: min(100cqw, calc(100cqh * var(--r))); aspect-ratio: var(--r); border-radius: var(--bloc-r); overflow: hidden; box-shadow: 0 10px 28px -14px color-mix(in srgb, var(--ink) 45%, transparent); }
+/* La scène en papier avance doucement dans son cadre (la caméra, pas le cadre). */
+.carnet .stories .art .ill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 0; box-shadow: none; transform: scale(1.02); transform-origin: 50% 70%; transition: transform 7s var(--slow); }
+.carnet .stories .slide.on .art .ill { transform: scale(1.09); }
 .carnet .stories strong { display: block; font-size: 32px; font-weight: 760; letter-spacing: -.03em; line-height: 1; font-variation-settings: "wdth" 86; color: var(--ink); text-wrap: balance; }
 .carnet .stories .tx span { display: block; font-size: 15.5px; line-height: 1.45; color: var(--ink2); margin-top: 10px; }
 .carnet .stories .tx > * { opacity: 0; transform: translateY(12px); transition: opacity .7s var(--ease), transform .7s var(--ease); }

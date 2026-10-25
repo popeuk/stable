@@ -5,8 +5,8 @@
 
 /* ---------- L'histoire : la scène dans sa case, le texte juste dessous ---------- */
 .carnet .obn-st .stories .slide { grid-template-rows: minmax(0, 1fr) auto; padding: 46px 0 0; }
-.carnet .obn-st .stories .art { margin: 0 var(--gut) 18px; border-radius: var(--bloc-r); background: linear-gradient(transparent 90%, var(--mist) 90%), var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
-.carnet .obn-st .stories .art-fit { bottom: 1px; }
+/* Les scènes ont leur propre décor en papier : la scène est la case, sans case blanche ni sol autour. */
+.carnet .obn-st .stories .art { margin: 0 var(--gut) 18px; }
 .carnet .obn-st .stories .tx { padding: 0 var(--gut); }
 .carnet .obn-st .stories .cta { padding-left: var(--gut); padding-right: var(--gut); }
 

@@ -14,8 +14,8 @@ import "@/app/carnet/ob-fort.css";
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const SCENES: { ill: "matin" | "soir" | "sereine"; alt: string; t: string; s: string; fx?: "rays" | "lamp" }[] = [
-  { ill: "matin", alt: "La gérante porte une botte de foin devant les box, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, le crottin, les sabots. Tu assures, même les yeux fermés.", fx: "rays" },
-  { ill: "soir", alt: "La gérante, fatiguée, devant des papiers et une calculette.", t: "Le soir, les comptes te rattrapent.", s: "Les papiers s’empilent. Et une question revient : est-ce que ton écurie te fait vivre ?", fx: "lamp" },
+  { ill: "matin", alt: "La gérante porte une botte de foin devant les box, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, le crottin, les sabots. Tu assures, même les yeux fermés." },
+  { ill: "soir", alt: "La gérante, fatiguée, devant des papiers et une calculette.", t: "Le soir, les comptes te rattrapent.", s: "Les papiers s’empilent. Et une question revient : est-ce que ton écurie te fait vivre ?" },
   { ill: "sereine", alt: "La gérante sourit à son téléphone, son cheval tout contre elle.", t: "Avec Be Stable, tu sais où tu en es.", s: "Deux gestes pour noter ta journée. Un chiffre clair pour chaque cheval." },
 ];
 const DUREE = 5000;
@@ -26,12 +26,13 @@ const DUREE = 5000;
  * la lueur suit le dessin, quel que soit l'écran et le personnage.
  */
 const CADRES: Record<string, { r: number; x?: number; y?: number; d?: number }> = {
-  matin: { r: 638 / 627, x: 51, y: 34, d: 78 },
-  "gerant-matin": { r: 674 / 638, x: 51, y: 33, d: 74 },
-  soir: { r: 642 / 1198, x: 51, y: 27, d: 40 },
-  "gerant-soir": { r: 642 / 1200, x: 51, y: 27, d: 40 },
-  sereine: { r: 499 / 1072 },
-  "gerant-sereine": { r: 465 / 1113 },
+  // Scènes en décor papier (900 x 1200) : la lumière du matin et la lampe du soir sont dans l'image.
+  matin: { r: 3 / 4 },
+  "gerant-matin": { r: 3 / 4 },
+  soir: { r: 3 / 4 },
+  "gerant-soir": { r: 3 / 4 },
+  sereine: { r: 3 / 4 },
+  "gerant-sereine": { r: 3 / 4 },
 };
 const cadre = (n: string) => {
   const c = CADRES[n] ?? { r: 1 };
