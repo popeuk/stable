@@ -17,6 +17,8 @@ import { REVOIR_PRIX, memePlein } from "@/lib/domain/lecture";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Horse } from "@/lib/domain/types";
 import { FACTURATION } from "@/lib/fonctions";
+import { lireBilan } from "@/lib/domain/bilan";
+import { BilanLecture } from "@/components/bs/bilan-lecture";
 
 export default function Page() {
   return (
@@ -49,6 +51,8 @@ function Reste() {
   const pensions = m.ins.filter((l) => /^pension/i.test(l.label)).reduce((t, l) => t + l.amount, 0);
   const cours = Math.max(0, Math.round((m.revenue - pensions) * 100) / 100);
   const prixPension = data.tariffs?.pension;
+  const capacity = useSettingsStore((s) => s.capacity);
+  const lecture = useMemo(() => lireBilan(m, { pension: prixPension, pensionsDuMois: pensions, cours, capacity }), [m, prixPension, pensions, cours, capacity]);
   /** Le prix d'un cours, pour dire ce qu'un cours noté ajoutera. */
   const prixCours = data.tariffs?.cours_collectif || data.tariffs?.cours_individuel || data.prestations?.find((p) => p.active && p.price > 0)?.price;
   /** L'essai sans compte : le mois se garde tout de suite (nom de l'écurie, e-mail, code), le + vient après. */
@@ -108,6 +112,8 @@ function Reste() {
       <p className="note rise" style={{ animationDelay: ".12s" }}>
         C’est une estimation, faite avec tes pensions et tes frais. Tes cours ne sont pas encore dedans.
       </p>
+      {/* Le bilan qui ne tranche pas : ce que disent les chiffres, puis les pistes avec leur prix. */}
+      <BilanLecture l={lecture} />
       {/* La suite : le +, où tout se note. Chaque cours noté fait monter le mois. */}
       <div className="es-suite rise" style={{ animationDelay: ".16s" }}>
         <span className="es-plus" aria-hidden="true">
@@ -170,12 +176,12 @@ function Fin() {
         {need ? (
           <>
             Il te faut {need} pension{need > 1 ? "s" : ""} pour ne pas perdre d’argent. Tu en as {enPension}
-            {enPension >= need ? ", c’est bon" : `, il en manque ${need - enPension}`}. Chaque place louée en plus te laisse environ <Money v={m.contribution} /> de plus par mois.
+            {enPension >= need ? ", c’est bon" : `, il en manque ${need - enPension}`}. Une place louée en plus rapporte environ <Money v={m.contribution} />, moins ce que mange un cheval de plus.
           </>
         ) : isFinite(m.seuil) ? (
           `${memePlein(places.places, eurc(places.manque))} ${REVOIR_PRIX}`
         ) : (
-          "Pour l’instant, les pensions ne suffisent pas à payer les soins des chevaux. Commence par revoir le prix de tes pensions."
+          "Pour l’instant, les pensions ne suffisent pas à payer les soins des chevaux. Regarde ce qui est compris dans ta pension et ce qui pourrait être refacturé."
         )}
       </p>
       <div className="foot">

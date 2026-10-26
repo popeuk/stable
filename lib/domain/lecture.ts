@@ -38,7 +38,7 @@ export function ilFautPensions(seuil: number): string {
 
 /** Quand le seuil dépasse les places : même pleines, il manque (`manque` arrive écrit, « 430 € »). */
 export const memePlein = (places: number, manque: string) => `Même avec tes ${places} places pleines, il manque environ ${manque} par mois.`;
-export const REVOIR_PRIX = "C’est le prix des pensions qu’il faut revoir.";
+export const REVOIR_PRIX = "Le reste doit venir des cours, des prestations ou du prix : à toi de voir ce qui tient chez toi.";
 
 /** La phrase sous « Il te faut 9 pensions. Tu en as 9. » : la réponse, sans le calcul. */
 export function phraseSeuil(seuil: number, chevaux: number): string {
