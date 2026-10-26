@@ -50,7 +50,7 @@ jobs:
   # résultat part sur la branche « vps » ; le VPS la relit toutes les 2 minutes
   # (/usr/local/bin/bestable-app-maj) et garde les 5 versions précédentes.
   vps:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest est passé en 26.04, où Playwright 1.56 ne sait pas installer chromium (26 octobre 2026)
     permissions:
       contents: write
     steps:
