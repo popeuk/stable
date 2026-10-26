@@ -30,6 +30,7 @@ import { useFeuille } from "@/components/bs/feuille";
 import { useTitreOnglet } from "@/components/bs/titre-onglet";
 import { echeance } from "@/lib/utils/heure";
 import { adresseClient } from "@/lib/adresse-client";
+import { FACTURATION } from "@/lib/fonctions";
 import "@/app/carnet/client.css";
 import "@/app/carnet/facture.css";
 
@@ -38,6 +39,8 @@ import "@/app/carnet/facture.css";
  * Clients (en premier) : qui te doit quoi, trié par ce qu'ils doivent, et
  * le bandeau de fin de mois. Chevaux : le cheval à surveiller en tête,
  * puis ce que chacun te laisse. `?vue=chevaux` ouvre les chevaux.
+ * Facturation masquée (lib/fonctions) : la vue Clients dit ce que chacun
+ * te rapporte ce mois, du plus au moins rentable, sans dette ni facture.
  */
 export default function Page() {
   return (
@@ -183,7 +186,7 @@ function Tete({ c }: { c: ClientDue }) {
 
 const quiEst = (c: ClientDue) => (c.role === "proprietaire" ? (c.horses.length ? c.horses.join(", ") : "propriétaire") : accord(c.name, "cavalier", "cavalière"));
 const sousLigne = (c: ClientDue) =>
-  c.due > 0 ? (c.horses.length ? `${c.horses.join(", ")} · ${c.paieALaSeance ? "à la séance" : "au mois"}` : c.paieALaSeance ? "à la séance" : quiEst(c)) : quiEst(c);
+  FACTURATION && c.due > 0 ? (c.horses.length ? `${c.horses.join(", ")} · ${c.paieALaSeance ? "à la séance" : "au mois"}` : c.paieALaSeance ? "à la séance" : quiEst(c)) : quiEst(c);
 
 /** Les impayés des mois d'avant, chacun avec son mois : « dont 350 € de septembre ». */
 const anciensDits = (c: ClientDue, period: { year: number; month: number }) => anciensEnMots(c, period, eurc);
@@ -195,11 +198,20 @@ function LigneClient({ c, period }: { c: ClientDue; period: { year: number; mont
       <span className="cl-rt">
         <b>{c.name}</b>
         <small>{sousLigne(c)}</small>
-        {c.anciens.length > 0 && <small>{anciensDits(c, period)}</small>}
-        {c.aRendre > 0 && <small>À lui rendre {eurc(c.aRendre)}</small>}
-        {c.avance > 0 && <small>Avance {eurc(c.avance)}</small>}
+        {FACTURATION && c.anciens.length > 0 && <small>{anciensDits(c, period)}</small>}
+        {FACTURATION && c.aRendre > 0 && <small>À lui rendre {eurc(c.aRendre)}</small>}
+        {FACTURATION && c.avance > 0 && <small>Avance {eurc(c.avance)}</small>}
       </span>
-      {c.due > 0 ? (
+      {!FACTURATION ? (
+        c.total > 0 ? (
+          <span className="cl-amt">
+            <small>te rapporte</small>
+            <b>{eurc(c.total)}</b>
+          </span>
+        ) : (
+          <span className="cl-ok">rien ce mois</span>
+        )
+      ) : c.due > 0 ? (
         <span className="cl-amt">
           <small>te doit</small>
           <b>{eurc(c.due)}</b>
@@ -232,7 +244,7 @@ function SansProprio({ lignes, total, versChevaux }: { lignes: { horse?: string;
         <small>À qui demander la pension ?</small>
       </span>
       <span className="cl-amt">
-        <small>en attente</small>
+        <small>{FACTURATION ? "en attente" : "ce mois"}</small>
         <b>{eur(total)}</b>
       </span>
       <Ic n="chev" className="chev" />
@@ -332,7 +344,18 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
   const n = doivent.length;
   const owe = doivent.filter(match);
   const ok = rows.filter((c) => c.due <= 0 && match(c)).sort((a, b) => a.name.localeCompare(b.name, "fr"));
-  const sub = n ? (
+  // Facturation masquée : tous les clients, du plus au moins rentable ce mois.
+  const rapportent = [...rows].filter(match).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "fr"));
+  const rapporte = r2(rows.reduce((t, c) => t + c.total, 0));
+  const sub = !FACTURATION ? (
+    rows.length ? (
+      <>
+        Ce mois, ils te rapportent <b>{eurc(rapporte)}</b>
+      </>
+    ) : (
+      "Pas encore de client."
+    )
+  ) : n ? (
     <>
       {n} client{n > 1 ? "s" : ""} te {n > 1 ? "doivent" : "doit"} <b>{eurc(total)}</b>
     </>
@@ -350,7 +373,7 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
     [data, period],
   );
   const rassure =
-    n > 0 && !finDuMois ? (
+    FACTURATION && n > 0 && !finDuMois ? (
       <p className="cl-ras">
         {Math.round(pensions) > 0 ? `Dont ${eur(pensions)} de pensions ${deMoisDe(period)}, réglées d’habitude en fin de mois. ` : "Le mois est en cours : la plupart règlent à la fin. "}
         Normal à cette date.
@@ -380,11 +403,11 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
       .
     </p>
   );
-  const vide = rows.length === 0 ? <p className="note cl-vide">Un nom noté dans une séance devient un client tout seul.</p> : !owe.length && !ok.length ? <p className="note cl-vide">Personne à ce nom.</p> : null;
+  const vide = rows.length === 0 ? <p className="note cl-vide">Un nom noté dans une séance devient un client tout seul.</p> : (FACTURATION ? !owe.length && !ok.length : !rapportent.length) ? <p className="note cl-vide">Personne à ce nom.</p> : null;
   const feuille = ajout && <AjouterClient onClose={() => setAjout(false)} />;
 
   if (desk) {
-    const shown = [...owe, ...ok];
+    const shown = FACTURATION ? [...owe, ...ok] : rapportent;
     // Les avoirs du mois et l'argent rendu, lus sur les notes du mois : « Ce mois − Payé − Avoirs = Te doit »
     // se vérifie au crayon (Payé : ce qui est resté payé, une fois l'argent rendu après un avoir retiré).
     const notesMois = new Map(billsFor(data, period).filter((b) => !b.orphan).map((b) => [cleClient(b.payer), b]));
@@ -401,11 +424,11 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
             <p>{sub}</p>
             {rassure}
             {sansProprio}
-            <FacturesDuMois data={data} today={today} />
+            {FACTURATION && <FacturesDuMois data={data} today={today} />}
           </div>
           {ajouter}
         </div>
-        <FinDuMois today={today} />
+        {FACTURATION && <FinDuMois today={today} />}
         <div className="ch-bar2 rise" style={{ animationDelay: ".08s" }}>
           {bascule}
           {search}
@@ -418,11 +441,11 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
                 <th>Client</th>
                 <th>Chevaux</th>
                 <th>Téléphone</th>
-                <th>Paiement</th>
-                <th className="n">Ce mois</th>
-                <th className="n">Payé</th>
-                {avecAvoirs && <th className="n">Avoirs</th>}
-                <th className="n">Te doit</th>
+                {FACTURATION && <th>Paiement</th>}
+                <th className="n">{FACTURATION ? "Ce mois" : "Te rapporte ce mois"}</th>
+                {FACTURATION && <th className="n">Payé</th>}
+                {FACTURATION && avecAvoirs && <th className="n">Avoirs</th>}
+                {FACTURATION && <th className="n">Te doit</th>}
               </tr>
             </thead>
             <tbody>
@@ -436,14 +459,16 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
                   </td>
                   <td className="m">{c.horses.join(", ") || quiEst(c)}</td>
                   <td className="m">{c.phone ?? ""}</td>
-                  <td className="m">{c.paieALaSeance ? "à la séance" : "au mois"}</td>
+                  {FACTURATION && <td className="m">{c.paieALaSeance ? "à la séance" : "au mois"}</td>}
                   <td className="n">{c.total ? eur(c.total) : "·"}</td>
-                  <td className="n m">{payeDe(c) ? eur(payeDe(c)) : "·"}</td>
-                  {avecAvoirs && <td className="n m">{avoirDe(c) ? sg(-avoirDe(c)) : "·"}</td>}
-                  <td className="n">
-                    {c.due > 0 ? <b>{eurc(c.due)}</b> : <span className="m">à jour</span>}
-                    {c.anciens.length > 0 && <small className="m" style={{ display: "block" }}>{anciensDits(c, period)}</small>}
-                  </td>
+                  {FACTURATION && <td className="n m">{payeDe(c) ? eur(payeDe(c)) : "·"}</td>}
+                  {FACTURATION && avecAvoirs && <td className="n m">{avoirDe(c) ? sg(-avoirDe(c)) : "·"}</td>}
+                  {FACTURATION && (
+                    <td className="n">
+                      {c.due > 0 ? <b>{eurc(c.due)}</b> : <span className="m">à jour</span>}
+                      {c.anciens.length > 0 && <small className="m" style={{ display: "block" }}>{anciensDits(c, period)}</small>}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -459,10 +484,20 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
   return (
     <Ecran>
       <Haut bascule={bascule} />
-      <FinDuMois today={today} />
+      {FACTURATION && <FinDuMois today={today} />}
       <div className="cl-ttl rise">
         <p className="k">Tes clients</p>
-        {n ? (
+        {!FACTURATION ? (
+          <h2>
+            {rows.length ? (
+              <>
+                Ce mois, ils te rapportent <span className="num">{eurc(rapporte)}</span>
+              </>
+            ) : (
+              "Pas encore de client."
+            )}
+          </h2>
+        ) : n ? (
           <h2>
             {n} te {n > 1 ? "doivent" : "doit"} <span className="num">{eurc(total)}</span>
           </h2>
@@ -471,10 +506,20 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
         )}
         {rassure}
         {sansProprio}
-        <FacturesDuMois data={data} today={today} />
+        {FACTURATION && <FacturesDuMois data={data} today={today} />}
       </div>
       {rows.length > 6 && <div className="cl-find">{search}</div>}
-      {owe.length > 0 && (
+      {!FACTURATION && rapportent.length > 0 && (
+        <>
+          <p className="k cl-lk">Du plus au moins rentable</p>
+          <div className="cl-rows">
+            {rapportent.map((c) => (
+              <LigneClient key={c.name} c={c} period={period} />
+            ))}
+          </div>
+        </>
+      )}
+      {FACTURATION && owe.length > 0 && (
         <>
           <p className="k cl-lk">Ils te doivent</p>
           <div className="cl-rows">
@@ -484,7 +529,7 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
           </div>
         </>
       )}
-      {ok.length > 0 && (
+      {FACTURATION && ok.length > 0 && (
         <>
           <p className="k cl-lk">Ils ne te doivent plus rien</p>
           <div className="cl-rows">

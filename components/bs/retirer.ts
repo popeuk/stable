@@ -5,6 +5,7 @@ import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { estCollectif } from "@/lib/domain/compte-auto";
 import { recettesFacturees } from "@/lib/domain/factures-base";
+import { FACTURATION } from "@/lib/fonctions";
 import type { DayItem } from "@/lib/domain/seances";
 
 /**
@@ -114,6 +115,8 @@ let avant = new Map<string, string>();
  * pas. Le message le dit et dit comment l'annuler.
  */
 function surFacture(): string {
+  // Facturation masquée : on retire, sans parler de facture.
+  if (!FACTURATION) return "";
   const reste = new Set(useDataStore.getState().revenues.map((r) => r.id));
   const nums = [...new Set([...avant].filter(([id]) => !reste.has(id)).map(([, n]) => n))];
   if (!nums.length) return "";

@@ -28,6 +28,7 @@ import { useFeuille } from "@/components/bs/feuille";
 import { DeconnexionLigne, RecupererLigne, SuppressionLigne, ZoneEffacer } from "@/components/bs/effacer";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { EtatCopie } from "@/components/bs/etat-copie";
+import { FACTURATION } from "@/lib/fonctions";
 import "@/app/carnet/ecurie.css";
 
 /**
@@ -159,9 +160,11 @@ function Moi() {
   // Les papiers de l'écurie : les factures, le lieu et le registre ; le titre de la page suffit.
   const papiers = (
     <LieuReglages title={null}>
-      <Link href="/facturation" className="li np">
-        <Li title="Tes factures" sub="SIRET, adresse, TVA, le tableau du comptable" right={chev} />
-      </Link>
+      {FACTURATION && (
+        <Link href="/facturation" className="li np">
+          <Li title="Tes factures" sub="SIRET, adresse, TVA, le tableau du comptable" right={chev} />
+        </Link>
+      )}
     </LieuReglages>
   );
 

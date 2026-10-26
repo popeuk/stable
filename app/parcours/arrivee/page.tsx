@@ -16,6 +16,7 @@ import { monthBreakdown, seuilEtPlaces } from "@/lib/domain/ticket";
 import { REVOIR_PRIX, memePlein } from "@/lib/domain/lecture";
 import { currentPeriod } from "@/lib/utils/period";
 import type { Horse } from "@/lib/domain/types";
+import { FACTURATION } from "@/lib/fonctions";
 
 export default function Page() {
   return (
@@ -77,7 +78,7 @@ function Reste() {
         )}
         <div className="moncard">
           {/* Rien n'est encore rentré : c'est une estimation, à l'encre, dite comme telle. */}
-          <p className="es-say">{net >= 0 ? "Si tout est payé, il te restera environ" : "Si rien ne change, il te manquera environ"}</p>
+          <p className="es-say">{net >= 0 ? (FACTURATION ? "Si tout est payé, il te restera environ" : "Il te restera environ") : "Si rien ne change, il te manquera environ"}</p>
           <p className="big num">
             <CountUp value={net} ms={1200} fmt={(x) => eur(Math.abs(x))} />
           </p>

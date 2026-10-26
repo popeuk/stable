@@ -15,6 +15,7 @@ import type { DayItem } from "@/lib/domain/seances";
 import type { StableData } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
 import { heure } from "@/lib/utils/heure";
+import { FACTURATION } from "@/lib/fonctions";
 
 /**
  * Tout compte, tu retires : les morceaux d'écran partagés par l'accueil, la
@@ -93,14 +94,15 @@ export function LigneHier() {
 /**
  * La fin du mois (les 3 derniers jours et les 5 premiers du mois suivant) :
  * les clients qui doivent encore pour le mois qui se termine. Hors de cette
- * période : null.
+ * période, ou facturation masquée (lib/fonctions) : null.
  */
 export function useFinDuMois() {
   const hydrated = useDataStore((s) => s.hydrated);
   const data = useDataStore(useShallow((s) => ({ horses: s.horses, revenues: s.revenues, revenueCategories: s.revenueCategories, people: s.people, payments: s.payments, invoices: s.invoices })));
   const { today } = useMaintenant();
   return useMemo(() => {
-    if (!hydrated) return null;
+    // Facturation masquée : plus de « te doivent » en fin de mois, ni de pastille sur Clients.
+    if (!hydrated || !FACTURATION) return null;
     const r = clientsAFairePayer(data as unknown as StableData, today);
     if (!r) return null;
     const enCours = today.slice(0, 7) === `${r.period.year}-${String(r.period.month).padStart(2, "0")}`;

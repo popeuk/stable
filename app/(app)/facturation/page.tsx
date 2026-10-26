@@ -1,5 +1,7 @@
 "use client";
 
+import { FACTURATION } from "@/lib/fonctions";
+import { Redirect } from "@/components/bs/redirect";
 import Link from "next/link";
 import { useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
@@ -21,6 +23,8 @@ import "@/app/carnet/registre.css";
  * app/carnet/facture.css.
  */
 export default function Page() {
+  // Facturation masquée (lib/fonctions) : l'adresse mène à Mon bilan.
+  if (!FACTURATION) return <Redirect to="/argent" />;
   return (
     <ClientGate>
       <Facturation />

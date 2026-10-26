@@ -15,6 +15,7 @@ import { resteOuManque } from "@/lib/domain/lecture";
 const sansSigne = (n: number) => eur(Math.abs(n));
 import { phraseObjectif } from "@/lib/domain/objectif";
 import { estEstimation } from "@/lib/domain/estimation";
+import { FACTURATION } from "@/lib/fonctions";
 
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -78,11 +79,11 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
   const inner: ReactNode = (
     <>
       <span className="ac-tx">
-        <span className="k">{estime ? "Si tout est payé, ce mois" : `Ce mois-ci, ${resteOuManque(net)}`}</span>
+        <span className="k">{estime ? (FACTURATION ? "Si tout est payé, ce mois" : "Ce mois, environ") : `Ce mois-ci, ${resteOuManque(net)}`}</span>
         <span className={`big ${tone}`}>
           <CountUp value={net} ms={900} fmt={estime ? undefined : sansSigne} />
         </span>
-        <span className="ac-sub">{estime ? "C’est une estimation. Elle sera juste quand chaque cheval aura son propriétaire." : phrase || "Une fois tout payé : pensions, soins, frais de l’écurie."}</span>
+        <span className="ac-sub">{estime ? "C’est une estimation. Elle sera juste quand chaque cheval aura son propriétaire." : phrase || (FACTURATION ? "Une fois tout payé : pensions, soins, frais de l’écurie." : "Ce qui rentre, moins les frais de l’écurie.")}</span>
       </span>
       {ill && (
         <span className="ac-ill" aria-hidden="true">
@@ -108,7 +109,7 @@ export function Compteur({ href, ill, className = "" }: { href?: string; ill?: b
       )}
     </>
   );
-  const label = `${estime ? `Si tout est payé, ce mois, estimation : ${sg(net)}` : `Ce mois, ${resteOuManque(net)} ${eur(Math.abs(net))}`}. ${phrase}${prevuTxt ? ` ${prevuTxt}.` : ""}`;
+  const label = `${estime ? `${FACTURATION ? "Si tout est payé, ce mois" : "Ce mois"}, estimation : ${sg(net)}` : `Ce mois, ${resteOuManque(net)} ${eur(Math.abs(net))}`}. ${phrase}${prevuTxt ? ` ${prevuTxt}.` : ""}`;
   const card = href ? (
     <Link href={href} className={`card moncard ac-cpt${ill ? "" : " nobag"}`} aria-label={`${label} Voir d’où ça vient.`}>
       {inner}

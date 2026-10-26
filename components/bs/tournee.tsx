@@ -15,6 +15,7 @@ import { Ill, Money, eur, sg } from "@/components/carnet/ui";
 import { resteOuManque } from "@/lib/domain/lecture";
 import { useFeuille } from "@/components/bs/feuille";
 import { heure } from "@/lib/utils/heure";
+import { FACTURATION } from "@/lib/fonctions";
 
 /**
  * La tournée du matin : 30 secondes en trois étapes, quand on la demande
@@ -257,7 +258,7 @@ function MoisQuiCompte({ depuis }: { depuis: number }) {
       </div>
       <div className="card moncard ac-cpt nobag" role="group" aria-label={`Ce mois, ${resteOuManque(net)} ${eur(Math.abs(net))}`}>
         <span className="ac-tx">
-          <span className="k">{estime ? "Si tout est payé, ce mois" : `Ce mois-ci, ${resteOuManque(net)}`}</span>
+          <span className="k">{estime ? (FACTURATION ? "Si tout est payé, ce mois" : "Ce mois, environ") : `Ce mois-ci, ${resteOuManque(net)}`}</span>
           <span className={`big ${tone}`}>
             <span className="num">{estime ? sg(v) : eur(Math.abs(v))}</span>
           </span>

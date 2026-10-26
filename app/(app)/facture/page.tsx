@@ -1,5 +1,7 @@
 "use client";
 
+import { FACTURATION } from "@/lib/fonctions";
+import { Redirect } from "@/components/bs/redirect";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -63,6 +65,8 @@ import "@/app/carnet/facture.css";
  * La feuille A4 seule part à l'impression. Styles : app/carnet/facture.css (fa-).
  */
 export default function Page() {
+  // Facturation masquée (lib/fonctions) : l'adresse mène à Mon bilan.
+  if (!FACTURATION) return <Redirect to="/argent" />;
   return (
     <ClientGate>
       <Suspense fallback={null}>

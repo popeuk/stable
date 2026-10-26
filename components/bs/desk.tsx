@@ -26,6 +26,7 @@ import { BILAN, CLIENTS_CHEVAUX, under, useParentIci, usePlusItems } from "@/com
 import { ECURIE } from "@/components/bs/navigation";
 import { EnveloppeLigne } from "@/components/bs/demandes";
 import { adresseClient } from "@/lib/adresse-client";
+import { FACTURATION } from "@/lib/fonctions";
 
 /* ------------------------------------------------------------------ */
 /* L'écran large                                                        */
@@ -250,7 +251,7 @@ function PaletteInner() {
       { id: "a-soin", group: "Faire", label: "Noter un soin", sub: "maréchal, véto, vermifuge…", ic: "shoe", run: add("soin") },
       { id: "a-tache", group: "Faire", label: "Ajouter une tâche d’équipe", ic: "board", run: add("tache") },
       { id: "a-depense", group: "Faire", label: "Noter une dépense", sub: "ou une recette", ic: "euro", run: add("depense") },
-      { id: "a-facturer", group: "Faire", label: "Faire payer tes clients", sub: c.due ? `${eurc(c.due)} en attente` : undefined, ic: "doc", run: go("/chevaux?vue=clients") },
+      ...(FACTURATION ? [{ id: "a-facturer", group: "Faire", label: "Faire payer tes clients", sub: c.due ? `${eurc(c.due)} en attente` : undefined, ic: "doc", run: go("/chevaux?vue=clients") }] : []),
       { id: "g-accueil", group: "Aller à", label: "Accueil", ic: "home", hint: "G A", run: go("/accueil") },
       { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
       { id: "g-chevaux", group: "Aller à", label: "Clients", sub: "tes clients et leurs chevaux", ic: "people", hint: "G C", run: go("/chevaux") },
@@ -263,7 +264,7 @@ function PaletteInner() {
       { id: "g-recherche", group: "Aller à", label: "Chercher", sub: "un cheval, un client", ic: "search", run: go("/recherche") },
       { id: "g-valider", group: "Aller à", label: "Ce qui est fait", sub: "dans Planning", ic: "ck", hint: "G V", run: go("/valider") },
       { id: "g-equipe", group: "Aller à", label: "Tâches de l’équipe", sub: "dans Planning", ic: "board", hint: "G T", run: go("/equipe") },
-      { id: "g-clients", group: "Aller à", label: "Mes clients", sub: "qui te doit quoi", ic: "people", hint: "G K", run: go("/chevaux?vue=clients") },
+      { id: "g-clients", group: "Aller à", label: "Mes clients", sub: FACTURATION ? "qui te doit quoi" : "ce que chacun te rapporte", ic: "people", hint: "G K", run: go("/chevaux?vue=clients") },
       { id: "g-leviers", group: "Aller à", label: "Idées pour gagner plus", sub: "dans Mon bilan", ic: "bulb", hint: "G L", run: go("/argent?vue=leviers") },
       { id: "g-mouv", group: "Aller à", label: "Ce qui rentre et ce qui sort", sub: "dans Mon bilan", ic: "list", run: go("/argent?vue=mouvements") },
       { id: "g-bilans", group: "Aller à", label: "Sur plusieurs mois", sub: "ton argent sur 3, 6 ou 12 mois", ic: "chart", hint: "G B", run: go("/pilotage") },
@@ -473,7 +474,7 @@ function HelpInner({ close }: { close: () => void }) {
     ["Tâches de l’équipe", ["G", "T"]],
     ["Mes clients", ["G", "K"]],
     ["Idées pour gagner plus", ["G", "L"]],
-    ["Faire payer tes clients", ["G", "F"]],
+    ...(FACTURATION ? [["Faire payer tes clients", ["G", "F"]] as [string, string[]]] : []),
     ["Sur plusieurs mois", ["G", "B"]],
     ["Ma fiche bestable.fr", ["G", "O"]],
     ["Mes prix", ["G", "S"]],

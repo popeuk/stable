@@ -12,6 +12,7 @@ import { esc } from "@/components/bs/ui";
 import { ChampAdresse } from "@/components/bs/champ-adresse";
 import { nomAffiche } from "@/lib/domain/noms-categories";
 import { useConfirmer } from "@/components/bs/confirmer";
+import { FACTURATION } from "@/lib/fonctions";
 import "@/app/carnet/ecurie.css";
 import "@/app/carnet/registre.css";
 
@@ -187,7 +188,7 @@ const LIEU_CHAMPS: { k: HoldingKey; label: string; ph: string; type?: "tel" | "e
   { k: "holderPhone", label: "Téléphone", ph: "06…", type: "tel" },
   { k: "holderEmail", label: "Courriel", ph: "toi@exemple.fr", type: "email" },
   { k: "holderNumber", label: "Numéro de détenteur", ph: "donné par le SIRE, si tu l’as" },
-  { k: "siret", label: "SIRET", ph: "si tu es professionnel, le même que sur tes factures" },
+  { k: "siret", label: "SIRET", ph: FACTURATION ? "si tu es professionnel, le même que sur tes factures" : "si tu es professionnel" },
   { k: "vetTraitant", label: "Vétérinaire traitant", ph: "nom, cabinet, téléphone" },
   // Règle : tout détenteur d'au moins 3 équidés (chevaux, poneys, ânes) désigne au préfet
   // (DDPP) un vétérinaire sanitaire, qui fait la visite sanitaire équine. Source : arrêté

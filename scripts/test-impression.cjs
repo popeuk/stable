@@ -10,6 +10,11 @@
  * en PDF sous Playwright, il émule l'impression et vérifie que la feuille de
  * la facture est la seule chose visible.
  *
+ * Facturation masquée (FACTURATION = false dans lib/fonctions.ts, depuis le
+ * 26 octobre 2026) : la facture et l'avoir sont sautés, et on vérifie
+ * seulement que /facture mène à Mon bilan. Le registre et l'accueil, eux,
+ * s'impriment toujours.
+ *
  * Il tourne avant chaque mise en ligne (.github/workflows/pages.yml, job
  * vps) : s'il échoue, rien n'est publié.
  *
@@ -34,6 +39,9 @@ const NOM_COMPLET = process.env.NOM_COMPLET || "Hugo Lambert";
 let nomFacture = CLIENT;
 const OUT = path.resolve(process.env.SORTIE || "impression-test");
 fs.mkdirSync(OUT, { recursive: true });
+
+/** L'interrupteur de lib/fonctions.ts : facture et avoir ne se testent que si la facturation est allumée. */
+const FACTURATION = /FACTURATION\b[^=]*=\s*true\b/.test(fs.readFileSync(path.join(__dirname, "..", "lib", "fonctions.ts"), "utf8"));
 
 let echecs = 0;
 const ok = (cond, msg) => {
@@ -122,31 +130,38 @@ async function pdf(p, nom) {
   ]) {
     const t = `${viewport.width}`;
     const { b, p, erreurs } = await contexte(chromium, viewport);
-    const numero = await faireFacture(p);
-    ok(/^\d{4}-\d{4}$/.test(numero), `[${t}] facture faite : n° ${numero}`);
-    ok((await p.title()).startsWith(`Facture ${numero} `), `[${t}] titre du document (nom du PDF) : « ${await p.title()} »`);
-    const f = await pdf(p, `facture-${t}`);
-    ok(portrait(f) && f.pages === 1, `[${t}] facture : ${f.pages} page A4 portrait (${f.w} x ${f.h})`);
-    ok(f.texte.includes("Facture") && f.texte.includes(numero) && f.texte.includes(nomFacture) && f.texte.includes("Reste à payer"), `[${t}] facture : numéro, client (« ${nomFacture} ») et « Reste à payer » dans le PDF`);
-    ok(/Julie Essai EI/.test(f.texte) && /cu?rie d.essai/.test(f.texte) && f.texte.includes("SIRET 123 456 789 00012"), `[${t}] facture : nom et prénom suivis de « EI », nom commercial, SIRET`);
-    ok(f.texte.includes("TVA non applicable, art. 293 B du CGI"), `[${t}] facture : mention de franchise`);
-    ok(!/Registre d.élevage/.test(f.texte) && !f.texte.includes("Imprimer ou enregistrer"), `[${t}] facture : ni le pied du registre, ni l’interface`);
+    if (!FACTURATION) {
+      // Facturation masquée : l'adresse de la facture mène à Mon bilan.
+      await p.goto(`${BASE}/facture/?nom=${encodeURIComponent(CLIENT)}`, { waitUntil: "networkidle" });
+      const versBilan = await p.waitForURL(/\/argent/, { timeout: 15000 }).then(() => true, () => false);
+      ok(versBilan, `[${t}] facturation masquée : /facture mène à Mon bilan (${p.url()})`);
+    } else {
+      const numero = await faireFacture(p);
+      ok(/^\d{4}-\d{4}$/.test(numero), `[${t}] facture faite : n° ${numero}`);
+      ok((await p.title()).startsWith(`Facture ${numero} `), `[${t}] titre du document (nom du PDF) : « ${await p.title()} »`);
+      const f = await pdf(p, `facture-${t}`);
+      ok(portrait(f) && f.pages === 1, `[${t}] facture : ${f.pages} page A4 portrait (${f.w} x ${f.h})`);
+      ok(f.texte.includes("Facture") && f.texte.includes(numero) && f.texte.includes(nomFacture) && f.texte.includes("Reste à payer"), `[${t}] facture : numéro, client (« ${nomFacture} ») et « Reste à payer » dans le PDF`);
+      ok(/Julie Essai EI/.test(f.texte) && /cu?rie d.essai/.test(f.texte) && f.texte.includes("SIRET 123 456 789 00012"), `[${t}] facture : nom et prénom suivis de « EI », nom commercial, SIRET`);
+      ok(f.texte.includes("TVA non applicable, art. 293 B du CGI"), `[${t}] facture : mention de franchise`);
+      ok(!/Registre d.élevage/.test(f.texte) && !f.texte.includes("Imprimer ou enregistrer"), `[${t}] facture : ni le pied du registre, ni l’interface`);
 
-    await p.getByRole("button", { name: "Annuler par un avoir" }).click();
-    await p.getByRole("button", { name: /^Faire l’avoir de/ }).click();
-    await p.waitForURL((u) => !u.toString().includes(`n=${encodeURIComponent(numero)}`), { timeout: 10000 });
-    await p.waitForTimeout(400);
-    const avoir = decodeURIComponent(/[?&]n=([^&]+)/.exec(p.url())[1]);
-    const a = await pdf(p, `avoir-${t}`);
-    ok(portrait(a) && a.pages === 1, `[${t}] avoir n° ${avoir} : ${a.pages} page A4 portrait`);
-    ok(a.texte.includes("Avoir") && a.texte.includes(avoir) && a.texte.includes(`Sur la facture n° ${numero}`) && a.texte.includes("−"), `[${t}] avoir : numéro, facture annulée, montants négatifs`);
+      await p.getByRole("button", { name: "Annuler par un avoir" }).click();
+      await p.getByRole("button", { name: /^Faire l’avoir de/ }).click();
+      await p.waitForURL((u) => !u.toString().includes(`n=${encodeURIComponent(numero)}`), { timeout: 10000 });
+      await p.waitForTimeout(400);
+      const avoir = decodeURIComponent(/[?&]n=([^&]+)/.exec(p.url())[1]);
+      const a = await pdf(p, `avoir-${t}`);
+      ok(portrait(a) && a.pages === 1, `[${t}] avoir n° ${avoir} : ${a.pages} page A4 portrait`);
+      ok(a.texte.includes("Avoir") && a.texte.includes(avoir) && a.texte.includes(`Sur la facture n° ${numero}`) && a.texte.includes("−"), `[${t}] avoir : numéro, facture annulée, montants négatifs`);
 
-    // La facture réimprimée après l'avoir est celle qui est partie : même texte, aucune ligne d'avoir.
-    await p.goto(`${BASE}/facture/?n=${encodeURIComponent(numero)}`, { waitUntil: "networkidle" });
-    await p.waitForTimeout(400);
-    const f2 = await pdf(p, `facture-reimprimee-${t}`);
-    ok(f2.texte === f.texte, `[${t}] facture réimprimée après l’avoir : identique à l’originale`);
-    ok(!f2.texte.includes("Annulée") && !f2.texte.includes(`Avoir n° ${avoir}`), `[${t}] facture réimprimée : ni « Annulée », ni ligne d’avoir`);
+      // La facture réimprimée après l'avoir est celle qui est partie : même texte, aucune ligne d'avoir.
+      await p.goto(`${BASE}/facture/?n=${encodeURIComponent(numero)}`, { waitUntil: "networkidle" });
+      await p.waitForTimeout(400);
+      const f2 = await pdf(p, `facture-reimprimee-${t}`);
+      ok(f2.texte === f.texte, `[${t}] facture réimprimée après l’avoir : identique à l’originale`);
+      ok(!f2.texte.includes("Annulée") && !f2.texte.includes(`Avoir n° ${avoir}`), `[${t}] facture réimprimée : ni « Annulée », ni ligne d’avoir`);
+    }
 
     await p.goto(`${BASE}/registre/`, { waitUntil: "networkidle" });
     await p.waitForTimeout(400);
@@ -171,20 +186,22 @@ async function pdf(p, nom) {
   /* ---------- WebKit : l'impression émulée ---------- */
   {
     const { b, p, erreurs } = await contexte(webkit, { width: 390, height: 844 });
-    const numero = await faireFacture(p);
-    await p.emulateMedia({ media: "print" });
-    const vu = await p.evaluate(() => {
-      const f = document.querySelector(".fa-print");
-      const r = f?.getBoundingClientRect();
-      const visibles = [...document.querySelectorAll("button, nav, .tb, .hd")].filter((e) => {
-        const x = e.getBoundingClientRect();
-        return x.width > 0 && x.height > 0 && getComputedStyle(e).visibility !== "hidden";
-      }).length;
-      return { h: r?.height ?? 0, texte: f?.textContent ?? "", visibles };
-    });
-    ok(vu.h > 300 && vu.texte.includes(numero), `[webkit] facture imprimée : feuille visible (${Math.round(vu.h)} px) avec le n° ${numero}`);
-    ok(vu.visibles === 0, `[webkit] facture imprimée : aucun bouton ni barre (${vu.visibles} visibles)`);
-    await p.emulateMedia({ media: "screen" });
+    if (FACTURATION) {
+      const numero = await faireFacture(p);
+      await p.emulateMedia({ media: "print" });
+      const vu = await p.evaluate(() => {
+        const f = document.querySelector(".fa-print");
+        const r = f?.getBoundingClientRect();
+        const visibles = [...document.querySelectorAll("button, nav, .tb, .hd")].filter((e) => {
+          const x = e.getBoundingClientRect();
+          return x.width > 0 && x.height > 0 && getComputedStyle(e).visibility !== "hidden";
+        }).length;
+        return { h: r?.height ?? 0, texte: f?.textContent ?? "", visibles };
+      });
+      ok(vu.h > 300 && vu.texte.includes(numero), `[webkit] facture imprimée : feuille visible (${Math.round(vu.h)} px) avec le n° ${numero}`);
+      ok(vu.visibles === 0, `[webkit] facture imprimée : aucun bouton ni barre (${vu.visibles} visibles)`);
+      await p.emulateMedia({ media: "screen" });
+    } else console.log("saut [webkit] facture imprimée : facturation masquée (lib/fonctions.ts)");
     await p.goto(`${BASE}/registre/`, { waitUntil: "networkidle" });
     await p.emulateMedia({ media: "print" });
     const reg = await p.evaluate(() => {

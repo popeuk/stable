@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AVEC_GA, AVEC_MATOMO, AVEC_PIXEL, MESURE_POSEE, MESURE_REGLABLE, OUVRIR_CHOIX, appliquerChoix, choisirMatomo, enregistrerChoix, lireChoix, matomoActif, matomoPage, mesurerUneFois, type Choix } from "@/lib/mesure";
+import { FACTURATION } from "@/lib/fonctions";
 
 /**
  * Le bandeau des cookies et la mesure d'audience. Rien du tout tant qu'aucun
@@ -135,7 +136,7 @@ function Panneau({ choix, matomo, onChoisir, onClose }: { choix: Choix | null; m
             <input type="checkbox" checked={audience} onChange={(e) => setAudience(e.target.checked)} />
             <span>
               <b>Statistiques de visite</b>
-              <small>Avec Google Analytics : combien de personnes passent chaque étape (l’histoire, les trois questions, le compte créé, la première facture). Pas tes chiffres.</small>
+              <small>Avec Google Analytics : combien de personnes passent chaque étape (l’histoire, les trois questions, le compte créé{FACTURATION ? ", la première facture" : ""}). Pas tes chiffres.</small>
             </span>
           </label>
         )}

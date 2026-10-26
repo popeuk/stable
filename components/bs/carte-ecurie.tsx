@@ -15,6 +15,7 @@ import { EcuriesTexte } from "@/lib/annuaire";
 import { ContactOuvrir, MAILTO_CONTACT, TEXTE_REPLI } from "@/components/bs/contact";
 import { ChoixTemoinsLigne } from "@/components/bs/consentement";
 import { heure } from "@/lib/utils/heure";
+import { FACTURATION } from "@/lib/fonctions";
 
 /**
  * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
@@ -191,7 +192,7 @@ export function MonEcurie() {
         titre="Places et papiers"
         lignes={[
           { href: "/moi?s=ecurie", ic: "home", t: "Mes places", s: capacity ? `${capacity} places, ${Math.min(horses, capacity)} prises` : "Combien de chevaux tu peux accueillir" },
-          { href: "/moi?s=papiers", ic: "doc", t: "Mes papiers", s: `${factures ? `${factures} facture${factures > 1 ? "s" : ""}` : "Factures"}, fichier du comptable, registre d’élevage` },
+          { href: "/moi?s=papiers", ic: "doc", t: "Mes papiers", s: FACTURATION ? `${factures ? `${factures} facture${factures > 1 ? "s" : ""}` : "Factures"}, fichier du comptable, registre d’élevage` : "Lieu de détention, registre d’élevage" },
         ]}
       />
     </div>

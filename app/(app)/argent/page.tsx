@@ -29,6 +29,7 @@ import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { nomAffiche } from "@/lib/domain/noms-categories";
 import { useConfirmer } from "@/components/bs/confirmer";
+import { FACTURATION } from "@/lib/fonctions";
 
 /**
  * Mon bilan : le chiffre du mois en tête, puis ce qui rentre
@@ -176,7 +177,7 @@ function Mois() {
   const goal = (
     <div className="card ar-goal rise" style={{ animationDelay: ".1s" }}>
       <div className="ar-gtx">
-        <p className="k">{estime ? "Si tout est payé, environ" : isNow ? `Ce mois-ci, ${resteOuManque(m.net)}` : Math.round(m.net) < 0 ? `En ${mName}, il t’a manqué` : `En ${mName}, il t’est resté`}</p>
+        <p className="k">{estime ? FACTURATION ? "Si tout est payé, environ" : "Ce mois, environ" : isNow ? `Ce mois-ci, ${resteOuManque(m.net)}` : Math.round(m.net) < 0 ? `En ${mName}, il t’a manqué` : `En ${mName}, il t’est resté`}</p>
         <p className={`big ${estime ? "" : m.net > 0 ? "in" : m.net < 0 ? "out" : ""}`}>
           <CountUp value={m.net} fmt={estime ? undefined : (n) => eur(Math.abs(n))} />
         </p>
@@ -334,7 +335,7 @@ function Mois() {
         )}
         {isNow && <Piste delay={0.48} />}
         <nav className="card ar-links rise" style={{ animationDelay: ".48s" }} aria-label="Voir aussi">
-          {isNow && (
+          {isNow && FACTURATION && (
             <Link href="/chevaux?vue=clients" className="ar-lrow">
               <span className="ar-pic">
                 <Ic n="people" className="ar-ic" />
@@ -342,6 +343,18 @@ function Mois() {
               <span>
                 <span className="k">Qui te doit quoi</span>
                 <b>{dues.length ? `${dues.length} client${dues.length > 1 ? "s" : ""} te ${dues.length > 1 ? "doivent" : "doit"} ${eurc(duTotal)}. Le détail est dans Clients.` : "Tout le monde t’a payé."}</b>
+              </span>
+              <Ic n="chev" className="chev" />
+            </Link>
+          )}
+          {!FACTURATION && (
+            <Link href="/chevaux?vue=clients" className="ar-lrow">
+              <span className="ar-pic">
+                <Ic n="people" className="ar-ic" />
+              </span>
+              <span>
+                <span className="k">Ce que chacun te rapporte</span>
+                <b>Tes clients, du plus au moins rentable</b>
               </span>
               <Ic n="chev" className="chev" />
             </Link>
@@ -410,7 +423,8 @@ function Piste({ delay }: { delay: number }) {
 /* ---------------- Leviers ---------------- */
 const LEVERS: { id: Lever; title: string; ill: IllName }[] = [
   { id: "remplir", title: "Remplir les places", ill: "tete-fondu" },
-  { id: "facturer", title: "Te faire payer ce qu’on te doit", ill: "sacoche" },
+  // Facturation masquée : la piste reste (refacturer un soin avancé rapporte), le titre ne parle plus de dette.
+  { id: "facturer", title: FACTURATION ? "Te faire payer ce qu’on te doit" : "Refacturer les soins que tu avances", ill: "sacoche" },
   { id: "prix", title: "Revoir tes prix", ill: "rosette" },
   { id: "depenser", title: "Dépenser moins", ill: "foin" },
 ];
@@ -438,7 +452,7 @@ function Leviers() {
     const undo = () => useDataStore.setState(snap);
     if (s.apply.type === "rebill") {
       st().rebillExpense(s.apply.expenseId);
-      say(`Ajouté à sa facture : <strong>+${eur(s.gain)}</strong>.`, undo);
+      say(`${FACTURATION ? "Ajouté à sa facture" : "Refacturé"} : <strong>+${eur(s.gain)}</strong>.`, undo);
     } else if (s.apply.type === "pension") {
       st().setPension(s.apply.horseId, s.apply.amount, localToday().slice(0, 7));
       st().setActionStatus(s.id, "faite");
@@ -501,7 +515,7 @@ function Leviers() {
                   {s.status !== "faite" && (
                     <span className="ar-acts">
                       <button type="button" className="lnk" onClick={() => apply(s)}>
-                        {s.apply.type === "rebill" ? "Ajouter à sa facture" : s.apply.type === "pension" ? "Changer la pension au 1er du mois" : s.status === "en_cours" ? "C’est en cours" : "Je m’en occupe"}
+                        {s.apply.type === "rebill" ? (FACTURATION ? "Ajouter à sa facture" : "Le refacturer") : s.apply.type === "pension" ? "Changer la pension au 1er du mois" : s.status === "en_cours" ? "C’est en cours" : "Je m’en occupe"}
                       </button>
                       {s.status === "en_cours" && (
                         <button type="button" className="lnk" onClick={() => st().setActionStatus(s.id, "faite")}>
@@ -561,7 +575,7 @@ function Mouvements() {
       .map((x) => ({ id: x.id, t: "rev" as const, date: x.date, label: x.note || cat(x.categoryId) || "Rentrée d’argent", sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.payer].filter(Boolean).join(" · "), amount: x.amount, horseId: x.horseId }));
     const d = data.directExpenses
       .filter((x) => dateInPeriod(x.date, active))
-      .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: nomAffiche(x.label), sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.rebillRevenueId ? "remis sur sa facture" : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
+      .map((x) => ({ id: x.id, t: "dir" as const, date: x.date, label: nomAffiche(x.label), sub: [x.horseId ? name(x.horseId) : "hors chevaux", x.rebillRevenueId ? (FACTURATION ? "remis sur sa facture" : "refacturé") : ""].filter(Boolean).join(" · "), amount: -x.amount, horseId: x.horseId }));
     const s = data.sharedExpenses
       .filter((x) => x.periodYear === active.year && x.periodMonth === active.month)
       .map((x) => ({ id: x.id, t: "sh" as const, date: jourDepense(x), label: libelleFrais(x.label), sub: partageLabel(repartition(data, x).length), amount: -x.totalAmount, horseId: "" }));
@@ -583,6 +597,8 @@ function Mouvements() {
 
   /** Une ligne déjà sur une facture ne se corrige ni ne se retire ici : la facture est figée, on fait un avoir. */
   const facturee = (l: LigneArgent) => {
+    // Facturation masquée : une ligne se corrige ou se retire, facture ou pas.
+    if (!FACTURATION) return false;
     const n = factureDeLigne(useDataStore.getState(), l);
     if (n) say(esc(messageFacturee(n)));
     return !!n;
@@ -771,6 +787,7 @@ function Mouvements() {
           ))}
         </Sec>
       )}
+      {FACTURATION && (
       <Link href="/facturation#comptable" className="card ar-lcard rise" style={{ animationDelay: ".2s", marginTop: 18 }}>
         <span className="ar-pic">
           <Ic n="download" className="ar-ic" />
@@ -781,6 +798,7 @@ function Mouvements() {
         </span>
         <Ic n="chev" className="chev" />
       </Link>
+      )}
       {feuille}
     </>
   );

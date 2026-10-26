@@ -3,6 +3,7 @@ import { horseTicket, monthBreakdown } from "@/lib/domain/ticket";
 import { dateInPeriod } from "@/lib/utils/period";
 import { annuleSurCheval } from "@/lib/domain/billing";
 import { r2 } from "@/lib/utils/arrondi";
+import { FACTURATION } from "@/lib/fonctions";
 
 /**
  * Les leviers de rentabilité : remplir, facturer juste, dépenser mieux.
@@ -80,7 +81,7 @@ export function suggestions(data: StableData, period: Period, capacity: number):
       id: `rebill-${e.id}`,
       lever: "facturer",
       title: `Faire payer ${avecArticle(e.label)} de ${h.name} à ${h.ownerName}`,
-      sub: `Tu l’as payé, mais d’habitude c’est à ${h.ownerName} de le régler. Ajoute-le à sa facture.`,
+      sub: `Tu l’as payé, mais d’habitude c’est à ${h.ownerName} de le régler. ${FACTURATION ? "Ajoute-le à sa facture." : "Refacture-le-lui."}`,
       gain: e.amount,
       unit: "une fois",
       apply: { type: "rebill", expenseId: e.id },

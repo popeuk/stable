@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Ic } from "@/components/carnet/ui";
 import { useUiStore } from "@/stores/ui-store";
 import { useSettingsStore } from "@/stores/settings-store";
+import { FACTURATION } from "@/lib/fonctions";
 
 /**
  * Le petit didacticiel du + : lancé à la fin des premiers pas (« Essayer
@@ -25,7 +26,7 @@ const cible = (): HTMLElement | null => {
 };
 
 const USAGES: { i: string; t: string; s: string }[] = [
-  { i: "cal", t: "Une séance", s: "Cours, balade, stage. Elle compte dans ce que te doit le cavalier, et dans ton bilan." },
+  { i: "cal", t: "Une séance", s: FACTURATION ? "Cours, balade, stage. Elle compte dans ce que te doit le cavalier, et dans ton bilan." : "Cours, balade, stage. Elle compte dans ce que te rapporte le cavalier, et dans ton bilan." },
   { i: "syringe", t: "Un soin", s: "Maréchal, véto, vaccin." },
   { i: "clock", t: "Une tâche ou un rendez-vous", s: "Avec ou sans heure." },
   { i: "euro", t: "De l’argent", s: "Ce qui rentre, ce qui sort." },

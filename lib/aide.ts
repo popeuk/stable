@@ -1,4 +1,5 @@
 import { fr } from "@/lib/utils/typo";
+import { FACTURATION } from "@/lib/fonctions";
 
 /**
  * « Comment ça marche ici » : pour chaque écran, ce qu'on y voit et ce
@@ -50,7 +51,7 @@ const AIDES_BRUTES: Record<string, Aide> = {
     cible: "haut",
     points: [
       "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
-      "Une séance faite compte dans ton bilan et dans ce que le client te doit.",
+      FACTURATION ? "Une séance faite compte dans ton bilan et dans ce que le client te doit." : "Une séance faite compte dans ton bilan et dans ce que le client te rapporte.",
       "Un cours à plusieurs : chaque cavalier compte. Ouvre la séance pour retirer un absent.",
     ],
   },
@@ -62,7 +63,7 @@ const AIDES_BRUTES: Record<string, Aide> = {
     points: [
       "Pour chaque cheval : ce qu’on te paie, moins ses soins et sa part des frais de l’écurie (foin, paille, loyer…).",
       "Le signe te le dit : + il te laisse de l’argent, − il t’en coûte.",
-      "Passe sur « Clients » pour voir qui te doit encore.",
+      FACTURATION ? "Passe sur « Clients » pour voir qui te doit encore." : "Passe sur « Clients » pour voir ce que chaque client te rapporte.",
     ],
   },
   ticket: {
@@ -84,7 +85,7 @@ const AIDES_BRUTES: Record<string, Aide> = {
     points: [
       "Ce qui est rentré, ce qui est sorti, et ce qu’il te reste.",
       "Il se remplit tout seul avec ce que tu notes : pensions, séances, soins, dépenses. Pas besoin de faire les comptes.",
-      "Plus bas : tes séances de la semaine et des idées pour gagner plus. Qui te doit quoi, c’est dans Clients.",
+      FACTURATION ? "Plus bas : tes séances de la semaine et des idées pour gagner plus. Qui te doit quoi, c’est dans Clients." : "Plus bas : tes séances de la semaine et des idées pour gagner plus. Ce que chaque client te rapporte, c’est dans Clients.",
     ],
   },
   pilotage: {
@@ -140,11 +141,11 @@ const AIDES_BRUTES: Record<string, Aide> = {
   clients: {
     id: "clients",
     titre: "Tes clients",
-    bulle: "Touche un nom pour voir ce qu’il te doit",
+    bulle: FACTURATION ? "Touche un nom pour voir ce qu’il te doit" : "Touche un nom pour voir ce qu’il te rapporte",
     cible: "haut",
     points: [
       "Les propriétaires des chevaux en pension et les cavaliers qui prennent des cours.",
-      "En haut, ceux qui te doivent le plus. Touche un nom pour ouvrir sa fiche.",
+      FACTURATION ? "En haut, ceux qui te doivent le plus. Touche un nom pour ouvrir sa fiche." : "En haut, ceux qui te rapportent le plus ce mois. Touche un nom pour ouvrir sa fiche.",
       "Un nom noté dans une séance devient un client tout seul.",
       "Va dans « Chevaux » pour voir ce que chaque cheval te laisse.",
     ],
@@ -152,13 +153,19 @@ const AIDES_BRUTES: Record<string, Aide> = {
   client: {
     id: "client",
     titre: "La fiche d’un client",
-    bulle: "Un paiement ? Touche le bouton sous la somme",
+    bulle: FACTURATION ? "Un paiement ? Touche le bouton sous la somme" : "Ce qu’il te rapporte ce mois, ligne par ligne",
     cible: "haut",
-    points: [
-      "« Hugo te doit 114,50 € » : tout ce qu’il te doit, mois d’avant compris.",
-      "Il a payé ? Touche « Il a payé ». Juste une partie ? « Il a payé une partie ».",
-      "Une ligne qui n’a pas eu lieu ? Retire-la avec ×.",
-    ],
+    points: FACTURATION
+      ? [
+          "« Hugo te doit 114,50 € » : tout ce qu’il te doit, mois d’avant compris.",
+          "Il a payé ? Touche « Il a payé ». Juste une partie ? « Il a payé une partie ».",
+          "Une ligne qui n’a pas eu lieu ? Retire-la avec ×.",
+        ]
+      : [
+          "« Ce mois, Hugo te rapporte 114,50 € » : pension, cours, balades, soins refacturés.",
+          "En dessous, chaque ligne du mois, puis les mois d’avant.",
+          "Une ligne qui n’a pas eu lieu ? Retire-la avec ×.",
+        ],
   },
   prestations: {
     id: "prestations",

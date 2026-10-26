@@ -32,6 +32,8 @@ import type { PaymentMethod } from "@/lib/domain/types";
 import { useFeuille } from "@/components/bs/feuille";
 import { vibrer } from "@/lib/utils/vibrer";
 import { adresseClient, adresseFacture, nomDeLAdresse } from "@/lib/adresse-client";
+import { FACTURATION } from "@/lib/fonctions";
+import { activiteDite } from "@/lib/domain/activite";
 import "@/app/carnet/client.css";
 import "@/app/carnet/proprio.css";
 import "@/app/carnet/facture.css";
@@ -43,7 +45,10 @@ import "@/app/carnet/facture.css";
  * téléphone, ses chevaux, sa dernière note, puis « Hugo te doit 114 € » et
  * « Il a payé ». En dessous : les lignes du mois (× pour retirer ce qui n'a
  * pas eu lieu), le message tout prêt, les mois d'avant, ses infos.
- * Ce qu'il doit vient de billsFor. Styles : app/carnet/client.css.
+ * Ce qu'il doit vient de billsFor. Facturation masquée (lib/fonctions) :
+ * la carte dit plutôt « Ce mois, Hugo te rapporte 114 € » et son activité
+ * (« 4 cours, 1 pension »), sans paiement, avance, avoir ni facture.
+ * Styles : app/carnet/client.css.
  */
 export default function Page() {
   return (
@@ -133,7 +138,8 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
   const notes = person?.notes ?? [];
   const quiEst = role === "proprietaire" ? (horses.length ? `propriétaire de ${horses.map((h) => h.name).join(" et ")}` : accord(nom, "propriétaire", "propriétaire")) : accord(nom, "cavalier", "cavalière");
   const lignes = [...bill.lines].sort((a, b) => (fixe(a) === fixe(b) ? a.date.localeCompare(b.date) : fixe(a) ? -1 : 1));
-  const ouvertes = lignes.filter((l) => !l.onSite && !fixe(l));
+  const ouvertes = lignes.filter((l) => (!l.onSite || !FACTURATION) && !fixe(l));
+  const estCeMois = mk === monthKey(now);
   const paiements = (data.payments ?? []).filter((p) => cleClient(p.payer) === cleClient(nom) && p.month === mk && !p.seanceId);
 
   /** La personne existe dans le carnet (un propriétaire noté seulement sur son cheval n'a pas encore de fiche). */
@@ -188,7 +194,8 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
 
   const retirer = (l: BillLine, row: HTMLElement | null, malgre = false) => {
     // Une ligne déjà sur une facture : la facture ne change pas, on le dit d'abord et on propose l'avoir.
-    const facture = recettesFacturees(data.invoices).get(l.id);
+    // Facturation masquée : on retire simplement.
+    const facture = FACTURATION ? recettesFacturees(data.invoices).get(l.id) : undefined;
     if (facture && !malgre) return setFacturee({ l, number: facture });
     // Tout compte, tu retires : la séance (ou ce client seul, dans un cours à plusieurs), le soin, ou la recette.
     const go = () => void retirerLigne({ revenueId: l.id, payer: nom, label: `${l.label}, ${jour(l.date)}` });
@@ -220,11 +227,25 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         <div>
           <h2>{nom}</h2>
           <p>
-            {quiEst} · {seance ? "paie à la séance" : "paie au mois"}
+            {quiEst}
+            {FACTURATION ? ` · ${seance ? "paie à la séance" : "paie au mois"}` : ""}
           </p>
         </div>
       </div>
 
+      {!FACTURATION && (
+        <div className="card cl-due rise">
+          <div className="cl-dtop">
+            <span>
+              <span className="cl-lab">{bill.total > 0 ? (estCeMois ? `Ce mois, ${qui} te rapporte` : `En ${nomMois(period).toLowerCase()}, ${qui} t’a rapporté`) : estCeMois ? `Ce mois, ${qui} ne te rapporte rien pour l’instant.` : `En ${nomMois(period).toLowerCase()}, ${qui} ne t’a rien rapporté.`}</span>
+              <b className="cl-big">{bill.total > 0 ? <CountUp value={bill.total} fmt={eurc} ms={700} /> : eur(0)}</b>
+            </span>
+            {bill.total > 0 && <Ill n="rosette" className="cl-ros" />}
+          </div>
+          {lignes.length > 0 && <p className="cl-cnt">{activiteDite(data, lignes)}.</p>}
+        </div>
+      )}
+      {FACTURATION && (
       <div className="card cl-due rise">
         <div className="cl-dtop">
           <span>
@@ -305,6 +326,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           </div>
         )}
       </div>
+      )}
 
       <div className="cl-qa rise" role="group" aria-label={accord(nom, "Le contacter", "La contacter")}>
         {phone ? (
@@ -366,8 +388,9 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         <h3>
           {nomMois(period)}
           <span>
-            {eurc(bill.total)} en tout · {eurc(bill.paid)} payé{bill.paid > 1 ? "s" : ""}
-            {(bill.rendu ?? 0) > 0 ? ` · ${eurc(bill.rendu ?? 0)} rendu${(bill.rendu ?? 0) > 1 ? "s" : ""}` : ""}
+            {eurc(bill.total)} en tout
+            {FACTURATION && ` · ${eurc(bill.paid)} payé${bill.paid > 1 ? "s" : ""}`}
+            {FACTURATION && (bill.rendu ?? 0) > 0 ? ` · ${eurc(bill.rendu ?? 0)} rendu${(bill.rendu ?? 0) > 1 ? "s" : ""}` : ""}
           </span>
         </h3>
         {lignes.length ? <p className="cl-auto">Ce qui a eu lieu s’ajoute tout seul.</p> : <p className="cl-auto">Rien ce mois pour l’instant.</p>}
@@ -375,7 +398,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           <Ligne key={l.id} l={l} onRetirer={retirer} />
         ))}
         {ouvertes.length > 0 && <p className="cl-hint">Si ça n’a pas eu lieu, retire la ligne.</p>}
-        {paiements.map((p) => (
+        {FACTURATION && paiements.map((p) => (
           <div key={p.id} className="cl-pd">
             <span>
               {p.kind === "remboursement" ? (p.deAvance ? "Avance rendue le" : "Remboursé le") : p.kind === "avance" ? "Avance reçue le" : "Payé le"} {jour(p.at || `${mk}-01`)}
@@ -385,20 +408,21 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
             {p.kind === "remboursement" ? <span>{sgc(-p.amount)}</span> : <span className="in">{sgc(p.amount)}</span>}
           </div>
         ))}
-        {(bill.avance ?? 0) > 0 && (
+        {FACTURATION && (bill.avance ?? 0) > 0 && (
           <div className="cl-pd">
             <span>Pris sur son avance</span>
             <span>{sgc(-(bill.avance ?? 0))}</span>
           </div>
         )}
-        {(bill.avoirs ?? []).map((a) => (
+        {FACTURATION && (bill.avoirs ?? []).map((a) => (
           <Link key={a.number} className="cl-pd cl-pdl" href={`/facture?n=${encodeURIComponent(a.number)}`}>
             <span>Avoir n° {a.number}</span>
             {/* Ce qu'elle ne doit plus : à l'encre, avec son signe. */}
             <span>{sgc(-a.amount)}</span>
           </Link>
         ))}
-        {bill.total > 0 &&
+        {FACTURATION &&
+          bill.total > 0 &&
           (faitesDuMois.length && brouillonDuMois.vide ? (
             <Link className="btn line cl-sendb" href={lienFacture(faitesDuMois[faitesDuMois.length - 1])}>
               <Ic n="arrow" className="" />
@@ -420,11 +444,11 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
               <>
                 <span>{nomMois(m.period)}</span>
                 <span>
-                  {eurc(m.total)} · {m.due > 0 ? `${eurc(m.paid)} payé${m.paid > 1 ? "s" : ""}, reste ${eurc(m.due)}` : "payé"}
+                  {FACTURATION ? <>{eurc(m.total)} · {m.due > 0 ? `${eurc(m.paid)} payé${m.paid > 1 ? "s" : ""}, reste ${eurc(m.due)}` : "payé"}</> : eurc(m.total)}
                 </span>
               </>
             );
-            return m.due > 0 ? (
+            return m.due > 0 || !FACTURATION ? (
               <Link key={monthKey(m.period)} href={adresseClient(nom, monthKey(m.period))} className="cl-pd cl-pdl">
                 {body}
               </Link>
@@ -476,12 +500,14 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
         </label>
         <label className="field">
           <span>Adresse</span>
-          <ChampAdresse key={`a-${person?.id}`} defaultValue={person?.address ?? ""} placeholder="Pour ses factures, facultatif" onCommit={(v) => v !== (person?.address ?? "") && maj({ address: v || undefined })} />
+          <ChampAdresse key={`a-${person?.id}`} defaultValue={person?.address ?? ""} placeholder={FACTURATION ? "Pour ses factures, facultatif" : "Facultatif"} onCommit={(v) => v !== (person?.address ?? "") && maj({ address: v || undefined })} />
         </label>
-        <Switch on={seance} onClick={() => maj({ paieALaSeance: !seance })}>
-          Paie à la séance
-          <small className="cl-sw">Les cours et les balades se paient sur place. Le reste se paie au mois.</small>
-        </Switch>
+        {FACTURATION && (
+          <Switch on={seance} onClick={() => maj({ paieALaSeance: !seance })}>
+            Paie à la séance
+            <small className="cl-sw">Les cours et les balades se paient sur place. Le reste se paie au mois.</small>
+          </Switch>
+        )}
       </div>
       <div className="end" />
 
@@ -551,17 +577,17 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
 
 function Ligne({ l, onRetirer }: { l: BillLine; onRetirer: (l: BillLine, row: HTMLElement | null) => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  const rm = !fixe(l) && !l.onSite;
+  const rm = !fixe(l) && (!l.onSite || !FACTURATION);
   return (
     <div className="cl-ln" ref={ref}>
       <span>
         <b>{l.label}</b>
         <small>
           {jour(l.date)}
-          {l.onSite ? " · payé sur place" : ""}
+          {FACTURATION && l.onSite ? " · payé sur place" : ""}
         </small>
       </span>
-      {/* Ce qui est dû n'est pas encore rentré : à l'encre, avec son signe. */}
+      {/* Ce qui est dû n'est pas encore rentré (ou, facturation masquée, ce que la ligne rapporte) : à l'encre, avec son signe. */}
       <span className="num">{sgc(l.amount)}</span>
       {rm ? (
         <button type="button" className="cl-rm" onClick={() => onRetirer(l, ref.current)} aria-label={`Retirer : ${l.label}, ${jour(l.date)}, n’a pas eu lieu`}>

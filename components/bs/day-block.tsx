@@ -12,6 +12,7 @@ import type { DayItem } from "@/lib/domain/seances";
 import { ligneDe, retirer } from "@/components/bs/retirer";
 import { localToday } from "@/lib/utils/local-date";
 import { dernierMoyen, enMoyen } from "@/lib/domain/paiement";
+import { FACTURATION } from "@/lib/fonctions";
 import type { PaymentMethod } from "@/lib/domain/types";
 import { vibrer } from "@/lib/utils/vibrer";
 import { heure } from "@/lib/utils/heure";
@@ -134,7 +135,7 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
           <span />
         )}
       </div>
-      {it.seance && <PayeSurPlace seance={it.seance} />}
+      {FACTURATION && it.seance && <PayeSurPlace seance={it.seance} />}
     </>
   );
 }

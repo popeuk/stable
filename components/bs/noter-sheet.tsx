@@ -15,6 +15,7 @@ import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
 import { comprendre } from "@/lib/domain/dire";
 import { ligneRemplie } from "@/lib/domain/corriger";
 import { Encaisser } from "@/components/bs/encaisser";
+import { FACTURATION } from "@/lib/fonctions";
 import { MOIS_DEDANS, estimationDuPoste } from "@/lib/domain/recurring";
 import { r2 } from "@/lib/utils/arrondi";
 import { questionDedans } from "@/lib/domain/estimation";
@@ -54,7 +55,7 @@ const MOREH: Record<AjoutType, string> = {
   seance: "lieu, cavaliers, chaque semaine…",
   soin: "qui vient, à faire payer…",
   rdv: "rappel, chaque semaine…",
-  argent: "payé comment, notes…",
+  argent: FACTURATION ? "payé comment, notes…" : "notes, chaque mois…",
 };
 const POUR: [Pour, string][] = [
   ["cheval", "Un cheval"],
@@ -761,7 +762,7 @@ function NoterInner() {
         </div>
       </>
     );
-  } else if (d && encaisser) {
+  } else if (FACTURATION && d && encaisser) {
     body = (
       <Encaisser
         onBack={() => setEncaisser(false)}
@@ -1049,7 +1050,7 @@ function NoterInner() {
             </button>
           </div>
           {/* En tête de « Ça rentre » : le paiement d’un client, comme sur sa fiche. */}
-          {x.sens === "in" && (
+          {FACTURATION && x.sens === "in" && (
             <button type="button" className="btn line nt-pay1" onClick={() => setEncaisser(true)}>
               <Ic n="people" className="" />
               Un client m’a payé
@@ -1193,9 +1194,11 @@ function NoterInner() {
               />
             </F>
           )}
-          <F label="Payé comment">
-            <Puces options={COMMENT.map((c) => [c, c] as [string, string])} value={x.comment} onPick={(comment) => set((y) => ({ ...y, comment: y.comment === comment ? "" : comment }))} />
-          </F>
+          {FACTURATION && (
+            <F label="Payé comment">
+              <Puces options={COMMENT.map((c) => [c, c] as [string, string])} value={x.comment} onPick={(comment) => set((y) => ({ ...y, comment: y.comment === comment ? "" : comment }))} />
+            </F>
+          )}
           <F label="Notes">
             <textarea className="input ta nt-ta" rows={2} placeholder="Notes" aria-label="Notes" value={x.notes} onChange={(e) => set((y) => ({ ...y, notes: e.target.value }))} />
           </F>
