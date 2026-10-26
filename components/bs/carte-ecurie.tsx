@@ -68,10 +68,12 @@ function TonEcurie() {
   const stableName = useSettingsStore((s) => s.stableName);
   const annuaire = useAnnuaire();
   const [listing, setListing] = useState<Listing | null>(null);
+  const [demo, setDemo] = useState(false);
   useEffect(() => {
     const s = getSession();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (s?.kind === "compte" && s.listing && s.listing.status !== "aucune") setListing(s.listing);
+    setDemo(s?.kind === "demo");
   }, []);
   // La recherche dans l'annuaire, à partir de deux lettres.
   const [q, setQ] = useState("");
@@ -102,7 +104,20 @@ function TonEcurie() {
           </span>
           <Ic n="chev" className="ce-chev" />
         </Link>
-      ) : (
+      ) : null}
+      {(listing || demo) && (
+        <Link href="/mon-site" className="ce-li">
+          <span className="ce-ic">
+            <Ic n="globe" className="" />
+          </span>
+          <span className="ce-tx">
+            <b>Mon site</b>
+            <small>{demo ? "Le site d’une écurie, fait à partir de sa fiche" : "Ton site est déjà fait à partir de ta fiche. Regarde-le."}</small>
+          </span>
+          <Ic n="chev" className="ce-chev" />
+        </Link>
+      )}
+      {listing ? null : (
         <div className="ce-cherche">
           <label htmlFor="ce-q">Cherche-la sur bestable.fr</label>
           <p>{EcuriesTexte(annuaire?.ecuries)} y sont déjà. Retrouve la tienne : ton nom, ta commune et ta fiche se remplissent d’un coup.</p>

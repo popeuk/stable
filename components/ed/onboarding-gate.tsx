@@ -27,7 +27,7 @@ export function gateTarget(
   if (!kind) return "/bienvenue";
   if (kind === "demo") return null;
   const setup = parcours.chevaux && parcours.tarifs && parcours.factures;
-  const libre = ["/parcours", "/bienvenue", "/compte", "/ma-fiche"].some((p) => path.startsWith(p));
+  const libre = ["/parcours", "/bienvenue", "/compte", "/ma-fiche", "/mon-site"].some((p) => path.startsWith(p));
   return !setup && !plusTard && !libre ? "/parcours" : null;
 }
 

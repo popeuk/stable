@@ -13,7 +13,7 @@ import { Ic } from "@/components/carnet/ui";
 /** Les quatre onglets : ils n'ont pas de retour. */
 export const ROOTS2 = ["/accueil", "/planning", "/chevaux", "/ecurie"];
 /** Les écrans de Mon écurie : l'onglet reste allumé. */
-export const ECURIE = ["/ecurie", "/parcours/tarifs", "/parcours/factures", "/contacts", "/ma-fiche", "/facturation", "/registre"];
+export const ECURIE = ["/ecurie", "/parcours/tarifs", "/parcours/factures", "/contacts", "/ma-fiche", "/mon-site", "/facturation", "/registre"];
 
 /** Chaque écran a un seul parent, quel que soit le chemin pris pour y venir. */
 const PARENTS2: [string, string][] = [
@@ -36,6 +36,7 @@ const PARENTS2: [string, string][] = [
   ["/parametres", "/reglages"],
   ["/contacts", "/ecurie"],
   ["/ma-fiche", "/ecurie"],
+  ["/mon-site", "/ecurie"],
   ["/facturation", "/ecurie"],
   ["/registre", "/ecurie"],
 ];
