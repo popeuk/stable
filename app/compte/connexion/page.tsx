@@ -521,7 +521,7 @@ export default function Page() {
                         </li>
                         <li>
                           <Ic n="clock" className="" />
-                          Le code vaut 10 minutes
+                          Le code est valable 10 minutes
                         </li>
                       </ul>
                     </>
