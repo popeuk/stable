@@ -187,6 +187,8 @@ export const api = {
   verifierCode: (email: string, code: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/code/verifier", { email, code }),
   /** Google ou Apple : le jeton signé de Supabase ouvre le compte de cette adresse (lib/account/oauth). */
   connexionSupabase: (accessToken: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/connexion/supabase", { access_token: accessToken }),
+  /** Le lien « Ouvrir ma fiche » envoyé à l'adresse de la fiche : ouvre le compte de cette adresse et lui rend la fiche si elle est libre (pc-bestable 1.7.0). */
+  ouvrirLien: (l: string) => call<AuthResponse & { nouveau: boolean; fiche: number; a_toi: boolean; ouverte: boolean }>("POST", "/lien/ouvrir", { l }),
   majMoi: (p: { prenom?: string; nom?: string; telephone?: string; ecurie?: string; fiche?: number; projet?: boolean }) => call<{ user: Me }>("PUT", "/moi", p),
   moi: () => call<{ user: Me; listing: Listing | null; data_key: string }>("GET", "/moi"),
   chercher: (q: string, dep = "") => call<{ resultats: StableHit[]; total: number }>("GET", `/ecuries?q=${encodeURIComponent(q)}&dep=${encodeURIComponent(dep)}`),
