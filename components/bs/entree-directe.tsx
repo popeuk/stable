@@ -9,11 +9,20 @@ import { useAnnuaire } from "@/components/bs/account-ui";
 import { ChampAdresse } from "@/components/bs/champ-adresse";
 import { CodeInput, Marque } from "@/components/bs/rejoindre";
 import { Alerte } from "@/components/bs/porte-brique";
-import { ArriveeFiche, type NouvelleEcurie } from "@/components/bs/arrivee-fiche";
+import {
+  ArriveeFiche,
+  type NouvelleEcurie,
+} from "@/components/bs/arrivee-fiche";
 import { LienLegal } from "@/components/bs/texte-legal";
 import { useBriques } from "@/components/bs/briques";
 import { api, ApiError, type Choix, type StableHit } from "@/lib/account/api";
-import { enter, getSession, sessionFrom, setSession, type AccountSession } from "@/lib/account/session";
+import {
+  enter,
+  getSession,
+  sessionFrom,
+  setSession,
+  type AccountSession,
+} from "@/lib/account/session";
 import { EcuriesTexte } from "@/lib/annuaire";
 import { mesurer } from "@/lib/mesure";
 import "@/app/carnet/briques.css";
@@ -29,20 +38,33 @@ import "@/app/carnet/arrivee-fiche.css";
  */
 type Vue = "histoire" | "cherche" | "ajout" | "creer" | "projet";
 
-const dire = (x: unknown, defaut: string) => (x instanceof ApiError ? x.message : defaut);
+const dire = (x: unknown, defaut: string) =>
+  x instanceof ApiError ? x.message : defaut;
 
-export function EntreeDirecte({ depart = "histoire", retour }: { depart?: Vue; retour?: () => void }) {
-  const router = useRouter();
+export function EntreeDirecte({
+  depart = "histoire",
+  retour,
+  versRecherche,
+  nom = "",
+}: {
+  depart?: Vue;
+  retour?: () => void;
+  /** Où chercher son écurie : par défaut l'écran « Trouve ton écurie » ; pour un nouveau venu, l'onglet « Créer mon compte » de la connexion. */
+  versRecherche?: () => void;
+  /** Le nom tapé dans une recherche qui n'a rien trouvé, pour « Ajouter ton écurie ». */
+  nom?: string;
+}) {
   const chiffres = useAnnuaire();
   const [vue, setVue] = useState<Vue>(depart);
   const [compte, setCompte] = useState<AccountSession | null>(null);
-  const [q, setQ] = useState("");
-  const [hits, setHits] = useState<StableHit[] | null>(null);
-  const [cherche, setCherche] = useState(false);
   const [err, setErr] = useState("");
   const [choix, setChoix] = useState<Choix | null>(null);
-  const [nouvelle, setNouvelle] = useState<NouvelleEcurie>({ title: "", code_postal: "", commune: "", univers: "ecuries-proprietaires" });
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [nouvelle, setNouvelle] = useState<NouvelleEcurie>({
+    title: nom,
+    code_postal: "",
+    commune: "",
+    univers: "ecuries-proprietaires",
+  });
 
   useEffect(() => {
     const s = getSession();
@@ -58,6 +80,263 @@ export function EntreeDirecte({ depart = "histoire", retour }: { depart?: Vue; r
     setErr("");
     setVue(v);
   };
+
+  const recherche = () => (versRecherche ? versRecherche() : aller("cherche"));
+
+  if (vue === "histoire")
+    return (
+      <div className="ar">
+        <Stories
+          onStart={recherche}
+          login={!compte}
+          cta="Trouver mon écurie"
+        />
+      </div>
+    );
+
+  if (vue === "creer")
+    return <ArriveeFiche nouvelle={nouvelle} onRetour={() => aller("ajout")} />;
+
+  /* ---------- Trouve ton écurie ---------- */
+  if (vue === "cherche")
+    return (
+      <div className="bq-arr bq-ch2">
+        <div className="bq-ch2-hd">
+          <div className="bq-ch2-top">
+            {retour || depart === "histoire" ? (
+              <button
+                type="button"
+                className="bq-q-back"
+                aria-label="Revenir"
+                onClick={() => (retour ? retour() : aller("histoire"))}
+              >
+                <Ic n="back" className="" />
+              </button>
+            ) : (
+              <span className="ar-wm">be stable</span>
+            )}
+          </div>
+          <h1>Trouve ton écurie</h1>
+          <p>
+            {EcuriesTexte(chiffres?.ecuries)} sont déjà dans l’annuaire
+            bestable.fr. La tienne y est peut-être.
+          </p>
+        </div>
+        <ChercheEcurie
+          onAjout={(nom) => {
+            if (!nouvelle.title && nom)
+              setNouvelle({ ...nouvelle, title: nom });
+            aller("ajout");
+          }}
+          onProjet={() => aller("projet")}
+        />
+      </div>
+    );
+
+  /* ---------- Ajouter son écurie ---------- */
+  if (vue === "ajout") {
+    const univers = Object.entries(choix?.univers ?? {});
+    return (
+      <form
+        className="bq-arr bq-q bq-q-solo"
+        noValidate
+        onChange={() => err && setErr("")}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!nouvelle.title.trim())
+            return setErr("Indique le nom de l’écurie.");
+          if (!/^\d{5}$/.test(nouvelle.code_postal) || !nouvelle.commune.trim())
+            return setErr("Choisis la commune dans la liste proposée.");
+          aller("creer");
+        }}
+      >
+        <div className="bq-q-top">
+          <button
+            type="button"
+            className="bq-q-back"
+            onClick={recherche}
+            aria-label="Revenir à la recherche"
+          >
+            <Ic n="back" className="" />
+          </button>
+          <span
+            className="bq-q-bars"
+            role="img"
+            aria-label="Avant l’étape 1 sur 4"
+          >
+            {[1, 2, 3, 4].map((j) => (
+              <i key={j} />
+            ))}
+          </span>
+          <span className="bq-q-n">0/4</span>
+        </div>
+        <div className="bq-q-body">
+          <h1>Ajouter ton écurie</h1>
+          <p className="bq-q-s">
+            Trois informations pour créer sa fiche sur bestable.fr. Elle sera
+            vérifiée avant d’être publiée.
+          </p>
+          <label className="bq-q-f">
+            <span>Nom de l’écurie</span>
+            <input
+              autoComplete="organization"
+              value={nouvelle.title}
+              onChange={(e) =>
+                setNouvelle({ ...nouvelle, title: e.target.value })
+              }
+              placeholder="Ex. : Écurie du Moulin"
+            />
+          </label>
+          <div className="bq-q-f">
+            <span>Commune ou code postal</span>
+            <ChampAdresse
+              surUneLigne
+              communes
+              className="bq-q-adr"
+              ariaLabel="Commune ou code postal"
+              value={nouvelle.commune}
+              onChange={(v) =>
+                setNouvelle({ ...nouvelle, commune: v, code_postal: "" })
+              }
+              onChoisir={(s) =>
+                setNouvelle({
+                  ...nouvelle,
+                  commune: s.ville,
+                  code_postal: s.codePostal,
+                })
+              }
+              placeholder="Ex. : Parigné-l’Évêque"
+              autoComplete="address-level2"
+            />
+            {nouvelle.code_postal && (
+              <small className="ok">
+                <Ic n="ck" className="" />
+                {nouvelle.commune} ({nouvelle.code_postal})
+              </small>
+            )}
+          </div>
+          {univers.length > 0 && (
+            <div className="bq-q-f" role="group" aria-label="Type de structure">
+              <span>Type de structure</span>
+              <div className="chips">
+                {univers.map(([k, l]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    className="chip"
+                    aria-pressed={nouvelle.univers === k}
+                    onClick={() => setNouvelle({ ...nouvelle, univers: k })}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {err && (
+            <p className="bq-q-err" role="alert">
+              {err}
+            </p>
+          )}
+        </div>
+        <div className="bq-q-cta">
+          <button className="btn full">
+            Créer ma fiche
+            <Ic n="arrow" className="" />
+          </button>
+          <button
+            type="button"
+            className="lnk"
+            onClick={recherche}
+          >
+            Revenir à la recherche
+          </button>
+        </div>
+      </form>
+    );
+  }
+
+  /* ---------- Pas encore d'écurie ---------- */
+  return (
+    <div className="bq-arr bq-pj">
+      <div className="bq-q-top">
+        <button
+          type="button"
+          className="bq-q-back"
+          onClick={recherche}
+          aria-label="Revenir à la recherche"
+        >
+          <Ic n="back" className="" />
+        </button>
+        <span />
+        <span />
+      </div>
+      <div className="bq-q-body">
+        <h1>Tu prépares ton écurie</h1>
+        <p className="bq-q-s">
+          Be Stable accompagne d’abord les écuries en activité : leur fiche,
+          leurs demandes, leurs chiffres. Pour un projet, il n’y a pas encore de
+          fiche à remplir.
+        </p>
+      </div>
+      {compte ? (
+        <>
+          <Alerte id="projet" sombre ill="brouette" />
+          <div className="bq-q-cta bq-pj-cta">
+            <button
+              type="button"
+              className="btn line full"
+              onClick={() => enter(compte, "/accueil")}
+            >
+              Découvrir mon app
+            </button>
+            <button
+              type="button"
+              className="lnk"
+              onClick={recherche}
+            >
+              Revenir à la recherche
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <ProjetSansCompte onCompte={setCompte} />
+          <div className="bq-q-cta bq-pj-cta">
+            <button
+              type="button"
+              className="lnk"
+              onClick={recherche}
+            >
+              Revenir à la recherche
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * « Trouve ton écurie » : la recherche dans l'annuaire, puis « Tu ne la trouves
+ * pas ? » et ses deux choix. Sert à la page de connexion (onglet « Créer mon
+ * compte ») et à « Retrouver ma fiche » depuis l'app. Une fiche trouvée mène à
+ * l'arrivée par la fiche ; Entrée choisit la première.
+ */
+export function ChercheEcurie({
+  onAjout,
+  onProjet,
+}: {
+  onAjout: (nom: string) => void;
+  onProjet: () => void;
+}) {
+  const router = useRouter();
+  const [q, setQ] = useState("");
+  const [hits, setHits] = useState<StableHit[] | null>(null);
+  const [cherche, setCherche] = useState(false);
+  const [err, setErr] = useState("");
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const ouvrir = (id: number) => router.push(`/compte/inscription?fiche=${id}`);
 
   function chercher(v: string) {
     setQ(v);
@@ -76,217 +355,104 @@ export function EntreeDirecte({ depart = "histoire", retour }: { depart?: Vue; r
     }, 260);
   }
 
-  if (vue === "histoire")
-    return (
-      <div className="ar">
-        <Stories onStart={() => aller("cherche")} login={!compte} cta="Trouver mon écurie" />
-      </div>
-    );
-
-  if (vue === "creer") return <ArriveeFiche nouvelle={nouvelle} onRetour={() => aller("ajout")} />;
-
-  /* ---------- Trouve ton écurie ---------- */
-  if (vue === "cherche")
-    return (
-      <form className="bq-arr bq-ch2" onSubmit={(e) => (e.preventDefault(), hits?.[0] && router.push(`/compte/inscription?fiche=${hits[0].id}`))}>
-        <div className="bq-ch2-hd">
-          <div className="bq-ch2-top">
-            {retour || depart === "histoire" ? (
-              <button type="button" className="bq-q-back" aria-label="Revenir" onClick={() => (retour ? retour() : aller("histoire"))}>
-                <Ic n="back" className="" />
-              </button>
-            ) : (
-              <span className="ar-wm">be stable</span>
-            )}
-          </div>
-          <h1>Trouve ton écurie</h1>
-          <p>{EcuriesTexte(chiffres?.ecuries)} sont déjà dans l’annuaire bestable.fr. La tienne y est peut-être.</p>
-        </div>
-        <label className="bq-ch2-s">
-          <Ic n="search" className="" />
-          <input autoFocus value={q} onChange={(e) => chercher(e.target.value)} placeholder="Nom de l’écurie ou commune" aria-label="Nom de l’écurie ou commune" autoComplete="off" enterKeyHint="search" />
-          {cherche ? <span className="ar-spin" aria-hidden /> : <span />}
-        </label>
-        {err && (
-          <p className="bq-q-err" role="alert" style={{ margin: "12px var(--gut) 0" }}>
-            {err}
+  return (
+    <div className="bq-ch2-bloc">
+      <label className="bq-ch2-s">
+        <Ic n="search" className="" />
+        <input
+          autoFocus
+          value={q}
+          onChange={(e) => chercher(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            if (hits?.[0]) ouvrir(hits[0].id);
+          }}
+          placeholder="Nom ou commune"
+          aria-label="Nom de l’écurie ou commune"
+          autoComplete="off"
+          enterKeyHint="search"
+        />
+        {cherche ? <span className="ar-spin" aria-hidden /> : <span />}
+      </label>
+      {err && (
+        <p
+          className="bq-q-err"
+          role="alert"
+          style={{ margin: "12px var(--gut) 0" }}
+        >
+          {err}
+        </p>
+      )}
+      {hits && (
+        <>
+          <p className="bq-ch2-n" aria-live="polite">
+            {hits.length === 0
+              ? "Aucune fiche à ce nom."
+              : hits.length === 1
+                ? "1 fiche trouvée"
+                : `${hits.length} fiches trouvées`}
           </p>
-        )}
-        {hits && (
-          <>
-            <p className="bq-ch2-n" aria-live="polite">
-              {hits.length === 0 ? "Aucune fiche à ce nom." : hits.length === 1 ? "1 fiche trouvée" : `${hits.length} fiches trouvées`}
-            </p>
-            {hits.length > 0 && (
-              <div className="bq-ch2-r">
-                {hits.map((h) => (
-                  <button key={h.id} type="button" className="bq-ch2-i" onClick={() => router.push(`/compte/inscription?fiche=${h.id}`)}>
-                    <span className="im" style={{ backgroundImage: `url(${h.image || withBase("/img/carnet/accueil-premier.webp")})` }} />
-                    <span>
-                      <b>
-                        <Marque t={h.title} q={q} />
-                      </b>
-                      <small>
-                        {[h.commune, h.departement].filter(Boolean).join(" · ")}
-                        {h.statut === "revendiquee" ? " · déjà à un gérant" : h.statut === "en_verification" ? " · demande en cours" : ""}
-                      </small>
-                    </span>
-                    <Ic n="chev" className="chev" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-        <p className="bq-ch2-o">Tu ne la trouves pas ?</p>
-        <div className="bq-ch2-x">
-          <button
-            type="button"
-            onClick={() => {
-              // Le nom tapé ne sert que si la recherche n'a rien trouvé : sinon c'est un début de nom.
-              if (!nouvelle.title && q.trim() && hits?.length === 0) setNouvelle({ ...nouvelle, title: q.trim() });
-              aller("ajout");
-            }}
-          >
-            <Ic n="plus" className="" />
-            <span>
-              <b>Mon écurie n’est pas dans l’annuaire</b>
-              <small>Tu l’ajoutes : nom, commune, type. Puis les mêmes étapes.</small>
-            </span>
-            <Ic n="chev" className="chev" />
-          </button>
-          <button type="button" onClick={() => aller("projet")}>
-            <Ic n="flag" className="" />
-            <span>
-              <b>Je n’ai pas encore d’écurie</b>
-              <small>Tu prépares un projet d’installation.</small>
-            </span>
-            <Ic n="chev" className="chev" />
-          </button>
-        </div>
-      </form>
-    );
-
-  /* ---------- Ajouter son écurie ---------- */
-  if (vue === "ajout") {
-    const univers = Object.entries(choix?.univers ?? {});
-    return (
-      <form
-        className="bq-arr bq-q bq-q-solo"
-        noValidate
-        onChange={() => err && setErr("")}
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!nouvelle.title.trim()) return setErr("Indique le nom de l’écurie.");
-          if (!/^\d{5}$/.test(nouvelle.code_postal) || !nouvelle.commune.trim()) return setErr("Choisis la commune dans la liste proposée.");
-          aller("creer");
-        }}
-      >
-        <div className="bq-q-top">
-          <button type="button" className="bq-q-back" onClick={() => aller("cherche")} aria-label="Revenir à la recherche">
-            <Ic n="back" className="" />
-          </button>
-          <span className="bq-q-bars" role="img" aria-label="Avant l’étape 1 sur 4">
-            {[1, 2, 3, 4].map((j) => (
-              <i key={j} />
-            ))}
-          </span>
-          <span className="bq-q-n">0/4</span>
-        </div>
-        <div className="bq-q-body">
-          <h1>Ajouter ton écurie</h1>
-          <p className="bq-q-s">Trois informations pour créer sa fiche sur bestable.fr. Elle sera vérifiée avant d’être publiée.</p>
-          <label className="bq-q-f">
-            <span>Nom de l’écurie</span>
-            <input autoComplete="organization" value={nouvelle.title} onChange={(e) => setNouvelle({ ...nouvelle, title: e.target.value })} placeholder="Ex. : Écurie du Moulin" />
-          </label>
-          <div className="bq-q-f">
-            <span>Commune ou code postal</span>
-            <ChampAdresse
-              surUneLigne
-              communes
-              className="bq-q-adr"
-              ariaLabel="Commune ou code postal"
-              value={nouvelle.commune}
-              onChange={(v) => setNouvelle({ ...nouvelle, commune: v, code_postal: "" })}
-              onChoisir={(s) => setNouvelle({ ...nouvelle, commune: s.ville, code_postal: s.codePostal })}
-              placeholder="Ex. : Parigné-l’Évêque"
-              autoComplete="address-level2"
-            />
-            {nouvelle.code_postal && (
-              <small className="ok">
-                <Ic n="ck" className="" />
-                {nouvelle.commune} ({nouvelle.code_postal})
-              </small>
-            )}
-          </div>
-          {univers.length > 0 && (
-            <div className="bq-q-f" role="group" aria-label="Type de structure">
-              <span>Type de structure</span>
-              <div className="chips">
-                {univers.map(([k, l]) => (
-                  <button key={k} type="button" className="chip" aria-pressed={nouvelle.univers === k} onClick={() => setNouvelle({ ...nouvelle, univers: k })}>
-                    {l}
-                  </button>
-                ))}
-              </div>
+          {hits.length > 0 && (
+            <div className="bq-ch2-r">
+              {hits.map((h) => (
+                <button
+                  key={h.id}
+                  type="button"
+                  className="bq-ch2-i"
+                  onClick={() => ouvrir(h.id)}
+                >
+                  <span
+                    className="im"
+                    style={{
+                      backgroundImage: `url(${h.image || withBase("/img/carnet/accueil-premier.webp")})`,
+                    }}
+                  />
+                  <span>
+                    <b>
+                      <Marque t={h.title} q={q} />
+                    </b>
+                    <small>
+                      {[h.commune, h.departement].filter(Boolean).join(" · ")}
+                      {h.statut === "revendiquee"
+                        ? " · déjà à un gérant"
+                        : h.statut === "en_verification"
+                          ? " · demande en cours"
+                          : ""}
+                    </small>
+                  </span>
+                  <Ic n="chev" className="chev" />
+                </button>
+              ))}
             </div>
           )}
-          {err && (
-            <p className="bq-q-err" role="alert">
-              {err}
-            </p>
-          )}
-        </div>
-        <div className="bq-q-cta">
-          <button className="btn full">
-            Créer ma fiche
-            <Ic n="arrow" className="" />
-          </button>
-          <button type="button" className="lnk" onClick={() => aller("cherche")}>
-            Revenir à la recherche
-          </button>
-        </div>
-      </form>
-    );
-  }
-
-  /* ---------- Pas encore d'écurie ---------- */
-  return (
-    <div className="bq-arr bq-pj">
-      <div className="bq-q-top">
-        <button type="button" className="bq-q-back" onClick={() => aller("cherche")} aria-label="Revenir à la recherche">
-          <Ic n="back" className="" />
-        </button>
-        <span />
-        <span />
-      </div>
-      <div className="bq-q-body">
-        <h1>Tu prépares ton écurie</h1>
-        <p className="bq-q-s">Be Stable accompagne d’abord les écuries en activité : leur fiche, leurs demandes, leurs chiffres. Pour un projet, il n’y a pas encore de fiche à remplir.</p>
-      </div>
-      {compte ? (
-        <>
-          <Alerte id="projet" sombre ill="brouette" />
-          <div className="bq-q-cta bq-pj-cta">
-            <button type="button" className="btn line full" onClick={() => enter(compte, "/accueil")}>
-              Découvrir mon app
-            </button>
-            <button type="button" className="lnk" onClick={() => aller("cherche")}>
-              Revenir à la recherche
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <ProjetSansCompte onCompte={setCompte} />
-          <div className="bq-q-cta bq-pj-cta">
-            <button type="button" className="lnk" onClick={() => aller("cherche")}>
-              Revenir à la recherche
-            </button>
-          </div>
         </>
       )}
+      <p className="bq-ch2-o">Tu ne la trouves pas ?</p>
+      <div className="bq-ch2-x">
+        <button
+          type="button"
+          // Le nom tapé ne sert que si la recherche n'a rien trouvé : sinon c'est un début de nom.
+          onClick={() => onAjout(hits?.length === 0 ? q.trim() : "")}
+        >
+          <Ic n="plus" className="" />
+          <span>
+            <b>Mon écurie n’est pas dans l’annuaire</b>
+            <small>
+              Tu l’ajoutes : nom, commune, type. Puis les mêmes étapes.
+            </small>
+          </span>
+          <Ic n="chev" className="chev" />
+        </button>
+        <button type="button" onClick={onProjet}>
+          <Ic n="flag" className="" />
+          <span>
+            <b>Je n’ai pas encore d’écurie</b>
+            <small>Tu prépares un projet d’installation.</small>
+          </span>
+          <Ic n="chev" className="chev" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -295,7 +461,11 @@ export function EntreeDirecte({ depart = "histoire", retour }: { depart?: Vue; r
  * L'alerte du simulateur pour quelqu'un qui n'a pas encore de compte : son e-mail
  * et le code ouvrent le compte (marqué « projet »), puis l'alerte est posée.
  */
-function ProjetSansCompte({ onCompte }: { onCompte: (s: AccountSession) => void }) {
+function ProjetSansCompte({
+  onCompte,
+}: {
+  onCompte: (s: AccountSession) => void;
+}) {
   const { basculerAlerte } = useBriques();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -306,7 +476,8 @@ function ProjetSansCompte({ onCompte }: { onCompte: (s: AccountSession) => void 
   async function envoyer(e?: React.FormEvent) {
     e?.preventDefault();
     if (busy) return;
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setErr("Cette adresse e-mail semble incomplète. Vérifie-la.");
+    if (!/^\S+@\S+\.\S+$/.test(email.trim()))
+      return setErr("Cette adresse e-mail semble incomplète. Vérifie-la.");
     setBusy(true);
     setErr("");
     try {
@@ -341,43 +512,76 @@ function ProjetSansCompte({ onCompte }: { onCompte: (s: AccountSession) => void 
   }
 
   return (
-    <form className="bq-al d" onSubmit={(e) => (etape === "email" ? envoyer(e) : (e.preventDefault(), verifier(code)))} noValidate>
+    <form
+      className="bq-al d"
+      onSubmit={(e) =>
+        etape === "email" ? envoyer(e) : (e.preventDefault(), verifier(code))
+      }
+      noValidate
+    >
       <Ill n="brouette" className="bq-al-ill" />
       <span className="bq-al-k">
         <Ic n="bell" className="" />
         Bientôt
       </span>
       <h2>Le simulateur d’installation</h2>
-      <p>Ton prix, tes places, tes frais : ce qu’il te resterait chaque mois, et combien de chevaux il te faut. Nous le préparons.</p>
+      <p>
+        Ton prix, tes places, tes frais : ce qu’il te resterait chaque mois, et
+        combien de chevaux il te faut. Nous le préparons.
+      </p>
       {etape === "email" ? (
         <>
           <label className="bq-q-f" style={{ textAlign: "left" }}>
             <span>Ton e-mail</span>
-            <input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => (setEmail(e.target.value), setErr(""))} placeholder="ton@email.fr" />
+            <input
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => (setEmail(e.target.value), setErr(""))}
+              placeholder="ton@email.fr"
+            />
           </label>
           {err && (
             <p className="bq-q-err" role="alert">
               {err}
             </p>
           )}
-          <button className="btn full" disabled={busy} style={{ marginTop: 12 }}>
+          <button
+            className="btn full"
+            disabled={busy}
+            style={{ marginTop: 12 }}
+          >
             <Ic n="bell" className="" />
             {busy ? "Envoi…" : "Me prévenir à l’ouverture"}
           </button>
           <p className="bq-al-f">
-            Un seul e-mail à l’ouverture, rien d’autre. Ton adresse ouvre aussi ton compte, sans mot de passe : un code te sera envoyé. <LienLegal t="confidentialite">Confidentialité</LienLegal>
+            Un seul e-mail à l’ouverture, rien d’autre. Ton adresse ouvre aussi
+            ton compte, sans mot de passe : un code te sera envoyé.{" "}
+            <LienLegal t="confidentialite">Confidentialité</LienLegal>
           </p>
         </>
       ) : (
         <>
-          <p style={{ margin: "0 0 10px" }}>Six chiffres envoyés à {email.trim()}. Pense aussi à vérifier les indésirables.</p>
-          <CodeInput value={code} onChange={(v) => (setCode(v), v.length === 6 && verifier(v))} disabled={busy} />
+          <p style={{ margin: "0 0 10px" }}>
+            Six chiffres envoyés à {email.trim()}. Pense aussi à vérifier les
+            indésirables.
+          </p>
+          <CodeInput
+            value={code}
+            onChange={(v) => (setCode(v), v.length === 6 && verifier(v))}
+            disabled={busy}
+          />
           {err && (
             <p className="bq-q-err" role="alert">
               {err}
             </p>
           )}
-          <button className="btn full" disabled={busy || code.length !== 6} style={{ marginTop: 12 }}>
+          <button
+            className="btn full"
+            disabled={busy || code.length !== 6}
+            style={{ marginTop: 12 }}
+          >
             {busy ? "Vérification…" : "Valider"}
           </button>
           <button type="button" className="lnk" onClick={() => envoyer()}>

@@ -40,6 +40,10 @@ import {
 import { useSettingsStore } from "@/stores/settings-store";
 import { mesurer } from "@/lib/mesure";
 import "@/app/carnet/connexion.css";
+import { useRouter } from "next/navigation";
+import { useAnnuaire } from "@/components/bs/account-ui";
+import { ChercheEcurie } from "@/components/bs/entree-directe";
+import { EcuriesTexte } from "@/lib/annuaire";
 
 /**
  * Un seul compte (27 octobre 2026) : le site renvoie ici ses gérants, avec
@@ -80,6 +84,25 @@ const FICHE = "be-stable-fiche-choisie";
 const SANS_NOM = (n: string) => !n.trim() || n.trim() === "Mon écurie";
 export default function Page() {
   const [mode, setMode] = useState<"nom" | "email" | "code">("email");
+  /** L'onglet de la carte : se connecter, ou créer son compte en partant de son écurie (?creer=1). */
+  const [onglet, setOnglet] = useState<"compte" | "creer">("compte");
+  const router = useRouter();
+  const chiffres = useAnnuaire();
+  const choisirOnglet = (o: "compte" | "creer") => {
+    setOnglet(o);
+    setErr("");
+    window.history.replaceState(
+      null,
+      "",
+      window.location.pathname + (o === "creer" ? "?creer=1" : ""),
+    );
+  };
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("creer")) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOnglet("creer");
+    }
+  }, []);
   const [nom, setNom] = useState("");
   /** Pas encore d'écurie : un projet, dit au site pour les e-mails. */
   const [projet, setProjet] = useState(false);
@@ -391,6 +414,7 @@ export default function Page() {
             onSubmit={(e) => {
               e.preventDefault();
               // Comme sur le site, le bouton reste actif : une adresse vide ou incomplète se dit en clair.
+              if (onglet === "creer") return;
               if (!/^\S+@\S+\.\S+$/.test(email.trim()))
                 return setErr(
                   "Cette adresse e-mail semble incomplète. Vérifie-la.",
@@ -426,38 +450,82 @@ export default function Page() {
                   sur bestable.fr.
                 </p>
                 <div className="cx-carte">
-                  <nav className="cx-duo" aria-label="Ton compte">
-                    <span aria-current="page">J’ai un compte</span>
-                    <Link href="/bienvenue">Créer mon compte</Link>
-                  </nav>
-                  <h2 className="cx-h2">Ton adresse e-mail</h2>
-                  <div className="cx-champ">
-                    <input
-                      autoFocus
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="ton@adresse.fr"
-                      aria-label="Ton adresse e-mail"
-                    />
-                    <button className="btn" disabled={busy}>
-                      {busy ? "Envoi…" : "Recevoir mon code"}
-                      {!busy && <Ic n="arrow" className="" />}
+                  <div
+                    className="cx-duo"
+                    role="tablist"
+                    aria-label="Ton compte"
+                  >
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={onglet === "compte"}
+                      onClick={() => choisirOnglet("compte")}
+                    >
+                      J’ai un compte
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={onglet === "creer"}
+                      onClick={() => choisirOnglet("creer")}
+                    >
+                      Créer mon compte
                     </button>
                   </div>
-                  {erreur}
-                  <ul className="cx-notes">
-                    <li>
-                      <Ic n="lock" className="" />
-                      Aucun mot de passe à retenir
-                    </li>
-                    <li>
-                      <Ic n="clock" className="" />
-                      Le code vaut 10 minutes
-                    </li>
-                  </ul>
+                  {onglet === "creer" ? (
+                    // Créer mon compte : on part de son écurie dans l'annuaire (une seule page avec la connexion).
+                    <>
+                      <h2 className="cx-h2">Trouve ton écurie</h2>
+                      <p className="cx-sous">
+                        {EcuriesTexte(chiffres?.ecuries)} sont déjà dans
+                        l’annuaire bestable.fr. La tienne y est peut-être.
+                      </p>
+                      <ChercheEcurie
+                        onAjout={(nom) => {
+                          // Le nom tapé passe par la mémoire de l'onglet, jamais par l'adresse (aucun nom dans une adresse mesurée).
+                          try {
+                            if (nom)
+                              sessionStorage.setItem("bs-ajout-nom", nom);
+                          } catch {}
+                          router.push("/compte/inscription/?creer=1");
+                        }}
+                        onProjet={() =>
+                          router.push("/compte/inscription/?projet=1")
+                        }
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="cx-h2">Ton adresse e-mail</h2>
+                      <div className="cx-champ">
+                        <input
+                          autoFocus
+                          type="email"
+                          inputMode="email"
+                          autoComplete="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="ton@adresse.fr"
+                          aria-label="Ton adresse e-mail"
+                        />
+                        <button className="btn" disabled={busy}>
+                          {busy ? "Envoi…" : "Recevoir mon code"}
+                          {!busy && <Ic n="arrow" className="" />}
+                        </button>
+                      </div>
+                      {erreur}
+                      <ul className="cx-notes">
+                        <li>
+                          <Ic n="lock" className="" />
+                          Aucun mot de passe à retenir
+                        </li>
+                        <li>
+                          <Ic n="clock" className="" />
+                          Le code vaut 10 minutes
+                        </li>
+                      </ul>
+                    </>
+                  )}
                 </div>
               </div>
             )}

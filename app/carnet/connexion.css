@@ -7,9 +7,10 @@
 .carnet .cx-lead { margin: 18px 0 0; font-size: 18px; line-height: 1.5; color: var(--ink2); }
 .carnet .cx-carte { margin-top: 26px; padding: 20px; border-radius: 14px; background: var(--sheet); box-shadow: 0 2px 4px rgba(27, 18, 37, .05), 0 24px 60px rgba(27, 18, 37, .10), inset 0 0 0 1px #DCD6E0; }
 .carnet .cx-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: var(--ctl-r); background: #F1EEF3; }
-.carnet .cx-duo > * { display: grid; place-items: center; min-height: 44px; border-radius: 7px; font-size: 15px; font-weight: 600; color: var(--ink2); text-decoration: none; }
-.carnet .cx-duo > [aria-current="page"] { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 2px rgba(27, 18, 37, .08), inset 0 0 0 1px #DCD6E0; }
-.carnet .cx-duo > a:hover { color: var(--ink); }
+.carnet .cx-duo > * { display: grid; place-items: center; min-height: 44px; border: 0; border-radius: 7px; background: none; font: inherit; font-size: 15px; font-weight: 600; color: var(--ink2); text-decoration: none; cursor: pointer; }
+.carnet .cx-duo > [aria-selected="true"] { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 2px rgba(27, 18, 37, .08), inset 0 0 0 1px #DCD6E0; }
+.carnet .cx-duo > :hover { color: var(--ink); }
+.carnet .cx-duo > :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .carnet .cx-h2 { margin: 22px 0 14px; font-size: 24px; font-weight: 700; line-height: 1.05; letter-spacing: -.03em; font-variation-settings: "wdth" 90; }
 .carnet .cx-champ { display: grid; gap: 6px; padding: 6px; border-radius: var(--ctl-r); background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--acc), 0 0 0 4px rgba(19, 78, 58, .1); }
 .carnet .cx-champ input { min-width: 0; padding: 12px 10px; border: 0; background: none; font: inherit; font-size: 16px; font-weight: 500; color: var(--ink); outline: none; }
@@ -29,3 +30,13 @@
 }
 /* Le papier du site, au lieu du gris de l'app. */
 .carnet .ar:has(.cx) { background: var(--paper); }
+
+/* « Créer mon compte » : « Trouve ton écurie » dans la carte (une seule page avec la connexion). */
+.carnet .cx-sous { margin: -6px 0 14px; font-size: 14px; line-height: 1.45; color: var(--ink2); }
+.carnet .cx-carte .bq-ch2-s { margin: 0; }
+.carnet .cx-carte .bq-ch2-n { margin: 14px 0 6px; }
+.carnet .cx-carte .bq-ch2-r { margin: 0; }
+.carnet .cx-carte .bq-ch2-o { margin: 20px 0 8px; }
+.carnet .cx-carte .bq-ch2-x { margin: 0; }
+.carnet .cx-carte .bq-q-err { margin: 12px 0 0 !important; }
+.carnet:has(.cx) { min-height: 100dvh; background: var(--paper); }
