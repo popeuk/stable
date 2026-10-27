@@ -213,6 +213,8 @@ export const api = {
   majFiche: (f: Partial<Fiche>) => call<Fiche>("PUT", "/ma-fiche", f),
   /** pc-bestable 1.5.0 : Contact, et les demandes des cavaliers (404 tant que le site ne les a pas). */
   contact: (p: MessageContact) => call<{ ok: true }>("POST", "/contact", p),
+  /** L'alerte « Me prévenir à l'ouverture » (pc-bestable, à venir : sans l'adresse côté site, l'alerte reste gardée sur l'appareil). */
+  alerte: (brique: string, actif: boolean) => call<{ ok: true }>("POST", "/alertes", { brique, actif }),
   demandes: () => call<DemandesReponse>("GET", "/demandes"),
   demandeVue: (id: number) => call<{ ok: true }>("POST", `/demandes/${id}/vue`, {}),
   stats: () => call<{ ecuries: number; departements: number; revendiquees: number; avec_prix: number }>("GET", "/chiffres"),

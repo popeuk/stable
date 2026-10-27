@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import type { AlerteId } from "@/lib/briques";
 import { vault, wasFresh } from "@/lib/account/vault";
 import { getSession } from "@/lib/account/session";
 
@@ -88,6 +89,12 @@ interface SettingsState {
   setCapacity: (n: number) => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
+  /** Le jour où le gérant a commencé l'essai de Mon argent (AAAA-MM-JJ), une seule fois (lib/briques.ts). */
+  essaiDebut: string | null;
+  commencerEssai: (aujourdhui: string) => void;
+  /** Les alertes « Me prévenir à l'ouverture », avec le jour de l'inscription. */
+  alertes: Partial<Record<AlerteId, string>>;
+  basculerAlerte: (id: AlerteId, aujourdhui: string) => boolean;
 }
 
 /** Granular, opt-in notification preferences (spec 1.3 / 9.4) + stable config. */
@@ -144,6 +151,18 @@ export const useSettingsStore = create<SettingsState>()(
       setCapacity: (n) => set({ capacity: Math.max(1, Math.min(60, Math.round(n))) }),
       completeOnboarding: () => set({ onboarded: true }),
       resetOnboarding: () => set({ onboarded: false }),
+      essaiDebut: null,
+      commencerEssai: (aujourdhui) => set((s) => (s.essaiDebut ? s : { essaiDebut: aujourdhui })),
+      alertes: {},
+      basculerAlerte: (id, aujourdhui) => {
+        const avant = get().alertes;
+        const actif = !avant[id];
+        const alertes = { ...avant };
+        if (actif) alertes[id] = aujourdhui;
+        else delete alertes[id];
+        set({ alertes });
+        return actif;
+      },
     }),
     {
       name: "be-stable-settings",
