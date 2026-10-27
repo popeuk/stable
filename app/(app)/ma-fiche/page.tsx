@@ -11,6 +11,7 @@ import { useUiStore } from "@/stores/ui-store";
 import { api, ApiError, type Choix, type Fiche, type Formule } from "@/lib/account/api";
 import { getSession, updateAccount } from "@/lib/account/session";
 import "@/app/carnet/ecurie.css";
+import { VitrineTete } from "@/components/bs/vitrine-tete";
 
 /**
  * Ma fiche bestable.fr (l'annuaire), depuis l'app : ce que voient les cavaliers,
@@ -207,7 +208,7 @@ function MaFiche() {
   const places = Number(f.places_libres || 0);
   const form = (
     <div id="fiche-form" className="ec-form">
-      <Sec ill="sacoche" title="Places et tarifs" delay={0.05}>
+      <Sec ill="sacoche" title="Places et tarifs" delay={0.05} id="vt-places">
         <div className="ec-lab">
           <span>Places libres en pension</span>
           <em>
@@ -269,7 +270,7 @@ function MaFiche() {
       </Sec>
 
       {choix && (
-        <Sec ill="brouette" title="Ce que tu proposes" delay={0.12}>
+        <Sec ill="brouette" title="Ce que tu proposes" delay={0.12} id="vt-propose">
           {(
             [
               ["offres", "Activités"],
@@ -292,7 +293,7 @@ function MaFiche() {
         </Sec>
       )}
 
-      <Sec ill="carnet-buste" title="Présentation et contact" delay={0.2}>
+      <Sec ill="carnet-buste" title="Présentation et contact" delay={0.2} id="vt-contact">
         <div className="ec-stk">
           <Champ label="Nom de l’écurie" value={f.title} onChange={(e) => set({ title: e.target.value })} />
           <label className="field">
@@ -308,7 +309,7 @@ function MaFiche() {
         </div>
       </Sec>
 
-      <Sec ill="carnet" title={`Photos · ${f.photos.length} sur 12`} delay={0.28}>
+      <Sec ill="carnet" title={`Photos · ${f.photos.length} sur 12`} delay={0.28} id="vt-photos">
         {f.en_attente ? (
           <p className="note">Tu pourras ajouter des photos dès que la fiche sera validée.</p>
         ) : (
@@ -363,14 +364,13 @@ function MaFiche() {
     </div>
   );
 
-  const hello = <Hello title="Ta fiche, c’est ta vitrine." sub={`Ce que les cavaliers voient de ${f.title || "ton écurie"} sur bestable.fr. Plus elle est complète, mieux ils comprennent ce que tu proposes.`} />;
 
   return (
     <Screen wide={desk}>
       <div className="ec-pg">
         {desk ? (
           <>
-            {hello}
+            <VitrineTete f={f} />
             {statut}
             <div className="cols2 ec-cols">
               <div>{form}</div>
@@ -389,10 +389,8 @@ function MaFiche() {
           </>
         ) : (
           <>
-            {hello}
+            <VitrineTete f={f} />
             {statut}
-            {apercu}
-            {resultat}
             {form}
           </>
         )}

@@ -114,3 +114,61 @@
 .carnet .bq-al-mini > svg { width: 36px; height: 36px; padding: 9px; border-radius: 50%; background: #FBF1D6; fill: none; stroke: #8A6410; stroke-width: 2; }
 .carnet .bq-al-mini b { display: block; font-size: 14.5px; font-weight: 700; }
 .carnet .bq-al-mini small { font-size: 12.5px; color: var(--ink2); }
+
+/* Vitrine : la tête de « Ma fiche » */
+.carnet .vt-cover { position: relative; margin: 8px var(--gut) 0; height: 196px; border-radius: var(--bloc-r); overflow: hidden; background: #E9DFCF; }
+.carnet .vt-cover > img, .carnet .vt-cover .vt-ill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
+.carnet .vt-cover-tx { position: absolute; inset: auto 0 0 0; padding: 44px 16px 14px; background: linear-gradient(rgba(11, 51, 37, 0), rgba(11, 51, 37, .92) 55%); color: #fff; }
+.carnet .vt-cover-tx .k { font-size: 12px; font-weight: 650; color: var(--on-vert); }
+.carnet .vt-cover-tx h1 { margin: 2px 0 0; font-size: 25px; font-weight: 760; letter-spacing: -.025em; line-height: 1.05; }
+.carnet .vt-cover-tx p { margin: 2px 0 0; font-size: 13px; color: var(--on-vert); }
+.carnet .vt-voir { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 7px 12px; border-radius: var(--ctl-r); background: #fff; color: var(--vert-deep); font-size: 13px; font-weight: 700; text-decoration: none; }
+.carnet .vt-voir svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+.carnet .vt-score { margin: 12px var(--gut) 0; padding: 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); }
+.carnet .vt-score > div { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+.carnet .vt-score .bq-jg { margin-top: 0; }
+.carnet .vt-n { font-size: 13px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
+.carnet .vt-n b { font-size: 30px; font-weight: 780; letter-spacing: -.03em; color: var(--ink); }
+.carnet .vt-score p { margin: 10px 0 0; font-size: 13px; line-height: 1.45; color: var(--ink2); }
+.carnet .vt-parts { margin: 10px var(--gut) 0; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); overflow: hidden; }
+.carnet .vt-part { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 13px 14px; color: inherit; text-decoration: none; }
+.carnet .vt-part + .vt-part { border-top: 1px solid var(--line); }
+.carnet .vt-part .n { width: 26px; height: 26px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--acc); display: grid; place-items: center; font-size: 12.5px; font-weight: 720; color: var(--acc); }
+.carnet .vt-part b { display: block; font-size: 14.5px; font-weight: 700; }
+.carnet .vt-part small { display: block; font-size: 12.5px; line-height: 1.35; color: var(--ink2); }
+.carnet .vt-part .st { font-size: 12px; font-weight: 700; color: var(--acc); }
+.carnet .vt-part.miss .n { background: var(--rose); box-shadow: none; color: var(--vert-deep); }
+.carnet .vt-part.miss .st { padding: 3px 8px; border-radius: 10px; background: var(--rose); color: var(--vert-deep); }
+.carnet .vt-h2 { margin: 24px var(--gut) 8px; font-size: 18px; font-weight: 720; letter-spacing: -.015em; }
+.carnet .vt-audit { margin: 0 var(--gut); padding: 4px 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); }
+.carnet .vt-audit-i { margin: 10px 0 4px; font-size: 12.5px; color: var(--ink2); }
+.carnet .vt-pt { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 11px 0; border-top: 1px solid var(--line); }
+.carnet .vt-pt .d { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--rose); }
+.carnet .vt-pt.ok .d { background: var(--acc); }
+.carnet .vt-pt .d svg { width: 13px; height: 13px; fill: none; stroke: var(--vert-deep); stroke-width: 2.6; }
+.carnet .vt-pt.ok .d svg { stroke: #fff; }
+.carnet .vt-pt b { display: block; font-size: 14px; font-weight: 700; }
+.carnet .vt-pt small { display: block; margin-top: 2px; font-size: 12.5px; line-height: 1.4; color: var(--ink2); }
+.carnet .vt-pt .v { max-width: 104px; font-size: 12.5px; font-weight: 700; text-align: right; line-height: 1.3; }
+.carnet .vt-site { margin: 12px var(--gut) 0; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); color: inherit; text-decoration: none; }
+.carnet .vt-site .ill { width: 64px; height: 48px; object-fit: cover; border-radius: 8px; }
+.carnet .vt-site b { display: block; font-size: 14.5px; font-weight: 700; }
+.carnet .vt-site small { font-size: 12.5px; color: var(--ink2); }
+.carnet .vt-site .chev { width: 16px; height: 16px; fill: none; stroke: var(--ink3); stroke-width: 2; }
+.carnet [id^="vt-"] { scroll-margin-top: 72px; }
+
+/* Demandes */
+.carnet .dm-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 12px var(--gut) 0; padding: 4px; border-radius: var(--bloc-r); background: var(--mist); }
+.carnet .dm-seg button { min-height: 40px; border: 0; border-radius: var(--ctl-r); background: none; font: inherit; font-size: 13.5px; font-weight: 650; color: var(--ink2); cursor: pointer; }
+.carnet .dm-seg button[aria-selected="true"] { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 3px rgba(27, 18, 37, .12); }
+.carnet .dm-carte { margin: 12px var(--gut) 0; padding: 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); }
+.carnet .dm-carte .dm-msg { white-space: pre-line; }
+.carnet .dm-rep { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.carnet .dm-rep textarea { width: 100%; margin-top: 10px; padding: 10px 12px; border: 0; border-radius: var(--ctl-r); background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--acc); font: inherit; font-size: 14px; line-height: 1.5; resize: vertical; }
+.carnet .dm-rep .dm-act { margin-top: 10px; }
+.carnet .dm-aide { display: block; margin-top: 8px; font-size: 12px; color: var(--ink2); }
+.carnet .dm-ok { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; padding: 10px 12px; border-radius: var(--ctl-r); background: color-mix(in srgb, var(--acc) 10%, var(--sheet)); font-size: 13.5px; }
+.carnet .dm-ok > svg { flex: none; width: 18px; height: 18px; fill: none; stroke: var(--acc); stroke-width: 2.6; }
+.carnet .dm-vide { text-align: center; padding-top: 18px; }
+.carnet .dm-vide .ill { width: 120px; margin: 0 auto; }
+.carnet .dm-vide h2 { margin-top: 8px; }

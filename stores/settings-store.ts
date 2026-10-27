@@ -95,6 +95,9 @@ interface SettingsState {
   /** Les alertes « Me prévenir à l'ouverture », avec le jour de l'inscription. */
   alertes: Partial<Record<AlerteId, string>>;
   basculerAlerte: (id: AlerteId, aujourdhui: string) => boolean;
+  /** Les demandes de cavaliers auxquelles le gérant a répondu depuis l'app (le site ne le sait pas encore). */
+  repondues: number[];
+  marquerRepondue: (id: number, oui: boolean) => void;
 }
 
 /** Granular, opt-in notification preferences (spec 1.3 / 9.4) + stable config. */
@@ -154,6 +157,8 @@ export const useSettingsStore = create<SettingsState>()(
       essaiDebut: null,
       commencerEssai: (aujourdhui) => set((s) => (s.essaiDebut ? s : { essaiDebut: aujourdhui })),
       alertes: {},
+      repondues: [],
+      marquerRepondue: (id, oui) => set((s) => ({ repondues: oui ? [...s.repondues.filter((x) => x !== id), id] : s.repondues.filter((x) => x !== id) })),
       basculerAlerte: (id, aujourdhui) => {
         const avant = get().alertes;
         const actif = !avant[id];
