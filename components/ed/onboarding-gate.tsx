@@ -25,7 +25,9 @@ export function gateTarget(
   path: string,
 ): string | null {
   if (!kind) return "/bienvenue";
-  if (kind === "demo") return null;
+  // L'app en briques (27 octobre 2026) : un compte entre par l'accueil, qui se compose
+  // selon ses briques ; le parcours de l'argent n'est plus imposé.
+  if (kind === "demo" || kind === "compte") return null;
   const setup = parcours.chevaux && parcours.tarifs && parcours.factures;
   const libre = ["/parcours", "/bienvenue", "/compte", "/ma-fiche", "/mon-site"].some((p) => path.startsWith(p));
   return !setup && !plusTard && !libre ? "/parcours" : null;

@@ -4,6 +4,7 @@ import { LienLegal } from "@/components/bs/texte-legal";
 import { ChampAdresse } from "@/components/bs/champ-adresse";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { withBase } from "@/components/bs/ui";
 import { nf, useAnnuaire } from "@/components/bs/account-ui";
 import { EcuriesTexte, ecuriesTexte } from "@/lib/annuaire";
@@ -51,6 +52,7 @@ const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers
 
 export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depuis = null }: { ficheId?: number; creer?: boolean; retrouver?: boolean; depuis?: string | null }) {
   const chiffres = useAnnuaire();
+  const router = useRouter();
   const [etape, setEtape] = useState<Etape>(creer ? "creer" : ficheId ? "elle" : retrouver ? "nom" : "accueil");
   const [hist, setHist] = useState<Etape[]>([]);
   const [compte, setCompte] = useState<AccountSession | null>(null);
@@ -110,16 +112,10 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
     }, 260);
   }
 
-  async function choisir(h: StableHit) {
+  /** Une écurie trouvée : la même arrivée que depuis sa fiche sur bestable.fr (ArriveeFiche). */
+  function choisir(h: StableHit) {
     setBusy(true);
-    try {
-      setFiche(await api.ecurie(h.id));
-      aller("elle");
-    } catch {
-      setErr("Impossible d’ouvrir cette fiche. Réessaie.");
-    } finally {
-      setBusy(false);
-    }
+    router.push(`/compte/inscription?fiche=${h.id}`);
   }
 
   /** La demande (revendication ou création), une fois le compte ouvert. */
@@ -195,7 +191,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
     enter(s, garde.current ? "/accueil" : to);
   }
 
-  if (adopt) return <AdoptChoice to={adopt === "locale" ? "/accueil" : "/parcours"} source={adopt} />;
+  if (adopt) return <AdoptChoice to="/accueil" source={adopt} />;
 
   const n = RANG[etape];
   const prixN = Number(prix);
@@ -597,7 +593,7 @@ export function Rejoindre({ ficheId = 0, creer = false, retrouver = false, depui
             <p>{listing?.status === "validee" ? "Tout est prêt dans Be Stable." : "On vérifie à la main, en général sous deux jours ouvrés. Tu reçois un e-mail dès que la fiche est à toi."}</p>
           </div>
           <div className="foot">
-            <button type="button" className="btn full" onClick={() => compte && entrer(compte, "/parcours")}>
+            <button type="button" className="btn full" onClick={() => compte && entrer(compte, "/accueil")}>
               Ouvrir Be Stable
               <Ic n="arrow" className="" />
             </button>

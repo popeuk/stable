@@ -86,7 +86,7 @@ export function reglagesGa(l?: { origin: string; pathname: string }) {
 }
 
 /** Les étapes mesurées. */
-export type Evenement = "histoire_vue" | "questions_finies" | "voila_ton_mois" | "compte_cree" | "premiere_saisie" | "facture_faite";
+export type Evenement = "histoire_vue" | "questions_finies" | "voila_ton_mois" | "compte_cree" | "premiere_saisie" | "facture_faite" | "revendication_envoyee";
 
 /** Le nom standard de Meta quand il existe (sinon un événement personnalisé). */
 const META_STANDARD: Partial<Record<Evenement, string>> = { compte_cree: "CompleteRegistration" };

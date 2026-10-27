@@ -122,7 +122,7 @@ function NouvellesDemandes() {
 }
 
 /** Un flot : la rosette gagnée, vert anglais et rose casaque. */
-function Flot() {
+export function Flot() {
   return (
     <svg viewBox="0 0 64 64" className="lv2-svg" aria-hidden="true">
       <path d="M22 38 15 61l9-4 5 7 6-22z" fill="var(--vert-deep)" />

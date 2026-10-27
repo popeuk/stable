@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Rejoindre } from "@/components/bs/rejoindre";
+import { ArriveeFiche } from "@/components/bs/arrivee-fiche";
 
 /**
  * Lien direct vers une fiche (depuis mon-ecurie.fr : « Créer mon accès Be
@@ -21,9 +22,11 @@ export default function Page() {
 
 function Inscription() {
   const q = useSearchParams();
+  // Depuis « C'est mon écurie » sur bestable.fr (?fiche=ID) : l'arrivée par la fiche, sans histoire (lot 5).
+  const fiche = Number(q.get("fiche")) || 0;
   return (
     <div className="carnet">
-      <Rejoindre ficheId={Number(q.get("fiche")) || 0} creer={!!q.get("creer")} retrouver={!!q.get("retrouver")} depuis={q.get("depuis")} />
+      {fiche ? <ArriveeFiche key={fiche} ficheId={fiche} /> : <Rejoindre creer={!!q.get("creer")} retrouver={!!q.get("retrouver")} depuis={q.get("depuis")} />}
     </div>
   );
 }

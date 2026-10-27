@@ -26,7 +26,7 @@ describe("« Juste regarder l'écurie d'exemple »", () => {
   });
   it("l'essai sans compte et le vrai compte passent toujours par le parcours", () => {
     expect(gateTarget("locale", rien, false, "/accueil")).toBe("/parcours");
-    expect(gateTarget("compte", rien, false, "/accueil")).toBe("/parcours");
+    expect(gateTarget("compte", rien, false, "/accueil")).toBeNull();
     expect(gateTarget("compte", fini, false, "/accueil")).toBeNull();
     expect(gateTarget("locale", rien, true, "/accueil")).toBeNull();
     expect(gateTarget("locale", rien, false, "/parcours/tarifs")).toBeNull();
