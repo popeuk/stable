@@ -106,6 +106,8 @@ export function refusTient(r: Refus | undefined, raw: string, maintenant = Date.
 }
 
 export function nuageAllume(): boolean {
+  // En préproduction (NEXT_PUBLIC_NUAGE_URL=off), la copie en ligne reste éteinte : rien n'écrit dans les tiroirs réels.
+  if (NUAGE_URL === "off") return false;
   try {
     return localStorage.getItem(DRAPEAU) !== "0";
   } catch {
@@ -204,6 +206,7 @@ export async function empreinte(clair: string): Promise<string> {
 async function appel(method: "GET" | "PUT" | "POST", body?: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
   const s = getSession();
   if (s?.kind !== "compte") return { status: 401, json: {} };
+  if (NUAGE_URL === "off") return { status: 503, json: {} };
   const stop = new AbortController();
   const t = setTimeout(() => stop.abort(), 30000);
   try {

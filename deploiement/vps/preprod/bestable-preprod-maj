@@ -1,0 +1,26 @@
+#!/bin/bash
+# Préproduction de l'app Be Stable (27 octobre 2026) : comme bestable-app-maj,
+# mais depuis la branche « vps-preprod » et dans /srv/bestable-preprod. Servie
+# par Caddy derrière un mot de passe (preprod-app.187-7-74-179.sslip.io).
+set -euo pipefail
+BASE=/srv/bestable-preprod
+DEPOT=$BASE/depot
+mkdir -p "$BASE/versions"
+if [ ! -d "$DEPOT/.git" ]; then
+  git clone -q --depth 1 --branch vps-preprod https://github.com/popeuk/stable.git "$DEPOT" 2>/dev/null || { echo "branche vps-preprod absente pour l'instant"; exit 0; }
+else
+  git -C "$DEPOT" fetch -q --depth 1 origin vps-preprod
+  git -C "$DEPOT" reset -q --hard FETCH_HEAD
+fi
+V=$(tr -dc 'a-f0-9' < "$DEPOT/VERSION" | cut -c1-12)
+[ -n "$V" ] || { echo "VERSION illisible" >&2; exit 1; }
+[ "$(readlink -f "$BASE/courant" 2>/dev/null || true)" = "$BASE/versions/$V" ] && exit 0
+[ -f "$DEPOT/index.html" ] || { echo "version $V sans index.html" >&2; exit 1; }
+if [ ! -d "$BASE/versions/$V" ]; then
+  rsync -a --delete --exclude .git "$DEPOT/" "$BASE/versions/$V.part/"
+  mv "$BASE/versions/$V.part" "$BASE/versions/$V"
+fi
+ln -sfn "$BASE/versions/$V" "$BASE/courant.nouveau"
+mv -T "$BASE/courant.nouveau" "$BASE/courant"
+ls -1dt "$BASE"/versions/*/ | tail -n +4 | xargs -r rm -rf
+echo "$(date -u +%FT%TZ) préprod en ligne : $V"

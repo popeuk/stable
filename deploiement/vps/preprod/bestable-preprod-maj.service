@@ -1,0 +1,7 @@
+[Unit]
+Description=Be Stable : mise à jour de la préproduction de l'app (branche vps-preprod)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/bestable-preprod-maj

@@ -1,0 +1,52 @@
+# La préproduction de l'app (27 octobre 2026). Un envoi sur la branche
+# « preprod » construit l'app pour preprod-app.187-7-74-179.sslip.io, branchée
+# sur la préprod du site (WP Tiger), copie en ligne éteinte, sans mesure
+# d'audience. Le résultat part sur la branche « vps-preprod », que le VPS relit
+# toutes les 2 minutes (bestable-preprod-maj). La production n'est jamais touchée.
+name: Préproduction de l'app (VPS)
+
+on:
+  push:
+    branches: ["preprod"]
+
+concurrency:
+  group: preprod
+  cancel-in-progress: true
+
+jobs:
+  preprod:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Check (types, lint, tests)
+        run: npm run typecheck && npm run lint && npm test
+      - name: Build static export (préproduction)
+        run: npm run build
+        env:
+          DEPLOY_TARGET: pages
+          PAGES_BASE: ""
+          NEXT_PUBLIC_BASE_PATH: ""
+          NEXT_PUBLIC_VERSION: ${{ github.sha }}
+          NEXT_PUBLIC_VERSION_DATE: ${{ github.event.head_commit.timestamp }}
+          NEXT_PUBLIC_PREPROD: "1"
+          NEXT_PUBLIC_MONECURIE_API: https://f8a2-d405641a5d0e.wptiger.fr/wp-json/bestable/v1
+          NEXT_PUBLIC_NUAGE_URL: "off"
+      - name: Publish to the vps-preprod branch
+        run: |
+          cd out
+          echo "${{ github.sha }}" > VERSION
+          printf 'User-agent: *\nDisallow: /\n' > robots.txt
+          git init -q -b vps-preprod
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Préproduction ${{ github.sha }}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" vps-preprod

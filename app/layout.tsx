@@ -87,6 +87,11 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: SANS_ZOOM }} />
       </head>
       <body>
+        {process.env.NEXT_PUBLIC_PREPROD ? (
+          <div role="note" style={{ position: "fixed", left: 8, bottom: 8, zIndex: 9999, padding: "4px 9px", borderRadius: 8, background: "#FBF1D6", color: "#5C4210", font: "700 11px/1.3 system-ui, sans-serif", pointerEvents: "none" }}>
+            Préproduction · données de test
+          </div>
+        ) : null}
         {children}
         <PwaRegister />
         <ConsentementDiffere />
