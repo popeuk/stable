@@ -56,7 +56,7 @@
 .carnet .bq-fm-r .nm{font-size:16px;font-weight:700;align-self:center}
 .carnet .bq-fm-r .px{grid-row:span 2;display:grid;align-content:center;justify-items:end;padding:6px 10px;border-radius:var(--ctl-r);box-shadow:inset 0 0 0 1.5px var(--acc)}
 .carnet .bq-fm-r .px input{width:100%;text-align:right;font-size:24px;font-weight:780;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.carnet .bq-fm-r .px span{font-size:11px;font-weight:600;color:var(--ink2)}
+.carnet .bq-fm-r .px span{font-size:12px;font-weight:600;color:var(--ink2)}
 .carnet .bq-fm-r .pl{display:flex;align-items:baseline;gap:5px;font-size:12.5px;color:var(--ink2)}
 .carnet .bq-fm-r .pl input{width:22px;font-size:13px;font-weight:700;color:var(--ink);text-align:center;border-radius:6px;background:var(--mist)}
 .carnet .bq-fm-r input:focus-visible{box-shadow:0 0 0 2px var(--acc);border-radius:6px}
@@ -88,7 +88,7 @@
 .carnet .bq-flux{display:grid;grid-template-columns:auto 1fr auto 1fr auto;align-items:center;gap:6px;margin:16px 4px 4px}
 .carnet .bq-flux span{display:grid;justify-items:center;gap:4px}
 .carnet .bq-flux span svg{width:40px;height:40px;padding:10px;border-radius:50%;background:#E6EFE9;fill:none;stroke:var(--acc);stroke-width:2}
-.carnet .bq-flux small{font-size:11.5px;font-weight:650;color:var(--ink2)}
+.carnet .bq-flux small{font-size:12px;font-weight:650;color:var(--ink2)}
 .carnet .bq-flux i{height:2px;margin-bottom:18px;background:repeating-linear-gradient(90deg,var(--acc) 0 5px,transparent 5px 9px);background-size:18px 2px;animation:bq-flux 1.2s linear infinite}
 @keyframes bq-flux{to{background-position:18px 0}}
 .carnet .bq-otp-ok{display:flex;align-items:center;gap:6px;margin:12px 0 0;font-size:13.5px;font-weight:650;color:var(--acc);animation:bq-win-up .5s var(--ease-signature) both .55s}
@@ -246,3 +246,20 @@
 .carnet .bq-pj .bq-al { margin: 4px var(--gut) 0; }
 .carnet .bq-pj .bq-al .ar-code { margin: 0; }
 .carnet .bq-pj-cta .btn { margin-bottom: 4px; }
+
+/* Finition au pixel (27 octobre 2026) : le compteur et le code aux mesures de la maquette. */
+.carnet .bq-q .bq-pls { grid-template-columns: 64px minmax(0, 1fr) 64px; padding: 18px 14px; }
+.carnet .bq-q .bq-pls b { font-size: 64px; }
+.carnet .bq-q .bq-pls button { width: 64px; height: 64px; font-size: 28px; }
+.carnet .bq-q-body .ar-code { gap: 8px; }
+.carnet .bq-q-body .ar-code span { height: 60px; font-size: 26px; box-shadow: inset 0 0 0 1.5px var(--line); transition: box-shadow .2s; }
+.carnet .bq-q-body .ar-code span.full, .carnet .bq-q-body .ar-code span.on { box-shadow: inset 0 0 0 2px var(--acc); }
+/* Pas encore d'écurie : la carte de l'alerte est sombre, avec la brouette dedans. */
+.carnet .bq-pj .bq-q-body { padding-top: 14px; }
+.carnet .bq-pj .bq-al.d .bq-q-f > span { color: #fff; }
+.carnet .bq-pj .bq-al.d .bq-q-f input { box-shadow: none; }
+.carnet .bq-pj .bq-al.d .btn { background: #fff; color: var(--vert-deep); }
+.carnet .bq-pj .bq-al.d .bq-al-f, .carnet .bq-pj .bq-al.d .bq-al-f a, .carnet .bq-pj .bq-al.d .bq-al-f button { color: var(--on-vert); }
+.carnet .bq-pj .bq-al.d .bq-q-err { color: var(--ink); }
+.carnet .bq-pj .bq-al.d .lnk { color: #fff; }
+.carnet .bq-pj-cta .lnk { display: block; margin: 14px auto 0; }

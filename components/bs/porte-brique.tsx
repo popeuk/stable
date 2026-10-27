@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { useBriques } from "@/components/bs/briques";
 import { ARGENT, PLANNING } from "@/components/bs/navigation";
 import { under } from "@/components/bs/nav";
-import { Ic, Ill } from "@/components/carnet/ui";
+import { Ic, Ill, type IllName } from "@/components/carnet/ui";
 import { estOuverte, type AlerteId, type EtatBrique } from "@/lib/briques";
 import "@/app/carnet/briques.css";
 
@@ -121,12 +121,13 @@ const NOMS: Record<AlerteId, { titre: string; texte: string }> = {
 };
 
 /** L'alerte « Me prévenir à l'ouverture » : un geste, l'e-mail du compte est déjà connu. */
-export function Alerte({ id, sombre = false }: { id: AlerteId; sombre?: boolean }) {
+export function Alerte({ id, sombre = false, ill }: { id: AlerteId; sombre?: boolean; ill?: IllName }) {
   const { alertes, basculerAlerte } = useBriques();
   const n = NOMS[id];
   const on = !!alertes[id];
   return (
     <section className={`bq-al${sombre ? " d" : ""}${on ? " on" : ""}`} aria-live="polite">
+      {ill && <Ill n={ill} className="bq-al-ill" />}
       <span className="bq-al-k">
         <Ic n="bell" className="" />
         Bientôt

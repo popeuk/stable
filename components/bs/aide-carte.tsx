@@ -7,6 +7,8 @@ import { create } from "zustand";
 import { Ic } from "@/components/carnet/ui";
 import { aideParId, aidePour, bulleAMontrer, placerBulle, type CibleBulle } from "@/lib/aide";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useBriques } from "@/components/bs/briques";
+import { estOuverte } from "@/lib/briques";
 import { ContactOuvrir, MAILTO_CONTACT, TEXTE_REPLI } from "@/components/bs/contact";
 import { useAideIci } from "@/components/bs/nav";
 
@@ -134,7 +136,10 @@ export function AideBulle() {
   const vues = useSettingsStore((s) => s.aidesVues);
   const voir = useSettingsStore((s) => s.voirAide);
   const ouverte = useAideOuverte((s) => s.ouverte);
-  const a = bulleAMontrer(aide, vues, ouverte);
+  const { pret, etat } = useBriques();
+  // « Tout ce que tu fais, tu le notes ici » parle du + de Mon argent : rien à dire tant que cette brique est fermée.
+  const muet = aide?.id === "accueil" && (!pret || !estOuverte(etat.argent));
+  const a = muet ? null : bulleAMontrer(aide, vues, ouverte);
   const [prete, setPrete] = useState<string | null>(null);
   const [pos, setPos] = useState<ReturnType<typeof placerBulle> | null>(null);
   // Au téléphone, une bulle du haut cacherait le titre de l'écran : elle se pose en bas, au-dessus de la barre, sans pointe.

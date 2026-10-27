@@ -44,6 +44,15 @@ const dire = (x: unknown, defaut: string) => (x instanceof ApiError ? (TU[x.code
 const ILL = (n: string) => withBase(`/img/carnet/${n}.webp`);
 const VIDE: Formule = { nom: "", description: "", prix: "", places: "" };
 
+/** « l’Écurie des Prés », « le Haras du Pin »… ; sinon le nom entre guillemets. */
+function nomDe(t: string): string {
+  const n = t.trim();
+  if (/^l[ae] /i.test(n)) return n.charAt(0).toLowerCase() + n.slice(1);
+  if (/^les /i.test(n)) return `« ${n} »`;
+  if (/^[aeiouyéèêàâîôû]/i.test(n)) return `l’${n}`;
+  return `« ${n} »`;
+}
+
 /** Une écurie qui n'est pas dans l'annuaire (entrée directe, « Ajouter mon écurie ») : elle passe par les mêmes étapes. */
 export interface NouvelleEcurie {
   title: string;
@@ -166,7 +175,8 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
     email: email.trim(),
     telephone: telAffiche.trim(),
   };
-  const fait = { prix: ["places", "contact", "code", "rev", "fait"].includes(etape), places: ["contact", "code", "rev", "fait"].includes(etape), contact: ["code", "rev", "fait"].includes(etape) };
+  // Chaque réponse se pose sur la fiche dès qu'elle est tapée : l'étape en cours compte déjà (maquette).
+  const fait = { prix: etape !== "elle" && !sansPrix, places: !["elle", "prix"].includes(etape), contact: !["elle", "prix", "places"].includes(etape) };
   const apres: Fiche = {
     ...fiche,
     ...(fait.prix ? { formules: saisie.formules!, prix_min: saisie.prix_min! } : {}),
@@ -174,6 +184,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
     ...(fait.contact ? { email: saisie.email!, telephone: saisie.telephone! } : {}),
   };
   const avant = jaugeFiche(fiche);
+  // L'écran de réussite part de la fiche d'avant l'arrivée.
   const jauge = jaugeFiche(apres);
   const prixAffiche = (() => {
     const l = (apres.formules.length ? apres.formules.map((x) => Number(x.prix)) : [Number(apres.prix_min)]).filter((n) => n > 0);
@@ -182,6 +193,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
   const placesAffiche = apres.places_libres === "" ? "" : apres.places_libres === "0" ? "Complet" : `${apres.places_libres} place${Number(apres.places_libres) > 1 ? "s" : ""} libre${Number(apres.places_libres) > 1 ? "s" : ""}`;
   const contactAffiche = apres.email.trim() || apres.telephone.trim() ? "Écrire à l’écurie" : "";
   const lieu = (nouvelle ? [fiche.commune, fiche.code_postal] : [fiche.commune, fiche.departement]).filter(Boolean).join(" · ");
+  const activites = fiche.offres.map((v) => (choix?.offres?.[v] ?? "").toLowerCase()).filter(Boolean).join(", ");
   const photo = fiche.photos[0]?.url || ILL("accueil-premier");
   const statut = fiche.statut;
 
@@ -310,12 +322,12 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
           )}
         </div>
         <div className="bq-el-bd">
-          <p className="bq-el-q">{prise ? "Cette fiche a déjà un gérant." : statut === "en_verification" ? "Une demande est en cours pour cette fiche." : "C’est bien ton écurie ?"}</p>
+          {(prise || statut === "en_verification") && <p className="bq-el-q">{prise ? "Cette fiche a déjà un gérant." : "Une demande est en cours pour cette fiche."}</p>}
           <h1>{fiche.title}</h1>
           <p className="bq-el-l">{lieu}</p>
           <div className="bq-el-sc">
             <span className="n">
-              Fiche <b>{avant.n}</b> sur {avant.total}
+              <b>{avant.n}</b> sur {avant.total}
             </span>
             <Jauge n={avant.n} total={avant.total} />
           </div>
@@ -323,7 +335,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
             <p className="bq-el-t">Si c’est toi, connecte-toi avec l’adresse e-mail utilisée ce jour-là : tu retrouves ta fiche. Sinon, écris-nous : nous vérifions à la main.</p>
           ) : manque.length ? (
             <>
-              <p className="bq-el-t">Cette fiche a été créée à partir de sources publiques. Il manque les informations que les cavaliers regardent en premier :</p>
+              <p className="bq-el-t">Cette fiche a été créée à partir de sources publiques. Il manque les informations que les cavaliers regardent en premier :</p>
               <ul className="bq-el-m">
                 {manque.map((m) => (
                   <li key={m.t}>
@@ -365,12 +377,12 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
             </>
           ) : (
             <>
-              <button type="button" className="btn full" onClick={() => aller("prix")} autoFocus>
+              <button type="button" className="btn full" onClick={() => aller("prix")}>
                 Oui, je gère cette écurie
                 <Ic n="arrow" className="" />
               </button>
               <p className="bq-el-f">
-                Gratuit.
+                C’est gratuit.
                 <Link href="/compte/inscription?retrouver=1">
                   <u>Ce n’est pas mon écurie</u>
                 </Link>
@@ -389,8 +401,14 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
     return (
       <div className="bq-arr bq-win">
         <section className="bq-win-hero" style={{ backgroundImage: `linear-gradient(90deg,var(--vert-deep) 52%,rgba(11,51,37,.6) 66%,rgba(11,51,37,0) 86%),url(${ILL("sereine")})` }}>
-          <h1>{validee ? `${fiche.title} est à ton nom.` : nouvelle ? `${fiche.title} arrive sur bestable.fr.` : `${fiche.title} est en cours de mise à ton nom.`}</h1>
-          <p>{validee ? "Ton adresse e-mail est celle de la fiche : pas besoin d’attendre. Voici ta fiche telle que les cavaliers la voient." : "Ta demande a été envoyée. Voici ta fiche telle que les cavaliers la verront."}</p>
+          <h1>{validee ? "Ta fiche est à ton nom." : "Ta demande est envoyée."}</h1>
+          <p>
+            {validee
+              ? `Ton adresse e-mail est celle de la fiche : pas besoin d’attendre. Voici ${nomDe(fiche.title)} telle que les cavaliers la voient.`
+              : nouvelle
+                ? `Après vérification, la fiche ${nomDe(fiche.title)} sera publiée à ton nom. Voici ta fiche telle que les cavaliers la verront.`
+                : `Après vérification, ${nomDe(fiche.title)} sera à ton nom. Voici ta fiche telle que les cavaliers la verront.`}
+          </p>
         </section>
         <article className="bq-win-card" aria-label="Ta fiche sur bestable.fr">
           <div className="im" style={{ backgroundImage: `url(${photo})` }}>
@@ -408,7 +426,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
           )}
           <div className="bd">
             <h2>{fiche.title}</h2>
-            <p className="l">{lieu}</p>
+            <p className="l">{[lieu, activites].filter(Boolean).join(" · ")}</p>
             <div className="tags">
               {prixAffiche && <span className="t1">{prixAffiche}</span>}
               {placesAffiche && <span className="t2">{placesAffiche}</span>}
@@ -431,8 +449,9 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
             </div>
             {gagnes > 0 && (
               <p className="cap">
-                {gagnes === 1 ? "Une information a été ajoutée." : `${["", "", "Deux", "Trois"][gagnes] ?? gagnes} informations ont été ajoutées.`}
-                {validee ? " Elles sont déjà sur ta fiche." : " Elles s’affichent quand la fiche est à ton nom."}
+                {nouvelle
+                  ? "Ta fiche est créée. Elle sera publiée après vérification."
+                  : `${gagnes === 1 ? "Une information a été ajoutée." : `${["", "", "Deux", "Trois"][gagnes] ?? gagnes} informations ont été ajoutées.`}${validee ? " Elles sont déjà sur ta fiche." : " Elles s’affichent quand la fiche est à ton nom."}`}
               </p>
             )}
           </div>
@@ -443,7 +462,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
               <Flot />
             </span>
             <p>
-              <b>Ton premier flot.</b> Il est ajouté dans l’application. Les suivants viendront avec tes photos et ce que tu proposes.
+              <b>Ton premier flot.</b> Les suivants viendront avec tes photos et ce que tu proposes.
             </p>
           </div>
         )}
@@ -477,7 +496,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
                   </span>
                   <div>
                     <b>Demande envoyée</b>
-                    <small>Aujourd’hui, avec tes réponses.</small>
+                    <small>{prixAffiche && placesAffiche ? "Aujourd’hui, avec tes prix et tes places." : "Aujourd’hui, avec tes réponses."}</small>
                   </div>
                 </li>
                 <li className="now">
@@ -491,7 +510,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
                   <span className="d" />
                   <div>
                     <b>{nouvelle ? "Ta fiche en ligne, à ton nom" : "Ta fiche à ton nom"}</b>
-                    <small>{nouvelle ? "Un e-mail te prévient quand elle est publiée. Tu la modifies toi-même." : "Un e-mail te prévient. Elle porte la mention « revendiquée », c’est-à-dire à ton nom. Tu la modifies toi-même."}</small>
+                    <small>{nouvelle ? "Un e-mail te prévient quand elle est publiée. Tu la modifies toi-même." : "Un e-mail te prévient. Elle porte la mention « revendiquée ». Tu la modifies toi-même."}</small>
                   </div>
                 </li>
               </>
@@ -501,7 +520,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
         </section>
         <div className="bq-win-cta">
           <button type="button" className="btn full" onClick={() => compte && entrer(compte)}>
-            Découvrir mon application
+            Découvrir mon app
             <Ic n="arrow" className="" />
           </button>
           {!validee && (
@@ -522,7 +541,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
   let titre = "";
   let sous: ReactNode = "";
   let corps: ReactNode = null;
-  let cta = "Valider";
+  let cta = "Continuer";
   let suite: () => void = () => undefined;
   let alt: ReactNode = null;
 
@@ -573,8 +592,8 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
       </button>
     );
   } else if (etape === "places") {
-    titre = "Des places libres aujourd’hui ?";
-    sous = "Cette information est très consultée par les propriétaires. Tu la confirmes chaque mois. La date de mise à jour s’affiche.";
+    titre = "Des places libres aujourd’hui ?";
+    sous = "Les propriétaires regardent d’abord cette information. Tu la confirmes chaque mois, et la date de mise à jour s’affiche.";
     corps = (
       <>
         <div className={`bq-pls${mode === "nb" ? "" : " off"}`}>
@@ -603,8 +622,8 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
     );
     suite = () => aller("contact");
   } else if (etape === "contact") {
-    titre = "Où reçois-tu les demandes ?";
-    sous = compte ? "Les demandes des cavaliers arrivent à cette adresse. Elle n’est jamais affichée. Les cavaliers écrivent depuis ta fiche." : "Ton e-mail ouvre ton compte, sans mot de passe. Il n’est jamais affiché. Les cavaliers écrivent depuis ta fiche.";
+    titre = "Où reçois-tu les demandes ?";
+    sous = compte ? "Les demandes des cavaliers arrivent à cette adresse. Elle n’est jamais affichée : les cavaliers écrivent depuis ta fiche." : "Ton e-mail ouvre ton compte, sans mot de passe. Il n’est jamais affiché : les cavaliers écrivent depuis ta fiche.";
     corps = (
       <>
         <label className="bq-q-f">
@@ -641,7 +660,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
         )}
       </>
     );
-    cta = compte ? "Valider" : busy ? "Envoi…" : "Recevoir le code";
+    cta = compte ? "Continuer" : busy ? "Envoi…" : "Recevoir le code";
     suite = demanderCode;
   } else if (etape === "code") {
     titre = "Code de confirmation";
@@ -657,7 +676,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
         )}
       </>
     );
-    cta = codeBon ? "Continuer" : busy ? "Vérification…" : "Valider";
+    cta = codeBon || code.length < 6 ? "Continuer" : busy ? "Vérification…" : "Continuer";
     suite = () => (codeBon ? aller("rev") : verifier(code));
     alt = !codeBon ? (
       <button type="button" className="lnk" onClick={demanderCode}>
@@ -666,7 +685,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
     ) : null;
   } else if (etape === "rev") {
     titre = "Confirmer que tu diriges cette écurie";
-    sous = "Nous vérifions que tu diriges bien cette écurie. Ces informations ne sont pas publiées. C’est gratuit, sans commission sur tes pensions.";
+    sous = "Ces informations servent à la vérification et ne sont pas publiées. C’est gratuit, sans commission sur tes pensions.";
     const siretN = siret.replace(/\D/g, "").length;
     corps = (
       <>
@@ -713,7 +732,7 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
         </fieldset>
         <button type="button" className={`bq-att${atteste ? " on" : ""}`} aria-pressed={atteste} onClick={() => (setAtteste(!atteste), setErr(""))}>
           <span className="b">{atteste && <Ic n="ck" className="" />}</span>
-          <span>J’atteste sur l’honneur diriger cette écurie ou avoir le droit de la représenter.</span>
+          <span>J’atteste sur l’honneur diriger cette écurie ou être habilité à la représenter.</span>
         </button>
       </>
     );

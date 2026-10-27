@@ -83,7 +83,7 @@ export function VitrineTete({ f }: { f: Fiche }) {
 
       <h2 className="vt-h2">Ce qu’un cavalier voit de toi</h2>
       <div className="vt-audit rise">
-        <p className="vt-audit-i">On ne compte que ce que l’app sait vérifier.</p>
+        <p className="vt-audit-i">Le mini audit de ta visibilité. On ne compte que ce qu’on sait mesurer.</p>
         <Point ok={n >= total - 2} t="Ta fiche bestable.fr" v={`${n} sur ${total}`} s="Elle compte quand quelqu’un cherche déjà près de chez toi. Elle n’amène pas de cavaliers à elle seule." />
         <Point ok={!!prix} t="Ton prix" v={prix ? "Affiché" : "Sur demande"} s="Sans prix, beaucoup de cavaliers passent à la fiche suivante avant d’écrire." />
         <Point

@@ -8,6 +8,7 @@ import { Alerte } from "@/components/bs/porte-brique";
 import { Ic, Ill } from "@/components/carnet/ui";
 import { nonVues, useDemandes } from "@/lib/account/demandes";
 import { useMaFiche } from "@/lib/account/ma-fiche";
+import { getSession } from "@/lib/account/session";
 import { estOuverte } from "@/lib/briques";
 import { direManque, jaugeFiche } from "@/lib/fiche-jauge";
 import type { Question } from "@/components/bs/feuille-question";
@@ -36,9 +37,16 @@ export function AccueilBriques({ mois, chemin, journee }: { mois: ReactNode; che
     void charger();
   }, [charger]);
   const j = fiche ? jaugeFiche(fiche) : null;
+  const [prenom, setPrenom] = useState("");
+  useEffect(() => {
+    const s = getSession();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (s?.kind === "compte") setPrenom(s.prenom?.trim() ?? "");
+  }, []);
 
   return (
     <>
+      <h1 className="bq-bonjour rise">{prenom ? `Bonjour ${prenom}` : "Bonjour"}</h1>
       {fiche?.en_attente && (
         <div className="bq-verif rise">
           <span className="ic">
@@ -107,19 +115,34 @@ function NouvellesDemandes() {
           Tout voir
         </Link>
       </span>
-      <Link href="/demandes" className="bq-dem-c">
-        <span className="bq-av">{(d.nom || "?").slice(0, 2).toUpperCase()}</span>
+      <Link href={`/demandes/?d=${d.id}`} className="bq-dem-c">
+        <span className="bq-av">{initiales(d.nom)}</span>
         <span>
-          <b>{d.nom || "Un cavalier"}</b>
-          <small>{d.cherche || d.message}</small>
+          <b>
+            {d.nom || "Un cavalier"}
+            <i className="bq-new">Nouvelle</i>
+          </b>
+          {d.cherche && <small>{d.cherche}</small>}
+          {d.message && <q>{d.message}</q>}
         </span>
       </Link>
-      <Link href="/demandes" className="btn full">
-        Voir la demande
+      <Link href={`/demandes/?d=${d.id}`} className="btn full">
+        {prenomDe(d.nom) ? `Répondre à ${prenomDe(d.nom)}` : "Répondre"}
       </Link>
     </section>
   );
 }
+
+/** « Claire M. » donne CM ; un nom vide, un point d'interrogation. */
+export const initiales = (nom: string) =>
+  (nom || "?")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((m) => m.charAt(0).toUpperCase())
+    .join("");
+/** Le prénom, pour « Répondre à Claire ». */
+export const prenomDe = (nom: string) => (nom || "").trim().split(/\s+/)[0] ?? "";
 
 /** Un flot : la rosette gagnée, vert anglais et rose casaque. */
 export function Flot() {

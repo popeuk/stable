@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Ic } from "@/components/carnet/ui";
+import { Ic, Ill } from "@/components/carnet/ui";
 import { withBase } from "@/components/bs/ui";
 import { Stories } from "@/components/bs/histoire";
 import { useAnnuaire } from "@/components/bs/account-ui";
@@ -138,12 +138,13 @@ export function EntreeDirecte({ depart = "histoire", retour }: { depart?: Vue; r
             )}
           </>
         )}
-        <p className="bq-ch2-o">Tu ne la trouves pas ?</p>
+        <p className="bq-ch2-o">Tu ne la trouves pas ?</p>
         <div className="bq-ch2-x">
           <button
             type="button"
             onClick={() => {
-              if (!nouvelle.title && q.trim()) setNouvelle({ ...nouvelle, title: q.trim() });
+              // Le nom tapé ne sert que si la recherche n'a rien trouvé : sinon c'est un début de nom.
+              if (!nouvelle.title && q.trim() && hits?.length === 0) setNouvelle({ ...nouvelle, title: q.trim() });
               aller("ajout");
             }}
           >
@@ -200,16 +201,16 @@ export function EntreeDirecte({ depart = "histoire", retour }: { depart?: Vue; r
             <input autoComplete="organization" value={nouvelle.title} onChange={(e) => setNouvelle({ ...nouvelle, title: e.target.value })} placeholder="Ex. : Écurie du Moulin" />
           </label>
           <div className="bq-q-f">
-            <span>Commune</span>
+            <span>Commune ou code postal</span>
             <ChampAdresse
               surUneLigne
               communes
               className="bq-q-adr"
-              ariaLabel="Commune"
+              ariaLabel="Commune ou code postal"
               value={nouvelle.commune}
               onChange={(v) => setNouvelle({ ...nouvelle, commune: v, code_postal: "" })}
               onChoisir={(s) => setNouvelle({ ...nouvelle, commune: s.ville, code_postal: s.codePostal })}
-              placeholder="Commune ou code postal"
+              placeholder="Ex. : Parigné-l’Évêque"
               autoComplete="address-level2"
             />
             {nouvelle.code_postal && (
@@ -260,17 +261,16 @@ export function EntreeDirecte({ depart = "histoire", retour }: { depart?: Vue; r
         <span />
         <span />
       </div>
-      <div className="bq-pj-im" style={{ backgroundImage: `url(${withBase("/img/carnet/brouette.webp")})` }} role="img" aria-label="La gérante pousse une brouette." />
       <div className="bq-q-body">
         <h1>Tu prépares ton écurie</h1>
         <p className="bq-q-s">Be Stable accompagne d’abord les écuries en activité : leur fiche, leurs demandes, leurs chiffres. Pour un projet, il n’y a pas encore de fiche à remplir.</p>
       </div>
       {compte ? (
         <>
-          <Alerte id="projet" />
+          <Alerte id="projet" sombre ill="brouette" />
           <div className="bq-q-cta bq-pj-cta">
             <button type="button" className="btn line full" onClick={() => enter(compte, "/accueil")}>
-              Découvrir l’application
+              Découvrir mon app
             </button>
             <button type="button" className="lnk" onClick={() => aller("cherche")}>
               Revenir à la recherche
@@ -278,7 +278,14 @@ export function EntreeDirecte({ depart = "histoire", retour }: { depart?: Vue; r
           </div>
         </>
       ) : (
-        <ProjetSansCompte onCompte={setCompte} />
+        <>
+          <ProjetSansCompte onCompte={setCompte} />
+          <div className="bq-q-cta bq-pj-cta">
+            <button type="button" className="lnk" onClick={() => aller("cherche")}>
+              Revenir à la recherche
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
@@ -334,7 +341,8 @@ function ProjetSansCompte({ onCompte }: { onCompte: (s: AccountSession) => void 
   }
 
   return (
-    <form className="bq-al" onSubmit={(e) => (etape === "email" ? envoyer(e) : (e.preventDefault(), verifier(code)))} noValidate>
+    <form className="bq-al d" onSubmit={(e) => (etape === "email" ? envoyer(e) : (e.preventDefault(), verifier(code)))} noValidate>
+      <Ill n="brouette" className="bq-al-ill" />
       <span className="bq-al-k">
         <Ic n="bell" className="" />
         Bientôt
