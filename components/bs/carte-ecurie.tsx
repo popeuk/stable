@@ -226,6 +226,10 @@ export function Reglages() {
         ]}
       />
       <Case
+        titre="En coulisses"
+        lignes={[{ href: "/ecurie", ic: "horse", t: "Mon écurie", s: "Ce que les cavaliers ne voient pas : prix privés, frais, équipe, pros, papiers" }]}
+      />
+      <Case
         titre="L’app"
         lignes={[
           { href: "/moi?s=affichage", ic: "phone", t: "Affichage", s: "Taille du texte, installer l’app sur l’écran d’accueil" },

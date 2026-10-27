@@ -31,6 +31,8 @@ function ouvertureIci(): boolean {
 }
 
 export interface Briques {
+  /** La session et l'ouverture sont lues (après le premier rendu) : avant, rien ne se décide. */
+  pret: boolean;
   etat: Record<BriqueId, EtatBrique>;
   ouvert: boolean;
   /** Le jour de l'essai (1 à 30), ou null hors essai. */
@@ -45,16 +47,17 @@ export function useBriques(): Briques {
   const essaiDebut = useSettingsStore((s) => s.essaiDebut);
   const alertes = useSettingsStore((s) => s.alertes);
   // Lu après le premier rendu : la session et le drapeau vivent dans le navigateur.
-  const [ici, setIci] = useState<{ kind: EtatCompte["kind"]; ouvert: boolean }>({ kind: undefined, ouvert: OUVERTURE });
+  const [ici, setIci] = useState<{ kind: EtatCompte["kind"]; ouvert: boolean; pret: boolean }>({ kind: undefined, ouvert: OUVERTURE, pret: false });
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIci({ kind: getSession()?.kind, ouvert: ouvertureIci() });
+    setIci({ kind: getSession()?.kind, ouvert: ouvertureIci(), pret: true });
   }, []);
   return useMemo(() => {
     const aujourdhui = localToday();
     const compte: EtatCompte = { kind: ici.kind, ouvert: ici.ouvert, essaiDebut, aujourdhui };
     const etat = etatsBriques(compte);
     return {
+      pret: ici.pret,
       etat,
       ouvert: ici.ouvert,
       jourEssai: etat.argent === "essai" && essaiDebut ? jourEssai(essaiDebut, aujourdhui) : null,

@@ -19,6 +19,8 @@ import { LimiteCoque } from "@/components/bs/ecran-erreur-differe";
  * (`coque-legere.tsx`). Toute la coque est sous
  * une limite d'erreur (`LimiteCoque`) : jamais de page blanche.
  */
+import { PorteBrique } from "@/components/bs/porte-brique";
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <LimiteCoque>
@@ -46,7 +48,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </ClientGate>
           {/* Où mène « Aller au contenu » : après l'en-tête, avant l'écran. */}
           <span id="contenu" tabIndex={-1} className="cn-anchor" />
-          <Secours>{children}</Secours>
+          <Secours>
+            <ClientGate>
+              <PorteBrique>{children}</PorteBrique>
+            </ClientGate>
+          </Secours>
         </main>
         <BandeauxDifferes />
         <TabBar />

@@ -5,13 +5,17 @@ import { useParentIci } from "@/components/bs/nav";
 import { Ic } from "@/components/carnet/ui";
 
 /**
- * La navigation (17 octobre 2026) : quatre onglets (Accueil, Planning,
- * Clients, Mon écurie) et le +, « Voir mon bilan » et la roue des réglages
- * en haut à droite. Chaque écran a un seul parent, et le retour y mène
+ * La navigation (27 octobre 2026, l'app en briques) : quatre onglets (Accueil,
+ * Vitrine, Demandes, Clients) et le +, toujours à la même place quelle que
+ * soit l'offre ; « Mon bilan » (seulement avec Mon argent) et la roue des
+ * réglages en haut à droite. Mon écurie (les coulisses) est sous la roue. Chaque écran a un seul parent, et le retour y mène
  * toujours en disant son nom, quel que soit le chemin pris pour venir.
  */
 /** Les quatre onglets : ils n'ont pas de retour. */
-export const ROOTS2 = ["/accueil", "/planning", "/chevaux", "/ecurie"];
+export const ROOTS2 = ["/accueil", "/ma-fiche", "/demandes", "/chevaux"];
+/** Les écrans de Mon argent et du planning : sous cadenas ou « bientôt » tant que la brique n'est pas ouverte (components/bs/porte-brique.tsx). */
+export const ARGENT = ["/argent", "/chevaux", "/client", "/ticket", "/seuil", "/pilotage", "/part", "/prestations", "/scenarios", "/mois", "/depenses", "/facture", "/facturation", "/saisie", "/conseiller", "/decouvertes"];
+export const PLANNING = ["/planning", "/valider", "/equipe"];
 /** Les écrans de Mon écurie : l'onglet reste allumé. */
 export const ECURIE = ["/ecurie", "/parcours/tarifs", "/parcours/factures", "/contacts", "/ma-fiche", "/mon-site", "/facturation", "/registre"];
 
@@ -31,12 +35,12 @@ const PARENTS2: [string, string][] = [
   ["/prestations", "/argent"],
   ["/argent", "/accueil"],
   ["/reglages", "/accueil"],
+  ["/ecurie", "/reglages"],
   ["/moi", "/reglages"],
   ["/regles", "/reglages"],
   ["/parametres", "/reglages"],
   ["/contacts", "/ecurie"],
-  ["/ma-fiche", "/ecurie"],
-  ["/mon-site", "/ecurie"],
+  ["/mon-site", "/ma-fiche"],
   ["/facturation", "/ecurie"],
   ["/registre", "/ecurie"],
 ];
@@ -44,6 +48,8 @@ const NOMS: [string, string][] = [
   ["/chevaux", "Clients"],
   ["/planning", "Planning"],
   ["/ecurie", "Mon écurie"],
+  ["/ma-fiche", "Vitrine"],
+  ["/demandes", "Demandes"],
   ["/argent", "Mon bilan"],
   ["/scenarios", "Et si… ?"],
   ["/client", "Sa fiche"],

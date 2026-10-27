@@ -22,9 +22,10 @@ import { useFeuille } from "@/components/bs/feuille";
 import { InstallHowto } from "@/components/bs/install-howto";
 import { modKey } from "@/components/bs/desk-hook";
 import { useFinDuMois } from "@/components/bs/compte";
-import { BILAN, CLIENTS_CHEVAUX, under, useParentIci, usePlusItems } from "@/components/bs/nav";
-import { ECURIE } from "@/components/bs/navigation";
-import { EnveloppeLigne } from "@/components/bs/demandes";
+import { BILAN, CLIENTS_CHEVAUX, under, usePlusItems } from "@/components/bs/nav";
+import { useBriques } from "@/components/bs/briques";
+import { estOuverte } from "@/lib/briques";
+import { nonVues, useDemandes } from "@/lib/account/demandes";
 import { adresseClient } from "@/lib/adresse-client";
 import { FACTURATION } from "@/lib/fonctions";
 
@@ -61,9 +62,9 @@ export function useNavCounts() {
 /* ------------------------------------------------------------------ */
 
 /**
- * La barre latérale : la même structure que le téléphone. Accueil,
- * Planning, Clients, Mon écurie, puis « Voir mon bilan » et les réglages,
- * qui sont en haut à droite au téléphone.
+ * La barre latérale : la même structure que le téléphone. Accueil, Vitrine,
+ * Demandes, Clients (cadenas sans Mon argent), puis Mon bilan (seulement avec
+ * Mon argent) et les réglages, qui sont en haut à droite au téléphone.
  */
 export function Sidebar() {
   const path = (usePathname() ?? "").replace(/(.)\/$/, "$1");
@@ -78,12 +79,13 @@ export function Sidebar() {
   const openPalette = useUiStore((s) => s.openPalette);
   const install = useInstall();
   const [how, setHow] = useState(false);
-  const parentIci = useParentIci((x) => x.href);
+  const argent = estOuverte(useBriques().etat.argent);
+  const demandes = useDemandes((s) => (s.etat === "pret" ? nonVues(s.demandes, s.vuesIci) : 0));
   const main: { href: string; ic: string; label: string; key: string; on: boolean; badge?: string; cls?: string }[] = [
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
-    { href: "/planning", ic: "cal", label: "Planning", key: "P", on: under(path, ["/planning", "/valider", "/equipe"]) },
-    { href: "/chevaux", ic: "people", label: "Clients", key: "C", on: under(path, CLIENTS_CHEVAUX), badge: count ? String(count) : undefined, cls: "attn" },
-    { href: "/ecurie", ic: "horse", label: "Mon écurie", key: "E", on: under(path, ECURIE) || (path.startsWith("/moi") && parentIci === "/ecurie") },
+    { href: "/ma-fiche", ic: "vitrine", label: "Vitrine", key: "V", on: under(path, ["/ma-fiche", "/mon-site"]) },
+    { href: "/demandes", ic: "inbox", label: "Demandes", key: "D", on: under(path, ["/demandes"]), badge: demandes ? String(demandes) : undefined, cls: "attn" },
+    { href: "/chevaux", ic: argent ? "people" : "lock", label: "Clients", key: "C", on: under(path, CLIENTS_CHEVAUX), badge: argent && count ? String(count) : undefined, cls: "attn" },
   ];
   return (
     <aside className="cn-side" aria-label="Navigation">
@@ -111,12 +113,13 @@ export function Sidebar() {
         ))}
       </div>
       <div className="ac-sgrp">
-        <Link href="/argent" className="it" aria-current={under(path, BILAN) && !vue ? "page" : undefined} title="Mon bilan (G puis M)">
-          <Ic n="chart" />
-          <span style={{ flex: 1, minWidth: 0 }}>Mon bilan</span>
-          <em className={c.estime ? undefined : c.net > 0 ? "in" : c.net < 0 ? "out" : undefined}>{signed(c.net)}</em>
-        </Link>
-        <EnveloppeLigne />
+        {argent && (
+          <Link href="/argent" className="it" aria-current={under(path, BILAN) && !vue ? "page" : undefined} title="Mon bilan (G puis M)">
+            <Ic n="chart" />
+            <span style={{ flex: 1, minWidth: 0 }}>Mon bilan</span>
+            <em className={c.estime ? undefined : c.net > 0 ? "in" : c.net < 0 ? "out" : undefined}>{signed(c.net)}</em>
+          </Link>
+        )}
         {plus.map((it) => {
           const base = it.href?.split(/[?#]/)[0];
           const on = !!base && under(path, [base]);
@@ -253,6 +256,8 @@ function PaletteInner() {
       { id: "a-depense", group: "Faire", label: "Noter une dépense", sub: "ou une recette", ic: "euro", run: add("depense") },
       ...(FACTURATION ? [{ id: "a-facturer", group: "Faire", label: "Faire payer tes clients", sub: c.due ? `${eurc(c.due)} en attente` : undefined, ic: "doc", run: go("/chevaux?vue=clients") }] : []),
       { id: "g-accueil", group: "Aller à", label: "Accueil", ic: "home", hint: "G A", run: go("/accueil") },
+      { id: "g-vitrine", group: "Aller à", label: "Vitrine", sub: "ta fiche sur bestable.fr", ic: "vitrine", hint: "G V", run: go("/ma-fiche") },
+      { id: "g-demandes", group: "Aller à", label: "Demandes", sub: "les cavaliers qui t’écrivent", ic: "inbox", hint: "G D", run: go("/demandes") },
       { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
       { id: "g-chevaux", group: "Aller à", label: "Clients", sub: "tes clients et leurs chevaux", ic: "people", hint: "G C", run: go("/chevaux") },
       { id: "g-ecurie", group: "Aller à", label: "Mon écurie", sub: "prix, frais, équipe, pros, papiers", ic: "horse", hint: "G E", run: go("/ecurie") },
@@ -262,7 +267,7 @@ function PaletteInner() {
       { id: "g-pros", group: "Aller à", label: "Les pros", sub: "dans Mon écurie", ic: "user", run: go("/contacts") },
       ...plus.map((it) => ({ id: `r-${it.id}`, group: "Aller à", label: it.label, sub: it.sub, ic: it.ic, hint: HINTS[it.id], run: go(it.href ?? "/reglages") })),
       { id: "g-recherche", group: "Aller à", label: "Chercher", sub: "un cheval, un client", ic: "search", run: go("/recherche") },
-      { id: "g-valider", group: "Aller à", label: "Ce qui est fait", sub: "dans Planning", ic: "ck", hint: "G V", run: go("/valider") },
+      { id: "g-valider", group: "Aller à", label: "Ce qui est fait", sub: "dans Planning", ic: "ck", run: go("/valider") },
       { id: "g-equipe", group: "Aller à", label: "Tâches de l’équipe", sub: "dans Planning", ic: "board", hint: "G T", run: go("/equipe") },
       { id: "g-clients", group: "Aller à", label: "Mes clients", sub: FACTURATION ? "qui te doit quoi" : "ce que chacun te rapporte", ic: "people", hint: "G K", run: go("/chevaux?vue=clients") },
       { id: "g-leviers", group: "Aller à", label: "Idées pour gagner plus", sub: "dans Mon bilan", ic: "bulb", hint: "G L", run: go("/argent?vue=leviers") },
@@ -389,7 +394,8 @@ function PaletteInner() {
 const GOTO: Record<string, string> = {
   a: "/accueil",
   p: "/planning",
-  v: "/valider",
+  v: "/ma-fiche",
+  d: "/demandes",
   c: "/chevaux",
   e: "/ecurie",
   t: "/equipe",
@@ -466,11 +472,12 @@ function HelpInner({ close }: { close: () => void }) {
     ["Chercher ou aller quelque part", [modKey(), "K"]],
     ["Ajouter (séance, soin, tâche, argent)", ["N"]],
     ["Accueil", ["G", "A"]],
+    ["Vitrine", ["G", "V"]],
+    ["Demandes", ["G", "D"]],
     ["Planning", ["G", "P"]],
     ["Clients", ["G", "C"]],
     ["Mon écurie", ["G", "E"]],
     ["Mon bilan", ["G", "M"]],
-    ["Ce qui est fait", ["G", "V"]],
     ["Tâches de l’équipe", ["G", "T"]],
     ["Mes clients", ["G", "K"]],
     ["Idées pour gagner plus", ["G", "L"]],

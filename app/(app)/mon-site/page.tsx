@@ -14,6 +14,8 @@ import { getSession } from "@/lib/account/session";
 import { INCLUS, NOM_FORMULE, NOM_METIER, PRIX, PRIX_DOMAINE, accroche, adresseOfferte, euros, lienPaiement, messageDemande, metierDe, prixDit, type Formule, type Metier, type Rythme } from "@/lib/mon-site";
 import "@/app/carnet/ecurie.css";
 import "@/app/carnet/mon-site.css";
+import { useBriques } from "@/components/bs/briques";
+import { Alerte } from "@/components/bs/porte-brique";
 
 /**
  * Mon site : le site de l'écurie, déjà fait à partir de sa fiche bestable.fr,
@@ -62,6 +64,7 @@ function Seul({ children }: { children: ReactNode }) {
 function MonSite() {
   const s = getSession();
   const desk = useDesk();
+  const briques = useBriques();
   const demo = s?.kind === "demo";
   const [f, setF] = useState<Fiche | null>(demo ? EXEMPLE : null);
   const [choix, setChoix] = useState<Choix | null>(null);
@@ -204,8 +207,12 @@ function MonSite() {
     </Sec>
   );
 
+  // Avant l'ouverture des sites (lib/briques.ts) : l'aperçu reste, le paiement laisse place à « Me prévenir ».
+  const bientot = briques.etat.site === "bientot";
   const total = PRIX[formule][rythme] + (formule === "site" && domaine ? PRIX_DOMAINE[rythme] : 0);
-  const cta = (
+  const cta = !demo && bientot ? (
+    <Alerte id="site" />
+  ) : (
     <div className="ec-save ms-cta">
       {demo ? (
         <Link href="/compte/inscription?retrouver=1" className="btn full">

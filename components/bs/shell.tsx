@@ -1,7 +1,10 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { ECURIE, isRoot2, useRetour2 } from "@/components/bs/navigation";
+import { isRoot2, useRetour2 } from "@/components/bs/navigation";
+import { useBriques } from "@/components/bs/briques";
+import "@/app/carnet/briques.css";
+import { estOuverte } from "@/lib/briques";
+import { nonVues, useDemandes } from "@/lib/account/demandes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -13,10 +16,8 @@ import { estEstimation } from "@/lib/domain/estimation";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { useFinDuMois } from "@/components/bs/compte";
-import { BILAN, CLIENTS_CHEVAUX, under, useParentIci } from "@/components/bs/nav";
+import { BILAN, CLIENTS_CHEVAUX, under } from "@/components/bs/nav";
 
-/** L'enveloppe des demandes : chargée après le premier affichage (elle ne vit qu'avec un compte). */
-const EnveloppeBouton = dynamic(() => import("@/components/bs/demandes").then((m) => m.EnveloppeBouton), { ssr: false });
 
 /**
  * L'en-tête : à gauche « be stable » sur les onglets, sinon le retour, qui
@@ -64,6 +65,8 @@ export function Header() {
   const tone = estime ? "" : Math.round(net) > 0 ? "in" : Math.round(net) < 0 ? "out" : "";
   const gain = useGain(net, ready);
   const hdRef = useSerre();
+  // Rien de payant ne s'affiche en haut pour un compte gratuit : Mon bilan vient avec Mon argent (lib/briques.ts).
+  const argent = estOuverte(useBriques().etat.argent);
   return (
     <header className="hd hd2" ref={hdRef}>
       {isRoot2(path) ? (
@@ -77,8 +80,9 @@ export function Header() {
         </Link>
       )}
       <span className="hd2-sp" />
-      <Link href="/argent" className="hd2-bilan" aria-current={under(path, BILAN) ? "page" : undefined} aria-label={`Voir mon bilan : ${resteOuManque(net)} ${eur(Math.abs(net))}`}>
-        <span>Voir mon bilan</span>
+      {argent && (
+      <Link href="/argent" className="hd2-bilan" aria-current={under(path, BILAN) ? "page" : undefined} aria-label={`Mon bilan : ${resteOuManque(net)} ${eur(Math.abs(net))}`}>
+        <span>Mon bilan</span>
         <b className={`num ${tone}`}>{ready ? <CountUp value={Math.round(net)} ms={700} /> : "…"}</b>
         {gain > 0 && (
           <span className="chip-fly hd2-fly" aria-hidden="true">
@@ -86,7 +90,7 @@ export function Header() {
           </span>
         )}
       </Link>
-      <EnveloppeBouton />
+      )}
       <Link href="/reglages" className="hd2-gear" aria-current={path.startsWith("/reglages") ? "page" : undefined} aria-label="Réglages">
         <Ic n="gear" />
       </Link>
@@ -124,30 +128,35 @@ function useEstime() {
 }
 
 /**
- * La barre d'onglets : Accueil, Planning, +, Clients (les clients et leurs
- * chevaux ; en fin de mois seulement, le nombre de clients qui te doivent
- * encore) et Mon écurie (ce qu'elle vend, ce qu'elle paie, ses gens, ses papiers).
+ * La barre d'onglets (27 octobre 2026) : Accueil, Vitrine, +, Demandes, Clients.
+ * Les places ne bougent jamais, quelle que soit l'offre, pour ne pas perdre le
+ * gérant. Demandes est gratuit et compte les demandes pas encore vues ; Clients
+ * porte un cadenas tant que Mon argent n'est pas ouvert (lib/briques.ts).
  */
 export function TabBar() {
   const path = usePathname() ?? "";
   const openNoter = useUiStore((s) => s.openNoter);
   const ready = useDataStore((s) => s.hydrated);
   const fin = useFinDuMois();
-  const count = ready && fin ? fin.count : 0;
+  const { etat } = useBriques();
+  const argent = estOuverte(etat.argent);
+  const count = ready && fin && argent ? fin.count : 0;
+  const charger = useDemandes((s) => s.charger);
+  const demandes = useDemandes((s) => (s.etat === "pret" ? nonVues(s.demandes, s.vuesIci) : 0));
+  useEffect(() => {
+    void charger();
+  }, [charger, path]);
   const on = (list: string[]) => (under(path, list) ? "page" : undefined);
-  // Mes places, Mon équipe, Mes papiers : leur page pose Mon écurie comme parent, l'onglet suit.
-  const parentIci = useParentIci((x) => x.href);
-  const surEcurie = under(path, ECURIE) || (path.startsWith("/moi") && parentIci === "/ecurie");
   return (
-    <nav className="tb ac-tb" aria-label="Navigation principale">
+    <nav className="tb ac-tb bq-tb" aria-label="Navigation principale">
       <div>
         <Link href="/accueil" aria-current={on(["/accueil"])}>
           <Ic n="home" />
           Accueil
         </Link>
-        <Link href="/planning" aria-current={on(["/planning", "/valider", "/equipe"])}>
-          <Ic n="cal" />
-          Planning
+        <Link href="/ma-fiche" aria-current={on(["/ma-fiche", "/mon-site"])}>
+          <Ic n="vitrine" />
+          Vitrine
         </Link>
         <button
           type="button"
@@ -160,7 +169,18 @@ export function TabBar() {
         >
           <Ic n="plus" />
         </button>
-        <Link href="/chevaux" aria-current={on(CLIENTS_CHEVAUX)} aria-label={`Clients${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
+        <Link href="/demandes" aria-current={on(["/demandes"])} aria-label={`Demandes${demandes ? ` : ${demandes} nouvelle${demandes > 1 ? "s" : ""}` : ""}`}>
+          <span className="ac-ic">
+            <Ic n="inbox" />
+            {demandes > 0 && (
+              <em className="ac-badge" aria-hidden="true">
+                {demandes}
+              </em>
+            )}
+          </span>
+          <span aria-hidden="true">Demandes</span>
+        </Link>
+        <Link href="/chevaux" aria-current={on(CLIENTS_CHEVAUX)} aria-label={`Clients${argent ? "" : " : avec Mon argent"}${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
           <span className="ac-ic">
             <Ic n="people" />
             {count > 0 && (
@@ -168,12 +188,13 @@ export function TabBar() {
                 {count}
               </em>
             )}
+            {!argent && (
+              <i className="bq-lk" aria-hidden="true">
+                <Ic n="lock" className="" />
+              </i>
+            )}
           </span>
           <span aria-hidden="true">Clients</span>
-        </Link>
-        <Link href="/ecurie" aria-current={surEcurie ? "page" : undefined}>
-          <Ic n="horse" />
-          Mon écurie
         </Link>
       </div>
     </nav>

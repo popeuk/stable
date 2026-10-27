@@ -56,7 +56,7 @@ export function DemandesFeuille({ onClose }: { onClose: () => void }) {
   );
 }
 
-function Demande({ d, nouvelle, ecurie }: { d: DemandeCavalier; nouvelle: boolean; ecurie: string }) {
+export function Demande({ d, nouvelle, ecurie }: { d: DemandeCavalier; nouvelle: boolean; ecurie: string }) {
   const sujet = encodeURIComponent(`Ta demande à ${ecurie}`);
   return (
     <article className="dm-li">
