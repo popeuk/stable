@@ -44,8 +44,34 @@ const dire = (x: unknown, defaut: string) => (x instanceof ApiError ? (TU[x.code
 const ILL = (n: string) => withBase(`/img/carnet/${n}.webp`);
 const VIDE: Formule = { nom: "", description: "", prix: "", places: "" };
 
-export function ArriveeFiche({ ficheId }: { ficheId: number }) {
-  const [etape, setEtape] = useState<Etape>("elle");
+/** Une écurie qui n'est pas dans l'annuaire (entrée directe, « Ajouter mon écurie ») : elle passe par les mêmes étapes. */
+export interface NouvelleEcurie {
+  title: string;
+  code_postal: string;
+  commune: string;
+  univers: string;
+}
+const ficheVide = (n: NouvelleEcurie): Fiche => ({
+  title: n.title,
+  description: "",
+  adresse: "",
+  code_postal: n.code_postal,
+  commune: n.commune,
+  telephone: "",
+  email: "",
+  site: "",
+  offres: [],
+  hebergement: [],
+  installations: [],
+  services: [],
+  prix_min: "",
+  places_libres: "",
+  formules: [],
+  photos: [],
+});
+
+export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: number; nouvelle?: NouvelleEcurie; onRetour?: () => void }) {
+  const [etape, setEtape] = useState<Etape>(nouvelle ? "prix" : "elle");
   const [fiche, setFiche] = useState<Fiche | null>(null);
   const [introuvable, setIntrouvable] = useState(false);
   const [compte, setCompte] = useState<AccountSession | null>(null);
@@ -85,7 +111,11 @@ export function ArriveeFiche({ ficheId }: { ficheId: number }) {
       setEmail(s.email);
       setNom([s.prenom, s.nom].filter(Boolean).join(" "));
     }
-    api.ecurie(ficheId).then(
+    if (nouvelle) {
+      setFiche(ficheVide(nouvelle));
+      setFormules([{ ...VIDE }]);
+    } else
+      api.ecurie(ficheId).then(
       (f) => {
         setFiche(f);
         setFormules(f.formules.length ? f.formules : [{ ...VIDE }]);
@@ -97,6 +127,8 @@ export function ArriveeFiche({ ficheId }: { ficheId: number }) {
       () => setIntrouvable(true),
     );
     api.choix().then(setChoix, () => undefined);
+    // La nouvelle écurie est lue une fois, à l'arrivée.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ficheId]);
 
   useEffect(() => {
@@ -149,7 +181,7 @@ export function ArriveeFiche({ ficheId }: { ficheId: number }) {
   })();
   const placesAffiche = apres.places_libres === "" ? "" : apres.places_libres === "0" ? "Complet" : `${apres.places_libres} place${Number(apres.places_libres) > 1 ? "s" : ""} libre${Number(apres.places_libres) > 1 ? "s" : ""}`;
   const contactAffiche = apres.email.trim() || apres.telephone.trim() ? "Écrire à l’écurie" : "";
-  const lieu = [fiche.commune, fiche.departement].filter(Boolean).join(" · ");
+  const lieu = (nouvelle ? [fiche.commune, fiche.code_postal] : [fiche.commune, fiche.departement]).filter(Boolean).join(" · ");
   const photo = fiche.photos[0]?.url || ILL("accueil-premier");
   const statut = fiche.statut;
 
@@ -220,14 +252,10 @@ export function ArriveeFiche({ ficheId }: { ficheId: number }) {
     try {
       const [prenom, ...reste] = nom.trim().split(/\s+/);
       await api.majMoi({ prenom, nom: reste.join(" "), telephone: tel.trim() }).catch(() => undefined);
-      const r = await api.revendiquer(ficheId, {
-        fonction: fonction.trim(),
-        telephone: tel.trim(),
-        raison: raison.trim(),
-        siret: siret.replace(/\D/g, ""),
-        message: precisions.trim(),
-        fiche: saisie,
-      });
+      const demande = { fonction: fonction.trim(), telephone: tel.trim(), raison: raison.trim(), siret: siret.replace(/\D/g, ""), message: precisions.trim() };
+      const r = nouvelle
+        ? await api.creer({ ...demande, univers: nouvelle.univers, fiche: { ...saisie, title: nouvelle.title, code_postal: nouvelle.code_postal, commune: nouvelle.commune } })
+        : await api.revendiquer(ficheId, { ...demande, fiche: saisie });
       setListing(r.listing);
       updateAccount({ listing: r.listing });
       mesurer("revendication_envoyee");
@@ -239,6 +267,8 @@ export function ArriveeFiche({ ficheId }: { ficheId: number }) {
         updateAccount({ listing: e.data.listing as Listing });
         return aller("fait");
       }
+      // Ajoutée alors qu'elle est déjà dans l'annuaire : on ouvre sa fiche.
+      if (e?.code === "doublon" && e.data.fiche) return window.location.assign(withBase(`/compte/inscription?fiche=${(e.data.fiche as { id: number }).id}`));
       setErr(dire(x, "La demande n’est pas partie. Réessaie dans un instant."));
     } finally {
       setBusy(false);
@@ -359,7 +389,7 @@ export function ArriveeFiche({ ficheId }: { ficheId: number }) {
     return (
       <div className="bq-arr bq-win">
         <section className="bq-win-hero" style={{ backgroundImage: `linear-gradient(90deg,var(--vert-deep) 52%,rgba(11,51,37,.6) 66%,rgba(11,51,37,0) 86%),url(${ILL("sereine")})` }}>
-          <h1>{validee ? `${fiche.title} est à ton nom.` : `${fiche.title} est en cours de mise à ton nom.`}</h1>
+          <h1>{validee ? `${fiche.title} est à ton nom.` : nouvelle ? `${fiche.title} arrive sur bestable.fr.` : `${fiche.title} est en cours de mise à ton nom.`}</h1>
           <p>{validee ? "Ton adresse e-mail est celle de la fiche : pas besoin d’attendre. Voici ta fiche telle que les cavaliers la voient." : "Ta demande a été envoyée. Voici ta fiche telle que les cavaliers la verront."}</p>
         </section>
         <article className="bq-win-card" aria-label="Ta fiche sur bestable.fr">
@@ -447,7 +477,7 @@ export function ArriveeFiche({ ficheId }: { ficheId: number }) {
                   </span>
                   <div>
                     <b>Demande envoyée</b>
-                    <small>Aujourd’hui, avec tes prix et tes places.</small>
+                    <small>Aujourd’hui, avec tes réponses.</small>
                   </div>
                 </li>
                 <li className="now">
@@ -460,8 +490,8 @@ export function ArriveeFiche({ ficheId }: { ficheId: number }) {
                 <li>
                   <span className="d" />
                   <div>
-                    <b>Ta fiche à ton nom</b>
-                    <small>Un e-mail te prévient. Elle porte la mention « revendiquée », c’est-à-dire à ton nom. Tu la modifies toi-même.</small>
+                    <b>{nouvelle ? "Ta fiche en ligne, à ton nom" : "Ta fiche à ton nom"}</b>
+                    <small>{nouvelle ? "Un e-mail te prévient quand elle est publiée. Tu la modifies toi-même." : "Un e-mail te prévient. Elle porte la mention « revendiquée », c’est-à-dire à ton nom. Tu la modifies toi-même."}</small>
                   </div>
                 </li>
               </>
@@ -702,7 +732,7 @@ export function ArriveeFiche({ ficheId }: { ficheId: number }) {
       }}
     >
       <div className="bq-q-top">
-        <button type="button" className="bq-q-back" onClick={() => aller(precedente[etape])} aria-label="Revenir">
+        <button type="button" className="bq-q-back" onClick={() => (etape === "prix" && nouvelle ? onRetour?.() : aller(precedente[etape]))} aria-label="Revenir">
           <Ic n="back" className="" />
         </button>
         <span className="bq-q-bars" role="img" aria-label={`Étape ${n} sur 4`}>

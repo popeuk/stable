@@ -1,8 +1,8 @@
 "use client";
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { Rejoindre } from "@/components/bs/rejoindre";
+import { useRouter, useSearchParams } from "next/navigation";
+import { EntreeDirecte } from "@/components/bs/entree-directe";
 import { ArriveeFiche } from "@/components/bs/arrivee-fiche";
 
 /**
@@ -22,11 +22,19 @@ export default function Page() {
 
 function Inscription() {
   const q = useSearchParams();
+  const router = useRouter();
   // Depuis « C'est mon écurie » sur bestable.fr (?fiche=ID) : l'arrivée par la fiche, sans histoire (lot 5).
   const fiche = Number(q.get("fiche")) || 0;
+  const depuis = q.get("depuis");
+  const retour = () => (depuis === "ecurie" ? router.push("/ecurie") : q.get("retrouver") ? router.push("/ma-fiche") : window.history.length > 1 ? router.back() : router.push("/bienvenue"));
   return (
     <div className="carnet">
-      {fiche ? <ArriveeFiche key={fiche} ficheId={fiche} /> : <Rejoindre creer={!!q.get("creer")} retrouver={!!q.get("retrouver")} depuis={q.get("depuis")} />}
+      {fiche ? (
+        <ArriveeFiche key={fiche} ficheId={fiche} />
+      ) : (
+        // Depuis l'app : retrouver sa fiche (?retrouver=1) ou ajouter son écurie (?creer=1), sans repasser par l'histoire.
+        <EntreeDirecte depart={q.get("creer") ? "ajout" : "cherche"} retour={retour} />
+      )}
     </div>
   );
 }

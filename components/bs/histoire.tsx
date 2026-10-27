@@ -16,7 +16,7 @@ const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers
 const SCENES: { ill: "matin" | "soir" | "sereine"; alt: string; t: string; s: string; fx?: "rays" | "lamp" }[] = [
   { ill: "matin", alt: "La gérante porte une botte de foin devant les box, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, le crottin, les sabots. Tu assures, même les yeux fermés." },
   { ill: "soir", alt: "La gérante, fatiguée, devant des papiers et une calculette.", t: "Le soir, les comptes te rattrapent.", s: "Les papiers s’empilent. Et une question revient : est-ce que ton écurie te fait vivre ?" },
-  { ill: "sereine", alt: "La gérante sourit à son téléphone, son cheval tout contre elle.", t: "Avec Be Stable, tu sais où tu en es.", s: "Deux gestes pour noter ta journée. Un chiffre clair pour chaque cheval." },
+  { ill: "sereine", alt: "La gérante sourit à son téléphone, son cheval tout contre elle.", t: "Avec Be Stable, ton écurie grandit.", s: "Une fiche qui donne envie, les demandes des cavaliers au même endroit, et tes chiffres quand tu le décides." },
 ];
 const DUREE = 5000;
 
@@ -46,6 +46,7 @@ export function Stories({
   loginLabel = "Me connecter",
   busy = false,
   sous,
+  cta = "Commencer",
 }: {
   onStart: () => void;
   login: boolean;
@@ -53,6 +54,8 @@ export function Stories({
   busy?: boolean;
   /** Sous « Commencer » : « J'ai une sauvegarde ». */
   sous?: ReactNode;
+  /** Le bouton de la dernière scène (entrée directe : « Trouver mon écurie »). */
+  cta?: string;
 }) {
   const [i, setI] = useState(0);
   const perso = usePerso();
@@ -107,7 +110,7 @@ export function Stories({
         </button>
         <div className="cta">
           <button type="button" className="btn" disabled={busy} onClick={onStart}>
-            {busy ? "On prépare ton écurie…" : "Commencer"}
+            {busy ? "On prépare ton écurie…" : cta}
           </button>
           {sous}
         </div>

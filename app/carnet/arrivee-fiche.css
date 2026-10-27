@@ -201,3 +201,48 @@
  .carnet .bq-win *,.carnet .bq-win-card,.carnet .bq-win-flot{animation:none!important}
 }
 .carnet .bq-win-hero{background-repeat:no-repeat!important;background-size:100% 100%,58% auto!important;background-position:0 0,112% 18%!important}
+
+/* L'entrée directe (lot 6) : « Trouve ton écurie », pas encore d'écurie. Composant : components/bs/entree-directe.tsx. */
+.bq-ch2 .cn-main{background:var(--paper)}
+.carnet .bq-ch2-hd{padding:40px var(--gut) 0}
+.carnet .bq-ch2-hd h1{margin:18px 0 0;font-size:30px;font-weight:780;letter-spacing:-.03em;line-height:1.02}
+.carnet .bq-ch2-hd p{margin:8px 0 0;font-size:14px;line-height:1.45;color:var(--ink2)}
+.carnet .bq-ch2-s{display:grid;grid-template-columns:22px minmax(0,1fr) 2px;gap:10px;align-items:center;margin:18px var(--gut) 0;height:54px;padding:0 16px;border-radius:var(--bloc-r);background:var(--sheet);box-shadow:inset 0 0 0 2px var(--acc),0 6px 18px rgba(11,51,37,.1)}
+.carnet .bq-ch2-s svg{width:20px;height:20px;fill:none;stroke:var(--acc);stroke-width:2.2}
+.carnet .bq-ch2-s input{min-width:0;border:0;background:none;font:inherit;font-size:17px;font-weight:600;color:var(--ink);outline:none}
+.carnet .bq-ch2-s .c{width:2px;height:22px;background:var(--acc);animation:bq-caret 1s steps(1) infinite}
+@keyframes bq-caret{50%{opacity:0}}
+.carnet .bq-ch2-n{margin:14px var(--gut) 6px;font-size:12.5px;font-weight:650;color:var(--ink2)}
+.carnet .bq-ch2-r{margin:0 var(--gut);border-radius:var(--bloc-r);background:var(--sheet);box-shadow:var(--shadow-card);overflow:hidden}
+.carnet .bq-ch2-i{width:100%;display:grid;grid-template-columns:48px minmax(0,1fr) 16px;gap:12px;align-items:center;padding:10px 14px;border:0;background:none;font:inherit;text-align:left;color:var(--ink);cursor:pointer}
+.carnet .bq-ch2-i+.bq-ch2-i{border-top:1px solid var(--line)}
+.carnet .bq-ch2-i:first-child{background:#F3F8F5}
+.carnet .bq-ch2-i .im{width:48px;height:48px;border-radius:10px;background:center/cover}
+.carnet .bq-ch2-i b{display:block;font-size:15px;font-weight:700}
+.carnet .bq-ch2-i mark{background:none;color:var(--acc);font-weight:800}
+.carnet .bq-ch2-i small{font-size:12.5px;color:var(--ink2)}
+.carnet .bq-ch2-i .chev,.carnet .bq-ch2-x .chev{width:16px;height:16px;fill:none;stroke:var(--ink3);stroke-width:2}
+.carnet .bq-ch2-o{margin:22px var(--gut) 8px;font-size:15px;font-weight:720}
+.carnet .bq-ch2-x{display:grid;gap:8px;margin:0 var(--gut) 28px}
+.carnet .bq-ch2-x button{display:grid;grid-template-columns:36px minmax(0,1fr) 16px;gap:12px;align-items:center;padding:12px 14px;border:0;border-radius:var(--bloc-r);background:var(--sheet);box-shadow:var(--shadow-card);font:inherit;text-align:left;color:var(--ink);cursor:pointer}
+.carnet .bq-ch2-x button>svg:first-child{width:36px;height:36px;padding:9px;border-radius:50%;background:#E6EFE9;fill:none;stroke:var(--acc);stroke-width:2.2}
+.carnet .bq-ch2-x b{display:block;font-size:14.5px;font-weight:700}
+.carnet .bq-ch2-x small{display:block;margin-top:1px;font-size:12.5px;line-height:1.35;color:var(--ink2)}
+.bq-pj .cn-main{background:var(--paper)}
+.carnet .bq-pj-im{height:170px;margin:8px var(--gut) 0;background:center/contain no-repeat}
+.carnet .bq-pj .bq-q-body{padding-top:8px}
+.carnet .bq-pj .bq-al{margin-top:4px}
+.carnet .bq-pj-cta{position:static;background:none;padding-top:0}
+.carnet .bq-pj .bq-q-body{padding-top:22px}
+.carnet .bq-ch2 { padding-bottom: 28px; }
+.carnet .bq-ch2-hd { padding-top: 30px; }
+.carnet .bq-ch2-top { display: flex; align-items: center; min-height: 40px; }
+.carnet .bq-ch2-s .ar-spin { width: 16px; height: 16px; }
+.carnet .bq-ch2-s { grid-template-columns: 22px minmax(0, 1fr) 16px; }
+.carnet .bq-q-f .adr { position: relative; }
+.carnet .bq-q-f .bq-q-adr { width: 100%; height: 50px; padding: 0 14px; border: 0; border-radius: var(--ctl-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); font: inherit; font-size: 16px; font-weight: 600; color: var(--ink); }
+.carnet .bq-q-f .bq-q-adr:focus { outline: none; box-shadow: inset 0 0 0 2px var(--acc); }
+.carnet .bq-q-f .chips { margin-top: 2px; }
+.carnet .bq-pj .bq-al { margin: 4px var(--gut) 0; }
+.carnet .bq-pj .bq-al .ar-code { margin: 0; }
+.carnet .bq-pj-cta .btn { margin-bottom: 4px; }

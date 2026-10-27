@@ -1,12 +1,12 @@
 "use client";
 
-import { Essayer } from "@/components/bs/essayer";
+import { EntreeDirecte } from "@/components/bs/entree-directe";
 
 /**
- * La porte d'entrée : essayer avec ses chiffres, avant tout compte (voir
- * Essayer). L'ancien parcours de revendication de la fiche mon-ecurie.fr
- * reste sur /compte/inscription (?retrouver=1 pour chercher sa fiche).
+ * La porte d'entrée de quelqu'un qui ouvre l'app sans fiche ni demande (lot 6,
+ * 27 octobre 2026) : l'histoire, puis « Trouve ton écurie ». L'ancien essai
+ * avec ses chiffres (Essayer) n'est plus proposé à l'entrée.
  */
 export default function BienvenuePage() {
-  return <Essayer />;
+  return <EntreeDirecte />;
 }
