@@ -7,20 +7,55 @@ import { AdoptChoice } from "@/components/bs/adopt-choice";
 import { GardeFait, GardeListe } from "@/components/bs/garder";
 import { ArTop, CodeInput, Marque } from "@/components/bs/rejoindre";
 import { Ic, Ill } from "@/components/carnet/ui";
-import { api, ApiError, appUrl, type AuthResponse, type StableHit } from "@/lib/account/api";
-import { AVEC_APPLE, AVEC_GOOGLE, lireRetour, partirVers, revenirDe, type Fournisseur } from "@/lib/account/oauth";
-import { enter, getSession, hasAccountData, hasLegacyData, hasLocaleData, sessionFrom, setSession, type AccountSession } from "@/lib/account/session";
-import { adoptLocale, resumeLocale, type ResumeEssai } from "@/lib/account/vault";
+import {
+  api,
+  ApiError,
+  appUrl,
+  type AuthResponse,
+  type StableHit,
+} from "@/lib/account/api";
+import {
+  AVEC_APPLE,
+  AVEC_GOOGLE,
+  lireRetour,
+  partirVers,
+  revenirDe,
+  type Fournisseur,
+} from "@/lib/account/oauth";
+import {
+  enter,
+  getSession,
+  hasAccountData,
+  hasLegacyData,
+  hasLocaleData,
+  sessionFrom,
+  setSession,
+  type AccountSession,
+} from "@/lib/account/session";
+import {
+  adoptLocale,
+  resumeLocale,
+  type ResumeEssai,
+} from "@/lib/account/vault";
 import { useSettingsStore } from "@/stores/settings-store";
 import { mesurer } from "@/lib/mesure";
+import "@/app/carnet/connexion.css";
 
 /**
  * Un seul compte (27 octobre 2026) : le site renvoie ici ses gérants, avec
  * ?vers=ma-fiche (son ancien tableau de bord) ou rien. Déjà connecté dans
  * l'app : droit à l'écran voulu ; sinon, après le code.
  */
-const VERS: Record<string, string> = { "ma-fiche": "/ma-fiche", demandes: "/demandes", accueil: "/accueil" };
-const cible = () => (typeof window === "undefined" ? "/accueil" : (VERS[new URLSearchParams(window.location.search).get("vers") ?? ""] ?? "/accueil"));
+const VERS: Record<string, string> = {
+  "ma-fiche": "/ma-fiche",
+  demandes: "/demandes",
+  accueil: "/accueil",
+};
+const cible = () =>
+  typeof window === "undefined"
+    ? "/accueil"
+    : (VERS[new URLSearchParams(window.location.search).get("vers") ?? ""] ??
+      "/accueil");
 
 /**
  * Se connecter : l'e-mail, puis le code reçu, ou « Continuer avec Google »
@@ -65,11 +100,16 @@ export default function Page() {
 
   useEffect(() => {
     const deja = getSession();
-    if (deja?.kind === "compte" && !lireRetour(window.location.search)) return enter(deja, cible());
-    const voulu = new URLSearchParams(window.location.search).get("garder") === "1" || getSession()?.kind === "locale";
+    if (deja?.kind === "compte" && !lireRetour(window.location.search))
+      return enter(deja, cible());
+    const voulu =
+      new URLSearchParams(window.location.search).get("garder") === "1" ||
+      getSession()?.kind === "locale";
     if (voulu && hasLocaleData()) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setGarder(resumeLocale() ?? { chevaux: 0, pension: 0, frais: 0, seances: 0 });
+      setGarder(
+        resumeLocale() ?? { chevaux: 0, pension: 0, frais: 0, seances: 0 },
+      );
       const deja = useSettingsStore.getState().stableName;
       setNom(SANS_NOM(deja) ? "" : deja);
       setFiche(lireFiche());
@@ -77,9 +117,18 @@ export default function Page() {
     // Retour de Google ou d'Apple.
     const retour = lireRetour(window.location.search);
     if (!retour) return;
-    window.history.replaceState(null, "", window.location.pathname + (voulu ? "?garder=1" : ""));
-    if (retour.erreur) return setErr("La connexion a été annulée. Réessaie, ou reçois un code par e-mail.");
-    void run(async () => ouvrir(await api.connexionSupabase(await revenirDe(retour.code!))));
+    window.history.replaceState(
+      null,
+      "",
+      window.location.pathname + (voulu ? "?garder=1" : ""),
+    );
+    if (retour.erreur)
+      return setErr(
+        "La connexion a été annulée. Réessaie, ou reçois un code par e-mail.",
+      );
+    void run(async () =>
+      ouvrir(await api.connexionSupabase(await revenirDe(retour.code!))),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -95,7 +144,9 @@ export default function Page() {
     if (hasLocaleData()) {
       // Le compte a déjà sa fiche : c'est son écurie, sans question.
       if (s.listing) {
-        useSettingsStore.getState().setIdentity({ stableName: s.listing.title });
+        useSettingsStore
+          .getState()
+          .setIdentity({ stableName: s.listing.title });
         return finir(s, { ecurie: "", fiche: null, projet: false });
       }
       // Sinon, l'écurie se dit maintenant qu'on sait qui c'est.
@@ -113,9 +164,22 @@ export default function Page() {
   }
 
   /** L'écurie est dite : l'essai passe dans le compte. Le nom (ou le projet) part au site, sans effet tant que l'extension ne le connaît pas. */
-  async function finir(s: AccountSession, dit: { ecurie: string; fiche: StableHit | null; projet: boolean }) {
+  async function finir(
+    s: AccountSession,
+    dit: { ecurie: string; fiche: StableHit | null; projet: boolean },
+  ) {
     setSession(s);
-    if (dit.ecurie || dit.projet) void api.majMoi(dit.projet ? { projet: true } : { ecurie: dit.ecurie, ...(dit.fiche ? { fiche: dit.fiche.id } : {}) }).catch(() => {});
+    if (dit.ecurie || dit.projet)
+      void api
+        .majMoi(
+          dit.projet
+            ? { projet: true }
+            : {
+                ecurie: dit.ecurie,
+                ...(dit.fiche ? { fiche: dit.fiche.id } : {}),
+              },
+        )
+        .catch(() => {});
     ecrireFiche(null);
     if (hasAccountData(s.userId)) return setAdopt("locale");
     await adoptLocale("locale");
@@ -129,7 +193,9 @@ export default function Page() {
     try {
       await f();
     } catch (x) {
-      setErr(x instanceof ApiError ? x.message : "Ça n’a pas marché. Réessaie.");
+      setErr(
+        x instanceof ApiError ? x.message : "Ça n’a pas marché. Réessaie.",
+      );
     } finally {
       setBusy(false);
     }
@@ -155,9 +221,13 @@ export default function Page() {
   /** L'écurie est dite : celle de l'annuaire (h), ou le nom tapé. */
   function garderNom(h: StableHit | null) {
     // Une fiche déjà reprise appartient au compte de son gérant : elle ne se choisit pas ici.
-    if (h && h.statut !== "libre") return setErr(`${h.title} a déjà un compte, avec une autre adresse. Si c’est ton écurie, écris-nous : on regarde avec toi.`);
+    if (h && h.statut !== "libre")
+      return setErr(
+        `${h.title} a déjà un compte, avec une autre adresse. Si c’est ton écurie, écris-nous : on regarde avec toi.`,
+      );
     const n = (h?.title ?? nom).trim();
-    if (n.length < 2) return setErr("Le nom de ton écurie, tel que tes clients le disent.");
+    if (n.length < 2)
+      return setErr("Le nom de ton écurie, tel que tes clients le disent.");
     useSettingsStore.getState().setIdentity({ stableName: n });
     setNom(n);
     setFiche(h);
@@ -165,7 +235,8 @@ export default function Page() {
     setHits(null);
     setProjet(false);
     setErr("");
-    if (attente) void run(() => finir(attente, { ecurie: n, fiche: h, projet: false }));
+    if (attente)
+      void run(() => finir(attente, { ecurie: n, fiche: h, projet: false }));
   }
 
   if (adopt)
@@ -179,20 +250,26 @@ export default function Page() {
     return (
       <div className="carnet">
         <div className="ar">
-          <GardeFait onOpen={() => enter(fait, "/accueil")} fiche={fiche && fiche.statut === "libre" && !projet ? fiche : null} onFiche={(id) => enter(fait, `/compte/inscription?fiche=${id}`)} />
+          <GardeFait
+            onOpen={() => enter(fait, "/accueil")}
+            fiche={fiche && fiche.statut === "libre" && !projet ? fiche : null}
+            onFiche={(id) => enter(fait, `/compte/inscription?fiche=${id}`)}
+          />
         </div>
       </div>
     );
 
   const top = (
     <ArTop
-      onBack={mode === "code" ? () => (setMode("email"), setErr("")) : undefined}
+      onBack={
+        mode === "code" ? () => (setMode("email"), setErr("")) : undefined
+      }
       right={
         garder ? (
           <Link href="/accueil" className="ar-link">
             Plus tard
           </Link>
-        ) : (
+        ) : mode === "email" ? undefined : (
           <Link href="/bienvenue" className="ar-link">
             Essayer sans compte
           </Link>
@@ -210,15 +287,32 @@ export default function Page() {
     <div className="carnet">
       <div className="ar ar-duo">
         {mode === "nom" && (
-          <form className="ar-v" noValidate onSubmit={(e) => (e.preventDefault(), garderNom(fiche))}>
+          <form
+            className="ar-v"
+            noValidate
+            onSubmit={(e) => (e.preventDefault(), garderNom(fiche))}
+          >
             {top}
             <div className="q rise">
               <h1>Ton écurie s’appelle comment ?</h1>
-              <p>Si elle est sur bestable.fr, choisis-la. Rien ne change sur sa fiche.</p>
+              <p>
+                Si elle est sur bestable.fr, choisis-la. Rien ne change sur sa
+                fiche.
+              </p>
             </div>
             <label className="input ar-in">
               <Ic n="search" className="ar-ico" />
-              <input autoFocus type="text" autoComplete="off" enterKeyHint="next" maxLength={120} value={nom} onChange={(e) => chercher(e.target.value)} placeholder="Nom ou commune" aria-label="Le nom de ton écurie" />
+              <input
+                autoFocus
+                type="text"
+                autoComplete="off"
+                enterKeyHint="next"
+                maxLength={120}
+                value={nom}
+                onChange={(e) => chercher(e.target.value)}
+                placeholder="Nom ou commune"
+                aria-label="Le nom de ton écurie"
+              />
               {cherche && <span className="ar-spin" aria-hidden />}
             </label>
             {hits && (
@@ -230,7 +324,9 @@ export default function Page() {
                         <Marque t={h.title} q={nom} />
                       </b>
                       <span>
-                        {[h.commune, h.departement && `(${h.departement})`].filter(Boolean).join(" ")}
+                        {[h.commune, h.departement && `(${h.departement})`]
+                          .filter(Boolean)
+                          .join(" ")}
                         {h.statut !== "libre" && " · déjà un compte"}
                       </span>
                       <Ic n="chev" className="chev" />
@@ -238,8 +334,16 @@ export default function Page() {
                   </li>
                 ))}
                 <li>
-                  <button type="button" className="add" onClick={() => garderNom(null)}>
-                    <b>{hits.length ? "Elle n’est pas dans la liste" : "Aucune écurie à ce nom"}</b>
+                  <button
+                    type="button"
+                    className="add"
+                    onClick={() => garderNom(null)}
+                  >
+                    <b>
+                      {hits.length
+                        ? "Elle n’est pas dans la liste"
+                        : "Aucune écurie à ce nom"}
+                    </b>
                     <span>continuer avec « {nom.trim()} »</span>
                     <Ic n="chev" className="chev" />
                   </button>
@@ -253,7 +357,27 @@ export default function Page() {
                   Continuer
                 </button>
               )}
-              <button type="button" className="lnk" onClick={() => (setNom(""), setFiche(null), ecrireFiche(null), setHits(null), setProjet(true), setErr(""), attente ? void run(() => finir(attente, { ecurie: "", fiche: null, projet: true })) : setMode("email"))}>
+              <button
+                type="button"
+                className="lnk"
+                onClick={() => (
+                  setNom(""),
+                  setFiche(null),
+                  ecrireFiche(null),
+                  setHits(null),
+                  setProjet(true),
+                  setErr(""),
+                  attente
+                    ? void run(() =>
+                        finir(attente, {
+                          ecurie: "",
+                          fiche: null,
+                          projet: true,
+                        }),
+                      )
+                    : setMode("email")
+                )}
+              >
                 Je n’ai pas encore d’écurie
               </button>
             </div>
@@ -261,50 +385,144 @@ export default function Page() {
         )}
 
         {mode === "email" && (
-          <form className="ar-v" noValidate onSubmit={(e) => (e.preventDefault(), run(async () => (await api.envoyerCode(email.trim()), setCode(""), setMode("code"))))}>
+          <form
+            className="ar-v"
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              // Comme sur le site, le bouton reste actif : une adresse vide ou incomplète se dit en clair.
+              if (!/^\S+@\S+\.\S+$/.test(email.trim()))
+                return setErr(
+                  "Cette adresse e-mail semble incomplète. Vérifie-la.",
+                );
+              run(
+                async () => (
+                  await api.envoyerCode(email.trim()),
+                  setCode(""),
+                  setMode("code")
+                ),
+              );
+            }}
+          >
             {top}
             {garder ? (
               <div className="q rise">
                 <h1>Ton compte</h1>
-                <p>Ton e-mail, puis un code. Ensuite, ton écurie. Tes chiffres vont dans ton compte.</p>
+                <p>
+                  Ton e-mail, puis un code. Ensuite, ton écurie. Tes chiffres
+                  vont dans ton compte.
+                </p>
               </div>
             ) : (
-              <>
-                <div className="hero-ill rise" style={{ height: 170 }}>
-                  <Ill n="assise" alt="La gérante, assise, une tasse de café à la main." />
+              // Le haut de la page de connexion de bestable.fr (27 octobre 2026) : un seul compte, une seule porte.
+              <div className="cx rise">
+                <h1 className="cx-t">
+                  Le pied à l’étrier, sans{" "}
+                  <span className="cx-hl">mot de passe</span>.
+                </h1>
+                <p className="cx-lead">
+                  Ton adresse e-mail, un code à six chiffres, et tu retrouves ta
+                  fiche, tes places libres et tes demandes. Le même compte que
+                  sur bestable.fr.
+                </p>
+                <div className="cx-carte">
+                  <nav className="cx-duo" aria-label="Ton compte">
+                    <span aria-current="page">J’ai un compte</span>
+                    <Link href="/bienvenue">Créer mon compte</Link>
+                  </nav>
+                  <h2 className="cx-h2">Ton adresse e-mail</h2>
+                  <div className="cx-champ">
+                    <input
+                      autoFocus
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="ton@adresse.fr"
+                      aria-label="Ton adresse e-mail"
+                    />
+                    <button className="btn" disabled={busy}>
+                      {busy ? "Envoi…" : "Recevoir mon code"}
+                      {!busy && <Ic n="arrow" className="" />}
+                    </button>
+                  </div>
+                  {erreur}
+                  <ul className="cx-notes">
+                    <li>
+                      <Ic n="lock" className="" />
+                      Aucun mot de passe à retenir
+                    </li>
+                    <li>
+                      <Ic n="clock" className="" />
+                      Le code vaut 10 minutes
+                    </li>
+                  </ul>
                 </div>
-                <div className="q rise" style={{ animationDelay: ".08s" }}>
-                  <h1>Te revoilà.</h1>
-                </div>
-              </>
+              </div>
             )}
-            <label className="input ar-in">
-              <input autoFocus type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ton@email.fr" aria-label="Ton e-mail" />
-            </label>
+            {garder && (
+              <label className="input ar-in">
+                <input
+                  autoFocus
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="ton@email.fr"
+                  aria-label="Ton e-mail"
+                />
+              </label>
+            )}
             {garder && <GardeListe r={garder} />}
-            {erreur}
+            {garder && erreur}
             <div className="foot">
-              <button className="btn full" disabled={busy || !email.trim()}>
-                {busy ? "Envoi…" : "Recevoir mon code"}
-              </button>
+              {garder && (
+                <button className="btn full" disabled={busy || !email.trim()}>
+                  {busy ? "Envoi…" : "Recevoir mon code"}
+                </button>
+              )}
               {!garder && <JaiUneSauvegarde className="lnk ar-sauv" />}
               {AVEC_GOOGLE && (
-                <button type="button" className="btn line full" disabled={busy} onClick={() => avec("google")}>
+                <button
+                  type="button"
+                  className="btn line full"
+                  disabled={busy}
+                  onClick={() => avec("google")}
+                >
                   Continuer avec Google
                 </button>
               )}
               {AVEC_APPLE && (
-                <button type="button" className="btn line full" disabled={busy} onClick={() => avec("apple")}>
+                <button
+                  type="button"
+                  className="btn line full"
+                  disabled={busy}
+                  onClick={() => avec("apple")}
+                >
                   Continuer avec Apple
                 </button>
               )}
-              <p className="ar-proof">Le même compte que sur bestable.fr. Pas de mot de passe.</p>
+              {garder && (
+                <p className="ar-proof">
+                  Le même compte que sur bestable.fr. Pas de mot de passe.
+                </p>
+              )}
             </div>
           </form>
         )}
 
         {mode === "code" && (
-          <form className="ar-v" onSubmit={(e) => (e.preventDefault(), run(async () => ouvrir(await api.verifierCode(email.trim(), code))))}>
+          <form
+            className="ar-v"
+            onSubmit={(e) => (
+              e.preventDefault(),
+              run(async () =>
+                ouvrir(await api.verifierCode(email.trim(), code)),
+              )
+            )}
+          >
             {top}
             <div className="q">
               <h1>Le code reçu par e-mail</h1>
@@ -315,7 +533,10 @@ export default function Page() {
               disabled={busy}
               onChange={(v) => {
                 setCode(v);
-                if (v.length === 6) run(async () => ouvrir(await api.verifierCode(email.trim(), v)));
+                if (v.length === 6)
+                  run(async () =>
+                    ouvrir(await api.verifierCode(email.trim(), v)),
+                  );
               }}
             />
             {erreur}
@@ -325,7 +546,18 @@ export default function Page() {
               </button>
               <p className="ar-proof">
                 Rien reçu ? Regarde les indésirables, ou{" "}
-                <button type="button" className="lnk" onClick={() => run(async () => (await api.envoyerCode(email.trim()), setCode("")))}>
+                <button
+                  type="button"
+                  className="lnk"
+                  onClick={() =>
+                    run(
+                      async () => (
+                        await api.envoyerCode(email.trim()),
+                        setCode("")
+                      ),
+                    )
+                  }
+                >
                   renvoie le code
                 </button>
                 .
@@ -349,7 +581,9 @@ export default function Page() {
 /** La fiche choisie survit au détour par Google (même onglet). */
 function lireFiche(): StableHit | null {
   try {
-    return JSON.parse(sessionStorage.getItem(FICHE) ?? "null") as StableHit | null;
+    return JSON.parse(
+      sessionStorage.getItem(FICHE) ?? "null",
+    ) as StableHit | null;
   } catch {
     return null;
   }
