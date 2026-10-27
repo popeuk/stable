@@ -148,7 +148,8 @@ export function TabBar() {
   }, [charger, path]);
   const on = (list: string[]) => (under(path, list) ? "page" : undefined);
   return (
-    <nav className="tb ac-tb bq-tb" aria-label="Navigation principale">
+    // Le + note ce qui fait Mon argent (séances, soins, argent) : sans cette brique, pas de + (barre à quatre).
+    <nav className={`tb ac-tb bq-tb${argent ? "" : " sans-plus"}`} aria-label="Navigation principale">
       <div>
         <Link href="/accueil" aria-current={on(["/accueil"])}>
           <Ic n="home" />
@@ -158,7 +159,8 @@ export function TabBar() {
           <Ic n="vitrine" />
           Vitrine
         </Link>
-        <button
+        {argent && (
+          <button
           type="button"
           className="plus"
           aria-label="Noter une séance, un soin, une tâche ou de l’argent"
@@ -168,7 +170,8 @@ export function TabBar() {
           }}
         >
           <Ic n="plus" />
-        </button>
+          </button>
+        )}
         <Link href="/demandes" aria-current={on(["/demandes"])} aria-label={`Demandes${demandes ? ` : ${demandes} nouvelle${demandes > 1 ? "s" : ""}` : ""}`}>
           <span className="ac-ic">
             <Ic n="inbox" />

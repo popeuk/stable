@@ -93,11 +93,14 @@ export function Sidebar() {
         be stable
       </Link>
       <span className="stb">{stableName}</span>
-      <button type="button" className="add" onClick={() => openNoter({})}>
-        <Ic n="plus" className="cn-ic sm" />
-        Ajouter
-        <kbd>N</kbd>
-      </button>
+      {/* « Ajouter » note ce qui fait Mon argent : sans cette brique, il n'apparaît pas. */}
+      {argent && (
+        <button type="button" className="add" onClick={() => openNoter({})}>
+          <Ic n="plus" className="cn-ic sm" />
+          Ajouter
+          <kbd>N</kbd>
+        </button>
+      )}
       <button type="button" className="find" onClick={openPalette}>
         <Ic n="search" className="cn-ic sm" />
         Chercher, aller à…
@@ -223,6 +226,7 @@ function PaletteInner() {
   const data = useDataStore();
   const c = useNavCounts();
   const plus = usePlusItems();
+  const argentOuvert = estOuverte(useBriques().etat.argent);
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
   const list = useRef<HTMLDivElement>(null);
@@ -281,9 +285,10 @@ function PaletteInner() {
       ...(data.people ?? [])
         .filter((p) => p.active)
         .map((p) => ({ id: `p-${p.id}`, group: "Clients", label: p.name, sub: p.role === "proprietaire" ? "propriétaire" : "cavalier", ic: "user", run: go(adresseClient(p.name)) })),
-    ],
+      // Les gestes du + (« Faire ») n'existent qu'avec Mon argent.
+    ].filter((x) => argentOuvert || !x.id.startsWith("a-")),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, c, plus],
+    [data, c, plus, argentOuvert],
   );
 
   const shown = useMemo(() => {
@@ -421,6 +426,11 @@ const typing = (t: EventTarget | null) => {
 export function Shortcuts() {
   const router = useRouter();
   const pending = useRef(0);
+  const argent = estOuverte(useBriques().etat.argent);
+  const argentRef = useRef(argent);
+  useEffect(() => {
+    argentRef.current = argent;
+  }, [argent]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const ui = useUiStore.getState();
@@ -443,6 +453,8 @@ export function Shortcuts() {
       }
       if (k === "g") pending.current = Date.now();
       else if (k === "n") {
+        // Le raccourci du + : seulement avec Mon argent.
+        if (!argentRef.current) return;
         e.preventDefault();
         const id = location.pathname.includes("/ticket") ? new URLSearchParams(location.search).get("id") : null;
         ui.openNoter(id ? { horseIds: [id] } : {});

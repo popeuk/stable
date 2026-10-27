@@ -241,3 +241,5 @@
   .carnet .dm-rep .btn.full { width: auto; min-width: 260px; padding: 0 28px; }
   .carnet .dm-rep .dm-aide { text-align: left; }
 }
+/* Sans Mon argent, pas de + : la barre du bas garde quatre places égales. */
+.carnet .tb.sans-plus, .carnet .tb.sans-plus > div { grid-template-columns: repeat(4, 1fr); }
