@@ -7,11 +7,13 @@
 # - vérifie la configuration avant de recharger Caddy ; sinon remet l'ancien
 #   Caddyfile et s'arrête. La production (app.bestable.fr) n'est pas touchée.
 set -euo pipefail
+trap 'echo "Arrêt à la ligne $LINENO : rien d\x27autre n\x27a été fait après cette étape." >&2' ERR
 cd "$(dirname "$0")"
 K=~/.ssh/id_ed25519_mon_ecurie
 H=deploy@187.7.74.179
 SSH="ssh -i $K $H"
-MDP=$(LC_ALL=C tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 20)
+MDP=$(openssl rand -base64 30 | tr -dc 'a-zA-Z0-9' | cut -c1-20)
+[ ${#MDP} -ge 16 ] || { echo "Impossible de créer le mot de passe." >&2; exit 1; }
 
 echo "1/4 Copie du script et du minuteur"
 rsync -e "ssh -i $K" --rsync-path="sudo rsync" bestable-preprod-maj "$H:/usr/local/bin/bestable-preprod-maj"
