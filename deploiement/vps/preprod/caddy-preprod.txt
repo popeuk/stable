@@ -4,7 +4,7 @@
 # À recopier dans le Caddyfile du VPS, puis « caddy validate » et « systemctl reload caddy ».
 preprod-app.187-7-74-179.sslip.io {
 	encode zstd gzip
-	basic_auth {
+	basicauth {
 		bestable HASH_A_REMPLACER
 	}
 	header {
