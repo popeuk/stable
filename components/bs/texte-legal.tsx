@@ -13,6 +13,14 @@ import "@/app/carnet/registre.css";
  * texte, sans style ni classe.
  */
 export const SITE = "https://bestable.fr";
+/** D'où lire le texte seul : le domaine de l'API du site (www.mon-ecurie.fr en production, autorisé par la politique de sécurité du VPS ; la préprod en préprod). */
+const SOURCE = (() => {
+  try {
+    return process.env.NEXT_PUBLIC_MONECURIE_API ? new URL(process.env.NEXT_PUBLIC_MONECURIE_API).origin : SITE;
+  } catch {
+    return SITE;
+  }
+})();
 export const TEXTES = {
   confidentialite: { titre: "Confidentialité", chemin: "/confidentialite/" },
   cgu: { titre: "Conditions d’utilisation", chemin: "/cgu/" },
@@ -70,7 +78,7 @@ export function TexteLegal({ t, onTexte }: { t: Texte; onTexte: (t: Texte) => vo
     }
     let fini = false;
     setEtat({ t, html: null, rate: false });
-    fetch(`${SITE}${TEXTES[t].chemin}?nu=1`)
+    fetch(`${SOURCE}${TEXTES[t].chemin}?nu=1`)
       .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
       .then((h) => {
         const propre = nettoyer(h);

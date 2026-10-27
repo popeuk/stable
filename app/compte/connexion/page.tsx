@@ -53,7 +53,9 @@ import { EcuriesTexte } from "@/lib/annuaire";
 /** Le site de la même famille que l'API : bestable.fr en production, sa préprod en préprod. */
 const SITE = (() => {
   try {
-    return `${new URL(API).origin}/`;
+    // L'API de production passe par www.mon-ecurie.fr : le lien, lui, mène à bestable.fr.
+    const o = new URL(API).origin;
+    return o.includes("mon-ecurie.fr") ? "https://bestable.fr/" : `${o}/`;
   } catch {
     return "https://bestable.fr/";
   }

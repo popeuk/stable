@@ -72,6 +72,10 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: ""
           # Le numéro en bas de Réglages : « Version 3bdc74f · 18 octobre » (lib/version.ts).
           NEXT_PUBLIC_VERSION: ${{ github.sha }}
+          # L'API du site par www.mon-ecurie.fr (28 octobre 2026) : la politique de sécurité active sur
+          # le VPS n'autorise que ce domaine (pas bestable.fr) ; le site sert la même API sur les deux.
+          # À remettre sur bestable.fr quand le Caddy du VPS autorisera https://bestable.fr dans connect-src.
+          NEXT_PUBLIC_MONECURIE_API: https://www.mon-ecurie.fr/wp-json/bestable/v1
           NEXT_PUBLIC_VERSION_DATE: ${{ github.event.head_commit.timestamp }}
           # La mesure (Google Analytics, pixel Meta) reste éteinte tant que ces variables
           # du dépôt (Settings > Variables) sont vides : rien ne se charge, pas de bandeau.
