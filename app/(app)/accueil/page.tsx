@@ -16,6 +16,7 @@ import { localToday } from "@/lib/utils/local-date";
 import { Empty, Face, Ic, Page, Sec } from "@/components/carnet/ui";
 import { CeQuiManque, Chemin, JourneeMontree, useCheminActif, useJamaisNote } from "@/components/bs/accueil-fort";
 import "@/app/carnet/accueil-fort.css";
+import { AccueilBriques } from "@/components/bs/accueil-briques";
 
 /** L'encart mon-ecurie.fr, tout en bas : chargé après le reste de l'accueil. */
 const PromoMonEcurie = dynamic(() => import("@/components/bs/promo-mon-ecurie").then((m) => m.PromoMonEcurie), { ssr: false });
@@ -43,6 +44,25 @@ export default function AccueilPage() {
 function Accueil() {
   useSauvegardeOuverte();
   const desk = useDesk();
+  // Un compte : l'accueil en blocs, composé selon ses briques (components/bs/accueil-briques.tsx).
+  // La démo et l'écurie sans compte gardent l'accueil d'avant, qui montre tout.
+  const [compte] = useState(() => getSession()?.kind === "compte");
+  if (compte)
+    return (
+      <Page className="ac-acc">
+        <AccueilBriques
+          chemin={<Chemin />}
+          mois={
+            <>
+              <Compteur href="/argent" ill />
+              <CeQuiManque />
+            </>
+          }
+          journee={<Journee delay={0.16} max={5} />}
+        />
+        <div className="end" />
+      </Page>
+    );
 
   if (!desk)
     return (

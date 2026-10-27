@@ -1,0 +1,70 @@
+/* Ton livret et le dossier de la semaine (maquette du 26 octobre 2026) : le vocabulaire du chemin des premiers pas. */
+.carnet .lv { margin-top: 12px; }
+.carnet .lv-rail { grid-template-columns: repeat(4, 1fr) auto; margin-bottom: 6px; }
+.carnet .lv-noms { display: grid; grid-template-columns: repeat(4, 1fr) 30px; margin: 0 0 14px; font-size: 11.5px; font-weight: 600; color: var(--on-vert-2, #8FB3A3); }
+.carnet .lv-noms span { transform: translateX(-2px); }
+.carnet .lv-noms .ok { color: var(--on-vert); }
+.carnet .lv-noms .now { color: var(--rose); }
+.carnet .lv .af-step-ill { width: 96px; }
+
+.carnet .lv-dos { display: block; margin: 12px var(--gut) 0; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; color: inherit; text-decoration: none; }
+.carnet .lv-dos-im { position: relative; display: block; height: 176px; background: #E9DFCF; }
+.carnet .lv-dos-im img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; display: block; }
+.carnet .lv-play { position: absolute; left: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px 0 4px; border-radius: 17px; background: rgba(27, 18, 37, .82); color: #fff; font-size: 12.5px; font-weight: 650; }
+.carnet .lv-play i { width: 26px; height: 26px; border-radius: 50%; background: var(--rose); color: var(--vert-deep); display: grid; place-items: center; }
+.carnet .lv-play svg { width: 12px; height: 12px; fill: currentColor; stroke: none; }
+.carnet .lv-dos-bd { display: block; padding: 12px 14px 14px; }
+.carnet .lv-k { display: block; font-size: 12px; font-weight: 650; color: var(--acc); }
+.carnet .lv-dos-bd b { display: block; margin-top: 4px; font-size: 18px; font-weight: 720; line-height: 1.1; letter-spacing: -.02em; }
+.carnet .lv-dos-bd small { display: block; margin-top: 4px; font-size: 13px; line-height: 1.4; color: var(--ink2); }
+
+/* ---------- Version 5 : le livret en rose, de vrais flots ---------- */
+.carnet .lv2 { margin: 12px var(--gut) 0; padding: 18px 16px 16px; border-radius: var(--bloc-r); background: var(--rose); color: var(--vert-deep); position: relative; overflow: hidden; }
+.carnet .lv2::before { content: ""; position: absolute; right: -40px; top: -60px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, .45), transparent); pointer-events: none; }
+.carnet .lv2-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; position: relative; }
+.carnet .lv2 h2 { margin: 0; font-size: 24px; line-height: 1; letter-spacing: -.035em; font-weight: 720; font-variation-settings: "wdth" 90; max-width: 13ch; text-wrap: balance; }
+.carnet .lv2-compte { flex: none; padding: 5px 10px; border-radius: 14px; background: var(--vert-deep); color: #fff; font-size: 12px; font-weight: 650; white-space: nowrap; }
+.carnet .lv2-compte b { color: var(--rose); font-weight: 800; }
+.carnet .lv2-sub { margin: 6px 0 0; font-size: 13.5px; line-height: 1.4; color: #3E2A35; position: relative; }
+
+.carnet .lv2-rail { position: relative; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 16px 0 14px; padding: 0; }
+.carnet .lv2-rail::before { content: ""; position: absolute; left: 12.5%; right: 12.5%; top: 28px; height: 3px; border-radius: 3px; background: rgba(11, 51, 37, .16); }
+.carnet .lv2-rail::after { content: ""; position: absolute; left: 12.5%; top: 28px; height: 3px; width: 0; border-radius: 3px; background: var(--vert-deep); transition: width 1s var(--ease) .35s; }
+.carnet .lv2.go .lv2-rail::after { width: 50%; }
+.carnet .lv2-rail li { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; }
+.carnet .lv2-flot { width: 58px; height: 58px; display: grid; place-items: center; border-radius: 50%; position: relative; z-index: 1; }
+.carnet .lv2-flot > svg:not(.lv2-svg) { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .lv2-svg { width: 58px; height: 58px; filter: drop-shadow(0 3px 4px rgba(11, 51, 37, .25)); }
+.carnet .lv2-rail li.ok .lv2-flot { transform: scale(.4) rotate(-20deg); opacity: 0; transition: transform .7s cubic-bezier(.34, 1.56, .64, 1), opacity .3s ease-out; transition-delay: calc(.2s + var(--k) * .22s); }
+.carnet .lv2.go .lv2-rail li.ok .lv2-flot { transform: none; opacity: 1; }
+.carnet .lv2-rail li.now .lv2-flot { width: 48px; height: 48px; margin: 5px; background: var(--sheet); color: var(--vert-deep); box-shadow: 0 0 0 3px var(--vert-deep); }
+.carnet .lv2-rail li.now .lv2-flot::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 3px solid var(--vert-deep); opacity: 0; animation: af-pulse 2.4s var(--ease) infinite; }
+.carnet .lv2-rail li.apres .lv2-flot { width: 48px; height: 48px; margin: 5px; background: rgba(255, 255, 255, .35); color: rgba(11, 51, 37, .55); box-shadow: inset 0 0 0 2px rgba(11, 51, 37, .25); }
+.carnet .lv2-rail b { margin-top: 4px; font-size: 12.5px; font-weight: 700; line-height: 1.1; }
+.carnet .lv2-rail small { font-size: 11px; font-weight: 600; color: #5A3A4A; }
+.carnet .lv2-rail li.now small { color: var(--vert-deep); font-weight: 750; }
+.carnet .lv2-rail li.apres b { color: rgba(11, 51, 37, .6); }
+.carnet .lv2-step { position: relative; }
+@media (prefers-reduced-motion: reduce) {
+  .carnet .lv2-rail li.ok .lv2-flot { transform: none; opacity: 1; transition: none; }
+  .carnet .lv2-rail::after { transition: none; }
+  .carnet .lv2-rail li.now .lv2-flot::after { animation: none; }
+}
+
+/* ---------- Le chiffre du mois, sur l'accueil : vert anglais plein (maquette du 26 octobre) ---------- */
+.carnet .ac-acc .card.ac-cpt { position: relative; overflow: hidden; background: var(--acc); box-shadow: none; color: #fff; padding-top: 18px; isolation: isolate; }
+.carnet .ac-acc .card.ac-cpt::before { content: ""; position: absolute; z-index: -1; left: -70px; top: -90px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, .14), transparent); }
+.carnet .ac-acc .card.ac-cpt::after { content: ""; position: absolute; z-index: -1; right: -30px; bottom: 40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(closest-side, rgba(246, 179, 203, .22), transparent); }
+.carnet .ac-acc .ac-cpt .k { color: var(--on-vert); }
+.carnet .ac-acc .ac-cpt .big, .carnet .ac-acc .ac-cpt .big.in, .carnet .ac-acc .ac-cpt .big.out { color: var(--rose); font-size: 64px; letter-spacing: -.03em; text-shadow: 0 2px 0 rgba(11, 51, 37, .35); }
+.carnet .ac-acc .ac-sub { color: var(--on-vert); }
+.carnet .ac-acc .ac-cpt .bar { position: relative; height: 10px; border-radius: 5px; background: rgba(255, 255, 255, .16); overflow: visible; margin-top: 14px; }
+.carnet .ac-acc .ac-cpt .bar i { background: var(--rose); border-radius: 5px; box-shadow: 0 0 12px rgba(246, 179, 203, .45); }
+.carnet .ac-acc .ac-cpt .bar::after { content: ""; position: absolute; right: -2px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: var(--acc); box-shadow: inset 0 0 0 3px #fff; }
+.carnet .ac-acc .ac-cpt .bar-lab { color: var(--on-vert); }
+.carnet .ac-acc .ac-cpt .bar-lab span:first-child { color: #fff; font-weight: 650; }
+.carnet .ac-acc .ac-go { border-top: 1px dashed rgba(255, 255, 255, .28); color: #fff; }
+.carnet .ac-acc .ac-ill { margin-right: -10px; }
+.carnet .ac-acc .ac-ill .ill { filter: drop-shadow(0 8px 10px rgba(11, 51, 37, .35)); }
+.carnet .ac-acc a.ac-cpt:hover { background: var(--acc-deep); }
+.carnet .ac-acc .ac-go .chev { stroke: #fff; }

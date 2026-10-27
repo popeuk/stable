@@ -45,3 +45,72 @@
 .carnet .bq-al .lnk { display: block; margin: 10px auto 0; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 650; color: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 @keyframes bq-pose { from { transform: scale(.7); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .carnet .bq-al-ok { animation: none; } }
+
+/* La feuille d'une question */
+.carnet .bq-fq-n { font-size: 12.5px; font-weight: 650; color: var(--ink2); }
+.carnet .bq-fq-t { margin: 0 0 4px; font-size: 22px; font-weight: 760; letter-spacing: -.02em; line-height: 1.12; }
+.carnet .bq-fq-s { margin: 0 0 16px; font-size: 13.5px; line-height: 1.45; color: var(--ink2); }
+.carnet .bq-pls { display: grid; grid-template-columns: 60px minmax(0, 1fr) 60px; align-items: center; padding: 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); }
+.carnet .bq-pls b { text-align: center; font-size: 56px; font-weight: 780; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.carnet .bq-pls button { width: 60px; height: 60px; border: 0; border-radius: 50%; background: var(--mist); font: inherit; font-size: 26px; color: var(--ink); cursor: pointer; }
+.carnet .bq-pls button.p { background: var(--acc); color: #fff; }
+.carnet .bq-pls button:active { transform: scale(.94); }
+.carnet .bq-fq-ch { justify-content: center; margin-top: 10px; }
+.carnet .bq-fq-in { display: flex; align-items: baseline; gap: 8px; }
+.carnet .bq-fq-in input { flex: 1; min-width: 0; font-size: 24px; font-weight: 760; }
+.carnet .bq-fq-in i { font-style: normal; font-size: 13px; color: var(--ink2); }
+.carnet .bq-fq-c { display: block; margin-top: 6px; font-style: normal; font-size: 12.5px; color: var(--ink2); }
+.carnet .bq-fq-go { margin-top: 18px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.carnet .bq-fq-go svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; }
+.carnet .bq-fq-l { display: block; margin: 12px auto 0; text-align: center; }
+
+/* L'accueil en blocs */
+.carnet .bq-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.carnet .bq-hd b { font-size: 16px; font-weight: 720; letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 6px; }
+.carnet .bq-lnk { font-size: 13px; font-weight: 650; color: var(--acc); text-decoration: underline; text-underline-offset: 3px; }
+.carnet .bq-verif { margin: 12px var(--gut) 0; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); }
+.carnet .bq-verif .ic { width: 36px; height: 36px; border-radius: 50%; background: #FBF1D6; display: grid; place-items: center; }
+.carnet .bq-verif .ic svg { width: 18px; height: 18px; fill: none; stroke: #8A6410; stroke-width: 2.2; }
+.carnet .bq-verif b { display: block; font-size: 14.5px; font-weight: 700; }
+.carnet .bq-verif small { display: block; margin-top: 3px; font-size: 12.5px; line-height: 1.45; color: var(--ink2); }
+.carnet .bq-dem { display: block; margin: 12px var(--gut) 0; padding: 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); }
+.carnet .bq-dem-c { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: center; margin: 10px 0 12px; color: inherit; text-decoration: none; }
+.carnet .bq-av { width: 40px; height: 40px; border-radius: 50%; background: color-mix(in srgb, var(--acc) 12%, var(--sheet)); color: var(--acc); display: grid; place-items: center; font-weight: 760; font-size: 13px; }
+.carnet .bq-dem-c b { display: block; font-size: 14.5px; font-weight: 700; }
+.carnet .bq-dem-c small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; font-size: 12.5px; line-height: 1.35; color: var(--ink2); }
+.carnet .lv2-rail::after { width: 0; }
+.carnet .lv2.go .lv2-rail::after { width: var(--fait, 0%); }
+.carnet .lv2-step .af-btn { border: 0; font: inherit; cursor: pointer; }
+.carnet .bq-fiche { display: block; margin: 12px var(--gut) 0; padding: 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); color: inherit; text-decoration: none; }
+.carnet .bq-fiche-t { display: block; margin-top: 8px; font-size: 13px; line-height: 1.45; color: var(--ink2); }
+.carnet .bq-fiche-t b { font-size: 20px; font-weight: 780; color: var(--ink); }
+.carnet .bq-jg { display: grid; grid-template-columns: repeat(var(--n, 10), 1fr); grid-auto-flow: column; gap: 4px; margin-top: 12px; }
+.carnet .bq-jg i { height: 8px; border-radius: 4px; background: var(--rose-soft); box-shadow: inset 0 0 0 1px #F2C9D8; }
+.carnet .bq-jg i.on { background: var(--acc); box-shadow: none; }
+.carnet .bq-fl { margin: 12px var(--gut) 0; display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); color: inherit; text-decoration: none; }
+.carnet .bq-fl .n { width: 36px; height: 36px; border-radius: 50%; background: var(--rose); color: var(--vert-deep); display: grid; place-items: center; font-weight: 780; }
+.carnet .bq-fl b { display: block; font-size: 14.5px; font-weight: 700; }
+.carnet .bq-fl small { display: block; font-size: 12.5px; line-height: 1.35; color: var(--ink2); }
+.carnet .bq-fl .chev, .carnet .bq-jl .chev { width: 16px; height: 16px; fill: none; stroke: var(--ink3); stroke-width: 2; }
+.carnet .bq-jour { display: block; margin: 12px var(--gut) 0; padding: 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); color: inherit; text-decoration: none; }
+.carnet .bq-jl { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; padding-top: 10px; opacity: .55; }
+.carnet .bq-jl .h { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--acc); }
+.carnet .bq-jl b { display: block; font-size: 14.5px; font-weight: 680; }
+.carnet .bq-jl small { font-size: 12.5px; color: var(--ink2); }
+.carnet .bq-hlk { width: 15px; height: 15px; fill: none; stroke: var(--ink2); stroke-width: 2.2; }
+.carnet .bq-lk-tx { display: flex; align-items: center; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 13px; font-weight: 650; color: var(--acc); }
+.carnet .bq-lk-tx svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; }
+.carnet .bq-inv { margin: 12px var(--gut) 0; display: grid; grid-template-columns: minmax(0, 1fr) 92px; gap: 8px; align-items: center; padding: 16px 10px 16px 16px; border-radius: var(--bloc-r); background: var(--vert-deep); color: #fff; text-decoration: none; overflow: hidden; }
+.carnet .bq-inv.r { background: var(--sheet); color: var(--ink); box-shadow: var(--shadow-card); }
+.carnet .bq-inv .k { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 11px; background: var(--rose); color: var(--vert-deep); font-size: 11.5px; font-weight: 700; }
+.carnet .bq-inv.r .k { background: color-mix(in srgb, var(--acc) 12%, var(--sheet)); color: var(--acc); }
+.carnet .bq-inv b { display: block; margin-top: 8px; font-size: 18px; font-weight: 740; letter-spacing: -.015em; line-height: 1.15; }
+.carnet .bq-inv small { display: block; margin-top: 5px; font-size: 13px; line-height: 1.4; color: var(--on-vert); }
+.carnet .bq-inv.r small { color: var(--ink2); }
+.carnet .bq-inv em { display: inline-flex; margin-top: 10px; padding: 8px 14px; border-radius: var(--ctl-r); background: #fff; color: var(--vert-deep); font-style: normal; font-size: 13px; font-weight: 720; }
+.carnet .bq-inv.r em { background: var(--acc); color: #fff; }
+.carnet .bq-inv .ill { width: 92px; }
+.carnet .bq-al-mini { margin: 12px var(--gut) 0; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--shadow-card); color: inherit; text-decoration: none; }
+.carnet .bq-al-mini > svg { width: 36px; height: 36px; padding: 9px; border-radius: 50%; background: #FBF1D6; fill: none; stroke: #8A6410; stroke-width: 2; }
+.carnet .bq-al-mini b { display: block; font-size: 14.5px; font-weight: 700; }
+.carnet .bq-al-mini small { font-size: 12.5px; color: var(--ink2); }
