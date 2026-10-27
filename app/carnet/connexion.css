@@ -40,3 +40,13 @@
 .carnet .cx-carte .bq-ch2-x { margin: 0; }
 .carnet .cx-carte .bq-q-err { margin: 12px 0 0 !important; }
 .carnet:has(.cx) { min-height: 100dvh; background: var(--paper); }
+
+/* Ordinateur : l'image de droite prend toute sa colonne, à son format (3:4), dans la hauteur de l'écran. */
+@media (min-width: 1024px) {
+  .carnet .ar.ar-duo:has(.cx) { grid-template-columns: minmax(0, 480px) minmax(0, 480px); gap: 64px; }
+  .carnet .ar:has(.cx) .ar-side { justify-content: center; padding: 32px 0; }
+  .carnet .ar:has(.cx) .ar-side .hero-ill { height: auto; justify-content: stretch; }
+  .carnet .ar:has(.cx) .ar-side .hero-ill .ill { width: 100%; max-width: none; height: min(640px, calc(100dvh - 210px)); max-height: none; object-fit: cover; object-position: 50% 30%; border-radius: var(--bloc-r); }
+  .carnet .ar:has(.cx) .ar-side .k { margin: 18px 0 0; }
+  .carnet .ar:has(.cx) .ar-side .ar-big { margin-top: 6px; font-size: 36px; }
+}
