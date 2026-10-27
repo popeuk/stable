@@ -53,13 +53,16 @@ PY
 php -l wp-config.php >/dev/null || { cp wp-config.php.avant-app wp-config.php; cp .htaccess.avant-app .htaccess; echo "wp-config.php refusé par PHP : tout est remis." >&2; exit 1; }
 
 sleep 2
-RACINE=$(curl -s -o /dev/null -w "%{http_code}" "$URL/")
+# Depuis le serveur lui-même, la préprod ne demande pas de mot de passe : on ne
+# peut donc vérifier ici que l'API. La vérification décisive (la racine garde son
+# mot de passe vue de l'extérieur) se fait depuis le Mac, juste après.
 API=$(curl -s -o /dev/null -w "%{http_code}" "$URL/wp-json/bestable/v1/choix")
 CORS=$(curl -s -D - -o /dev/null -H "Origin: $APP" "$URL/wp-json/bestable/v1/choix" | grep -i "access-control-allow-origin" || true)
-echo "racine : $RACINE (attendu 401) · API : $API (attendu 200) · $CORS"
-if [ "$RACINE" != "401" ] || [ "$API" != "200" ] || ! echo "$CORS" | grep -q "$APP"; then
+echo "API : $API (attendu 200) · $CORS"
+if [ "$API" != "200" ] || ! echo "$CORS" | grep -q "$APP"; then
   cp .htaccess.avant-app .htaccess; cp wp-config.php.avant-app wp-config.php
   echo "Vérification échouée : tout est remis comme avant. Envoie-moi la ligne ci-dessus." >&2
   exit 1
 fi
-echo "C'est bon : la préprod de l'app peut parler à la préprod du site."
+echo "Appliqué. Dis-le à Claude : il vérifie depuis l'extérieur que le reste du site garde son mot de passe."
+echo "Pour tout remettre comme avant : curl -fsSL https://raw.githubusercontent.com/popeuk/stable/preprod/deploiement/site/ouvrir-api-preprod.sh | bash -s annuler"
