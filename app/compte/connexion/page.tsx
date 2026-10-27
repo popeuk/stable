@@ -15,6 +15,14 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { mesurer } from "@/lib/mesure";
 
 /**
+ * Un seul compte (27 octobre 2026) : le site renvoie ici ses gérants, avec
+ * ?vers=ma-fiche (son ancien tableau de bord) ou rien. Déjà connecté dans
+ * l'app : droit à l'écran voulu ; sinon, après le code.
+ */
+const VERS: Record<string, string> = { "ma-fiche": "/ma-fiche", demandes: "/demandes", accueil: "/accueil" };
+const cible = () => (typeof window === "undefined" ? "/accueil" : (VERS[new URLSearchParams(window.location.search).get("vers") ?? ""] ?? "/accueil"));
+
+/**
  * Se connecter : l'e-mail, puis le code reçu, ou « Continuer avec Google »
  * (Apple quand il sera branché). Plus de mot de passe (décision du 18 octobre).
  * Google revient ici avec ?code=… : le compte s'ouvre comme avec le code.
@@ -56,6 +64,8 @@ export default function Page() {
   const [attente, setAttente] = useState<AccountSession | null>(null);
 
   useEffect(() => {
+    const deja = getSession();
+    if (deja?.kind === "compte" && !lireRetour(window.location.search)) return enter(deja, cible());
     const voulu = new URLSearchParams(window.location.search).get("garder") === "1" || getSession()?.kind === "locale";
     if (voulu && hasLocaleData()) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -99,7 +109,7 @@ export default function Page() {
       return setAdopt("legacy");
     }
     // Sans fiche aussi : la fiche se propose plus tard, dans l'app.
-    enter(s, "/accueil");
+    enter(s, cible());
   }
 
   /** L'écurie est dite : l'essai passe dans le compte. Le nom (ou le projet) part au site, sans effet tant que l'extension ne le connaît pas. */
