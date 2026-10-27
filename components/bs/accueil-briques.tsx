@@ -16,7 +16,11 @@ import "@/app/carnet/livret-croissance.css";
 import "@/app/carnet/briques.css";
 
 /** La feuille d'une question ne se charge qu'à l'ouverture. */
-const FeuilleQuestion = dynamic(() => import("@/components/bs/feuille-question").then((m) => m.FeuilleQuestion), { ssr: false });
+const FeuilleQuestion = dynamic(
+  () =>
+    import("@/components/bs/feuille-question").then((m) => m.FeuilleQuestion),
+  { ssr: false },
+);
 
 /**
  * L'accueil en blocs (27 octobre 2026), pour un compte : toujours dans le même
@@ -26,7 +30,15 @@ const FeuilleQuestion = dynamic(() => import("@/components/bs/feuille-question")
  * seule invitation. Les blocs d'argent et de journée viennent de l'accueil
  * d'avant (passés en `mois` et `journee`).
  */
-export function AccueilBriques({ mois, chemin, journee }: { mois: ReactNode; chemin: ReactNode; journee: ReactNode }) {
+export function AccueilBriques({
+  mois,
+  chemin,
+  journee,
+}: {
+  mois: ReactNode;
+  chemin: ReactNode;
+  journee: ReactNode;
+}) {
   const { etat, alertes, essaiPossible } = useBriques();
   const argent = estOuverte(etat.argent);
   const fiche = useMaFiche((s) => s.fiche);
@@ -44,48 +56,87 @@ export function AccueilBriques({ mois, chemin, journee }: { mois: ReactNode; che
     if (s?.kind === "compte") setPrenom(s.prenom?.trim() ?? "");
   }, []);
 
+  // Sur ordinateur, deux colonnes : le chemin, le mois et la journée à gauche ; la vérification,
+  // les demandes, la fiche et l'invitation à droite. Au téléphone, une seule colonne dans cet ordre-là.
   return (
-    <>
-      <h1 className="bq-bonjour rise">{prenom ? `Bonjour ${prenom}` : "Bonjour"}</h1>
-      {fiche?.en_attente && (
-        <div className="bq-verif rise">
-          <span className="ic">
-            <Ic n="clock" className="" />
-          </span>
-          <span>
-            <b>Ta fiche est en vérification</b>
-            <small>On vérifie chaque fiche à la main. Tu reçois un e-mail dès qu’elle est à ton nom : tes réponses partent alors sur bestable.fr.</small>
-          </span>
-        </div>
-      )}
-      <NouvellesDemandes />
-      {argent ? chemin : etatFiche === "aucune" ? <SansFiche /> : <CheminFiche onQuestion={setQ} />}
-      {argent && mois}
-      {estOuverte(etat.planning) ? journee : argent ? <JourneeVerrou /> : null}
-      {j && (argent || j.n >= j.total ? (
-        <Link href="/ma-fiche" className="bq-fl rise">
-          <span className="n">{j.n}</span>
-          <span>
-            <b>{j.n >= j.total ? "Ta fiche est complète" : `Ta fiche : ${j.n} sur ${j.total}`}</b>
-            <small>{j.n >= j.total ? "Pense à tenir tes places à jour, d’un geste." : `Il manque ${direManque(j.manque)}.`}</small>
-          </span>
-          <Ic n="chev" className="chev" />
-        </Link>
-      ) : (
-        <Link href="/ma-fiche" className="bq-fiche rise">
-          <span className="bq-hd">
-            <b>Ta fiche sur bestable.fr</b>
-            <span className="bq-lnk">Ouvrir ma vitrine</span>
-          </span>
-          <Jauge n={j.n} total={j.total} />
-          <span className="bq-fiche-t">
-            <b>{j.n}</b> sur {j.total}. Il manque {direManque(j.manque)}.
-          </span>
-        </Link>
-      ))}
-      <Invitation argent={etat.argent} site={etat.site} alerte={!!alertes.argent} essai={essaiPossible} complete={!!j && j.n >= j.total - 2} />
+    <div className="bq-acc">
+      <h1 className="bq-bonjour bq-a-hello rise">
+        {prenom ? `Bonjour ${prenom}` : "Bonjour"}
+      </h1>
+      <div className="bq-a-side">
+        {fiche?.en_attente && (
+          <div className="bq-verif rise">
+            <span className="ic">
+              <Ic n="clock" className="" />
+            </span>
+            <span>
+              <b>Ta fiche est en vérification</b>
+              <small>
+                On vérifie chaque fiche à la main. Tu reçois un e-mail dès
+                qu’elle est à ton nom : tes réponses partent alors sur
+                bestable.fr.
+              </small>
+            </span>
+          </div>
+        )}
+        <NouvellesDemandes />
+      </div>
+      <div className="bq-a-main">
+        {argent ? (
+          chemin
+        ) : etatFiche === "aucune" ? (
+          <SansFiche />
+        ) : (
+          <CheminFiche onQuestion={setQ} />
+        )}
+        {argent && mois}
+        {estOuverte(etat.planning) ? (
+          journee
+        ) : argent ? (
+          <JourneeVerrou />
+        ) : null}
+      </div>
+      <div className="bq-a-side2">
+        {j &&
+          (argent || j.n >= j.total ? (
+            <Link href="/ma-fiche" className="bq-fl rise">
+              <span className="n">{j.n}</span>
+              <span>
+                <b>
+                  {j.n >= j.total
+                    ? "Ta fiche est complète"
+                    : `Ta fiche : ${j.n} sur ${j.total}`}
+                </b>
+                <small>
+                  {j.n >= j.total
+                    ? "Pense à tenir tes places à jour, d’un geste."
+                    : `Il manque ${direManque(j.manque)}.`}
+                </small>
+              </span>
+              <Ic n="chev" className="chev" />
+            </Link>
+          ) : (
+            <Link href="/ma-fiche" className="bq-fiche rise">
+              <span className="bq-hd">
+                <b>Ta fiche sur bestable.fr</b>
+                <span className="bq-lnk">Ouvrir ma vitrine</span>
+              </span>
+              <Jauge n={j.n} total={j.total} />
+              <span className="bq-fiche-t">
+                <b>{j.n}</b> sur {j.total}. Il manque {direManque(j.manque)}.
+              </span>
+            </Link>
+          ))}
+        <Invitation
+          argent={etat.argent}
+          site={etat.site}
+          alerte={!!alertes.argent}
+          essai={essaiPossible}
+          complete={!!j && j.n >= j.total - 2}
+        />
+      </div>
       {q && <FeuilleQuestion q={q} onClose={() => setQ(null)} />}
-    </>
+    </div>
   );
 }
 
@@ -106,7 +157,8 @@ function NouvellesDemandes() {
   const pret = useDemandes((s) => s.etat === "pret");
   const n = pret ? nonVues(demandes, vuesIci) : 0;
   if (!n) return null;
-  const d = demandes.find((x) => !x.vue && !vuesIci.includes(x.id)) ?? demandes[0];
+  const d =
+    demandes.find((x) => !x.vue && !vuesIci.includes(x.id)) ?? demandes[0];
   return (
     <section className="bq-dem rise">
       <span className="bq-hd">
@@ -142,7 +194,8 @@ export const initiales = (nom: string) =>
     .map((m) => m.charAt(0).toUpperCase())
     .join("");
 /** Le prénom, pour « Répondre à Claire ». */
-export const prenomDe = (nom: string) => (nom || "").trim().split(/\s+/)[0] ?? "";
+export const prenomDe = (nom: string) =>
+  (nom || "").trim().split(/\s+/)[0] ?? "";
 
 /** Un flot : la rosette gagnée, vert anglais et rose casaque. */
 export function Flot() {
@@ -150,10 +203,32 @@ export function Flot() {
     <svg viewBox="0 0 64 64" className="lv2-svg" aria-hidden="true">
       <path d="M22 38 15 61l9-4 5 7 6-22z" fill="var(--vert-deep)" />
       <path d="M42 38l7 23-9-4-5 7-6-22z" fill="#1A5E47" />
-      <circle cx="32" cy="27" r="21" fill="var(--acc)" stroke="var(--acc)" strokeWidth="4" strokeDasharray="3.2 3" />
+      <circle
+        cx="32"
+        cy="27"
+        r="21"
+        fill="var(--acc)"
+        stroke="var(--acc)"
+        strokeWidth="4"
+        strokeDasharray="3.2 3"
+      />
       <circle cx="32" cy="27" r="14.5" fill="#FCFBF9" />
-      <circle cx="32" cy="27" r="11" fill="none" stroke="var(--rose)" strokeWidth="2.5" />
-      <path d="m26.5 27.2 3.8 3.8 7.3-7.6" fill="none" stroke="var(--acc)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <circle
+        cx="32"
+        cy="27"
+        r="11"
+        fill="none"
+        stroke="var(--rose)"
+        strokeWidth="2.5"
+      />
+      <path
+        d="m26.5 27.2 3.8 3.8 7.3-7.6"
+        fill="none"
+        stroke="var(--acc)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -168,25 +243,88 @@ function CheminFiche({ onQuestion }: { onQuestion: (q: Question) => void }) {
   }, []);
   if (!fiche) return null;
   const ok = (k: string) => jaugeFiche(fiche).manque.every((i) => i.k !== k);
-  const pas: { t: string; ok: boolean; ic: string; q?: Question; titre: string; texte: string; bouton: string; ill: "accueil-premier" | "cavaliere" | "brouette" }[] = [
-    { t: "Ta fiche", ok: true, ic: "flag", titre: "", texte: "", bouton: "", ill: "accueil-premier" },
-    { t: "Prix et places", ok: ok("places") && ok("prix"), ic: "euro", q: "places", titre: "Tes places et ton prix", texte: "Deux questions. Ce sont les premières choses que regardent les cavaliers.", bouton: "Répondre aux deux questions", ill: "accueil-premier" },
-    { t: "Tes photos", ok: ok("photos"), ic: "camera", titre: "Tes photos", texte: "Trois photos au moins. Une photo prise avec ton téléphone, c’est parfait.", bouton: "Ajouter mes photos", ill: "cavaliere" },
-    { t: "Ce que tu proposes", ok: ok("hebergement") && ok("installations") && ok("services") && ok("activites"), ic: "list", q: "propose", titre: "Ce que tu proposes", texte: "Activités, hébergement, installations, services : coche ce qui est vrai chez toi.", bouton: "Cocher ce que je propose", ill: "brouette" },
+  const pas: {
+    t: string;
+    ok: boolean;
+    ic: string;
+    q?: Question;
+    titre: string;
+    texte: string;
+    bouton: string;
+    ill: "accueil-premier" | "cavaliere" | "brouette";
+  }[] = [
+    {
+      t: "Ta fiche",
+      ok: true,
+      ic: "flag",
+      titre: "",
+      texte: "",
+      bouton: "",
+      ill: "accueil-premier",
+    },
+    {
+      t: "Prix et places",
+      ok: ok("places") && ok("prix"),
+      ic: "euro",
+      q: "places",
+      titre: "Tes places et ton prix",
+      texte:
+        "Deux questions. Ce sont les premières choses que regardent les cavaliers.",
+      bouton: "Répondre aux deux questions",
+      ill: "accueil-premier",
+    },
+    {
+      t: "Tes photos",
+      ok: ok("photos"),
+      ic: "camera",
+      titre: "Tes photos",
+      texte:
+        "Trois photos au moins. Une photo prise avec ton téléphone, c’est parfait.",
+      bouton: "Ajouter mes photos",
+      ill: "cavaliere",
+    },
+    {
+      t: "Ce que tu proposes",
+      ok:
+        ok("hebergement") &&
+        ok("installations") &&
+        ok("services") &&
+        ok("activites"),
+      ic: "list",
+      q: "propose",
+      titre: "Ce que tu proposes",
+      texte:
+        "Activités, hébergement, installations, services : coche ce qui est vrai chez toi.",
+      bouton: "Cocher ce que je propose",
+      ill: "brouette",
+    },
   ];
   const gagnes = pas.filter((p) => p.ok).length;
   if (gagnes === pas.length) return null;
   const maintenant = pas.find((p) => !p.ok)!;
   return (
-    <section className={`lv2 rise${go ? " go" : ""}`} aria-label={`Ta fiche, pour bien démarrer : ${gagnes} flots gagnés sur ${pas.length}`}>
+    <section
+      className={`lv2 rise${go ? " go" : ""}`}
+      aria-label={`Ta fiche, pour bien démarrer : ${gagnes} flots gagnés sur ${pas.length}`}
+    >
       <div className="lv2-hd">
         <h2>Ta fiche, pour bien démarrer</h2>
         <span className="lv2-compte">
           <b>{gagnes}</b> {gagnes > 1 ? "flots" : "flot"} sur {pas.length}
         </span>
       </div>
-      <p className="lv2-sub">{fiche.en_attente ? "Prépare-la pendant qu’on vérifie : tout est gardé. " : "Ce que les cavaliers regardent avant d’écrire. "}Chaque pas te rapporte un flot.</p>
-      <ol className="lv2-rail" style={{ ["--fait" as string]: `${((gagnes - 1) / (pas.length - 1)) * 75}%` }}>
+      <p className="lv2-sub">
+        {fiche.en_attente
+          ? "Prépare-la pendant qu’on vérifie : tout est gardé. "
+          : "Ce que les cavaliers regardent avant d’écrire. "}
+        Chaque pas te rapporte un flot.
+      </p>
+      <ol
+        className="lv2-rail"
+        style={{
+          ["--fait" as string]: `${((gagnes - 1) / (pas.length - 1)) * 75}%`,
+        }}
+      >
         {pas.map((p, k) => {
           const e = p.ok ? "ok" : p === maintenant ? "now" : "apres";
           return (
@@ -195,7 +333,9 @@ function CheminFiche({ onQuestion }: { onQuestion: (q: Question) => void }) {
                 {p.ok ? <Flot /> : <Ic n={p.ic} className="" />}
               </span>
               <b>{p.t}</b>
-              <small>{p.ok ? "Gagné" : e === "now" ? "Maintenant" : "Ensuite"}</small>
+              <small>
+                {p.ok ? "Gagné" : e === "now" ? "Maintenant" : "Ensuite"}
+              </small>
             </li>
           );
         })}
@@ -207,7 +347,11 @@ function CheminFiche({ onQuestion }: { onQuestion: (q: Question) => void }) {
         </div>
         <Ill n={maintenant.ill} className="af-step-ill" />
         {maintenant.q ? (
-          <button type="button" className="af-btn" onClick={() => onQuestion(maintenant.q!)}>
+          <button
+            type="button"
+            className="af-btn"
+            onClick={() => onQuestion(maintenant.q!)}
+          >
             {maintenant.bouton}
           </button>
         ) : (
@@ -227,8 +371,15 @@ function SansFiche() {
       <span className="bq-hd">
         <b>Ton écurie sur bestable.fr</b>
       </span>
-      <span className="bq-fiche-t">Retrouve ta fiche parmi les écuries de l’annuaire, ou ajoute-la. C’est gratuit, et c’est elle qui reçoit les demandes des cavaliers.</span>
-      <Link href="/compte/inscription?retrouver=1" className="btn full" style={{ marginTop: 12 }}>
+      <span className="bq-fiche-t">
+        Retrouve ta fiche parmi les écuries de l’annuaire, ou ajoute-la. C’est
+        gratuit, et c’est elle qui reçoit les demandes des cavaliers.
+      </span>
+      <Link
+        href="/compte/inscription?retrouver=1"
+        className="btn full"
+        style={{ marginTop: 12 }}
+      >
         Trouver mon écurie
       </Link>
     </section>
@@ -253,14 +404,27 @@ function JourneeVerrou() {
         </span>
       </span>
       <span className="bq-lk-tx">
-        Le planning vient avec le site à 49 €. Voir ce qu’il fait <Ic n="arrow" className="" />
+        Le planning vient avec le site à 49 €. Voir ce qu’il fait{" "}
+        <Ic n="arrow" className="" />
       </span>
     </Link>
   );
 }
 
 /** 6. Une seule invitation, la plus utile au moment, jamais en tête. */
-function Invitation({ argent, site, alerte, essai, complete }: { argent: string; site: string; alerte: boolean; essai: boolean; complete: boolean }) {
+function Invitation({
+  argent,
+  site,
+  alerte,
+  essai,
+  complete,
+}: {
+  argent: string;
+  site: string;
+  alerte: boolean;
+  essai: boolean;
+  complete: boolean;
+}) {
   if (argent === "bientot" && complete)
     return alerte ? (
       <Link href="/chevaux" className="bq-al-mini rise">
@@ -279,7 +443,10 @@ function Invitation({ argent, site, alerte, essai, complete }: { argent: string;
         <span>
           <span className="k">30 jours pour essayer</span>
           <b>Ce que te rapporte chaque cheval</b>
-          <small>Mon argent : ton bilan, tes clients, tes chevaux. Sans carte bancaire.</small>
+          <small>
+            Mon argent : ton bilan, tes clients, tes chevaux. Sans carte
+            bancaire.
+          </small>
           <em>Voir</em>
         </span>
         <Ill n="sacoche" />
@@ -291,7 +458,10 @@ function Invitation({ argent, site, alerte, essai, complete }: { argent: string;
         <span>
           <span className="k">Déjà fait</span>
           <b>Ton site, à ton nom</b>
-          <small>Fait à partir de ta fiche, pour qu’on te trouve sur Google. À partir de 19 € par mois.</small>
+          <small>
+            Fait à partir de ta fiche, pour qu’on te trouve sur Google. À partir
+            de 19 € par mois.
+          </small>
           <em>Voir mon site</em>
         </span>
         <Ill n="promo" />

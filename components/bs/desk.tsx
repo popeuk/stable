@@ -120,7 +120,8 @@ export function Sidebar() {
             <em className={c.estime ? undefined : c.net > 0 ? "in" : c.net < 0 ? "out" : undefined}>{signed(c.net)}</em>
           </Link>
         )}
-        {plus.map((it) => {
+        {/* « Tes premiers pas » mène au parcours de l'argent : seulement quand Mon argent est ouvert. */}
+        {plus.filter((it) => argent || it.id !== "parcours").map((it) => {
           const base = it.href?.split(/[?#]/)[0];
           const on = !!base && under(path, [base]);
           return (

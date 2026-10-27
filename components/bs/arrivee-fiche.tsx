@@ -763,6 +763,9 @@ export function ArriveeFiche({ ficheId = 0, nouvelle, onRetour }: { ficheId?: nu
       </div>
 
       <section className="bq-fv" aria-label="Ta fiche, telle que la verront les cavaliers">
+        <p className="bq-fv-k" aria-hidden="true">
+          Ta fiche sur bestable.fr, telle que la verront les cavaliers
+        </p>
         <div className="bq-fv-hd">
           <span className="im" style={{ backgroundImage: `url(${photo})` }} />
           <span className="nm">

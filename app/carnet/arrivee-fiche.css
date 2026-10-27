@@ -263,3 +263,60 @@
 .carnet .bq-pj .bq-al.d .bq-q-err { color: var(--ink); }
 .carnet .bq-pj .bq-al.d .lnk { color: #fff; }
 .carnet .bq-pj-cta .lnk { display: block; margin: 14px auto 0; }
+
+/* ---------- Ordinateur (27 octobre 2026) : comme l'ancienne arrivée, la question à gauche,
+   la fiche qui se construit à droite ; les boutons suivent la question au lieu de rester collés en bas. ---------- */
+.carnet .bq-fv-k { display: none; }
+@media (min-width: 1024px) {
+  /* Le papier va d'un bord à l'autre ; le contenu tient dans 1040 px au centre. */
+  .carnet .bq-arr { max-width: none; padding-bottom: 64px; }
+  .carnet .bq-q-cta { position: static; max-width: none; display: flex; flex-direction: column; align-items: flex-start; padding: 28px 0 0; background: none; }
+  .carnet .bq-q-cta .lnk { margin-left: 0; }
+
+  /* Les quatre étapes */
+  .carnet .bq-arr.bq-q { display: grid; grid-template-columns: minmax(0, 500px) minmax(0, 400px); grid-template-rows: auto auto 1fr; column-gap: 72px; justify-content: center; align-content: start; padding: 40px max(32px, calc((100% - 1040px) / 2)) 64px; }
+  .carnet .bq-q .bq-q-top { grid-column: 1; grid-row: 1; padding: 0; }
+  .carnet .bq-q .bq-q-body { grid-column: 1; grid-row: 2; padding: 28px 0 0; }
+  .carnet .bq-q .bq-q-body h1 { font-size: 36px; }
+  .carnet .bq-q .bq-q-s { font-size: 15px; }
+  .carnet .bq-q .bq-q-cta { grid-column: 1; grid-row: 3; }
+  .carnet .bq-q .bq-q-cta .btn { width: auto; min-width: 260px; padding: 0 28px; }
+  .carnet .bq-q .bq-fv { grid-column: 2; grid-row: 1 / span 3; align-self: start; position: sticky; top: 40px; margin: 0; padding: 20px; }
+  .carnet .bq-fv-k { display: block; margin: 0 0 14px; font-size: 12.5px; font-weight: 650; color: var(--ink2); }
+  .carnet .bq-fv-hd { grid-template-columns: 72px minmax(0, 1fr) auto; }
+  .carnet .bq-fv-hd .im { width: 72px; height: 72px; border-radius: var(--ctl-r); }
+  .carnet .bq-fv-hd b { font-size: 19px; }
+  .carnet .bq-fv-hd .sc b { font-size: 30px; }
+  .carnet .bq-fv-tags { margin-top: 16px; }
+  .carnet .bq-fv-jg { margin-top: 16px; gap: 4px; }
+  .carnet .bq-fv-jg i { height: 7px; }
+  /* Ajouter son écurie : pas de fiche à côté, une colonne au centre. */
+  .carnet .bq-arr.bq-q.bq-q-solo { grid-template-columns: minmax(0, 560px); }
+
+  /* C'est bien ton écurie ? : la photo à gauche, la fiche et la question à droite. */
+  .carnet .bq-arr.bq-el { display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 440px); grid-template-rows: auto 1fr; column-gap: 64px; justify-content: center; align-content: start; padding: 48px max(32px, calc((100% - 1040px) / 2)) 64px; }
+  .carnet .bq-el .bq-el-im { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: 48px; height: min(600px, calc(100dvh - 96px)); border-radius: var(--bloc-r); overflow: hidden; }
+  .carnet .bq-el .bq-el-im::after { display: none; }
+  .carnet .bq-el .bq-el-src { top: 16px; left: 16px; }
+  .carnet .bq-el .bq-el-bd { grid-column: 2; grid-row: 1; margin: 0; padding: 0; }
+  .carnet .bq-el .bq-el-bd h1 { font-size: 44px; }
+  .carnet .bq-el .bq-q-cta { grid-column: 2; grid-row: 2; }
+  .carnet .bq-el .bq-el-f { text-align: left; }
+
+  /* Ta demande est envoyée : le bandeau en haut, la fiche à gauche, la suite à droite. */
+  .carnet .bq-arr.bq-win { display: grid; grid-template-columns: 400px minmax(0, 1fr); grid-template-rows: auto auto auto 1fr; column-gap: 56px; padding: 32px max(32px, calc((100% - 1040px) / 2)) 64px; }
+  .carnet .bq-win .bq-win-hero { grid-column: 1 / -1; grid-row: 1; min-height: 300px; padding: 56px 48px 120px; border-radius: var(--bloc-r); background-size: 100% 100%, auto 120% !important; background-position: 0 0, 100% 30% !important; }
+  .carnet .bq-win .bq-win-hero h1 { max-width: 52%; font-size: 48px; }
+  .carnet .bq-win .bq-win-hero p { max-width: 46%; font-size: 15.5px; }
+  .carnet .bq-win .bq-win-card { grid-column: 1; grid-row: 2; margin: -96px 0 0 32px; }
+  .carnet .bq-win .bq-win-gain { grid-column: 1; grid-row: 3; margin: 14px 0 0 32px; }
+  .carnet .bq-win .bq-win-suite { grid-column: 2; grid-row: 2 / span 2; margin: 36px 32px 0 0; }
+  .carnet .bq-win .bq-win-cta { grid-column: 2; grid-row: 4; display: flex; flex-direction: column; align-items: flex-start; padding: 24px 32px 0 0; }
+  .carnet .bq-win .bq-win-cta .btn { width: auto; min-width: 260px; padding: 0 28px; }
+  .carnet .bq-win .bq-win-cta .lnk { margin-left: 0; }
+
+  /* L'entrée directe : une colonne au centre, plus large et plus aérée. */
+  .carnet .bq-arr.bq-ch2, .carnet .bq-arr.bq-pj { padding: 32px max(16px, calc((100% - 600px) / 2)) 64px; }
+  .carnet .bq-ch2-hd h1, .carnet .bq-pj .bq-q-body h1 { font-size: 40px; }
+  .carnet .bq-pj .bq-q-top { padding-left: var(--gut); }
+}

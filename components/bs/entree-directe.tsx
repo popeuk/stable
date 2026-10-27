@@ -172,7 +172,7 @@ export function EntreeDirecte({ depart = "histoire", retour }: { depart?: Vue; r
     const univers = Object.entries(choix?.univers ?? {});
     return (
       <form
-        className="bq-arr bq-q"
+        className="bq-arr bq-q bq-q-solo"
         noValidate
         onChange={() => err && setErr("")}
         onSubmit={(e) => {
