@@ -1,6 +1,5 @@
 "use client";
 
-import { JaiUneSauvegarde } from "@/components/bs/reprendre-sauvegarde";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AdoptChoice } from "@/components/bs/adopt-choice";
@@ -8,6 +7,7 @@ import { GardeFait, GardeListe } from "@/components/bs/garder";
 import { ArTop, CodeInput, Marque } from "@/components/bs/rejoindre";
 import { Ic, Ill } from "@/components/carnet/ui";
 import {
+  API,
   api,
   ApiError,
   appUrl,
@@ -50,6 +50,14 @@ import { EcuriesTexte } from "@/lib/annuaire";
  * ?vers=ma-fiche (son ancien tableau de bord) ou rien. Déjà connecté dans
  * l'app : droit à l'écran voulu ; sinon, après le code.
  */
+/** Le site de la même famille que l'API : bestable.fr en production, sa préprod en préprod. */
+const SITE = (() => {
+  try {
+    return `${new URL(API).origin}/`;
+  } catch {
+    return "https://bestable.fr/";
+  }
+})();
 const VERS: Record<string, string> = {
   "ma-fiche": "/ma-fiche",
   demandes: "/demandes",
@@ -551,7 +559,11 @@ export default function Page() {
                   {busy ? "Envoi…" : "Recevoir mon code"}
                 </button>
               )}
-              {!garder && <JaiUneSauvegarde className="lnk ar-sauv" />}
+              {!garder && (
+                <a className="lnk ar-sauv" href={SITE}>
+                  Revenir sur bestable.fr
+                </a>
+              )}
               {AVEC_GOOGLE && (
                 <button
                   type="button"
