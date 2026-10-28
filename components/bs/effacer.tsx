@@ -30,10 +30,10 @@ import "@/app/carnet/ecurie.css";
  */
 
 /** Ce qui attend part d'abord en ligne, puis on quitte ce téléphone. Rien n'est effacé. */
-export async function deconnecter() {
+export async function deconnecter(partout = false) {
   await envoyer().catch(() => {});
   try {
-    await api.deconnexion();
+    await (partout ? api.deconnexionPartout() : api.deconnexion());
   } catch {}
   leave("/compte/connexion");
 }
@@ -106,6 +106,18 @@ function FeuilleDeconnexion({ onClose }: { onClose: () => void }) {
       >
         Me déconnecter
       </button>
+      <button
+        type="button"
+        className="btn line full"
+        disabled={enCours}
+        onClick={async () => {
+          setEnCours(true);
+          await deconnecter(true);
+        }}
+      >
+        Me déconnecter de tous mes appareils
+      </button>
+      <p className="note">Un téléphone perdu, un ordinateur prêté : tous tes appareils devront redemander un code par e-mail.</p>
       <button type="button" className="btn line full" onClick={onClose}>
         Annuler
       </button>

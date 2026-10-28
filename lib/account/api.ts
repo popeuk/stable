@@ -183,6 +183,8 @@ export type Choix = Record<"offres" | "hebergement" | "installations" | "service
 
 export const api = {
   deconnexion: () => call<{ ok: true }>("POST", "/deconnexion", {}),
+  /** Tous les appareils du compte, celui-ci compris (site 1.8.3). */
+  deconnexionPartout: () => call<{ ok: true }>("POST", "/deconnexion/partout", {}),
   envoyerCode: (email: string) => call<{ ok: true; compte?: boolean }>("POST", "/code/envoyer", { email }),
   verifierCode: (email: string, code: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/code/verifier", { email, code }),
   /** Google ou Apple : le jeton signé de Supabase ouvre le compte de cette adresse (lib/account/oauth). */
