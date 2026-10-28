@@ -1,0 +1,96 @@
+/* Le formulaire de la fiche en grandes cartes (29 octobre 2026), comme le
+   formulaire de demande de bestable.fr. Maquette : vault, APP Be Stable,
+   « Vitrine en cartes - 29 octobre ». */
+
+/* Les parties : sans cadre ni illustration en marge, pour prendre toute la largeur. */
+.carnet .cn-main .fc-form .sec.fc-part { margin: 0; padding: 30px var(--gut) 4px; border-radius: 0; background: none; box-shadow: none; }
+.carnet .cn-main .fc-form .sec.fc-part + .sec.fc-part { margin-top: 30px; border-top: 6px solid var(--line2); }
+.carnet .fc-form .sec.fc-part > div > h2 { min-height: 0; padding-bottom: 0; border-bottom: 0; font-size: 28px; line-height: 1.05; letter-spacing: -.035em; font-weight: 760; font-variation-settings: "wdth" 88; }
+.carnet .fc-aide { margin: 8px 0 0; font-size: 15px; line-height: 1.4; color: var(--ink2); }
+.carnet .fc-form .ec-help { margin: 12px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--ink2); }
+
+/* Un groupe dans une partie : titre, compteur, trait fin au-dessus. */
+.carnet .fc-grp { margin-top: 26px; padding-top: 26px; border-top: 1px solid var(--line); }
+.carnet .fc-grp.premier { margin-top: 22px; padding-top: 0; border-top: 0; }
+.carnet .fc-grp-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.carnet .fc-grp-h h3 { margin: 0; font-size: 22px; line-height: 1.1; letter-spacing: -.03em; font-weight: 720; }
+.carnet .fc-grp-h > span { font-size: 13px; font-weight: 650; color: var(--ink3); text-align: right; }
+.carnet .fc-grp-h > span.on { color: var(--vert, var(--acc)); }
+
+/* La carte. */
+.carnet .fc-cartes { display: grid; gap: 10px; }
+.carnet .fc-cartes.deux { grid-template-columns: 1fr 1fr; }
+.carnet .fc-carte { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 14px; align-items: center; width: 100%; min-height: 78px; padding: 14px 16px; border: 0; border-radius: var(--ctl-r); background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--line); font: inherit; color: var(--ink); text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: box-shadow .15s; }
+.carnet .fc-cartes.deux .fc-carte { min-height: 60px; padding: 12px 14px; gap: 12px; }
+.carnet .fc-carte b { display: block; font-size: 17px; font-weight: 680; line-height: 1.2; letter-spacing: -.01em; }
+.carnet .fc-cartes.deux .fc-carte b { font-size: 15.5px; }
+.carnet .fc-carte small { display: block; margin-top: 4px; font-size: 14px; line-height: 1.35; color: var(--ink2); }
+.carnet .fc-carte[aria-pressed="true"], .carnet .fc-carte[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--ink); }
+.carnet .fc-carte:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+@media (hover: hover) {
+  .carnet .fc-carte:hover { box-shadow: inset 0 0 0 2px var(--ink3); }
+  .carnet .fc-carte[aria-pressed="true"]:hover, .carnet .fc-carte[aria-checked="true"]:hover { box-shadow: inset 0 0 0 2px var(--ink); }
+}
+.carnet .fc-case { width: 24px; height: 24px; border-radius: 7px; box-shadow: inset 0 0 0 1.5px #CFC8D4; display: grid; place-items: center; transition: background .15s, box-shadow .15s; }
+.carnet .fc-case svg { width: 15px; height: 15px; fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(.6); transition: opacity .15s, transform .15s; }
+.carnet .fc-carte[aria-pressed="true"] .fc-case { background: var(--acc); box-shadow: none; }
+.carnet .fc-carte[aria-pressed="true"] .fc-case svg { opacity: 1; transform: none; }
+.carnet .fc-rond { width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px #CFC8D4; transition: box-shadow .15s; }
+.carnet .fc-carte[aria-checked="true"] .fc-rond { box-shadow: inset 0 0 0 7px var(--ink); }
+
+/* Le compteur de places, dans la carte choisie. */
+.carnet .fc-carte.avec { row-gap: 14px; }
+.carnet .fc-compteur { grid-column: 1 / -1; display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; align-items: center; height: 60px; border-radius: var(--ctl-r); background: var(--mist); cursor: default; }
+.carnet .fc-compteur button { height: 60px; border: 0; background: none; font: inherit; font-size: 26px; color: var(--ink); cursor: pointer; }
+.carnet .fc-compteur > span { display: flex; align-items: baseline; justify-content: center; gap: 6px; font-size: 15px; color: var(--ink2); }
+.carnet .fc-compteur input { width: 1.6em; border: 0; background: none; padding: 0; text-align: right; font: inherit; font-size: 28px; font-weight: 760; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; outline: 0; }
+
+/* Les champs, comme « Son nom / Âge » sur le site. */
+.carnet .fc-champ { display: block; margin-top: 16px; }
+.carnet .fc-champ > span:first-child { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 16px; font-weight: 680; }
+.carnet .fc-champ > span:first-child em { font-style: normal; font-size: 13px; font-weight: 600; color: var(--ink3); }
+.carnet .fc-boite { display: flex; align-items: center; gap: 8px; min-height: 56px; padding: 0 14px; border-radius: var(--ctl-r); background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--line); transition: box-shadow .15s; }
+.carnet .fc-boite:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
+.carnet .fc-boite input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; padding: 14px 0; font: inherit; font-size: 17px; color: var(--ink); }
+.carnet .fc-boite .u { flex: none; font-size: 14px; color: var(--ink3); }
+
+/* Les champs de « Présentation et contact » : mêmes grandes cases. */
+.carnet .fc-form .fc-part .ec-stk { display: grid; gap: 18px; }
+.carnet .fc-form .fc-part .field { gap: 8px; }
+.carnet .fc-form .fc-part .field > span:not(.input) { font-size: 16px; font-weight: 680; }
+.carnet .fc-form .fc-part .field > span:not(.input) em { margin-left: 6px; font-style: normal; font-size: 13px; font-weight: 600; color: var(--ink3); }
+.carnet .fc-form .fc-part .field > em { font-size: 13.5px; line-height: 1.4; color: var(--ink2); }
+.carnet .fc-form .fc-part .input { height: 56px; padding: 0 14px; font-size: 17px; box-shadow: inset 0 0 0 1.5px var(--line); }
+.carnet .fc-form .fc-part .input:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
+.carnet .fc-form .fc-part .input.ta { height: auto; min-height: 150px; padding: 14px; font-size: 17px; }
+
+/* Le type d'une formule, l'unité d'un cours, les vacances d'un stage. */
+.carnet .fc-seg { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.carnet .fc-seg button { height: 48px; border: 0; border-radius: var(--ctl-r); background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--line); font: inherit; font-size: 15.5px; font-weight: 650; color: var(--ink); cursor: pointer; transition: box-shadow .15s, background .15s, color .15s; }
+.carnet .fc-seg button[aria-checked="true"] { background: var(--ink); color: #fff; box-shadow: none; }
+
+/* Une formule : une carte avec ses champs. */
+.carnet .fc-formule { padding: 16px; border-radius: var(--ctl-r); background: var(--sheet); box-shadow: inset 0 0 0 1.5px var(--line); }
+.carnet .fc-formule + .fc-formule { margin-top: 10px; }
+.carnet .fc-formule > .fc-champ:nth-child(2) { margin-top: 0; }
+.carnet .fc-formule-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.carnet .fc-formule-h b { font-size: 13px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .04em; }
+.carnet .fc-retirer { border: 0; background: none; padding: 4px 0; font: inherit; font-size: 14px; font-weight: 650; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.carnet .fc-ajout { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 14px; align-items: center; width: 100%; min-height: 78px; margin-top: 10px; padding: 14px 16px; border: 1.5px dashed #CFC8D4; border-radius: var(--ctl-r); background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+.carnet .fc-ajout svg { width: 24px; height: 24px; fill: none; stroke: var(--acc); stroke-width: 2.2; stroke-linecap: round; }
+.carnet .fc-ajout b { display: block; font-size: 17px; font-weight: 680; }
+.carnet .fc-ajout small { display: block; margin-top: 4px; font-size: 14px; color: var(--ink2); }
+
+/* Photos : la couverture en grand, les autres par deux. */
+.carnet .fc-form .ec-phs { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+.carnet .fc-form .ec-phs > :first-child.pt { grid-column: 1 / -1; aspect-ratio: 4 / 3; border-radius: var(--bloc-r); }
+.carnet .fc-form .ec-phs .pill { left: 10px; top: 10px; padding: 4px 10px; font-size: 12.5px; }
+.carnet .fc-form .ec-phs .x { right: 8px; top: 8px; width: 34px; height: 34px; }
+.carnet .fc-form .ec-phs .add { gap: 8px; border: 1.5px dashed #CFC8D4; background: none; box-shadow: none; color: var(--ink); }
+.carnet .fc-form .ec-phs .add svg { width: 24px; height: 24px; color: var(--acc); stroke-width: 2.2; }
+.carnet .fc-form .ec-phs .add b { font-size: 15.5px; font-weight: 680; }
+.carnet .fc-form .ec-phs .add small { font-size: 13px; font-weight: 500; color: var(--ink2); }
+.carnet .fc-form .ec-phs > :only-child.add { grid-column: 1 / -1; aspect-ratio: auto; min-height: 120px; }
+
+.carnet .fc-form .ec-save .btn { height: 50px; font-size: 16px; }
+.carnet .fc-etat { flex: none; align-self: center; padding: 3px 9px; border-radius: 10px; background: var(--rose); color: var(--vert-deep); font-size: 12.5px !important; font-weight: 700 !important; letter-spacing: 0; }

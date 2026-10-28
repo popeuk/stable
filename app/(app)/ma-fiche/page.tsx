@@ -8,10 +8,11 @@ import { FicheApercu, FicheResultat } from "@/components/bs/account-ui";
 import { useDesk } from "@/components/bs/desk-hook";
 import { Empty, Hello, Ic, Sec } from "@/components/carnet/ui";
 import { useUiStore } from "@/stores/ui-store";
-import { api, ApiError, type Choix, type Fiche, type Formule } from "@/lib/account/api";
+import { api, ApiError, type Choix, type Fiche } from "@/lib/account/api";
 import { getSession, updateAccount } from "@/lib/account/session";
 import "@/app/carnet/ecurie.css";
 import { VitrineTete } from "@/components/bs/vitrine-tete";
+import { Case, Coches, Groupe, Offres, Places } from "@/components/bs/fiche-cartes";
 
 /**
  * Ma fiche bestable.fr (l'annuaire), depuis l'app : ce que voient les cavaliers,
@@ -27,7 +28,6 @@ export default function Page() {
   );
 }
 
-const placesTxt = (p: string) => (p === "" ? "non précisé" : p === "0" ? "complet" : `${p} libre${Number(p) > 1 ? "s" : ""}`);
 
 /** Un champ du carnet : libellé toujours visible, la case, l'aide dessous. */
 function Champ({ label, hint, optional, unit, ...input }: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: ReactNode; optional?: boolean; unit?: string }) {
@@ -122,14 +122,14 @@ function MaFiche() {
   const sale = JSON.stringify(f) !== base;
   const set = (p: Partial<Fiche>) => setF({ ...f, ...p });
   const toggle = (k: "offres" | "hebergement" | "installations" | "services", v: string) => set({ [k]: f[k].includes(v) ? f[k].filter((x) => x !== v) : [...f[k], v] } as Partial<Fiche>);
-  const formule = (i: number, p: Partial<Formule>) => set({ formules: f.formules.map((x, j) => (j === i ? { ...x, ...p } : x)) });
 
   async function save() {
     if (!f || busy) return;
     setBusy(true);
     try {
-      const { title, description, telephone, email, site, offres, hebergement, installations, services, places_libres, formules, prix_min } = f;
-      const r = await api.majFiche({ title, description, telephone, email, site, offres, hebergement, installations, services, places_libres, formules, prix_min });
+      const { title, description, telephone, email, site, offres, hebergement, installations, services, places_libres, formules, prix_min, cours, stages } = f;
+      // Les cours et les stages ne partent que si le site les connaît (pc-bestable 1.9.0).
+      const r = await api.majFiche({ title, description, telephone, email, site, offres, hebergement, installations, services, places_libres, formules, prix_min, ...(Array.isArray(cours) && Array.isArray(stages) ? { cours, stages } : {}) });
       setF(r);
       setBase(JSON.stringify(r));
       updateAccount({ listing: s?.kind === "compte" && s.listing ? { ...s.listing, title: r.title } : undefined });
@@ -205,96 +205,34 @@ function MaFiche() {
     </div>
   );
 
-  const places = Number(f.places_libres || 0);
+  const nOffres = f.formules.length + (f.cours?.length ?? 0) + (f.stages?.length ?? 0);
+  const majPlaces = f.places_maj ? `mis à jour le ${new Date(f.places_maj + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}` : undefined;
   const form = (
-    <div id="fiche-form" className="ec-form">
-      <Sec ill="sacoche" title="Places et tarifs" delay={0.05} id="vt-places">
-        <div className="ec-lab">
-          <span>Places libres en pension</span>
-          <em>
-            {placesTxt(f.places_libres)}
-            {f.places_maj ? ` · mis à jour le ${new Date(f.places_maj + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}` : ""}
-          </em>
-        </div>
-        <div className="ec-plc">
-          <div className="stepper">
-            <button type="button" aria-label="Une place de moins" onClick={() => set({ places_libres: String(Math.max(0, Number(f.places_libres || 1) - 1)) })}>
-              −
-            </button>
-            <input inputMode="numeric" aria-label="Places libres" value={f.places_libres} placeholder="?" onChange={(e) => set({ places_libres: e.target.value.replace(/\D/g, "").slice(0, 3) })} />
-            <button type="button" aria-label="Une place de plus" onClick={() => set({ places_libres: String(places + 1) })}>
-              +
-            </button>
-          </div>
-          <div className="chips">
-            <button type="button" className="chip" aria-pressed={f.places_libres === "0"} onClick={() => set({ places_libres: "0" })}>
-              Complet
-            </button>
-            <button type="button" className="chip" aria-pressed={f.places_libres === ""} onClick={() => set({ places_libres: "" })}>
-              Je préfère ne pas le dire
-            </button>
-          </div>
-        </div>
-        <p className="ec-help">Enregistre-le chaque mois, même si rien ne change. La date montre aux cavaliers que l’info est à jour.</p>
-
-        <div className="ec-lab" style={{ marginTop: 16 }}>
-          <span>Tes formules</span>
-        </div>
-        {f.formules.map((x, i) => (
-          <div key={i} className="ec-fm">
-            <span className="input nm">
-              <input aria-label="Nom de la formule" value={x.nom} placeholder="Ex. : Box + paddock" onChange={(e) => formule(i, { nom: e.target.value })} />
-            </span>
-            <button type="button" className="x" aria-label={`Retirer ${x.nom || "la formule"}`} onClick={() => set({ formules: f.formules.filter((_, j) => j !== i) })}>
-              <Ic n="x" className="" />
-            </button>
-            <span className="input">
-              <input aria-label="Prix par mois" inputMode="numeric" value={x.prix} placeholder="Prix" onChange={(e) => formule(i, { prix: e.target.value.replace(/\D/g, "") })} />
-              <span className="u">€ / mois</span>
-            </span>
-            <span className="input">
-              <input aria-label="Places libres sur cette formule" inputMode="numeric" value={x.places} placeholder="?" onChange={(e) => formule(i, { places: e.target.value.replace(/\D/g, "") })} />
-              <span className="u">{Number(x.places) > 1 ? "places libres" : "place libre"}</span>
-            </span>
-          </div>
-        ))}
-        <button type="button" className="lnk" style={{ marginTop: 10 }} onClick={() => set({ formules: [...f.formules, { nom: "", description: "", prix: "", places: "" }] })}>
-          + Ajouter une formule
-        </button>
-        <p className="ec-help">Prix par mois. Ta fiche affiche toute seule un prix « à partir de » : celui de la formule la moins chère qui a encore de la place.</p>
-        {f.formules.length === 0 && (
-          <div style={{ marginTop: 12 }}>
-            <Champ label="Ou simplement : pension à partir de" inputMode="numeric" unit="€ / mois" value={f.prix_min} onChange={(e) => set({ prix_min: e.target.value.replace(/\D/g, "").slice(0, 5) })} />
-          </div>
-        )}
+    <div id="fiche-form" className="ec-form fc-form">
+      <Sec nomarge className="fc-part" title="Places et tarifs" delay={0.05} id="vt-places">
+        <p className="fc-aide">C’est la première chose que regarde un propriétaire qui cherche une pension.</p>
+        <Groupe premier titre="Places libres en pension" meta={majPlaces}>
+          <Places v={f.places_libres} onChange={(v) => set({ places_libres: v })} />
+          <p className="ec-help">Enregistre-le chaque mois, même si rien ne change. La date montre aux cavaliers que l’info est à jour.</p>
+        </Groupe>
+        <Groupe titre="Tes formules" meta={nOffres ? `${nOffres} formule${nOffres > 1 ? "s" : ""}` : undefined}>
+          <Offres f={f} set={set} />
+          {f.formules.length === 0 && <Case label="Ou simplement : pension à partir de" numeric unit="€ / mois" value={f.prix_min} onChange={(v) => set({ prix_min: v })} />}
+          <p className="ec-help">Ta fiche affiche toute seule un prix « à partir de » pour la pension, d’après tes formules.</p>
+        </Groupe>
       </Sec>
 
       {choix && (
-        <Sec ill="brouette" title="Ce que tu proposes" delay={0.12} id="vt-propose">
-          {(
-            [
-              ["offres", "Activités"],
-              ["hebergement", "Hébergement"],
-              ["installations", "Installations"],
-              ["services", "Services compris ou proposés"],
-            ] as const
-          ).map(([k, l]) => (
-            <div key={k} className="ec-cg" role="group" aria-label={l}>
-              <span>{l}</span>
-              <div className="chips">
-                {Object.entries(choix[k]).map(([v, lab]) => (
-                  <button key={v} type="button" className="chip" aria-pressed={f[k].includes(v)} onClick={() => toggle(k, v)}>
-                    {lab}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+        <Sec nomarge className="fc-part" title="Ce que tu proposes" delay={0.12} id="vt-propose">
+          <p className="fc-aide">Coche tout ce qui existe chez toi. Les cavaliers le voient sur ta fiche.</p>
+          <Coches choix={choix} f={f} toggle={toggle} />
         </Sec>
       )}
 
-      <Sec ill="carnet-buste" title="Présentation et contact" delay={0.2} id="vt-contact">
-        <div className="ec-stk">
+      <Sec nomarge className="fc-part" title="Présentation et contact" delay={0.2} id="vt-contact">
+        <p className="fc-aide">Ce qui rend ton écurie différente, et comment te joindre.</p>
+        <Groupe premier titre="Ton écurie">
+          <div className="ec-stk">
           <Champ label="Nom de l’écurie" value={f.title} onChange={(e) => set({ title: e.target.value })} />
           <label className="field">
             <span>Présentation</span>
@@ -303,13 +241,19 @@ function MaFiche() {
             </span>
             <em>{f.description.length < 120 ? `Encore ${120 - f.description.length} lettres pour une fiche complète.` : "Parfait."}</em>
           </label>
-          <Champ label="Téléphone affiché" type="tel" inputMode="tel" value={f.telephone} onChange={(e) => set({ telephone: e.target.value })} hint="Visible sur la fiche. Laisse vide pour recevoir seulement des demandes écrites." />
+          </div>
+        </Groupe>
+        <Groupe titre="Pour te joindre">
+          <div className="ec-stk">
+            <Champ label="Téléphone affiché" type="tel" inputMode="tel" value={f.telephone} onChange={(e) => set({ telephone: e.target.value })} hint="Visible sur la fiche. Laisse vide pour recevoir seulement des demandes écrites." />
           <Champ label="E-mail des demandes" type="email" inputMode="email" value={f.email} onChange={(e) => set({ email: e.target.value })} hint="Les demandes des cavaliers arrivent à cette adresse." />
           <Champ label="Site internet" optional type="url" inputMode="url" value={f.site} onChange={(e) => set({ site: e.target.value })} placeholder="https://" />
-        </div>
+          </div>
+        </Groupe>
       </Sec>
 
-      <Sec ill="carnet" title={`Photos · ${f.photos.length} sur 12`} delay={0.28} id="vt-photos">
+      <Sec nomarge className="fc-part" title="Photos" action={<span className="fc-etat">{f.photos.length} sur 12</span>} delay={0.28} id="vt-photos">
+        <p className="fc-aide">Une photo prise avec ton téléphone, c’est parfait. La première s’affiche en grand : le pré ou la cour, en plein jour.</p>
         {f.en_attente ? (
           <p className="note">Tu pourras ajouter des photos dès que la fiche sera validée.</p>
         ) : (
@@ -338,16 +282,16 @@ function MaFiche() {
               {f.photos.length < 12 && (
                 <button type="button" className="add" onClick={() => file.current?.click()} disabled={up}>
                   <Ic n="plus" className="" />
-                  {up ? "Envoi…" : "Ajouter"}
+                  <b>{up ? "Envoi…" : "Ajouter une photo"}</b>
+                  {!up && <small>Encore {12 - f.photos.length} possible{12 - f.photos.length > 1 ? "s" : ""}</small>}
                 </button>
               )}
             </div>
             <input ref={file} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => e.target.files?.[0] && addPhoto(e.target.files[0])} />
-            <p className="ec-help">Une photo prise avec ton téléphone, c’est parfait. La première s’affiche en grand : le pré ou la cour, en plein jour.</p>
           </>
         )}
         <p className="ec-help">
-          Les cours et les stages se complètent sur{" "}
+          {Array.isArray(f.cours) ? "Les âges, les niveaux et les jours de tes cours se complètent" : "Les cours et les stages se complètent"} sur{" "}
           <a href="https://bestable.fr/mon-compte/" target="_blank" rel="noreferrer" className="lnk" style={{ fontSize: 12 }}>
             ton espace bestable.fr
           </a>
@@ -363,7 +307,6 @@ function MaFiche() {
       </div>
     </div>
   );
-
 
   return (
     <Screen wide={desk}>

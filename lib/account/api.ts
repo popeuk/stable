@@ -117,6 +117,32 @@ export interface Formule {
   places: string;
 }
 
+/** Un cours de la fiche (pc-bestable 1.9.0) : l'unité est une clé de choix_cours.unites (seance, mois, trimestre, an, carte). */
+export interface CoursFiche {
+  nom: string;
+  description: string;
+  prix: string;
+  unite: string;
+}
+
+/** Un stage de la fiche (pc-bestable 1.9.0) : les vacances sont une clé de choix_cours.vacances. */
+export interface StageFiche {
+  vacances: string;
+  nom: string;
+  description: string;
+  prix: string;
+  places: string;
+}
+
+/** Les listes de choix des cours et des stages, envoyées avec la fiche (pc-bestable 1.9.0). */
+export interface ChoixCours {
+  publics: Record<string, string>;
+  niveaux: Record<string, string>;
+  jours: Record<string, string>;
+  vacances: Record<string, string>;
+  unites: Record<string, string>;
+}
+
 /** Les champs publics d'une fiche, tels que le gérant les remplit. */
 export interface Fiche {
   id?: number;
@@ -138,6 +164,10 @@ export interface Fiche {
   places_libres: string;
   places_maj?: string;
   formules: Formule[];
+  /** Absents avant pc-bestable 1.9.0 : l'app ne propose alors que des pensions. */
+  cours?: CoursFiche[];
+  stages?: StageFiche[];
+  choix_cours?: ChoixCours;
   photos: { id: number; url: string }[];
   url?: string;
   statut?: StableHit["statut"];
