@@ -45,7 +45,7 @@ const cadre = (n: string) => {
   return { "--r": c.r, "--sx": `${c.x ?? 50}%`, "--sy": `${c.y ?? 30}%`, "--sd": `${c.d ?? 60}%` } as CSSProperties;
 };
 
-/** Trois scènes qui défilent seules (5 s), toucher avance, la dernière attend. */
+/** Trois scènes qui défilent seules (5 s), toucher avance, la dernière attend ; ou une seule, fixe. */
 export function Stories({
   onStart,
   login,
@@ -53,6 +53,7 @@ export function Stories({
   busy = false,
   sous,
   cta = "Commencer",
+  fixe = false,
 }: {
   onStart: () => void;
   login: boolean;
@@ -62,7 +63,10 @@ export function Stories({
   sous?: ReactNode;
   /** Le bouton de la dernière scène (entrée directe : « Trouver mon écurie »). */
   cta?: string;
+  /** Une seule scène, la dernière (« Avec Be Stable, ton écurie grandit »), sans barres ni défilement : l'entrée directe (28 octobre 2026). */
+  fixe?: boolean;
 }) {
+  const scenes = fixe ? SCENES.slice(-1) : SCENES;
   const [i, setI] = useState(0);
   const perso = usePerso();
   const bars = useRef<(HTMLElement | null)[]>([]);
@@ -74,19 +78,21 @@ export function Stories({
     const tick = (t: number) => {
       const k = Math.min(1, (t - t0) / DUREE);
       fill(k);
-      if (k >= 1 && i < SCENES.length - 1) return setI(i + 1);
+      if (k >= 1 && i < scenes.length - 1) return setI(i + 1);
       if (k < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [i]);
-  const dernier = i === SCENES.length - 1;
+  const dernier = i === scenes.length - 1;
   return (
     <div className="ar-stwrap obn-st">
       <h1 className="sr-only">Be Stable, ton écurie et ce qu’elle te rapporte</h1>
       <div className="stories">
-        <div className="bars" aria-hidden="true">
-          {SCENES.map((s, j) => (
+        {/* Une seule scène : les barres gardent leur place dans la mise en page, invisibles. */}
+        <div className="bars" aria-hidden="true" style={scenes.length > 1 ? undefined : { visibility: "hidden" }}>
+          {scenes.map((s, j) => (
             <i key={s.ill}>
               <b ref={(el) => void (bars.current[j] = el)} />
             </i>
@@ -97,8 +103,8 @@ export function Stories({
             {loginLabel}
           </Link>
         )}
-        <button type="button" className="stage" aria-label={dernier ? `Scène ${i + 1} sur 3` : "Écran suivant"} onClick={() => setI((x) => Math.min(x + 1, SCENES.length - 1))}>
-          {SCENES.map((s, j) => (
+        <button type="button" className="stage" aria-label={fixe ? "Be Stable" : dernier ? `Scène ${i + 1} sur 3` : "Écran suivant"} tabIndex={fixe ? -1 : undefined} onClick={() => setI((x) => Math.min(x + 1, scenes.length - 1))}>
+          {scenes.map((s, j) => (
             <span key={s.ill} className={`slide${j === i ? " on" : ""}`} aria-hidden={j !== i}>
               <span className="art">
                 <span className="art-fit" style={cadre(illPerso(s.ill, perso).n)}>

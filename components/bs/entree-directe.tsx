@@ -86,7 +86,7 @@ export function EntreeDirecte({
   if (vue === "histoire")
     return (
       <div className="ar">
-        <Stories
+        <Stories fixe
           onStart={recherche}
           login={!compte}
           cta="Trouver mon écurie"
