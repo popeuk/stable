@@ -7,7 +7,7 @@ const mem = new Map<string, string>();
   removeItem: (k: string) => void mem.delete(k),
 };
 
-const { nonVues, quandDemande } = await import("@/lib/account/demandes");
+const { aRepondu, nonVues, quandDemande } = await import("@/lib/account/demandes");
 
 describe("les demandes des cavaliers", () => {
   it("la pastille compte les demandes pas encore vues", () => {
@@ -44,5 +44,16 @@ describe("la sonde du site", () => {
     expect(await routesSite()).toBe(null);
     globalThis.fetch = f;
     if (nav) Object.defineProperty(globalThis, "navigator", nav);
+  });
+});
+
+describe("aRepondu (site 1.8.6)", () => {
+  it("compte ce que le site a noté, réponse écrite ou appel", () => {
+    expect(aRepondu({ id: 1, reponses: [{ quand: "2026-10-28T10:00:00Z", comment: "appel" }] })).toBe(true);
+    expect(aRepondu({ id: 1, reponses: [] })).toBe(false);
+  });
+  it("garde ce que l'appareil se rappelle d'avant 1.8.6", () => {
+    expect(aRepondu({ id: 7 }, [7])).toBe(true);
+    expect(aRepondu({ id: 8 }, [7])).toBe(false);
   });
 });

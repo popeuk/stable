@@ -46,7 +46,7 @@ export function DemandesFeuille({ onClose }: { onClose: () => void }) {
                 Pas encore de demande pour {fiche.title}. Quand un cavalier t’écrit depuis ta fiche, tu la retrouves ici, et aussi par e-mail.
               </p>
             ) : (
-              demandes.map((d) => <Demande key={d.id} d={d} nouvelle={nouvelles.has(d.id)} ecurie={fiche.title} />)
+              demandes.map((d) => <Demande key={d.id} d={d} nouvelle={nouvelles.has(d.id)} ecurie={fiche.title} onClose={onClose} />)
             )}
           </div>
         </div>
@@ -56,8 +56,9 @@ export function DemandesFeuille({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function Demande({ d, nouvelle, ecurie }: { d: DemandeCavalier; nouvelle: boolean; ecurie: string }) {
-  const sujet = encodeURIComponent(`Ta demande à ${ecurie}`);
+export function Demande({ d, nouvelle, ecurie, onClose }: { d: DemandeCavalier; nouvelle: boolean; ecurie: string; onClose?: () => void }) {
+  // Depuis le 28 octobre (site 1.8.6), la réponse et l'appel passent par l'écran Demandes, qui les note.
+  const repondue = (d.reponses?.length ?? 0) > 0;
   return (
     <article className="dm-li">
       <div className="dm-hd">
@@ -65,24 +66,15 @@ export function Demande({ d, nouvelle, ecurie }: { d: DemandeCavalier; nouvelle:
           {d.nom || "Un cavalier"}
           {nouvelle && <span className="dm-new">nouvelle</span>}
         </b>
-        <small>{quandDemande(d.date)}</small>
+        <small>{repondue ? "répondu" : quandDemande(d.date)}</small>
       </div>
       {d.cherche && <p className="dm-ch">{d.cherche}</p>}
       {d.message && <p className="dm-msg">{d.message}</p>}
-      {(d.telephone || d.email) && (
-        <div className="dm-act">
-          {d.telephone && (
-            <a className="btn" href={`tel:${d.telephone}`}>
-              Appeler
-            </a>
-          )}
-          {d.email && (
-            <a className="btn line" href={`mailto:${d.email}?subject=${sujet}`}>
-              Écrire
-            </a>
-          )}
-        </div>
-      )}
+      <div className="dm-act">
+        <Link className={`btn ${repondue ? "line" : ""}`} href={`/demandes?d=${d.id}`} onClick={onClose} aria-label={`Répondre à la demande de ${d.nom || "ce cavalier"} pour ${ecurie}`}>
+          {repondue ? "Voir la demande" : "Répondre"}
+        </Link>
+      </div>
     </article>
   );
 }

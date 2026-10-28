@@ -156,10 +156,24 @@ export interface DemandeCavalier {
   /** Ce qu'il cherche, en une ligne (« Une place pour Sirius, arrivée le 15 novembre 2026 »). */
   cherche: string;
   message: string;
-  telephone: string;
-  email: string;
+  /**
+   * Depuis pc-bestable 1.8.6 (décision de Samuel, 28 octobre 2026), l'app ne reçoit plus les
+   * coordonnées du cavalier : elle sait seulement s'il en a laissé. La réponse part par le site
+   * (demandeRepondre) et le numéro n'arrive qu'au moment d'appeler (demandeAppel), ce qui est suivi.
+   */
+  a_email?: boolean;
+  a_telephone?: boolean;
+  /** Ce que le gérant a fait depuis l'app, le plus ancien d'abord. */
+  reponses?: ReponseDemande[];
+  /** Site d'avant 1.8.6 seulement. */
+  telephone?: string;
+  email?: string;
   statut: string;
   vue: boolean;
+}
+export interface ReponseDemande {
+  quand: string;
+  comment: "email" | "appel";
 }
 export interface DemandesReponse {
   /** null : le compte n'a pas encore de fiche à lui. */
@@ -219,7 +233,12 @@ export const api = {
   contact: (p: MessageContact) => call<{ ok: true }>("POST", "/contact", p),
   /** L'alerte « Me prévenir à l'ouverture » (pc-bestable, à venir : sans l'adresse côté site, l'alerte reste gardée sur l'appareil). */
   alerte: (brique: string, actif: boolean) => call<{ ok: true }>("POST", "/alertes", { brique, actif }),
-  demandes: () => call<DemandesReponse>("GET", "/demandes"),
+  /** masque=1 : sans les coordonnées du cavalier (site 1.8.6). */
+  demandes: () => call<DemandesReponse>("GET", "/demandes?masque=1"),
   demandeVue: (id: number) => call<{ ok: true }>("POST", `/demandes/${id}/vue`, {}),
+  /** Le site écrit au cavalier au nom de l'écurie ; son « Répondre » arrive au gérant (site 1.8.6). */
+  demandeRepondre: (id: number, message: string) => call<{ ok: true; reponses: ReponseDemande[] }>("POST", `/demandes/${id}/repondre`, { message }),
+  /** Le numéro du cavalier, donné seulement ici : l'appel est noté (site 1.8.6). */
+  demandeAppel: (id: number) => call<{ ok: true; telephone: string; reponses: ReponseDemande[] }>("POST", `/demandes/${id}/appel`, {}),
   stats: () => call<{ ecuries: number; departements: number; revendiquees: number; avec_prix: number }>("GET", "/chiffres"),
 };

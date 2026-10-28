@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { API, api, ApiError, type DemandeCavalier, type DemandesReponse } from "@/lib/account/api";
+import { API, api, ApiError, type DemandeCavalier, type DemandesReponse, type ReponseDemande } from "@/lib/account/api";
 import { getSession, scopedKey } from "@/lib/account/session";
 
 /**
@@ -85,6 +85,13 @@ interface Etat {
   vuesIci: number[];
   charger: (force?: boolean) => Promise<void>;
   toutVoir: () => Promise<void>;
+  /** Après une réponse ou un appel : ce que le site a noté. */
+  noter: (id: number, reponses: ReponseDemande[]) => void;
+}
+
+/** La demande a-t-elle eu sa réponse ? Ce que le site a noté (1.8.6), ou ce que l'appareil se rappelle (avant). */
+export function aRepondu(d: Pick<DemandeCavalier, "id" | "reponses">, repondues: number[] = []): boolean {
+  return (d.reponses?.length ?? 0) > 0 || repondues.includes(d.id);
 }
 
 export const useDemandes = create<Etat>((set, get) => ({
@@ -113,6 +120,9 @@ export const useDemandes = create<Etat>((set, get) => ({
       // Hors ligne ou site lent : on garde ce qu'on avait, on relira plus tard.
       else set({ lu: 0 });
     }
+  },
+  noter(id, reponses) {
+    set((st) => ({ demandes: st.demandes.map((d) => (d.id === id ? { ...d, reponses, vue: true } : d)) }));
   },
   async toutVoir() {
     const nouvelles = get().demandes.filter((d) => !d.vue);

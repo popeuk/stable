@@ -5,18 +5,19 @@ import { useEffect, useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Ic, Ill } from "@/components/carnet/ui";
 import { initiales, prenomDe } from "@/components/bs/accueil-briques";
-import { quandDemande, useDemandes } from "@/lib/account/demandes";
-import type { DemandeCavalier } from "@/lib/account/api";
+import { aRepondu, quandDemande, useDemandes } from "@/lib/account/demandes";
+import { api, ApiError, type DemandeCavalier } from "@/lib/account/api";
 import { useSettingsStore } from "@/stores/settings-store";
 import "@/app/carnet/briques.css";
 
 /**
  * Demandes (27 octobre 2026) : son propre onglet, gratuit ; c'est ce qui fait
  * revenir un gérant gratuit. Comme la maquette : la liste (À répondre puis
- * Répondues), et une demande ouverte avec sa réponse en deux gestes. La
- * réponse toute prête s'ouvre dans la messagerie du gérant, qui la relit et
- * l'envoie (l'app n'envoie rien elle-même). Le site ne sait pas encore qu'une
- * demande a eu sa réponse : l'appareil s'en souvient. ?d=ID ouvre une demande.
+ * Répondues), et une demande ouverte avec sa réponse en deux gestes.
+ * Depuis le 28 octobre (pc-bestable 1.8.6, décision de Samuel) : l'app ne voit
+ * plus les coordonnées du cavalier. La réponse part par le site, au nom de
+ * l'écurie ; « Appeler » demande le numéro au site, qui note l'appel. Le site
+ * sait donc qui a répondu, et quand. ?d=ID ouvre une demande.
  */
 export default function Page() {
   return (
@@ -80,14 +81,14 @@ function Demandes() {
         <Detail
           d={d}
           ecurie={fiche.title}
-          repondue={repondues.includes(d.id)}
+          repondue={aRepondu(d, repondues)}
           onFait={() => setOuverte(null)}
         />
       </div>
     );
 
-  const aRepondre = demandes.filter((x) => !repondues.includes(x.id));
-  const faites = demandes.filter((x) => repondues.includes(x.id));
+  const aRepondre = demandes.filter((x) => !aRepondu(x, repondues));
+  const faites = demandes.filter((x) => aRepondu(x, repondues));
   const liste = vue === "a" ? aRepondre : faites;
   const aCote = large && fiche ? (d ?? liste[0]) : undefined;
 
@@ -166,7 +167,7 @@ function Demandes() {
                       {x.message && <q>{x.message}</q>}
                     </span>
                     <span className="dm-t">
-                      {repondues.includes(x.id)
+                      {aRepondu(x, repondues)
                         ? "répondu"
                         : quandDemande(x.date)}
                     </span>
@@ -206,7 +207,7 @@ function Demandes() {
           key={aCote.id}
           d={aCote}
           ecurie={fiche!.title}
-          repondue={repondues.includes(aCote.id)}
+          repondue={aRepondu(aCote, repondues)}
           onFait={() => setOuverte(null)}
         />
       </div>
@@ -255,6 +256,15 @@ function texteReponse(k: Reponse, prenom: string, gerant: string): string {
   return `${bonjour}\n\nJe n’ai plus de place pour le moment. Je peux vous prévenir dès qu’une place se libère.${fin}`;
 }
 
+/** « le 28 oct. à 15 h 02 » */
+function quandFait(iso: string): string {
+  const t = new Date(iso);
+  if (Number.isNaN(t.getTime())) return "";
+  const j = t.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  const h = t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", " h ");
+  return `le ${j} à ${h}`;
+}
+
 function Detail({
   d,
   ecurie,
@@ -268,18 +278,57 @@ function Detail({
 }) {
   const gerant = useSettingsStore((s) => s.gerant);
   const marquer = useSettingsStore((s) => s.marquerRepondue);
+  const noter = useDemandes((s) => s.noter);
   const [k, setK] = useState<Reponse>("place");
   const prenom = prenomDe(d.nom);
   const [texte, setTexte] = useState(() =>
     texteReponse("place", prenom, gerant),
   );
+  const [envoi, setEnvoi] = useState<"" | "email" | "appel">("");
+  const [erreur, setErreur] = useState("");
+  const [encore, setEncore] = useState(false);
   const choisir = (r: Reponse) => {
     setK(r);
     setTexte(texteReponse(r, prenom, gerant));
   };
-  const mail = d.email
-    ? `mailto:${d.email}?subject=${encodeURIComponent(`Votre demande à ${ecurie}`)}&body=${encodeURIComponent(texte)}`
-    : "";
+  const aEmail = d.a_email ?? Boolean(d.email);
+  const aTel = d.a_telephone ?? Boolean(d.telephone);
+  const faits = d.reponses ?? [];
+  const dernier = faits[faits.length - 1];
+  const raison = (e: unknown) =>
+    e instanceof ApiError ? e.message : "Ça n’est pas passé. Réessaie dans un instant.";
+
+  const envoyer = async () => {
+    if (envoi || texte.trim().length < 2) return;
+    setEnvoi("email");
+    setErreur("");
+    try {
+      const r = await api.demandeRepondre(d.id, texte.trim());
+      noter(d.id, r.reponses);
+      setEncore(false);
+      setTimeout(onFait, 600);
+    } catch (e) {
+      setErreur(raison(e));
+    } finally {
+      setEnvoi("");
+    }
+  };
+  const appeler = async () => {
+    if (envoi) return;
+    setEnvoi("appel");
+    setErreur("");
+    try {
+      const r = await api.demandeAppel(d.id);
+      noter(d.id, r.reponses);
+      window.location.href = `tel:${r.telephone.replace(/\s+/g, "")}`;
+    } catch (e) {
+      setErreur(raison(e));
+    } finally {
+      setEnvoi("");
+    }
+  };
+
+  const formulaire = aEmail && (!repondue || encore);
   return (
     <>
       <article className="dm-carte">
@@ -298,72 +347,89 @@ function Detail({
           Arrivée par ta fiche bestable.fr
         </p>
       </article>
-      {repondue ? (
+      {repondue && (
         <div className="dm-ok">
           <Ic n="ck" className="" />
           <span>
-            Réponse faite.{" "}
-            <button
-              type="button"
-              className="lnk"
-              onClick={() => marquer(d.id, false)}
-            >
-              Remettre à répondre
-            </button>
+            {dernier
+              ? `${dernier.comment === "appel" ? "Appel" : "Réponse envoyée"} ${quandFait(dernier.quand)}.`
+              : "Réponse faite."}{" "}
+            {!dernier ? (
+              <button type="button" className="lnk" onClick={() => marquer(d.id, false)}>
+                Remettre à répondre
+              </button>
+            ) : (
+              aEmail &&
+              !encore && (
+                <button type="button" className="lnk" onClick={() => setEncore(true)}>
+                  Écrire encore
+                </button>
+              )
+            )}
           </span>
         </div>
-      ) : (
-        <div className="dm-rep">
-          {d.email && (
-            <>
-              <p className="dm-q">Ta réponse</p>
-              <div className="chips" role="group" aria-label="Ta réponse">
-                {REPONSES.map((r) => (
-                  <button
-                    key={r.k}
-                    type="button"
-                    className="chip"
-                    aria-pressed={k === r.k}
-                    onClick={() => choisir(r.k)}
-                  >
-                    {r.t}
-                  </button>
-                ))}
-              </div>
-              <textarea
-                rows={Math.max(5, texte.split("\n").length + 1)}
-                value={texte}
-                onChange={(e) => setTexte(e.target.value)}
-                aria-label="Ta réponse, à relire"
-              />
-              <a
-                className="btn full"
-                href={mail}
-                onClick={() => {
-                  marquer(d.id, true);
-                  setTimeout(onFait, 400);
-                }}
-              >
-                {prenom ? `Répondre à ${prenom}` : "Répondre par e-mail"}
-                <Ic n="arrow" className="" />
-              </a>
-              <p className="dm-aide">
-                Ta messagerie s’ouvre avec la réponse : tu la relis et tu
-                l’envoies toi-même.
-              </p>
-            </>
-          )}
-          {d.telephone && (
-            <a
-              className={`btn ${d.email ? "line" : ""} full`}
-              href={`tel:${d.telephone}`}
-              onClick={() => marquer(d.id, true)}
-            >
-              Appeler {prenom || "le cavalier"}
-            </a>
-          )}
-        </div>
       )}
+      <div className="dm-rep">
+        {formulaire && (
+          <>
+            <p className="dm-q">Ta réponse</p>
+            <div className="chips" role="group" aria-label="Ta réponse">
+              {REPONSES.map((r) => (
+                <button
+                  key={r.k}
+                  type="button"
+                  className="chip"
+                  aria-pressed={k === r.k}
+                  onClick={() => choisir(r.k)}
+                >
+                  {r.t}
+                </button>
+              ))}
+            </div>
+            <textarea
+              rows={Math.max(5, texte.split("\n").length + 1)}
+              value={texte}
+              onChange={(e) => setTexte(e.target.value)}
+              aria-label="Ta réponse, à relire"
+            />
+            <button
+              type="button"
+              className="btn full"
+              onClick={() => void envoyer()}
+              disabled={envoi !== "" || texte.trim().length < 2}
+            >
+              {envoi === "email"
+                ? "Envoi…"
+                : prenom
+                  ? `Envoyer à ${prenom}`
+                  : "Envoyer la réponse"}
+              <Ic n="arrow" className="" />
+            </button>
+            <p className="dm-aide">
+              Ta réponse part par e-mail au nom de {ecurie}. Quand{" "}
+              {prenom || "le cavalier"} te répond, sa réponse arrive dans ta boîte mail.
+            </p>
+          </>
+        )}
+        {aTel && (
+          <button
+            type="button"
+            className={`btn ${formulaire ? "line" : ""} full`}
+            onClick={() => void appeler()}
+            disabled={envoi !== ""}
+          >
+            {envoi === "appel" ? "Un instant…" : `Appeler ${prenom || "le cavalier"}`}
+          </button>
+        )}
+        {!aEmail && !aTel && (
+          <p className="dm-aide">Ce cavalier n’a laissé ni e-mail ni téléphone.</p>
+        )}
+        {erreur && (
+          <p className="dm-aide" role="alert" style={{ color: "var(--err, #B3261E)" }}>
+            {erreur}
+          </p>
+        )}
+      </div>
     </>
   );
 }
