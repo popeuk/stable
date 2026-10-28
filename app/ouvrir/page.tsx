@@ -42,7 +42,9 @@ export default function Page() {
         setSession(s);
         return setAdopt(true);
       }
-      enter(s, "/ma-fiche");
+      // Lien venu d'une demande (?d=, site 1.8.8) : droit à cette demande.
+      const d = Number(new URLSearchParams(window.location.search).get("d")) || 0;
+      enter(s, d ? `/demandes?d=${d}` : "/ma-fiche");
     } catch (x) {
       setErr(x instanceof ApiError ? x.message : "Ça n’a pas marché. Réessaie dans un instant.");
     } finally {

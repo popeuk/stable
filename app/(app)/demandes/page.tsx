@@ -7,6 +7,7 @@ import { Ic, Ill } from "@/components/carnet/ui";
 import { initiales, prenomDe } from "@/components/bs/accueil-briques";
 import { aRepondu, quandDemande, useDemandes } from "@/lib/account/demandes";
 import { api, ApiError, type DemandeCavalier } from "@/lib/account/api";
+import { getSession } from "@/lib/account/session";
 import { useSettingsStore } from "@/stores/settings-store";
 import "@/app/carnet/briques.css";
 
@@ -40,8 +41,19 @@ function Demandes() {
   // Si le site ne répond pas, l'état vide s'affiche après un court instant plutôt qu'un écran blanc.
   const [patience, setPatience] = useState(true);
   useEffect(() => {
+    // Pas de compte sur cet appareil (lien d'un e-mail) : « C'est ton écurie ? », puis retour ici.
+    const q = new URLSearchParams(window.location.search);
+    if (getSession()?.kind !== "compte") {
+      const f = Number(q.get("f")) || 0;
+      const dd = Number(q.get("d")) || 0;
+      window.location.replace(
+        `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}` +
+          (f ? `/compte/ton-ecurie/?f=${f}${dd ? `&d=${dd}` : ""}` : "/compte/connexion/?vers=demandes"),
+      );
+      return;
+    }
     void charger();
-    const d = Number(new URLSearchParams(window.location.search).get("d"));
+    const d = Number(q.get("d"));
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (d) setOuverte(d);
     const t = setTimeout(() => setPatience(false), 1500);

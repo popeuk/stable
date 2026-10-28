@@ -201,6 +201,9 @@ export const api = {
   deconnexionPartout: () => call<{ ok: true }>("POST", "/deconnexion/partout", {}),
   envoyerCode: (email: string) => call<{ ok: true; compte?: boolean }>("POST", "/code/envoyer", { email }),
   verifierCode: (email: string, code: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/code/verifier", { email, code }),
+  /** « C'est ton écurie ? » (site 1.8.8) : le code part à l'adresse du compte de la fiche ; l'app n'en reçoit que la forme masquée. */
+  codeEcurie: (fiche: number) => call<{ ok: true; adresse: string }>("POST", "/code/ecurie", { fiche }),
+  verifierCodeFiche: (fiche: number, code: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/code/verifier", { fiche, code }),
   /** Google ou Apple : le jeton signé de Supabase ouvre le compte de cette adresse (lib/account/oauth). */
   connexionSupabase: (accessToken: string) => call<AuthResponse & { nouveau: boolean }>("POST", "/connexion/supabase", { access_token: accessToken }),
   /** Le lien « Ouvrir ma fiche » envoyé à l'adresse de la fiche : ouvre le compte de cette adresse et lui rend la fiche si elle est libre (pc-bestable 1.7.0). */
