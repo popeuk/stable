@@ -1,22 +1,23 @@
 /* ============================================================
    Le livret, net (17 octobre 2026). La dernière couche du carnet,
-   dans la charte seule : la brume en fond, des cases blanches tenues
+   dans la charte seule : le papier en fond, comme le site, des cases blanches tenues
    par un filet, l'encre pour ce qui compte. Aucune ombre portée : la
    profondeur vient du filet et du voile des feuilles. Aucune couleur
    ajoutée : le vert et le rose restent à l'argent seul, la couleur
    de la cour vit dans les illustrations.
    ============================================================ */
-.carnet { background: var(--mist); }
+/* Le fond est celui du site (bestable.fr) : le papier au lieu de la brume (28 octobre 2026). */
+.carnet { background: var(--paper); }
 
-/* ---------- Le cadre : en-tête et barre posés sur la brume ---------- */
-.carnet .hd { background: var(--mist); border-bottom: 1px solid var(--line); }
+/* ---------- Le cadre : en-tête et barre posés sur le papier ---------- */
+.carnet .hd { background: var(--paper); border-bottom: 1px solid var(--line); }
 .carnet .tb { background: var(--sheet); border-top: 1px solid var(--line); }
 .carnet .tb a[aria-current="page"] { color: var(--ink); }
 /* L'onglet actif se lit à l'encre et au trait plein de son picto ; plus de barrette posée sur le filet, qui faisait un trait parasite. */
 .carnet .tb a[aria-current="page"] span, .carnet .tb a[aria-current="page"] { font-weight: 700; }
 .carnet .tb a[aria-current="page"] svg { stroke-width: 2; }
-/* Le + : un rond d'encre cerclé de brume, net, sans halo. */
-.carnet .tb .plus { box-shadow: 0 0 0 5px var(--mist), 0 0 0 6px var(--line); }
+/* Le + : un rond d’encre cerclé de papier, net, sans halo. */
+.carnet .tb .plus { box-shadow: 0 0 0 5px var(--paper), 0 0 0 6px var(--line); }
 
 /* ---------- Les cases ---------- */
 .carnet :where(.card, .sec.blk, .promo, .ar-lcard) { background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
