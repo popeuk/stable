@@ -13,10 +13,14 @@ import "@/app/carnet/ob-fort.css";
  */
 const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const SCENES: { ill: "matin" | "soir" | "sereine"; alt: string; t: string; s: string; fx?: "rays" | "lamp" }[] = [
-  { ill: "matin", alt: "La gérante porte une botte de foin devant les box, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, le crottin, les sabots. Tu assures, même les yeux fermés." },
-  { ill: "soir", alt: "La gérante, fatiguée, devant des papiers et une calculette.", t: "Le soir, les comptes te rattrapent.", s: "Les papiers s’empilent. Et une question revient : est-ce que ton écurie te fait vivre ?" },
-  { ill: "sereine", alt: "La gérante sourit à son téléphone, son cheval tout contre elle.", t: "Avec Be Stable, ton écurie grandit.", s: "Une fiche qui donne envie, les demandes des cavaliers au même endroit, et tes chiffres quand tu le décides." },
+/**
+ * Les scènes racontent l'entrée gratuite (28 octobre 2026, demande de Samuel) : la fiche et les
+ * demandes des cavaliers. Plus de « comptes du soir » : Mon argent n'est pas encore ouvert.
+ */
+const SCENES: { ill: "matin" | "cavaliere" | "sereine"; alt: string; t: string; s: string; fx?: "rays" | "lamp" }[] = [
+  { ill: "matin", alt: "La gérante porte une botte de foin devant les box, au lever du soleil.", t: "Le matin, tu es sur le pont.", s: "Le foin, l’eau, le crottin, les sabots. Ta fiche sur internet attend son tour." },
+  { ill: "cavaliere", alt: "Une cavalière cherche une pension sur son téléphone, appuyée à la barrière du paddock.", t: "Le soir, une cavalière cherche une pension.", s: "Sur son téléphone, elle compare les prix, les places libres et les photos. Puis elle écrit aux écuries qui l’ont convaincue." },
+  { ill: "sereine", alt: "La gérante sourit à son téléphone, son cheval tout contre elle.", t: "Avec Be Stable, ton écurie grandit.", s: "Ta fiche à jour, et les demandes des cavaliers au même endroit. C’est gratuit." },
 ];
 const DUREE = 5000;
 
@@ -32,6 +36,8 @@ const CADRES: Record<string, { r: number; x?: number; y?: number; d?: number }> 
   soir: { r: 3 / 4 },
   "gerant-soir": { r: 3 / 4 },
   sereine: { r: 3 / 4 },
+  // Image en largeur (900 × 657) : elle garde son format dans le cadre de la scène.
+  cavaliere: { r: 900 / 657 },
   "gerant-sereine": { r: 3 / 4 },
 };
 const cadre = (n: string) => {
