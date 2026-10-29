@@ -12,7 +12,7 @@ import { Ic } from "@/components/carnet/ui";
  * toujours en disant son nom, quel que soit le chemin pris pour venir.
  */
 /** Les quatre onglets : ils n'ont pas de retour. */
-export const ROOTS2 = ["/accueil", "/ma-fiche", "/demandes", "/chevaux"];
+export const ROOTS2 = ["/accueil", "/ma-fiche", "/demandes", "/chevaux", "/audit", "/apprendre"];
 /** Les écrans de Mon argent et du planning : sous cadenas ou « bientôt » tant que la brique n'est pas ouverte (components/bs/porte-brique.tsx). */
 export const ARGENT = ["/argent", "/chevaux", "/client", "/ticket", "/seuil", "/pilotage", "/part", "/prestations", "/scenarios", "/mois", "/depenses", "/facture", "/facturation", "/saisie", "/conseiller", "/decouvertes"];
 export const PLANNING = ["/planning", "/valider", "/equipe"];
@@ -50,6 +50,8 @@ const NOMS: [string, string][] = [
   ["/ecurie", "Mon écurie"],
   ["/ma-fiche", "Vitrine"],
   ["/demandes", "Demandes"],
+  ["/audit", "Audit"],
+  ["/apprendre", "Apprendre"],
   ["/argent", "Mon bilan"],
   ["/scenarios", "Et si… ?"],
   ["/client", "Sa fiche"],

@@ -15,3 +15,12 @@ export const FACTURATION: boolean = false;
  */
 export const OUVERTURE: boolean = process.env.NEXT_PUBLIC_OUVERTURE === "1";
 
+/**
+ * ARGENT_VISIBLE : la partie argent (Mon bilan, Clients et chevaux, le +, le
+ * planning) est-elle montrée ? Masquée le 29 octobre 2026 (décision de Samuel) :
+ * l'app ne montre que la partie gratuite de la présence en ligne (Accueil,
+ * Vitrine, Demandes, Audit, Apprendre). Le code et les données restent ; on la
+ * rallume en posant NEXT_PUBLIC_ARGENT=1 à la construction.
+ */
+export const ARGENT_VISIBLE: boolean = process.env.NEXT_PUBLIC_ARGENT === "1";
+

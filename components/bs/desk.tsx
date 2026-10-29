@@ -27,7 +27,7 @@ import { useBriques } from "@/components/bs/briques";
 import { estOuverte } from "@/lib/briques";
 import { nonVues, useDemandes } from "@/lib/account/demandes";
 import { adresseClient } from "@/lib/adresse-client";
-import { FACTURATION } from "@/lib/fonctions";
+import { ARGENT_VISIBLE, FACTURATION } from "@/lib/fonctions";
 
 /* ------------------------------------------------------------------ */
 /* L'écran large                                                        */
@@ -79,13 +79,20 @@ export function Sidebar() {
   const openPalette = useUiStore((s) => s.openPalette);
   const install = useInstall();
   const [how, setHow] = useState(false);
-  const argent = estOuverte(useBriques().etat.argent);
+  const briques = useBriques();
+  const argent = ARGENT_VISIBLE && estOuverte(briques.etat.argent);
   const demandes = useDemandes((s) => (s.etat === "pret" ? nonVues(s.demandes, s.vuesIci) : 0));
   const main: { href: string; ic: string; label: string; key: string; on: boolean; badge?: string; cls?: string }[] = [
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
     { href: "/ma-fiche", ic: "vitrine", label: "Vitrine", key: "V", on: under(path, ["/ma-fiche", "/mon-site"]) },
     { href: "/demandes", ic: "inbox", label: "Demandes", key: "D", on: under(path, ["/demandes"]), badge: demandes ? String(demandes) : undefined, cls: "attn" },
-    { href: "/chevaux", ic: argent ? "people" : "lock", label: "Clients", key: "C", on: under(path, CLIENTS_CHEVAUX), badge: argent && count ? String(count) : undefined, cls: "attn" },
+    // La partie argent masquée (lib/fonctions.ts) : l'audit et Apprendre prennent la place de Clients.
+    ...(ARGENT_VISIBLE
+      ? [{ href: "/chevaux", ic: argent ? "people" : "lock", label: "Clients", key: "C", on: under(path, CLIENTS_CHEVAUX), badge: argent && count ? String(count) : undefined, cls: "attn" }]
+      : [
+          { href: "/audit", ic: "search", label: "Audit", key: "U", on: under(path, ["/audit"]) },
+          { href: "/apprendre", ic: "bulb", label: "Apprendre", key: "P", on: under(path, ["/apprendre"]) },
+        ]),
   ];
   return (
     <aside className="cn-side" aria-label="Navigation">

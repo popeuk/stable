@@ -4,7 +4,9 @@ import Link from "next/link";
 import type { Fiche } from "@/lib/account/api";
 import { Ic, Ill } from "@/components/carnet/ui";
 import { infosFiche, jaugeFiche, type InfoFiche } from "@/lib/fiche-jauge";
+import { ARGENT_VISIBLE } from "@/lib/fonctions";
 import "@/app/carnet/briques.css";
+import "@/app/carnet/presence.css";
 
 /**
  * La tête de Vitrine (27 octobre 2026) : là où l'on modifie son écurie. Sa fiche
@@ -39,7 +41,17 @@ function placesAnciennes(
   );
 }
 
-export function VitrineTete({ f }: { f: Fiche }) {
+/**
+ * `onPartie` : les parties s'ouvrent en fenêtre (partie argent masquée) au
+ * lieu de descendre au formulaire.
+ */
+export function VitrineTete({
+  f,
+  onPartie,
+}: {
+  f: Fiche;
+  onPartie?: (id: string) => void;
+}) {
   const infos = infosFiche(f);
   const { n, total } = jaugeFiche(f);
   const photo = f.photos[0]?.url;
@@ -54,8 +66,8 @@ export function VitrineTete({ f }: { f: Fiche }) {
     <div className="vt">
       <div className="vt-cover rise">
         {/* La photo vient de bestable.fr : affichée telle quelle, comme dans l’aperçu de la fiche. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={photo} alt="" />
         ) : (
           <Ill n="accueil-premier" className="vt-ill" />
@@ -107,12 +119,8 @@ export function VitrineTete({ f }: { f: Fiche }) {
             {PARTIES.map((p, k) => {
               const l = infos.filter((i) => p.infos.includes(i.k));
               const manque = l.filter((i) => !i.ok);
-              return (
-                <a
-                  key={p.id}
-                  href={`#${p.id}`}
-                  className={`vt-part${manque.length ? " miss" : ""}`}
-                >
+              const dedans = (
+                <>
                   <span className="n">{k + 1}</span>
                   <span>
                     <b>{p.t}</b>
@@ -125,6 +133,21 @@ export function VitrineTete({ f }: { f: Fiche }) {
                   <span className="st">
                     {manque.length ? "À compléter" : "Fait"}
                   </span>
+                </>
+              );
+              const cls = `vt-part${manque.length ? " miss" : ""}`;
+              return onPartie ? (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={cls}
+                  onClick={() => onPartie(p.id)}
+                >
+                  {dedans}
+                </button>
+              ) : (
+                <a key={p.id} href={`#${p.id}`} className={cls}>
+                  {dedans}
                 </a>
               );
             })}
@@ -176,19 +199,32 @@ export function VitrineTete({ f }: { f: Fiche }) {
               }
             />
           </div>
-          <Link href="/mon-site" className="vt-site rise">
-            <Ill n="promo" />
-            <span>
-              <b>Ton site, déjà fait</b>
-              <small>À partir de ta fiche, à ton nom. Voir l’aperçu.</small>
-            </span>
-            <Ic n="chev" className="chev" />
-          </Link>
+          {ARGENT_VISIBLE ? (
+            <Link href="/mon-site" className="vt-site rise">
+              <Ill n="promo" />
+              <span>
+                <b>Ton site, déjà fait</b>
+                <small>À partir de ta fiche, à ton nom. Voir l’aperçu.</small>
+              </span>
+              <Ic n="chev" className="chev" />
+            </Link>
+          ) : (
+            <Link href="/audit" className="vt-site rise">
+              <Ill n="promo" />
+              <span>
+                <b>Ton audit complet</b>
+                <small>Les trois étapes d’un cavalier, point par point.</small>
+              </span>
+              <Ic n="chev" className="chev" />
+            </Link>
+          )}
         </div>
       </div>
-      <h2 className="vt-h2" id="fiche-form">
-        Modifier ta fiche
-      </h2>
+      {!onPartie && (
+        <h2 className="vt-h2" id="fiche-form">
+          Modifier ta fiche
+        </h2>
+      )}
     </div>
   );
 }

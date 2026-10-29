@@ -13,6 +13,19 @@ import { getSession, updateAccount } from "@/lib/account/session";
 import "@/app/carnet/ecurie.css";
 import { VitrineTete } from "@/components/bs/vitrine-tete";
 import { Case, Coches, Groupe, Offres, Places } from "@/components/bs/fiche-cartes";
+import { FenetrePartie } from "@/components/bs/fenetre-partie";
+import { ARGENT_VISIBLE } from "@/lib/fonctions";
+import { useMaFiche } from "@/lib/account/ma-fiche";
+
+/** Les quatre parties, dans l'ordre de la tête de Vitrine. */
+const PARTIES = ["vt-places", "vt-propose", "vt-contact", "vt-photos"] as const;
+type PartieId = (typeof PARTIES)[number];
+const TITRES: Record<PartieId, string> = {
+  "vt-places": "Places et tarifs",
+  "vt-propose": "Ce que tu proposes",
+  "vt-contact": "Présentation et contact",
+  "vt-photos": "Photos",
+};
 
 /**
  * Ma fiche bestable.fr (l'annuaire), depuis l'app : ce que voient les cavaliers,
@@ -28,9 +41,19 @@ export default function Page() {
   );
 }
 
-
 /** Un champ du carnet : libellé toujours visible, la case, l'aide dessous. */
-function Champ({ label, hint, optional, unit, ...input }: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: ReactNode; optional?: boolean; unit?: string }) {
+function Champ({
+  label,
+  hint,
+  optional,
+  unit,
+  ...input
+}: InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  hint?: ReactNode;
+  optional?: boolean;
+  unit?: string;
+}) {
   return (
     <label className="field">
       <span>
@@ -64,6 +87,7 @@ function MaFiche() {
   const [etat, setEtat] = useState<"charge" | "aucune" | "erreur" | "ok">(() => (getSession()?.kind === "compte" ? "charge" : "aucune"));
   const [busy, setBusy] = useState(false);
   const [up, setUp] = useState(false);
+  const [partie, setPartie] = useState<PartieId | null>(null);
   const file = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -73,6 +97,10 @@ function MaFiche() {
         setF(x);
         setBase(JSON.stringify(x));
         setEtat("ok");
+        // ?partie=places|propose|contact|photos (depuis l'accueil ou l'audit) ouvre la partie.
+        const q = new URLSearchParams(window.location.search).get("partie");
+        const id = `vt-${q}` as PartieId;
+        if (PARTIES.includes(id)) setPartie(id);
       },
       (e) => setEtat(e instanceof ApiError && e.code === "pas_de_fiche" ? "aucune" : "erreur"),
     );
@@ -121,7 +149,10 @@ function MaFiche() {
 
   const sale = JSON.stringify(f) !== base;
   const set = (p: Partial<Fiche>) => setF({ ...f, ...p });
-  const toggle = (k: "offres" | "hebergement" | "installations" | "services", v: string) => set({ [k]: f[k].includes(v) ? f[k].filter((x) => x !== v) : [...f[k], v] } as Partial<Fiche>);
+  const toggle = (k: "offres" | "hebergement" | "installations" | "services", v: string) =>
+    set({
+      [k]: f[k].includes(v) ? f[k].filter((x) => x !== v) : [...f[k], v],
+    } as Partial<Fiche>);
 
   async function save() {
     if (!f || busy) return;
@@ -129,10 +160,28 @@ function MaFiche() {
     try {
       const { title, description, telephone, email, site, offres, hebergement, installations, services, places_libres, formules, prix_min, cours, stages } = f;
       // Les cours et les stages ne partent que si le site les connaît (pc-bestable 1.9.0).
-      const r = await api.majFiche({ title, description, telephone, email, site, offres, hebergement, installations, services, places_libres, formules, prix_min, ...(Array.isArray(cours) && Array.isArray(stages) ? { cours, stages } : {}) });
+      const r = await api.majFiche({
+        title,
+        description,
+        telephone,
+        email,
+        site,
+        offres,
+        hebergement,
+        installations,
+        services,
+        places_libres,
+        formules,
+        prix_min,
+        ...(Array.isArray(cours) && Array.isArray(stages) ? { cours, stages } : {}),
+      });
       setF(r);
       setBase(JSON.stringify(r));
-      updateAccount({ listing: s?.kind === "compte" && s.listing ? { ...s.listing, title: r.title } : undefined });
+      // L'accueil et l'audit lisent la fiche partagée : ils voient le changement tout de suite.
+      useMaFiche.setState({ fiche: r, etat: "pret" });
+      updateAccount({
+        listing: s?.kind === "compte" && s.listing ? { ...s.listing, title: r.title } : undefined,
+      });
       say(r.en_attente ? "C’est enregistré. Ça apparaîtra sur ta fiche dès qu’elle sera validée." : `Ta fiche est à jour sur bestable.fr : <strong>${esc(r.title)}</strong>.`);
     } catch (e) {
       say(e instanceof ApiError ? esc(e.message) : "Ce n’est pas enregistré. Réessaie dans un instant.");
@@ -146,9 +195,15 @@ function MaFiche() {
     try {
       const r = await api.photo(fl);
       setF({ ...f!, photos: r.photos, remplissage: r.remplissage });
+      const partagee = useMaFiche.getState().fiche;
+      if (partagee) useMaFiche.setState({ fiche: { ...partagee, photos: r.photos } });
       setBase((b) => {
         const o = JSON.parse(b);
-        return JSON.stringify({ ...o, photos: r.photos, remplissage: r.remplissage });
+        return JSON.stringify({
+          ...o,
+          photos: r.photos,
+          remplissage: r.remplissage,
+        });
       });
       say("Photo ajoutée à ta fiche.");
     } catch (e) {
@@ -207,32 +262,33 @@ function MaFiche() {
 
   const nOffres = f.formules.length + (f.cours?.length ?? 0) + (f.stages?.length ?? 0);
   const majPlaces = f.places_maj ? `mis à jour le ${new Date(f.places_maj + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}` : undefined;
-  const form = (
-    <div id="fiche-form" className="ec-form fc-form">
-      <Sec nomarge className="fc-part" title="Places et tarifs" delay={0.05} id="vt-places">
-        <p className="fc-aide">C’est la première chose que regarde un propriétaire qui cherche une pension.</p>
-        <Groupe premier titre="Places libres en pension" meta={majPlaces}>
-          <Places v={f.places_libres} onChange={(v) => set({ places_libres: v })} />
-          <p className="ec-help">Enregistre-le chaque mois, même si rien ne change. La date montre aux cavaliers que l’info est à jour.</p>
-        </Groupe>
-        <Groupe titre="Tes formules" meta={nOffres ? `${nOffres} formule${nOffres > 1 ? "s" : ""}` : undefined}>
-          <Offres f={f} set={set} />
-          {f.formules.length === 0 && <Case label="Ou simplement : pension à partir de" numeric unit="€ / mois" value={f.prix_min} onChange={(v) => set({ prix_min: v })} />}
-          <p className="ec-help">Ta fiche affiche toute seule un prix « à partir de » pour la pension, d’après tes formules.</p>
-        </Groupe>
-      </Sec>
-
-      {choix && (
-        <Sec nomarge className="fc-part" title="Ce que tu proposes" delay={0.12} id="vt-propose">
-          <p className="fc-aide">Coche tout ce qui existe chez toi. Les cavaliers le voient sur ta fiche.</p>
-          <Coches choix={choix} f={f} toggle={toggle} />
-        </Sec>
-      )}
-
-      <Sec nomarge className="fc-part" title="Présentation et contact" delay={0.2} id="vt-contact">
-        <p className="fc-aide">Ce qui rend ton écurie différente, et comment te joindre.</p>
-        <Groupe premier titre="Ton écurie">
-          <div className="ec-stk">
+  const places = (
+    <Sec nomarge className="fc-part" title="Places et tarifs" delay={0.05} id="vt-places">
+      <p className="fc-aide">C’est la première chose que regarde un propriétaire qui cherche une pension.</p>
+      <Groupe premier titre="Places libres en pension" meta={majPlaces}>
+        <Places v={f.places_libres} onChange={(v) => set({ places_libres: v })} />
+        <p className="ec-help">Enregistre-le chaque mois, même si rien ne change. La date montre aux cavaliers que l’info est à jour.</p>
+      </Groupe>
+      <Groupe titre="Tes formules" meta={nOffres ? `${nOffres} formule${nOffres > 1 ? "s" : ""}` : undefined}>
+        <Offres f={f} set={set} />
+        {f.formules.length === 0 && <Case label="Ou simplement : pension à partir de" numeric unit="€ / mois" value={f.prix_min} onChange={(v) => set({ prix_min: v })} />}
+        <p className="ec-help">Ta fiche affiche toute seule un prix « à partir de » pour la pension, d’après tes formules.</p>
+      </Groupe>
+    </Sec>
+  );
+  const propose = choix ? (
+    <Sec nomarge className="fc-part" title="Ce que tu proposes" delay={0.12} id="vt-propose">
+      <p className="fc-aide">Coche tout ce qui existe chez toi. Les cavaliers le voient sur ta fiche.</p>
+      <Coches choix={choix} f={f} toggle={toggle} />
+    </Sec>
+  ) : (
+    <p className="note">Chargement des choix…</p>
+  );
+  const contact = (
+    <Sec nomarge className="fc-part" title="Présentation et contact" delay={0.2} id="vt-contact">
+      <p className="fc-aide">Ce qui rend ton écurie différente, et comment te joindre.</p>
+      <Groupe premier titre="Ton écurie">
+        <div className="ec-stk">
           <Champ label="Nom de l’écurie" value={f.title} onChange={(e) => set({ title: e.target.value })} />
           <label className="field">
             <span>Présentation</span>
@@ -241,70 +297,91 @@ function MaFiche() {
             </span>
             <em>{f.description.length < 120 ? `Encore ${120 - f.description.length} lettres pour une fiche complète.` : "Parfait."}</em>
           </label>
-          </div>
-        </Groupe>
-        <Groupe titre="Pour te joindre">
-          <div className="ec-stk">
-            <Champ label="Téléphone affiché" type="tel" inputMode="tel" value={f.telephone} onChange={(e) => set({ telephone: e.target.value })} hint="Visible sur la fiche. Laisse vide pour recevoir seulement des demandes écrites." />
+        </div>
+      </Groupe>
+      <Groupe titre="Pour te joindre">
+        <div className="ec-stk">
+          <Champ label="Téléphone affiché" type="tel" inputMode="tel" value={f.telephone} onChange={(e) => set({ telephone: e.target.value })} hint="Visible sur la fiche. Laisse vide pour recevoir seulement des demandes écrites." />
           <Champ label="E-mail des demandes" type="email" inputMode="email" value={f.email} onChange={(e) => set({ email: e.target.value })} hint="Les demandes des cavaliers arrivent à cette adresse." />
           <Champ label="Site internet" optional type="url" inputMode="url" value={f.site} onChange={(e) => set({ site: e.target.value })} placeholder="https://" />
-          </div>
-        </Groupe>
-      </Sec>
-
-      <Sec nomarge className="fc-part" title="Photos" action={<span className="fc-etat">{f.photos.length} sur 12</span>} delay={0.28} id="vt-photos">
-        <p className="fc-aide">Une photo prise avec ton téléphone, c’est parfait. La première s’affiche en grand : le pré ou la cour, en plein jour.</p>
-        {f.en_attente ? (
-          <p className="note">Tu pourras ajouter des photos dès que la fiche sera validée.</p>
-        ) : (
-          <>
-            <div className="ec-phs">
-              {f.photos.map((p, i) => (
-                <div key={p.id} className="pt" style={{ backgroundImage: `url(${p.url})` }}>
-                  {i === 0 && <span className="pill ink">couverture</span>}
-                  <button
-                    type="button"
-                    className="x"
-                    aria-label="Retirer cette photo"
-                    onClick={async () => {
-                      try {
-                        const r = await api.retirerPhoto(p.id);
-                        setF({ ...f, photos: r.photos });
-                      } catch {
-                        say("La photo est toujours là. Réessaie.");
-                      }
-                    }}
-                  >
-                    <Ic n="x" className="" />
-                  </button>
-                </div>
-              ))}
-              {f.photos.length < 12 && (
-                <button type="button" className="add" onClick={() => file.current?.click()} disabled={up}>
-                  <Ic n="plus" className="" />
-                  <b>{up ? "Envoi…" : "Ajouter une photo"}</b>
-                  {!up && <small>Encore {12 - f.photos.length} possible{12 - f.photos.length > 1 ? "s" : ""}</small>}
+        </div>
+      </Groupe>
+    </Sec>
+  );
+  const photos = (
+    <Sec nomarge className="fc-part" title="Photos" action={<span className="fc-etat">{f.photos.length} sur 12</span>} delay={0.28} id="vt-photos">
+      <p className="fc-aide">Une photo prise avec ton téléphone, c’est parfait. La première s’affiche en grand : le pré ou la cour, en plein jour.</p>
+      {f.en_attente ? (
+        <p className="note">Tu pourras ajouter des photos dès que la fiche sera validée.</p>
+      ) : (
+        <>
+          <div className="ec-phs">
+            {f.photos.map((p, i) => (
+              <div key={p.id} className="pt" style={{ backgroundImage: `url(${p.url})` }}>
+                {i === 0 && <span className="pill ink">couverture</span>}
+                <button
+                  type="button"
+                  className="x"
+                  aria-label="Retirer cette photo"
+                  onClick={async () => {
+                    try {
+                      const r = await api.retirerPhoto(p.id);
+                      setF({ ...f, photos: r.photos });
+                    } catch {
+                      say("La photo est toujours là. Réessaie.");
+                    }
+                  }}
+                >
+                  <Ic n="x" className="" />
                 </button>
-              )}
-            </div>
-            <input ref={file} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => e.target.files?.[0] && addPhoto(e.target.files[0])} />
-          </>
-        )}
-        <p className="ec-help">
-          {Array.isArray(f.cours) ? "Les âges, les niveaux et les jours de tes cours se complètent" : "Les cours et les stages se complètent"} sur{" "}
-          <a href="https://bestable.fr/mon-compte/" target="_blank" rel="noreferrer" className="lnk" style={{ fontSize: 12 }}>
-            ton espace bestable.fr
-          </a>
-          , avec le même compte.
-        </p>
-      </Sec>
-
-      <div className={`ec-save${sale ? " on" : ""}`}>
-        <button type="button" className="btn full" onClick={save} disabled={!sale || busy}>
-          {busy ? "Enregistrement…" : sale ? (f.en_attente ? "Enregistrer" : "Enregistrer et mettre en ligne") : "Tout est enregistré"}
-        </button>
-        <small>{f.en_attente ? "Tes changements sont gardés et partent sur ta fiche dès qu’elle est validée." : "Tes changements partent sur ta fiche dès que tu touches ce bouton."}</small>
-      </div>
+              </div>
+            ))}
+            {f.photos.length < 12 && (
+              <button type="button" className="add" onClick={() => file.current?.click()} disabled={up}>
+                <Ic n="plus" className="" />
+                <b>{up ? "Envoi…" : "Ajouter une photo"}</b>
+                {!up && (
+                  <small>
+                    Encore {12 - f.photos.length} possible
+                    {12 - f.photos.length > 1 ? "s" : ""}
+                  </small>
+                )}
+              </button>
+            )}
+          </div>
+          <input ref={file} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => e.target.files?.[0] && addPhoto(e.target.files[0])} />
+        </>
+      )}
+      <p className="ec-help">
+        {Array.isArray(f.cours) ? "Les âges, les niveaux et les jours de tes cours se complètent" : "Les cours et les stages se complètent"} sur{" "}
+        <a href="https://bestable.fr/mon-compte/" target="_blank" rel="noreferrer" className="lnk" style={{ fontSize: 12 }}>
+          ton espace bestable.fr
+        </a>
+        , avec le même compte.
+      </p>
+    </Sec>
+  );
+  const enregistrer = (
+    <div className={`ec-save${sale ? " on" : ""}`}>
+      <button type="button" className="btn full" onClick={save} disabled={!sale || busy}>
+        {busy ? "Enregistrement…" : sale ? (f.en_attente ? "Enregistrer" : "Enregistrer et mettre en ligne") : "Tout est enregistré"}
+      </button>
+      <small>{f.en_attente ? "Tes changements sont gardés et partent sur ta fiche dès qu’elle est validée." : "Tes changements partent sur ta fiche dès que tu touches ce bouton."}</small>
+    </div>
+  );
+  const parts: Record<PartieId, ReactNode> = {
+    "vt-places": places,
+    "vt-propose": propose,
+    "vt-contact": contact,
+    "vt-photos": photos,
+  };
+  const form = (
+    <div id="fiche-form" className="ec-form fc-form">
+      {places}
+      {choix && propose}
+      {contact}
+      {photos}
+      {enregistrer}
     </div>
   );
 
@@ -330,11 +407,26 @@ function MaFiche() {
               </div>
             </div>
           </>
-        ) : (
+        ) : ARGENT_VISIBLE ? (
           <>
             <VitrineTete f={f} />
             {statut}
             {form}
+          </>
+        ) : (
+          <>
+            {/* Téléphone : chaque partie s'ouvre en fenêtre, avec son bouton d'enregistrement. */}
+            <VitrineTete f={f} onPartie={(id) => setPartie(id as PartieId)} />
+            {statut}
+            {sale && !partie && <div className="pr-vt-save">{enregistrer}</div>}
+            {partie && (
+              <FenetrePartie titre={TITRES[partie]} n={PARTIES.indexOf(partie) + 1} onClose={() => setPartie(null)}>
+                <div className="ec-form fc-form">
+                  {parts[partie]}
+                  {enregistrer}
+                </div>
+              </FenetrePartie>
+            )}
           </>
         )}
         <div className="end" />

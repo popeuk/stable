@@ -17,6 +17,8 @@ import { Empty, Face, Ic, Page, Sec } from "@/components/carnet/ui";
 import { CeQuiManque, Chemin, JourneeMontree, useCheminActif, useJamaisNote } from "@/components/bs/accueil-fort";
 import "@/app/carnet/accueil-fort.css";
 import { AccueilBriques } from "@/components/bs/accueil-briques";
+import { AccueilPresence } from "@/components/bs/accueil-presence";
+import { ARGENT_VISIBLE } from "@/lib/fonctions";
 
 /** L'encart mon-ecurie.fr, tout en bas : chargé après le reste de l'accueil. */
 const PromoMonEcurie = dynamic(() => import("@/components/bs/promo-mon-ecurie").then((m) => m.PromoMonEcurie), { ssr: false });
@@ -34,6 +36,15 @@ const PromoMonEcurie = dynamic(() => import("@/components/bs/promo-mon-ecurie").
  * l'équipe dessous.
  */
 export default function AccueilPage() {
+  // La partie argent masquée (lib/fonctions.ts) : l'accueil de la présence en ligne, pour tous.
+  if (!ARGENT_VISIBLE)
+    return (
+      <ClientGate>
+        <Page className="pr-page">
+          <AccueilPresence />
+        </Page>
+      </ClientGate>
+    );
   return (
     <ClientGate>
       <Accueil />

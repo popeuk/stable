@@ -3,7 +3,9 @@
 import { isRoot2, useRetour2 } from "@/components/bs/navigation";
 import { useBriques } from "@/components/bs/briques";
 import "@/app/carnet/briques.css";
+import "@/app/carnet/presence.css";
 import { estOuverte } from "@/lib/briques";
+import { ARGENT_VISIBLE } from "@/lib/fonctions";
 import { nonVues, useDemandes } from "@/lib/account/demandes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -66,7 +68,8 @@ export function Header() {
   const gain = useGain(net, ready);
   const hdRef = useSerre();
   // Rien de payant ne s'affiche en haut pour un compte gratuit : Mon bilan vient avec Mon argent (lib/briques.ts).
-  const argent = estOuverte(useBriques().etat.argent);
+  const briques = useBriques();
+  const argent = ARGENT_VISIBLE && estOuverte(briques.etat.argent);
   return (
     <header className="hd hd2" ref={hdRef}>
       {isRoot2(path) ? (
@@ -147,6 +150,41 @@ export function TabBar() {
     void charger();
   }, [charger, path]);
   const on = (list: string[]) => (under(path, list) ? "page" : undefined);
+  // La partie argent masquée (lib/fonctions.ts) : la barre de la présence en ligne, à cinq onglets.
+  if (!ARGENT_VISIBLE)
+    return (
+      <nav className="tb ac-tb bq-tb sans-plus pr-tb" aria-label="Navigation principale">
+        <div>
+          <Link href="/accueil" aria-current={on(["/accueil"])}>
+            <Ic n="home" />
+            Accueil
+          </Link>
+          <Link href="/ma-fiche" aria-current={on(["/ma-fiche", "/mon-site"])}>
+            <Ic n="vitrine" />
+            Vitrine
+          </Link>
+          <Link href="/demandes" aria-current={on(["/demandes"])} aria-label={`Demandes${demandes ? ` : ${demandes} nouvelle${demandes > 1 ? "s" : ""}` : ""}`}>
+            <span className="ac-ic">
+              <Ic n="inbox" />
+              {demandes > 0 && (
+                <em className="ac-badge" aria-hidden="true">
+                  {demandes}
+                </em>
+              )}
+            </span>
+            <span aria-hidden="true">Demandes</span>
+          </Link>
+          <Link href="/audit" aria-current={on(["/audit"])}>
+            <Ic n="search" />
+            Audit
+          </Link>
+          <Link href="/apprendre" aria-current={on(["/apprendre"])}>
+            <Ic n="bulb" />
+            Apprendre
+          </Link>
+        </div>
+      </nav>
+    );
   return (
     // Le + note ce qui fait Mon argent (séances, soins, argent) : sans cette brique, pas de + (barre à quatre).
     <nav className={`tb ac-tb bq-tb${argent ? "" : " sans-plus"}`} aria-label="Navigation principale">
