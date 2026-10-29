@@ -131,8 +131,9 @@ export function VitrineTete({
                     </small>
                   </span>
                   <span className="st">
-                    {manque.length ? "À compléter" : "Fait"}
+                    {manque.length ? "À compléter" : onPartie ? "Modifier" : "Fait"}
                   </span>
+                  {onPartie && <Ic n="chev" className="chev" />}
                 </>
               );
               const cls = `vt-part${manque.length ? " miss" : ""}`;
