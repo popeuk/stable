@@ -17,6 +17,7 @@ import { MESSAGE_SUPPRESSION_FAITE, demandeSuppression, demanderLaSuppression, m
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
+import { ARGENT_VISIBLE } from "@/lib/fonctions";
 import "@/app/carnet/ecurie.css";
 
 /**
@@ -94,7 +95,11 @@ function FeuilleDeconnexion({ onClose }: { onClose: () => void }) {
   const [enCours, setEnCours] = useState(false);
   return (
     <FeuilleConfirmer titre={`Me déconnecter de ${cetAppareil()}`} onClose={onClose}>
-      <p className="note">Rien n’est perdu : ton écurie reste dans ta copie en ligne, protégée. Ton e-mail suffit pour la retrouver ici ou ailleurs.</p>
+      <p className="note">
+        {ARGENT_VISIBLE
+          ? "Rien n’est perdu : ton écurie reste dans ta copie en ligne, protégée. Ton e-mail suffit pour la retrouver ici ou ailleurs."
+          : "Rien n’est perdu : ta fiche et tes demandes restent sur bestable.fr. Ton e-mail suffit pour revenir, ici ou ailleurs."}
+      </p>
       <button
         type="button"
         className="btn full"
@@ -319,6 +324,27 @@ export function RecupererLigne() {
   );
 }
 
+/** Sur l'écran Réglages (31 octobre 2026, demande de Samuel) : la déconnexion en vrai bouton, visible sans chercher. Seulement avec un compte. */
+export function BoutonDeconnexion() {
+  const [compte, setCompte] = useState(false);
+  const [ouverte, setOuverte] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCompte(getSession()?.kind === "compte");
+  }, []);
+  if (!compte) return null;
+  return (
+    <section className="ce-sortie rise">
+      <button type="button" className="btn line full" onClick={() => setOuverte(true)}>
+        <Ic n="sortie" className="" />
+        Me déconnecter
+      </button>
+      <small>Rien n’est perdu : ton e-mail suffit pour revenir.</small>
+      {ouverte && <FeuilleDeconnexion onClose={() => setOuverte(false)} />}
+    </section>
+  );
+}
+
 /** Dans Mon compte : la même déconnexion, en ligne de réglage. */
 export function DeconnexionLigne() {
   const [ouverte, setOuverte] = useState(false);
@@ -327,7 +353,7 @@ export function DeconnexionLigne() {
       <button type="button" className="li np" onClick={() => setOuverte(true)}>
         <span>
           <b>Me déconnecter de {cetAppareil()}</b>
-          <small>rien n’est perdu, ta copie en ligne reste</small>
+          <small>{ARGENT_VISIBLE ? "rien n’est perdu, ta copie en ligne reste" : "rien n’est perdu, ton e-mail suffit pour revenir"}</small>
         </span>
         <span />
       </button>

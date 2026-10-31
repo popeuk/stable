@@ -43,6 +43,8 @@ const calme = () => typeof window !== "undefined" && window.matchMedia("(prefers
 
 /* ---------- Icônes (trait 1,6, bouts ronds) ---------- */
 const P: Record<string, string> = {
+  // Se déconnecter : une porte et une flèche qui sort.
+  sortie: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
   home: "M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z",
   cal: "M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 10h16M9 3v4M15 3v4",
   horse: "M7 20c1-4 1-6 3-8l-4 1c-2 0-2-2-1-3l5-5c2-1 4-1 5 0l1-2 1 3c2 2 3 5 3 9v5",

@@ -14,6 +14,7 @@ import { useAnnuaire } from "@/components/bs/account-ui";
 import { EcuriesTexte } from "@/lib/annuaire";
 import { ContactOuvrir, MAILTO_CONTACT, TEXTE_REPLI } from "@/components/bs/contact";
 import { ChoixTemoinsLigne } from "@/components/bs/consentement";
+import { BoutonDeconnexion } from "@/components/bs/effacer";
 import { heure } from "@/lib/utils/heure";
 import { ARGENT_VISIBLE, FACTURATION, PAYANT_VISIBLE } from "@/lib/fonctions";
 
@@ -234,6 +235,7 @@ export function Reglages() {
           ...(ARGENT_VISIBLE ? [{ href: "/moi?s=rappel", ic: "bell", t: "Mon rappel", s: `${reminder ? heure(reminder) : "Le matin"}${evening ? ", et le soir s’il reste quelque chose" : ""}` }] : []),
         ]}
       />
+      <BoutonDeconnexion />
       {ARGENT_VISIBLE && (
         <Case
           titre="En coulisses"
