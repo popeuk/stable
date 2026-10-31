@@ -5,7 +5,7 @@ import { useBriques } from "@/components/bs/briques";
 import "@/app/carnet/briques.css";
 import "@/app/carnet/presence.css";
 import { estOuverte } from "@/lib/briques";
-import { ARGENT_VISIBLE } from "@/lib/fonctions";
+import { APPRENDRE_VISIBLE, ARGENT_VISIBLE } from "@/lib/fonctions";
 import { nonVues, useDemandes } from "@/lib/account/demandes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -150,10 +150,10 @@ export function TabBar() {
     void charger();
   }, [charger, path]);
   const on = (list: string[]) => (under(path, list) ? "page" : undefined);
-  // La partie argent masquée (lib/fonctions.ts) : la barre de la présence en ligne, à cinq onglets.
+  // La partie argent masquée (lib/fonctions.ts) : la barre de la présence en ligne, à quatre onglets (cinq avec Apprendre).
   if (!ARGENT_VISIBLE)
     return (
-      <nav className="tb ac-tb bq-tb sans-plus pr-tb" aria-label="Navigation principale">
+      <nav className={`tb ac-tb bq-tb sans-plus pr-tb${APPRENDRE_VISIBLE ? "" : " pr-tb4"}`} aria-label="Navigation principale">
         <div>
           <Link href="/accueil" aria-current={on(["/accueil"])}>
             <Ic n="home" />
@@ -178,10 +178,12 @@ export function TabBar() {
             <Ic n="search" />
             Audit
           </Link>
-          <Link href="/apprendre" aria-current={on(["/apprendre"])}>
-            <Ic n="bulb" />
-            Apprendre
-          </Link>
+          {APPRENDRE_VISIBLE && (
+            <Link href="/apprendre" aria-current={on(["/apprendre"])}>
+              <Ic n="bulb" />
+              Apprendre
+            </Link>
+          )}
         </div>
       </nav>
     );

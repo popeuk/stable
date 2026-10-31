@@ -34,3 +34,11 @@ export const ARGENT_VISIBLE: boolean = process.env.NEXT_PUBLIC_ARGENT === "1";
  */
 export const PAYANT_VISIBLE: boolean = ARGENT_VISIBLE || process.env.NEXT_PUBLIC_PAYANT === "1";
 
+/**
+ * APPRENDRE_VISIBLE : l'onglet Apprendre se montre-t-il ? Masqué le 31 octobre
+ * 2026 (décision de Samuel) : la barre passe à quatre onglets (Accueil,
+ * Vitrine, Demandes, Audit) et /apprendre ramène à l'accueil. La page reste ;
+ * on la rallume en posant NEXT_PUBLIC_APPRENDRE=1 à la construction.
+ */
+export const APPRENDRE_VISIBLE: boolean = process.env.NEXT_PUBLIC_APPRENDRE === "1";
+

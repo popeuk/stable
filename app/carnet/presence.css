@@ -4,6 +4,7 @@
 
 /* La barre du bas à cinq onglets, sans le + (partie argent masquée). */
 .carnet .tb.pr-tb, .carnet .tb.pr-tb > div { grid-template-columns: repeat(5, 1fr); }
+.carnet .tb.pr-tb.pr-tb4, .carnet .tb.pr-tb.pr-tb4 > div { grid-template-columns: repeat(4, 1fr); }
 
 .carnet .pr-page { padding-bottom: 24px; }
 .carnet .pr-page .eyeb, .carnet .pr-now .eyeb, .carnet .pr-quiz .eyeb { display: block; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }

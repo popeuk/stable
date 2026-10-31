@@ -8,7 +8,7 @@ import { ARGENT, PLANNING } from "@/components/bs/navigation";
 import { under } from "@/components/bs/nav";
 import { Ic, Ill, type IllName } from "@/components/carnet/ui";
 import { estOuverte, type AlerteId, type EtatBrique } from "@/lib/briques";
-import { ARGENT_VISIBLE, PAYANT_VISIBLE } from "@/lib/fonctions";
+import { APPRENDRE_VISIBLE, ARGENT_VISIBLE, PAYANT_VISIBLE } from "@/lib/fonctions";
 import { Redirect } from "@/components/bs/redirect";
 import "@/app/carnet/briques.css";
 
@@ -25,6 +25,7 @@ export function PorteBrique({ children }: { children: ReactNode }) {
   if (!ARGENT_VISIBLE && (under(path, ARGENT) || under(path, PLANNING))) return <Redirect to="/accueil" />;
   // Le payant masqué (lib/fonctions.ts) : Mon site ramène à la Vitrine.
   if (!PAYANT_VISIBLE && under(path, ["/mon-site"])) return <Redirect to="/ma-fiche" />;
+  if (!APPRENDRE_VISIBLE && under(path, ["/apprendre"])) return <Redirect to="/accueil" />;
   // Mon écurie (prix privés, frais, équipe, pros, registre) va avec la partie argent.
   if (!ARGENT_VISIBLE && under(path, ["/ecurie", "/contacts", "/registre"])) return <Redirect to="/reglages" />;
   // Tant que le compte n'est pas lu, on n'affiche rien plutôt qu'un écran qui passerait ensuite sous cadenas.

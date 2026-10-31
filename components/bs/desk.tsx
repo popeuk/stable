@@ -27,7 +27,7 @@ import { useBriques } from "@/components/bs/briques";
 import { estOuverte } from "@/lib/briques";
 import { nonVues, useDemandes } from "@/lib/account/demandes";
 import { adresseClient } from "@/lib/adresse-client";
-import { ARGENT_VISIBLE, FACTURATION } from "@/lib/fonctions";
+import { APPRENDRE_VISIBLE, ARGENT_VISIBLE, FACTURATION } from "@/lib/fonctions";
 
 /* ------------------------------------------------------------------ */
 /* L'écran large                                                        */
@@ -91,7 +91,7 @@ export function Sidebar() {
       ? [{ href: "/chevaux", ic: argent ? "people" : "lock", label: "Clients", key: "C", on: under(path, CLIENTS_CHEVAUX), badge: argent && count ? String(count) : undefined, cls: "attn" }]
       : [
           { href: "/audit", ic: "search", label: "Audit", key: "U", on: under(path, ["/audit"]) },
-          { href: "/apprendre", ic: "bulb", label: "Apprendre", key: "P", on: under(path, ["/apprendre"]) },
+          ...(APPRENDRE_VISIBLE ? [{ href: "/apprendre", ic: "bulb", label: "Apprendre", key: "P", on: under(path, ["/apprendre"]) }] : []),
         ]),
   ];
   return (
