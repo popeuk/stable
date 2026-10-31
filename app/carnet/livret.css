@@ -13,6 +13,9 @@
 .carnet .hd { background: var(--paper); border-bottom: 1px solid var(--line); }
 /* Rien ne défile au-dessus de l'en-tête : son papier monte jusqu'en haut de l'écran (bande de l'heure sur iPhone, et le vide quand on tire la page vers le bas). */
 .carnet .hd::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 100vh; background: var(--paper); pointer-events: none; }
+/* Safari iOS 26 colore la zone de l'heure et du réseau d'après un élément FIXE plein, collé en haut (il ignore theme-color et l'en-tête collant) :
+   un fond fixe, caché derrière l'en-tête, lui donne le papier au lieu de laisser voir la page qui défile. */
+.carnet .hd::after { content: ""; position: fixed; z-index: -1; top: 0; left: 0; right: 0; height: calc(env(safe-area-inset-top) + 52px); background: var(--paper); pointer-events: none; }
 .carnet .tb { background: var(--sheet); border-top: 1px solid var(--line); }
 .carnet .tb a[aria-current="page"] { color: var(--ink); }
 /* L'onglet actif se lit à l'encre et au trait plein de son picto ; plus de barrette posée sur le filet, qui faisait un trait parasite. */
