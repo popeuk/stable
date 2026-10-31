@@ -28,7 +28,7 @@ import { useFeuille } from "@/components/bs/feuille";
 import { DeconnexionLigne, RecupererLigne, SuppressionLigne, ZoneEffacer } from "@/components/bs/effacer";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { EtatCopie } from "@/components/bs/etat-copie";
-import { FACTURATION } from "@/lib/fonctions";
+import { ARGENT_VISIBLE, FACTURATION } from "@/lib/fonctions";
 import "@/app/carnet/ecurie.css";
 
 /**
@@ -88,6 +88,8 @@ const chev = <Ic n="chev" className="chev" />;
  * sur ce téléphone (compte, rappel, affichage, revoir, avancé) sous Réglages.
  */
 type Groupe = "ecurie" | "equipe" | "papiers" | "compte" | "rappel" | "affichage" | "revoir" | "avance";
+/** Les groupes qui ne servent qu'à la partie argent. */
+const ARGENT_SEUL: Groupe[] = ["ecurie", "equipe", "papiers", "rappel", "revoir", "avance"];
 const GROUPES: Record<Groupe, { t: string; parent: "/ecurie" | "/reglages" }> = {
   ecurie: { t: "Mes places", parent: "/ecurie" },
   equipe: { t: "Mon équipe", parent: "/ecurie" },
@@ -122,7 +124,9 @@ function Moi() {
   const [perm, setPerm] = useState<string>(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   // Le groupe de ?s= ; à défaut, celui d'une ancienne adresse ou ancre.
   const [ancre] = useState<Groupe | null>(() => DEPUIS_ANCRE[window.location.hash] ?? DEPUIS_ADRESSE[path] ?? null);
-  const groupe = versGroupe(demande) ?? ancre;
+  const lu = versGroupe(demande) ?? ancre;
+  // La partie argent masquée (lib/fonctions.ts) : Mon écurie, le rappel, la tournée et Avancé (catégories, sauvegarde) ramènent aux Réglages ; se déconnecter est dans Mon compte.
+  const groupe = lu && (ARGENT_VISIBLE || !ARGENT_SEUL.includes(lu)) ? lu : null;
   // Le retour de l'en-tête va au parent du groupe, qu'il nomme : Mon écurie ou Réglages.
   const poserParent = useParentIci((x) => x.poser);
   useEffect(() => {
@@ -382,8 +386,9 @@ function Compte() {
         </span>
         <span />
       </div>
-      <EtatCopie />
-      <RecupererLigne />
+      {/* La copie en ligne garde les chiffres de la partie argent : masquée avec elle (lib/fonctions.ts). */}
+      {ARGENT_VISIBLE && <EtatCopie />}
+      {ARGENT_VISIBLE && <RecupererLigne />}
       <DeconnexionLigne />
       <SuppressionLigne exporter={exportData} />
     </>

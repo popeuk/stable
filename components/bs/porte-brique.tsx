@@ -25,6 +25,8 @@ export function PorteBrique({ children }: { children: ReactNode }) {
   if (!ARGENT_VISIBLE && (under(path, ARGENT) || under(path, PLANNING))) return <Redirect to="/accueil" />;
   // Le payant masqué (lib/fonctions.ts) : Mon site ramène à la Vitrine.
   if (!PAYANT_VISIBLE && under(path, ["/mon-site"])) return <Redirect to="/ma-fiche" />;
+  // Mon écurie (prix privés, frais, équipe, pros, registre) va avec la partie argent.
+  if (!ARGENT_VISIBLE && under(path, ["/ecurie", "/contacts", "/registre"])) return <Redirect to="/reglages" />;
   // Tant que le compte n'est pas lu, on n'affiche rien plutôt qu'un écran qui passerait ensuite sous cadenas.
   if (!pret && (under(path, ARGENT) || under(path, PLANNING))) return null;
   if (under(path, ARGENT) && !estOuverte(etat.argent)) return <Verrou brique="argent" etat={etat.argent} />;

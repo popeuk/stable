@@ -15,7 +15,7 @@ import { EcuriesTexte } from "@/lib/annuaire";
 import { ContactOuvrir, MAILTO_CONTACT, TEXTE_REPLI } from "@/components/bs/contact";
 import { ChoixTemoinsLigne } from "@/components/bs/consentement";
 import { heure } from "@/lib/utils/heure";
-import { FACTURATION, PAYANT_VISIBLE } from "@/lib/fonctions";
+import { ARGENT_VISIBLE, FACTURATION, PAYANT_VISIBLE } from "@/lib/fonctions";
 
 /**
  * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
@@ -210,31 +210,46 @@ export function Reglages() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIci(cetAppareil());
     setAvecCompte(s?.kind === "compte");
-    setCompte(s?.kind === "demo" ? "Tu visites l’écurie d’exemple" : s?.kind === "compte" ? "Avec ton compte, tes chiffres sont gardés" : `Sur ${cetAppareil()} seulement : garde tes chiffres`);
+    setCompte(
+      s?.kind === "demo"
+        ? "Tu visites l’écurie d’exemple"
+        : s?.kind === "compte"
+          ? ARGENT_VISIBLE
+            ? "Avec ton compte, tes chiffres sont gardés"
+            : "Ton e-mail, te déconnecter"
+          : `Sur ${cetAppareil()} seulement : garde tes chiffres`,
+    );
   }, []);
   return (
     <div className="ce">
       <header className="ce-hd rise">
         <h1>Réglages</h1>
-        <p>L’app sur {ici} : compte, rappel, affichage.</p>
+        <p>L’app sur {ici} : {ARGENT_VISIBLE ? "compte, rappel, affichage" : "compte, affichage"}.</p>
       </header>
+      {/* La partie argent masquée (lib/fonctions.ts) : ni rappel du matin, ni Mon écurie, ni tournée, ni catégories de dépenses. */}
       <Case
         titre="Toi"
         lignes={[
           { href: "/moi?s=compte", ic: "key", t: "Mon compte", s: compte },
-          { href: "/moi?s=rappel", ic: "bell", t: "Mon rappel", s: `${reminder ? heure(reminder) : "Le matin"}${evening ? ", et le soir s’il reste quelque chose" : ""}` },
+          ...(ARGENT_VISIBLE ? [{ href: "/moi?s=rappel", ic: "bell", t: "Mon rappel", s: `${reminder ? heure(reminder) : "Le matin"}${evening ? ", et le soir s’il reste quelque chose" : ""}` }] : []),
         ]}
       />
-      <Case
-        titre="En coulisses"
-        lignes={[{ href: "/ecurie", ic: "horse", t: "Mon écurie", s: "Ce que les cavaliers ne voient pas : prix privés, frais, équipe, pros, papiers" }]}
-      />
+      {ARGENT_VISIBLE && (
+        <Case
+          titre="En coulisses"
+          lignes={[{ href: "/ecurie", ic: "horse", t: "Mon écurie", s: "Ce que les cavaliers ne voient pas : prix privés, frais, équipe, pros, papiers" }]}
+        />
+      )}
       <Case
         titre="L’app"
         lignes={[
           { href: "/moi?s=affichage", ic: "phone", t: "Affichage", s: "Taille du texte, installer l’app sur l’écran d’accueil" },
-          { href: "/moi?s=revoir", ic: "help", t: "Revoir", s: "Les explications, la tournée du matin" },
-          { href: "/moi?s=avance", ic: "gear", t: "Avancé", s: avecCompte ? "Catégories, sauvegarde, se déconnecter ou tout effacer" : "Catégories, sauvegarde, tout effacer" },
+          ...(ARGENT_VISIBLE
+            ? [
+                { href: "/moi?s=revoir", ic: "help", t: "Revoir", s: "Les explications, la tournée du matin" },
+                { href: "/moi?s=avance", ic: "gear", t: "Avancé", s: avecCompte ? "Catégories, sauvegarde, se déconnecter ou tout effacer" : "Catégories, sauvegarde, tout effacer" },
+              ]
+            : []),
         ]}
       />
       <Case

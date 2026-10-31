@@ -293,7 +293,10 @@ function PaletteInner() {
         .filter((p) => p.active)
         .map((p) => ({ id: `p-${p.id}`, group: "Clients", label: p.name, sub: p.role === "proprietaire" ? "propriétaire" : "cavalier", ic: "user", run: go(adresseClient(p.name)) })),
       // Les gestes du + (« Faire ») n'existent qu'avec Mon argent.
-    ].filter((x) => argentOuvert || !x.id.startsWith("a-")),
+    ]
+      .filter((x) => argentOuvert || !x.id.startsWith("a-"))
+      // La partie argent masquée (lib/fonctions.ts) : l'accueil, la Vitrine, les demandes et les réglages.
+      .filter((x) => ARGENT_VISIBLE || ["g-accueil", "g-vitrine", "g-demandes", "r-reglages", "r-garder"].includes(x.id)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, c, plus, argentOuvert],
   );

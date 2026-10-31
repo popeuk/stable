@@ -162,6 +162,8 @@
 .carnet .pr-vt-sheet { padding-bottom: 0; }
 .carnet .pr-vt-sheet .pad { padding-bottom: 0; }
 .carnet .pr-vt-sheet .ec-save { position: sticky; bottom: 0; margin: 18px calc(var(--gut) * -1) 0; padding: 12px var(--gut) calc(14px + env(safe-area-inset-bottom)); background: var(--paper); box-shadow: 0 -1px 0 var(--line); }
+/* Un changement en attente ne fait pas flotter le bouton dans la fenêtre : il reste collé en bas, sur un fond plein (sinon .ec-save.on le remonte au-dessus des onglets, sur un fond transparent). */
+.carnet .pr-vt-sheet .ec-save.on { bottom: 0; z-index: 6; background: var(--paper); }
 
 /* Ordinateur : une colonne lisible */
 @media (min-width: 1024px) {
