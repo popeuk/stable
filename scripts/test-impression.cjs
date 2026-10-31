@@ -42,6 +42,13 @@ fs.mkdirSync(OUT, { recursive: true });
 
 /** L'interrupteur de lib/fonctions.ts : facture et avoir ne se testent que si la facturation est allumée. */
 const FACTURATION = /FACTURATION\b[^=]*=\s*true\b/.test(fs.readFileSync(path.join(__dirname, "..", "lib", "fonctions.ts"), "utf8"));
+/**
+ * La partie argent (lib/fonctions.ts, ARGENT_VISIBLE) : allumée seulement si la construction a reçu
+ * NEXT_PUBLIC_ARGENT=1 ; ce test tourne dans le même environnement que la construction. Masquée
+ * (31 octobre 2026), la facture mène à l'accueil et le registre aux Réglages : on vérifie ces
+ * renvois au lieu d'imprimer, et l'accueil imprimé est celui de la présence en ligne, plus court.
+ */
+const ARGENT = process.env.NEXT_PUBLIC_ARGENT === "1";
 
 let echecs = 0;
 const ok = (cond, msg) => {
@@ -130,7 +137,12 @@ async function pdf(p, nom) {
   ]) {
     const t = `${viewport.width}`;
     const { b, p, erreurs } = await contexte(chromium, viewport);
-    if (!FACTURATION) {
+    if (!ARGENT) {
+      // Partie argent masquée : l'adresse de la facture mène à l'accueil.
+      await p.goto(`${BASE}/facture/?nom=${encodeURIComponent(CLIENT)}`, { waitUntil: "networkidle" });
+      const versAccueil = await p.waitForURL(/\/accueil/, { timeout: 15000 }).then(() => true, () => false);
+      ok(versAccueil, `[${t}] partie argent masquée : /facture mène à l’accueil (${p.url()})`);
+    } else if (!FACTURATION) {
       // Facturation masquée : l'adresse de la facture mène à Mon bilan.
       await p.goto(`${BASE}/facture/?nom=${encodeURIComponent(CLIENT)}`, { waitUntil: "networkidle" });
       const versBilan = await p.waitForURL(/\/argent/, { timeout: 15000 }).then(() => true, () => false);
@@ -163,11 +175,18 @@ async function pdf(p, nom) {
       ok(!f2.texte.includes("Annulée") && !f2.texte.includes(`Avoir n° ${avoir}`), `[${t}] facture réimprimée : ni « Annulée », ni ligne d’avoir`);
     }
 
-    await p.goto(`${BASE}/registre/`, { waitUntil: "networkidle" });
-    await p.waitForTimeout(400);
-    const r = await pdf(p, `registre-${t}`);
-    ok(paysage(r) && r.pages >= 1, `[${t}] registre : ${r.pages} page(s) A4 paysage (${r.w} x ${r.h})`);
-    ok(/Registre d.élevage/.test(r.texte) && /Page 1 sur/.test(r.texte), `[${t}] registre : titre et numéro de page`);
+    if (ARGENT) {
+      await p.goto(`${BASE}/registre/`, { waitUntil: "networkidle" });
+      await p.waitForTimeout(400);
+      const r = await pdf(p, `registre-${t}`);
+      ok(paysage(r) && r.pages >= 1, `[${t}] registre : ${r.pages} page(s) A4 paysage (${r.w} x ${r.h})`);
+      ok(/Registre d.élevage/.test(r.texte) && /Page 1 sur/.test(r.texte), `[${t}] registre : titre et numéro de page`);
+    } else {
+      // Partie argent masquée : le registre (Mon écurie) mène aux Réglages.
+      await p.goto(`${BASE}/registre/`, { waitUntil: "networkidle" });
+      const versReglages = await p.waitForURL(/\/reglages/, { timeout: 15000 }).then(() => true, () => false);
+      ok(versReglages, `[${t}] partie argent masquée : /registre mène aux Réglages (${p.url()})`);
+    }
 
     await p.goto(`${BASE}/accueil/`, { waitUntil: "networkidle" });
     // Le serveur de construction est lent : on attend le chiffre du mois, pas seulement l'en-tête.
@@ -177,7 +196,9 @@ async function pdf(p, nom) {
     // L'accueil imprimé depuis un ordinateur bascule en mise en page téléphone (largeur A4) sans son contenu :
     // limite connue, sans usage réel (on imprime factures et registre). On le vérifie au téléphone seulement,
     // et partout qu'il n'imprime pas le registre (le défaut du 17 octobre).
-    if (viewport.width < 1024) ok(acc.texte.replace(/\s+/g, "").length > 200, `[${t}] accueil imprimé : pas une page blanche (${acc.texte.replace(/\s+/g, "").length} caractères)`);
+    // Sans la partie argent, l'accueil est celui de la présence en ligne : sans fiche dans ce test, il tient en quelques lignes.
+    const minimum = ARGENT ? 200 : 100;
+    if (viewport.width < 1024) ok(acc.texte.replace(/\s+/g, "").length > minimum, `[${t}] accueil imprimé : pas une page blanche (${acc.texte.replace(/\s+/g, "").length} caractères, plus de ${minimum} attendus)`);
     ok(!/Registre d.élevage/.test(acc.texte), `[${t}] accueil imprimé : pas le registre`);
     ok(!erreurs.length, `[${t}] aucune erreur JavaScript${erreurs.length ? ` : ${erreurs.join(" | ")}` : ""}`);
     await b.close();
@@ -202,14 +223,16 @@ async function pdf(p, nom) {
       ok(vu.visibles === 0, `[webkit] facture imprimée : aucun bouton ni barre (${vu.visibles} visibles)`);
       await p.emulateMedia({ media: "screen" });
     } else console.log("saut [webkit] facture imprimée : facturation masquée (lib/fonctions.ts)");
-    await p.goto(`${BASE}/registre/`, { waitUntil: "networkidle" });
-    await p.emulateMedia({ media: "print" });
-    const reg = await p.evaluate(() => {
-      const r = document.querySelector(".rg-print")?.getBoundingClientRect();
-      const carnet = document.querySelector(".carnet");
-      return { h: r?.height ?? 0, carnet: carnet ? getComputedStyle(carnet).display : "absent" };
-    });
-    ok(reg.h > 300 && reg.carnet === "none", `[webkit] registre imprimé : la feuille seule (${Math.round(reg.h)} px, écran ${reg.carnet})`);
+    if (ARGENT) {
+      await p.goto(`${BASE}/registre/`, { waitUntil: "networkidle" });
+      await p.emulateMedia({ media: "print" });
+      const reg = await p.evaluate(() => {
+        const r = document.querySelector(".rg-print")?.getBoundingClientRect();
+        const carnet = document.querySelector(".carnet");
+        return { h: r?.height ?? 0, carnet: carnet ? getComputedStyle(carnet).display : "absent" };
+      });
+      ok(reg.h > 300 && reg.carnet === "none", `[webkit] registre imprimé : la feuille seule (${Math.round(reg.h)} px, écran ${reg.carnet})`);
+    } else console.log("saut [webkit] registre imprimé : partie argent masquée (lib/fonctions.ts)");
     ok(!erreurs.length, `[webkit] aucune erreur JavaScript${erreurs.length ? ` : ${erreurs.join(" | ")}` : ""}`);
     await b.close();
   }
