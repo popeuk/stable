@@ -54,9 +54,9 @@ fi
 
 echo "4/5 Vérification"
 sleep 4
-A=$(curl -s -o /dev/null -w "%{http_code}" https://sites.187-7-74-179.sslip.io/)
-B=$(curl -s -o /dev/null -w "%{http_code}" https://app.bestable.fr/)
-C=$(curl -s -o /dev/null -w "%{http_code}" https://preprod-app.187-7-74-179.sslip.io/)
+A=$(curl -s -o /dev/null -w "%{http_code}" --retry 5 --retry-delay 3 --retry-all-errors https://sites.187-7-74-179.sslip.io/ || echo "pas encore de certificat, réessaie dans une minute")
+B=$(curl -s -o /dev/null -w "%{http_code}" https://app.bestable.fr/ || true)
+C=$(curl -s -o /dev/null -w "%{http_code}" https://preprod-app.187-7-74-179.sslip.io/ || true)
 echo "   service des sites : $A (attendu 404, aucun site à cette adresse) · production : $B (attendu 200) · préprod : $C (attendu 401)"
 
 echo "5/5 Fini"
