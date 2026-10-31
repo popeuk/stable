@@ -1,0 +1,230 @@
+/* Les sites des écuries Be Stable (31 octobre 2026) : une seule structure,
+   quatre ambiances. Tiré de la maquette « Mon site, les ambiances ». */
+html,body{margin:0;padding:0}
+body{-webkit-font-smoothing:antialiased}
+.site a:not(.s-btn):not(.bs){color:inherit}
+.site img{display:block;max-width:100%}
+.site ::selection{background:var(--s-acc);color:var(--s-on-acc)}
+.site :focus-visible{outline:2px solid var(--s-acc);outline-offset:3px}
+.s-btn{transition:filter .2s, transform .2s}
+.s-btn:hover{filter:brightness(1.08)}
+.s-btn:active{transform:translateY(1px)}
+.s-tags{display:flex;flex-wrap:wrap;gap:10px}
+.s-tags li{padding:8px 16px;border:1px solid currentColor;border-radius:40px;font-size:15px;opacity:.9}
+.a-club .s-tags li{border:0;background:#EAF4FC;opacity:1}
+.a-haras .s-tags li{border-color:rgba(201,179,124,.5);color:var(--s-acc);letter-spacing:.04em}
+.a-sable .s-tags{justify-content:center}
+.a-haras .s-tags{justify-content:center}
+.s-fiche{margin-top:18px;font-size:14.5px;opacity:.85}
+.s-fiche a{text-underline-offset:3px}
+.s-foot a.bs{text-decoration:none;align-self:flex-start}
+.s-404{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;font-family:system-ui,sans-serif;background:#FCFBF9;color:#1B1225}
+.s-404 h1{font-size:28px;margin:0}
+.s-404 a{color:#134E3A}
+/* ===================================================================
+   LES SITES DES ÉCURIES : une seule structure, quatre ambiances
+   =================================================================== */
+.site{min-height:100vh;background:var(--s-bg);color:var(--s-ink);font-family:var(--s-body);font-size:17px;line-height:1.55}
+.site *{box-sizing:border-box}
+.site h1,.site h2,.site h3{margin:0;font-weight:inherit;letter-spacing:normal;font-variation-settings:normal;line-height:1.05;text-wrap:balance}
+.site p{margin:0}
+.site ul{list-style:none;margin:0;padding:0}
+.s-nav{display:flex;align-items:center;justify-content:space-between;padding:22px 56px;gap:24px}
+.s-logo{font-family:var(--s-disp);font-size:22px}
+.s-links{display:flex;gap:28px;font-size:15px}
+.s-btn{display:inline-flex;align-items:center;justify-content:center;height:50px;padding:0 26px;background:var(--s-acc);color:var(--s-on-acc);font-weight:600;font-size:16px;text-decoration:none;white-space:nowrap}
+.s-nav .s-btn{height:42px;padding:0 18px;font-size:14.5px}
+.s-hero{position:relative}
+.s-hero-img{background-size:cover;background-position:center}
+.s-name{font-family:var(--s-disp)}
+.s-where{font-size:15px;opacity:.85}
+.s-acc{font-size:20px;line-height:1.45;max-width:30ch}
+.s-places{font-weight:600}
+.s-sec{padding:72px 56px}
+.s-sec h2{font-family:var(--s-disp);font-size:44px;margin-bottom:32px}
+.s-forms li{display:grid;grid-template-columns:1fr auto;gap:4px 24px;align-items:baseline}
+.s-forms .fn{font-weight:600;font-size:19px}
+.s-forms .fd{grid-column:1;font-size:15px;opacity:.78}
+.s-forms .fp{grid-row:1 / span 2;grid-column:2;text-align:right;font-family:var(--s-disp);font-size:34px;font-variant-numeric:tabular-nums;line-height:1}
+.s-forms .fp small{display:block;font-family:var(--s-body);font-size:13px;opacity:.7;margin-top:4px}
+.s-gal{display:grid;gap:8px}
+.s-gal div{background-size:cover;background-position:center}
+.s-facts{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.s-facts b{display:block;font-family:var(--s-disp);font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.s-facts span{font-size:14.5px;opacity:.8}
+.s-contact{text-align:left}
+.s-contact p{max-width:44ch;font-size:18px;margin-bottom:24px}
+.s-foot{padding:28px 56px;font-size:13px;display:flex;justify-content:space-between;opacity:.75}
+.s-foot .bs{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:20px;background:#000;color:#fff;font-weight:700;font-size:11.5px;font-family:"Bricolage Grotesque",sans-serif;opacity:1}
+
+/* ---- Ambiance 1 : Grand air (photo plein cadre, couleurs du pré) ---- */
+.a-air{--s-bg:#24230F;--s-ink:#EFE9D2;--s-acc:#D9C96A;--s-on-acc:#24230F;--s-disp:"Big Shoulders Display",sans-serif;--s-body:"Archivo",sans-serif}
+.a-air .s-nav{position:absolute;top:0;left:0;right:0;z-index:2;color:#fff}
+.a-air .s-logo{font-weight:800;text-transform:uppercase;letter-spacing:.02em;font-size:24px}
+.a-air .s-hero{height:720px;display:flex;align-items:flex-end}
+.a-air .s-hero-img{position:absolute;inset:0}
+.a-air .s-hero-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,19,6,.45) 0%,rgba(20,19,6,0) 22%,rgba(20,19,6,0) 45%,rgba(36,35,15,.92) 100%)}
+.a-air .s-hero-txt{position:relative;z-index:1;padding:0 56px 56px;width:100%;display:grid;grid-template-columns:1fr auto;align-items:end;gap:20px 40px}
+.a-air .s-name{font-size:150px;font-weight:900;text-transform:uppercase;line-height:.82;letter-spacing:-.01em;color:#F3E9B8;grid-column:1 / -1}
+.a-air .s-acc{color:#EFE9D2}
+.a-air .s-places{background:var(--s-acc);color:#24230F;padding:18px 56px;font-size:18px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--s-disp);font-weight:800}
+.a-air .s-sec h2{text-transform:uppercase;font-size:64px;font-weight:800}
+.a-air .s-forms li{padding:22px 0;border-top:1px solid rgba(239,233,210,.18)}
+.a-air .s-forms .fp{font-size:56px;font-weight:800;color:#F3E9B8}
+.a-air .s-gal{grid-template-columns:2fr 1fr 1fr;grid-auto-rows:220px;padding:0 8px}
+.a-air .s-gal div:first-child{grid-row:span 2}
+.a-air .s-facts b{font-size:64px;font-weight:800;color:var(--s-acc)}
+.a-air .s-contact{background:#33321A}
+.a-air .s-contact h2{font-size:88px}
+
+/* ---- Ambiance 2 : Sable (carnet, arche, couleurs de la carrière) ---- */
+.a-sable{--s-bg:#F5E9DD;--s-ink:#3A2E1E;--s-acc:#9E5537;--s-on-acc:#FFF7EF;--s-disp:"Young Serif",serif;--s-body:"Figtree",sans-serif}
+.a-sable .s-nav{border-bottom:1px solid rgba(58,46,30,.15)}
+.a-sable .s-hero{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;padding:56px 56px 72px;align-items:center}
+.a-sable .s-hero-img{order:2;height:560px;border-radius:280px 280px 6px 6px}
+.a-sable .s-name{font-size:84px;line-height:.98;margin-bottom:20px}
+.a-sable .s-where{margin-bottom:22px}
+.a-sable .s-acc{margin-bottom:30px}
+.a-sable .s-btn{border-radius:40px}
+.a-sable .s-places{margin:0 56px;padding:18px 24px;border:1px solid rgba(58,46,30,.25);border-radius:12px;text-align:center;font-size:17px;background:#FBF3EA}
+.a-sable .s-sec h2{font-size:52px;text-align:center}
+.a-sable .s-forms{max-width:760px;margin:0 auto}
+.a-sable .s-forms li{padding:16px 0;border-bottom:1px dotted rgba(58,46,30,.4)}
+.a-sable .s-forms .fp{color:var(--s-acc)}
+.a-sable .s-gal{grid-template-columns:repeat(3,1fr);grid-auto-rows:300px;gap:20px}
+.a-sable .s-gal div{border-radius:6px}
+.a-sable .s-gal div:nth-child(2){transform:translateY(40px)}
+.a-sable .s-gal div:nth-child(n+4){display:none}
+.a-sable .s-lieu{padding-top:110px}
+.a-sable .s-facts{text-align:center}
+.a-sable .s-facts b{color:var(--s-acc);font-size:46px}
+.a-sable .s-contact{text-align:center;background:#EAD7C4}
+.a-sable .s-contact p{margin-left:auto;margin-right:auto}
+
+/* ---- Ambiance 3 : Club (aplats francs, ciel et bois, tuiles) ---- */
+.a-club{--s-bg:#FFFFFF;--s-ink:#17263A;--s-acc:#17263A;--s-on-acc:#FFFFFF;--s-disp:"Gabarito",sans-serif;--s-body:"Gabarito",sans-serif}
+.a-club .s-nav{padding:18px 32px}
+.a-club .s-logo{font-weight:900;background:#A6D5F7;padding:8px 16px;border-radius:40px;font-size:19px}
+.a-club .s-btn{border-radius:14px}
+.a-club .s-hero{margin:0 32px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.a-club .s-hero-txt{background:#A6D5F7;border-radius:28px;padding:48px 44px;display:flex;flex-direction:column;justify-content:flex-end;min-height:540px}
+.a-club .s-hero-img{border-radius:28px;min-height:540px}
+.a-club .s-name{font-size:86px;font-weight:900;line-height:.9;letter-spacing:-.02em;margin-bottom:18px}
+.a-club .s-where{font-weight:600;margin-bottom:12px;opacity:1}
+.a-club .s-acc{margin-bottom:28px}
+.a-club .s-places{margin:16px 32px 0;background:#F6C945;border-radius:20px;padding:20px 28px;font-size:20px;font-weight:800}
+.a-club .s-sec{padding:64px 32px}
+.a-club .s-sec h2{font-weight:900;font-size:50px;letter-spacing:-.02em}
+.a-club .s-forms{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.a-club .s-forms li{display:flex;flex-direction:column;border-radius:22px;padding:26px 24px;min-height:250px;background:#EAF4FC}
+.a-club .s-forms li:nth-child(2){background:#FCEFC7}
+.a-club .s-forms li:nth-child(3){background:#EFE4D3}
+.a-club .s-forms li:nth-child(4){background:#E3EEE6}
+.a-club .s-forms .fp{order:-1;text-align:left;font-size:54px;font-weight:900;margin-bottom:auto;padding-bottom:20px}
+.a-club .s-forms .fn{font-size:20px;font-weight:800}
+.a-club .s-gal{grid-template-columns:repeat(4,1fr);grid-auto-rows:220px;gap:16px}
+.a-club .s-gal div{border-radius:22px}
+.a-club .s-gal div:nth-child(1){grid-column:span 2;grid-row:span 2}
+.a-club .s-gal div:nth-child(n+7){display:none}
+.a-club .s-facts{gap:16px}
+.a-club .s-facts > div{background:#17263A;color:#fff;border-radius:22px;padding:26px 24px}
+.a-club .s-facts b{font-weight:900;font-size:50px;color:#A6D5F7}
+.a-club .s-contact{margin:0 32px 32px;border-radius:28px;background:#17263A;color:#fff;padding:56px 44px}
+.a-club .s-contact .s-btn{background:#F6C945;color:#17263A}
+
+/* ---- Ambiance 4 : Haras (sombre, centré, filets laiton) ---- */
+.a-haras{--s-bg:#1C2826;--s-ink:#E7E1D3;--s-acc:#C9B37C;--s-on-acc:#1C2826;--s-disp:"Marcellus",serif;--s-body:"Jost",sans-serif}
+.a-haras{font-weight:300}
+.a-haras .s-nav{flex-direction:column;gap:14px;padding:34px 56px 26px;border-bottom:1px solid rgba(201,179,124,.3)}
+.a-haras .s-logo{font-size:26px;letter-spacing:.32em;text-transform:uppercase}
+.a-haras .s-links{text-transform:uppercase;letter-spacing:.2em;font-size:12.5px;gap:36px}
+.a-haras .s-nav .s-btn{display:none}
+.a-haras .s-btn{background:transparent;color:var(--s-acc);border:1px solid var(--s-acc);text-transform:uppercase;letter-spacing:.18em;font-size:13px;font-weight:500}
+.a-haras .s-hero{padding:64px 56px 0;text-align:center;display:flex;flex-direction:column}
+.a-haras .s-hero-img{order:2}
+.a-haras .s-name{font-size:72px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:16px}
+.a-haras .s-where{letter-spacing:.2em;text-transform:uppercase;font-size:12.5px;color:var(--s-acc);margin-bottom:22px}
+.a-haras .s-acc{margin:0 auto 34px;font-size:19px}
+.a-haras .s-hero-img{height:520px;margin-top:56px;outline:1px solid rgba(201,179,124,.55);outline-offset:12px}
+.a-haras .s-places{text-align:center;padding:40px 56px 0;color:var(--s-acc);letter-spacing:.16em;text-transform:uppercase;font-size:13px;font-weight:500}
+.a-haras .s-sec h2{text-align:center;font-size:40px;letter-spacing:.08em;text-transform:uppercase}
+.a-haras .s-forms{display:grid;grid-template-columns:1fr 1fr;gap:0 64px;max-width:960px;margin:0 auto;border-top:1px solid rgba(201,179,124,.4)}
+.a-haras .s-forms li{padding:24px 0;border-bottom:1px solid rgba(201,179,124,.25)}
+.a-haras .s-forms .fn{font-weight:500}
+.a-haras .s-forms .fp{color:var(--s-acc);font-size:36px}
+.a-haras .s-gal{grid-template-columns:repeat(3,1fr);grid-auto-rows:280px;gap:2px;max-width:1088px;margin:0 auto}
+.a-haras .s-gal div:nth-child(n+7){display:none}
+.a-haras .s-facts{text-align:center;max-width:960px;margin:0 auto}
+.a-haras .s-facts > div + div{border-left:1px solid rgba(201,179,124,.3)}
+.a-haras .s-facts b{color:var(--s-acc);font-size:44px}
+.a-haras .s-contact{text-align:center;border-top:1px solid rgba(201,179,124,.3)}
+.a-haras .s-contact p{margin-left:auto;margin-right:auto}
+.a-haras .s-foot{border-top:1px solid rgba(201,179,124,.2)}
+
+/* ---- Sans photo : la tête devient typographique ---- */
+.site.sans-photo .s-hero-img{display:none}
+.a-air.sans-photo .s-nav{position:static}
+.a-air.sans-photo .s-hero{height:auto;padding-top:40px;background:#24230F}
+.a-sable.sans-photo .s-hero{grid-template-columns:1fr;text-align:center;padding:88px 56px}
+.a-sable.sans-photo .s-name{font-size:96px}
+.a-sable.sans-photo .s-acc{margin-left:auto;margin-right:auto}
+.a-club.sans-photo .s-hero{grid-template-columns:1fr}
+.a-haras.sans-photo .s-hero{padding-bottom:56px}
+
+/* ---- Téléphone : la même structure se replie ---- */
+@media (max-width:720px){
+  .s-nav{padding:16px 20px}
+  .s-links{display:none}
+  .s-logo{font-size:18px}
+  .s-sec{padding:48px 20px}
+  .s-sec h2{font-size:32px;margin-bottom:22px}
+  .s-acc{font-size:17px}
+  .s-forms .fp{font-size:28px}
+  .s-facts{grid-template-columns:1fr 1fr;gap:20px}
+  .s-facts b{font-size:32px}
+  .s-foot{padding:20px;flex-direction:column;gap:10px}
+  .a-air .s-hero{height:640px}
+  .a-air .s-hero-txt{padding:0 20px 30px;grid-template-columns:1fr}
+  .a-air .s-name{font-size:84px}
+  .a-air .s-places{padding:14px 20px;font-size:15px}
+  .a-air .s-sec h2{font-size:44px}
+  .a-air .s-forms .fp{font-size:38px}
+  .a-air .s-gal{grid-template-columns:1fr 1fr;grid-auto-rows:130px;padding:0 4px;gap:4px}
+  .a-air .s-facts b{font-size:44px}
+  .a-air .s-contact h2{font-size:52px}
+  .a-sable .s-hero{grid-template-columns:1fr;gap:28px;padding:28px 20px 44px}
+  .a-sable .s-hero-img{order:-1;height:360px;border-radius:180px 180px 6px 6px}
+  .a-sable .s-name{font-size:46px}
+  .a-sable .s-places{margin:0 20px}
+  .a-sable .s-sec h2{font-size:36px}
+  .a-sable .s-gal{grid-template-columns:1fr 1fr;grid-auto-rows:170px;gap:10px}
+  .a-sable .s-gal div:nth-child(2){transform:none}
+  .a-sable .s-gal div:nth-child(3){grid-column:span 2}
+  .a-sable .s-lieu{padding-top:48px}
+  .a-club .s-nav{padding:14px 14px}
+  .a-club .s-hero{margin:0 12px;grid-template-columns:1fr;gap:10px}
+  .a-club .s-hero-txt{min-height:0;padding:30px 24px}
+  .a-club .s-hero-img{min-height:260px;order:-1}
+  .a-club .s-name{font-size:52px}
+  .a-club .s-places{margin:10px 12px 0;font-size:16px;padding:16px 20px}
+  .a-club .s-sec{padding:44px 12px}
+  .a-club .s-forms{grid-template-columns:1fr 1fr;gap:10px}
+  .a-club .s-forms li{min-height:180px;padding:18px 16px}
+  .a-club .s-forms .fp{font-size:36px}
+  .a-club .s-forms .fn{font-size:16px}
+  .a-club .s-gal{grid-template-columns:1fr 1fr;grid-auto-rows:130px;gap:10px}
+  .a-club .s-gal div:nth-child(n+5){display:none}
+  .a-club .s-facts > div{padding:18px}
+  .a-club .s-contact{margin:0 12px 12px;padding:36px 24px}
+  .a-haras .s-nav{padding:22px 20px 18px}
+  .a-haras .s-logo{font-size:17px;letter-spacing:.22em}
+  .a-haras .s-hero{padding:40px 20px 0}
+  .a-haras .s-name{font-size:40px}
+  .a-haras .s-hero-img{height:300px;margin-top:36px;outline-offset:8px}
+  .a-haras .s-forms{grid-template-columns:1fr}
+  .a-haras .s-gal{grid-template-columns:1fr 1fr;grid-auto-rows:150px}
+  .a-haras .s-gal div:nth-child(n+5){display:none}
+  .a-haras .s-facts > div + div{border-left:0}
+  .a-sable.sans-photo .s-hero{padding:56px 20px}
+  .a-sable.sans-photo .s-name{font-size:52px}
+}

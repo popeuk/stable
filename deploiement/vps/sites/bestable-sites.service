@@ -1,0 +1,20 @@
+[Unit]
+Description=Be Stable : les sites des écuries (*.sites, préprod)
+After=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/bestable-sites.env
+ExecStart=/usr/bin/python3 -I /opt/bestable-sites/bestable-sites.py
+DynamicUser=yes
+StateDirectory=bestable-sites
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+MemoryMax=200M
+
+[Install]
+WantedBy=multi-user.target

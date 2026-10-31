@@ -30,6 +30,20 @@ export default function Page() {
   );
 }
 
+/**
+ * Le service qui sert les sites (deploiement/vps/sites, 31 octobre 2026).
+ * Réglé seulement en préprod pour l'instant : sans lui, rien ne change ici.
+ */
+const SITES_API = (process.env.NEXT_PUBLIC_SITES_API ?? "").replace(/\/$/, "");
+
+/** Les quatre ambiances des sites (même liste que le service). */
+const AMBIANCES: { id: string; nom: string; dit: string; couleurs: [string, string, string] }[] = [
+  { id: "air", nom: "Grand air", dit: "La photo en grand", couleurs: ["#24230F", "#EFE9D2", "#D9C96A"] },
+  { id: "sable", nom: "Sable", dit: "Chaleureux, posé", couleurs: ["#F5E9DD", "#3A2E1E", "#9E5537"] },
+  { id: "club", nom: "Club", dit: "Clair et franc", couleurs: ["#A6D5F7", "#17263A", "#F6C945"] },
+  { id: "haras", nom: "Haras", dit: "Sombre, soigné", couleurs: ["#1C2826", "#E7E1D3", "#C9B37C"] },
+];
+
 /** L'écurie d'exemple : une fiche inventée, dite comme telle. */
 const EXEMPLE: Fiche = {
   title: "Écurie du Grand Pré",
@@ -139,6 +153,8 @@ function MonSite() {
     </div>
   );
 
+  const publier = !demo && SITES_API && !enAttente ? <Publier /> : null;
+
   const offre = (
     <Sec ill="sacoche" title="Le mettre en ligne" delay={0.16}>
       <div className="ms-ry" role="group" aria-label="Payer">
@@ -243,6 +259,7 @@ function MonSite() {
         {desk ? (
           <div className="cols2 ec-cols ms-cols">
             <div>
+              {publier}
               {offre}
               {cta}
             </div>
@@ -251,6 +268,7 @@ function MonSite() {
         ) : (
           <>
             {apercu}
+            {publier}
             {offre}
             {cta}
           </>
@@ -259,6 +277,115 @@ function MonSite() {
       </div>
       {demande && <FeuilleDemande f={f} formule={formule} rythme={rythme} domaine={formule === "site" && domaine} onClose={() => setDemande(false)} />}
     </Screen>
+  );
+}
+
+/* ---------- Publier le site (préprod) : adresse, ambiance, en ligne ---------- */
+
+type EtatSite = { publie: boolean; adresse: string; ambiance: string; url: string | null; domaine: string };
+
+async function appelSites(chemin: string, corps?: object): Promise<EtatSite> {
+  const s = getSession();
+  const headers: Record<string, string> = {};
+  if (s?.kind === "compte") headers["X-BS-Token"] = s.token;
+  if (corps) headers["Content-Type"] = "application/json";
+  const r = await fetch(`${SITES_API}${chemin}`, { method: corps ? "POST" : "GET", headers, body: corps ? JSON.stringify(corps) : undefined, credentials: "omit" });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(typeof d?.message === "string" ? d.message : "Le service des sites ne répond pas. Réessaie dans un instant.");
+  return d as EtatSite;
+}
+
+function Publier() {
+  const [site, setSite] = useState<EtatSite | null>(null);
+  const [adresse, setAdresse] = useState("");
+  const [ambiance, setAmbiance] = useState("air");
+  const [etat, setEtat] = useState<"charge" | "pret" | "envoi" | "erreur">("charge");
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    appelSites("/api/mon-site").then(
+      (d) => {
+        setSite(d);
+        setAdresse(d.adresse);
+        setAmbiance(d.ambiance);
+        setEtat("pret");
+      },
+      (e: Error) => {
+        setMsg(e.message);
+        setEtat("erreur");
+      },
+    );
+  }, []);
+
+  async function envoyer(chemin: "/api/publier" | "/api/depublier") {
+    if (etat === "envoi") return;
+    setEtat("envoi");
+    setMsg("");
+    try {
+      const d = await appelSites(chemin, chemin === "/api/publier" ? { adresse: adresse.trim().toLowerCase(), ambiance } : {});
+      setSite(d);
+      setAdresse(d.adresse);
+      setAmbiance(d.ambiance);
+      setMsg(chemin === "/api/publier" ? "C’est en ligne." : "Ton site n’est plus en ligne.");
+    } catch (e) {
+      setMsg((e as Error).message);
+    }
+    setEtat("pret");
+  }
+
+  if (etat === "charge") return <Sec title="Publier mon site" delay={0.12}><p className="ec-help">On regarde où en est ton site…</p></Sec>;
+  if (etat === "erreur" || !site) return <Sec title="Publier mon site" delay={0.12}><p className="ec-help" role="alert">{msg || "Le service des sites ne répond pas."}</p></Sec>;
+
+  const change = site.publie && (adresse !== site.adresse || ambiance !== site.ambiance);
+  return (
+    <Sec title={site.publie ? "Ton site est en ligne" : "Publier mon site"} delay={0.12} className="ms-pub">
+      {site.publie && site.url && (
+        <a className="ms-pub-lien" href={site.url} target="_blank" rel="noreferrer">
+          <Ic n="globe" className="" />
+          <span>{site.url.replace(/^https:\/\//, "").replace(/\/$/, "")}</span>
+          <Ic n="arrow" className="" />
+        </a>
+      )}
+      <label className="field">
+        <span>Ton adresse</span>
+        <span className="input">
+          <input value={adresse} onChange={(e) => setAdresse(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} maxLength={40} autoCapitalize="off" autoCorrect="off" spellCheck={false} aria-describedby="ms-pub-dom" />
+          <span className="u" id="ms-pub-dom">{`.${site.domaine}`}</span>
+        </span>
+        <em>Lettres sans accent, chiffres et tirets.</em>
+      </label>
+      <p className="ms-pub-t">L’ambiance</p>
+      <div className="ms-pub-amb" role="radiogroup" aria-label="Ambiance du site">
+        {AMBIANCES.map((a) => (
+          <button key={a.id} type="button" role="radio" aria-checked={ambiance === a.id} className={`ms-pub-a${ambiance === a.id ? " on" : ""}`} onClick={() => setAmbiance(a.id)}>
+            <span className="ms-pub-c" aria-hidden="true">
+              {a.couleurs.map((c) => (
+                <i key={c} style={{ background: c }} />
+              ))}
+            </span>
+            <b>{a.nom}</b>
+            <small>{a.dit}</small>
+          </button>
+        ))}
+      </div>
+      {msg && (
+        <p className={`ec-help ms-pub-msg${msg === "C’est en ligne." ? " ok" : ""}`} role="status">
+          {msg}
+        </p>
+      )}
+      {(!site.publie || change) && (
+        <button type="button" className="btn full" style={{ marginTop: 14 }} onClick={() => envoyer("/api/publier")} disabled={etat === "envoi" || adresse.length < 3}>
+          {etat === "envoi" ? "Publication…" : site.publie ? "Enregistrer les changements" : "Publier mon site"}
+        </button>
+      )}
+      {site.publie && (
+        <button type="button" className="lnk ms-pub-off" onClick={() => envoyer("/api/depublier")} disabled={etat === "envoi"}>
+          Retirer mon site
+        </button>
+      )}
+      <p className="ec-help">En bas de chaque site, un lien mène à ta fiche sur bestable.fr, et le bouton « Écrire à l’écurie » t’envoie les demandes ici, dans l’app.</p>
+      <p className="ec-help">Préproduction : la publication est gratuite pour l’essai, le paiement sera branché ici.</p>
+    </Sec>
   );
 }
 

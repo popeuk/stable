@@ -200,7 +200,8 @@ export function VitrineTete({
               }
             />
           </div>
-          {ARGENT_VISIBLE ? (
+          {/* Les sites des écuries (31 octobre 2026) : visibles dès que le service est réglé, même sans la partie argent. */}
+          {(ARGENT_VISIBLE || !!process.env.NEXT_PUBLIC_SITES_API) && (
             <Link href="/mon-site" className="vt-site rise">
               <Ill n="promo" />
               <span>
@@ -209,7 +210,8 @@ export function VitrineTete({
               </span>
               <Ic n="chev" className="chev" />
             </Link>
-          ) : (
+          )}
+          {!ARGENT_VISIBLE && (
             <Link href="/audit" className="vt-site rise">
               <Ill n="promo" />
               <span>

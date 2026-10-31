@@ -39,6 +39,7 @@ jobs:
           NEXT_PUBLIC_PREPROD: "1"
           NEXT_PUBLIC_MONECURIE_API: https://f8a2-d405641a5d0e.wptiger.fr/wp-json/bestable/v1
           NEXT_PUBLIC_NUAGE_URL: "off"
+          NEXT_PUBLIC_SITES_API: https://sites.187-7-74-179.sslip.io
       - name: Publish to the vps-preprod branch
         run: |
           cd out

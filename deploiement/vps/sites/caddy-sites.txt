@@ -1,0 +1,17 @@
+# Les sites des écuries, préprod (31 octobre 2026). Le service bestable-sites
+# répond sur 127.0.0.1:8795. Chaque adresse reçoit son certificat à la
+# première visite, seulement si le service dit qu'elle est publiée (/ask).
+sites.187-7-74-179.sslip.io {
+	encode zstd gzip
+	import securite
+	reverse_proxy 127.0.0.1:8795
+}
+
+*.sites.187-7-74-179.sslip.io {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+	import securite
+	reverse_proxy 127.0.0.1:8795
+}
