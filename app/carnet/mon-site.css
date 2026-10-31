@@ -97,3 +97,17 @@
 .carnet .ms-ar-vue iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; background: #fff; }
 .carnet .ms-ar-attente { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; margin: 0; }
 .carnet .ms-ar-cadre .ms-url-bar { margin: 0; height: 34px; border-radius: 0; background: var(--mist, #F1EEF3); color: var(--ink2); border-bottom: 1px solid var(--line); }
+
+/* Thème, casaque et logo (31 octobre 2026) */
+.carnet .ms-pub-fac { font-weight: 400; font-size: 13px; color: var(--ink3); margin-left: 4px; }
+.carnet .ms-cq { margin-top: 4px; padding: 4px 14px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface, #fff); }
+.carnet .ms-cq-l { margin-top: 12px; }
+.carnet .ms-cq-l > span { display: block; font-size: 13.5px; font-weight: 650; margin-bottom: 6px; }
+.carnet .ms-cq-sw { display: flex; flex-wrap: wrap; gap: 8px; }
+.carnet .ms-cq-sw button { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .18); cursor: pointer; padding: 0; }
+.carnet .ms-cq-sw button.on { box-shadow: 0 0 0 2px var(--surface, #fff), 0 0 0 4px var(--vert, #134E3A); }
+.carnet .ms-cq .ms-ry { flex-wrap: wrap; }
+.carnet .ms-logo-fonds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 10px; }
+.carnet .ms-logo-fonds > div { height: 72px; display: flex; align-items: center; justify-content: center; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.carnet .ms-logo-fonds > div.pale { background: #F2F0EA; }
+.carnet .ms-logo-fonds img { max-height: 44px; max-width: 100%; object-fit: contain; }

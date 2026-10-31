@@ -36,12 +36,12 @@ export default function Page() {
  */
 const SITES_API = (process.env.NEXT_PUBLIC_SITES_API ?? "").replace(/\/$/, "");
 
-/** Les quatre ambiances des sites (même liste que le service). */
+/** Les quatre thèmes des sites (même liste que le service, deploiement/vps/sites). */
 const AMBIANCES: { id: string; nom: string; dit: string; couleurs: [string, string, string] }[] = [
-  { id: "air", nom: "Grand air", dit: "La photo en grand", couleurs: ["#24230F", "#EFE9D2", "#D9C96A"] },
-  { id: "sable", nom: "Sable", dit: "Chaleureux, posé", couleurs: ["#F5E9DD", "#3A2E1E", "#9E5537"] },
-  { id: "club", nom: "Club", dit: "Clair et franc", couleurs: ["#A6D5F7", "#17263A", "#F6C945"] },
-  { id: "haras", nom: "Haras", dit: "Sombre, soigné", couleurs: ["#1C2826", "#E7E1D3", "#C9B37C"] },
+  { id: "casaque", nom: "La casaque", dit: "Tes couleurs, comme en course", couleurs: ["#13213F", "#FFFFFF", "#C62233"] },
+  { id: "plaque", nom: "La plaque de box", dit: "Soigné, laiton gravé", couleurs: ["#22402F", "#C3A066", "#FFFFFF"] },
+  { id: "carriere", nom: "La carrière", dit: "Lettres de dressage", couleurs: ["#111111", "#FFFFFF", "#D9C7A3"] },
+  { id: "carte", nom: "La carte", dit: "Le lieu d’abord", couleurs: ["#3D5A2A", "#9A6B3F", "#F1EEE4"] },
 ];
 
 /** L'écurie d'exemple : une fiche inventée, dite comme telle. */
@@ -279,34 +279,95 @@ function MonSite() {
   );
 }
 
-/* ---------- Publier le site (préprod) : adresse, ambiance, en ligne ---------- */
+/* ---------- Publier le site (préprod) : thème, casaque, logo, adresse ---------- */
 
-type EtatSite = { publie: boolean; adresse: string; ambiance: string; url: string | null; domaine: string };
+type Casaque = { c1: string; c2: string; c3: string; motif: string; manches: string };
+type EtatSite = {
+  publie: boolean;
+  adresse: string;
+  ambiance: string;
+  url: string | null;
+  domaine: string;
+  casaque: Casaque;
+  logo: string | null;
+  palette: Record<string, { nom: string; hex: string }>;
+  motifs: Record<string, string>;
+  manches: Record<string, string>;
+};
 
-async function appelSites(chemin: string, corps?: object): Promise<EtatSite> {
+async function appelSites(chemin: string, corps?: object | Blob): Promise<EtatSite> {
   const s = getSession();
   const headers: Record<string, string> = {};
   if (s?.kind === "compte") headers["X-BS-Token"] = s.token;
-  if (corps) headers["Content-Type"] = "application/json";
-  const r = await fetch(`${SITES_API}${chemin}`, { method: corps ? "POST" : "GET", headers, body: corps ? JSON.stringify(corps) : undefined, credentials: "omit" });
+  let body: BodyInit | undefined;
+  if (corps instanceof Blob) {
+    headers["Content-Type"] = corps.type;
+    body = corps;
+  } else if (corps) {
+    headers["Content-Type"] = "application/json";
+    body = JSON.stringify(corps);
+  }
+  const r = await fetch(`${SITES_API}${chemin}`, { method: corps ? "POST" : "GET", headers, body, credentials: "omit" });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(typeof d?.message === "string" ? d.message : "Le service des sites ne répond pas. Réessaie dans un instant.");
   return d as EtatSite;
 }
 
+const memeCasaque = (a: Casaque, b: Casaque) => (Object.keys(a) as (keyof Casaque)[]).every((k) => a[k] === b[k]);
+
+/** La part des pixels visibles qui sont très clairs : au-delà de 80 %, le logo risque de disparaître sur fond clair. */
+async function logoTropClair(fichier: File): Promise<boolean> {
+  try {
+    const url = URL.createObjectURL(fichier);
+    const img = new Image();
+    await new Promise<void>((ok, ko) => {
+      img.onload = () => ok();
+      img.onerror = () => ko(new Error("image"));
+      img.src = url;
+    });
+    const c = document.createElement("canvas");
+    c.width = 120;
+    c.height = Math.max(1, Math.round((120 * (img.naturalHeight || 1)) / (img.naturalWidth || 1)));
+    const ctx = c.getContext("2d");
+    if (!ctx) return false;
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    const px = ctx.getImageData(0, 0, c.width, c.height).data;
+    let vus = 0;
+    let clairs = 0;
+    for (let i = 0; i < px.length; i += 4) {
+      if (px[i + 3] < 40) continue;
+      vus++;
+      if (0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2] > 225) clairs++;
+    }
+    URL.revokeObjectURL(url);
+    return vus > 0 && clairs / vus > 0.8;
+  } catch {
+    return false;
+  }
+}
+
 function Publier() {
   const [site, setSite] = useState<EtatSite | null>(null);
   const [adresse, setAdresse] = useState("");
-  const [ambiance, setAmbiance] = useState("air");
+  const [ambiance, setAmbiance] = useState("carte");
+  const [casaque, setCasaque] = useState<Casaque | null>(null);
   const [etat, setEtat] = useState<"charge" | "pret" | "envoi" | "erreur">("charge");
   const [msg, setMsg] = useState("");
+  const [logoMsg, setLogoMsg] = useState("");
+  const [logoEnvoi, setLogoEnvoi] = useState(false);
+  const fichier = useRef<HTMLInputElement>(null);
+
+  function recevoir(d: EtatSite) {
+    setSite(d);
+    setAdresse(d.adresse);
+    setAmbiance(d.ambiance);
+    setCasaque(d.casaque);
+  }
 
   useEffect(() => {
     appelSites("/api/mon-site").then(
       (d) => {
-        setSite(d);
-        setAdresse(d.adresse);
-        setAmbiance(d.ambiance);
+        recevoir(d);
         setEtat("pret");
       },
       (e: Error) => {
@@ -321,10 +382,8 @@ function Publier() {
     setEtat("envoi");
     setMsg("");
     try {
-      const d = await appelSites(chemin, chemin === "/api/publier" ? { adresse: adresse.trim().toLowerCase(), ambiance } : {});
-      setSite(d);
-      setAdresse(d.adresse);
-      setAmbiance(d.ambiance);
+      const corps = chemin === "/api/publier" ? { adresse: adresse.trim().toLowerCase(), ambiance, ...(ambiance === "casaque" && casaque ? { casaque } : {}) } : {};
+      recevoir(await appelSites(chemin, corps));
       setMsg(chemin === "/api/publier" ? "C’est en ligne." : "Ton site n’est plus en ligne.");
     } catch (e) {
       setMsg((e as Error).message);
@@ -332,13 +391,78 @@ function Publier() {
     setEtat("pret");
   }
 
-  if (etat === "charge") return <Sec title="Publier mon site" delay={0.12}><p className="ec-help">On regarde où en est ton site…</p></Sec>;
-  if (etat === "erreur" || !site) return <Sec title="Publier mon site" delay={0.12}><p className="ec-help" role="alert">{msg || "Le service des sites ne répond pas."}</p></Sec>;
+  async function choisirLogo(f: File | undefined) {
+    if (!f) return;
+    setLogoMsg("");
+    if (f.size > 2 * 1024 * 1024) return setLogoMsg("Ce fichier pèse plus de 2 Mo. Envoie une version plus légère.");
+    if (!["image/png", "image/jpeg", "image/webp", "image/svg+xml"].includes(f.type)) return setLogoMsg("Envoie ton logo en PNG, JPG, WebP ou SVG.");
+    const clair = await logoTropClair(f);
+    setLogoEnvoi(true);
+    try {
+      const d = await appelSites("/api/logo", f);
+      setSite((s) => (s ? { ...s, logo: d.logo } : d));
+      setLogoMsg(clair ? "Ton logo est très clair : il risque de ne pas se voir sur le fond du site. Si tu as une version foncée, envoie-la plutôt." : "");
+    } catch (e) {
+      setLogoMsg((e as Error).message);
+    }
+    setLogoEnvoi(false);
+    if (fichier.current) fichier.current.value = "";
+  }
 
-  const change = site.publie && (adresse !== site.adresse || ambiance !== site.ambiance);
+  async function retirerLogo() {
+    setLogoEnvoi(true);
+    try {
+      const d = await appelSites("/api/logo/retirer", {});
+      setSite((s) => (s ? { ...s, logo: d.logo } : d));
+      setLogoMsg("");
+    } catch (e) {
+      setLogoMsg((e as Error).message);
+    }
+    setLogoEnvoi(false);
+  }
+
+  if (etat === "charge")
+    return (
+      <Sec title="Publier mon site" delay={0.12}>
+        <p className="ec-help">On regarde où en est ton site…</p>
+      </Sec>
+    );
+  if (etat === "erreur" || !site || !casaque)
+    return (
+      <Sec title="Publier mon site" delay={0.12}>
+        <p className="ec-help" role="alert">
+          {msg || "Le service des sites ne répond pas."}
+        </p>
+      </Sec>
+    );
+
+  const change = site.publie && (adresse !== site.adresse || ambiance !== site.ambiance || (ambiance === "casaque" && !memeCasaque(casaque, site.casaque)));
+  const couleur = (cle: keyof Casaque, titre: string) => (
+    <div className="ms-cq-l">
+      <span>{titre}</span>
+      <div className="ms-cq-sw" role="radiogroup" aria-label={titre}>
+        {Object.entries(site.palette).map(([k, v]) => (
+          <button key={k} type="button" role="radio" aria-checked={casaque[cle] === k} aria-label={v.nom} title={v.nom} className={casaque[cle] === k ? "on" : ""} style={{ background: v.hex }} onClick={() => setCasaque({ ...casaque, [cle]: k })} />
+        ))}
+      </div>
+    </div>
+  );
+  const choixMots = (cle: "motif" | "manches", titre: string, liste: Record<string, string>) => (
+    <div className="ms-cq-l">
+      <span>{titre}</span>
+      <div className="ms-ry" role="radiogroup" aria-label={titre}>
+        {Object.entries(liste).map(([k, v]) => (
+          <button key={k} type="button" role="radio" aria-checked={casaque[cle] === k} className="chip" onClick={() => setCasaque({ ...casaque, [cle]: k })}>
+            {v.charAt(0).toUpperCase() + v.slice(1)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <Sec title={site.publie ? "Ton site est en ligne" : "Ton site, avant de le publier"} delay={0.12} className="ms-pub">
-      <ApercuReel ambiance={ambiance} adresse={`${adresse || site.adresse}.${site.domaine}`} />
+      <ApercuReel ambiance={ambiance} casaque={ambiance === "casaque" ? casaque : null} logo={site.logo} adresse={`${adresse || site.adresse}.${site.domaine}`} />
       {site.publie && site.url && (
         <a className="ms-pub-lien" href={site.url} target="_blank" rel="noreferrer">
           <Ic n="globe" className="" />
@@ -346,16 +470,8 @@ function Publier() {
           <Ic n="arrow" className="" />
         </a>
       )}
-      <label className="field">
-        <span>Ton adresse</span>
-        <span className="input">
-          <input value={adresse} onChange={(e) => setAdresse(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} maxLength={40} autoCapitalize="off" autoCorrect="off" spellCheck={false} aria-describedby="ms-pub-dom" />
-          <span className="u" id="ms-pub-dom">{`.${site.domaine}`}</span>
-        </span>
-        <em>Lettres sans accent, chiffres et tirets.</em>
-      </label>
-      <p className="ms-pub-t">L’ambiance</p>
-      <div className="ms-pub-amb" role="radiogroup" aria-label="Ambiance du site">
+      <p className="ms-pub-t">Le thème</p>
+      <div className="ms-pub-amb" role="radiogroup" aria-label="Thème du site">
         {AMBIANCES.map((a) => (
           <button key={a.id} type="button" role="radio" aria-checked={ambiance === a.id} className={`ms-pub-a${ambiance === a.id ? " on" : ""}`} onClick={() => setAmbiance(a.id)}>
             <span className="ms-pub-c" aria-hidden="true">
@@ -368,6 +484,56 @@ function Publier() {
           </button>
         ))}
       </div>
+      {ambiance === "casaque" && (
+        <div className="ms-cq">
+          <p className="ms-pub-t">Ta casaque</p>
+          {couleur("c1", "Couleur principale")}
+          {choixMots("motif", "Motif", site.motifs)}
+          {casaque.motif !== "unie" || casaque.manches !== "unies" ? couleur("c2", "Couleur du motif") : null}
+          {choixMots("manches", "Manches", site.manches)}
+          {couleur("c3", "Toque")}
+        </div>
+      )}
+      <p className="ms-pub-t">
+        Ton logo <small className="ms-pub-fac">facultatif</small>
+      </p>
+      <p className="ec-help">S’il est là, il prend la place du signe du thème. On ne le redessine pas.</p>
+      {site.logo ? (
+        <div className="ms-logo-fonds">
+          <div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={site.logo} alt="Ton logo sur fond blanc" />
+          </div>
+          <div className="pale">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={site.logo} alt="Ton logo sur fond clair" />
+          </div>
+        </div>
+      ) : null}
+      <input ref={fichier} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden onChange={(e) => void choisirLogo(e.target.files?.[0])} />
+      <div className="ms-ry">
+        <button type="button" className="chip" disabled={logoEnvoi} onClick={() => fichier.current?.click()}>
+          {logoEnvoi ? "Envoi…" : site.logo ? "Changer de logo" : "Ajouter mon logo"}
+        </button>
+        {site.logo && (
+          <button type="button" className="chip" disabled={logoEnvoi} onClick={() => void retirerLogo()}>
+            Retirer le logo
+          </button>
+        )}
+      </div>
+      {logoMsg && (
+        <p className="ec-help ms-pub-msg" role="status">
+          {logoMsg}
+        </p>
+      )}
+      <label className="field" style={{ marginTop: 18 }}>
+        <span>Ton adresse</span>
+        <span className="input">
+          <input value={adresse} onChange={(e) => setAdresse(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} maxLength={40} autoCapitalize="off" autoCorrect="off" spellCheck={false} aria-describedby="ms-pub-dom" />
+          <span className="u" id="ms-pub-dom">{`.${site.domaine}`}</span>
+        </span>
+        <em>Lettres sans accent, chiffres et tirets.</em>
+      </label>
       {msg && (
         <p className={`ec-help ms-pub-msg${msg === "C’est en ligne." ? " ok" : ""}`} role="status">
           {msg}
@@ -383,38 +549,44 @@ function Publier() {
           Retirer mon site
         </button>
       )}
-      <p className="ec-help">En bas de chaque site, un lien mène à ta fiche sur bestable.fr, et le bouton « Écrire à l’écurie » t’envoie les demandes ici, dans l’app.</p>
+      <p className="ec-help">En bas de chaque site, un lien mène à ta fiche sur bestable.fr, et le bouton « Demander une place » t’envoie les demandes ici, dans l’app.</p>
       <p className="ec-help">Préproduction : la publication est gratuite pour l’essai, le paiement sera branché ici.</p>
     </Sec>
   );
 }
 
-/** Le vrai site, rendu par le service avec la fiche du moment, dans l'ambiance choisie. Rien n'est publié. */
-function ApercuReel({ ambiance, adresse }: { ambiance: string; adresse: string }) {
+/** Le vrai site, rendu par le service avec la fiche du moment, dans le thème choisi. Rien n'est publié. */
+function ApercuReel({ ambiance, casaque, logo, adresse }: { ambiance: string; casaque: Casaque | null; logo: string | null; adresse: string }) {
   const [vue, setVue] = useState<"tel" | "ordi">("tel");
   const [pages, setPages] = useState<Record<string, string>>({});
   const [erreur, setErreur] = useState("");
   const boite = useRef<HTMLDivElement>(null);
   const [largeur, setLargeur] = useState(360);
+  const cq = casaque ? JSON.stringify(casaque) : "";
+  const cle = `${ambiance}|${cq}|${logo ?? ""}`;
 
   useEffect(() => {
-    if (pages[ambiance]) return;
+    if (pages[cle]) return;
     let fini = false;
     const s = getSession();
-    fetch(`${SITES_API}/api/apercu?ambiance=${encodeURIComponent(ambiance)}`, { headers: s?.kind === "compte" ? { "X-BS-Token": s.token } : {}, credentials: "omit" })
-      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
-      .then(
-        (html) => {
-          if (fini) return;
-          setErreur("");
-          setPages((p) => ({ ...p, [ambiance]: html }));
-        },
-        () => !fini && setErreur("L’aperçu ne s’affiche pas pour le moment. Réessaie dans un instant."),
-      );
+    // Un court délai : choisir trois couleurs de suite ne lance qu'un rendu.
+    const t = setTimeout(() => {
+      fetch(`${SITES_API}/api/apercu?ambiance=${encodeURIComponent(ambiance)}${cq ? `&casaque=${encodeURIComponent(cq)}` : ""}`, { headers: s?.kind === "compte" ? { "X-BS-Token": s.token } : {}, credentials: "omit" })
+        .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+        .then(
+          (html) => {
+            if (fini) return;
+            setErreur("");
+            setPages((p) => ({ ...p, [cle]: html }));
+          },
+          () => !fini && setErreur("L’aperçu ne s’affiche pas pour le moment. Réessaie dans un instant."),
+        );
+    }, 250);
     return () => {
       fini = true;
+      clearTimeout(t);
     };
-  }, [ambiance, pages]);
+  }, [cle, ambiance, cq, pages]);
 
   useEffect(() => {
     const el = boite.current;
@@ -428,7 +600,7 @@ function ApercuReel({ ambiance, adresse }: { ambiance: string; adresse: string }
   const base = vue === "tel" ? 390 : 1280;
   const echelle = Math.min(1, largeur / base);
   const haut = vue === "tel" ? 620 : Math.round(largeur * 0.66);
-  const html = pages[ambiance];
+  const html = pages[cle];
   return (
     <div className="ms-ar">
       <div className="ms-ry" role="group" aria-label="Voir sur">
