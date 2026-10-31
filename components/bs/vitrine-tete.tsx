@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Fiche } from "@/lib/account/api";
 import { Ic, Ill } from "@/components/carnet/ui";
 import { infosFiche, jaugeFiche, type InfoFiche } from "@/lib/fiche-jauge";
-import { ARGENT_VISIBLE } from "@/lib/fonctions";
+import { ARGENT_VISIBLE, PAYANT_VISIBLE } from "@/lib/fonctions";
 import "@/app/carnet/briques.css";
 import "@/app/carnet/presence.css";
 
@@ -200,8 +200,8 @@ export function VitrineTete({
               }
             />
           </div>
-          {/* Les sites des écuries (31 octobre 2026) : visibles dès que le service est réglé, même sans la partie argent. */}
-          {(ARGENT_VISIBLE || !!process.env.NEXT_PUBLIC_SITES_API) && (
+          {/* Les sites des écuries (31 octobre 2026) : payants, donc masqués tant que le payant l'est (lib/fonctions.ts). */}
+          {PAYANT_VISIBLE && (
             <Link href="/mon-site" className="vt-site rise">
               <Ill n="promo" />
               <span>

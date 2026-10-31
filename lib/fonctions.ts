@@ -24,3 +24,13 @@ export const OUVERTURE: boolean = process.env.NEXT_PUBLIC_OUVERTURE === "1";
  */
 export const ARGENT_VISIBLE: boolean = process.env.NEXT_PUBLIC_ARGENT === "1";
 
+/**
+ * PAYANT_VISIBLE : ce qui se paie hors partie argent (Mon site, ses offres et
+ * ses prix) se montre-t-il ? Masqué le 31 octobre 2026 (décision de Samuel) :
+ * l'app ne montre que le gratuit. Le lien vers Mon site disparaît de la
+ * Vitrine et de Mon écurie, et /mon-site ramène à la Vitrine. Le code et le
+ * service des sites restent ; on le rallume en posant NEXT_PUBLIC_PAYANT=1 à la
+ * construction. Rallumer la partie argent le rallume aussi.
+ */
+export const PAYANT_VISIBLE: boolean = ARGENT_VISIBLE || process.env.NEXT_PUBLIC_PAYANT === "1";
+

@@ -8,7 +8,7 @@ import { ARGENT, PLANNING } from "@/components/bs/navigation";
 import { under } from "@/components/bs/nav";
 import { Ic, Ill, type IllName } from "@/components/carnet/ui";
 import { estOuverte, type AlerteId, type EtatBrique } from "@/lib/briques";
-import { ARGENT_VISIBLE } from "@/lib/fonctions";
+import { ARGENT_VISIBLE, PAYANT_VISIBLE } from "@/lib/fonctions";
 import { Redirect } from "@/components/bs/redirect";
 import "@/app/carnet/briques.css";
 
@@ -23,6 +23,8 @@ export function PorteBrique({ children }: { children: ReactNode }) {
   const { etat, pret } = useBriques();
   // La partie argent masquée (lib/fonctions.ts) : ses écrans ramènent à l'accueil.
   if (!ARGENT_VISIBLE && (under(path, ARGENT) || under(path, PLANNING))) return <Redirect to="/accueil" />;
+  // Le payant masqué (lib/fonctions.ts) : Mon site ramène à la Vitrine.
+  if (!PAYANT_VISIBLE && under(path, ["/mon-site"])) return <Redirect to="/ma-fiche" />;
   // Tant que le compte n'est pas lu, on n'affiche rien plutôt qu'un écran qui passerait ensuite sous cadenas.
   if (!pret && (under(path, ARGENT) || under(path, PLANNING))) return null;
   if (under(path, ARGENT) && !estOuverte(etat.argent)) return <Verrou brique="argent" etat={etat.argent} />;

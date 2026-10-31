@@ -15,7 +15,7 @@ import { EcuriesTexte } from "@/lib/annuaire";
 import { ContactOuvrir, MAILTO_CONTACT, TEXTE_REPLI } from "@/components/bs/contact";
 import { ChoixTemoinsLigne } from "@/components/bs/consentement";
 import { heure } from "@/lib/utils/heure";
-import { FACTURATION } from "@/lib/fonctions";
+import { FACTURATION, PAYANT_VISIBLE } from "@/lib/fonctions";
 
 /**
  * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
@@ -106,7 +106,7 @@ function TonEcurie() {
           <Ic n="chev" className="ce-chev" />
         </Link>
       ) : null}
-      {(listing || demo) && (
+      {PAYANT_VISIBLE && (listing || demo) && (
         <Link href="/mon-site" className="ce-li">
           <span className="ce-ic">
             <Ic n="globe" className="" />
