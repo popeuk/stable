@@ -221,7 +221,7 @@ def lien_demande(f: dict) -> str:
     return f"{origine}/demande/?structure={int(f['id'])}"
 
 
-def rendre_site(f: dict, amb: str, adresse_complete: str) -> str:
+def rendre_site(f: dict, amb: str, adresse_complete: str, apercu: bool = False) -> str:
     a = AMBIANCES.get(amb, AMBIANCES["air"])
     ch = choix() or {}
     m = metier(f)
@@ -263,6 +263,9 @@ def rendre_site(f: dict, amb: str, adresse_complete: str) -> str:
     if hero:
         ld["image"] = hero
     ld_json = json.dumps(ld, ensure_ascii=False).replace("</", "<\\/")
+    # L'aperçu s'affiche dans l'app : feuille de style à adresse complète, liens ouverts ailleurs.
+    css_url = f"https://{DOMAINE}/_s/sites.css?v={VERSION_CSS}" if apercu else f"/_s/sites.css?v={VERSION_CSS}"
+    base_apercu = '<base target="_blank">\n<meta name="robots" content="noindex">\n' if apercu else ""
 
     h = []
     h.append(f"""<!doctype html><html lang="fr"><head><meta charset="utf-8">
@@ -275,8 +278,8 @@ def rendre_site(f: dict, amb: str, adresse_complete: str) -> str:
 {f'<meta property="og:image" content="{e(hero)}">' if hero else ''}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={a['polices']}&display=swap">
-<link rel="stylesheet" href="/_s/sites.css?v={VERSION_CSS}">
-<script type="application/ld+json">{ld_json}</script>
+<link rel="stylesheet" href="{css_url}">
+{base_apercu}<script type="application/ld+json">{ld_json}</script>
 </head><body>
 <div class="site {a['cls']}{'' if hero else ' sans-photo'}">
 <header class="s-nav"><a class="s-logo" href="/" style="text-decoration:none">{e(nom)}</a>
@@ -385,6 +388,8 @@ class Gestion(BaseHTTPRequestHandler):
         if h == DOMAINE:
             if chemin.path == "/api/mon-site":
                 return self.api_mon_site()
+            if chemin.path == "/api/apercu":
+                return self.api_apercu(urllib.parse.parse_qs(chemin.query).get("ambiance", [""])[0])
             return self.envoyer(404, page_404("Aucun site à cette adresse"))
         if h.endswith("." + DOMAINE):
             return self.site(h[: -len(DOMAINE) - 1])
@@ -443,6 +448,18 @@ class Gestion(BaseHTTPRequestHandler):
         f = self.gerant()
         if f:
             self.json(200, self.etat(f))
+
+    def api_apercu(self, amb: str):
+        """Le site tel qu'il serait publié, dans l'ambiance demandée, avec la fiche du moment. Rien n'est enregistré."""
+        f = self.gerant()
+        if not f:
+            return
+        if amb not in AMBIANCES:
+            amb = ambiance_proposee(f)
+        s = site_par_fiche(int(f["id"]))
+        adresse = s["adresse"] if s else adresse_proposee(f.get("title") or "")
+        page = rendre_site(f, amb, f"{adresse}.{DOMAINE}", apercu=True)
+        self.envoyer(200, page, "text/html; charset=utf-8", "no-store", self.cors())
 
     def api_publier(self):
         f = self.gerant()

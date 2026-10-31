@@ -161,6 +161,18 @@ class Essais(unittest.TestCase):
         self.assertEqual(c, 200)
         self.assertIn(".a-sable", css)
 
+    def test_5_apercu(self):
+        self.assertEqual(appel("GET", "/api/apercu?ambiance=sable")[0], 401)
+        c, page, h = appel("GET", "/api/apercu?ambiance=sable", jeton="jeton-clos", origine="https://app.test")
+        self.assertEqual(c, 200)
+        self.assertIn('class="site a-sable"', page)
+        self.assertIn('href="https://sites.test/_s/sites.css', page)
+        self.assertIn('<base target="_blank">', page)
+        self.assertEqual(h.get("Access-Control-Allow-Origin"), "https://app.test")
+        self.assertIn('class="site a-air"', appel("GET", "/api/apercu?ambiance=rose", jeton="jeton-clos")[1])
+        # L'aperçu ne publie rien.
+        self.assertEqual(appel("GET", "/ask?domain=apercu-seul.sites.test")[0], 404)
+
     def test_4_adresse_proposee(self):
         self.assertEqual(bs.adresse_proposee("Écurie de l’Étang d’Or"), "ecurie-de-l-etang-d-or")
 

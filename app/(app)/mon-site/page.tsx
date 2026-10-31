@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, withBase } from "@/components/bs/ui";
@@ -153,7 +153,8 @@ function MonSite() {
     </div>
   );
 
-  const publier = !demo && SITES_API && !enAttente ? <Publier /> : null;
+  // Le service des sites réglé (préprod) : le vrai site en aperçu, à la place du dessin, et la publication.
+  const sitesActif = !demo && !!SITES_API && !enAttente;
 
   const offre = (
     <Sec ill="sacoche" title="Le mettre en ligne" delay={0.16}>
@@ -259,16 +260,14 @@ function MonSite() {
         {desk ? (
           <div className="cols2 ec-cols ms-cols">
             <div>
-              {publier}
               {offre}
               {cta}
             </div>
-            <div className="ec-stick">{apercu}</div>
+            <div className="ec-stick">{sitesActif ? <Publier /> : apercu}</div>
           </div>
         ) : (
           <>
-            {apercu}
-            {publier}
+            {sitesActif ? <Publier /> : apercu}
             {offre}
             {cta}
           </>
@@ -338,7 +337,8 @@ function Publier() {
 
   const change = site.publie && (adresse !== site.adresse || ambiance !== site.ambiance);
   return (
-    <Sec title={site.publie ? "Ton site est en ligne" : "Publier mon site"} delay={0.12} className="ms-pub">
+    <Sec title={site.publie ? "Ton site est en ligne" : "Ton site, avant de le publier"} delay={0.12} className="ms-pub">
+      <ApercuReel ambiance={ambiance} adresse={`${adresse || site.adresse}.${site.domaine}`} />
       {site.publie && site.url && (
         <a className="ms-pub-lien" href={site.url} target="_blank" rel="noreferrer">
           <Ic n="globe" className="" />
@@ -386,6 +386,74 @@ function Publier() {
       <p className="ec-help">En bas de chaque site, un lien mène à ta fiche sur bestable.fr, et le bouton « Écrire à l’écurie » t’envoie les demandes ici, dans l’app.</p>
       <p className="ec-help">Préproduction : la publication est gratuite pour l’essai, le paiement sera branché ici.</p>
     </Sec>
+  );
+}
+
+/** Le vrai site, rendu par le service avec la fiche du moment, dans l'ambiance choisie. Rien n'est publié. */
+function ApercuReel({ ambiance, adresse }: { ambiance: string; adresse: string }) {
+  const [vue, setVue] = useState<"tel" | "ordi">("tel");
+  const [pages, setPages] = useState<Record<string, string>>({});
+  const [erreur, setErreur] = useState("");
+  const boite = useRef<HTMLDivElement>(null);
+  const [largeur, setLargeur] = useState(360);
+
+  useEffect(() => {
+    if (pages[ambiance]) return;
+    let fini = false;
+    const s = getSession();
+    fetch(`${SITES_API}/api/apercu?ambiance=${encodeURIComponent(ambiance)}`, { headers: s?.kind === "compte" ? { "X-BS-Token": s.token } : {}, credentials: "omit" })
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+      .then(
+        (html) => {
+          if (fini) return;
+          setErreur("");
+          setPages((p) => ({ ...p, [ambiance]: html }));
+        },
+        () => !fini && setErreur("L’aperçu ne s’affiche pas pour le moment. Réessaie dans un instant."),
+      );
+    return () => {
+      fini = true;
+    };
+  }, [ambiance, pages]);
+
+  useEffect(() => {
+    const el = boite.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setLargeur(el.clientWidth));
+    ro.observe(el);
+    setLargeur(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  const base = vue === "tel" ? 390 : 1280;
+  const echelle = Math.min(1, largeur / base);
+  const haut = vue === "tel" ? 620 : Math.round(largeur * 0.66);
+  const html = pages[ambiance];
+  return (
+    <div className="ms-ar">
+      <div className="ms-ry" role="group" aria-label="Voir sur">
+        <button type="button" className="chip" aria-pressed={vue === "tel"} onClick={() => setVue("tel")}>
+          Téléphone
+        </button>
+        <button type="button" className="chip" aria-pressed={vue === "ordi"} onClick={() => setVue("ordi")}>
+          Ordinateur
+        </button>
+      </div>
+      <div className={`ms-ar-cadre ${vue}`}>
+        <div className="ms-url-bar">
+          <Ic n="globe" className="" />
+          <span>{adresse}</span>
+        </div>
+        <div className="ms-ar-vue" ref={boite} style={{ height: haut }}>
+          {html ? (
+            <iframe title={`Aperçu de ton site, ${adresse}`} srcDoc={html} sandbox="" style={{ width: base, height: haut / echelle, transform: `scale(${echelle})` }} />
+          ) : (
+            <p className="ec-help ms-ar-attente">{erreur || "On prépare l’aperçu…"}</p>
+          )}
+        </div>
+      </div>
+      <p className="ec-help">Aperçu avec ta fiche telle qu’elle est maintenant. Rien n’est en ligne tant que tu n’as pas publié.</p>
+    </div>
   );
 }
 

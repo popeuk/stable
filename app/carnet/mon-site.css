@@ -86,3 +86,14 @@
 .carnet .ms-pub-lien svg { flex: none; width: 18px; height: 18px; }
 .carnet .ms-pub-msg.ok { color: var(--vert, #134E3A); font-weight: 650; }
 .carnet .ms-pub-off { display: block; margin: 12px auto 4px; background: none; border: 0; font: inherit; font-size: 14px; color: var(--ink2); text-decoration: underline; cursor: pointer; }
+
+/* L'aperçu réel du site (31 octobre 2026) */
+.carnet .ms-ar { margin-bottom: 18px; }
+.carnet .ms-ar .ms-ry { margin-bottom: 10px; }
+.carnet .ms-ar-cadre { border: 1px solid var(--line); border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 18px 40px -28px rgba(27, 18, 37, .45); }
+.carnet .ms-ar-cadre.tel { max-width: 400px; margin: 0 auto; border-radius: 28px; border: 8px solid #16121b; }
+.carnet .ms-ar-cadre .ms-url-bar { border-radius: 0; }
+.carnet .ms-ar-vue { position: relative; overflow: hidden; background: var(--mist, #F1EEF3); }
+.carnet .ms-ar-vue iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; background: #fff; }
+.carnet .ms-ar-attente { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; margin: 0; }
+.carnet .ms-ar-cadre .ms-url-bar { margin: 0; height: 34px; border-radius: 0; background: var(--mist, #F1EEF3); color: var(--ink2); border-bottom: 1px solid var(--line); }
