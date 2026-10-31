@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[64600,["/_next/static/chunks/0npe9lzi4lkra.js","/_next/static/chunks/14mrh2-p_w84d.js","/_next/static/chunks/1m3rca3hdip55.js","/_next/static/chunks/3ttr2w6lx1lf5.js","/_next/static/chunks/29b6e39c3mi6a.js","/_next/static/chunks/43chktif9093-.js","/_next/static/chunks/0t9c4u_8ohne9.js"],"Redirect"]
+3:I[97367,["/_next/static/chunks/0npe9lzi4lkra.js","/_next/static/chunks/14mrh2-p_w84d.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"to":"/argent?vue=leviers"}],null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"G0U_l5ZBLFlvYM7W4gcJB"}
+5:null
