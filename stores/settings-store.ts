@@ -6,6 +6,7 @@ import type { AlerteId } from "@/lib/briques";
 import { vault, wasFresh } from "@/lib/account/vault";
 import { getSession } from "@/lib/account/session";
 import { PALIERS_DEPART, type Palier } from "@/lib/domain/paliers";
+import type { ObjectifsPrestations } from "@/lib/domain/objectifs-prestations";
 
 export interface NotificationPrefs {
   weeklyInsight: boolean;
@@ -102,6 +103,9 @@ interface SettingsState {
   /** Les paliers de l'écurie (version interne du Clos seulement, lib/domain/paliers.ts). */
   paliers: Palier[];
   setPaliers: (p: Palier[]) => void;
+  /** Les objectifs par prestation : pour chaque prestation, le nombre visé à chaque palier (lib/domain/objectifs-prestations.ts). */
+  objectifsPrestations: ObjectifsPrestations;
+  setObjectifsPrestations: (o: ObjectifsPrestations) => void;
 }
 
 /** Granular, opt-in notification preferences (spec 1.3 / 9.4) + stable config. */
@@ -164,6 +168,8 @@ export const useSettingsStore = create<SettingsState>()(
       repondues: [],
       paliers: PALIERS_DEPART.map((x) => ({ ...x })),
       setPaliers: (p) => set({ paliers: p.map((x) => ({ ...x })) }),
+      objectifsPrestations: {},
+      setObjectifsPrestations: (o) => set({ objectifsPrestations: Object.fromEntries(Object.entries(o).map(([k, v]) => [k, v.map((n) => Math.max(0, Math.round(Number(n) || 0)))])) }),
       marquerRepondue: (id, oui) => set((s) => ({ repondues: oui ? [...s.repondues.filter((x) => x !== id), id] : s.repondues.filter((x) => x !== id) })),
       basculerAlerte: (id, aujourdhui) => {
         const avant = get().alertes;

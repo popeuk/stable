@@ -9,6 +9,7 @@ import { useDesk } from "@/components/bs/desk-hook";
 import { Hello, Ic, Page, eur, sg } from "@/components/carnet/ui";
 import { CLOS } from "@/lib/fonctions";
 import { monthBreakdown } from "@/lib/domain/ticket";
+import { lignesAMontrer, lignesPrestations, objectifDe, realisePrestations, type LignePrestation, type ObjectifsPrestations } from "@/lib/domain/objectifs-prestations";
 import { cleMois, manquePour, moisDuSuivi, palierAtteint, palierVise, paliersValables, paliersVides, type Palier } from "@/lib/domain/paliers";
 import { currentPeriod, samePeriod } from "@/lib/utils/period";
 import { useDataStore } from "@/stores/data-store";
@@ -31,6 +32,8 @@ export default function Page_() {
 
 const nomMois = (p: Period, annee = true) =>
   new Date(p.year, p.month - 1, 1).toLocaleDateString("fr-FR", { month: "long", ...(annee ? { year: "numeric" } : {}) });
+/** « 1 cheval », « 3 chevaux », « 1 place », « 2 places ». */
+const uniteAccordee = (unite: string, n: number) => (n > 1 ? unite : unite === "chevaux" ? "cheval" : unite === "places" ? "place" : unite);
 const finEnMots = (fin: string) => nomMois({ year: Number(fin.slice(0, 4)), month: Number(fin.slice(5, 7)) });
 
 function Paliers() {
@@ -41,6 +44,9 @@ function Paliers() {
   const active = usePeriodStore((s) => s.active);
   const setActive = usePeriodStore((s) => s.setActive);
   const [edition, setEdition] = useState(false);
+  const [editionObjectifs, setEditionObjectifs] = useState(false);
+  const objectifs = useSettingsStore((s) => s.objectifsPrestations);
+  const lignes = useMemo(() => lignesAMontrer(lignesPrestations(data), objectifs), [data, objectifs]);
 
   const mois = useMemo(() => moisDuSuivi(paliers), [paliers]);
   const maintenant = currentPeriod();
@@ -105,6 +111,9 @@ function Paliers() {
     sous = `${enCours ? "Pour l’instant, " : `En ${nomMois(ici, false)}, `}le résultat est de ${sg(cur.net)}. Le palier ${iv + 1}, « ${vise?.nom} », demande ${eur(vise?.seuil ?? 0)} par mois jusqu’à ${finEnMots(vise?.fin ?? "")}.`;
   }
 
+  const fait = realisePrestations(data, ici);
+  const suivies = lignes.filter((l) => objectifDe(objectifs, l.cle, iv) > 0 || (fait[l.cle]?.nombre ?? 0) > 0);
+
   // Les quatorze mois : une échelle commune, zéro compris.
   const valeurs = serie.filter((x) => !x.futur).map((x) => x.net);
   const haut = Math.max(1, ...paliers.map((x) => x.seuil), ...valeurs);
@@ -162,6 +171,41 @@ function Paliers() {
         <p className="note">Les chevaux en pension ce mois-là, sans les tiens.</p>
       </div>
 
+      <div className="card pl-carte rise" style={{ animationDelay: ".19s" }}>
+        <p className="k">Prestation par prestation · palier {iv + 1}</p>
+        {suivies.length === 0 ? (
+          <p className="note pl-vide">Aucun objectif par prestation pour l’instant. Fixe-les plus bas : pour chaque palier, combien de pensions de chaque formule, de cours, de demi-pensions, de stages…</p>
+        ) : (
+          <ul className="pl-prest">
+            {suivies.map((l) => {
+              const obj = objectifDe(objectifs, l.cle, iv);
+              const r = fait[l.cle] ?? { nombre: 0, montant: 0 };
+              const echelle = Math.max(obj, r.nombre, 1);
+              const tenu = r.nombre >= obj;
+              return (
+                <li key={l.cle} className={`pl-ligne${tenu ? "" : " manque"}`}>
+                  <div className="pl-tete">
+                    <b>{l.nom}</b>
+                    <span className="pl-chiffre">
+                      {r.nombre} <small>{obj > 0 ? `sur ${obj}` : uniteAccordee(l.unite, r.nombre)}</small>
+                    </span>
+                  </div>
+                  <div className="bar" aria-hidden="true">
+                    <i style={{ width: `${(r.nombre / echelle) * 100}%` }} />
+                    {obj > 0 && <b className="pl-obj" style={{ left: `${(obj / echelle) * 100}%` }} />}
+                  </div>
+                  <p className="pl-quoi">
+                    {obj === 0 ? "Pas d’objectif à ce palier" : tenu ? "Objectif tenu" : `Il en manque ${obj - r.nombre}`}
+                    {r.montant > 0 ? ` · ${eur(r.montant)} ce mois-ci` : ""}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <p className="note">Pensions : les chevaux du mois par formule. Cours : les places de cavalier des séances. Autres : chaque recette notée.</p>
+      </div>
+
       <div className="card pl-carte rise" style={{ animationDelay: ".22s" }}>
         <p className="k">Le résultat, mois par mois</p>
         <div className="pl-graphe" role="list" aria-label="Résultat de chaque mois et palier visé">
@@ -208,10 +252,17 @@ function Paliers() {
       </details>
 
       <div className="pad rise" style={{ animationDelay: ".32s", marginTop: 16 }}>
+        {editionObjectifs ? (
+          <EditionObjectifs paliers={paliers} lignes={lignes} objectifs={objectifs} fermer={() => setEditionObjectifs(false)} />
+        ) : (
+          <button type="button" className="btn line full" onClick={() => setEditionObjectifs(true)}>
+            Fixer les objectifs par prestation
+          </button>
+        )}
         {edition ? (
           <Edition paliers={paliers} fermer={() => setEdition(false)} />
         ) : (
-          <button type="button" className="btn line full" onClick={() => setEdition(true)}>
+          <button type="button" className="btn line full" style={{ marginTop: 10 }} onClick={() => setEdition(true)}>
             Changer les paliers
           </button>
         )}
@@ -281,6 +332,82 @@ function Edition({ paliers, fermer }: { paliers: Palier[]; fermer: () => void })
       )}
       <button type="submit" className="btn full">
         Enregistrer les paliers
+      </button>
+      <button type="button" className="btn line full" style={{ marginTop: 8 }} onClick={fermer}>
+        Annuler
+      </button>
+    </form>
+  );
+}
+
+function EditionObjectifs({ paliers, lignes, objectifs, fermer }: { paliers: Palier[]; lignes: LignePrestation[]; objectifs: ObjectifsPrestations; fermer: () => void }) {
+  const setObjectifs = useSettingsStore((s) => s.setObjectifsPrestations);
+  const [brouillon, setBrouillon] = useState<ObjectifsPrestations>(() =>
+    Object.fromEntries(lignes.map((l) => [l.cle, paliers.map((_, i) => objectifDe(objectifs, l.cle, i))])),
+  );
+  const maj = (cle: string, i: number, v: string) =>
+    setBrouillon((b) => ({ ...b, [cle]: paliers.map((_, j) => (j === i ? Math.max(0, Math.round(Number(v.replace(",", ".")) || 0)) : (b[cle]?.[j] ?? 0))) }));
+  const groupes: [string, LignePrestation[]][] = [
+    ["Pensions (chevaux)", lignes.filter((l) => l.groupe === "pension")],
+    ["Cours et séances (places)", lignes.filter((l) => l.groupe === "seance")],
+    ["Autres recettes (fois)", lignes.filter((l) => l.groupe === "recette")],
+  ];
+  return (
+    <form
+      className="card pl-edition"
+      onSubmit={(e) => {
+        e.preventDefault();
+        // On garde aussi les objectifs des prestations qui ne sont pas montrées ici.
+        setObjectifs({ ...objectifs, ...brouillon });
+        fermer();
+      }}
+    >
+      <p className="k">Objectifs par prestation, chaque mois</p>
+      {lignes.length === 0 && <p className="note">Aucune prestation encore : ajoute tes chevaux, tes cours ou tes recettes dans Mon argent, elles apparaîtront ici.</p>}
+      <div className="pl-defile">
+        <table className="pl-table">
+          <thead>
+            <tr>
+              <th scope="col">Prestation</th>
+              {paliers.map((x, i) => (
+                <th key={i} scope="col" title={x.nom}>
+                  P{i + 1}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          {groupes
+            .filter(([, ls]) => ls.length)
+            .map(([titre, ls]) => (
+              <tbody key={titre}>
+                <tr className="pl-groupe">
+                  <th colSpan={paliers.length + 1} scope="colgroup">
+                    {titre}
+                  </th>
+                </tr>
+                {ls.map((l) => (
+                  <tr key={l.cle}>
+                    <th scope="row">{l.nom}</th>
+                    {paliers.map((_, i) => (
+                      <td key={i}>
+                        <input
+                          inputMode="numeric"
+                          aria-label={`${l.nom}, palier ${i + 1}`}
+                          value={String(brouillon[l.cle]?.[i] ?? 0)}
+                          onChange={(e) => maj(l.cle, i, e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            ))}
+        </table>
+      </div>
+      <p className="note">Le nombre visé chaque mois pendant le palier. 0 : pas d’objectif.</p>
+      <button type="submit" className="btn full">
+        Enregistrer les objectifs
       </button>
       <button type="button" className="btn line full" style={{ marginTop: 8 }} onClick={fermer}>
         Annuler
