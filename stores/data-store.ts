@@ -35,7 +35,7 @@ import { compteurAppareil, facturesEnregistrees } from "@/lib/account/factures-s
 import type { OptionsNumero } from "@/lib/account/numeroter";
 import type { ProvisoireRetiree } from "@/lib/domain/numeros";
 import { scopedKey } from "@/lib/account/session";
-import { revenuesForSeance } from "@/lib/domain/seances";
+import { clePrix, prixDuCavalier, revenuesForSeance } from "@/lib/domain/seances";
 import { SAISON_MOIS, couvreMois, ensureForfaits, marquerForfaits, moisPlus } from "@/lib/domain/forfaits";
 import { sansPrixDExemple } from "@/lib/domain/prix-exemple";
 import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
@@ -221,6 +221,11 @@ interface DataState extends StableData {
   setFormule: (personId: string, prestationId: string, choix: "seance" | { kind: "mois" } | { kind: "annee"; fois: number }, today?: string) => void;
   /** Crée une séance, ou une série (une séance par date). */
   addSeances: (base: Omit<Seance, "id" | "date" | "rev" | "status" | "seriesId">, dates: string[]) => void;
+  /**
+   * Le prix d'un cavalier pour un cours (null : il reprend le prix du cours). Il vaut aussi
+   * pour ses séances prévues à partir d'aujourd'hui ; les séances faites gardent leur prix.
+   */
+  setPrixCavalier: (personId: string, prestationId: string, format: string | undefined, prix: number | null) => void;
   /** Modifie une séance ; la portée reporte seulement ce qui a changé. */
   updateSeance: (id: string, patch: Partial<Omit<Seance, "id" | "seriesId" | "rev">>, scope: "one" | "following" | "all") => void;
   deleteSeance: (id: string, scope: "one" | "following" | "all") => void;
@@ -315,6 +320,20 @@ export function migrerDonnees(old: unknown, v: number): StableData {
 }
 
 /** La pension du mois au prix `pension`, entière ou au prorata depuis son premier jour (la note suit). */
+/** Pose sur chaque cavalier d'une séance prévue son prix à lui, s'il en a un et qu'il n'en a pas déjà un sur la séance. */
+function marquerPrix(x: Seance, people: Person[] | undefined): Seance {
+  if (!people?.length || !x.participants.length) return x;
+  let change = false;
+  const participants = x.participants.map((p) => {
+    if (p.prix !== undefined) return p;
+    const v = prixDuCavalier(people.find((q) => q.id === p.personId), x.prestationId, x.format);
+    if (v === undefined) return p;
+    change = true;
+    return { ...p, prix: v };
+  });
+  return change ? { ...x, participants } : x;
+}
+
 function avecPension<T extends { amount: number; date: string; note?: string }>(r: T, pension: number): T {
   const { amount, note } = pensionDuMois(pension, r.date);
   const out = { ...r, amount };
@@ -984,10 +1003,31 @@ export const useDataStore = create<DataState>()(
         get().runAutopilot(today);
       },
 
+      setPrixCavalier: (personId, prestationId, format, prix) =>
+        set((s) => {
+          const cle = clePrix(prestationId, format);
+          const today = localToday();
+          const people = (s.people ?? []).map((p) => {
+            if (p.id !== personId) return p;
+            const reste = { ...(p.prix ?? {}) };
+            if (prix === null || !Number.isFinite(prix) || prix < 0) delete reste[cle];
+            else reste[cle] = Math.round(prix * 100) / 100;
+            return { ...p, prix: Object.keys(reste).length ? reste : undefined };
+          });
+          const person = people.find((p) => p.id === personId);
+          const seances = (s.seances ?? []).map((x) => {
+            if (x.status !== "planned" || x.date < today || x.prestationId !== prestationId || (format && x.format && x.format !== format)) return x;
+            if (!x.participants.some((p) => p.personId === personId)) return x;
+            const v = prixDuCavalier(person, x.prestationId, x.format);
+            return { ...x, rev: x.rev + 1, participants: x.participants.map((p) => (p.personId === personId ? { ...p, prix: v } : p)) };
+          });
+          return { people, seances };
+        }),
+
       addSeances: (base, dates) =>
         set((s) => {
           const seriesId = dates.length > 1 ? id("serie") : undefined;
-          const created: Seance[] = dates.map((date) => marquerForfaits({ ...base, id: id("seance"), date, status: "planned", seriesId, rev: 1 }, s.abonnements));
+          const created: Seance[] = dates.map((date) => marquerPrix(marquerForfaits({ ...base, id: id("seance"), date, status: "planned", seriesId, rev: 1 }, s.abonnements), s.people));
           return { seances: [...(s.seances ?? []), ...created] };
         }),
 
@@ -1007,7 +1047,7 @@ export const useDataStore = create<DataState>()(
               void _d;
               const next: Seance = { ...x, ...(x.id === sid ? patch : rest), rev: x.rev + 1 };
               if (shift && x.id !== sid) next.date = addDaysIso(x.date, shift);
-              return next.status === "planned" ? marquerForfaits(next, s.abonnements) : next;
+              return next.status === "planned" ? marquerPrix(marquerForfaits(next, s.abonnements), s.people) : next;
             }),
           };
         }),

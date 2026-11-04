@@ -1,4 +1,4 @@
-import type { ISODate, Revenue, Seance, StableData, TeamTask } from "@/lib/domain/types";
+import type { ISODate, Participant, Person, Revenue, Seance, StableData, TeamTask } from "@/lib/domain/types";
 import { CARE_META, addDays, type CareEvent } from "@/lib/domain/care";
 import { heure } from "@/lib/utils/heure";
 import { r2 } from "@/lib/utils/arrondi";
@@ -44,6 +44,30 @@ export function seriesDates(start: ISODate, repeat: Repeat, until?: ISODate): IS
 export const isEmptySeance = (s: Pick<Seance, "participants" | "horseIds">) => s.participants.length === 0 && s.horseIds.length === 0;
 
 /** Combien de personnes paient : présentes, plus les absents facturés. Un cavalier au forfait a déjà payé. */
+/** La clé d'un prix de cavalier : la prestation, et le format pour un cours qui en a un. */
+export const clePrix = (prestationId: string, format?: string) => (format ? `${prestationId}:${format}` : prestationId);
+
+/** Le prix d'un cavalier pour ce cours, s'il en a un à lui (celui du format d'abord, puis celui de la prestation). */
+export function prixDuCavalier(person: Pick<Person, "prix"> | undefined, prestationId: string, format?: string): number | undefined {
+  const p = person?.prix;
+  if (!p) return undefined;
+  const v = (format ? p[clePrix(prestationId, format)] : undefined) ?? p[prestationId];
+  return typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : undefined;
+}
+
+/** Ce que paie ce participant à cette séance : son prix à lui, sinon celui de la séance. */
+export const prixDe = (s: Pick<Seance, "unitPrice">, p: Pick<Participant, "prix">) => p.prix ?? s.unitPrice;
+
+/** Les participants qui paient cette séance (pas au forfait ; présents, ou absents facturés). */
+export function quiPaie(s: Seance): Participant[] {
+  const aLaSeance = s.participants.filter((p) => !p.forfait);
+  if (s.status !== "done") return aLaSeance;
+  return aLaSeance.filter((p) => p.present !== false || s.chargeAbsent);
+}
+
+/** Les prix des cavaliers d'une séance diffèrent-ils ? */
+export const prixVaries = (s: Seance) => new Set(s.participants.map((p) => prixDe(s, p))).size > 1;
+
 export function payingCount(s: Seance): number {
   if (s.participants.length === 0) return s.horseIds.length;
   const aLaSeance = s.participants.filter((p) => !p.forfait);
@@ -54,7 +78,8 @@ export function payingCount(s: Seance): number {
 /** Ce que la séance rapporte : prévu tant qu'elle n'est pas faite, réel ensuite. */
 export function seanceAmount(s: Seance): number {
   if (s.status === "cancelled") return 0;
-  return r2(s.unitPrice * payingCount(s));
+  if (s.participants.length === 0) return r2(s.unitPrice * payingCount(s));
+  return r2(quiPaie(s).reduce((t, p) => t + prixDe(s, p), 0));
 }
 
 /**
@@ -68,7 +93,8 @@ export function revenuesForSeance(
   makeId: () => string,
   stableId: string,
 ): Revenue[] {
-  if (s.status !== "done" || s.unitPrice <= 0) return [];
+  if (s.status !== "done") return [];
+  if (s.participants.length === 0 && s.unitPrice <= 0) return [];
   const cat = data.revenueCategories.find((c) => c.name === "Cours")?.id;
   const out: Revenue[] = [];
   if (s.participants.length === 0) {
@@ -79,6 +105,9 @@ export function revenuesForSeance(
   }
   const paying = s.participants.filter((p) => !p.forfait && (p.present !== false || s.chargeAbsent));
   paying.forEach((p, i) => {
+    // Chacun paie son prix (le sien, sinon celui de la séance) ; un cavalier à 0 € ne fait pas de recette.
+    const montant = prixDe(s, p);
+    if (montant <= 0) return;
     // Un cavalier sans cheval : la recette est à lui, hors des tickets des chevaux (horseId vide).
     const horseId = p.horseId ?? s.horseIds[i % Math.max(1, s.horseIds.length)] ?? "";
     const person = data.people?.find((x) => x.id === p.personId);
@@ -87,7 +116,7 @@ export function revenuesForSeance(
       stableId,
       horseId,
       categoryId: cat,
-      amount: s.unitPrice,
+      amount: montant,
       date: s.date,
       note: p.present === false ? `${s.title} (absence facturée)` : s.title,
       source: "manual",

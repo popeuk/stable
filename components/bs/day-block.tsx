@@ -8,7 +8,7 @@ import { Check, Ic, eur, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { useParcours } from "@/components/bs/parcours-base";
-import type { DayItem } from "@/lib/domain/seances";
+import { prixDe, type DayItem } from "@/lib/domain/seances";
 import { ligneDe, retirer } from "@/components/bs/retirer";
 import { localToday } from "@/lib/utils/local-date";
 import { dernierMoyen, enMoyen } from "@/lib/domain/paiement";
@@ -156,24 +156,28 @@ function PayeSurPlace({ seance: s }: { seance: NonNullable<DayItem["seance"]> })
   const [qui1, setQui1] = useState<string | null>(null);
   const today = localToday();
   const passee = s.status !== "cancelled" && (s.date < today || (s.date === today && s.end <= hhmmNow()));
-  if (!passee || s.unitPrice <= 0) return null;
+  if (!passee) return null;
+  // Chacun à son prix (le sien, sinon celui de la séance) ; un cavalier à 0 € n'a rien à payer.
+  const prixPar = new Map(s.participants.map((p) => [p.personId, prixDe(s, p)]));
   const qui = s.participants
-    .filter((p) => p.present !== false)
+    .filter((p) => p.present !== false && prixDe(s, p) > 0)
     .map((p) => (people ?? []).find((x) => x.id === p.personId))
     .filter((p): p is NonNullable<typeof p> => !!p && !!p.paieALaSeance);
   if (!qui.length) return null;
+  const prixDuNom = (name: string) => prixPar.get((people ?? []).find((x) => x.name === name)?.id ?? "") ?? s.unitPrice;
   const payer = (name: string, method: PaymentMethod, chequeNumber: string) => {
     setQui1(null);
-    const id = useDataStore.getState().addPayment(name, s.date.slice(0, 7), s.unitPrice, s.id, { method, chequeNumber });
+    const montant = prixDuNom(name);
+    const id = useDataStore.getState().addPayment(name, s.date.slice(0, 7), montant, s.id, { method, chequeNumber });
     vibrer();
-    say(`${esc(prenom(name))} t’a payé <strong>${eur(s.unitPrice)}</strong> ${enMoyen(method)}.`, () => useDataStore.getState().removePayment(id));
+    say(`${esc(prenom(name))} t’a payé <strong>${eur(montant)}</strong> ${enMoyen(method)}.`, () => useDataStore.getState().removePayment(id));
   };
   return (
     <>
       {qui.map((p) => (
         <div key={p.id} className="cl-who">
           <span>{prenom(p.name)}</span>
-          <span className="in">{sg(s.unitPrice)}</span>
+          <span className="in">{sg(prixPar.get(p.id) ?? s.unitPrice)}</span>
           {paid.includes(p.name) ? (
             <span className="cl-paid">
               <Ic n="ck" className="" />
@@ -188,7 +192,7 @@ function PayeSurPlace({ seance: s }: { seance: NonNullable<DayItem["seance"]> })
       ))}
       {qui1 && (
         <PayeSurPlaceSheet
-          titre={`${prenom(qui1)} a payé ${eur(s.unitPrice)} sur place`}
+          titre={`${prenom(qui1)} a payé ${eur(prixDuNom(qui1))} sur place`}
           defaut={dernierMoyen(useDataStore.getState().payments, qui1)}
           onClose={() => setQui1(null)}
           onOk={(m, chq) => payer(qui1, m, chq)}

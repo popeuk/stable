@@ -330,6 +330,12 @@ export interface Person {
   garderAvance?: boolean;
   /** Professionnel : son numéro de TVA intracommunautaire, facultatif, imprimé s'il est noté. */
   tvaIntra?: string;
+  /**
+   * Ses prix à la séance quand ils diffèrent du prix du cours : la clé est
+   * l'identifiant de la prestation, suivi du format pour un cours qui en a un
+   * (« cours:collectif »). Posés sur ses séances à l'inscription (lib/domain/seances.ts).
+   */
+  prix?: Record<string, number>;
   active: boolean;
 }
 
@@ -391,6 +397,8 @@ export interface Participant {
   present?: boolean;
   /** Au forfait pour ce cours : sa présence ne se paie pas en plus (lib/domain/forfaits). */
   forfait?: boolean;
+  /** Son prix à cette séance, s'il diffère du prix de la séance (Person.prix, figé à l'inscription). */
+  prix?: number;
 }
 
 /**

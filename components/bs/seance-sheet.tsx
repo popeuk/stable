@@ -10,7 +10,7 @@ import { esc } from "@/components/bs/ui";
 import { Chips, Face, Ic, Money, Seg, eurc, ini } from "@/components/carnet/ui";
 import { retirer } from "@/components/bs/retirer";
 import { localToday } from "@/lib/utils/local-date";
-import { isEmptySeance, seanceAmount, seancePassee } from "@/lib/domain/seances";
+import { isEmptySeance, prixDe, prixVaries, seanceAmount, seancePassee } from "@/lib/domain/seances";
 import { HorseChips, InField } from "@/components/bs/seance-form";
 import { habitues } from "@/lib/domain/ajouter";
 import { norm } from "@/lib/domain/interpret";
@@ -95,7 +95,8 @@ function Inner({ seance }: { seance: Seance }) {
   const nLa = seance.participants.filter(estLa).length;
   const aChange = seance.status !== "done" || seance.participants.some((p) => estLa(p) !== (p.present !== false));
   // Ce que l'appel ferait compter : les présents, plus les absents si la séance les facture. Un forfait a déjà payé.
-  const montantAppel = Math.round(seance.unitPrice * seance.participants.filter((p) => !p.forfait && (estLa(p) || seance.chargeAbsent)).length * 100) / 100;
+  // Chacun à son prix (le sien, sinon celui de la séance).
+  const montantAppel = Math.round(seance.participants.filter((p) => !p.forfait && (estLa(p) || seance.chargeAbsent)).reduce((t, p) => t + prixDe(seance, p), 0) * 100) / 100;
 
   function cancel() {
     const snap = snapshot();
@@ -193,7 +194,7 @@ function Inner({ seance }: { seance: Seance }) {
       <>
         <div className="jr-pills">
           <span className={`pill${!passee && seance.status === "planned" ? " ink" : ""}`}>{etat}</span>
-          <span className="pill">{seance.unitPrice > 0 ? `${eurc(seance.unitPrice)} ${parCheval ? "par cheval" : "par cavalier"}` : "Pas de prix pour l’instant"}</span>
+          <span className="pill">{prixVaries(seance) ? "Prix selon le cavalier" : prixDe(seance, seance.participants[0] ?? {}) > 0 ? `${eurc(prixDe(seance, seance.participants[0] ?? {}))} ${parCheval ? "par cheval" : "par cavalier"}` : "Pas de prix pour l’instant"}</span>
           {seance.seriesId && <span className="pill">revient, {series.length} séances en tout</span>}
         </div>
         <p className="k jr-k">
@@ -235,7 +236,7 @@ function Inner({ seance }: { seance: Seance }) {
               {who ? <span className="ini">{ini(who)}</span> : <Face horse={h} />}
               <span>
                 <b>{who ?? h?.name}</b>
-                {sur && <small>{sur}</small>}
+                {(sur || (who && prixVaries(seance))) && <small>{[sur, who && prixVaries(seance) ? eurc(prixDe(seance, p as Seance["participants"][number])) : ""].filter(Boolean).join(" · ")}</small>}
               </span>
               {h && who ? <Face horse={h} className="jr-sm" /> : <span />}
             </div>

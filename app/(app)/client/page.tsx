@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SaFormule } from "@/components/bs/formule";
+import { SaFormule, SesPrix } from "@/components/bs/formule";
 import { ChampAdresse } from "@/components/bs/champ-adresse";
 import { ClientGate } from "@/components/ui/client-gate";
 import { esc } from "@/components/bs/ui";
@@ -383,6 +383,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       </div>
 
       <SaFormule nom={nom} role={role} />
+      <SesPrix nom={nom} role={role} />
 
       <div className="cl-blk">
         <h3>

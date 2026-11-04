@@ -173,3 +173,59 @@ export function SaFormule({ nom, role }: { nom: string; role: PersonRole }) {
     </div>
   );
 }
+
+/**
+ * Sur la fiche d'un cavalier : son prix à la séance pour chaque cours, quand il
+ * diffère du prix du cours (lib/domain/seances.ts, prixDuCavalier). Vide : il
+ * paie le prix du cours. Le prix vaut pour ses séances prévues à partir
+ * d'aujourd'hui ; les séances faites gardent le leur.
+ */
+export function SesPrix({ nom, role }: { nom: string; role: PersonRole }) {
+  const prestations = (useDataStore((s) => s.prestations) ?? []).filter((p) => p.active);
+  const person = useDataStore((s) => s.people?.find((x) => x.name.trim().toLowerCase() === nom.trim().toLowerCase()));
+  const setPrixCavalier = useDataStore((s) => s.setPrixCavalier);
+  const [fait, setFait] = useState("");
+  if (!prestations.length) return null;
+  const lignes = prestations.flatMap((p) =>
+    p.hasFormat
+      ? (["particulier", "collectif"] as const).map((f) => ({ p, format: f as string | undefined, nom: `${nomCours(p)}, ${f}` }))
+      : [{ p, format: undefined as string | undefined, nom: nomCours(p) }],
+  );
+  const pid = () => person?.id ?? useDataStore.getState().ensurePerson(nom, role);
+  return (
+    <div className="cl-blk fo-blk">
+      <h3>Ses prix</h3>
+      <p className="cl-auto">Son prix à la séance, s’il est différent de celui du cours. Laisse vide : il paie le prix du cours.</p>
+      {lignes.map(({ p, format, nom: n }) => {
+        const cle = format ? `${p.id}:${format}` : p.id;
+        const v = person?.prix?.[cle];
+        return (
+          <label key={cle} className="fo-l">
+            <span>{n}</span>
+            <span className="fo-f">
+              <input
+                inputMode="decimal"
+                placeholder={p.price ? montantEnTexte(p.price) : "0"}
+                defaultValue={v === undefined ? "" : montantEnTexte(v)}
+                aria-label={`Prix de ${nom} pour ${n}, en euros`}
+                onBlur={(e) => {
+                  const brut = e.target.value.trim();
+                  const lu = brut ? lireMontant(brut) : null;
+                  if ((lu ?? undefined) === v) return;
+                  setPrixCavalier(pid(), p.id, format, lu);
+                  setFait(brut ? `${n} : ${eurc(lu ?? 0)} la séance pour ${nom}, aussi sur ses séances prévues.` : `${n} : ${nom} reprend le prix du cours.`);
+                }}
+              />
+              <i>€ la séance</i>
+            </span>
+          </label>
+        );
+      })}
+      {fait && (
+        <p className="cl-auto" role="status">
+          {fait}
+        </p>
+      )}
+    </div>
+  );
+}
