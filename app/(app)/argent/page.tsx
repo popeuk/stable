@@ -1,5 +1,6 @@
 "use client";
 
+import { BilanClos } from "@/components/bs/bilan-clos";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -94,6 +95,15 @@ function Argent() {
   const isNow = samePeriod(active, currentPeriod());
   const desk = useDesk();
   const label = cap(new Date(active.year, active.month - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: isNow ? undefined : "numeric" }));
+  // Version du Clos : Mon bilan tourné vers l'année qui vient (components/bs/bilan-clos.tsx).
+  if (CLOS && vue === "mois")
+    return (
+      <Page wide={desk}>
+        <h1 className="ar-sr">Mon bilan</h1>
+        <BilanClos />
+        <div className="end" />
+      </Page>
+    );
   return (
     <Page wide={desk}>
       <h1 className="ar-sr">{TITRES[vue] ?? TITRES.mois}</h1>

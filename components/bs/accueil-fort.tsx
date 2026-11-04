@@ -1,5 +1,6 @@
 "use client";
 
+import { CLOS } from "@/lib/fonctions";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Ic, Ill, sgc, type IllName } from "@/components/carnet/ui";
@@ -148,7 +149,8 @@ export function Chemin({ delay = 0.1 }: { delay?: number }) {
     const t = setTimeout(() => setGo(true), 60);
     return () => clearTimeout(t);
   }, []);
-  if (!hydrated || !etat.ok || ferme) return null;
+  // Version du Clos : l'écurie tourne déjà, pas de « Pour bien démarrer ».
+  if (CLOS || !hydrated || !etat.ok || ferme) return null;
 
   const faits = pas.filter((p) => p.fait).length;
   const now = pas.find((p) => !p.fait);
