@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "Be Stable, l’écurie et ce qu’elle te rapporte",
+  "short_name": "Be Stable",
+  "description": "Planning, soins, équipe et argent de ton écurie. Ce que chaque cheval te rapporte vraiment.",
+  "start_url": "./accueil/?source=app",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#FCFBF9",
+  "theme_color": "#134E3A",
+  "orientation": "any",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "lifestyle"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Ajouter", "short_name": "Ajouter", "description": "Une séance, un soin, une tâche ou de l’argent", "url": "./accueil/?ajouter=seance", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Planning", "url": "./planning/", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Ce qui est fait", "url": "./valider/", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Mon bilan", "url": "./argent/", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+  ]
+}
