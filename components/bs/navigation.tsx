@@ -33,6 +33,7 @@ const PARENTS2: [string, string][] = [
   ["/scenarios", "/argent"],
   ["/seuil", "/argent"],
   ["/paliers", "/argent"],
+  ["/importer", "/chevaux?vue=chevaux"],
   ["/pilotage", "/argent"],
   ["/part", "/argent"],
   ["/prestations", "/argent"],

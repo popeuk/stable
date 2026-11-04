@@ -19,8 +19,11 @@ import { useUiStore } from "@/stores/ui-store";
 import { esc } from "@/lib/utils/esc";
 import { useParentIci } from "@/components/bs/nav";
 import { adresseClient, nomDeLAdresse } from "@/lib/adresse-client";
+import { A_MOI } from "@/components/bs/parcours-base";
+import { changementEnMots } from "@/lib/domain/changements";
 
-const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Retraite", "Pré"];
+// « À moi » : un cheval de l'écurie elle-même, sans pension (il prend une place et sa part des frais).
+const FORMULES = ["Box seul", "Box + paddock", "Pension travail", "Écurie active", "Retraite", "Pré", A_MOI];
 
 /**
  * La règle d'une arrivée datée, dite à la saisie (lib/domain/sejours) : la
@@ -86,6 +89,14 @@ function SaisieCheval() {
   // Arrivé en cours de mois : la fiche dit que ce mois-ci est au prorata (ou déjà facturé).
   const prorataDit = !editing || entryDate !== editing.entryDate || auProrata || figee === "facturee" ? textePensionArrivee(montantOuZero(pension), entryDate, localToday(), figee === "facturee") : "";
   const pensionNum = montantOuZero(pension);
+  const aMoi = formule === A_MOI;
+  // Un changement de formule ou de prix peut compter plus tard (lib/domain/changements.ts).
+  const programmerChangement = useDataStore((s) => s.programmerChangement);
+  const annulerChangement = useDataStore((s) => s.annulerChangement);
+  const [apartir, setApartir] = useState(moisCourant);
+  const prixChange = !!editing && (aMoi ? (editing.pension ?? 0) > 0 : pensionNum !== (editing.pension ?? 0));
+  const formuleChange = !!editing && (formule ?? "") !== (editing.pensionType ?? "");
+  const plusTard = !!editing && (prixChange || formuleChange) && apartir > moisCourant;
   const others = horses.filter((h) => !h.isArchived && h.id !== editing?.id);
 
   function save() {
@@ -95,7 +106,7 @@ function SaisieCheval() {
       name: name.trim(),
       breed: breed.trim() || undefined,
       ownerName: ownerName.trim() || tape.trim() || undefined,
-      pension: pensionNum > 0 ? pensionNum : undefined,
+      pension: !aMoi && pensionNum > 0 ? pensionNum : undefined,
       pensionType: formule,
       coat,
       blaze,
@@ -106,6 +117,21 @@ function SaisieCheval() {
       const nom = retour === "client" ? useDataStore.getState().horses.find((h) => h.id === hid)?.ownerName : undefined;
       return nom ? adresseClient(nom) : null;
     };
+    if (editing && plusTard) {
+      // Le changement attend son mois : le reste de la fiche change tout de suite.
+      const { pension: _p, pensionType: _t, ...reste } = common;
+      void _p;
+      void _t;
+      updateHorse(editing.id, reste);
+      programmerChangement(editing.id, {
+        depuis: apartir,
+        ...(formuleChange ? { pensionType: formule ?? "" } : {}),
+        ...(prixChange ? { pension: aMoi ? 0 : pensionNum } : {}),
+      });
+      say(`C’est enregistré. ${changementEnMots({ depuis: apartir, ...(formuleChange ? { pensionType: formule ?? "" } : {}), ...(prixChange ? { pension: aMoi ? 0 : pensionNum } : {}) })}.`);
+      router.push(retour === "accueil" ? "/accueil" : (versClient(editing.id) ?? `/ticket?id=${editing.id}`));
+      return;
+    }
     if (editing) {
       updateHorse(editing.id, common);
       say("C’est enregistré.");
@@ -170,6 +196,11 @@ function SaisieCheval() {
             ))}
           </div>
         </div>
+        {aMoi ? (
+          <p className="field">
+            <em>Un cheval à toi : pas de pension. Il prend une place et sa part des frais de l’écurie.</em>
+          </p>
+        ) : (
         <label className="field">
           <span>Pension</span>
           <span className="input">
@@ -183,8 +214,33 @@ function SaisieCheval() {
             />
             <span className="u">€ / mois</span>
           </span>
-          <em>{editing && montantOuZero(pension) !== (editing.pension ?? 0) ? textePrixChange(figee, moisCourant) : "Comptée chaque mois dans ce qui rentre. Tu ne la notes qu’une fois."}</em>
+          <em>{editing && montantOuZero(pension) !== (editing.pension ?? 0) && !plusTard ? textePrixChange(figee, moisCourant) : "Comptée chaque mois dans ce qui rentre. Tu ne la notes qu’une fois."}</em>
         </label>
+        )}
+        {editing && (prixChange || formuleChange) && (
+          <label className="field">
+            <span>Ce changement compte à partir de</span>
+            <input className="input" type="month" min={moisCourant} value={apartir} onChange={(e) => setApartir(e.target.value && e.target.value >= moisCourant ? e.target.value : moisCourant)} />
+            <em>
+              {plusTard
+                ? `Jusque-là, rien ne change : ${editing.pensionType ?? "sa formule"}${editing.pension ? `, ${montantEnTexte(editing.pension)} € par mois` : ""}. Le changement se fera tout seul.`
+                : "Dès ce mois-ci. Les mois passés ne changent pas."}
+            </em>
+          </label>
+        )}
+        {editing && (editing.aVenir ?? []).length > 0 && (
+          <div className="field" role="group" aria-label="Changements à venir">
+            <span>Changements à venir</span>
+            {(editing.aVenir ?? []).map((c) => (
+              <span key={c.depuis} className="ch-avenir">
+                <em>{changementEnMots(c)}</em>
+                <button type="button" className="lnk" onClick={() => annulerChangement(editing.id, c.depuis)}>
+                  Annuler
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
         <label className="field">
           <span>
             Race <span className="ch-opt">facultatif</span>

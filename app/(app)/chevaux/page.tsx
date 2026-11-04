@@ -30,6 +30,7 @@ import { useFeuille } from "@/components/bs/feuille";
 import { useTitreOnglet } from "@/components/bs/titre-onglet";
 import { echeance } from "@/lib/utils/heure";
 import { adresseClient } from "@/lib/adresse-client";
+import { CLOS } from "@/lib/fonctions";
 import { FACTURATION } from "@/lib/fonctions";
 import "@/app/carnet/client.css";
 import "@/app/carnet/facture.css";
@@ -673,10 +674,17 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
               Ce mois, tes chevaux {net >= 0 ? "te laissent" : "te coûtent"} <Money v={net} plain /> à eux tous, une fois leurs frais payés. Clique un cheval pour voir le détail.
             </p>
           </div>
-          <Link href={ajouter} className="btn">
-            <Ic n="plus" className="" />
-            Ajouter un cheval
-          </Link>
+          <span style={{ display: "flex", gap: 8 }}>
+            {CLOS && (
+              <Link href="/importer" className="btn line">
+                Importer un tableau
+              </Link>
+            )}
+            <Link href={ajouter} className="btn">
+              <Ic n="plus" className="" />
+              Ajouter un cheval
+            </Link>
+          </span>
         </div>
         <div className="ch-bar2 rise" style={{ animationDelay: ".08s" }}>
           {bascule}
@@ -820,6 +828,11 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
           <Ic n="plus" className="" />
           Ajouter un cheval
         </Link>
+        {CLOS && (
+          <Link href="/importer" className="btn line full" style={{ marginTop: 10 }}>
+            Importer depuis un tableau
+          </Link>
+        )}
       </div>
       <Partis />
       <div className="end" />

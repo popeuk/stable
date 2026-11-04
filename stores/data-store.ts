@@ -52,6 +52,8 @@ import { avecCategoriesSysteme, categorieSysteme } from "@/lib/domain/categories
 import { nettoyer, vide } from "@/lib/domain/valider";
 import type { MontantSaisi } from "@/lib/domain/types";
 import { donneesPlusRecentes, noterVersionLue } from "@/lib/version-donnees";
+import { annuler as annulerPrevu, changementValable, chevauxAJour, programmer } from "@/lib/domain/changements";
+import type { ChangementPrevu } from "@/lib/domain/types";
 
 /**
  * Client-side data store. It persists to localStorage (lib/account/vault.ts),
@@ -169,6 +171,9 @@ interface DataState extends StableData {
    * ce mois-ci par l'autopilote (sinon le ticket du mois mentirait).
    */
   setPension: (horseId: string, amount: number, monthKey: string) => void;
+  /** Un changement de formule ou de prix à partir d'un mois (lib/domain/changements.ts) : tout de suite s'il est déjà là, sinon programmé. */
+  programmerChangement: (horseId: string, c: ChangementPrevu) => void;
+  annulerChangement: (horseId: string, depuis: string) => void;
   /**
    * Une facture commune mensuelle, réglée une fois : elle devient une charge
    * récurrente partagée à partir du mois donné, et remplace l'estimation d'avant
@@ -670,7 +675,24 @@ export const useDataStore = create<DataState>()(
         })),
 
       runAutopilot: (today) =>
-        set((s) => {
+        set((s0) => {
+          // Les changements de formule ou de prix dont le mois est arrivé (lib/domain/changements.ts) :
+          // le cheval prend sa nouvelle formule, et la pension de ce mois, si elle est déjà posée et
+          // pas facturée, son nouveau prix (ou s'en va s'il n'y a plus de pension).
+          const mois = today.slice(0, 7);
+          const maj = chevauxAJour(s0.horses, mois);
+          let s = s0;
+          if (maj.changes.length) {
+            let revenues = s0.revenues;
+            for (const ch of maj.changes) {
+              if (!ch.appliques.some((c) => c.pension !== undefined) || pensionFigee(s0, ch.horseId, mois)) continue;
+              const h = maj.horses.find((x) => x.id === ch.horseId);
+              const rid = pensionRevenueId(ch.horseId, mois);
+              revenues = h?.pension ? revenues.map((r) => (r.id === rid ? avecPension(r, h.pension!) : r)) : revenues.filter((r) => r.id !== rid);
+            }
+            s = { ...s0, horses: maj.horses, revenues };
+          }
+          const change = maj.changes.length ? { horses: s.horses, revenues: s.revenues } : {};
           // Les mois où l'app n'a pas été ouverte sont rattrapés, sans doublon.
           const depuis = premierMoisARattraper(s, today, s.pensionsAu);
           // Les pensions des chevaux, puis les échéances des forfaits des cavaliers.
@@ -681,9 +703,10 @@ export const useDataStore = create<DataState>()(
             s.horses,
             today,
           );
-          if (pensions.length === 0 && events.length === 0 && advanced.length === 0) return s.pensionsAu === pensionsAu ? s : { pensionsAu };
+          if (pensions.length === 0 && events.length === 0 && advanced.length === 0) return s.pensionsAu === pensionsAu && !maj.changes.length ? s0 : { pensionsAu, ...change };
           const until = new Map(advanced.map((a) => [a.id, a.materializedUntil]));
           return {
+            ...change,
             pensionsAu,
             revenues: pensions.length ? [...s.revenues, ...pensions] : s.revenues,
             careEvents: events.length ? [...(s.careEvents ?? []), ...events] : s.careEvents,
@@ -764,6 +787,21 @@ export const useDataStore = create<DataState>()(
 
       deleteExpenseCategory: (catId) =>
         set((s) => ({ expenseCategories: s.expenseCategories.filter((c) => c.id !== catId || !!categorieSysteme(c, "depense")) })),
+
+      programmerChangement: (horseId, c) => {
+        if (!changementValable(c)) return;
+        // Déjà commencé : il compte tout de suite, comme une modification de la fiche.
+        if (c.depuis <= localToday().slice(0, 7)) {
+          const patch: Partial<Omit<Horse, "id" | "stableId">> = {};
+          if (c.pensionType !== undefined) patch.pensionType = c.pensionType || undefined;
+          if (c.pension !== undefined) patch.pension = c.pension > 0 ? c.pension : undefined;
+          get().updateHorse(horseId, patch);
+          return;
+        }
+        set((s) => ({ horses: s.horses.map((h) => (h.id === horseId ? programmer(h, c) : h)) }));
+      },
+
+      annulerChangement: (horseId, depuis) => set((s) => ({ horses: s.horses.map((h) => (h.id === horseId ? annulerPrevu(h, depuis) : h)) })),
 
       setPension: (horseId, amount, monthKey) =>
         set((s) => {

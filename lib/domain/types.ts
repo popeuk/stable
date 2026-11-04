@@ -17,6 +17,18 @@ export type StableType =
 /** ISO date string, `YYYY-MM-DD`. */
 export type ISODate = string;
 
+/**
+ * Un changement de formule ou de prix programmé pour un cheval (version du
+ * Clos) : il compte à partir du 1er de son mois. pension 0 = plus de pension
+ * (un cheval qui devient le sien, « À moi ») ; absent = le prix ne change pas.
+ */
+export interface ChangementPrevu {
+  /** Le mois à partir duquel il compte, AAAA-MM. */
+  depuis: string;
+  pension?: number;
+  pensionType?: string;
+}
+
 export interface Horse {
   id: string;
   stableId: string;
@@ -28,6 +40,8 @@ export interface Horse {
   exitDate?: ISODate | null;
   isArchived: boolean;
   pensionType?: string;
+  /** Les changements de formule ou de prix à venir, appliqués tout seuls à leur mois (lib/domain/changements.ts). */
+  aVenir?: ChangementPrevu[];
   /**
    * Le contrat de pension (€/mois). Renseigné, il est posté automatiquement
    * chaque mois en revenu : le loyer d'une place ne se ressaisit jamais.
