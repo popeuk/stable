@@ -13,7 +13,16 @@ export const FACTURATION: boolean = false;
  * visibles en aperçu avec l'alerte « Me prévenir à l'ouverture » (lib/briques.ts).
  * On ouvre en posant NEXT_PUBLIC_OUVERTURE=1 à la construction.
  */
-export const OUVERTURE: boolean = process.env.NEXT_PUBLIC_OUVERTURE === "1";
+export const OUVERTURE: boolean = process.env.NEXT_PUBLIC_OUVERTURE === "1" || process.env.NEXT_PUBLIC_CLOS === "1";
+
+/**
+ * CLOS : la version interne du Clos de la Motte (4 novembre 2026, décision de
+ * Samuel), servie à part sur le VPS (clos.187-7-74-179.sslip.io). Mon argent
+ * y est montré et ouvert à tous les comptes, sans essai ni abonnement, et
+ * l'écran des paliers du Clos (/paliers) s'ajoute à la partie argent. On la
+ * construit avec NEXT_PUBLIC_CLOS=1 (.github/workflows/clos.yml).
+ */
+export const CLOS: boolean = process.env.NEXT_PUBLIC_CLOS === "1";
 
 /**
  * ARGENT_VISIBLE : la partie argent (Mon bilan, Clients et chevaux, le +, le
@@ -22,7 +31,7 @@ export const OUVERTURE: boolean = process.env.NEXT_PUBLIC_OUVERTURE === "1";
  * Vitrine, Demandes, Audit, Apprendre). Le code et les données restent ; on la
  * rallume en posant NEXT_PUBLIC_ARGENT=1 à la construction.
  */
-export const ARGENT_VISIBLE: boolean = process.env.NEXT_PUBLIC_ARGENT === "1";
+export const ARGENT_VISIBLE: boolean = process.env.NEXT_PUBLIC_ARGENT === "1" || CLOS;
 
 /**
  * PAYANT_VISIBLE : ce qui se paie hors partie argent (Mon site, ses offres et

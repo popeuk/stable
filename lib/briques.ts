@@ -43,6 +43,8 @@ export interface EtatCompte {
   abonnement?: { argent?: boolean; site?: OffreSite };
   /** Aujourd'hui (AAAA-MM-JJ). */
   aujourdhui: string;
+  /** Version interne du Clos (lib/fonctions.ts, CLOS) : tout est ouvert, sans essai ni abonnement. */
+  toutOuvert?: boolean;
 }
 
 export const DUREE_ESSAI = 30;
@@ -59,7 +61,7 @@ export function jourEssai(debut: string, aujourdhui: string): number {
 /** L'état de chaque brique pour ce compte. */
 export function etatsBriques(c: EtatCompte): Record<BriqueId, EtatBrique> {
   // La démo montre l'app entière ; l'écurie essayée sans compte garde le fonctionnement d'avant.
-  if (c.kind !== "compte") return { vitrine: "ouverte", demandes: "ouverte", argent: "ouverte", planning: "ouverte", site: "ouverte" };
+  if (c.kind !== "compte" || c.toutOuvert) return { vitrine: "ouverte", demandes: "ouverte", argent: "ouverte", planning: "ouverte", site: "ouverte" };
   const site = c.abonnement?.site ?? 0;
   let argent: EtatBrique;
   if (!c.ouvert) argent = "bientot";

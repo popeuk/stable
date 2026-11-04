@@ -14,7 +14,7 @@ import { Ic } from "@/components/carnet/ui";
 /** Les quatre onglets : ils n'ont pas de retour. */
 export const ROOTS2 = ["/accueil", "/ma-fiche", "/demandes", "/chevaux", "/audit", "/apprendre"];
 /** Les écrans de Mon argent et du planning : sous cadenas ou « bientôt » tant que la brique n'est pas ouverte (components/bs/porte-brique.tsx). */
-export const ARGENT = ["/argent", "/chevaux", "/client", "/ticket", "/seuil", "/pilotage", "/part", "/prestations", "/scenarios", "/mois", "/depenses", "/facture", "/facturation", "/saisie", "/conseiller", "/decouvertes"];
+export const ARGENT = ["/argent", "/paliers", "/chevaux", "/client", "/ticket", "/seuil", "/pilotage", "/part", "/prestations", "/scenarios", "/mois", "/depenses", "/facture", "/facturation", "/saisie", "/conseiller", "/decouvertes"];
 export const PLANNING = ["/planning", "/valider", "/equipe"];
 /** Les écrans de Mon écurie : l'onglet reste allumé. */
 export const ECURIE = ["/ecurie", "/parcours/tarifs", "/parcours/factures", "/contacts", "/ma-fiche", "/mon-site", "/facturation", "/registre"];
@@ -30,6 +30,7 @@ const PARENTS2: [string, string][] = [
   ["/scenarios/nouveau", "/scenarios"],
   ["/scenarios", "/argent"],
   ["/seuil", "/argent"],
+  ["/paliers", "/argent"],
   ["/pilotage", "/argent"],
   ["/part", "/argent"],
   ["/prestations", "/argent"],

@@ -1,0 +1,33 @@
+/* Les paliers du Clos (version interne, /paliers). Mêmes cartes et barres que Mon bilan. */
+.carnet .pl-carte { margin: 16px var(--gut) 0; }
+.carnet .pl-liste { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 14px; }
+.carnet .pl-palier { display: grid; gap: 2px; }
+.carnet .pl-tete { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.carnet .pl-tete b { font-weight: 700; }
+.carnet .pl-etat { font-size: 12px; font-weight: 700; color: var(--ink3); white-space: nowrap; }
+.carnet .pl-palier.vise .pl-etat { color: var(--acc); }
+.carnet .pl-palier.fait .pl-etat { color: var(--ink); }
+.carnet .pl-quoi { margin: 0; font-size: 13px; color: var(--ink3); font-variant-numeric: tabular-nums; }
+.carnet .pl-palier .bar { margin-top: 6px; }
+.carnet .pl-palier:not(.vise):not(.fait) .bar i { background: color-mix(in srgb, var(--ink) 30%, transparent); }
+.carnet .pl-gros { margin: 6px 0 0; font-size: 28px; font-weight: 750; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.carnet .pl-gros small { font-size: 14px; font-weight: 600; color: var(--ink3); letter-spacing: 0; }
+
+.carnet .pl-graphe { position: relative; display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; height: 150px; margin-top: 14px; }
+.carnet .pl-col { position: relative; height: 100%; border: 0; padding: 0; background: none; cursor: pointer; }
+.carnet .pl-col:disabled { cursor: default; }
+.carnet .pl-baton { position: absolute; left: 12%; right: 12%; border-radius: 3px; background: color-mix(in srgb, var(--ink) 30%, transparent); }
+.carnet .pl-col.choisi .pl-baton { background: var(--ink); }
+.carnet .pl-col.neg .pl-baton { background: color-mix(in srgb, var(--out) 55%, transparent); }
+.carnet .pl-col.neg.choisi .pl-baton { background: var(--out); }
+.carnet .pl-seuil { position: absolute; left: 0; right: 0; height: 2px; background: var(--acc); }
+.carnet .pl-col.futur .pl-seuil { opacity: .45; }
+.carnet .pl-zero { position: absolute; left: 0; right: 0; height: 1px; background: var(--line); pointer-events: none; }
+.carnet .pl-axe { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; margin-top: 6px; font-size: 11px; text-align: center; color: var(--ink3); }
+.carnet .pl-axe .choisi { color: var(--ink); font-weight: 750; }
+
+.carnet .pl-edition { display: grid; gap: 10px; }
+.carnet .pl-champs { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+.carnet .pl-champs legend { font-weight: 700; margin-bottom: 4px; }
+.carnet .pl-champs .field:first-of-type { grid-column: 1 / -1; }
+.carnet .pl-erreur { color: var(--out); }

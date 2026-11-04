@@ -1,0 +1,53 @@
+# La version interne du Clos de la Motte (4 novembre 2026, décision de Samuel).
+# Un envoi sur la branche « clos » construit l'app pour clos.187-7-74-179.sslip.io :
+# Mon argent montré et ouvert sans essai ni abonnement, l'écran des paliers du Clos
+# (NEXT_PUBLIC_CLOS=1), branchée sur le vrai site (comptes mon-ecurie.fr) et sur la
+# vraie copie en ligne, sans mesure d'audience. Le résultat part sur la branche
+# « vps-clos », que le VPS relit toutes les 2 minutes (bestable-clos-maj).
+# La production (app.bestable.fr) et la préproduction ne sont jamais touchées.
+name: Version du Clos (VPS)
+
+on:
+  push:
+    branches: ["clos"]
+
+concurrency:
+  group: clos
+  cancel-in-progress: true
+
+jobs:
+  clos:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Check (types, lint, tests)
+        run: npm run typecheck && npm run lint && npm test
+      - name: Build static export (version du Clos)
+        run: npm run build
+        env:
+          DEPLOY_TARGET: pages
+          PAGES_BASE: ""
+          NEXT_PUBLIC_BASE_PATH: ""
+          NEXT_PUBLIC_VERSION: ${{ github.sha }}
+          NEXT_PUBLIC_VERSION_DATE: ${{ github.event.head_commit.timestamp }}
+          NEXT_PUBLIC_CLOS: "1"
+          NEXT_PUBLIC_MONECURIE_API: https://www.mon-ecurie.fr/wp-json/bestable/v1
+      - name: Publish to the vps-clos branch
+        run: |
+          cd out
+          echo "${{ github.sha }}" > VERSION
+          printf 'User-agent: *\nDisallow: /\n' > robots.txt
+          git init -q -b vps-clos
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Version du Clos ${{ github.sha }}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" vps-clos

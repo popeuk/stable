@@ -1,0 +1,7 @@
+[Unit]
+Description=Be Stable : mise à jour de la version du Clos (branche vps-clos)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/bestable-clos-maj

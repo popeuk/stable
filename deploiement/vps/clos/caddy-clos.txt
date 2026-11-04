@@ -1,0 +1,35 @@
+# La version du Clos de l'app Be Stable (4 novembre 2026). Fichiers statiques de
+# /srv/bestable-clos/courant, mis à jour par bestable-clos-maj depuis la branche
+# « vps-clos ». Les comptes sont ceux de mon-ecurie.fr : pas de mot de passe en plus
+# devant l'app. Fermée aux moteurs. Mêmes en-têtes que app.bestable.fr.
+# Ajouté au Caddyfile par installer.sh (copie, « caddy validate », retour arrière).
+clos.187-7-74-179.sslip.io {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(self), geolocation=()"
+		Content-Security-Policy "frame-ancestors 'none'"
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://bestable.fr https://www.mon-ecurie.fr; connect-src 'self' https://bestable.fr https://www.mon-ecurie.fr https://wgvithqivsygsoeyqruz.supabase.co https://data.geopf.fr; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+	@manifeste path /manifest.webmanifest
+	header @manifeste Content-Type "application/manifest+json"
+	root * /srv/bestable-clos/courant
+	@immuable path /_next/static/*
+	header @immuable Cache-Control "public, max-age=31536000, immutable"
+	@frais path / /sw.js /manifest.webmanifest *.html */
+	header @frais Cache-Control "no-cache"
+	try_files {path} {path}/index.html {path}.html
+	file_server
+	handle_errors {
+		@introuvable expression {err.status_code} == 404
+		handle @introuvable {
+			rewrite * /404.html
+			file_server
+		}
+	}
+}

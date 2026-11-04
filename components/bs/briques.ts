@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/account/api";
 import { getSession } from "@/lib/account/session";
 import { etatsBriques, essaiPossible, jourEssai, type AlerteId, type BriqueId, type EtatBrique, type EtatCompte } from "@/lib/briques";
-import { OUVERTURE } from "@/lib/fonctions";
+import { CLOS, OUVERTURE } from "@/lib/fonctions";
 import { localToday } from "@/lib/utils/local-date";
 import { useSettingsStore } from "@/stores/settings-store";
 
@@ -54,7 +54,7 @@ export function useBriques(): Briques {
   }, []);
   return useMemo(() => {
     const aujourdhui = localToday();
-    const compte: EtatCompte = { kind: ici.kind, ouvert: ici.ouvert, essaiDebut, aujourdhui };
+    const compte: EtatCompte = { kind: ici.kind, ouvert: ici.ouvert, essaiDebut, aujourdhui, toutOuvert: CLOS };
     const etat = etatsBriques(compte);
     return {
       pret: ici.pret,

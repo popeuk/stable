@@ -29,7 +29,7 @@ import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { nomAffiche } from "@/lib/domain/noms-categories";
 import { useConfirmer } from "@/components/bs/confirmer";
-import { FACTURATION } from "@/lib/fonctions";
+import { CLOS, FACTURATION } from "@/lib/fonctions";
 
 /**
  * Mon bilan : le chiffre du mois en tête, puis ce qui rentre
@@ -234,6 +234,11 @@ function Mois() {
           <Link className="lnk" href="/argent?vue=leviers">
             Voir les idées
           </Link>
+          {CLOS && (
+            <Link className="lnk" href="/paliers">
+              Les paliers du Clos
+            </Link>
+          )}
         </div>
       )}
     </div>

@@ -16,6 +16,7 @@ import "./carnet/matin.css";
 import "./carnet/journee.css";
 import "./carnet/chevaux.css";
 import "./carnet/argent.css";
+import "./carnet/paliers.css";
 import "./carnet/arrivee.css";
 import "./carnet/noter.css";
 import "./carnet/essayer.css";

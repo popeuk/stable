@@ -5,6 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type { AlerteId } from "@/lib/briques";
 import { vault, wasFresh } from "@/lib/account/vault";
 import { getSession } from "@/lib/account/session";
+import { PALIERS_DEPART, type Palier } from "@/lib/domain/paliers";
 
 export interface NotificationPrefs {
   weeklyInsight: boolean;
@@ -98,6 +99,9 @@ interface SettingsState {
   /** Les demandes de cavaliers auxquelles le gérant a répondu depuis l'app (le site ne le sait pas encore). */
   repondues: number[];
   marquerRepondue: (id: number, oui: boolean) => void;
+  /** Les paliers de l'écurie (version interne du Clos seulement, lib/domain/paliers.ts). */
+  paliers: Palier[];
+  setPaliers: (p: Palier[]) => void;
 }
 
 /** Granular, opt-in notification preferences (spec 1.3 / 9.4) + stable config. */
@@ -158,6 +162,8 @@ export const useSettingsStore = create<SettingsState>()(
       commencerEssai: (aujourdhui) => set((s) => (s.essaiDebut ? s : { essaiDebut: aujourdhui })),
       alertes: {},
       repondues: [],
+      paliers: PALIERS_DEPART.map((x) => ({ ...x })),
+      setPaliers: (p) => set({ paliers: p.map((x) => ({ ...x })) }),
       marquerRepondue: (id, oui) => set((s) => ({ repondues: oui ? [...s.repondues.filter((x) => x !== id), id] : s.repondues.filter((x) => x !== id) })),
       basculerAlerte: (id, aujourdhui) => {
         const avant = get().alertes;

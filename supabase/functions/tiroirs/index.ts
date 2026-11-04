@@ -23,7 +23,7 @@ import { CACHE_OK_MS, CACHE_REFUS_MS, FORMATS, Fenetre, MAX, Memoire, VERSIONS, 
 
 const MONECURIE = (Deno.env.get("MONECURIE_API") ?? "https://www.mon-ecurie.fr/wp-json/bestable/v1").replace(/\/$/, "");
 const NOMS = new Set(["be-stable-data", "be-stable-settings"]);
-const ORIGINES = [/^https:\/\/popeuk\.github\.io$/, /^https:\/\/([a-z0-9-]+\.)?bestable\.fr$/, /^https:\/\/app\.187-7-74-179\.sslip\.io$/, /^http:\/\/localhost(:\d+)?$/, /^http:\/\/127\.0\.0\.1(:\d+)?$/];
+const ORIGINES = [/^https:\/\/popeuk\.github\.io$/, /^https:\/\/([a-z0-9-]+\.)?bestable\.fr$/, /^https:\/\/app\.187-7-74-179\.sslip\.io$/, /^https:\/\/clos\.187-7-74-179\.sslip\.io$/, /^http:\/\/localhost(:\d+)?$/, /^http:\/\/127\.0\.0\.1(:\d+)?$/];
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 
