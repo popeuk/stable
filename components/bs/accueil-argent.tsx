@@ -1,5 +1,7 @@
 "use client";
 
+import { Avancement, JourneeBlocs } from "@/components/bs/bloc-rdv";
+import { CLOS } from "@/lib/fonctions";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -131,6 +133,12 @@ function Journee({ delay, max }: { delay: number; max: number }) {
         <Empty ill="dodo">
           <b>Tout est fait pour aujourd’hui.</b>
         </Empty>
+      ) : CLOS ? (
+        // Version du Clos : la journée en blocs fins (components/bs/bloc-rdv.tsx).
+        <>
+          <Avancement items={items} />
+          <JourneeBlocs items={items} now={time} aujourdhui />
+        </>
       ) : (
         <>
           <div className="rows">

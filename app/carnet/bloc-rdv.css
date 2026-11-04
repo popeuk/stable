@@ -1,0 +1,51 @@
+/* La journée en blocs fins (components/bs/bloc-rdv.tsx), version du Clos. */
+.carnet .br-jour { display: grid; gap: 8px; margin: 0 var(--gut); }
+.carnet .br { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto 44px; align-items: center; min-height: 64px; padding: 0 6px 0 0; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
+.carnet .br-ouvrir { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: stretch; min-height: 64px; padding: 12px 10px 12px 14px; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: default; }
+.carnet button.br-ouvrir { cursor: pointer; }
+.carnet .br-h { display: flex; flex-direction: column; justify-content: center; padding-right: 10px; margin-right: 10px; border-right: 1px solid var(--line2); font-size: 16px; font-weight: 720; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.carnet .br-h small { font-size: 12px; font-weight: 500; color: var(--ink3); }
+.carnet .br-c { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.carnet .br-ti { font-size: 15px; font-weight: 650; line-height: 1.25; text-wrap: pretty; }
+.carnet .br-dans { margin-top: 2px; font-size: 12.5px; font-weight: 650; color: var(--acc); white-space: nowrap; }
+.carnet .br-att { margin-top: 2px; font-size: 12.5px; font-weight: 600; color: var(--out); }
+.carnet .br-m { align-self: stretch; display: flex; align-items: center; padding: 0 10px; border-left: 1px solid var(--line2); font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink2); }
+.carnet .br-m:empty { padding: 0; border-left: 0; }
+.carnet .br-m.in { color: var(--in); }
+.carnet .br-m.out { color: var(--out); }
+.carnet .br-ok { position: relative; justify-self: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: none; box-shadow: inset 0 0 0 1.5px var(--line); display: grid; place-items: center; transition: background .15s, box-shadow .15s; }
+.carnet button.br-ok { cursor: pointer; }
+.carnet button.br-ok::after { content: ""; position: absolute; inset: -9px; }
+.carnet .br-ok svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity .15s; }
+.carnet .br-ok.on { background: var(--acc); box-shadow: none; }
+.carnet .br-ok.on svg { opacity: 1; }
+.carnet button.br-ok:not(.on) { box-shadow: inset 0 0 0 1.5px var(--ink3); }
+.carnet .br.fait { background: var(--paper); }
+.carnet .br.fait .br-h, .carnet .br.fait .br-ti { color: var(--ink3); }
+.carnet .br.fait .br-ti { font-weight: 550; }
+.carnet .br.prochain { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.carnet .br.attente { box-shadow: inset 0 0 0 1.5px var(--rose); }
+.carnet .br-ask { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; margin: 0 6px 0 96px; padding: 6px 0 10px; border-top: 1px solid var(--line2); font-size: 13px; color: var(--ink2); }
+.carnet .br-ask button { min-height: 36px; padding: 0; border: 0; background: none; font: inherit; font-weight: 650; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.carnet .br-ask button:first-of-type { color: var(--out); }
+.carnet .br-libre { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; padding: 0 14px; border: 1px dashed var(--line); border-radius: var(--bloc-r); background: none; font: inherit; font-size: 13px; color: var(--ink3); text-align: left; cursor: pointer; }
+.carnet .br-libre span { font-weight: 650; color: var(--acc); }
+.carnet .br-now { display: flex; align-items: center; gap: 8px; height: 18px; font-size: 12px; font-weight: 650; color: var(--ink); font-variant-numeric: tabular-nums; }
+.carnet .br-now::after { content: ""; flex: 1; height: 1px; background: var(--ink); }
+.carnet .br-avance { display: flex; align-items: center; gap: 10px; margin: 2px var(--gut) 12px; }
+.carnet .br-barre { flex: 1; height: 4px; overflow: hidden; border-radius: 2px; background: var(--line); }
+.carnet .br-barre i { display: block; height: 100%; background: var(--acc); transition: width .4s cubic-bezier(.22,1,.36,1); }
+.carnet .br-avance > span:last-child { font-size: 12.5px; font-weight: 650; color: var(--ink2); font-variant-numeric: tabular-nums; }
+@media (hover: hover) {
+  .carnet button.br-ouvrir:hover .br-ti { text-decoration: underline; text-underline-offset: 3px; }
+  .carnet .br-libre:hover { border-color: var(--ink3); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carnet .br-ok, .carnet .br-ok svg, .carnet .br-barre i { transition: none; }
+}
+
+/* Dans « Ta journée » de l'accueil : les blocs posés sur la page, sans carte autour. */
+.carnet .sec.ac-jour:has(.br-jour) { background: none; box-shadow: none; padding-left: 0; padding-right: 0; }
+.carnet .sec.ac-jour:has(.br-jour) h2 { padding-left: var(--gut); padding-right: var(--gut); }
+.carnet .sec.ac-jour .br-jour, .carnet .sec.ac-jour .br-avance { margin-left: 0; margin-right: 0; }
+.carnet .sec.ac-jour:has(.br-jour) h2 { padding-left: 0; padding-right: 0; }

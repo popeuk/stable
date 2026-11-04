@@ -1,5 +1,7 @@
 "use client";
 
+import { Avancement, JourneeBlocs } from "@/components/bs/bloc-rdv";
+import { CLOS } from "@/lib/fonctions";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -445,7 +447,13 @@ function Planning() {
             </button>
           </div>
           {dayView === "liste" ? (
-            items.length ? (
+            items.length && CLOS ? (
+              // Version du Clos : la journée en blocs fins, avec ses créneaux libres et l'heure qu'il est.
+              <div className="rise" style={{ animationDelay: ".28s" }}>
+                <Avancement items={items} />
+                <JourneeBlocs items={items} now={now} aujourdhui={sel === today} onLibre={(start) => openNoter({ mode: "seance", date: sel, start })} />
+              </div>
+            ) : items.length ? (
               groups
                 .filter(([, , its]) => its.length)
                 .map(([label, ill, its], i) => (
