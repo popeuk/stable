@@ -15,7 +15,8 @@ import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
 import { comprendre } from "@/lib/domain/dire";
 import { ligneRemplie } from "@/lib/domain/corriger";
 import { Encaisser } from "@/components/bs/encaisser";
-import { FACTURATION } from "@/lib/fonctions";
+import { CLOS, FACTURATION } from "@/lib/fonctions";
+import { BoutonVitrine, ChoixVitrine, SeanceVitrine, SoinVitrine, TacheVitrine, resumeSeance, resumeSoin, resumeTache } from "@/components/bs/plus-vitrine";
 import { MOIS_DEDANS, estimationDuPoste } from "@/lib/domain/recurring";
 import { r2 } from "@/lib/utils/arrondi";
 import { questionDedans } from "@/lib/domain/estimation";
@@ -674,15 +675,21 @@ function NoterInner() {
           {d.type === "soin" ? "Choisis d’abord le soin." : d.type === "rdv" ? "Dis d’abord ce que c’est." : d.type === "seance" ? "Choisis l’heure du cours." : "Il manque le montant."}
         </p>
       )}
-      <button type="button" className="btn full nt-ok" onClick={() => commit()}>
-        {edit ? "Enregistrer" : "C’est bon"}
-      </button>
+      {CLOS && d?.type === "argent" && !edit ? (
+        <BoutonVitrine label={d.amount > 0 ? `Noter ${d.sens === "in" ? "+" : "−"}${eurc(d.amount)}` : "Il manque le montant"} recap={d.amount > 0 ? titre(d, h) : undefined} pret={d.amount > 0} onClick={() => commit()} dansLeBas />
+      ) : (
+        <button type="button" className="btn full nt-ok" onClick={() => commit()}>
+          {edit ? "Enregistrer" : "C’est bon"}
+        </button>
+      )}
     </>
   );
 
   /* ---------- Les écrans ---------- */
   let body: ReactNode = null;
-  if (screen === "grid") {
+  if (screen === "grid" && CLOS) {
+    body = <ChoixVitrine onChoose={choose} onVoix={listen} />;
+  } else if (screen === "grid") {
     body = (
       <>
         {/* La voix d'abord, en grand : le geste le plus simple. Les quatre boutons suivent. */}
@@ -977,6 +984,26 @@ function NoterInner() {
 
   function questions(x: Draft) {
     const t = typeOf(x.type);
+    // Version du Clos : le + dans le langage de la vitrine (components/bs/plus-vitrine.tsx).
+    if (CLOS && !edit && x.type !== "argent") {
+      const r = x.type === "seance" ? resumeSeance(x, h, today, horses) : x.type === "soin" ? resumeSoin(x, h, today, horses) : resumeTache(x, today);
+      return (
+        <>
+          <button type="button" className="nt-bk" onClick={backToGrid}>
+            <Ic n="back" className="" />
+            Revenir
+          </button>
+          {x.type === "seance" ? <SeanceVitrine d={x} set={set} h={h} today={today} horses={horses} /> : x.type === "soin" ? <SoinVitrine d={x} set={set} h={h} today={today} horses={horses} /> : <TacheVitrine d={x} set={set} h={h} today={today} />}
+          <div className="nt-more2">
+            <button type="button" className="lnk" onClick={() => (setPrev("q"), setPick(null), setScreen("more"))}>
+              Plus de détails
+            </button>
+            <span>{x.type === "seance" ? "durée, lieu, notes, qui s’en occupe" : MOREH[x.type]}</span>
+          </div>
+          <BoutonVitrine label={r.label} recap={r.recap} pret={r.pret} onClick={() => commit()} />
+        </>
+      );
+    }
     let qs: ReactNode;
     if (x.type === "seance")
       qs = (
