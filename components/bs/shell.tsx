@@ -1,11 +1,11 @@
 "use client";
 
-import { isRoot2, useRetour2 } from "@/components/bs/navigation";
+import { PLANNING, isRoot2, useRetour2 } from "@/components/bs/navigation";
 import { useBriques } from "@/components/bs/briques";
 import "@/app/carnet/briques.css";
 import "@/app/carnet/presence.css";
 import { estOuverte } from "@/lib/briques";
-import { APPRENDRE_VISIBLE, ARGENT_VISIBLE } from "@/lib/fonctions";
+import { APPRENDRE_VISIBLE, ARGENT_VISIBLE, CLOS } from "@/lib/fonctions";
 import { nonVues, useDemandes } from "@/lib/account/demandes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -195,10 +195,18 @@ export function TabBar() {
           <Ic n="home" />
           Accueil
         </Link>
-        <Link href="/ma-fiche" aria-current={on(["/ma-fiche", "/mon-site"])}>
-          <Ic n="vitrine" />
-          Vitrine
-        </Link>
+        {/* Version du Clos (lib/fonctions.ts) : le planning à la place de la Vitrine. */}
+        {CLOS ? (
+          <Link href="/planning" aria-current={on(PLANNING)}>
+            <Ic n="cal" />
+            Planning
+          </Link>
+        ) : (
+          <Link href="/ma-fiche" aria-current={on(["/ma-fiche", "/mon-site"])}>
+            <Ic n="vitrine" />
+            Vitrine
+          </Link>
+        )}
         {argent && (
           <button
           type="button"
@@ -212,17 +220,25 @@ export function TabBar() {
           <Ic n="plus" />
           </button>
         )}
-        <Link href="/demandes" aria-current={on(["/demandes"])} aria-label={`Demandes${demandes ? ` : ${demandes} nouvelle${demandes > 1 ? "s" : ""}` : ""}`}>
-          <span className="ac-ic">
-            <Ic n="inbox" />
-            {demandes > 0 && (
-              <em className="ac-badge" aria-hidden="true">
-                {demandes}
-              </em>
-            )}
-          </span>
-          <span aria-hidden="true">Demandes</span>
-        </Link>
+        {/* Version du Clos : Mon bilan à la place des Demandes. */}
+        {CLOS ? (
+          <Link href="/argent" aria-current={on([...BILAN, "/paliers"])}>
+            <Ic n="chart" />
+            Mon bilan
+          </Link>
+        ) : (
+          <Link href="/demandes" aria-current={on(["/demandes"])} aria-label={`Demandes${demandes ? ` : ${demandes} nouvelle${demandes > 1 ? "s" : ""}` : ""}`}>
+            <span className="ac-ic">
+              <Ic n="inbox" />
+              {demandes > 0 && (
+                <em className="ac-badge" aria-hidden="true">
+                  {demandes}
+                </em>
+              )}
+            </span>
+            <span aria-hidden="true">Demandes</span>
+          </Link>
+        )}
         <Link href="/chevaux" aria-current={on(CLIENTS_CHEVAUX)} aria-label={`Clients${argent ? "" : " : avec Mon argent"}${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
           <span className="ac-ic">
             <Ic n="people" />

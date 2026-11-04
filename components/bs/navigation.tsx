@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useParentIci } from "@/components/bs/nav";
 import { Ic } from "@/components/carnet/ui";
+import { CLOS } from "@/lib/fonctions";
 
 /**
  * La navigation (27 octobre 2026, l'app en briques) : quatre onglets (Accueil,
@@ -12,7 +13,8 @@ import { Ic } from "@/components/carnet/ui";
  * toujours en disant son nom, quel que soit le chemin pris pour venir.
  */
 /** Les quatre onglets : ils n'ont pas de retour. */
-export const ROOTS2 = ["/accueil", "/ma-fiche", "/demandes", "/chevaux", "/audit", "/apprendre"];
+// Version du Clos (lib/fonctions.ts) : Planning et Mon bilan sont des onglets de la barre, donc des racines.
+export const ROOTS2 = ["/accueil", "/ma-fiche", "/demandes", "/chevaux", "/audit", "/apprendre", ...(CLOS ? ["/planning", "/argent"] : [])];
 /** Les écrans de Mon argent et du planning : sous cadenas ou « bientôt » tant que la brique n'est pas ouverte (components/bs/porte-brique.tsx). */
 export const ARGENT = ["/argent", "/paliers", "/chevaux", "/client", "/ticket", "/seuil", "/pilotage", "/part", "/prestations", "/scenarios", "/mois", "/depenses", "/facture", "/facturation", "/saisie", "/conseiller", "/decouvertes"];
 export const PLANNING = ["/planning", "/valider", "/equipe"];
