@@ -56,6 +56,17 @@ export function prixDuCavalier(person: Pick<Person, "prix"> | undefined, prestat
 }
 
 /** Ce que paie ce participant à cette séance : son prix à lui, sinon celui de la séance. */
+/**
+ * Le cheval d'un client inscrit à une séance. Son propre cheval s'il est de
+ * la séance (ou si la séance n'a pas de cheval) ; sinon un cheval de la
+ * séance, à tour de rôle. Plusieurs clients peuvent avoir le même cheval
+ * (un cheval de l'écurie) : chacun reste compté à son nom.
+ */
+export function chevalDuCavalier(siens: string[], chevaux: string[], rang: number): string | undefined {
+  const sien = siens.find((h) => chevaux.includes(h)) ?? (chevaux.length ? undefined : siens[0]);
+  return sien ?? (chevaux.length ? chevaux[rang % chevaux.length] : undefined);
+}
+
 export const prixDe = (s: Pick<Seance, "unitPrice">, p: Pick<Participant, "prix">) => p.prix ?? s.unitPrice;
 
 /** Les participants qui paient cette séance (pas au forfait ; présents, ou absents facturés). */

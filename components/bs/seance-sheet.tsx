@@ -10,7 +10,7 @@ import { esc } from "@/components/bs/ui";
 import { Chips, Face, Ic, Money, Seg, eurc, ini } from "@/components/carnet/ui";
 import { retirer } from "@/components/bs/retirer";
 import { localToday } from "@/lib/utils/local-date";
-import { isEmptySeance, prixDe, prixVaries, seanceAmount, seancePassee } from "@/lib/domain/seances";
+import { chevalDuCavalier, isEmptySeance, prixDe, prixVaries, seanceAmount, seancePassee } from "@/lib/domain/seances";
 import { HorseChips, InField } from "@/components/bs/seance-form";
 import { habitues } from "@/lib/domain/ajouter";
 import { norm } from "@/lib/domain/interpret";
@@ -201,6 +201,9 @@ function Inner({ seance }: { seance: Seance }) {
           {appel ? `Qui ${passee ? "était" : "est"} là · ${nLa} sur ${seance.participants.length}` : passee && vide ? "Qui était là" : seance.participants.length || vide ? "Cavaliers" : "Chevaux"}
           {!commencee && seance.places ? ` · ${seance.participants.length} sur ${seance.places}` : ""}
         </p>
+        {!seance.participants.length && seance.horseIds.length > 0 && seance.status !== "cancelled" && (
+          <p className="note">Aucun client inscrit : ce cours est compté au propriétaire du cheval, ou à personne pour un cheval de l’écurie. Inscris qui monte, chacun sera compté à son nom.</p>
+        )}
         {appel && (
           <p className="note">
             {seance.status === "done" ? "Tout le monde est compté. Décoche ceux qui ne sont pas venus, puis valide." : "Tout le monde est coché. Décoche ceux qui ne sont pas là, puis valide."}
@@ -428,11 +431,11 @@ function Inscrire({ seance, passee }: { seance: Seance; passee: boolean }) {
     if (!v || plein || v.includes(",")) return;
     const st = useDataStore.getState();
     const snap = { seances: st.seances, people: st.people, revenues: st.revenues };
-    const owner = horses.find((h) => h.ownerName === v);
-    const personId = st.ensurePerson(v, owner ? "proprietaire" : "cavalier");
+    const siens = horses.filter((h) => h.ownerName === v).map((h) => h.id);
+    const personId = st.ensurePerson(v, siens.length ? "proprietaire" : "cavalier");
     setTyped("");
     if (inscrits.has(personId)) return;
-    const horseId = owner?.id ?? (seance.horseIds.length ? seance.horseIds[seance.participants.length % seance.horseIds.length] : undefined);
+    const horseId = chevalDuCavalier(siens, seance.horseIds, seance.participants.length);
     const participants = [...seance.participants, { personId, horseId }];
     st.updateSeance(seance.id, { participants, updatedBy: gerant }, "one");
     if (passee) recompter(participants);

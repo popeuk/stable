@@ -21,6 +21,9 @@ export type Rep = "once" | "weekly" | "biweekly" | "monthly";
 export type MoneyRep = "once" | "monthly" | "quarterly" | "yearly";
 export type { Pour };
 
+/** Un cours pour un seul client : le format particulier, ou un cours qui s'appelle « particulier ». */
+export const estParticulier = (c: Pick<CoursHabit, "format" | "label"> | undefined) => c?.format === "particulier" || /particuli/i.test(c?.label ?? "");
+
 export interface CoursHabit {
   key: string;
   prestationId: string;

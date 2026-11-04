@@ -6,10 +6,10 @@ import { useFeuille } from "@/components/bs/feuille";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore, type NoterPrefill } from "@/stores/ui-store";
-import { CoursTiles, F, HorseChips, InField, Jours, Keypad, MoneyField, Puces, Q, Quand, SeanceDetails, Tiles, Wheel, hh, jourLabel, type SetD } from "@/components/bs/seance-form";
+import { Cavaliers, CoursTiles, F, HorseChips, InField, Jours, Keypad, MoneyField, Puces, Q, Quand, SeanceDetails, Tiles, Wheel, hh, jourLabel, type SetD } from "@/components/bs/seance-form";
 import { QuoiTiles, TaskDetails } from "@/components/bs/task-form";
 import { Ic, Money, eurc, sgc } from "@/components/carnet/ui";
-import { applySoin, connuDe, draftFor, draftFromCompris, endOf, habitudes, manque, titre, type AjoutType, type Draft, type Habitudes, type Pour } from "@/lib/domain/ajouter";
+import { applySoin, connuDe, estParticulier, draftFor, draftFromCompris, endOf, habitudes, manque, titre, type AjoutType, type Draft, type Habitudes, type Pour } from "@/lib/domain/ajouter";
 import { ChoixConnu, ChoixFois, SoitParMois } from "@/components/bs/montant-connu";
 import { parMois, saisiDe } from "@/lib/domain/montant-saisi";
 import { comprendre } from "@/lib/domain/dire";
@@ -23,7 +23,7 @@ import { norm } from "@/lib/domain/interpret";
 import { cavaliersRetenus } from "@/lib/domain/proprio";
 import { cavaliersEnMots } from "@/lib/domain/dire";
 import { nomsDePros } from "@/lib/domain/pros";
-import { seriesDates } from "@/lib/domain/seances";
+import { chevalDuCavalier, seriesDates } from "@/lib/domain/seances";
 import type { CareKind } from "@/lib/domain/care";
 import type { Frequency } from "@/lib/domain/types";
 import { localToday } from "@/lib/utils/local-date";
@@ -41,9 +41,11 @@ import { nomAffiche } from "@/lib/domain/noms-categories";
  * Rendu en feuille du carnet, portée hors de la coque (iPhone).
  */
 type Screen = "grid" | "listen" | "card" | "q" | "more";
-type PickK = "type" | "cours" | "jour" | "h" | "pl" | "p" | "soin" | "cheval" | "quoi" | "sens" | "m" | "lab" | "pour" | "refac";
+type PickK = "type" | "cours" | "jour" | "h" | "pl" | "p" | "soin" | "cheval" | "cav" | "quoi" | "sens" | "m" | "lab" | "pour" | "refac";
 
 const NB = " ";
+/** « Cours de Hugo », « Cours d’Emma ». */
+const coursDe = (n: string) => (/^[aeiouyàâäéèêëîïôöûüœ]/i.test(n.trim()) ? `Cours d’${n.trim()}` : `Cours de ${n.trim()}`);
 const EXEMPLE = `Cours collectif demain 18${NB}h, 6 places`;
 const TYPES: { id: AjoutType; l: string; s: string; i: string }[] = [
   { id: "seance", l: "Séance", s: "cours, balade, stage", i: "cal" },
@@ -318,16 +320,17 @@ function NoterInner() {
         (st.people ?? []).map((p) => p.name),
       );
       const participants = cav.map((n, i) => {
-        const owner = horses.find((x) => x.ownerName === n);
-        return { personId: st.ensurePerson(n, owner ? "proprietaire" : "cavalier"), horseId: owner?.id ?? (d.horseIds.length ? d.horseIds[i % d.horseIds.length] : undefined) };
+        const siens = horses.filter((x) => x.ownerName === n).map((x) => x.id);
+        return { personId: st.ensurePerson(n, siens.length ? "proprietaire" : "cavalier"), horseId: chevalDuCavalier(siens, d.horseIds, i) };
       });
       const hName = horses.find((x) => x.id === d.horseIds[0])?.name;
       st.addSeances(
         {
           prestationId,
-          title: format === "particulier" && hName ? `Cours de ${hName}` : name,
+          // Un cours particulier porte le nom du client (plusieurs clients peuvent monter le même cheval), sinon celui du cheval.
+          title: estParticulier(hab) && (cav.length === 1 || hName) ? coursDe(cav.length === 1 ? cav[0] : hName!) : name,
           format,
-          places: format === "particulier" ? 1 : (d.places ?? undefined),
+          places: estParticulier(hab) ? 1 : (d.places ?? undefined),
           participants,
           horseIds: d.horseIds,
           start,
@@ -837,6 +840,7 @@ function NoterInner() {
                 </>
               ),
             },
+            { k: "cav", l: x.cav.length ? `avec ${x.cav.join(", ")}` : "avec qui ?", ph: !x.cav.length },
             J,
             { k: "h", l: x.start ? hh(x.start) : "à quelle heure ?", ph: !x.start },
             ...(x.places ? [{ k: "pl" as PickK, l: `${x.places} place${x.places > 1 ? "s" : ""}` }] : []),
@@ -870,6 +874,7 @@ function NoterInner() {
       p: x.type === "seance" ? "Combien par cavalier ?" : "Combien ?",
       soin: "Quel soin ?",
       cheval: "Quel cheval ?",
+      cav: "Avec qui ?",
       quoi: "C’est quoi ?",
       sens: "Ça rentre ou ça sort ?",
       m: "Combien ?",
@@ -906,6 +911,7 @@ function NoterInner() {
       if (k === "pl") return <Puces options={[1, 2, 4, 6, 8, 10].map((n) => [n, `${n} place${n > 1 ? "s" : ""}`] as [number, string])} value={x.places} onPick={(places) => (set((y) => ({ ...y, places })), close1())} />;
       if (k === "p") return <Keypad value={x.price ?? 0} onChange={(n) => set((y) => ({ ...y, price: n || null }))} onOk={close1} />;
       if (k === "m") return <Keypad value={x.amount} sens={x.sens} onChange={(amount) => (set((y) => ({ ...y, amount })), setTried(false))} onOk={close1} />;
+      if (k === "cav") return <Cavaliers d={x} set={set} seul={estParticulier(h.cours.find((c) => c.key === x.coursKey))} />;
       if (k === "cheval") return <HorseChips grille horses={horses} value={x.horseIds} onChange={(horseIds) => set((y) => ({ ...y, horseIds }))} />;
       if (k === "sens")
         return (
@@ -977,6 +983,8 @@ function NoterInner() {
         <>
           <Q>Quel cours ?</Q>
           <CoursTiles d={x} set={set} h={h} other={other} setOther={setOther} />
+          <Q>Avec qui ?</Q>
+          <Cavaliers d={x} set={set} seul={estParticulier(h.cours.find((c) => c.key === x.coursKey))} />
           <Q>Quel jour ?</Q>
           <Quand date={x.date} today={today} onDate={(date) => set((y) => ({ ...y, date }))} />
           {hourLine(x)}

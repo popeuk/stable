@@ -7,7 +7,7 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { Face, Ic, eurc } from "@/components/carnet/ui";
 import { MAX_SEANCES, seriesDates } from "@/lib/domain/seances";
 import { addDays } from "@/lib/domain/care";
-import { applyCours, endOf, fromMin, type CoursHabit, type Draft, type Habitudes, type Rep } from "@/lib/domain/ajouter";
+import { applyCours, endOf, estParticulier, fromMin, type CoursHabit, type Draft, type Habitudes, type Rep } from "@/lib/domain/ajouter";
 import type { Horse } from "@/lib/domain/types";
 import { cleSouple, nomRetenu } from "@/lib/domain/proprio";
 import { lireMontant, montantEnTexte, montantTape, saisieMontant, toucheMontant } from "@/lib/utils/montant";
@@ -410,24 +410,10 @@ export function SeanceDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Ha
   const data = useDataStore();
   const gerant = useSettingsStore((s) => s.gerant);
   const horses = data.horses.filter((x) => !x.isArchived);
-  const people = (data.people ?? []).filter((p) => p.active);
   const team = [gerant, ...(data.team ?? []).filter((m) => m.role === "employe").map((m) => m.name)].filter(Boolean);
   const lieux = [...new Set(["Carrière", "Manège", "Extérieur", ...(data.seances ?? []).map((s) => s.lieu).filter((x): x is string => !!x)])].slice(0, 6);
   const [other, setOther] = useState(!!d.custom);
-  // Le nom tapé vit dans le brouillon : « C’est bon » l'inscrit même sans « Ajouter ».
-  const typed = d.cavTape ?? "";
-  const setTyped = (cavTape: string) => set((x) => ({ ...x, cavTape }));
   const start = d.start ?? "18:00";
-  const q = cleSouple(typed);
-  const sugg = q ? people.filter((p) => cleSouple(p.name).includes(q) && !d.cav.includes(p.name)).slice(0, 6) : [];
-  const addCav = (n: string) => {
-    const v = nomRetenu(
-      people.map((p) => p.name),
-      n,
-    );
-    if (!v || v.includes(",") || d.cav.some((x) => cleSouple(x) === cleSouple(v))) return setTyped("");
-    set((x) => ({ ...x, cav: [...x.cav, v], cavTape: "" }));
-  };
   return (
     <>
       <F label="Le cours">
@@ -477,33 +463,8 @@ export function SeanceDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Ha
           <Toggles options={team} value={d.qui} onChange={(qui) => set((x) => ({ ...x, qui }))} />
         </F>
       )}
-      <F label="Cavaliers" hint="ou plus tard, depuis la séance">
-        {d.cav.length > 0 && (
-          <div className="nt-cs">
-            {d.cav.map((n) => (
-              <button key={n} type="button" className="chip on" aria-label={`Retirer ${n}`} onClick={() => set((x) => ({ ...x, cav: x.cav.filter((y) => y !== n) }))}>
-                {n} <span aria-hidden="true">×</span>
-              </button>
-            ))}
-          </div>
-        )}
-        <InField className="nt-tin">
-          <input value={typed} placeholder="Tape un nom" aria-label="Tape un nom de cavalier" onChange={(e) => setTyped(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCav(typed))} />
-          {typed.trim() && (
-            <button type="button" className="lnk" onClick={() => addCav(typed)}>
-              Ajouter
-            </button>
-          )}
-        </InField>
-        {sugg.length > 0 && (
-          <div className="nt-cs">
-            {sugg.map((p) => (
-              <button key={p.id} type="button" className="chip" onClick={() => addCav(p.name)}>
-                + {p.name}
-              </button>
-            ))}
-          </div>
-        )}
+      <F label="Avec qui" hint="les clients qui montent : chacun est compté à part">
+        <Cavaliers d={d} set={set} seul={estParticulier(h.cours.find((c) => c.key === d.coursKey))} />
       </F>
       {horses.length > 0 && (
         <F label="Chevaux">
@@ -513,6 +474,65 @@ export function SeanceDetails({ d, set, h, today }: { d: Draft; set: SetD; h: Ha
       <F label="Notes">
         <textarea className="input ta nt-ta" rows={2} placeholder="Ex. : Prévoir les longes" aria-label="Notes" value={d.notes} onChange={(e) => set((x) => ({ ...x, notes: e.target.value }))} />
       </F>
+    </>
+  );
+}
+
+/**
+ * Les clients d'une séance (« Avec qui ? »). Chacun est compté à part, même
+ * à plusieurs sur le même cheval (un cheval de l'écurie, par exemple). Sans
+ * nom tapé, les clients les plus fréquents sont proposés d'un toucher.
+ */
+export function Cavaliers({ d, set, seul = false }: { d: Draft; set: SetD; seul?: boolean }) {
+  const people = (useDataStore((s) => s.people) ?? []).filter((p) => p.active);
+  const seances = useDataStore((s) => s.seances);
+  // Le nom tapé vit dans le brouillon : « C’est bon » l'inscrit même sans « Ajouter ».
+  const typed = d.cavTape ?? "";
+  const setTyped = (cavTape: string) => set((x) => ({ ...x, cavTape }));
+  const q = cleSouple(typed);
+  const frequents = useMemo(() => {
+    const n = new Map<string, number>();
+    for (const s of seances ?? []) for (const p of s.participants) n.set(p.personId, (n.get(p.personId) ?? 0) + 1);
+    return [...people].sort((a, b) => (n.get(b.id) ?? 0) - (n.get(a.id) ?? 0) || a.name.localeCompare(b.name, "fr"));
+  }, [people, seances]);
+  const sugg = (q ? frequents.filter((p) => cleSouple(p.name).includes(q)) : frequents).filter((p) => !d.cav.includes(p.name)).slice(0, q ? 6 : 8);
+  const addCav = (n: string) => {
+    const v = nomRetenu(
+      people.map((p) => p.name),
+      n,
+    );
+    if (!v || v.includes(",") || d.cav.some((x) => cleSouple(x) === cleSouple(v))) return setTyped("");
+    // Un cours particulier : un seul client, le dernier choisi.
+    set((x) => ({ ...x, cav: seul ? [v] : [...x.cav, v], cavTape: "" }));
+  };
+  return (
+    <>
+      {d.cav.length > 0 && (
+        <div className="nt-cs">
+          {d.cav.map((n) => (
+            <button key={n} type="button" className="chip on" aria-label={`Retirer ${n}`} onClick={() => set((x) => ({ ...x, cav: x.cav.filter((y) => y !== n) }))}>
+              {n} <span aria-hidden="true">×</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <InField className="nt-tin">
+        <input value={typed} placeholder="Tape un nom" aria-label="Tape un nom de client" onChange={(e) => setTyped(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCav(typed))} />
+        {typed.trim() && (
+          <button type="button" className="lnk" onClick={() => addCav(typed)}>
+            Ajouter
+          </button>
+        )}
+      </InField>
+      {sugg.length > 0 && (
+        <div className="nt-cs">
+          {sugg.map((p) => (
+            <button key={p.id} type="button" className="chip" onClick={() => addCav(p.name)}>
+              + {p.name}
+            </button>
+          ))}
+        </div>
+      )}
     </>
   );
 }
