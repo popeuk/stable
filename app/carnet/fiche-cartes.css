@@ -94,3 +94,8 @@
 
 .carnet .fc-form .ec-save .btn { height: 50px; font-size: 16px; }
 .carnet .fc-etat { flex: none; align-self: center; padding: 3px 9px; border-radius: 10px; background: var(--rose); color: var(--vert-deep); font-size: 12.5px !important; font-weight: 700 !important; letter-spacing: 0; }
+
+/* Le lieu de l'écurie (24 novembre 2026) : code postal étroit, commune large. */
+.fc-lieu { display: grid; grid-template-columns: minmax(6.5em, 8em) 1fr; gap: 12px; }
+.fc-ou { margin: 0; }
+.fc-ou a { color: inherit; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }

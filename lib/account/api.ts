@@ -152,6 +152,10 @@ export interface Fiche {
   code_postal: string;
   commune: string;
   departement?: string;
+  /** La rue ou le lieu-dit seul, modifiable (pc-bestable 1.9.1 ; absent avant). */
+  rue?: string;
+  /** Où tombe le repère de la carte (pc-bestable 1.9.1). */
+  position?: PositionFiche | null;
   telephone: string;
   email: string;
   site: string;
@@ -174,6 +178,18 @@ export interface Fiche {
   remplissage?: number;
   manque?: string[];
   en_attente?: boolean;
+}
+
+/**
+ * Le repère de la fiche sur la carte. `precision` : « housenumber », « street »,
+ * « locality » (lieu-dit), « municipality » (centre de la commune), « introuvable »
+ * (l'adresse saisie n'a pas été trouvée, le repère n'a pas bougé) ou « » (relevé à l'import).
+ */
+export interface PositionFiche {
+  lat: number;
+  lng: number;
+  precision: string;
+  label: string;
 }
 
 /** Une demande d'un cavalier, reçue par la fiche du gérant (pc-bestable 1.5.0). */

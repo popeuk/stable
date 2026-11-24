@@ -13,6 +13,7 @@ import { getSession, updateAccount } from "@/lib/account/session";
 import "@/app/carnet/ecurie.css";
 import { VitrineTete } from "@/components/bs/vitrine-tete";
 import { Case, Coches, Groupe, Offres, Places } from "@/components/bs/fiche-cartes";
+import { ChampAdresse } from "@/components/bs/champ-adresse";
 import { FenetrePartie } from "@/components/bs/fenetre-partie";
 import { ARGENT_VISIBLE } from "@/lib/fonctions";
 import { useMaFiche } from "@/lib/account/ma-fiche";
@@ -66,6 +67,56 @@ function Champ({
       </span>
       {hint && <em>{hint}</em>}
     </label>
+  );
+}
+
+/**
+ * Le lieu de l'écurie (pc-bestable 1.9.1) : la rue ou le lieu-dit, le code postal
+ * et la commune. Le site place le repère de la carte d'après ces trois champs ;
+ * la phrase dessous dit où il est tombé, d'après la fiche enregistrée.
+ */
+function Lieu({ f, set }: { f: Fiche; set: (p: Partial<Fiche>) => void }) {
+  const p = f.position;
+  const carte = p ? `https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lng}#map=16/${p.lat}/${p.lng}` : "";
+  let ou: ReactNode = "Indique ta rue ou ton lieu-dit : le repère de ta fiche se placera sur ton écurie.";
+  if (p?.precision === "introuvable") ou = "On n’a pas trouvé cette adresse : le repère n’a pas bougé. Essaie le nom du lieu-dit ou de la route.";
+  else if (p?.precision === "municipality") ou = `Le repère est au centre de ${f.commune || "ta commune"}. Indique ta rue ou ton lieu-dit pour le placer sur ton écurie.`;
+  else if (p?.label) ou = `Le repère est sur : ${p.label}.`;
+  else if (p) ou = "Le repère a été placé quand ton écurie est entrée dans l’annuaire. Vérifie-le : s’il n’est pas sur ton écurie, indique ta rue ou ton lieu-dit.";
+  return (
+    <div className="ec-stk">
+      <label className="field">
+        <span>
+          Rue ou lieu-dit<em>facultatif</em>
+        </span>
+        <ChampAdresse
+          surUneLigne
+          value={f.rue ?? ""}
+          onChange={(v) => set({ rue: v })}
+          onChoisir={(s) => set({ rue: s.rue, code_postal: s.codePostal || f.code_postal, commune: s.ville || f.commune })}
+          placeholder="Ex. : 12 route de la Forêt, ou le nom du lieu-dit"
+          autoComplete="address-line1"
+        />
+      </label>
+      <div className="fc-lieu">
+        <Champ label="Code postal" inputMode="numeric" autoComplete="postal-code" value={f.code_postal} onChange={(e) => set({ code_postal: e.target.value.replace(/\D/g, "").slice(0, 5) })} />
+        <label className="field">
+          <span>Commune</span>
+          <ChampAdresse surUneLigne communes value={f.commune} onChange={(v) => set({ commune: v })} onChoisir={(s) => set({ commune: s.ville, code_postal: s.codePostal || f.code_postal })} autoComplete="address-level2" />
+        </label>
+      </div>
+      <p className="fc-aide fc-ou">
+        {ou}
+        {carte && (
+          <>
+            {" "}
+            <a href={carte} target="_blank" rel="noopener noreferrer">
+              Voir sur la carte
+            </a>
+          </>
+        )}
+      </p>
+    </div>
   );
 }
 
@@ -174,6 +225,8 @@ function MaFiche() {
         formules,
         prix_min,
         ...(Array.isArray(cours) && Array.isArray(stages) ? { cours, stages } : {}),
+        // Le lieu ne part que si le site sait le modifier (pc-bestable 1.9.1).
+        ...(typeof f.rue === "string" ? { rue: f.rue.trim(), code_postal: f.code_postal, commune: f.commune.trim() } : {}),
       });
       setF(r);
       setBase(JSON.stringify(r));
@@ -299,6 +352,11 @@ function MaFiche() {
           </label>
         </div>
       </Groupe>
+      {typeof f.rue === "string" && (
+        <Groupe titre="Où est ton écurie">
+          <Lieu f={f} set={set} />
+        </Groupe>
+      )}
       <Groupe titre="Pour te joindre">
         <div className="ec-stk">
           <Champ label="Téléphone affiché" type="tel" inputMode="tel" value={f.telephone} onChange={(e) => set({ telephone: e.target.value })} hint="Visible sur la fiche. Laisse vide pour recevoir seulement des demandes écrites." />
