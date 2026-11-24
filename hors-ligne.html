@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCFBF9">
+<title>Hors ligne · Be Stable</title>
+<link rel="icon" href="{{BASE}}icon-192.png">
+<!-- Page servie par le service worker quand un écran n'a jamais été ouvert
+     sur cet appareil et qu'il n'y a pas de réseau. Aucune dépendance à l'app :
+     pas de React, pas d'hydratation, donc pas d'accueil affiché sous un autre
+     titre. {{BASE}} est remplacé par le service worker, _next/static/media/74effe3e2193102a-s.p.1jake7ccbq8_p.woff2 au build. -->
+<style>
+  @font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 200 800; font-stretch: 75% 100%; font-display: swap; src: url("{{BASE}}_next/static/media/74effe3e2193102a-s.p.1jake7ccbq8_p.woff2") format("woff2"); }
+  :root { --paper: #FCFBF9; --sheet: #FFFFFF; --mist: #F4F1F5; --line: #E7E2EA; --ink: #1B1225; --ink2: #5A5264; --on-ink: #FFFFFF; --ease: cubic-bezier(.22, 1, .36, 1); }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; min-height: 100dvh; background: var(--paper); color: var(--ink); font-family: "Bricolage Grotesque", ui-rounded, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; display: flex; }
+  main { width: 100%; max-width: 480px; margin: auto; padding: calc(28px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); display: flex; flex-direction: column; }
+  .ill { display: block; width: 100%; height: auto; aspect-ratio: 833 / 404; object-fit: contain; margin: 0 0 22px; }
+  h1 { margin: 0; font-size: 26px; line-height: 1.15; font-weight: 750; letter-spacing: -.02em; text-wrap: balance; }
+  p { margin: 12px 0 0; font-size: 15.5px; line-height: 1.5; color: var(--ink2); max-width: 60ch; }
+  p b { color: var(--ink); font-weight: 650; }
+  .actions { display: grid; gap: 10px; margin-top: 26px; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 18px; border: 0; border-radius: 6px; font: inherit; font-size: 15px; font-weight: 650; cursor: pointer; text-decoration: none; }
+  .btn.plein { background: var(--ink); color: var(--on-ink); }
+  .btn.trait { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+  .btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn.plein[aria-busy="true"] svg { animation: tourne .9s linear infinite; }
+  @keyframes tourne { to { transform: rotate(360deg); } }
+  .etat { min-height: 1.5em; margin-top: 14px; font-size: 14px; }
+  ::selection { background: color-mix(in srgb, var(--ink) 14%, transparent); }
+  @media (prefers-reduced-motion: reduce) { .btn.plein[aria-busy="true"] svg { animation: none; } }
+</style>
+</head>
+<body>
+<main>
+  <img class="ill" id="ill" src="{{BASE}}img/carnet/hors-ligne.webp" width="833" height="404" alt="La gérante assise dans l’herbe, le téléphone posé à côté d’elle, son cheval qui broute.">
+  <h1 id="titre">Cet écran n’est pas encore sur ton téléphone</h1>
+  <p>Il n’y a pas de réseau, et tu n’avais jamais ouvert cet écran ici. Ouvre-le une fois avec du réseau&nbsp;: ensuite, il marchera sans.</p>
+  <p><b>Tes chiffres ne sont pas perdus&nbsp;:</b> ils sont rangés <span id="ou">sur ce téléphone</span>. L’accueil et les écrans déjà ouverts marchent sans réseau.</p>
+  <div class="actions">
+    <button type="button" class="btn plein" id="retry">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
+      Réessayer
+    </button>
+    <a class="btn trait" href="{{BASE}}accueil/">Revenir à l’accueil</a>
+  </div>
+  <p class="etat" id="etat" role="status" aria-live="polite"></p>
+</main>
+<script>
+  (function () {
+    // Même personnage que dans l'app : gérante ou gérant, tiré une fois par appareil.
+    try {
+      if (localStorage.getItem("be-stable-tirage") === "m") {
+        var ill = document.getElementById("ill");
+        ill.src = "{{BASE}}img/carnet/gerant-hors-ligne.webp";
+        ill.alt = "Le gérant assis dans l’herbe, le téléphone posé à côté de lui, son cheval qui broute.";
+      }
+    } catch (e) {}
+    // Où sont les chiffres : sur ce téléphone ou cet ordinateur ; avec un compte, aussi dans la copie en ligne.
+    try {
+      var tel = /iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent) || window.innerWidth < 1024;
+      var compte = (JSON.parse(localStorage.getItem("be-stable-session") || "null") || {}).kind === "compte";
+      document.getElementById("titre").textContent = "Cet écran n’est pas encore sur ton " + (tel ? "téléphone" : "ordinateur");
+      document.getElementById("ou").textContent = (tel ? "sur ce téléphone" : "sur cet ordinateur") + (compte ? " et dans ta copie en ligne, protégée" : "");
+    } catch (e) {}
+    var btn = document.getElementById("retry"), etat = document.getElementById("etat");
+    btn.addEventListener("click", function () {
+      btn.setAttribute("aria-busy", "true");
+      etat.textContent = "";
+      fetch(location.href, { cache: "no-store" }).then(function (r) {
+        if (r.ok) location.reload();
+        else throw 0;
+      }).catch(function () {
+        btn.removeAttribute("aria-busy");
+        etat.textContent = "Toujours pas de réseau. Réessaie quand tu en as.";
+      });
+    });
+    window.addEventListener("online", function () { location.reload(); });
+  })();
+</script>
+</body>
+</html>
