@@ -42,3 +42,12 @@ export const PAYANT_VISIBLE: boolean = ARGENT_VISIBLE || process.env.NEXT_PUBLIC
  */
 export const APPRENDRE_VISIBLE: boolean = process.env.NEXT_PUBLIC_APPRENDRE === "1";
 
+/**
+ * QUATRE_PARTIES : l'app rangée comme l'entonnoir de l'écurie (décision de
+ * Samuel, 26 novembre 2026). Quatre onglets : Accueil, Te trouver, Te choisir,
+ * Te faire vivre ; en haut à droite, l'enveloppe des demandes, le planning et
+ * la roue. Allumé en préproduction seulement (NEXT_PUBLIC_QUATRE=1) ; la
+ * production garde la barre d'avant tant que Samuel n'a pas décidé.
+ */
+export const QUATRE_PARTIES: boolean = process.env.NEXT_PUBLIC_QUATRE === "1";
+

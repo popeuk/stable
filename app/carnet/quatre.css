@@ -1,0 +1,65 @@
+/*
+ * Les quatre parties (26 novembre 2026, QUATRE_PARTIES) : l'entonnoir de l'écurie.
+ * En-tête : l'enveloppe des demandes et le planning, ronds comme la roue.
+ * Barre du bas : quatre onglets, libellés sur deux lignes au besoin.
+ * Le + flotte au-dessus de la barre dans Te faire vivre.
+ * Écrans : Accueil (fiche + trois points), Te trouver, Te choisir.
+ */
+.carnet .hd2 .q4-ic { position: relative; text-decoration: none; }
+.carnet .hd2 .q4-ic + .q4-ic, .carnet .hd2 .q4-ic + .hd2-gear { margin-left: -4px; }
+.carnet .q4-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--rose); color: var(--vert-deep); font-size: 11.5px; font-style: normal; font-weight: 780; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--sheet); }
+.carnet .tb.q4-tb a { text-align: center; line-height: 1.15; }
+
+.carnet .q4-plus { position: fixed; z-index: 36; right: max(16px, env(safe-area-inset-right)); bottom: calc(84px + env(safe-area-inset-bottom)); width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--acc); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--acc) 70%, transparent); cursor: pointer; }
+.carnet .q4-plus svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+@media (min-width: 1024px) { .carnet .q4-plus { display: none; } }
+
+/* Accueil : ce qui marche, puis un point par partie */
+.carnet .q4-fier { margin: 14px 16px 0; padding: 12px 14px; border-radius: 12px; background: var(--hay-soft, #FDF5E6); display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.4; color: var(--ink); }
+.carnet .q4-fier svg { width: 18px; height: 18px; flex: none; margin-top: 1px; fill: none; stroke: var(--acc); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .q4-points { margin: 14px 16px 0; display: flex; flex-direction: column; gap: 10px; }
+.carnet .q4-pt { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); text-decoration: none; }
+.carnet .q4-pt .ic { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.carnet .q4-pt .ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .q4-pt.t .ic { background: color-mix(in srgb, var(--acc) 12%, var(--sheet)); color: var(--acc); }
+.carnet .q4-pt.c .ic { background: color-mix(in srgb, var(--rose) 40%, var(--sheet)); color: #7A1F45; }
+.carnet .q4-pt.v .ic { background: #FDF5E6; color: #6B4E0E; }
+.carnet .q4-pt b { display: block; font-size: 15.5px; font-weight: 720; letter-spacing: -.01em; }
+.carnet .q4-pt small { display: block; font-size: 13px; color: var(--ink2); line-height: 1.35; margin-top: 2px; }
+.carnet .q4-pt .v { font-weight: 780; font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.carnet .q4-pt .v.ko { color: var(--out); }
+
+/* Te choisir : l'offre face au département */
+.carnet .q4-sec { margin: 18px 16px 0; display: flex; flex-direction: column; gap: 10px; }
+.carnet .q4-sec > h2 { font-size: 20px; font-weight: 760; letter-spacing: -.03em; margin: 0; }
+.carnet .q4-sec > p { color: var(--ink2); font-size: 14px; margin: 0; }
+.carnet .q4-card { padding: 14px; border-radius: 12px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: flex; flex-direction: column; gap: 12px; }
+.carnet .q4-of { display: flex; flex-direction: column; gap: 6px; }
+.carnet .q4-of + .q4-of { padding-top: 12px; border-top: 1px solid var(--line); }
+.carnet .q4-of .q4-row { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.carnet .q4-of .q4-row b { font-size: 15px; }
+.carnet .q4-of .q4-row .p { font-weight: 780; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.carnet .q4-of small { font-size: 12.5px; color: var(--ink2); }
+.carnet .q4-of .pl { font-size: 12.5px; font-weight: 700; }
+.carnet .q4-of .pl.sous { color: #B7791F; }
+.carnet .q4-of .pl.dans { color: var(--acc); }
+.carnet .q4-of .pl.dessus { color: #7A1F45; }
+.carnet .q4-rng { position: relative; height: 18px; }
+.carnet .q4-rng .tr { position: absolute; left: 0; right: 0; top: 7px; height: 4px; border-radius: 2px; background: var(--mist); }
+.carnet .q4-rng .z { position: absolute; top: 5px; height: 8px; border-radius: 4px; background: var(--rose); }
+.carnet .q4-rng .m { position: absolute; top: 2px; width: 2px; height: 14px; background: color-mix(in srgb, #7A1F45 60%, transparent); transform: translateX(-1px); }
+.carnet .q4-rng .d { position: absolute; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 0 3px var(--sheet), 0 0 0 4px var(--acc); transform: translateX(-50%); }
+.carnet .q4-src { font-size: 12px; color: var(--ink3); line-height: 1.4; }
+.carnet .q4-src a { color: inherit; }
+.carnet .q4-lk svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .q4-lk { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; color: var(--acc); text-decoration: none; }
+.carnet .q4-funnel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.carnet .q4-funnel div { background: var(--mist); border-radius: 10px; padding: 10px; text-align: center; }
+.carnet .q4-funnel b { display: block; font-size: 24px; font-weight: 780; font-variant-numeric: tabular-nums; }
+.carnet .q4-funnel small { font-size: 12px; color: var(--ink2); }
+.carnet .q4-plus-loin { border: 1.5px dashed var(--acc); background: var(--sheet); }
+.carnet .q4-plus-loin .k { font-size: 11px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; color: var(--ink3); }
+.carnet .q4-bientot { font-size: 13.5px; color: var(--ink2); background: var(--mist); border-radius: 12px; padding: 12px 14px; margin: 0; }
+.carnet .q4-titre-etape { margin: 22px 16px 8px; font-size: 20px; font-weight: 760; letter-spacing: -.03em; }
+.carnet .q4-pt .q4-chev { width: 18px; height: 18px; fill: none; stroke: var(--ink3); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .q4-fier .cn-ic, .carnet .q4-fier svg { width: 18px; height: 18px; }

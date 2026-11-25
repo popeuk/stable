@@ -5,13 +5,15 @@ import { ClientGate } from "@/components/ui/client-gate";
 import { Page } from "@/components/carnet/ui";
 import "@/app/carnet/accueil-fort.css";
 import { AccueilPresence } from "@/components/bs/accueil-presence";
-import { ARGENT_VISIBLE } from "@/lib/fonctions";
+import { ARGENT_VISIBLE, QUATRE_PARTIES } from "@/lib/fonctions";
 
 /**
  * L'accueil de la partie argent vit à part (components/bs/accueil-argent.tsx) et ne se charge que
  * si elle est allumée : sans elle, l'accueil de la présence en ligne reste sous le plafond de poids
  * (scripts/poids-accueil.mjs, 230 Ko).
  */
+/** Les quatre parties (préprod) : chargé à part, l'accueil de la production ne s'alourdit pas. */
+const AccueilQuatre = dynamic(() => import("@/components/bs/accueil-quatre").then((m) => m.AccueilQuatre), { ssr: false });
 const AccueilArgent = dynamic(() => import("@/components/bs/accueil-argent").then((m) => m.AccueilArgent), { ssr: false });
 
 /**
@@ -27,6 +29,15 @@ const AccueilArgent = dynamic(() => import("@/components/bs/accueil-argent").the
  * l'équipe dessous.
  */
 export default function AccueilPage() {
+  // Les quatre parties (lib/fonctions.ts) : la fiche en encart, puis un point par partie.
+  if (QUATRE_PARTIES)
+    return (
+      <ClientGate>
+        <Page className="pr-page">
+          <AccueilQuatre />
+        </Page>
+      </ClientGate>
+    );
   // La partie argent masquée (lib/fonctions.ts) : l'accueil de la présence en ligne, pour tous.
   if (!ARGENT_VISIBLE)
     return (

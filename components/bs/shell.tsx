@@ -5,7 +5,8 @@ import { useBriques } from "@/components/bs/briques";
 import "@/app/carnet/briques.css";
 import "@/app/carnet/presence.css";
 import { estOuverte } from "@/lib/briques";
-import { APPRENDRE_VISIBLE, ARGENT_VISIBLE } from "@/lib/fonctions";
+import { APPRENDRE_VISIBLE, ARGENT_VISIBLE, QUATRE_PARTIES } from "@/lib/fonctions";
+import "@/app/carnet/quatre.css";
 import { nonVues, useDemandes } from "@/lib/account/demandes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -70,6 +71,8 @@ export function Header() {
   // Rien de payant ne s'affiche en haut pour un compte gratuit : Mon bilan vient avec Mon argent (lib/briques.ts).
   const briques = useBriques();
   const argent = ARGENT_VISIBLE && estOuverte(briques.etat.argent);
+  // Les quatre parties : en haut à droite, l'enveloppe des demandes, le planning, puis la roue. Mon bilan est un onglet.
+  const demandes = useDemandes((s) => (s.etat === "pret" ? nonVues(s.demandes, s.vuesIci) : 0));
   return (
     <header className="hd hd2" ref={hdRef}>
       {isRoot2(path) ? (
@@ -83,7 +86,22 @@ export function Header() {
         </Link>
       )}
       <span className="hd2-sp" />
-      {argent && (
+      {QUATRE_PARTIES && (
+        <>
+          <Link href="/demandes" className="hd2-gear q4-ic" aria-current={path.startsWith("/demandes") ? "page" : undefined} aria-label={`Demandes${demandes ? ` : ${demandes} nouvelle${demandes > 1 ? "s" : ""}` : ""}`}>
+            <Ic n="mail" />
+            {demandes > 0 && (
+              <em className="q4-badge" aria-hidden="true">
+                {demandes}
+              </em>
+            )}
+          </Link>
+          <Link href="/planning" className="hd2-gear q4-ic" aria-current={path.startsWith("/planning") ? "page" : undefined} aria-label="Planning">
+            <Ic n="cal" />
+          </Link>
+        </>
+      )}
+      {argent && !QUATRE_PARTIES && (
       <Link href="/argent" className="hd2-bilan" aria-current={under(path, BILAN) ? "page" : undefined} aria-label={`Mon bilan : ${resteOuManque(net)} ${eur(Math.abs(net))}`}>
         <span>Mon bilan</span>
         <b className={`num ${tone}`}>{ready ? <CountUp value={Math.round(net)} ms={700} /> : "…"}</b>
@@ -150,6 +168,54 @@ export function TabBar() {
     void charger();
   }, [charger, path]);
   const on = (list: string[]) => (under(path, list) ? "page" : undefined);
+  // Les quatre parties (26 novembre 2026) : l'entonnoir de l'écurie, le + ne sert qu'aux chiffres et vit dans Te faire vivre.
+  if (QUATRE_PARTIES) {
+    const vivre = [...BILAN, ...CLIENTS_CHEVAUX];
+    return (
+      <>
+        <nav className="tb ac-tb bq-tb sans-plus pr-tb pr-tb4 q4-tb" aria-label="Navigation principale">
+          <div>
+            <Link href="/accueil" aria-current={on(["/accueil"])}>
+              <Ic n="home" />
+              Accueil
+            </Link>
+            <Link href="/te-trouver" aria-current={on(["/te-trouver", "/audit"])}>
+              <Ic n="search" />
+              Te trouver
+            </Link>
+            <Link href="/te-choisir" aria-current={on(["/te-choisir"])}>
+              <Ic n="vitrine" />
+              Te choisir
+            </Link>
+            <Link href="/argent" aria-current={on(vivre)} aria-label={`Te faire vivre${argent ? "" : " : bientôt"}`}>
+              <span className="ac-ic">
+                <Ic n="chart" />
+                {!argent && (
+                  <i className="bq-lk" aria-hidden="true">
+                    <Ic n="lock" className="" />
+                  </i>
+                )}
+              </span>
+              <span aria-hidden="true">Te faire vivre</span>
+            </Link>
+          </div>
+        </nav>
+        {argent && under(path, vivre) && (
+          <button
+            type="button"
+            className="q4-plus"
+            aria-label="Noter une séance, un soin, une tâche ou de l’argent"
+            onClick={() => {
+              const id = path.startsWith("/ticket") ? new URLSearchParams(window.location.search).get("id") : null;
+              openNoter(id ? { horseIds: [id] } : {});
+            }}
+          >
+            <Ic n="plus" />
+          </button>
+        )}
+      </>
+    );
+  }
   // La partie argent masquée (lib/fonctions.ts) : la barre de la présence en ligne, à quatre onglets (cinq avec Apprendre).
   if (!ARGENT_VISIBLE)
     return (

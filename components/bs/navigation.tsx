@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useParentIci } from "@/components/bs/nav";
 import { Ic } from "@/components/carnet/ui";
+import { QUATRE_PARTIES } from "@/lib/fonctions";
 
 /**
  * La navigation (27 octobre 2026, l'app en briques) : quatre onglets (Accueil,
@@ -12,7 +13,14 @@ import { Ic } from "@/components/carnet/ui";
  * toujours en disant son nom, quel que soit le chemin pris pour venir.
  */
 /** Les quatre onglets : ils n'ont pas de retour. */
-export const ROOTS2 = ["/accueil", "/ma-fiche", "/demandes", "/chevaux", "/audit", "/apprendre"];
+const ROOTS_AVANT = ["/accueil", "/ma-fiche", "/demandes", "/chevaux", "/audit", "/apprendre"];
+/**
+ * Les quatre parties (26 novembre 2026, QUATRE_PARTIES) : Accueil, Te trouver,
+ * Te choisir, Te faire vivre (Mon bilan). Les demandes et le planning passent
+ * en haut à droite : ils ont un retour vers l'accueil.
+ */
+export const ONGLETS_QUATRE = { accueil: "/accueil", trouver: "/te-trouver", choisir: "/te-choisir", vivre: "/argent" };
+export const ROOTS2 = QUATRE_PARTIES ? Object.values(ONGLETS_QUATRE) : ROOTS_AVANT;
 /** Les écrans de Mon argent et du planning : sous cadenas ou « bientôt » tant que la brique n'est pas ouverte (components/bs/porte-brique.tsx). */
 export const ARGENT = ["/argent", "/chevaux", "/client", "/ticket", "/seuil", "/pilotage", "/part", "/prestations", "/scenarios", "/mois", "/depenses", "/facture", "/facturation", "/saisie", "/conseiller", "/decouvertes"];
 export const PLANNING = ["/planning", "/valider", "/equipe"];
@@ -20,7 +28,19 @@ export const PLANNING = ["/planning", "/valider", "/equipe"];
 export const ECURIE = ["/ecurie", "/parcours/tarifs", "/parcours/factures", "/contacts", "/ma-fiche", "/mon-site", "/facturation", "/registre"];
 
 /** Chaque écran a un seul parent, quel que soit le chemin pris pour y venir. */
+const PARENTS_QUATRE: [string, string][] = QUATRE_PARTIES
+  ? [
+      ["/chevaux", "/argent"],
+      ["/clients", "/argent"],
+      ["/demandes", "/accueil"],
+      ["/planning", "/accueil"],
+      ["/audit", "/te-trouver"],
+      ["/ma-fiche", "/accueil"],
+      ["/apprendre", "/accueil"],
+    ]
+  : [];
 const PARENTS2: [string, string][] = [
+  ...PARENTS_QUATRE,
   ["/ticket", "/chevaux?vue=chevaux"],
   ["/saisie/cheval", "/chevaux?vue=chevaux"],
   ["/client", "/chevaux?vue=clients"],
@@ -45,6 +65,13 @@ const PARENTS2: [string, string][] = [
   ["/registre", "/ecurie"],
 ];
 const NOMS: [string, string][] = [
+  ...(QUATRE_PARTIES
+    ? ([
+        ["/argent", "Te faire vivre"],
+        ["/te-trouver", "Te trouver"],
+        ["/te-choisir", "Te choisir"],
+      ] as [string, string][])
+    : []),
   ["/chevaux", "Clients"],
   ["/planning", "Planning"],
   ["/ecurie", "Mon écurie"],

@@ -42,6 +42,8 @@ jobs:
           NEXT_PUBLIC_SITES_API: https://sites.187-7-74-179.sslip.io
           # Mon site visible en préprod (5 novembre 2026), toujours masqué en production.
           NEXT_PUBLIC_PAYANT: "1"
+          # Les quatre parties (26 novembre 2026) : Accueil, Te trouver, Te choisir, Te faire vivre. Préprod seulement.
+          NEXT_PUBLIC_QUATRE: "1"
       - name: Publish to the vps-preprod branch
         run: |
           cd out

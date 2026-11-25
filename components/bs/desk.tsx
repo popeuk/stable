@@ -27,7 +27,7 @@ import { useBriques } from "@/components/bs/briques";
 import { estOuverte } from "@/lib/briques";
 import { nonVues, useDemandes } from "@/lib/account/demandes";
 import { adresseClient } from "@/lib/adresse-client";
-import { APPRENDRE_VISIBLE, ARGENT_VISIBLE, FACTURATION } from "@/lib/fonctions";
+import { APPRENDRE_VISIBLE, ARGENT_VISIBLE, FACTURATION, QUATRE_PARTIES } from "@/lib/fonctions";
 
 /* ------------------------------------------------------------------ */
 /* L'écran large                                                        */
@@ -82,7 +82,17 @@ export function Sidebar() {
   const briques = useBriques();
   const argent = ARGENT_VISIBLE && estOuverte(briques.etat.argent);
   const demandes = useDemandes((s) => (s.etat === "pret" ? nonVues(s.demandes, s.vuesIci) : 0));
-  const main: { href: string; ic: string; label: string; key: string; on: boolean; badge?: string; cls?: string }[] = [
+  type Item = { href: string; ic: string; label: string; key: string; on: boolean; badge?: string; cls?: string };
+  // Les quatre parties (lib/fonctions.ts) : les quatre onglets, puis les demandes et le planning (en haut à droite au téléphone).
+  const quatre: Item[] = [
+    { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
+    { href: "/te-trouver", ic: "search", label: "Te trouver", key: "U", on: under(path, ["/te-trouver", "/audit"]) },
+    { href: "/te-choisir", ic: "vitrine", label: "Te choisir", key: "H", on: under(path, ["/te-choisir"]) },
+    { href: "/argent", ic: argent ? "chart" : "lock", label: "Te faire vivre", key: "M", on: under(path, [...BILAN, ...CLIENTS_CHEVAUX]) && !vue },
+    { href: "/demandes", ic: "mail", label: "Demandes", key: "D", on: under(path, ["/demandes"]), badge: demandes ? String(demandes) : undefined, cls: "attn" },
+    { href: "/planning", ic: "cal", label: "Planning", key: "P", on: under(path, ["/planning"]) },
+  ];
+  const avant: Item[] = [
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
     { href: "/ma-fiche", ic: "vitrine", label: "Vitrine", key: "V", on: under(path, ["/ma-fiche", "/mon-site"]) },
     { href: "/demandes", ic: "inbox", label: "Demandes", key: "D", on: under(path, ["/demandes"]), badge: demandes ? String(demandes) : undefined, cls: "attn" },
@@ -94,6 +104,7 @@ export function Sidebar() {
           ...(APPRENDRE_VISIBLE ? [{ href: "/apprendre", ic: "bulb", label: "Apprendre", key: "P", on: under(path, ["/apprendre"]) }] : []),
         ]),
   ];
+  const main = QUATRE_PARTIES ? quatre : avant;
   return (
     <aside className="cn-side" aria-label="Navigation">
       <Link href="/accueil" className="wm">
@@ -123,7 +134,7 @@ export function Sidebar() {
         ))}
       </div>
       <div className="ac-sgrp">
-        {argent && (
+        {argent && !QUATRE_PARTIES && (
           <Link href="/argent" className="it" aria-current={under(path, BILAN) && !vue ? "page" : undefined} title="Mon bilan (G puis M)">
             <Ic n="chart" />
             <span style={{ flex: 1, minWidth: 0 }}>Mon bilan</span>
@@ -268,6 +279,12 @@ function PaletteInner() {
       { id: "a-depense", group: "Faire", label: "Noter une dépense", sub: "ou une recette", ic: "euro", run: add("depense") },
       ...(FACTURATION ? [{ id: "a-facturer", group: "Faire", label: "Faire payer tes clients", sub: c.due ? `${eurc(c.due)} en attente` : undefined, ic: "doc", run: go("/chevaux?vue=clients") }] : []),
       { id: "g-accueil", group: "Aller à", label: "Accueil", ic: "home", hint: "G A", run: go("/accueil") },
+      ...(QUATRE_PARTIES
+        ? [
+            { id: "g-trouver", group: "Aller à", label: "Te trouver", sub: "l’audit de ta visibilité", ic: "search", hint: "G U", run: go("/te-trouver") },
+            { id: "g-choisir", group: "Aller à", label: "Te choisir", sub: "ton offre face à ton département", ic: "vitrine", hint: "G H", run: go("/te-choisir") },
+          ]
+        : []),
       { id: "g-vitrine", group: "Aller à", label: "Vitrine", sub: "ta fiche sur bestable.fr", ic: "vitrine", hint: "G V", run: go("/ma-fiche") },
       { id: "g-demandes", group: "Aller à", label: "Demandes", sub: "les cavaliers qui t’écrivent", ic: "inbox", hint: "G D", run: go("/demandes") },
       { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
@@ -423,6 +440,7 @@ const GOTO: Record<string, string> = {
   b: "/pilotage",
   s: "/parcours/tarifs?retour=ecurie",
   o: "/ma-fiche",
+  ...(QUATRE_PARTIES ? { u: "/te-trouver", h: "/te-choisir" } : {}),
 };
 
 /** Les raccourcis des lignes du rond, dans la palette. */
