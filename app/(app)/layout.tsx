@@ -7,6 +7,7 @@ import { SessionSync } from "@/components/bs/session-sync";
 import { NuageSync } from "@/components/bs/nuage-sync";
 import { AideCarte, TitreEcran } from "@/components/bs/nav";
 import { RetourOrdinateur } from "@/components/bs/navigation";
+import { AnalyseOnglets } from "@/components/bs/analyse-onglets";
 import { Secours } from "@/components/bs/secours-garde";
 import { LimiteCoque } from "@/components/bs/ecran-erreur-differe";
 
@@ -44,6 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="cn-page" style={{ paddingBottom: 0, paddingTop: 0 }}>
               <RetourOrdinateur />
               <AideCarte />
+              <AnalyseOnglets />
             </div>
           </ClientGate>
           {/* Où mène « Aller au contenu » : après l'en-tête, avant l'écran. */}

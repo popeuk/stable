@@ -40,9 +40,9 @@ function TeChoisir() {
     <Page className="pr-page">
       <div className="pr-hello rise">
         <span className="eyeb">Ton offre et ton secteur</span>
-        <h1>
-          Te <span className="pr-hl">choisir</span>.
-        </h1>
+        <h2 className="q5-h">
+          Ton <span className="pr-hl">offre</span>
+        </h2>
         <p>Ce que le cavalier compare avant de t’écrire : ce que tu proposes, ton prix, et les écuries autour.</p>
       </div>
 

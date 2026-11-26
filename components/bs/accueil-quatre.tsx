@@ -1,27 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Ic, eur } from "@/components/carnet/ui";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useDataStore } from "@/stores/data-store";
 import { useBriques } from "@/components/bs/briques";
 import { estOuverte } from "@/lib/briques";
 import { jaugeFiche } from "@/lib/fiche-jauge";
-import { aRepondu } from "@/lib/account/demandes";
+import { dayItems } from "@/lib/domain/seances";
+import { localToday } from "@/lib/utils/local-date";
+import { heure } from "@/lib/utils/heure";
+import { hasObjective } from "@/stores/settings-store";
+import { objectifPct, phraseObjectif } from "@/lib/domain/objectif";
 import { compte, type Etape, type Point } from "@/lib/presence";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { scene, usePresence } from "@/components/bs/presence";
 
 /**
- * L'accueil des quatre parties (26 novembre 2026, maquette validée par
- * Samuel) : la fiche bestable.fr d'abord, en encart ; ce qui marche déjà
- * (on ouvre sur la fierté) ; puis un point par partie, qui mène à l'onglet.
+ * L'accueil des cinq onglets (26 novembre 2026, décision de Samuel), dans
+ * l'ordre : l'encart de la fiche bestable.fr, les rendez-vous du jour, où en
+ * est l'objectif de rentabilité, puis la visibilité (en ouvrant sur ce qui
+ * marche déjà). Chaque carte mène à son onglet.
  */
 export function AccueilQuatre() {
   const gerant = useSettingsStore((s) => s.gerant);
-  const { etat, fiche, etapes, demandes, repondues } = usePresence();
+  const { etat, fiche, etapes } = usePresence();
   const prenom = gerant.trim().split(/\s+/)[0];
   const bonjour = prenom ? `Bonjour ${prenom}.` : "Bonjour.";
 
@@ -54,21 +59,19 @@ export function AccueilQuatre() {
             <Ic n="arrow" className="" />
           </Link>
         </div>
-        <TroisPoints etapes={null} attente={0} />
+        <Recaps etapes={null} />
       </>
     );
 
   const { n, total } = jaugeFiche(fiche);
   const pct = Math.round((n / total) * 100);
-  const attente = demandes.filter((d) => !aRepondu(d, repondues)).length;
   const photo = fiche.photos[0]?.url;
-  const fier = ceQuiMarche(etapes);
 
   return (
     <>
       <div className="pr-hello rise">
         <h1>{bonjour}</h1>
-        <p>{fiche.en_attente ? "On vérifie que c’est bien ton écurie. Ce que tu remplis est gardé en attendant." : "Voici où en est ton écurie : te trouver, te choisir, te faire vivre."}</p>
+        <p>{fiche.en_attente ? "On vérifie que c’est bien ton écurie. Ce que tu remplis est gardé en attendant." : "Voici ta journée et où en est ton écurie."}</p>
       </div>
 
       <div className="pr-cover rise" style={{ animationDelay: ".06s" }}>
@@ -106,18 +109,7 @@ export function AccueilQuatre() {
         </Link>
       </div>
 
-      {fier && (
-        <p className="q4-fier rise" style={{ animationDelay: ".14s" }}>
-          <Ic n="ck" className="" />
-          <span>
-            <b>Ce qui marche déjà : </b>
-            {fier.titre.charAt(0).toLowerCase() + fier.titre.slice(1)}.
-          </span>
-        </p>
-      )}
-
-      <TroisPoints etapes={etapes} attente={attente} />
-      <div className="end" />
+      <Recaps etapes={etapes} />
     </>
   );
 }
@@ -130,68 +122,137 @@ function ceQuiMarche(etapes: Etape[]): Point | null {
 
 const aFaire = (n: number) => (n === 0 ? "Rien à corriger pour l’instant" : n === 1 ? "1 chose à faire" : `${n} choses à faire`);
 
-function TroisPoints({ etapes, attente }: { etapes: Etape[] | null; attente: number }) {
+/** Les trois récaps, dans l'ordre de Samuel : la journée, la rentabilité, la visibilité. */
+function Recaps({ etapes }: { etapes: Etape[] | null }) {
+  return (
+    <>
+      <RendezVous />
+      <Rentabilite />
+      <Visibilite etapes={etapes} />
+      <div className="end" />
+    </>
+  );
+}
+
+/** Une carte de l'accueil : son titre, son contenu, et le lien vers son onglet. */
+function Carte({ titre, href, lien, ouverte, children, delay }: { titre: string; href: string; lien: string; ouverte: boolean; children: ReactNode; delay: number }) {
+  return (
+    <section className="q5-carte rise" style={{ animationDelay: `${delay}s` }}>
+      <h2>{titre}</h2>
+      {children}
+      <Link href={href} className="q4-lk">
+        {lien} <Ic n={ouverte ? "chev" : "lock"} className="" />
+      </Link>
+    </section>
+  );
+}
+
+const maintenant = () => {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
+
+/** Les rendez-vous du jour : séances, soins, tâches, triés par heure (le planning). */
+function RendezVous() {
   const { etat } = useBriques();
-  const argent = estOuverte(etat.argent);
+  const ouverte = estOuverte(etat.planning);
   const data = useDataStore();
   const ready = useDataStore((s) => s.hydrated);
-  const net = useMemo(() => (argent ? monthBreakdown(data, currentPeriod()).net : 0), [data, argent]);
-
-  // Te trouver et Te choisir sont payants : sans eux, l'accueil ne donne pas le résultat de l'audit.
-  const trouverOuvert = estOuverte(etat.trouver);
-  const choisirOuvert = estOuverte(etat.choisir);
-  const t = etapes ? compte(etapes[0]) : null;
-  const c2 = etapes ? compte(etapes[1]) : null;
-  const c3 = etapes ? compte(etapes[2]) : null;
-  const nTrouver = t ? t.ko + t.mid : 0;
-  const nChoisir = c2 && c3 ? c2.ko + c2.mid + c3.ko + c3.mid : 0;
-  const sousTrouver = !trouverOuvert ? "Bientôt : l’audit de ta visibilité" : t ? aFaire(nTrouver) : "Dès que ta fiche est à ton nom";
-  const sousChoisir = !choisirOuvert ? "Bientôt : ton offre face aux écuries autour" : !etapes ? "Ton offre face à ton département" : `${aFaire(nChoisir)} · ton prix face au département`;
-
+  const today = localToday();
+  const items = useMemo(() => (ouverte && ready ? dayItems(data, today, today, maintenant()) : []), [data, today, ouverte, ready]);
+  const montres = items.slice(0, 4);
   return (
-    <div className="q4-points rise" style={{ animationDelay: ".18s" }}>
-      {attente > 0 && (
-        <Link href="/demandes" className="q4-pt c">
-          <span className="ic">
-            <Ic n="mail" className="" />
-          </span>
-          <span>
-            <b>{attente > 1 ? `${attente} demandes attendent` : "1 demande attend"} ta réponse</b>
-            <small>Un cavalier t’a écrit depuis ta fiche. Réponds vite : c’est souvent le premier qui répond qui est choisi.</small>
-          </span>
-          <Ic n="chev" className="q4-chev" />
-        </Link>
+    <Carte titre="Aujourd’hui" href="/planning" lien={items.length > montres.length ? `Les ${items.length} rendez-vous` : "Ouvrir le planning"} ouverte={ouverte} delay={0.1}>
+      {!ouverte ? (
+        <p className="q5-vide">Tes cours, stages, soins et tâches du jour, avec le planning.</p>
+      ) : !ready ? (
+        <p className="q5-vide">…</p>
+      ) : montres.length === 0 ? (
+        <p className="q5-vide">Rien de prévu aujourd’hui.</p>
+      ) : (
+        <ul className="q5-rdv">
+          {montres.map((i) => (
+            <li key={i.key} className={i.done ? "fait" : undefined}>
+              <time>{i.start ? heure(i.start) : "Dans la journée"}</time>
+              <span>
+                <b>{i.title}</b>
+                {i.sub && <small>{i.sub}</small>}
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
-      <Link href="/te-trouver" className="q4-pt t">
-        <span className="ic">
-          <Ic n="search" className="" />
-        </span>
-        <span>
-          <b>Te trouver</b>
-          <small>{sousTrouver}</small>
-        </span>
-        <Ic n={trouverOuvert ? "chev" : "lock"} className="q4-chev" />
-      </Link>
-      <Link href="/te-choisir" className="q4-pt c">
-        <span className="ic">
-          <Ic n="vitrine" className="" />
-        </span>
-        <span>
-          <b>Te choisir</b>
-          <small>{sousChoisir}</small>
-        </span>
-        <Ic n={choisirOuvert ? "chev" : "lock"} className="q4-chev" />
-      </Link>
-      <Link href="/argent" className="q4-pt v">
-        <span className="ic">
-          <Ic n="chart" className="" />
-        </span>
-        <span>
-          <b>Te faire vivre</b>
-          <small>{argent ? (net >= 0 ? "Ce qu’il te reste ce mois-ci" : "Ce qu’il te manque ce mois-ci") : "Bientôt : ce que te rapporte chaque client"}</small>
-        </span>
-        {argent && ready ? <span className={`v${net < 0 ? " ko" : ""}`}>{eur(Math.round(net))}</span> : <Ic n={argent ? "chev" : "lock"} className="q4-chev" />}
-      </Link>
-    </div>
+    </Carte>
+  );
+}
+
+/** L'objectif de rentabilité : ce qu'il reste ce mois-ci, face à ce que le gérant vise. */
+function Rentabilite() {
+  const { etat } = useBriques();
+  const ouverte = estOuverte(etat.argent);
+  const data = useDataStore();
+  const ready = useDataStore((s) => s.hydrated);
+  const objective = useSettingsStore((s) => s.objective);
+  const net = useMemo(() => (ouverte ? monthBreakdown(data, currentPeriod()).net : 0), [data, ouverte]);
+  const pct = objectifPct(net, objective);
+  return (
+    <Carte titre="Ton objectif du mois" href={ouverte && !hasObjective(objective) ? "/argent?objectif=1" : "/argent"} lien={ouverte && !hasObjective(objective) ? "Te fixer un objectif" : "Voir ta rentabilité"} ouverte={ouverte} delay={0.14}>
+      {!ouverte ? (
+        <p className="q5-vide">Ce qu’il te reste à la fin du mois, face à ce que tu veux te verser.</p>
+      ) : !ready ? (
+        <p className="q5-vide">…</p>
+      ) : (
+        <>
+          <div className="q5-net">
+            <b className={net < 0 ? "ko" : undefined}>{eur(Math.round(net))}</b>
+            <small>{net >= 0 ? "il te reste ce mois-ci" : "il te manque ce mois-ci"}</small>
+          </div>
+          {pct !== null ? (
+            <>
+              <div className="q5-jauge" role="img" aria-label={`${Math.round(pct)} % de ton objectif`}>
+                <span style={{ width: `${pct}%` }} />
+              </div>
+              <p className="q5-vide">{phraseObjectif(net, objective)}</p>
+            </>
+          ) : (
+            <p className="q5-vide">Tu n’as pas encore d’objectif : combien veux-tu qu’il te reste chaque mois ?</p>
+          )}
+        </>
+      )}
+    </Carte>
+  );
+}
+
+/** La visibilité : ce qui marche déjà (on ouvre sur la fierté), puis ce qu'il reste à faire. */
+function Visibilite({ etapes }: { etapes: Etape[] | null }) {
+  const { etat } = useBriques();
+  const ouverte = estOuverte(etat.trouver);
+  const t = etapes ? compte(etapes[0]) : null;
+  const fier = etapes ? ceQuiMarche(etapes) : null;
+  const premier = etapes?.[0]?.points.find((p) => p.etat === "ko") ?? etapes?.[0]?.points.find((p) => p.etat === "mid") ?? null;
+  return (
+    <Carte titre="Ta visibilité" href="/te-trouver" lien="Voir ta visibilité" ouverte={ouverte} delay={0.18}>
+      {!ouverte ? (
+        <p className="q5-vide">Est-ce que les cavaliers tombent sur ton écurie quand ils cherchent une pension près de chez eux ?</p>
+      ) : !t ? (
+        <p className="q5-vide">Dès que ta fiche est à ton nom.</p>
+      ) : (
+        <>
+          {fier && (
+            <p className="q4-fier" style={{ margin: 0 }}>
+              <Ic n="ck" className="" />
+              <span>
+                <b>Ce qui marche déjà : </b>
+                {fier.titre.charAt(0).toLowerCase() + fier.titre.slice(1)}.
+              </span>
+            </p>
+          )}
+          <p className="q5-vide">
+            <b>{aFaire(t.ko + t.mid)}</b>
+            {premier ? ` · d’abord : ${premier.titre.charAt(0).toLowerCase() + premier.titre.slice(1)}` : ""}
+          </p>
+        </>
+      )}
+    </Carte>
   );
 }

@@ -16,7 +16,11 @@ import { ContactOuvrir, MAILTO_CONTACT, TEXTE_REPLI } from "@/components/bs/cont
 import { ChoixTemoinsLigne } from "@/components/bs/consentement";
 import { BoutonDeconnexion } from "@/components/bs/effacer";
 import { heure } from "@/lib/utils/heure";
-import { ARGENT_VISIBLE, FACTURATION, PAYANT_VISIBLE } from "@/lib/fonctions";
+import { useUiStore } from "@/stores/ui-store";
+import { useBriques } from "@/components/bs/briques";
+import { estOuverte } from "@/lib/briques";
+import { useFinDuMois } from "@/components/bs/compte";
+import { ARGENT_VISIBLE, FACTURATION, PAYANT_VISIBLE, QUATRE_PARTIES } from "@/lib/fonctions";
 
 /**
  * Les deux écrans qui remplacent l'ancien « Réglages » (17 octobre 2026). Mon écurie ne parle que de l'écurie (ce qu'elle vend, ce
@@ -152,6 +156,91 @@ function TonEcurie() {
   );
 }
 
+/**
+ * Mon écurie, l'onglet des cinq (26 novembre 2026) : la brique des chiffres.
+ * On y saisit ce que l'Analyse lit : les clients et leurs chevaux, les
+ * prestations, les factures, les frais. Les prix et les places sont passés
+ * dans la Vitrine. Le « Noter » remplace le + de la barre.
+ */
+export function MonEcurieCinq() {
+  const stableName = useSettingsStore((s) => s.stableName);
+  const openNoter = useUiStore((s) => s.openNoter);
+  const { etat } = useBriques();
+  const argent = estOuverte(etat.argent);
+  const horses = useDataStore((s) => s.horses.filter((h) => !h.isArchived).length);
+  const clients = useDataStore((s) => (s.people ?? []).length);
+  const prestations = useDataStore((s) => (s.prestations ?? []).length);
+  const team = useDataStore((s) => s.team) ?? [];
+  const pros = useDataStore((s) => s.pros) ?? [];
+  const factures = useDataStore((s) => (s.invoices ?? []).length);
+  const frais = useDataStore((s) => {
+    const f = fraisDuMois(s);
+    return f.total + f.postes;
+  });
+  const fin = useFinDuMois();
+  const aPayer = argent ? (fin?.count ?? 0) : 0;
+  const plur = (n: number, un: string, des: string) => `${n} ${n > 1 ? des : un}`;
+  return (
+    <div className="ce">
+      <header className="ce-hd q5-ec-hd rise">
+        <div>
+          <h1>Mon écurie</h1>
+          <p>{stableName}</p>
+        </div>
+        {argent && (
+          <button type="button" className="btn q5-noter" onClick={() => openNoter({})}>
+            <Ic n="plus" className="" />
+            Noter
+          </button>
+        )}
+      </header>
+      <Case
+        titre="Tes clients et leurs chevaux"
+        lignes={[
+          { href: "/chevaux?vue=clients", ic: "people", t: "Mes clients", s: aPayer ? `${plur(aPayer, "client", "clients")} à faire payer` : clients ? plur(clients, "client", "clients") : "Propriétaires et cavaliers, ce que chacun te doit" },
+          { href: "/chevaux?vue=chevaux", ic: "horse", t: "Mes chevaux", s: horses ? plur(horses, "cheval", "chevaux") : "Les chevaux de tes clients, et les tiens" },
+          { href: "/prestations", ic: "cal", t: "Mes prestations", s: prestations ? `${plur(prestations, "prestation", "prestations")}, et ce que chacune rapporte` : "Cours, travail du cheval, balades : leur prix" },
+        ]}
+      />
+      <Case
+        titre="Ce qui rentre et ce qui sort"
+        lignes={[
+          ...(FACTURATION ? [{ href: "/facturation", ic: "doc", t: "Mes factures", s: factures ? plur(factures, "facture", "factures") : "Tes factures et avoirs, le fichier du comptable" }] : []),
+          { href: "/parcours/factures?retour=ecurie", ic: "hay", t: "Mes frais", s: frais ? `${eur(frais)} par mois · foin, paille, loyer…` : "Foin, paille, loyer, salaires" },
+          { href: "/argent?vue=mouvements", ic: "euro", t: "Mes dépenses et recettes", s: "Tout ce que tu as noté, mois par mois" },
+        ]}
+      />
+      <Case
+        titre="Les gens"
+        lignes={[
+          { href: "/moi?s=equipe", ic: "people", t: "Mon équipe", s: noms(team.filter((m) => m.role === "employe").map((m) => m.name), "Ceux qui travaillent à l’écurie") },
+          { href: "/contacts", ic: "user", t: "Les pros", s: noms(pros.map((p) => p.name), "Maréchal, véto, dentiste, ostéo…") },
+        ]}
+      />
+      <Case titre="Papiers" lignes={[{ href: "/moi?s=papiers", ic: "doc", t: "Mes papiers", s: "Lieu de détention, registre d’élevage" }]} />
+    </div>
+  );
+}
+
+/** Le bas de la Vitrine (les cinq onglets) : les prix et les places qui servent aux calculs, venus de Mon écurie. */
+export function CoulissesVitrine() {
+  const capacity = useSettingsStore((s) => s.capacity);
+  const horses = useDataStore((s) => s.horses.filter((h) => !h.isArchived).length);
+  const t = useDataStore((s) => s.tariffs) ?? {};
+  const prix = [t.pension && `Pension ${eur(t.pension)}`, t.cours_collectif && `cours ${eur(t.cours_collectif)}`].filter(Boolean).join(" · ");
+  return (
+    <div className="ce q5-coulisses">
+      <Case
+        titre="Dans l’app seulement"
+        lignes={[
+          { href: "/parcours/tarifs?retour=ma-fiche", ic: "euro", t: "Mes prix", s: prix || "Pension, cours, forfaits : ceux qui servent à tes calculs" },
+          { href: "/moi?s=ecurie", ic: "home", t: "Mes places", s: capacity ? `${capacity} places, ${Math.min(horses, capacity)} prises` : "Combien de chevaux tu peux accueillir" },
+        ]}
+      />
+    </div>
+  );
+}
+
 export function MonEcurie() {
   const stableName = useSettingsStore((s) => s.stableName);
   const capacity = useSettingsStore((s) => s.capacity);
@@ -236,7 +325,8 @@ export function Reglages() {
         ]}
       />
       <BoutonDeconnexion />
-      {ARGENT_VISIBLE && (
+      {/* Les cinq onglets : Mon écurie a son onglet, il ne passe plus par les Réglages. */}
+      {ARGENT_VISIBLE && !QUATRE_PARTIES && (
         <Case
           titre="En coulisses"
           lignes={[{ href: "/ecurie", ic: "horse", t: "Mon écurie", s: "Ce que les cavaliers ne voient pas : prix privés, frais, équipe, pros, papiers" }]}

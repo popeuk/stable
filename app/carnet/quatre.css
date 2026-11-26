@@ -63,3 +63,36 @@
 .carnet .q4-titre-etape { margin: 22px 16px 8px; font-size: 20px; font-weight: 760; letter-spacing: -.03em; }
 .carnet .q4-pt .q4-chev { width: 18px; height: 18px; fill: none; stroke: var(--ink3); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .q4-fier .cn-ic, .carnet .q4-fier svg { width: 18px; height: 18px; }
+
+/* Les cinq onglets (26 novembre 2026) : les onglets du haut de l'Analyse */
+.carnet .q5-ana { padding: 12px 16px 0; }
+.carnet .q5-ana-t { font-size: 28px; font-weight: 780; letter-spacing: -.035em; margin: 0 0 10px; }
+.carnet .q5-ana-o { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 12px; background: var(--mist); }
+.carnet .q5-ana-o a { text-align: center; padding: 9px 4px; border-radius: 10px; font-size: 14.5px; font-weight: 700; color: var(--ink2); text-decoration: none; }
+.carnet .q5-ana-o a[aria-current="page"] { background: var(--sheet); color: var(--acc); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+@media (min-width: 1024px) { .carnet .q5-ana { padding: 20px 0 0; max-width: 560px; } }
+.carnet .pr-hello h2.q5-h { margin: 4px 0 0; font-size: 24px; font-weight: 740; line-height: 1.1; letter-spacing: -.03em; }
+/* Mon écurie : le « Noter » à droite du titre, à la place du + de la barre */
+.carnet .q5-ec-hd { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.carnet .q5-ec-hd p { margin: 6px 0 0; color: var(--ink2); }
+.carnet .btn.q5-noter { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; min-height: 44px; }
+.carnet .btn.q5-noter svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.carnet .q5-coulisses { margin-top: 8px; }
+/* L'accueil des cinq onglets : trois cartes sous l'encart de la fiche */
+.carnet .q5-carte { margin: 14px 16px 0; padding: 14px; border-radius: 12px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); display: flex; flex-direction: column; gap: 10px; }
+.carnet .q5-carte > h2 { margin: 0; font-size: 17px; font-weight: 760; letter-spacing: -.02em; }
+.carnet .q5-vide { margin: 0; font-size: 14px; line-height: 1.4; color: var(--ink2); }
+.carnet .q5-vide b { color: var(--ink); }
+.carnet .q5-rdv { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.carnet .q5-rdv li { display: grid; grid-template-columns: 74px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+.carnet .q5-rdv li:first-child { border-top: 0; padding-top: 0; }
+.carnet .q5-rdv li.fait { opacity: .55; }
+.carnet .q5-rdv time { font-size: 14px; font-weight: 720; font-variant-numeric: tabular-nums; color: var(--acc); }
+.carnet .q5-rdv b { display: block; font-size: 15px; font-weight: 680; }
+.carnet .q5-rdv small { display: block; font-size: 13px; color: var(--ink2); margin-top: 1px; }
+.carnet .q5-net { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.carnet .q5-net b { font-size: 28px; font-weight: 780; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.carnet .q5-net b.ko { color: var(--out); }
+.carnet .q5-net small { font-size: 14px; color: var(--ink2); }
+.carnet .q5-jauge { height: 8px; border-radius: 4px; background: var(--mist); overflow: hidden; }
+.carnet .q5-jauge span { display: block; height: 100%; border-radius: 4px; background: var(--acc); }

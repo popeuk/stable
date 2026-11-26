@@ -23,6 +23,7 @@ import { InstallHowto } from "@/components/bs/install-howto";
 import { modKey } from "@/components/bs/desk-hook";
 import { useFinDuMois } from "@/components/bs/compte";
 import { BILAN, CLIENTS_CHEVAUX, under, usePlusItems } from "@/components/bs/nav";
+import { TAB_ANALYSE, TAB_ECURIE, TAB_PLANNING, TAB_VITRINE } from "@/components/bs/navigation";
 import { useBriques } from "@/components/bs/briques";
 import { estOuverte } from "@/lib/briques";
 import { nonVues, useDemandes } from "@/lib/account/demandes";
@@ -83,14 +84,14 @@ export function Sidebar() {
   const argent = ARGENT_VISIBLE && estOuverte(briques.etat.argent);
   const demandes = useDemandes((s) => (s.etat === "pret" ? nonVues(s.demandes, s.vuesIci) : 0));
   type Item = { href: string; ic: string; label: string; key: string; on: boolean; badge?: string; cls?: string };
-  // Les quatre parties (lib/fonctions.ts) : les quatre onglets, puis les demandes et le planning (en haut à droite au téléphone).
+  // Les cinq onglets (lib/fonctions.ts), puis les demandes (en haut à droite au téléphone).
   const quatre: Item[] = [
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
-    { href: "/te-trouver", ic: estOuverte(briques.etat.trouver) ? "search" : "lock", label: "Te trouver", key: "U", on: under(path, ["/te-trouver", "/audit"]) },
-    { href: "/te-choisir", ic: estOuverte(briques.etat.choisir) ? "vitrine" : "lock", label: "Te choisir", key: "H", on: under(path, ["/te-choisir"]) },
-    { href: "/argent", ic: argent ? "chart" : "lock", label: "Te faire vivre", key: "M", on: under(path, [...BILAN, ...CLIENTS_CHEVAUX]) && !vue },
+    { href: "/planning", ic: estOuverte(briques.etat.planning) ? "cal" : "lock", label: "Planning", key: "P", on: under(path, TAB_PLANNING) },
+    { href: "/ma-fiche", ic: "vitrine", label: "Vitrine", key: "V", on: under(path, TAB_VITRINE) },
+    { href: "/argent", ic: argent ? "chart" : "lock", label: "Analyse", key: "M", on: under(path, TAB_ANALYSE) },
+    { href: "/ecurie", ic: "horse", label: "Mon écurie", key: "E", on: under(path, TAB_ECURIE), badge: argent && count ? String(count) : undefined, cls: "attn" },
     { href: "/demandes", ic: "mail", label: "Demandes", key: "D", on: under(path, ["/demandes"]), badge: demandes ? String(demandes) : undefined, cls: "attn" },
-    { href: "/planning", ic: "cal", label: "Planning", key: "P", on: under(path, ["/planning"]) },
   ];
   const avant: Item[] = [
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
@@ -281,17 +282,18 @@ function PaletteInner() {
       { id: "g-accueil", group: "Aller à", label: "Accueil", ic: "home", hint: "G A", run: go("/accueil") },
       ...(QUATRE_PARTIES
         ? [
-            { id: "g-trouver", group: "Aller à", label: "Te trouver", sub: "l’audit de ta visibilité", ic: "search", hint: "G U", run: go("/te-trouver") },
-            { id: "g-choisir", group: "Aller à", label: "Te choisir", sub: "ton offre face à ton département", ic: "vitrine", hint: "G H", run: go("/te-choisir") },
+            { id: "g-analyse", group: "Aller à", label: "Analyse", sub: "ta rentabilité, ton offre, ta visibilité", ic: "chart", run: go("/argent") },
+            { id: "g-trouver", group: "Aller à", label: "Ta visibilité", sub: "dans Analyse", ic: "search", hint: "G U", run: go("/te-trouver") },
+            { id: "g-choisir", group: "Aller à", label: "Ton offre", sub: "dans Analyse : face à ton département", ic: "vitrine", hint: "G H", run: go("/te-choisir") },
           ]
         : []),
       { id: "g-vitrine", group: "Aller à", label: "Vitrine", sub: "ta fiche sur bestable.fr", ic: "vitrine", hint: "G V", run: go("/ma-fiche") },
       { id: "g-demandes", group: "Aller à", label: "Demandes", sub: "les cavaliers qui t’écrivent", ic: "inbox", hint: "G D", run: go("/demandes") },
       { id: "g-planning", group: "Aller à", label: "Planning", ic: "cal", hint: "G P", run: go("/planning") },
       { id: "g-chevaux", group: "Aller à", label: "Clients", sub: "tes clients et leurs chevaux", ic: "people", hint: "G C", run: go("/chevaux") },
-      { id: "g-ecurie", group: "Aller à", label: "Mon écurie", sub: "prix, frais, équipe, pros, papiers", ic: "horse", hint: "G E", run: go("/ecurie") },
+      { id: "g-ecurie", group: "Aller à", label: "Mon écurie", sub: QUATRE_PARTIES ? "clients, chevaux, prestations, factures, frais" : "prix, frais, équipe, pros, papiers", ic: "horse", hint: "G E", run: go("/ecurie") },
       { id: "g-mois", group: "Aller à", label: "Mon bilan", sub: signed(c.net), money: c.estime ? undefined : c.net, ic: "chart", hint: "G M", run: go("/argent") },
-      { id: "g-prix", group: "Aller à", label: "Mes prix", sub: "dans Mon écurie", ic: "euro", hint: "G S", run: go("/parcours/tarifs?retour=ecurie") },
+      { id: "g-prix", group: "Aller à", label: "Mes prix", sub: QUATRE_PARTIES ? "dans Vitrine" : "dans Mon écurie", ic: "euro", hint: "G S", run: go(QUATRE_PARTIES ? "/parcours/tarifs?retour=ma-fiche" : "/parcours/tarifs?retour=ecurie") },
       { id: "g-frais", group: "Aller à", label: "Mes frais", sub: "dans Mon écurie", ic: "hay", run: go("/parcours/factures?retour=ecurie") },
       { id: "g-pros", group: "Aller à", label: "Les pros", sub: "dans Mon écurie", ic: "user", run: go("/contacts") },
       ...plus.map((it) => ({ id: `r-${it.id}`, group: "Aller à", label: it.label, sub: it.sub, ic: it.ic, hint: HINTS[it.id], run: go(it.href ?? "/reglages") })),
@@ -438,7 +440,7 @@ const GOTO: Record<string, string> = {
   k: "/chevaux?vue=clients",
   r: "/reglages",
   b: "/pilotage",
-  s: "/parcours/tarifs?retour=ecurie",
+  s: QUATRE_PARTIES ? "/parcours/tarifs?retour=ma-fiche" : "/parcours/tarifs?retour=ecurie",
   o: "/ma-fiche",
   ...(QUATRE_PARTIES ? { u: "/te-trouver", h: "/te-choisir" } : {}),
 };

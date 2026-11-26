@@ -15,12 +15,21 @@ import { QUATRE_PARTIES } from "@/lib/fonctions";
 /** Les quatre onglets : ils n'ont pas de retour. */
 const ROOTS_AVANT = ["/accueil", "/ma-fiche", "/demandes", "/chevaux", "/audit", "/apprendre"];
 /**
- * Les quatre parties (26 novembre 2026, QUATRE_PARTIES) : Accueil, Te trouver,
- * Te choisir, Te faire vivre (Mon bilan). Les demandes et le planning passent
- * en haut à droite : ils ont un retour vers l'accueil.
+ * Les cinq onglets (26 novembre 2026, derrière QUATRE_PARTIES) : Accueil,
+ * Planning, Vitrine, Analyse, Mon écurie. Analyse rassemble trois écrans
+ * (Rentabilité, Offre, Visibilité) reliés par les onglets du haut
+ * (components/bs/analyse-onglets.tsx) ; Mon écurie est la brique des
+ * chiffres (clients, chevaux, prestations, factures, dépenses). En haut à
+ * droite : l'enveloppe des demandes et la roue.
  */
-export const ONGLETS_QUATRE = { accueil: "/accueil", trouver: "/te-trouver", choisir: "/te-choisir", vivre: "/argent" };
-export const ROOTS2 = QUATRE_PARTIES ? Object.values(ONGLETS_QUATRE) : ROOTS_AVANT;
+export const ANALYSE_ONGLETS = ["/argent", "/te-choisir", "/te-trouver"];
+export const ONGLETS_CINQ = { accueil: "/accueil", planning: "/planning", vitrine: "/ma-fiche", analyse: "/argent", ecurie: "/ecurie" };
+/** Les écrans de chaque onglet : l'onglet reste allumé. */
+export const TAB_PLANNING = ["/planning", "/valider", "/equipe"];
+export const TAB_VITRINE = ["/ma-fiche", "/mon-site", "/parcours/tarifs"];
+export const TAB_ANALYSE = [...ANALYSE_ONGLETS, "/audit", "/seuil", "/pilotage", "/part", "/scenarios", "/mois", "/conseiller", "/decouvertes"];
+export const TAB_ECURIE = ["/ecurie", "/chevaux", "/clients", "/client", "/ticket", "/cheval", "/facture", "/prestations", "/depenses", "/facturation", "/contacts", "/registre", "/parcours/factures", "/saisie"];
+export const ROOTS2 = QUATRE_PARTIES ? ["/accueil", "/planning", "/ma-fiche", ...ANALYSE_ONGLETS, "/ecurie"] : ROOTS_AVANT;
 /** Les écrans de Mon argent et du planning : sous cadenas ou « bientôt » tant que la brique n'est pas ouverte (components/bs/porte-brique.tsx). */
 export const ARGENT = ["/argent", "/chevaux", "/client", "/ticket", "/seuil", "/pilotage", "/part", "/prestations", "/scenarios", "/mois", "/depenses", "/facture", "/facturation", "/saisie", "/conseiller", "/decouvertes"];
 export const PLANNING = ["/planning", "/valider", "/equipe"];
@@ -28,19 +37,19 @@ export const PLANNING = ["/planning", "/valider", "/equipe"];
 export const ECURIE = ["/ecurie", "/parcours/tarifs", "/parcours/factures", "/contacts", "/ma-fiche", "/mon-site", "/facturation", "/registre"];
 
 /** Chaque écran a un seul parent, quel que soit le chemin pris pour y venir. */
-const PARENTS_QUATRE: [string, string][] = QUATRE_PARTIES
+const PARENTS_CINQ: [string, string][] = QUATRE_PARTIES
   ? [
-      ["/chevaux", "/argent"],
-      ["/clients", "/argent"],
+      ["/chevaux", "/ecurie"],
+      ["/clients", "/ecurie"],
+      ["/prestations", "/ecurie"],
+      ["/depenses", "/ecurie"],
       ["/demandes", "/accueil"],
-      ["/planning", "/accueil"],
       ["/audit", "/te-trouver"],
-      ["/ma-fiche", "/accueil"],
       ["/apprendre", "/accueil"],
     ]
   : [];
 const PARENTS2: [string, string][] = [
-  ...PARENTS_QUATRE,
+  ...PARENTS_CINQ,
   ["/ticket", "/chevaux?vue=chevaux"],
   ["/saisie/cheval", "/chevaux?vue=chevaux"],
   ["/client", "/chevaux?vue=clients"],
@@ -67,9 +76,9 @@ const PARENTS2: [string, string][] = [
 const NOMS: [string, string][] = [
   ...(QUATRE_PARTIES
     ? ([
-        ["/argent", "Te faire vivre"],
-        ["/te-trouver", "Te trouver"],
-        ["/te-choisir", "Te choisir"],
+        ["/argent", "Analyse"],
+        ["/te-trouver", "Analyse"],
+        ["/te-choisir", "Analyse"],
       ] as [string, string][])
     : []),
   ["/chevaux", "Clients"],

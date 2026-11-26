@@ -15,7 +15,8 @@ import { VitrineTete } from "@/components/bs/vitrine-tete";
 import { Case, Coches, Groupe, Offres, Places } from "@/components/bs/fiche-cartes";
 import { ChampAdresse } from "@/components/bs/champ-adresse";
 import { FenetrePartie } from "@/components/bs/fenetre-partie";
-import { ARGENT_VISIBLE } from "@/lib/fonctions";
+import { ARGENT_VISIBLE, QUATRE_PARTIES } from "@/lib/fonctions";
+import { CoulissesVitrine } from "@/components/bs/carte-ecurie";
 import { useMaFiche } from "@/lib/account/ma-fiche";
 
 /** Les quatre parties, dans l'ordre de la tête de Vitrine. */
@@ -487,6 +488,8 @@ function MaFiche() {
             )}
           </>
         )}
+        {/* Les cinq onglets : les prix et les places de l'app sont rangés avec la Vitrine. */}
+        {QUATRE_PARTIES && <CoulissesVitrine />}
         <div className="end" />
       </div>
     </Screen>

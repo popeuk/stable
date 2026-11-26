@@ -33,9 +33,9 @@ function TeTrouver() {
     <Page className="pr-page">
       <div className="pr-hello rise">
         <span className="eyeb">D’après ta fiche bestable.fr</span>
-        <h1>
-          Te <span className="pr-hl">trouver</span>.
-        </h1>
+        <h2 className="q5-h">
+          Ta <span className="pr-hl">visibilité</span>
+        </h2>
         <p>Est-ce que les cavaliers tombent sur ton écurie quand ils cherchent une pension près de chez eux ?</p>
       </div>
 

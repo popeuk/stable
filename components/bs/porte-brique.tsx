@@ -28,7 +28,8 @@ export function PorteBrique({ children }: { children: ReactNode }) {
   if (!PAYANT_VISIBLE && under(path, ["/mon-site"])) return <Redirect to="/ma-fiche" />;
   if (!APPRENDRE_VISIBLE && under(path, ["/apprendre"])) return <Redirect to="/accueil" />;
   // Mon écurie (prix privés, frais, équipe, pros, registre) va avec la partie argent.
-  if (!ARGENT_VISIBLE && under(path, ["/ecurie", "/contacts", "/registre"])) return <Redirect to="/reglages" />;
+  // Les cinq onglets : Mon écurie est un onglet, il reste ouvert.
+  if (!ARGENT_VISIBLE && !QUATRE_PARTIES && under(path, ["/ecurie", "/contacts", "/registre"])) return <Redirect to="/reglages" />;
   // Tant que le compte n'est pas lu, on n'affiche rien plutôt qu'un écran qui passerait ensuite sous cadenas.
   if (!pret && (under(path, ARGENT) || under(path, PLANNING))) return null;
   if (under(path, ARGENT) && !estOuverte(etat.argent)) return QUATRE_PARTIES ? <VenteBeStable partie="vivre" etat={etat.argent} /> : <Verrou brique="argent" etat={etat.argent} />;

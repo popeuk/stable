@@ -28,7 +28,7 @@ import { useFeuille } from "@/components/bs/feuille";
 import { DeconnexionLigne, RecupererLigne, SuppressionLigne, ZoneEffacer } from "@/components/bs/effacer";
 import { useOuChiffres } from "@/components/bs/ou-chiffres";
 import { EtatCopie } from "@/components/bs/etat-copie";
-import { ARGENT_VISIBLE, FACTURATION } from "@/lib/fonctions";
+import { ARGENT_VISIBLE, FACTURATION, QUATRE_PARTIES } from "@/lib/fonctions";
 import "@/app/carnet/ecurie.css";
 
 /**
@@ -90,8 +90,9 @@ const chev = <Ic n="chev" className="chev" />;
 type Groupe = "ecurie" | "equipe" | "papiers" | "compte" | "rappel" | "affichage" | "revoir" | "avance";
 /** Les groupes qui ne servent qu'à la partie argent. */
 const ARGENT_SEUL: Groupe[] = ["ecurie", "equipe", "papiers", "rappel", "revoir", "avance"];
-const GROUPES: Record<Groupe, { t: string; parent: "/ecurie" | "/reglages" }> = {
-  ecurie: { t: "Mes places", parent: "/ecurie" },
+const GROUPES: Record<Groupe, { t: string; parent: "/ecurie" | "/reglages" | "/ma-fiche" }> = {
+  // Les cinq onglets : les places sont avec la Vitrine.
+  ecurie: { t: "Mes places", parent: QUATRE_PARTIES ? "/ma-fiche" : "/ecurie" },
   equipe: { t: "Mon équipe", parent: "/ecurie" },
   papiers: { t: "Mes papiers", parent: "/ecurie" },
   compte: { t: "Mon compte", parent: "/reglages" },
@@ -126,7 +127,7 @@ function Moi() {
   const [ancre] = useState<Groupe | null>(() => DEPUIS_ANCRE[window.location.hash] ?? DEPUIS_ADRESSE[path] ?? null);
   const lu = versGroupe(demande) ?? ancre;
   // La partie argent masquée (lib/fonctions.ts) : Mon écurie, le rappel, la tournée et Avancé (catégories, sauvegarde) ramènent aux Réglages ; se déconnecter est dans Mon compte.
-  const groupe = lu && (ARGENT_VISIBLE || !ARGENT_SEUL.includes(lu)) ? lu : null;
+  const groupe = lu && (ARGENT_VISIBLE || QUATRE_PARTIES || !ARGENT_SEUL.includes(lu)) ? lu : null;
   // Le retour de l'en-tête va au parent du groupe, qu'il nomme : Mon écurie ou Réglages.
   const poserParent = useParentIci((x) => x.poser);
   useEffect(() => {

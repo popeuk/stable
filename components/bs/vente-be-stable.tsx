@@ -24,7 +24,7 @@ const SCENE: Record<Partie, string> = {
 
 const TEXTES: Record<Partie, { eyeb: string; titre: ReactNode; sous: string; gains: [string, string][] }> = {
   trouver: {
-    eyeb: "Te trouver",
+    eyeb: "Analyse · Ta visibilité",
     titre: (
       <>
         Les cavaliers <span className="vb-hl">te trouvent</span>.
@@ -38,7 +38,7 @@ const TEXTES: Record<Partie, { eyeb: string; titre: ReactNode; sous: string; gai
     ],
   },
   choisir: {
-    eyeb: "Te choisir",
+    eyeb: "Analyse · Ton offre",
     titre: (
       <>
         Les cavaliers <span className="vb-hl">te choisissent</span>.
@@ -52,7 +52,7 @@ const TEXTES: Record<Partie, { eyeb: string; titre: ReactNode; sous: string; gai
     ],
   },
   vivre: {
-    eyeb: "Te faire vivre",
+    eyeb: "Analyse · Ta rentabilité",
     titre: (
       <>
         Ton écurie <span className="vb-hl">te fait vivre</span>.
@@ -69,10 +69,9 @@ const TEXTES: Record<Partie, { eyeb: string; titre: ReactNode; sous: string; gai
 
 /** Ce que comprend l'abonnement unique, dans l'ordre de l'app. */
 const TOUT: [string, string][] = [
-  ["search", "Te trouver"],
-  ["vitrine", "Te choisir"],
-  ["chart", "Te faire vivre"],
   ["cal", "Le planning"],
+  ["chart", "L’analyse : rentabilité, offre, visibilité"],
+  ["horse", "Mon écurie : clients, chevaux, prestations"],
   ["globe", "Ton site"],
 ];
 
