@@ -2,25 +2,24 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, withBase } from "@/components/bs/ui";
 import { useDesk } from "@/components/bs/desk-hook";
-import { useFeuille } from "@/components/bs/feuille";
-import { VERSION_APP, appareilEnMots, CONTACT_EMAIL } from "@/components/bs/contact";
 import { Empty, Hello, Ic, Sec } from "@/components/carnet/ui";
 import { api, ApiError, type Choix, type Fiche } from "@/lib/account/api";
 import { getSession } from "@/lib/account/session";
-import { INCLUS, NOM_FORMULE, NOM_METIER, PRIX, PRIX_DOMAINE, accroche, adresseOfferte, euros, lienPaiement, messageDemande, metierDe, prixDit, type Formule, type Metier, type Rythme } from "@/lib/mon-site";
+import { NOM_METIER, accroche, adresseOfferte, euros, metierDe, type Metier } from "@/lib/mon-site";
+import { PRIX_MOIS, estOuverte } from "@/lib/briques";
 import "@/app/carnet/ecurie.css";
 import "@/app/carnet/mon-site.css";
 import { useBriques } from "@/components/bs/briques";
-import { Alerte } from "@/components/bs/porte-brique";
+import { Alerte, OffreUnique } from "@/components/bs/porte-brique";
 
 /**
- * Mon site : le site de l'écurie, déjà fait à partir de sa fiche bestable.fr,
- * et l'offre pour le mettre en ligne (agence des écuries, 26 octobre 2026).
- * L'aperçu remplace l'essai gratuit : le gérant voit son site avant de payer.
+ * Mon site : le site de l'écurie, déjà fait à partir de sa fiche bestable.fr
+ * (agence des écuries, 26 octobre 2026). Depuis le 26 novembre 2026, il est
+ * compris dans l'abonnement Be Stable (29,99 € par mois, tout compris) : plus
+ * de formules, de prix à part ni de service fait à la main.
  */
 export default function Page() {
   return (
@@ -83,10 +82,6 @@ function MonSite() {
   const [f, setF] = useState<Fiche | null>(demo ? EXEMPLE : null);
   const [choix, setChoix] = useState<Choix | null>(null);
   const [etat, setEtat] = useState<"charge" | "aucune" | "erreur" | "ok">(() => (demo ? "ok" : s?.kind === "compte" ? "charge" : "aucune"));
-  const [formule, setFormule] = useState<Formule>("site");
-  const [rythme, setRythme] = useState<Rythme>("mois");
-  const [domaine, setDomaine] = useState(false);
-  const [demande, setDemande] = useState(false);
 
   useEffect(() => {
     if (s?.kind !== "compte") return;
@@ -130,7 +125,6 @@ function MonSite() {
 
   const metier = metierDe(f, choix);
   const adresse = adresseOfferte(f.title);
-  const lien = demo ? null : lienPaiement(formule, rythme, f.id, f.email || undefined);
   const enAttente = !!f.en_attente;
 
   const hello = demo ? (
@@ -156,101 +150,46 @@ function MonSite() {
   // Le service des sites réglé (préprod) : le vrai site en aperçu, à la place du dessin, et la publication.
   const sitesActif = !demo && !!SITES_API && !enAttente;
 
+  // Une seule offre (décision de Samuel, 26 novembre 2026) : le site est compris dans Be Stable, à 29,99 € par
+  // mois tout compris ; plus de formules ni de service fait à la main (fiche Google, changements par WhatsApp).
   const offre = (
-    <Sec ill="sacoche" title="Le mettre en ligne" delay={0.16}>
-      <div className="ms-ry" role="group" aria-label="Payer">
-        <button type="button" className="chip" aria-pressed={rythme === "mois"} onClick={() => setRythme("mois")}>
-          Au mois
-        </button>
-        <button type="button" className="chip" aria-pressed={rythme === "an"} onClick={() => setRythme("an")}>
-          À l’année · 2 mois offerts
-        </button>
-      </div>
-      <div className="ms-fo" role="radiogroup" aria-label="Formule">
-        {(["site", "google"] as const).map((k) => (
-          <button key={k} type="button" role="radio" aria-checked={formule === k} className={`ms-card${formule === k ? " on" : ""}`} onClick={() => setFormule(k)}>
-            <span className="ms-hd">
-              <b>{NOM_FORMULE[k]}</b>
-              <span className="ms-rad" aria-hidden="true">
-                {formule === k && <Ic n="ck" className="" />}
-              </span>
-            </span>
-            <span className="ms-px">
-              <strong>{euros(PRIX[k][rythme])}</strong>
-              <span>{rythme === "mois" ? "par mois" : "par an"}</span>
-            </span>
-            <ul>
-              {INCLUS[k].map((x) => (
-                <li key={x}>
-                  <Ic n="ck" className="" />
-                  {x}
-                </li>
-              ))}
-            </ul>
-          </button>
-        ))}
-      </div>
+    <Sec ill="sacoche" title="Compris dans Be Stable" delay={0.16}>
       <ul className="ms-dit">
-        {rythme === "mois" ? (
-          <li>
-            <b>Sans engagement</b>, tu arrêtes quand tu veux.
-          </li>
-        ) : (
-          <li>
-            <b>Un paiement par an</b>, tu arrêtes quand tu veux à la fin de l’année.
-          </li>
-        )}
         <li>
-          <b>Aucuns frais</b> de mise en ligne.
+          <b>Ton site</b>, fait à partir de ta fiche : il se met à jour quand tu la modifies.
         </li>
         <li>
           Ton adresse offerte : <b className="ms-url">{adresse}</b>
         </li>
+        <li>
+          <b>Tout se modifie ici</b>, dans l’app, par toi.
+        </li>
+        <li>
+          <b>{PRIX_MOIS} par mois, tout compris</b> : ton site, Te trouver, Te choisir, ton bilan, ton planning.
+        </li>
       </ul>
-      {formule === "site" ? (
-        <label className="ms-dom">
-          <input type="checkbox" checked={domaine} onChange={(e) => setDomaine(e.target.checked)} />
-          <span>
-            <b>Ton propre nom de domaine</b>
-            <small>
-              {`${euros(PRIX_DOMAINE[rythme])} de plus par ${rythme === "mois" ? "mois" : "an"}, à ton nom : tu le gardes si tu pars. Tu le choisis après. Tu en as déjà un ? Tu le gardes, on t’explique comment le relier.`}
-            </small>
-          </span>
-        </label>
-      ) : (
-        <p className="ec-help">Ton propre nom de domaine est compris. Tu le choisis après le paiement.</p>
-      )}
-      <p className="ec-help">Prix hors taxes.</p>
     </Sec>
   );
 
-  // Avant l'ouverture des sites (lib/briques.ts) : l'aperçu reste, le paiement laisse place à « Me prévenir ».
-  const bientot = briques.etat.site === "bientot";
-  const total = PRIX[formule][rythme] + (formule === "site" && domaine ? PRIX_DOMAINE[rythme] : 0);
-  const cta = !demo && bientot ? (
-    <Alerte id="site" />
-  ) : (
+  const ouvert = estOuverte(briques.etat.site);
+  const cta = demo ? (
     <div className="ec-save ms-cta">
-      {demo ? (
-        <Link href="/compte/inscription?retrouver=1" className="btn full">
-          Voir le site de mon écurie
-          <Ic n="arrow" className="" />
-        </Link>
-      ) : enAttente ? (
-        <button type="button" className="btn full" disabled>
-          Possible dès que ta fiche est validée
-        </button>
-      ) : lien ? (
-        <a href={lien} className="btn full" target="_blank" rel="noreferrer">
-          {`Mettre ce site en ligne : ${euros(total)} par ${rythme === "mois" ? "mois" : "an"}`}
-        </a>
-      ) : (
-        <button type="button" className="btn full" onClick={() => setDemande(true)}>
-          {`Mettre ce site en ligne : ${euros(total)} par ${rythme === "mois" ? "mois" : "an"}`}
-        </button>
-      )}
-      <small>{demo ? "Crée ton compte et retrouve ton écurie : ton site se fait tout seul." : "Ensuite, trois questions écrites. On relit ton site et il est en ligne."}</small>
+      <Link href="/compte/inscription?retrouver=1" className="btn full">
+        Voir le site de mon écurie
+        <Ic n="arrow" className="" />
+      </Link>
+      <small>Crée ton compte et retrouve ton écurie : ton site se fait tout seul.</small>
     </div>
+  ) : briques.etat.site === "bientot" ? (
+    <Alerte id="site" />
+  ) : enAttente ? (
+    <div className="ec-save ms-cta">
+      <button type="button" className="btn full" disabled>
+        Possible dès que ta fiche est validée
+      </button>
+    </div>
+  ) : ouvert ? null : (
+    <OffreUnique />
   );
 
   return (
@@ -274,7 +213,6 @@ function MonSite() {
         )}
         <div className="end" />
       </div>
-      {demande && <FeuilleDemande f={f} formule={formule} rythme={rythme} domaine={formule === "site" && domaine} onClose={() => setDemande(false)} />}
     </Screen>
   );
 }
@@ -706,66 +644,3 @@ function SiteApercu({ f, metier, adresse, choix }: { f: Fiche; metier: Metier; a
 
 /* ---------- La demande, tant que le paiement en ligne n'est pas branché ---------- */
 
-function FeuilleDemande({ f, formule, rythme, domaine, onClose }: { f: Fiche; formule: Formule; rythme: Rythme; domaine: boolean; onClose: () => void }) {
-  const ref = useFeuille(onClose, { verrou: true });
-  const [etat, setEtat] = useState<"pret" | "envoi" | "envoye" | "echec">("pret");
-  const message = messageDemande(formule, rythme, f, domaine);
-
-  async function envoyer() {
-    if (etat === "envoi") return;
-    setEtat("envoi");
-    try {
-      await api.contact({ message, ecran: "/mon-site", version: VERSION_APP, navigateur: navigator.userAgent, appareil: appareilEnMots(), ecurie: f.title });
-      setEtat("envoye");
-    } catch {
-      setEtat("echec");
-    }
-  }
-
-  return createPortal(
-    <div className="carnet carnet-portal">
-      <div className="sheet-wrap open">
-        <div className="scrim" onClick={onClose} />
-        <div className="sheet nt-sheet" role="dialog" aria-modal="true" aria-labelledby="ms-t" ref={ref}>
-          <div className="grab" />
-          <div className="shd">
-            <b id="ms-t">Mettre mon site en ligne</b>
-            <button type="button" className="x" onClick={onClose} aria-label="Fermer">
-              <Ic n="x" className="" />
-            </button>
-          </div>
-          <div className="pad">
-            {etat === "envoye" ? (
-              <div className="ct-ok" role="status">
-                <b>C’est noté. On t’envoie par e-mail le lien pour payer, puis les trois questions.</b>
-                <button type="button" className="btn full" onClick={onClose}>
-                  Fermer
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="ms-recap">
-                  <b>{NOM_FORMULE[formule]}</b>
-                  <span>{prixDit(formule, rythme)}</span>
-                  {domaine && <span>{`+ ton nom de domaine, ${euros(PRIX_DOMAINE[rythme])} par ${rythme === "mois" ? "mois" : "an"}`}</span>}
-                  <span className="ms-url">{adresseOfferte(f.title)}</span>
-                </div>
-                <p className="note">Le paiement en ligne arrive. En attendant, on t’envoie le lien pour payer par e-mail, à l’adresse de ton compte. Tu ne paies rien maintenant.</p>
-                {etat === "echec" && (
-                  <p className="ct-err" role="alert">
-                    La demande n’est pas partie. Tu peux aussi écrire à{" "}
-                    <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Mettre mon site en ligne")}&body=${encodeURIComponent(message)}`}>{CONTACT_EMAIL}</a>.
-                  </p>
-                )}
-                <button type="button" className="btn full" style={{ marginTop: 12 }} onClick={envoyer} disabled={etat === "envoi"}>
-                  {etat === "envoi" ? "Envoi…" : "Je le veux"}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-}

@@ -95,7 +95,7 @@ function Verrou({ brique, etat }: { brique: "argent" | "planning"; etat: EtatBri
         <p>{t.sous}</p>
       </header>
       <Apercu brique={brique} />
-      {etat === "bientot" ? <Alerte id={brique} sombre /> : <Offre ill={t.ill} />}
+      {etat === "bientot" ? <Alerte id={brique} sombre /> : <OffreUnique ill={t.ill} />}
     </div>
   );
 }
@@ -104,7 +104,7 @@ function Verrou({ brique, etat }: { brique: "argent" | "planning"; etat: EtatBri
  * L'offre unique (décision de Samuel, 26 novembre 2026) : tout Be Stable pour 29,99 € par mois,
  * avec 7 jours d'essai que le gérant lance lui-même. La fiche et les demandes restent gratuites.
  */
-function Offre({ ill }: { ill?: IllName }) {
+export function OffreUnique({ ill }: { ill?: IllName }) {
   const { essaiPossible, commencerEssai } = useBriques();
   return essaiPossible ? (
     <section className="bq-al d">
@@ -224,7 +224,7 @@ function VerrouPartie({ partie, etat }: { partie: "trouver" | "choisir"; etat: E
           </Link>
         </section>
       ) : (
-        <Offre />
+        <OffreUnique />
       )}
     </div>
   );
