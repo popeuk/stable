@@ -404,7 +404,7 @@ function JourneeVerrou() {
         </span>
       </span>
       <span className="bq-lk-tx">
-        Le planning vient avec le site à 49 €. Voir ce qu’il fait{" "}
+        Le planning est compris dans Be Stable. Voir ce qu’il fait{" "}
         <Ic n="arrow" className="" />
       </span>
     </Link>
@@ -441,7 +441,7 @@ function Invitation({
     return (
       <Link href="/chevaux" className="bq-inv rise">
         <span>
-          <span className="k">30 jours pour essayer</span>
+          <span className="k">7 jours pour essayer</span>
           <b>Ce que te rapporte chaque cheval</b>
           <small>
             Mon argent : ton bilan, tes clients, tes chevaux. Sans carte
@@ -459,8 +459,8 @@ function Invitation({
           <span className="k">Déjà fait</span>
           <b>Ton site, à ton nom</b>
           <small>
-            Fait à partir de ta fiche, pour qu’on te trouve sur Google. À partir
-            de 19 € par mois.
+            Fait à partir de ta fiche, pour qu’on te trouve sur Google. Compris
+            dans Be Stable.
           </small>
           <em>Voir mon site</em>
         </span>

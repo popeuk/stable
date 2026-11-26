@@ -7,7 +7,7 @@ import { useBriques } from "@/components/bs/briques";
 import { ARGENT, PLANNING } from "@/components/bs/navigation";
 import { under } from "@/components/bs/nav";
 import { Ic, Ill, type IllName } from "@/components/carnet/ui";
-import { estOuverte, type AlerteId, type EtatBrique } from "@/lib/briques";
+import { PRIX_MOIS, estOuverte, type AlerteId, type EtatBrique } from "@/lib/briques";
 import { APPRENDRE_VISIBLE, ARGENT_VISIBLE, PAYANT_VISIBLE, QUATRE_PARTIES } from "@/lib/fonctions";
 import { Redirect } from "@/components/bs/redirect";
 import "@/app/carnet/briques.css";
@@ -88,7 +88,6 @@ function Apercu({ brique }: { brique: "argent" | "planning" }) {
 
 function Verrou({ brique, etat }: { brique: "argent" | "planning"; etat: EtatBrique }) {
   const t = TEXTES[brique];
-  const { essaiPossible, commencerEssai } = useBriques();
   return (
     <div className="cn-page bq-verrou rise">
       <header className="ce-hd">
@@ -96,41 +95,39 @@ function Verrou({ brique, etat }: { brique: "argent" | "planning"; etat: EtatBri
         <p>{t.sous}</p>
       </header>
       <Apercu brique={brique} />
-      {etat === "bientot" ? (
-        <Alerte id={brique} sombre />
-      ) : brique === "argent" && essaiPossible ? (
-        <section className="bq-al d">
-          <Ill n={t.ill} className="bq-al-ill" />
-          <h2>30 jours pour essayer Mon argent</h2>
-          <p>Ton bilan, tes clients, tes chevaux. L’essai démarre quand tu touches le bouton, sans carte bancaire. Ensuite 6,99 € par mois : tu choisis au 25e jour.</p>
-          <button type="button" className="btn full" onClick={commencerEssai}>
-            Commencer mes 30 jours
-          </button>
-        </section>
-      ) : brique === "argent" ? (
-        <section className="bq-al d">
-          <Ill n={t.ill} className="bq-al-ill" />
-          <h2>Ton essai est terminé</h2>
-          <p>Tes chiffres sont gardés, simplement masqués. Mon argent reprend dès l’abonnement, 6,99 € par mois, sur bestable.fr.</p>
-        </section>
-      ) : (
-        <section className="bq-al d">
-          <Ill n={t.ill} className="bq-al-ill" />
-          <h2>Compris dans le site et Google, à 49 €</h2>
-          <p>Ton site tenu à jour, ta fiche Google gérée, et le planning pour tes cours et ton équipe.</p>
-          <Link href="/mon-site" className="btn full">
-            Voir les offres du site
-          </Link>
-        </section>
-      )}
+      {etat === "bientot" ? <Alerte id={brique} sombre /> : <Offre ill={t.ill} />}
     </div>
   );
 }
 
+/**
+ * L'offre unique (décision de Samuel, 26 novembre 2026) : tout Be Stable pour 29,99 € par mois,
+ * avec 7 jours d'essai que le gérant lance lui-même. La fiche et les demandes restent gratuites.
+ */
+function Offre({ ill }: { ill?: IllName }) {
+  const { essaiPossible, commencerEssai } = useBriques();
+  return essaiPossible ? (
+    <section className="bq-al d">
+      {ill && <Ill n={ill} className="bq-al-ill" />}
+      <h2>7 jours pour essayer tout Be Stable</h2>
+      <p>Te trouver, te choisir, ton bilan, tes clients, ton planning, ton site. L’essai démarre quand tu touches le bouton, sans carte bancaire. Ensuite {PRIX_MOIS} par mois, tout compris.</p>
+      <button type="button" className="btn full" onClick={commencerEssai}>
+        Commencer mes 7 jours
+      </button>
+    </section>
+  ) : (
+    <section className="bq-al d">
+      {ill && <Ill n={ill} className="bq-al-ill" />}
+      <h2>Ton essai est terminé</h2>
+      <p>Tout ce que tu as rempli est gardé, simplement masqué. Tout reprend dès l’abonnement, {PRIX_MOIS} par mois, tout compris, sur bestable.fr. Ta fiche et tes demandes restent gratuites.</p>
+    </section>
+  );
+}
+
 const NOMS: Record<AlerteId, { titre: string; texte: string }> = {
-  argent: { titre: "Mon argent", texte: "Ce que te rapporte chaque cheval et chaque client, ton bilan du mois. 30 jours d’essai à l’ouverture, puis 6,99 € par mois." },
-  planning: { titre: "Le planning", texte: "Tes cours, tes stages et ton équipe. Il sera compris dans l’offre « le site et Google », à 49 € par mois." },
-  site: { titre: "Ton site", texte: "Ton site à ton nom, fait à partir de ta fiche. À partir de 19 € par mois." },
+  argent: { titre: "Mon argent", texte: `Ce que te rapporte chaque cheval et chaque client, ton bilan du mois. Compris dans Be Stable, ${PRIX_MOIS} par mois tout compris, avec 7 jours d’essai à l’ouverture.` },
+  planning: { titre: "Le planning", texte: `Tes cours, tes stages et ton équipe. Compris dans Be Stable, ${PRIX_MOIS} par mois tout compris.` },
+  site: { titre: "Ton site", texte: `Ton site à ton nom, fait à partir de ta fiche. Compris dans Be Stable, ${PRIX_MOIS} par mois tout compris.` },
   projet: { titre: "Le simulateur d’installation", texte: "Ton prix, tes places, tes frais : ce qu’il te resterait chaque mois, et combien de chevaux il te faut. Nous le préparons." },
 };
 
@@ -218,13 +215,17 @@ function VerrouPartie({ partie, etat }: { partie: "trouver" | "choisir"; etat: E
           ))}
         </ul>
       </div>
-      <section className="bq-al d">
-        <h2>{etat === "bientot" ? "Bientôt dans Be Stable" : "Compris dans l’offre Be Stable"}</h2>
-        <p>{etat === "bientot" ? "Cette partie fera partie de l’offre payante. Ta fiche et tes demandes restent gratuites, sans limite." : "Ta fiche et tes demandes restent gratuites. Cette partie vient avec l’offre payante."}</p>
-        <Link href="/accueil" className="btn full">
-          Revenir à l’accueil
-        </Link>
-      </section>
+      {etat === "bientot" ? (
+        <section className="bq-al d">
+          <h2>Bientôt dans Be Stable</h2>
+          <p>Compris dans l’abonnement Be Stable, {PRIX_MOIS} par mois tout compris, avec 7 jours d’essai. Ta fiche et tes demandes restent gratuites, sans limite.</p>
+          <Link href="/accueil" className="btn full">
+            Revenir à l’accueil
+          </Link>
+        </section>
+      ) : (
+        <Offre />
+      )}
     </div>
   );
 }
