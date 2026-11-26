@@ -86,8 +86,8 @@ export function Sidebar() {
   // Les quatre parties (lib/fonctions.ts) : les quatre onglets, puis les demandes et le planning (en haut à droite au téléphone).
   const quatre: Item[] = [
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
-    { href: "/te-trouver", ic: "search", label: "Te trouver", key: "U", on: under(path, ["/te-trouver", "/audit"]) },
-    { href: "/te-choisir", ic: "vitrine", label: "Te choisir", key: "H", on: under(path, ["/te-choisir"]) },
+    { href: "/te-trouver", ic: estOuverte(briques.etat.trouver) ? "search" : "lock", label: "Te trouver", key: "U", on: under(path, ["/te-trouver", "/audit"]) },
+    { href: "/te-choisir", ic: estOuverte(briques.etat.choisir) ? "vitrine" : "lock", label: "Te choisir", key: "H", on: under(path, ["/te-choisir"]) },
     { href: "/argent", ic: argent ? "chart" : "lock", label: "Te faire vivre", key: "M", on: under(path, [...BILAN, ...CLIENTS_CHEVAUX]) && !vue },
     { href: "/demandes", ic: "mail", label: "Demandes", key: "D", on: under(path, ["/demandes"]), badge: demandes ? String(demandes) : undefined, cls: "attn" },
     { href: "/planning", ic: "cal", label: "Planning", key: "P", on: under(path, ["/planning"]) },

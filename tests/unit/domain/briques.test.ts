@@ -5,7 +5,7 @@ const compte = (p: Partial<EtatCompte> = {}): EtatCompte => ({ kind: "compte", o
 
 describe("etatsBriques", () => {
   it("avant l'ouverture : Vitrine et Demandes ouvertes, le reste « bientôt »", () => {
-    expect(etatsBriques(compte())).toEqual({ vitrine: "ouverte", demandes: "ouverte", argent: "bientot", planning: "bientot", site: "bientot" });
+    expect(etatsBriques(compte())).toEqual({ vitrine: "ouverte", demandes: "ouverte", argent: "bientot", planning: "bientot", site: "bientot", trouver: "bientot", choisir: "bientot" });
   });
 
   it("après l'ouverture, sans rien : cadenas", () => {
@@ -29,6 +29,10 @@ describe("etatsBriques", () => {
     expect(etatsBriques(compte({ ouvert: true, abonnement: { site: 29 } })).planning).toBe("cadenas");
     expect(etatsBriques(compte({ ouvert: true, abonnement: { site: 29 } })).site).toBe("ouverte");
     expect(etatsBriques(compte({ ouvert: true, abonnement: { site: 49 } })).planning).toBe("ouverte");
+    // Te trouver et Te choisir : payants, sous cadenas sans abonnement.
+    expect(etatsBriques(compte({ ouvert: true })).trouver).toBe("cadenas");
+    expect(etatsBriques(compte({ ouvert: true, abonnement: { trouver: true } })).trouver).toBe("ouverte");
+    expect(etatsBriques(compte({ ouvert: true, abonnement: { choisir: true } })).choisir).toBe("ouverte");
   });
 
   it("un abonnement payé avant l'ouverture reste « bientôt » tant que ce n'est pas ouvert", () => {

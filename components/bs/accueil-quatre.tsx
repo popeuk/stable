@@ -137,23 +137,40 @@ function TroisPoints({ etapes, attente }: { etapes: Etape[] | null; attente: num
   const ready = useDataStore((s) => s.hydrated);
   const net = useMemo(() => (argent ? monthBreakdown(data, currentPeriod()).net : 0), [data, argent]);
 
+  // Te trouver et Te choisir sont payants : sans eux, l'accueil ne donne pas le résultat de l'audit.
+  const trouverOuvert = estOuverte(etat.trouver);
+  const choisirOuvert = estOuverte(etat.choisir);
   const t = etapes ? compte(etapes[0]) : null;
   const c2 = etapes ? compte(etapes[1]) : null;
   const c3 = etapes ? compte(etapes[2]) : null;
   const nTrouver = t ? t.ko + t.mid : 0;
   const nChoisir = c2 && c3 ? c2.ko + c2.mid + c3.ko + c3.mid : 0;
+  const sousTrouver = !trouverOuvert ? "Bientôt : l’audit de ta visibilité" : t ? aFaire(nTrouver) : "Dès que ta fiche est à ton nom";
+  const sousChoisir = !choisirOuvert ? "Bientôt : ton offre face aux écuries autour" : !etapes ? "Ton offre face à ton département" : `${aFaire(nChoisir)} · ton prix face au département`;
 
   return (
     <div className="q4-points rise" style={{ animationDelay: ".18s" }}>
+      {attente > 0 && (
+        <Link href="/demandes" className="q4-pt c">
+          <span className="ic">
+            <Ic n="mail" className="" />
+          </span>
+          <span>
+            <b>{attente > 1 ? `${attente} demandes attendent` : "1 demande attend"} ta réponse</b>
+            <small>Un cavalier t’a écrit depuis ta fiche. Réponds vite : c’est souvent le premier qui répond qui est choisi.</small>
+          </span>
+          <Ic n="chev" className="q4-chev" />
+        </Link>
+      )}
       <Link href="/te-trouver" className="q4-pt t">
         <span className="ic">
           <Ic n="search" className="" />
         </span>
         <span>
           <b>Te trouver</b>
-          <small>{t ? aFaire(nTrouver) : "Dès que ta fiche est à ton nom"}</small>
+          <small>{sousTrouver}</small>
         </span>
-        <Ic n="chev" className="q4-chev" />
+        <Ic n={trouverOuvert ? "chev" : "lock"} className="q4-chev" />
       </Link>
       <Link href="/te-choisir" className="q4-pt c">
         <span className="ic">
@@ -161,9 +178,9 @@ function TroisPoints({ etapes, attente }: { etapes: Etape[] | null; attente: num
         </span>
         <span>
           <b>Te choisir</b>
-          <small>{!etapes ? "Ton offre face à ton département" : attente > 0 ? `${attente} demande${attente > 1 ? "s attendent" : " attend"} ta réponse` : `${aFaire(nChoisir)} · ton prix face au département`}</small>
+          <small>{sousChoisir}</small>
         </span>
-        <Ic n="chev" className="q4-chev" />
+        <Ic n={choisirOuvert ? "chev" : "lock"} className="q4-chev" />
       </Link>
       <Link href="/argent" className="q4-pt v">
         <span className="ic">
@@ -173,7 +190,7 @@ function TroisPoints({ etapes, attente }: { etapes: Etape[] | null; attente: num
           <b>Te faire vivre</b>
           <small>{argent ? (net >= 0 ? "Ce qu’il te reste ce mois-ci" : "Ce qu’il te manque ce mois-ci") : "Bientôt : ce que te rapporte chaque client"}</small>
         </span>
-        {argent && ready ? <span className={`v${net < 0 ? " ko" : ""}`}>{eur(Math.round(net))}</span> : <Ic n="chev" className="q4-chev" />}
+        {argent && ready ? <span className={`v${net < 0 ? " ko" : ""}`}>{eur(Math.round(net))}</span> : <Ic n={argent ? "chev" : "lock"} className="q4-chev" />}
       </Link>
     </div>
   );

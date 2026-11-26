@@ -7,7 +7,9 @@
  * - Mon argent (bilan, clients, chevaux) : 30 jours d'essai quand le gérant le
  *   décide, puis 6,99 € par mois ;
  * - Planning : compris dans l'offre « le site et Google » à 49 € ;
- * - Mon site : 19, 29 ou 49 €, payé sur le web, sans essai.
+ * - Mon site : 19, 29 ou 49 €, payé sur le web, sans essai ;
+ * - Te trouver et Te choisir (les quatre parties, 26 novembre 2026) : payants,
+ *   prix à fixer ; seuls l'accueil, la fiche et les demandes sont gratuits.
  *
  * Avant l'ouverture (OUVERTURE à faux), Mon argent, le planning et le site sont
  * « bientôt » : visibles en aperçu, avec une alerte « Me prévenir à l'ouverture ».
@@ -16,7 +18,7 @@
  * brique. Les écrans le lisent par useBriques (components/bs/briques.ts).
  */
 
-export type BriqueId = "vitrine" | "demandes" | "argent" | "planning" | "site";
+export type BriqueId = "vitrine" | "demandes" | "argent" | "planning" | "site" | "trouver" | "choisir";
 
 /**
  * - ouverte : la brique est à lui ;
@@ -40,7 +42,7 @@ export interface EtatCompte {
   /** Le jour où le gérant a commencé l'essai de Mon argent (AAAA-MM-JJ), ou null. */
   essaiDebut: string | null;
   /** Ce qu'il a payé sur le web. */
-  abonnement?: { argent?: boolean; site?: OffreSite };
+  abonnement?: { argent?: boolean; site?: OffreSite; trouver?: boolean; choisir?: boolean };
   /** Aujourd'hui (AAAA-MM-JJ). */
   aujourdhui: string;
 }
@@ -59,7 +61,7 @@ export function jourEssai(debut: string, aujourdhui: string): number {
 /** L'état de chaque brique pour ce compte. */
 export function etatsBriques(c: EtatCompte): Record<BriqueId, EtatBrique> {
   // La démo montre l'app entière ; l'écurie essayée sans compte garde le fonctionnement d'avant.
-  if (c.kind !== "compte") return { vitrine: "ouverte", demandes: "ouverte", argent: "ouverte", planning: "ouverte", site: "ouverte" };
+  if (c.kind !== "compte") return { vitrine: "ouverte", demandes: "ouverte", argent: "ouverte", planning: "ouverte", site: "ouverte", trouver: "ouverte", choisir: "ouverte" };
   const site = c.abonnement?.site ?? 0;
   let argent: EtatBrique;
   if (!c.ouvert) argent = "bientot";
@@ -72,6 +74,8 @@ export function etatsBriques(c: EtatCompte): Record<BriqueId, EtatBrique> {
     argent,
     planning: !c.ouvert ? "bientot" : site === 49 ? "ouverte" : "cadenas",
     site: !c.ouvert ? "bientot" : site > 0 ? "ouverte" : "cadenas",
+    trouver: !c.ouvert ? "bientot" : c.abonnement?.trouver ? "ouverte" : "cadenas",
+    choisir: !c.ouvert ? "bientot" : c.abonnement?.choisir ? "ouverte" : "cadenas",
   };
 }
 

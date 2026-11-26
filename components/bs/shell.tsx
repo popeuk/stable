@@ -171,6 +171,8 @@ export function TabBar() {
   // Les quatre parties (26 novembre 2026) : l'entonnoir de l'écurie, le + ne sert qu'aux chiffres et vit dans Te faire vivre.
   if (QUATRE_PARTIES) {
     const vivre = [...BILAN, ...CLIENTS_CHEVAUX];
+    const trouver = estOuverte(etat.trouver);
+    const choisir = estOuverte(etat.choisir);
     return (
       <>
         <nav className="tb ac-tb bq-tb sans-plus pr-tb pr-tb4 q4-tb" aria-label="Navigation principale">
@@ -179,13 +181,27 @@ export function TabBar() {
               <Ic n="home" />
               Accueil
             </Link>
-            <Link href="/te-trouver" aria-current={on(["/te-trouver", "/audit"])}>
-              <Ic n="search" />
-              Te trouver
+            <Link href="/te-trouver" aria-current={on(["/te-trouver", "/audit"])} aria-label={`Te trouver${trouver ? "" : " : bientôt"}`}>
+              <span className="ac-ic">
+                <Ic n="search" />
+                {!trouver && (
+                  <i className="bq-lk" aria-hidden="true">
+                    <Ic n="lock" className="" />
+                  </i>
+                )}
+              </span>
+              <span aria-hidden="true">Te trouver</span>
             </Link>
-            <Link href="/te-choisir" aria-current={on(["/te-choisir"])}>
-              <Ic n="vitrine" />
-              Te choisir
+            <Link href="/te-choisir" aria-current={on(["/te-choisir"])} aria-label={`Te choisir${choisir ? "" : " : bientôt"}`}>
+              <span className="ac-ic">
+                <Ic n="vitrine" />
+                {!choisir && (
+                  <i className="bq-lk" aria-hidden="true">
+                    <Ic n="lock" className="" />
+                  </i>
+                )}
+              </span>
+              <span aria-hidden="true">Te choisir</span>
             </Link>
             <Link href="/argent" aria-current={on(vivre)} aria-label={`Te faire vivre${argent ? "" : " : bientôt"}`}>
               <span className="ac-ic">
