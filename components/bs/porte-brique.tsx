@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useBriques } from "@/components/bs/briques";
@@ -11,6 +10,7 @@ import { PRIX_MOIS, estOuverte, type AlerteId, type EtatBrique } from "@/lib/bri
 import { APPRENDRE_VISIBLE, ARGENT_VISIBLE, PAYANT_VISIBLE, QUATRE_PARTIES } from "@/lib/fonctions";
 import { Redirect } from "@/components/bs/redirect";
 import "@/app/carnet/briques.css";
+import { VenteBeStable } from "@/components/bs/vente-be-stable";
 
 /**
  * La porte des briques (27 octobre 2026) : sur les écrans de Mon argent et du
@@ -31,11 +31,11 @@ export function PorteBrique({ children }: { children: ReactNode }) {
   if (!ARGENT_VISIBLE && under(path, ["/ecurie", "/contacts", "/registre"])) return <Redirect to="/reglages" />;
   // Tant que le compte n'est pas lu, on n'affiche rien plutôt qu'un écran qui passerait ensuite sous cadenas.
   if (!pret && (under(path, ARGENT) || under(path, PLANNING))) return null;
-  if (under(path, ARGENT) && !estOuverte(etat.argent)) return <Verrou brique="argent" etat={etat.argent} />;
+  if (under(path, ARGENT) && !estOuverte(etat.argent)) return QUATRE_PARTIES ? <VenteBeStable partie="vivre" etat={etat.argent} /> : <Verrou brique="argent" etat={etat.argent} />;
   // Les quatre parties : Te trouver et Te choisir sont payants (décision de Samuel, 26 novembre 2026).
   if (QUATRE_PARTIES && !pret && under(path, ["/te-trouver", "/te-choisir"])) return null;
-  if (QUATRE_PARTIES && under(path, ["/te-trouver"]) && !estOuverte(etat.trouver)) return <VerrouPartie partie="trouver" etat={etat.trouver} />;
-  if (QUATRE_PARTIES && under(path, ["/te-choisir"]) && !estOuverte(etat.choisir)) return <VerrouPartie partie="choisir" etat={etat.choisir} />;
+  if (QUATRE_PARTIES && under(path, ["/te-trouver"]) && !estOuverte(etat.trouver)) return <VenteBeStable partie="trouver" etat={etat.trouver} />;
+  if (QUATRE_PARTIES && under(path, ["/te-choisir"]) && !estOuverte(etat.choisir)) return <VenteBeStable partie="choisir" etat={etat.choisir} />;
   if (under(path, PLANNING) && !estOuverte(etat.planning)) return <Verrou brique="planning" etat={etat.planning} />;
   return <>{children}</>;
 }
@@ -168,64 +168,5 @@ export function Alerte({ id, sombre = false, ill }: { id: AlerteId; sombre?: boo
         </>
       )}
     </section>
-  );
-}
-
-const PARTIES: Record<"trouver" | "choisir", { titre: string; sous: string; lignes: [string, string, string][] }> = {
-  trouver: {
-    titre: "Te trouver",
-    sous: "L’audit de ta visibilité : ce qu’un cavalier trouve sur toi quand il cherche une pension, et ce qu’il faut faire d’abord, dans l’ordre.",
-    lignes: [
-      ["Ta fiche bestable.fr", "Trois photos manquent", "À faire"],
-      ["Ton site", "Aucun site ni page indiqués", "À faire"],
-      ["Tes places", "Confirmées ce mois-ci", "C’est bon"],
-    ],
-  },
-  choisir: {
-    titre: "Te choisir",
-    sous: "Ton offre comme la voit le cavalier : chaque formule face aux prix des pensions de ton département, et ce qui le décide à t’écrire.",
-    lignes: [
-      ["Pension travail · 590 €", "Au-dessus de la plupart des pensions du département", ""],
-      ["Box + paddock · 490 €", "Dans la moyenne du département", ""],
-      ["Tes demandes", "2 reçues, 1 attend ta réponse", ""],
-    ],
-  },
-};
-
-/** Te trouver et Te choisir sous cadenas : ce qu'on y trouve (aperçu « Exemple »), sans promettre de date ni de prix. */
-function VerrouPartie({ partie, etat }: { partie: "trouver" | "choisir"; etat: EtatBrique }) {
-  const t = PARTIES[partie];
-  return (
-    <div className="cn-page bq-verrou rise">
-      <header className="ce-hd">
-        <h1>{t.titre}</h1>
-        <p>{t.sous}</p>
-      </header>
-      <div className="bq-apercu" aria-label="Aperçu d’une écurie d’exemple">
-        <p className="bq-ap-hd">
-          <span className="bq-ex">Exemple</span>Une écurie d’exemple
-        </p>
-        <ul>
-          {t.lignes.map(([a, b, c]) => (
-            <li key={a}>
-              <b>{a}</b>
-              <small>{b}</small>
-              {c && <em className={c === "C’est bon" ? "in" : "out"}>{c}</em>}
-            </li>
-          ))}
-        </ul>
-      </div>
-      {etat === "bientot" ? (
-        <section className="bq-al d">
-          <h2>Bientôt dans Be Stable</h2>
-          <p>Compris dans l’abonnement Be Stable, {PRIX_MOIS} par mois tout compris, avec 7 jours d’essai. Ta fiche et tes demandes restent gratuites, sans limite.</p>
-          <Link href="/accueil" className="btn full">
-            Revenir à l’accueil
-          </Link>
-        </section>
-      ) : (
-        <OffreUnique />
-      )}
-    </div>
   );
 }
