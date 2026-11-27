@@ -29,7 +29,7 @@ import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { nomAffiche } from "@/lib/domain/noms-categories";
 import { useConfirmer } from "@/components/bs/confirmer";
-import { FACTURATION } from "@/lib/fonctions";
+import { FACTURATION, QUATRE_PARTIES } from "@/lib/fonctions";
 
 /**
  * Mon bilan : le chiffre du mois en tête, puis ce qui rentre
@@ -175,7 +175,7 @@ function Mois() {
 
   // Le chiffre d'abord : pas de titre ni de phrase au-dessus, la gérante est dans la carte.
   const goal = (
-    <div className="card ar-goal rise" style={{ animationDelay: ".1s" }}>
+    <div className={`card ar-goal rise${QUATRE_PARTIES ? " da-dans-vert" : ""}`} style={{ animationDelay: ".1s" }}>
       <div className="ar-gtx">
         <p className="k">{estime ? FACTURATION ? "Si tout est payé, environ" : "Ce mois, environ" : isNow ? `Ce mois-ci, ${resteOuManque(m.net)}` : Math.round(m.net) < 0 ? `En ${mName}, il t’a manqué` : `En ${mName}, il t’est resté`}</p>
         <p className={`big ${estime ? "" : m.net > 0 ? "in" : m.net < 0 ? "out" : ""}`}>

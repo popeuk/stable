@@ -248,3 +248,20 @@
 .carnet .da-fiche .cl-blk h3 { margin-top: 0; border-bottom: 0; font-size: 18px; font-weight: 760; letter-spacing: -.02em; }
 .carnet .da-fiche .cl-key { margin: 18px var(--gut) 0; }
 @media (min-width: 1024px) { .carnet .da-fh { border-radius: var(--bloc-r); } .carnet .da-fiche .cl-blk, .carnet .da-fiche .cl-key { margin-left: 0; margin-right: 0; } }
+
+/* ---- Analyse : l'en-tête vert et ses trois parties (components/bs/analyse-onglets.tsx) ---- */
+/* La carte du mois (Rentabilité) passe dans le vert, comme l'objectif du Suivi du Clos */
+.carnet .ar-goal.da-dans-vert { background: var(--vert-deep); box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--vert-deep) 80%, transparent); color: #fff; }
+.carnet .ar-goal.da-dans-vert .k, .carnet .ar-goal.da-dans-vert .note, .carnet .ar-goal.da-dans-vert .bar-lab, .carnet .ar-goal.da-dans-vert .ar-mlab { color: var(--on-vert); }
+.carnet .ar-goal.da-dans-vert .big, .carnet .ar-goal.da-dans-vert .big.in { color: #fff; }
+.carnet .ar-goal.da-dans-vert .big.out { color: var(--rose); }
+.carnet .ar-goal.da-dans-vert .ar-mtr, .carnet .ar-goal.da-dans-vert .bar { background: color-mix(in srgb, #fff 12%, transparent); }
+.carnet .ar-goal.da-dans-vert .ar-mtr i { background: #8FB3A3; }
+.carnet .ar-goal.da-dans-vert .bar i { background: var(--rose); }
+.carnet .ar-goal.da-dans-vert .bar i.plan { background: color-mix(in srgb, var(--rose) 35%, transparent); }
+.carnet .ar-goal.da-dans-vert .ar-auj { color: #fff; }
+.carnet .ar-goal.da-dans-vert .ar-lnks { border-top-color: color-mix(in srgb, #fff 12%, transparent); }
+.carnet .ar-goal.da-dans-vert .lnk { color: #fff; text-decoration-color: color-mix(in srgb, #fff 45%, transparent); }
+/* Le halo rose part en fondu : pas de couture sous la barre du haut */
+.carnet .da-tete::after, .carnet .da-fh::after { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 45%); mask-image: linear-gradient(to bottom, transparent, #000 45%); }
+@media (min-width: 1024px) { .carnet .da-tete { margin-top: 18px; padding-top: 22px; border-radius: var(--bloc-r); } .carnet .da-onglets { margin-left: 0; margin-right: 0; } }

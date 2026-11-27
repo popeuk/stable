@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { TeteVerte } from "@/components/da/tete-verte";
+import { Onglets } from "@/components/da/onglets";
 import { QUATRE_PARTIES } from "@/lib/fonctions";
 import { ANALYSE_ONGLETS } from "@/components/bs/navigation";
 
@@ -11,25 +12,26 @@ import { ANALYSE_ONGLETS } from "@/components/bs/navigation";
  * (l'audit). Posés dans la coque, au-dessus de la porte des briques : ils
  * restent là quand une partie est encore à ouvrir.
  */
-const ONGLETS: [string, string][] = [
-  ["/argent", "Rentabilité"],
-  ["/te-choisir", "Offre"],
-  ["/te-trouver", "Visibilité"],
+const ONGLETS: [string, string, string][] = [
+  ["/argent", "Rentabilité", "Ce que ton écurie te laisse, mois par mois."],
+  ["/te-choisir", "Offre", "Ton offre face aux écuries autour de toi."],
+  ["/te-trouver", "Visibilité", "Ce qu’un cavalier trouve de toi en cherchant."],
 ];
 
+/**
+ * DA de l'app du Clos (27 novembre 2026) : l'en-tête vert « Analyse », une
+ * phrase qui dit la partie ouverte, puis les trois parties en pastilles.
+ * Rien de lourd ici : ce composant est dans la coque de tous les écrans.
+ */
 export function AnalyseOnglets() {
+  const router = useRouter();
   const path = (usePathname() ?? "").replace(/(.)\/$/, "$1");
   if (!QUATRE_PARTIES || !ANALYSE_ONGLETS.includes(path)) return null;
+  const ici = ONGLETS.find(([href]) => href === path);
   return (
-    <nav className="q5-ana" aria-label="Analyse">
-      <h1 className="q5-ana-t">Analyse</h1>
-      <div className="q5-ana-o">
-        {ONGLETS.map(([href, nom]) => (
-          <Link key={href} href={href} aria-current={path === href ? "page" : undefined} replace>
-            {nom}
-          </Link>
-        ))}
-      </div>
+    <nav className="da-ana" aria-label="Analyse">
+      <TeteVerte titre="Analyse" sous={ici?.[2]} />
+      <Onglets label="Les parties de l’Analyse" items={ONGLETS.map(([href, nom]) => ({ key: href, titre: nom, on: path === href, go: () => path !== href && router.replace(href) }))} />
     </nav>
   );
 }
