@@ -649,6 +649,74 @@ function Mouvements() {
     say(`Supprimé : ${esc(r.label)}.`, () => useDataStore.setState(snap));
   }
 
+  // Ce qui revient chaque mois : en haut au Clos, en bas avant.
+  const recurrents = (recRevs.length > 0 || recExps.length > 0) && (
+        <Sec
+          blk
+          ill={QUATRE_PARTIES ? undefined : "gerant-assise"}
+          delay={0.15}
+          title={QUATRE_PARTIES ? "Chaque mois" : "Compté chaque mois"}
+          action={<button type="button" className="act" onClick={() => openNoter({ kind: "depense" })}>+ Ajouter</button>}
+        >
+          {recRevs.map((r) => (
+            <div key={r.id} className="ar-rec">
+              <span className="ar-pic">
+                <Ic n="clock" className="ar-ic" />
+              </span>
+              <button type="button" className="ar-fix" onClick={() => corriger({ t: "recrev", id: r.id })} aria-label={`Corriger : ${r.label ?? "Pension"}`}>
+                <b>
+                  {r.label ?? "Pension"} · {name(r.horseId) || "cheval retiré"}
+                </b>
+                <small>
+                  rentre {freqLabel(r.frequency)}
+                  {r.endDate ? ` · ${finEnMots(r.endDate)}` : " · sans date de fin"}
+                </small>
+              </button>
+              <span className="ar-rt">
+                <Money v={r.amount} />
+                {!arretee(r) && (
+                  <button
+                    type="button"
+                    className="lnk"
+                    aria-label={`Arrêter ${r.label ?? "la pension"}`}
+                    onClick={async () => (await demander({ titre: "Arrêter cette rentrée d’argent ?", texte: `${cap(moisEnCours())} compte encore. Plus rien à partir du mois prochain.`, oui: "Oui, l’arrêter" })) && useDataStore.getState().stopRecurringRevenue(r.id)}
+                  >
+                    Arrêter
+                  </button>
+                )}
+              </span>
+            </div>
+          ))}
+          {recExps.map((r) => (
+            <div key={r.id} className="ar-rec">
+              <span className="ar-pic">
+                <Ic n="clock" className="ar-ic" />
+              </span>
+              <button type="button" className="ar-fix" onClick={() => corriger({ t: "recexp", id: r.id })} aria-label={`Corriger : ${r.label}`}>
+                <b>{r.label}</b>
+                <small>
+                  {freqLabel(r.frequency)} · {r.isShared ? "frais de l’écurie" : `pour ${name(r.horseId ?? "") || "1 cheval"}`}
+                  {r.endDate ? ` · ${finEnMots(r.endDate)}` : ""}
+                </small>
+              </button>
+              <span className="ar-rt">
+                <Money v={-r.amount} />
+                {!arretee(r) && (
+                  <button
+                    type="button"
+                    className="lnk"
+                    aria-label={`Arrêter ${r.label}`}
+                    onClick={async () => (await demander({ titre: `Arrêter « ${r.label} » ?`, texte: `${cap(moisEnCours())} compte encore. Plus rien à partir du mois prochain.`, oui: "Oui, l’arrêter" })) && useDataStore.getState().stopRecurringExpense(r.id)}
+                  >
+                    Arrêter
+                  </button>
+                )}
+              </span>
+            </div>
+          ))}
+        </Sec>
+      );
+
   return (
     <>
       {/* Comme au Clos, les frais vivent dans Suivi : les frais qui reviennent chaque mois, puis tout ce qui est noté. */}
@@ -664,6 +732,21 @@ function Mouvements() {
           <Ic n="chev" className="chev" />
         </Link>
       )}
+      {/* Comme au Clos : ajouter d'abord, puis ce qui revient chaque mois, puis ce qui est noté ce mois-ci. */}
+      {QUATRE_PARTIES && (
+        <div className="da-mv-btns">
+          <button type="button" className="btn line" onClick={() => openNoter({ kind: "depense" })}>
+            <Ic n="plus" className="" />
+            Un frais
+          </button>
+          <button type="button" className="btn line" onClick={() => openNoter({ kind: "recette" })}>
+            <Ic n="plus" className="" />
+            Une recette
+          </button>
+        </div>
+      )}
+      {QUATRE_PARTIES && recurrents}
+      {QUATRE_PARTIES && <h2 className="da-mv-h">Ce mois-ci</h2>}
       <div className="ar-filt">
         <Chips
           value={kind}
@@ -765,72 +848,7 @@ function Mouvements() {
           ))}
         </div>
       )}
-      {(recRevs.length > 0 || recExps.length > 0) && (
-        <Sec
-          blk
-          ill="gerant-assise"
-          delay={0.15}
-          title="Compté chaque mois"
-          action={<button type="button" className="act" onClick={() => openNoter({ kind: "depense" })}>+ Ajouter</button>}
-        >
-          {recRevs.map((r) => (
-            <div key={r.id} className="ar-rec">
-              <span className="ar-pic">
-                <Ic n="clock" className="ar-ic" />
-              </span>
-              <button type="button" className="ar-fix" onClick={() => corriger({ t: "recrev", id: r.id })} aria-label={`Corriger : ${r.label ?? "Pension"}`}>
-                <b>
-                  {r.label ?? "Pension"} · {name(r.horseId) || "cheval retiré"}
-                </b>
-                <small>
-                  rentre {freqLabel(r.frequency)}
-                  {r.endDate ? ` · ${finEnMots(r.endDate)}` : " · sans date de fin"}
-                </small>
-              </button>
-              <span className="ar-rt">
-                <Money v={r.amount} />
-                {!arretee(r) && (
-                  <button
-                    type="button"
-                    className="lnk"
-                    aria-label={`Arrêter ${r.label ?? "la pension"}`}
-                    onClick={async () => (await demander({ titre: "Arrêter cette rentrée d’argent ?", texte: `${cap(moisEnCours())} compte encore. Plus rien à partir du mois prochain.`, oui: "Oui, l’arrêter" })) && useDataStore.getState().stopRecurringRevenue(r.id)}
-                  >
-                    Arrêter
-                  </button>
-                )}
-              </span>
-            </div>
-          ))}
-          {recExps.map((r) => (
-            <div key={r.id} className="ar-rec">
-              <span className="ar-pic">
-                <Ic n="clock" className="ar-ic" />
-              </span>
-              <button type="button" className="ar-fix" onClick={() => corriger({ t: "recexp", id: r.id })} aria-label={`Corriger : ${r.label}`}>
-                <b>{r.label}</b>
-                <small>
-                  {freqLabel(r.frequency)} · {r.isShared ? "frais de l’écurie" : `pour ${name(r.horseId ?? "") || "1 cheval"}`}
-                  {r.endDate ? ` · ${finEnMots(r.endDate)}` : ""}
-                </small>
-              </button>
-              <span className="ar-rt">
-                <Money v={-r.amount} />
-                {!arretee(r) && (
-                  <button
-                    type="button"
-                    className="lnk"
-                    aria-label={`Arrêter ${r.label}`}
-                    onClick={async () => (await demander({ titre: `Arrêter « ${r.label} » ?`, texte: `${cap(moisEnCours())} compte encore. Plus rien à partir du mois prochain.`, oui: "Oui, l’arrêter" })) && useDataStore.getState().stopRecurringExpense(r.id)}
-                  >
-                    Arrêter
-                  </button>
-                )}
-              </span>
-            </div>
-          ))}
-        </Sec>
-      )}
+      {!QUATRE_PARTIES && recurrents}
       {FACTURATION && (
       <Link href="/facturation#comptable" className="card ar-lcard rise" style={{ animationDelay: ".2s", marginTop: 18 }}>
         <span className="ar-pic">

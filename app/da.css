@@ -515,3 +515,8 @@
 .carnet .da-tva-sel:has(option[value=""]:checked) { color: var(--out); border-color: color-mix(in srgb, var(--rose) 70%, transparent); background: var(--rose-soft); }
 .carnet .da-tva-note { margin: 20px var(--gut) 0; font-size: 13px; line-height: 1.5; color: var(--ink3); }
 .carnet .da-tva-note a { color: var(--vert); font-weight: 700; }
+
+/* ---- Revenus et frais (Suivi), dans l'ordre du Clos ---- */
+.carnet .da-mv-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px var(--gut) 0; }
+.carnet .da-mv-btns .btn { justify-content: center; }
+.carnet .da-mv-h { margin: 26px var(--gut) 6px; font-size: 20px; font-weight: 780; letter-spacing: -.025em; }
