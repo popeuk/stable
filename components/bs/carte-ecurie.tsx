@@ -1,5 +1,7 @@
 "use client";
 
+import { EquipeEcurie } from "@/components/bs/equipe-ecurie";
+
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { Ic, eur } from "@/components/carnet/ui";
@@ -324,6 +326,7 @@ export function Reglages() {
           ...(ARGENT_VISIBLE ? [{ href: "/moi?s=rappel", ic: "bell", t: "Mon rappel", s: `${reminder ? heure(reminder) : "Le matin"}${evening ? ", et le soir s’il reste quelque chose" : ""}` }] : []),
         ]}
       />
+      <EquipeEcurie />
       <BoutonDeconnexion />
       {/* Les cinq onglets : Mon écurie a son onglet, il ne passe plus par les Réglages. */}
       {ARGENT_VISIBLE && !QUATRE_PARTIES && (

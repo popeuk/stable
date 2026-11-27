@@ -49,6 +49,13 @@ export interface Demande {
   fiche: Partial<Fiche>;
 }
 
+/** L'équipe d'une écurie, vue par le compte connecté (pc-bestable 1.10.0). */
+export interface Equipe {
+  membres: { email: string; prenom: string; accepte: boolean }[];
+  espaces: { id: number; nom: string; gerant: string; role: "equipe"; data_key: string }[];
+  invitations: { id: number; nom: string; gerant: string }[];
+}
+
 async function call<T>(method: "GET" | "POST" | "PUT" | "DELETE", path: string, body?: unknown): Promise<T> {
   const s = getSession();
   const headers: Record<string, string> = { Accept: "application/json" };
@@ -255,7 +262,14 @@ export const api = {
   /** Le lien « Ouvrir ma fiche » envoyé à l'adresse de la fiche : ouvre le compte de cette adresse et lui rend la fiche si elle est libre (pc-bestable 1.7.0). */
   ouvrirLien: (l: string) => call<AuthResponse & { nouveau: boolean; fiche: number; a_toi: boolean; ouverte: boolean }>("POST", "/lien/ouvrir", { l }),
   majMoi: (p: { prenom?: string; nom?: string; telephone?: string; ecurie?: string; fiche?: number; projet?: boolean }) => call<{ user: Me }>("PUT", "/moi", p),
-  moi: () => call<{ user: Me; listing: Listing | null; data_key: string }>("GET", "/moi"),
+  moi: () => call<{ user: Me; listing: Listing | null; data_key: string; espaces?: number[] }>("GET", "/moi"),
+  /** L'équipe de l'écurie (pc-bestable 1.10.0) : mes membres, les écuries que je peux ouvrir (avec leur clé), mes invitations. */
+  equipe: () => call<Equipe>("GET", "/equipe"),
+  inviter: (email: string) => call<{ ok: true; deja?: boolean }>("POST", "/equipe/inviter", { email }),
+  retirerMembre: (email: string) => call<{ ok: true }>("POST", "/equipe/retirer", { email }),
+  accepterInvitation: (id: number) => call<Equipe>("POST", "/equipe/accepter", { id }),
+  refuserInvitation: (id: number) => call<{ ok: true }>("POST", "/equipe/refuser", { id }),
+  quitterEquipe: (id: number) => call<{ ok: true }>("POST", "/equipe/quitter", { id }),
   chercher: (q: string, dep = "") => call<{ resultats: StableHit[]; total: number }>("GET", `/ecuries?q=${encodeURIComponent(q)}&dep=${encodeURIComponent(dep)}`),
   ecurie: (id: number) => call<Fiche>("GET", `/ecuries/${id}`),
   revendiquer: (id: number, p: Demande) => call<{ listing: Listing }>("POST", `/ecuries/${id}/revendiquer`, p),

@@ -212,7 +212,7 @@ async function appel(method: "GET" | "PUT" | "POST", body?: unknown): Promise<{ 
   try {
     const res = await fetch(NUAGE_URL, {
       method,
-      headers: { "X-BS-Token": s.token, ...(body ? { "Content-Type": "application/json" } : {}) },
+      headers: { "X-BS-Token": s.token, ...(s.espace ? { "X-BS-Espace": String(s.espace.id) } : {}), ...(body ? { "Content-Type": "application/json" } : {}) },
       body: body ? JSON.stringify(body) : undefined,
       credentials: "omit",
       signal: stop.signal,

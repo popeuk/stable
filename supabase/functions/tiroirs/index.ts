@@ -1,6 +1,9 @@
 // La fonction « tiroirs » : la seule porte vers la copie des données de
 // gestion. Le compte est celui de mon-ecurie.fr : on vérifie son jeton
 // (X-BS-Token) auprès du site, puis on ne touche qu'aux tiroirs de ce compte.
+// Depuis le 27 novembre 2026 (équipe d'une écurie, pc-bestable 1.10.0) :
+// avec l'en-tête X-BS-Espace, un membre d'équipe ouvre les tiroirs de
+// l'écurie de son gérant, si le site le compte parmi ses « espaces ».
 // Le contenu arrive déjà chiffré par l'app ; il n'est jamais lu ici.
 //
 //   GET                → { tiroirs: [{ nom, rev, contenu, modifie }], formats }
@@ -28,7 +31,7 @@ const ORIGINES = [/^https:\/\/popeuk\.github\.io$/, /^https:\/\/([a-z0-9-]+\.)?b
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 
 /** Jetons déjà vérifiés (2 minutes) et jetons refusés (5 minutes), dans cette instance. */
-const connus = new Memoire<number>(CACHE_OK_MS);
+const connus = new Memoire<{ id: number; espaces: number[] }>(CACHE_OK_MS);
 const refuses = new Memoire<true>(CACHE_REFUS_MS);
 /** Envois (PUT, POST) : 6 par minute et par compte. */
 const envois = new Fenetre(6, 60_000);
@@ -43,7 +46,7 @@ function entetes(req: Request): Record<string, string> {
   const o = req.headers.get("Origin") ?? "";
   const h: Record<string, string> = {
     "Access-Control-Allow-Methods": "GET, PUT, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-BS-Token",
+    "Access-Control-Allow-Headers": "Content-Type, X-BS-Token, X-BS-Espace",
     "Access-Control-Max-Age": "86400",
     "Content-Type": "application/json",
     "Cache-Control": "no-store",
@@ -53,7 +56,7 @@ function entetes(req: Request): Record<string, string> {
   return h;
 }
 
-async function compte(token: string, adresse: string): Promise<number | "refuse" | "injoignable" | "trop"> {
+async function compte(token: string, adresse: string): Promise<{ id: number; espaces: number[] } | "refuse" | "injoignable" | "trop"> {
   if (!jetonBienForme(token) || refuses.lire(token)) return "refuse";
   const c = connus.lire(token);
   if (c) return c;
@@ -67,13 +70,15 @@ async function compte(token: string, adresse: string): Promise<number | "refuse"
       return "refuse";
     }
     if (!r.ok) return "injoignable";
-    const j = (await r.json()) as { user?: { id?: unknown } };
+    const j = (await r.json()) as { user?: { id?: unknown }; espaces?: unknown };
     const id = Number(j?.user?.id);
     if (!Number.isInteger(id) || id <= 0) return "injoignable";
     // Le numéro du jeton doit être celui du compte rendu par le site.
     if (token.split(".")[0] !== String(id)) return "refuse";
-    connus.poser(token, id);
-    return id;
+    const espaces = Array.isArray(j?.espaces) ? j.espaces.map(Number).filter((n) => Number.isInteger(n) && n > 0) : [];
+    const c = { id, espaces };
+    connus.poser(token, c);
+    return c;
   } catch {
     return "injoignable";
   } finally {
@@ -97,10 +102,16 @@ Deno.serve(async (req) => {
 
   const token = req.headers.get("X-BS-Token") ?? "";
   if (!token || token.length > 512) return rep(401, { code: "session_expiree", message: "Connexion nécessaire." });
-  const userId = await compte(token, ip(req));
-  if (userId === "trop") return rep(429, { code: "trop_d_essais", message: "Trop d’essais. Réessaie dans une minute." });
-  if (userId === "refuse") return rep(401, { code: "session_expiree", message: "Connexion nécessaire." });
-  if (userId === "injoignable") return rep(503, { code: "monecurie_injoignable", message: "bestable.fr ne répond pas." });
+  const qui = await compte(token, ip(req));
+  if (qui === "trop") return rep(429, { code: "trop_d_essais", message: "Trop d’essais. Réessaie dans une minute." });
+  if (qui === "refuse") return rep(401, { code: "session_expiree", message: "Connexion nécessaire." });
+  if (qui === "injoignable") return rep(503, { code: "monecurie_injoignable", message: "bestable.fr ne répond pas." });
+  // L'écurie ouverte : la sienne, ou celle d'un gérant qui l'a dans son équipe (X-BS-Espace).
+  const demande = req.headers.get("X-BS-Espace");
+  const espace = demande ? Number(demande) : qui.id;
+  if (!Number.isInteger(espace) || espace <= 0) return rep(400, { code: "invalide" });
+  if (espace !== qui.id && !qui.espaces.includes(espace)) return rep(403, { code: "hors_equipe", message: "Tu ne fais plus partie de cette équipe." });
+  const userId = espace;
 
   if (req.method === "GET") {
     const { data, error } = await db.from("tiroirs").select("nom, rev, contenu, modifie").eq("user_id", userId);
@@ -110,7 +121,7 @@ Deno.serve(async (req) => {
 
   if (req.method !== "PUT" && req.method !== "POST") return rep(405, { code: "methode" });
   if (Number(req.headers.get("Content-Length") ?? 0) > MAX + 10_000) return rep(413, { code: "trop_gros" });
-  if (envois.depasse(String(userId))) return rep(429, { code: "trop_d_envois", message: "Trop d’envois. La copie repart dans une minute." });
+  if (envois.depasse(`${qui.id}|${userId}`)) return rep(429, { code: "trop_d_envois", message: "Trop d’envois. La copie repart dans une minute." });
   let b: Envoi;
   try {
     b = (await req.json()) as Envoi;

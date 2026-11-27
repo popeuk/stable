@@ -162,3 +162,20 @@
 .carnet .rg-fermer { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: var(--sheet); box-shadow: inset 0 0 0 1px var(--line); }
 .carnet .rg-fermer svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
 @media (min-width: 1024px) { .carnet.rg-voile { align-items: center; } .carnet .rg-feuille { border-radius: var(--bloc-r); } }
+
+/* L'équipe de l'écurie (27 novembre 2026) : components/bs/equipe-ecurie.tsx */
+.carnet .eq { padding-bottom: 14px; }
+.carnet .eq-err { margin: 8px 0; padding: 10px 12px; border-radius: 10px; background: #FCE3EC; color: var(--out); font-size: 14px; }
+.carnet .eq-ici, .carnet .eq-invit { margin: 8px 0 4px; padding: 12px 14px; border-radius: 12px; background: #EDF4F0; }
+.carnet .eq-invit { background: #FCE3EC; }
+.carnet .eq-ici p, .carnet .eq-invit p { margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--vert-deep); }
+.carnet .eq-acts { display: flex; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.carnet .eq-lien { padding: 0; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 650; color: var(--ink2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.carnet .eq-lien:disabled { opacity: .5; cursor: default; }
+.carnet .eq-membres { list-style: none; margin: 6px 0 0; padding: 0; }
+.carnet .eq-membres li { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 56px; padding: 6px 0; border-bottom: 1px solid var(--line2); }
+.carnet .eq-inviter { display: grid; gap: 6px; margin-top: 12px; }
+.carnet .eq-inviter label { font-size: 15px; font-weight: 680; }
+.carnet .eq-inviter > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.carnet .eq-inviter input { min-width: 0; height: 44px; padding: 0 12px; border: 0; border-radius: var(--ctl-r, 10px); background: var(--mist); font: inherit; font-size: 16px; color: var(--ink); }
+.carnet .eq-inviter small { font-size: 12.5px; line-height: 1.45; color: var(--ink3); }

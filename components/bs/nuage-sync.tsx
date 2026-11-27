@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { getSession } from "@/lib/account/session";
 import { ecouterChangements, envoyer, lireDrapeau, synchroniser } from "@/lib/account/nuage";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -43,10 +44,15 @@ export function NuageSync() {
     };
     const pousser = () => void envoyer().then(numeroterLesProvisoires);
     tirer();
+    // En équipe, les autres écrivent aussi : on relit toutes les deux minutes tant que l'app est à l'écran.
+    const s = getSession();
+    const equipe = s?.kind === "compte" && (!!s.espace || !!s.avecEquipe);
+    const t = equipe ? setInterval(tirer, 120_000) : null;
     document.addEventListener("visibilitychange", tirer);
     window.addEventListener("online", pousser);
     return () => {
       off();
+      if (t) clearInterval(t);
       document.removeEventListener("visibilitychange", tirer);
       window.removeEventListener("online", pousser);
     };

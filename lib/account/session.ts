@@ -35,6 +35,22 @@ export interface AccountSession {
   dataKey: string;
   listing?: Listing | null;
   at: string;
+  /**
+   * L'écurie d'un autre gérant ouverte en équipe (pc-bestable 1.10.0) : sa clé
+   * chiffre les données à la place de celle du compte, la copie en ligne range
+   * dans ses tiroirs. Absent : l'écurie du compte.
+   */
+  espace?: EspaceActif | null;
+  /** Le gérant a une équipe (au moins une personne a accepté) : la copie en ligne se relit plus souvent. */
+  avecEquipe?: boolean;
+}
+
+/** Une écurie ouverte en équipe. */
+export interface EspaceActif {
+  id: number;
+  nom: string;
+  gerant: string;
+  dataKey: string;
 }
 
 export interface DemoSession {
@@ -87,7 +103,16 @@ export function scopeOf(s: Session | null = getSession()): string | null {
   if (!s) return null;
   if (s.kind === "demo") return "demo";
   if (s.kind === "locale") return LOCALE_SCOPE;
-  return `u${s.userId}`;
+  // Une écurie ouverte en équipe a son propre tiroir sur l'appareil.
+  return s.espace ? `u${s.userId}-e${s.espace.id}` : `u${s.userId}`;
+}
+
+/** Ouvre l'écurie d'un gérant en équipe (ou la sienne, avec null), puis recharge l'app sur l'Accueil. */
+export function ouvrirEspace(e: EspaceActif | null, to = "/accueil") {
+  const s = getSession();
+  if (s?.kind !== "compte") return;
+  setSession({ ...s, espace: e });
+  window.location.assign(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${to}`);
 }
 
 /** Une écurie essayée sans compte attend-elle sur cet appareil ? */

@@ -62,10 +62,12 @@ const b64 = {
 
 async function accountKey(): Promise<CryptoKey | null> {
   const s = getSession();
-  if (s?.kind !== "compte" || !s.dataKey) return null;
-  if (keyCache?.b64 === s.dataKey) return keyCache.key;
-  const key = await crypto.subtle.importKey("raw", b64.from(s.dataKey), "AES-GCM", false, ["encrypt", "decrypt"]);
-  keyCache = { b64: s.dataKey, key };
+  // En équipe, la clé de l'écurie ouverte (remise par le site au membre accepté) ; sinon celle du compte.
+  const k = s?.kind === "compte" ? s.espace?.dataKey || s.dataKey : "";
+  if (s?.kind !== "compte" || !k) return null;
+  if (keyCache?.b64 === k) return keyCache.key;
+  const key = await crypto.subtle.importKey("raw", b64.from(k), "AES-GCM", false, ["encrypt", "decrypt"]);
+  keyCache = { b64: k, key };
   return key;
 }
 
