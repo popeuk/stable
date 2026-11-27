@@ -1,0 +1,12 @@
+# L'audit en ligne des écuries, préprod (27 novembre 2026). Le service
+# bestable-audit répond sur 127.0.0.1:8796 ; seule l'API /api/audit est ouverte.
+audit.187-7-74-179.sslip.io {
+	encode zstd gzip
+	import securite
+	handle /api/audit {
+		reverse_proxy 127.0.0.1:8796
+	}
+	handle {
+		respond 404
+	}
+}

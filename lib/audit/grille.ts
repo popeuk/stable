@@ -49,6 +49,8 @@ export interface EntreeGrille {
   objective: number;
   objectiveCa: number;
   maintenant?: Date;
+  /** Le dernier audit en ligne (service du VPS) : il compte là où l'appareil n'a rien lu. */
+  enLigne?: Record<string, Resultat>;
 }
 
 const parRegle = (x: number, a2: number, a1: number): Pts => (x >= a2 ? 2 : x >= a1 ? 1 : 0);
@@ -233,7 +235,13 @@ export interface Ligne extends Critere {
 export function resultats(e: EntreeGrille): Ligne[] {
   const maintenant = e.maintenant ?? new Date();
   const lus = { ...mesureFiche(e.fiche, e.demandes, e.repondues, maintenant), ...mesureVivre(e, maintenant) };
-  return GRILLE.map((c) => ({ ...c, r: lus[c.id] ?? { points: null, constat: "Pas encore mesuré." } }));
+  return GRILLE.map((c) => {
+    const ici = lus[c.id];
+    const enLigne = e.enLigne?.[c.id];
+    // L'appareil lit la fiche et les données à l'instant : il passe d'abord. L'audit en ligne complète ce qu'il n'a pas pu lire.
+    const r = ici && ici.points != null ? ici : (enLigne ?? ici ?? { points: null, constat: "Pas encore mesuré." });
+    return { ...c, r };
+  });
 }
 
 export interface Note {

@@ -46,6 +46,8 @@ jobs:
           NEXT_PUBLIC_QUATRE: "1"
           # Tout débloqué en préprod (27 novembre 2026, décision de Samuel) : la partie argent visible, plus de cadenas.
           NEXT_PUBLIC_ARGENT: "1"
+          # L'audit en ligne (27 novembre 2026) : le service du VPS (deploiement/vps/audit), préprod seulement.
+          NEXT_PUBLIC_AUDIT_API: https://audit.187-7-74-179.sslip.io
       - name: Publish to the vps-preprod branch
         run: |
           cd out

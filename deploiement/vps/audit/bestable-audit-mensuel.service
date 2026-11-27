@@ -1,0 +1,16 @@
+[Unit]
+Description=Be Stable : relance mensuelle des audits en ligne
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/bestable-audit.env
+EnvironmentFile=-/etc/bestable-audit.secrets
+ExecStart=/opt/bestable-audit/venv/bin/python -I /opt/bestable-audit/bestable-audit.py --mensuel
+DynamicUser=yes
+StateDirectory=bestable-audit
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+MemoryMax=300M

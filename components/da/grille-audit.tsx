@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Ic } from "@/components/carnet/ui";
 import { usePresence } from "@/components/bs/presence";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
+import { AUDIT_API, enResultats, useAuditEnLigne } from "@/lib/account/audit-en-ligne";
 import { GRILLE, QUESTIONS_VIVRE, VOLETS, noteDe, premiersGestes, resultats, type Ligne, type Pts, type VoletKey } from "@/lib/audit/grille";
 
 /**
@@ -27,7 +28,15 @@ export function useGrille(): { lignes: Ligne[]; pret: boolean; aFiche: boolean }
   const capacity = useSettingsStore((s) => s.capacity);
   const objective = useSettingsStore((s) => s.objective);
   const objectiveCa = useSettingsStore((s) => s.objectiveCa);
-  const lignes = useMemo(() => resultats({ fiche: etat === "pret" ? fiche : null, demandes, repondues, data, capacity, objective, objectiveCa }), [etat, fiche, demandes, repondues, data, capacity, objective, objectiveCa]);
+  // Le dernier audit en ligne (service du VPS) complète ce que l'appareil ne peut pas lire.
+  const dernier = useAuditEnLigne((s) => s.donnees?.dernier);
+  const charger = useAuditEnLigne((s) => s.charger);
+  const etatEnLigne = useAuditEnLigne((s) => s.etat);
+  useEffect(() => {
+    if (etatEnLigne === "off" && AUDIT_API) void charger();
+  }, [etatEnLigne, charger]);
+  const enLigne = useMemo(() => enResultats(dernier), [dernier]);
+  const lignes = useMemo(() => resultats({ fiche: etat === "pret" ? fiche : null, demandes, repondues, data, capacity, objective, objectiveCa, enLigne }), [etat, fiche, demandes, repondues, data, capacity, objective, objectiveCa, enLigne]);
   return { lignes, pret: etat !== "inconnu", aFiche: etat === "pret" && !!fiche };
 }
 
@@ -207,6 +216,20 @@ function CritereLigne({ l }: { l: Ligne }) {
             </ul>
           </div>
         )}
+        {l.r.sources && l.r.sources.length > 0 && (
+          <div className="au-c-bloc">
+            <h4>Pages lues</h4>
+            <ul className="au-sources">
+              {l.r.sources.slice(0, 4).map((u) => (
+                <li key={u}>
+                  <a href={u} target="_blank" rel="noreferrer">
+                    {u.replace(/^https?:\/\/(www\.)?/, "").slice(0, 60)}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="au-c-bloc">
           <h4>Pourquoi ça compte</h4>
           <p>{l.pourquoi}</p>
@@ -264,5 +287,61 @@ function Reponse({ id, question }: { id: string; question: string }) {
         Enregistrer
       </button>
     </div>
+  );
+}
+
+/**
+ * L'audit en ligne (service du VPS) : le lancer, le suivre, voir sa date et son
+ * résumé. Il lit Google, les annonces, les réseaux et le site comme un cavalier,
+ * en 3 à 6 minutes ; un par jour au plus. Sans compte ou sans service, il se tait
+ * ou le dit.
+ */
+export function AuditEnLigneCarte() {
+  const etat = useAuditEnLigne((s) => s.etat);
+  const donnees = useAuditEnLigne((s) => s.donnees);
+  const message = useAuditEnLigne((s) => s.message);
+  const lancer = useAuditEnLigne((s) => s.lancer);
+  const [maintenant] = useState(() => Date.now());
+  if (etat === "off") return null;
+  const d = donnees?.dernier;
+  const quand = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) : "");
+  const recent = d?.statut === "pret" && d.termine && maintenant - new Date(d.termine).getTime() < 20 * 3600 * 1000;
+  return (
+    <section className="au-enligne" aria-label="L’audit en ligne">
+      <div className="au-enligne-h">
+        <h2>L’audit en ligne</h2>
+        {d?.statut === "pret" && <span>du {quand(d.termine)}</span>}
+      </div>
+      {etat === "sans-compte" ? (
+        <p>Avec ton compte, l’audit lit ce qu’un cavalier trouve de toi : ta fiche Google et ses avis, ta place sur « pension cheval », tes annonces, ton site et tes réseaux.</p>
+      ) : d?.statut === "en_cours" ? (
+        <>
+          <p className="au-enligne-pouls">
+            <i aria-hidden="true" />
+            L’audit regarde ton écurie comme un cavalier. Compte 3 à 6 minutes ; tu peux utiliser l’app pendant ce temps.
+          </p>
+          {d.etapes.length > 0 && (
+            <ul className="au-enligne-etapes">
+              {d.etapes.slice(-4).map((e, i) => (
+                <li key={i}>{e}</li>
+              ))}
+            </ul>
+          )}
+        </>
+      ) : (
+        <>
+          {d?.statut === "pret" && d.resultat?.resume && <p className="au-enligne-resume">{d.resultat.resume}</p>}
+          {d?.statut === "erreur" && <p className="au-enligne-err">Le dernier audit n’a pas abouti : {d.erreur}</p>}
+          {!d && <p>Il lit ce qu’un cavalier trouve de toi : ta fiche Google et ses avis, ta place sur « pension cheval », tes annonces, ton site et tes réseaux. Les critères « à mesurer » se remplissent.</p>}
+          {!recent && (
+            <button type="button" className="btn" onClick={() => void lancer()} disabled={etat === "charge"}>
+              {d ? "Relancer l’audit en ligne" : "Lancer l’audit en ligne"}
+            </button>
+          )}
+          {recent && <p className="au-enligne-note">Il se relance chaque mois. Tu pourras aussi le relancer demain.</p>}
+        </>
+      )}
+      {message && <p className="au-enligne-err">{message}</p>}
+    </section>
   );
 }

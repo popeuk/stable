@@ -1,0 +1,2 @@
+# Le SDK Anthropic, figé (vérifié le 27 novembre 2026 : fallbacks, betas, output_config sur beta.messages.stream).
+anthropic==2.14.0

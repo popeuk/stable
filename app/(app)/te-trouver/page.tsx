@@ -5,7 +5,7 @@ import { Ic, Page } from "@/components/carnet/ui";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Redirect } from "@/components/bs/redirect";
 import { usePresence } from "@/components/bs/presence";
-import { Gestes, VoletDetail, VueEnsemble, useGrille } from "@/components/da/grille-audit";
+import { AuditEnLigneCarte, Gestes, VoletDetail, VueEnsemble, useGrille } from "@/components/da/grille-audit";
 import { PAYANT_VISIBLE, QUATRE_PARTIES } from "@/lib/fonctions";
 import "@/app/carnet/presence.css";
 
@@ -46,6 +46,7 @@ function TeTrouver() {
       {etat === "erreur" && <p className="q4-bientot" style={{ margin: "18px 16px 0" }}>bestable.fr ne répond pas pour le moment : ce qui se lit sur ta fiche reviendra dans un instant.</p>}
 
       <div className="au-zone">
+        <AuditEnLigneCarte />
         <VueEnsemble lignes={lignes} ici="trouver" />
         <Gestes lignes={trouver} />
         <VoletDetail k="trouver" lignes={lignes} />

@@ -1,0 +1,396 @@
+{
+ "volets": [
+  {
+   "key": "trouver",
+   "titre": "Te trouver",
+   "scene": "Il tape « pension cheval » et sa commune sur son téléphone.",
+   "source": "Google, Facebook, Instagram, Le Bon Coin, les sites d’annonces, bestable.fr",
+   "neSaitPas": [
+    "Le bouche-à-oreille, et d’où viennent tes pensionnaires actuels.",
+    "Ce qui se dit dans les groupes Facebook privés."
+   ]
+  },
+  {
+   "key": "choisir",
+   "titre": "Te choisir",
+   "scene": "Le soir, il compare deux ou trois écuries, puis il t’écrit.",
+   "source": "Ton site, tes annonces, ta fiche bestable.fr, tes demandes reçues",
+   "neSaitPas": [
+    "La qualité réelle des prés et du service.",
+    "Ta liste d’attente et les demandes que tu refuses."
+   ]
+  },
+  {
+   "key": "vivre",
+   "titre": "En vivre",
+   "scene": "Au bout du mois, ce que chaque cheval te laisse.",
+   "source": "Tes pensions, prestations et frais saisis dans l’app, et tes réponses",
+   "neSaitPas": [
+    "Le coût de tes installations et de tes emprunts.",
+    "Les aides que tu touches."
+   ]
+  }
+ ],
+ "grille": [
+  {
+   "id": "t-google",
+   "volet": "trouver",
+   "titre": "As-tu une fiche Google à ton nom ?",
+   "mesure": "Recherche Google Maps sur le nom de l’écurie et sa commune.",
+   "regle": {
+    "0": "Pas de fiche, ou pas à toi",
+    "1": "Fiche présente mais incomplète",
+    "2": "Fiche à ton nom, catégorie pension, horaires et site renseignés"
+   },
+   "pourquoi": "C’est le premier résultat que voit un cavalier qui cherche près de chez lui."
+  },
+  {
+   "id": "t-avis",
+   "volet": "trouver",
+   "titre": "Que disent tes avis Google ?",
+   "mesure": "Nombre d’avis et note moyenne sur ta fiche.",
+   "regle": {
+    "0": "Moins de 3 avis, ou note sous 4",
+    "1": "3 à 9 avis, ou note de 4 à 4,5",
+    "2": "10 avis ou plus, note de 4,5 ou plus"
+   },
+   "pourquoi": "Avant d’appeler, il lit ce que disent les autres cavaliers."
+  },
+  {
+   "id": "t-avis-recents",
+   "volet": "trouver",
+   "titre": "Tes avis sont-ils récents, et y réponds-tu ?",
+   "mesure": "Date du dernier avis et part des avis qui ont une réponse.",
+   "regle": {
+    "0": "Dernier avis de plus d’un an, aucune réponse",
+    "1": "Dernier avis de 3 à 12 mois, ou peu de réponses",
+    "2": "Un avis de moins de 3 mois et des réponses"
+   },
+   "pourquoi": "Un avis récent et une réponse montrent qu’il y a quelqu’un derrière."
+  },
+  {
+   "id": "t-site",
+   "volet": "trouver",
+   "titre": "Ton site sort-il sur « pension cheval » et ta commune ?",
+   "mesure": "Position du site sur « pension cheval » suivi de ta commune et de la grande ville proche.",
+   "regle": {
+    "0": "Absent des 10 premiers, ou pas de site",
+    "1": "Entre 6 et 10, ou sur une seule des deux recherches",
+    "2": "Dans les 5 premiers"
+   },
+   "pourquoi": "Beaucoup de cavaliers ne vont pas plus loin que la première page."
+  },
+  {
+   "id": "t-facebook",
+   "volet": "trouver",
+   "titre": "As-tu une page Facebook d’écurie ?",
+   "mesure": "Page d’écurie, sa dernière publication, et son lien avec le site.",
+   "regle": {
+    "0": "Pas de page d’écurie",
+    "1": "Page qui dort, ou pas reliée",
+    "2": "Page active (publication de moins d’un mois), reliée au site"
+   },
+   "pourquoi": "C’est là que beaucoup de cavaliers demandent une pension, dans les groupes du coin."
+  },
+  {
+   "id": "t-instagram",
+   "volet": "trouver",
+   "titre": "Ton Instagram vit-il ?",
+   "mesure": "Dernière publication et rythme sur cinq semaines.",
+   "regle": {
+    "0": "Rien depuis plus d’un mois, ou pas de compte",
+    "1": "Une publication dans le mois",
+    "2": "Au moins une publication par semaine"
+   },
+   "pourquoi": "Il y regarde la vie de l’écurie : chevaux, prés, ambiance."
+  },
+  {
+   "id": "t-annonces",
+   "volet": "trouver",
+   "titre": "Tes annonces sont-elles à jour ?",
+   "mesure": "Annonces sur Le Bon Coin, pension-chevaux.com, Chevalannonce, Equirodi : leur âge.",
+   "regle": {
+    "0": "Plusieurs annonces anciennes, ou aucune",
+    "1": "Une annonce de plus d’un an, ou en double",
+    "2": "Toutes de moins d’un an, aucune en double"
+   },
+   "pourquoi": "Une annonce de trois ans à côté d’une neuve fait douter des deux."
+  },
+  {
+   "id": "t-bestable",
+   "volet": "trouver",
+   "titre": "Ta fiche bestable.fr est-elle à jour ?",
+   "mesure": "Fiche revendiquée, places confirmées, date de mise à jour.",
+   "regle": {
+    "0": "Pas revendiquée",
+    "1": "Revendiquée, places de plus d’un mois",
+    "2": "Revendiquée, places confirmées il y a moins d’un mois"
+   },
+   "pourquoi": "Les cavaliers y comparent les pensions de leur secteur."
+  },
+  {
+   "id": "t-nap",
+   "volet": "trouver",
+   "titre": "Le même nom, la même adresse et le même numéro partout ?",
+   "mesure": "Nom, adresse et téléphone relevés sur chaque site.",
+   "regle": {
+    "0": "Trois différences ou plus",
+    "1": "Une ou deux différences",
+    "2": "Identiques partout"
+   },
+   "pourquoi": "Google s’en sert pour te classer, et le cavalier pour te faire confiance."
+  },
+  {
+   "id": "t-lien",
+   "volet": "trouver",
+   "titre": "Tes annonces renvoient-elles vers toi ?",
+   "mesure": "Lien vers ton site ou ta fiche depuis chaque annonce.",
+   "regle": {
+    "0": "Moins de la moitié",
+    "1": "La moitié ou plus",
+    "2": "Toutes renvoient vers toi"
+   },
+   "pourquoi": "Sans lien, le cavalier intéressé reste sur l’annonce et compare avec les autres."
+  },
+  {
+   "id": "c-prix",
+   "volet": "choisir",
+   "titre": "Ton prix est-il affiché ?",
+   "mesure": "Prix de chaque formule sur ton site et tes annonces.",
+   "regle": {
+    "0": "Aucun prix affiché",
+    "1": "Un prix « à partir de », ou une formule sur demande",
+    "2": "Prix de chaque formule affiché"
+   },
+   "pourquoi": "Sans prix, il passe à l’écurie suivante plutôt que d’appeler."
+  },
+  {
+   "id": "c-memes-prix",
+   "volet": "choisir",
+   "titre": "Les mêmes prix partout ?",
+   "mesure": "Prix relevés formule par formule, site par site.",
+   "regle": {
+    "0": "Des écarts sur plusieurs formules",
+    "1": "Un écart sur une formule",
+    "2": "Mêmes prix partout"
+   },
+   "pourquoi": "Deux prix différents, c’est le plus haut qu’il retient."
+  },
+  {
+   "id": "c-compris",
+   "volet": "choisir",
+   "titre": "Ce qui est compris est-il écrit ?",
+   "mesure": "Foin, litière, sorties, soins : ce que dit la page pension.",
+   "regle": {
+    "0": "Rien n’est dit",
+    "1": "En partie",
+    "2": "Tout le compris est écrit"
+   },
+   "pourquoi": "C’est ce qui explique ton prix face au pré moins cher d’à côté."
+  },
+  {
+   "id": "c-places",
+   "volet": "choisir",
+   "titre": "Dis-tu s’il y a de la place ?",
+   "mesure": "Places libres ou prochaine arrivée, et leur cohérence d’un site à l’autre.",
+   "regle": {
+    "0": "Rien sur les places",
+    "1": "Places dites, mais qui se contredisent",
+    "2": "Places dites, les mêmes partout"
+   },
+   "pourquoi": "C’est sa première question."
+  },
+  {
+   "id": "c-capacite",
+   "volet": "choisir",
+   "titre": "Une seule capacité ?",
+   "mesure": "Nombre de chevaux annoncé sur chaque site.",
+   "regle": {
+    "0": "Trois chiffres ou plus",
+    "1": "Deux chiffres différents",
+    "2": "Le même chiffre partout"
+   },
+   "pourquoi": "Des chiffres qui changent font douter du reste."
+  },
+  {
+   "id": "c-photos",
+   "volet": "choisir",
+   "titre": "Voit-on le lieu en photo ?",
+   "mesure": "Nombre de photos sur ton site et ta fiche Google.",
+   "regle": {
+    "0": "Moins de 3",
+    "1": "3 à 9 photos",
+    "2": "10 photos ou plus, prés et installations"
+   },
+   "pourquoi": "Il veut voir les prés et les abris avant de se déplacer."
+  },
+  {
+   "id": "c-atout",
+   "volet": "choisir",
+   "titre": "Ton atout est-il dit tout de suite ?",
+   "mesure": "Ce qui te distingue, et où il apparaît sur ta page.",
+   "regle": {
+    "0": "Nulle part",
+    "1": "Plus bas sur la page",
+    "2": "Dans la première phrase"
+   },
+   "pourquoi": "Il compare trois écuries en quelques minutes : il retient ce qu’il lit en premier."
+  },
+  {
+   "id": "c-conditions",
+   "volet": "choisir",
+   "titre": "Tes conditions d’entrée sont-elles écrites ?",
+   "mesure": "Préavis, caution, vaccins, ferrure, assurance.",
+   "regle": {
+    "0": "Pas écrites",
+    "1": "En partie",
+    "2": "Écrites"
+   },
+   "pourquoi": "Elles évitent les questions et les mauvaises surprises des deux côtés."
+  },
+  {
+   "id": "c-joindre",
+   "volet": "choisir",
+   "titre": "Peut-on te joindre facilement ?",
+   "mesure": "Téléphone visible, formulaire de demande, bouton d’appel sur téléphone.",
+   "regle": {
+    "0": "Il faut chercher",
+    "1": "Numéro seul",
+    "2": "Numéro visible et formulaire ou bouton d’appel"
+   },
+   "pourquoi": "Il cherche le soir, sur son téléphone : il faut pouvoir écrire en un geste."
+  },
+  {
+   "id": "c-reponse",
+   "volet": "choisir",
+   "titre": "Réponds-tu vite aux demandes ?",
+   "mesure": "Les demandes notées dans l’app : combien attendent, et depuis quand.",
+   "regle": {
+    "0": "Plusieurs en attente",
+    "1": "Une en attente",
+    "2": "Aucune demande en attente de plus d’un jour"
+   },
+   "pourquoi": "Une demande sans réponse rapide part souvent chez le voisin."
+  },
+  {
+   "id": "v-couvre",
+   "volet": "vivre",
+   "titre": "Chaque pension couvre-t-elle les frais de son cheval ?",
+   "mesure": "Pour chaque cheval en pension ce mois-ci : sa pension face à ses frais et à sa part des frais communs.",
+   "regle": {
+    "0": "Moins de la moitié",
+    "1": "La moitié ou plus",
+    "2": "Toutes couvrent leurs frais"
+   },
+   "pourquoi": "Une pension qui ne couvre pas son cheval se paie avec le reste."
+  },
+  {
+   "id": "v-remplissage",
+   "volet": "vivre",
+   "titre": "Tes places sont-elles remplies ?",
+   "mesure": "Chevaux en pension dans l’app, face à ta capacité.",
+   "regle": {
+    "0": "Moins de 70 %",
+    "1": "70 à 89 %",
+    "2": "90 % ou plus"
+   },
+   "pourquoi": "Les frais fixes se partagent mieux quand l’écurie est pleine."
+  },
+  {
+   "id": "v-prix",
+   "volet": "vivre",
+   "titre": "Chaque prestation a-t-elle un prix ?",
+   "mesure": "Prix fixés dans Mon écurie, prestation par prestation (ou tes tarifs).",
+   "regle": {
+    "0": "Moins de la moitié",
+    "1": "La moitié ou plus",
+    "2": "Toutes"
+   },
+   "pourquoi": "Sans prix, une prestation ne se compte pas : elle se donne."
+  },
+  {
+   "id": "v-validees",
+   "volet": "vivre",
+   "titre": "Tes prestations sont-elles validées ?",
+   "mesure": "Prestations passées ce mois-ci et pas encore validées.",
+   "regle": {
+    "0": "Plus de 5",
+    "1": "1 à 5 en attente",
+    "2": "Aucune en attente"
+   },
+   "pourquoi": "Ce qui n’est pas validé n’arrive pas au décompte, ni à la facture."
+  },
+  {
+   "id": "v-frais",
+   "volet": "vivre",
+   "titre": "Tes frais sont-ils notés ?",
+   "mesure": "Catégories de frais saisies pour le mois (foin, litière, maréchal…).",
+   "regle": {
+    "0": "Aucune",
+    "1": "Une ou deux",
+    "2": "Trois catégories ou plus"
+   },
+   "pourquoi": "Sans les frais, on ne sait pas ce que chaque cheval te laisse."
+  },
+  {
+   "id": "v-sources",
+   "volet": "vivre",
+   "titre": "L’argent vient-il de plusieurs sources ?",
+   "mesure": "Pensions et séances validées dans le mois.",
+   "regle": {
+    "0": "Rien de saisi ce mois-ci",
+    "1": "Une seule des deux",
+    "2": "Pensions et séances"
+   },
+   "pourquoi": "Deux sources amortissent un départ ou un mois creux."
+  },
+  {
+   "id": "v-objectif",
+   "volet": "vivre",
+   "titre": "As-tu un objectif pour le mois ?",
+   "mesure": "Les objectifs posés dans l’app : chiffre d’affaires visé, ou ce que tu veux qu’il te reste.",
+   "regle": {
+    "0": "Aucun",
+    "1": "Seulement ce qu’il doit te rester",
+    "2": "Un chiffre d’affaires visé"
+   },
+   "pourquoi": "Un chiffre visé dit tout de suite si le mois est en avance ou en retard."
+  },
+  {
+   "id": "v-hausse",
+   "volet": "vivre",
+   "titre": "Quand as-tu revu tes prix pour la dernière fois ?",
+   "mesure": "Ta réponse.",
+   "regle": {
+    "0": "Plus de quatre ans, ou jamais",
+    "1": "Il y a deux à quatre ans",
+    "2": "Il y a moins de deux ans"
+   },
+   "pourquoi": "Le foin et le carburant augmentent chaque année ; un prix figé recule."
+  },
+  {
+   "id": "v-foin",
+   "volet": "vivre",
+   "titre": "Connais-tu le coût de ton foin pour l’année ?",
+   "mesure": "Ta réponse.",
+   "regle": {
+    "0": "Pas connu",
+    "1": "Prix connu, achat au fil de l’eau",
+    "2": "Prix et tonnage connus, achat sécurisé"
+   },
+   "pourquoi": "C’est souvent le premier poste de frais, et celui qui bouge le plus."
+  },
+  {
+   "id": "v-heures",
+   "volet": "vivre",
+   "titre": "Sais-tu combien d’heures demande l’écurie ?",
+   "mesure": "Ta réponse.",
+   "regle": {
+    "0": "Pas connu",
+    "1": "Une idée",
+    "2": "Heures connues, les tiennes et celles des autres"
+   },
+   "pourquoi": "C’est ce qui dit si ton travail est payé."
+  }
+ ]
+}

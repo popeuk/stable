@@ -1,0 +1,10 @@
+[Unit]
+Description=Be Stable : chaque matin, relance les audits de plus de 28 jours
+
+[Timer]
+OnCalendar=*-*-* 05:30:00
+RandomizedDelaySec=20min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

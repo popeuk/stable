@@ -33,6 +33,7 @@ export interface Resultat {
   vu?: Vu[];
   geste?: Geste;
   question?: string; // pour un critère à mesurer : ce qu'on te demande
+  sources?: string[]; // les pages lues par l’audit en ligne
 }
 
 export interface Volet {

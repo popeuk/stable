@@ -520,3 +520,20 @@
 .carnet .da-mv-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px var(--gut) 0; }
 .carnet .da-mv-btns .btn { justify-content: center; }
 .carnet .da-mv-h { margin: 26px var(--gut) 6px; font-size: 20px; font-weight: 780; letter-spacing: -.025em; }
+.carnet .au-sources { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 12.5px; }
+.carnet .au-sources a { color: var(--vert); word-break: break-all; }
+/* L'audit en ligne (service du VPS) */
+.carnet .au-enligne { margin-bottom: 18px; padding: 16px; border-radius: var(--bloc-r); background: var(--vert-deep); color: #fff; }
+.carnet .au-enligne-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.carnet .au-enligne h2 { margin: 0; font-size: 18px; font-weight: 780; letter-spacing: -.02em; color: #fff; }
+.carnet .au-enligne-h span { font-size: 13px; color: var(--on-vert); }
+.carnet .au-enligne p { margin: 8px 0 0; font-size: 14px; line-height: 1.45; color: var(--on-vert); }
+.carnet .au-enligne .au-enligne-resume { color: #fff; font-weight: 600; }
+.carnet .au-enligne .btn { margin-top: 12px; background: var(--rose); color: var(--vert-deep); }
+.carnet .au-enligne-pouls { display: flex; gap: 10px; align-items: flex-start; }
+.carnet .au-enligne-pouls i { flex: none; width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; background: var(--rose); animation: da-pouls 1.4s ease-in-out infinite; }
+@keyframes da-pouls { 50% { opacity: .35; transform: scale(.8); } }
+.carnet .au-enligne-etapes { margin: 10px 0 0; padding-left: 20px; font-size: 13px; color: var(--on-vert); display: grid; gap: 2px; }
+.carnet .au-enligne-err { color: var(--rose) !important; }
+.carnet .au-enligne-note { font-size: 13px !important; }
+@media (prefers-reduced-motion: reduce) { .carnet .au-enligne-pouls i { animation: none; } }

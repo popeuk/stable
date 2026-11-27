@@ -5,7 +5,7 @@ import { Ic, Page } from "@/components/carnet/ui";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Redirect } from "@/components/bs/redirect";
 import { usePresence } from "@/components/bs/presence";
-import { Gestes, VoletDetail, VueEnsemble, useGrille } from "@/components/da/grille-audit";
+import { AuditEnLigneCarte, Gestes, VoletDetail, VueEnsemble, useGrille } from "@/components/da/grille-audit";
 import { aRepondu } from "@/lib/account/demandes";
 import { QUATRE_PARTIES } from "@/lib/fonctions";
 import { OBSERVATOIRE_DATE } from "@/lib/observatoire-2026";
@@ -80,6 +80,7 @@ function TeChoisir() {
       )}
 
       <div className="au-zone">
+        <AuditEnLigneCarte />
         <Gestes lignes={choisir} />
         <VoletDetail k="choisir" lignes={lignes} />
         <div style={{ marginTop: 18 }}>

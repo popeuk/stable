@@ -120,3 +120,19 @@ describe("la grille d'audit", () => {
     expect(g.every((x) => x.r.points === 0)).toBe(true);
   });
 });
+
+describe("l'audit en ligne dans la grille", () => {
+  const base = { demandes: [], repondues: [], data: data(), capacity: 0, objective: 0, objectiveCa: 0, maintenant: NOW };
+  it("complète ce que l'appareil n'a pas lu, sans écraser ce qu'il a lu", () => {
+    const l = resultats({
+      ...base,
+      fiche: fiche({ places_libres: "1" }),
+      enLigne: {
+        "t-google": { points: 2, constat: "Ta fiche Google existe, 22 avis à 5,0." },
+        "c-places": { points: 0, constat: "Rien sur les places." },
+      },
+    });
+    expect(l.find((x) => x.id === "t-google")!.r.points).toBe(2);
+    expect(l.find((x) => x.id === "c-places")!.r.points).toBe(2);
+  });
+});
