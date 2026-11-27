@@ -1,0 +1,160 @@
+/*
+ * La DA de l'app du Clos (27 novembre 2026, décision de Samuel) : la mise en
+ * page de l'app du Clos (~/Dreadsprint-v2, app/presence.css) posée sur
+ * app.bestable.fr. Mêmes couleurs, même typo, mêmes arrondis que le carnet ;
+ * ce qui change : l'en-tête vert pleine largeur des pages d'onglet, les
+ * onglets en pastilles, les gros chiffres dans le vert, la barre du bas
+ * sobre, les cartes posées sur le papier.
+ *
+ * Les champs (saisie, listes, formulaires) gardent le style du carnet : c'est
+ * ce que Samuel garde de l'app d'avant. Rien ici ne touche .field, input,
+ * select ni textarea.
+ *
+ * Chargé après tout le carnet (app/layout.tsx) : il l'emporte à spécificité égale.
+ */
+
+.carnet {
+  --da-ombre-carte: 0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent), inset 0 0 0 1px var(--line);
+  --da-ombre-haute: 0 2px 4px color-mix(in srgb, var(--ink) 5%, transparent), 0 12px 30px color-mix(in srgb, var(--ink) 8%, transparent);
+  --da-ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* ---- La barre du bas : icône et mot, le vert pour l'onglet ouvert, un trait dessous ---- */
+.carnet .tb {
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  padding-top: 4px;
+}
+.carnet .tb a, .carnet .tb button:not(.plus) { position: relative; gap: 4px; color: var(--ink3); font-size: 11px; font-weight: 700; }
+.carnet .tb a span, .carnet .tb a .ac-ic + span { font-size: 11px; font-weight: 700; color: inherit; }
+.carnet .tb svg { width: 20px; height: 20px; stroke-width: 1.9; }
+.carnet .tb a[aria-current="page"] { color: var(--vert); }
+.carnet .tb a[aria-current="page"] span { color: var(--vert); }
+.carnet .tb a[aria-current="page"] svg { stroke-width: 2.1; }
+.carnet .tb a[aria-current="page"]::before { content: ""; position: absolute; left: 50%; bottom: 0; width: 14px; height: 2.5px; margin-left: -7px; border-radius: 9999px; background: var(--vert); }
+
+/* ---- L'en-tête des pages d'onglet : le vert profond, de bord à bord ---- */
+.carnet .hd.hd2.da-vert { background: var(--vert-deep); border-bottom: 0; color: #fff; }
+/* Les deux voiles du carnet (au-dessus de l'écran, sous l'encoche) prennent le vert aussi. */
+.carnet .hd.hd2.da-vert::before, .carnet .hd.hd2.da-vert::after { background: var(--vert-deep); }
+.carnet .hd.hd2.da-vert .wm { color: #fff; }
+.carnet .hd.hd2.da-vert .hd2-gear { background: color-mix(in srgb, #fff 10%, transparent); box-shadow: none; color: #fff; }
+.carnet .hd.hd2.da-vert .hd2-gear[aria-current="page"] { box-shadow: inset 0 0 0 1.5px var(--rose); }
+.carnet .hd.hd2.da-vert .q4-badge { box-shadow: 0 0 0 2px var(--vert-deep); }
+.carnet .hd.hd2.da-vert .pp-badge, .carnet .hd.hd2.da-vert [class*="preprod"] { color: var(--vert-deep); }
+
+/* ---- TeteVerte (components/da/tete-verte.tsx) : titre, phrase, action, et ce qui compte le plus ---- */
+.carnet .da-tete {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 6px var(--gut) 20px;
+  background: var(--vert-deep);
+  color: #fff;
+}
+.carnet .da-tete::after { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--rose) 20%, transparent), transparent 60%); pointer-events: none; }
+.carnet .da-tete > * { position: relative; z-index: 1; }
+.carnet .da-tete-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.carnet .da-tete h1 { margin: 0; font-size: 32px; font-weight: 780; line-height: 1; letter-spacing: -.035em; font-variation-settings: "wdth" 86; color: #fff; }
+.carnet .da-tete-h p { margin: 6px 0 0; font-size: 15px; line-height: 1.4; color: var(--on-vert); }
+.carnet .da-plus { flex: none; width: 46px; height: 46px; border: 0; border-radius: var(--ctl-r); display: grid; place-items: center; background: var(--rose); color: var(--vert-deep); cursor: pointer; transition: transform .15s var(--da-ease); }
+.carnet .da-plus:active { transform: scale(.95); }
+.carnet .da-plus svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+
+/* Les chiffres dans le vert */
+.carnet .da-chiffres { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; margin-top: 16px; }
+.carnet .da-chiffres > * { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border: 0; border-radius: var(--ctl-r); background: color-mix(in srgb, #fff 8%, transparent); color: #fff; font: inherit; text-align: left; text-decoration: none; }
+.carnet .da-chiffres b { font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: -.03em; font-variation-settings: "wdth" 86; font-variant-numeric: tabular-nums; }
+.carnet .da-chiffres span { font-size: 12.5px; font-weight: 600; color: var(--on-vert); }
+.carnet .da-chiffres .chaud { background: var(--rose); color: var(--vert-deep); }
+.carnet .da-chiffres .chaud span { color: var(--vert-deep); }
+
+/* ---- Les onglets d'une page, en pastilles (components/da/onglets.tsx) ---- */
+.carnet .da-onglets { display: grid; gap: 6px; margin: 16px var(--gut) 0; padding: 4px; border-radius: 12px; background: var(--mist); }
+.carnet .da-onglets button { min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 6px 4px; border: 0; border-radius: 9px; background: none; font: inherit; font-size: 13.5px; font-weight: 700; color: var(--ink2); cursor: pointer; }
+.carnet .da-onglets button .t { white-space: nowrap; }
+.carnet .da-onglets button small { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: var(--ink3); font-variant-numeric: tabular-nums; }
+.carnet .da-onglets button small i { width: 7px; height: 7px; border-radius: 50%; }
+.carnet .da-onglets button[aria-selected="true"] { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 3px color-mix(in srgb, var(--ink) 12%, transparent); }
+
+/* ---- Cartes et titres de section, posés sur le papier ---- */
+.carnet .da-carte { border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); }
+.carnet .da-sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 26px var(--gut) 10px; }
+.carnet .da-sec-h h2 { margin: 0; font-size: 20px; font-weight: 780; letter-spacing: -.025em; }
+.carnet .da-sec-h span, .carnet .da-sec-h a { font-size: 13px; font-weight: 650; color: var(--ink3); text-decoration: none; }
+
+@media (prefers-reduced-motion: reduce) { .carnet .da-plus { transition: none; } }
+
+/* ---- Planning : la semaine et la journée, à la façon du Clos ---- */
+.carnet .jr-days { background: none; box-shadow: none; padding-left: 0; padding-right: 0; }
+.carnet .jr-days button { padding: 8px 0; border-radius: 12px; }
+.carnet .jr-days [aria-pressed="true"] { background: var(--vert-deep); color: color-mix(in srgb, #fff 75%, transparent); }
+.carnet .jr-days [aria-pressed="true"] b { color: #fff; }
+.carnet .jr-days [aria-pressed="true"] .jr-dots i { background: color-mix(in srgb, #fff 80%, transparent); }
+/* Le soleil et le résumé en carte du carnet laissent la place au titre du jour et à la ligne du temps. */
+.carnet .jr-ciel { display: none; }
+.carnet .da-jour { margin: 24px var(--gut) 0; }
+.carnet .da-jour h2 { margin: 0; font-size: 26px; font-weight: 790; letter-spacing: -.035em; font-variation-settings: "wdth" 86; }
+.carnet .da-jour p { margin: 4px 0 0; font-size: 14px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.carnet .da-jour p b { font-weight: 750; }
+.carnet .da-jour-acts { display: flex; justify-content: flex-end; margin: 8px var(--gut) 0; }
+
+.carnet .tl-apart { margin: 14px var(--gut) 0; padding: 8px 12px 2px; border-radius: 12px; background: var(--rose-soft); }
+.carnet .tl-apart h3 { margin: 4px 0 2px; font-size: 13px; font-weight: 750; color: var(--out); }
+.carnet .tl-ligne { position: relative; margin: 16px var(--gut) 0; display: grid; gap: 10px; }
+.carnet .tl-ligne::before { content: ""; position: absolute; left: 62px; top: 10px; bottom: 10px; width: 2px; border-radius: 1px; background: var(--line); }
+.carnet .tl-h { display: grid; align-content: start; gap: 1px; padding-top: 12px; font-size: 15px; font-weight: 750; font-variant-numeric: tabular-nums; color: var(--ink); text-align: right; }
+.carnet .tl-h small { font-size: 11.5px; font-weight: 600; color: var(--ink3); }
+.carnet :is(.tl-cours, .tl-autre, .tl-libre, .tl-now) { position: relative; display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 0 26px; }
+.carnet :is(.tl-cours, .tl-autre)::before { content: ""; position: absolute; left: 58px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--sheet); box-shadow: inset 0 0 0 2px var(--vert), 0 0 0 3px var(--paper); }
+.carnet .tl-autre::before { width: 8px; height: 8px; left: 59px; top: 17px; box-shadow: inset 0 0 0 2px #8FB3A3, 0 0 0 3px var(--paper); }
+.carnet .tl-cours.fait::before { background: var(--vert); }
+.carnet .tl-cours.passe::before { background: var(--rose); box-shadow: inset 0 0 0 2px var(--out), 0 0 0 3px var(--paper); }
+.carnet .tl-cours.live::before { background: var(--rose); box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px color-mix(in srgb, var(--rose) 45%, transparent); }
+.carnet .tl-carte { display: grid; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--sheet); box-shadow: var(--da-ombre-carte); }
+.carnet .tl-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.carnet .tl-t b { display: block; font-size: 16px; font-weight: 750; line-height: 1.25; letter-spacing: -.01em; }
+.carnet .tl-t small { display: block; margin-top: 2px; font-size: 13px; color: var(--ink2); }
+.carnet .tl-prix { font-size: 15px; font-weight: 780; font-variant-numeric: tabular-nums; }
+.carnet .tl-pied { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.carnet .tl-qui { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.carnet .tl-qui span { height: 26px; padding: 0 9px; border-radius: 7px; display: inline-flex; align-items: center; background: var(--mist); font-size: 13px; font-weight: 650; color: var(--ink); }
+.carnet .tl-qui span.absent { text-decoration: line-through; color: var(--ink3); }
+.carnet .tl-qui span.plus { background: #EDF4F0; color: var(--vert); }
+.carnet .tl-places { display: inline-flex; gap: 3px; margin-left: 4px; }
+.carnet .tl-places i { width: 8px; height: 8px; border-radius: 50%; background: var(--vert); }
+.carnet .tl-places i.libre { background: none; box-shadow: inset 0 0 0 1.5px #8FB3A3; }
+.carnet .tl-vide { margin: 0; font-size: 13px; color: var(--ink3); }
+.carnet .tl-valider { min-height: 36px; padding: 0 14px; border: 0; border-radius: var(--ctl-r); background: var(--vert); font: inherit; font-size: 14px; font-weight: 720; color: #fff; white-space: nowrap; cursor: pointer; }
+.carnet .tl-valider:active { transform: scale(.97); }
+.carnet .tl-fait { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: var(--vert); }
+.carnet .tl-fait svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.4; }
+.carnet .tl-cours.fait .tl-carte { background: var(--mist); box-shadow: none; }
+.carnet .tl-cours.fait .tl-t b { color: var(--ink2); }
+.carnet .tl-cours.fait .tl-qui span { background: var(--sheet); }
+.carnet .tl-cours.live .tl-carte { background: var(--vert-deep); box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--vert-deep) 70%, transparent); color: #fff; }
+.carnet .tl-cours.live .tl-t small { color: var(--on-vert); }
+.carnet .tl-cours.live .tl-prix { color: var(--rose); }
+.carnet .tl-cours.live .tl-qui span { background: color-mix(in srgb, #fff 12%, transparent); color: #fff; }
+.carnet .tl-cours.live .tl-h { color: var(--vert); }
+.carnet .tl-live { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 12.5px; font-weight: 750; color: var(--rose); }
+.carnet .tl-live i { width: 7px; height: 7px; border-radius: 50%; background: var(--rose); animation: tl-pouls 1.6s ease-in-out infinite; }
+.carnet .tl-barre { display: block; height: 4px; border-radius: 2px; background: color-mix(in srgb, #fff 14%, transparent); overflow: hidden; }
+.carnet .tl-barre i { display: block; height: 100%; border-radius: 2px; background: var(--rose); transform-origin: left; }
+.carnet .tl-autre .rows { border-radius: 12px; background: var(--sheet); box-shadow: var(--da-ombre-carte); padding: 0 12px; }
+.carnet .tl-autre .row { border-bottom: 0; }
+.carnet .tl-autre .tl-h { padding-top: 14px; font-size: 14px; color: var(--ink2); }
+.carnet .tl-libre > span:last-child { padding: 2px 0 2px 2px; font-size: 12.5px; font-weight: 650; color: var(--ink3); }
+.carnet .tl-libre .tl-h { padding: 0; }
+.carnet .tl-now .tl-h { padding: 0; font-size: 13px; color: var(--out); }
+.carnet .tl-now-l { position: relative; display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 800; color: var(--out); }
+.carnet .tl-now-l::after { content: ""; flex: 1; height: 2px; border-radius: 1px; background: var(--rose); }
+.carnet .tl-now-l i { position: absolute; left: -32px; width: 12px; height: 12px; border-radius: 50%; background: var(--out); box-shadow: 0 0 0 3px var(--paper); }
+@keyframes tl-pouls { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .carnet .tl-live i { animation: none; } .carnet .tl-valider:active { transform: none; } }
+.carnet .jr-dayh.da-jour-acts { justify-content: flex-end; padding: 2px var(--gut) 0; }
+.carnet .hd.hd2.da-vert { box-shadow: none; }
+/* Les onglets du haut mènent à À valider et aux Tâches : le lien du bas du planning n'a plus lieu d'être. */
+.carnet .jr-liens { display: none; }

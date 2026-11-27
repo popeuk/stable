@@ -22,6 +22,8 @@ import "./carnet/essayer.css";
 import "./carnet/accueil2.css";
 import "./carnet/livret.css";
 import "./carnet/liens.css";
+// La DA de l'app du Clos, en dernier : elle l'emporte sur le carnet (27 novembre 2026).
+import "./da.css";
 import { UnSeulOnglet } from "@/components/bs/un-seul-onglet";
 import { SuiviErreurs } from "@/components/bs/suivi-erreurs";
 

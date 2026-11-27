@@ -6,7 +6,7 @@ import { Screen, esc } from "@/components/bs/ui";
 import { useDesk } from "@/components/bs/desk-hook";
 import { Hello, Ill, Ic, Money, Sec, sg, type IllName } from "@/components/carnet/ui";
 import { LigneComptee, useMaintenant } from "@/components/bs/compte";
-import { PlanningTaches, PlanningTachesHaut } from "@/components/bs/planning-taches";
+import { PlanningTete } from "@/components/bs/planning-tete";
 import { useDataStore } from "@/stores/data-store";
 import { useUiStore } from "@/stores/ui-store";
 import { aValider, ceQuiACompte } from "@/lib/domain/compte-auto";
@@ -74,13 +74,8 @@ function AValider() {
 
   return (
     <Screen wide={desk}>
-      {!desk && <PlanningTachesHaut value="valider" count={nTaches} aValider={n} />}
+      <PlanningTete vue="valider" aValider={n} taches={nTaches} />
       <div className="jr-valider">
-        {desk && (
-          <div style={{ marginBottom: 12, maxWidth: 420 }}>
-            <PlanningTaches value="valider" count={nTaches} aValider={n} />
-          </div>
-        )}
         <Hello
           title={n ? `${n} séance${n > 1 ? "s" : ""} à valider` : "Tout est validé"}
           sub={n ? "Une séance ne compte au décompte qu’une fois validée. Pas eu lieu ? Ouvre-la pour l’annuler." : "Les séances passées arriveront ici, à valider d’un geste."}

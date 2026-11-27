@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, esc, eur } from "@/components/bs/ui";
 import { LABELS } from "@/components/bs/task-form";
-import { PlanningTaches, PlanningTachesHaut } from "@/components/bs/planning-taches";
+import { PlanningTete } from "@/components/bs/planning-tete";
 import { useDesk } from "@/components/bs/desk-hook";
 import { Check, Empty, Ic, Seg, ini, sg } from "@/components/carnet/ui";
 import { useDataStore } from "@/stores/data-store";
@@ -201,13 +201,8 @@ function Equipe() {
 
   return (
     <Screen wide={desk}>
-      {!desk && <PlanningTachesHaut value="taches" count={ouvertes} aValider={nAV} />}
+      <PlanningTete vue="taches" aValider={nAV} taches={ouvertes} />
       <div className="jr-equipe">
-        {desk && (
-          <div style={{ marginBottom: 12 }}>
-            <PlanningTaches value="taches" count={ouvertes} aValider={nAV} />
-          </div>
-        )}
         <div className="over rise" style={{ animationDelay: ".02s" }}>
           <span>{nEquipe ? `Toi et ${nEquipe} personne${nEquipe > 1 ? "s" : ""} dans l’équipe` : "Toi et ton équipe"}</span>
           <button type="button" className="lnk" style={{ fontSize: 12.5, textDecoration: "none" }} onClick={() => openNoter({ mode: "tache" })}>

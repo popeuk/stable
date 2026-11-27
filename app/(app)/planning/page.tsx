@@ -7,7 +7,7 @@ import { useDesk } from "@/components/bs/desk-hook";
 import { WeekGrid } from "@/components/bs/week-grid";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Screen, cap } from "@/components/bs/ui";
-import { Empty, Ic, Seg, Sec, sg, type IllName } from "@/components/carnet/ui";
+import { Empty, Ic, Seg, Sec, sg } from "@/components/carnet/ui";
 import { PORTEE_PREVU, prevuSur } from "@/components/bs/goal-card";
 import { DayBlock, aCompte, iconOf, moneyCls, moneyClsIt } from "@/components/bs/day-block";
 import { useDataStore } from "@/stores/data-store";
@@ -15,9 +15,9 @@ import { useUiStore } from "@/stores/ui-store";
 import { dayItems, dayTones, type DayItem } from "@/lib/domain/seances";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { localToday } from "@/lib/utils/local-date";
-import { PlanningTaches, PlanningTachesHaut } from "@/components/bs/planning-taches";
+import { PlanningTete } from "@/components/bs/planning-tete";
+import { JourneeTemps } from "@/components/da/journee-temps";
 import { aValider as joursAValider } from "@/lib/domain/compte-auto";
-import { enLigneDuTemps, duree } from "@/lib/domain/journee-temps";
 import { heure } from "@/lib/utils/heure";
 
 /**
@@ -97,6 +97,7 @@ function Planning() {
   const nAV = av.reduce((t, j) => t + j.seances.length, 0);
   const totalAV = av.reduce((t, j) => t + j.total, 0);
   const faitListe = data.taskLists?.find((l) => l.isDone)?.id;
+  const nAujourdhui = (data.seances ?? []).filter((x) => x.date === today && x.status !== "cancelled").length;
   const nTaches = (data.tasks ?? []).filter((t) => t.listId !== faitListe && !(t.kind === "rdv" && t.due && t.due.slice(0, 10) < today)).length;
   const carteAV =
     nAV > 0 ? (
@@ -189,29 +190,12 @@ function Planning() {
   const nbSeances = items.filter((i) => i.type === "seance").length;
   const aCompteJour = items.filter(aCompte).reduce((t, i) => t + (i.money ?? 0), 0);
   const aVenirJour = items.filter((i) => !aCompte(i) && !i.done).reduce((t, i) => t + (i.money ?? 0), 0);
-  const resume = (
-    <p className="jr-resume rise" style={{ animationDelay: ".18s" }}>
-      <b>{jourNom} :</b> {nbSeances ? `${nbSeances} séance${nbSeances > 1 ? "s" : ""}` : "aucune séance"}
-      {Math.round(aCompteJour) !== 0 && (
-        <>
-          {" · "}
-          <span className={moneyCls(aCompteJour)} style={{ whiteSpace: "nowrap" }}>{sg(aCompteJour)}</span> {sel === today ? "déjà fait" : "fait"}
-        </>
-      )}
-      {Math.round(aVenirJour) !== 0 && (
-        <>
-          {" · "}
-          <span style={{ whiteSpace: "nowrap" }}>{sg(aVenirJour)}</span> encore prévus {sel === today ? "aujourd’hui" : "ce jour-là"}
-        </>
-      )}
-      .
-    </p>
-  );
 
   /* ---------------- Ordinateur ---------------- */
   if (desk) {
     return (
       <Screen wide>
+        <PlanningTete vue="planning" aValider={nAV} taches={nTaches} aujourdhui={nAujourdhui} date={sel} />
         <div className="jr-desk">
           <div className="dhead">
             <div>
@@ -232,9 +216,6 @@ function Planning() {
               {trio("soft")}
               {viewSeg}
             </div>
-          </div>
-          <div style={{ margin: "4px 0 12px", maxWidth: 420 }}>
-            <PlanningTaches value="planning" count={nTaches} aValider={nAV} />
           </div>
           {carteAV}
           {view === "semaine" ? (
@@ -299,11 +280,6 @@ function Planning() {
   }
 
   /* ---------------- Téléphone ---------------- */
-  const groups: [string, IllName, DayItem[]][] = [
-    ["Le matin", "brouette", items.filter((i) => !i.start || i.start < "12:00")],
-    ["L’après-midi", "carnet-buste", items.filter((i) => i.start && i.start >= "12:00" && i.start < "17:00")],
-    ["Le soir", "foin", items.filter((i) => i.start && i.start >= "17:00")],
-  ];
   const nowM = Number(now.slice(0, 2)) * 60 + Number(now.slice(3, 5));
   // Le soleil : de 6 h à 21 h sur l'arc (courbe de Bézier du dessin).
   const t = Math.min(1, Math.max(0, (nowM - 360) / 900));
@@ -311,7 +287,7 @@ function Planning() {
 
   return (
     <Screen>
-      <PlanningTachesHaut value="planning" count={nTaches} aValider={nAV} />
+      <PlanningTete vue="planning" aValider={nAV} taches={nTaches} aujourdhui={nAujourdhui} date={sel} />
       <div
         onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, done: false })}
         onTouchMove={(e) => {
@@ -447,7 +423,21 @@ function Planning() {
           </div>
         )}
 
-        {view === "semaine" && resume}
+        {view === "semaine" && (
+          <div className="da-jour rise" style={{ animationDelay: ".16s" }}>
+            <h2>{jourNom}</h2>
+            <p>
+              {nbSeances ? `${nbSeances} séance${nbSeances > 1 ? "s" : ""}` : "Aucune séance"}
+              {Math.round(aCompteJour) !== 0 && (
+                <>
+                  {" · "}
+                  <b className={moneyCls(aCompteJour)}>{sg(aCompteJour)}</b> validé{Math.abs(aCompteJour) > 1 ? "s" : ""}
+                </>
+              )}
+              {Math.round(aVenirJour) !== 0 && <> · {sg(aVenirJour)} prévus</>}
+            </p>
+          </div>
+        )}
         {carteAV && <div className="pad">{carteAV}</div>}
         {view === "mois" && (
           <div className="pad rise" style={{ animationDelay: ".2s", marginTop: 14 }}>
@@ -463,8 +453,7 @@ function Planning() {
 
       {view === "semaine" && (
         <>
-          <div className="jr-dayh rise" style={{ animationDelay: ".24s" }}>
-            <b>{cap(new Date(sel + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" }))}</b>
+          <div className="jr-dayh da-jour-acts rise" style={{ animationDelay: ".24s" }}>
             <button type="button" className="jr-mode" onClick={() => setDayView(dayView === "liste" ? "creneaux" : "liste")}>
               <Ic n={dayView === "liste" ? "clock" : "list"} className="" />
               {dayView === "liste" ? "Voir par heure" : "Voir en liste"}
@@ -472,28 +461,9 @@ function Planning() {
           </div>
           {dayView === "liste" ? (
             items.length ? (
-              groups
-                .filter(([, , its]) => its.length)
-                .map(([label, ill, its], i) => (
-                  <Sec key={label} ill={ill} title={label} delay={0.28 + i * 0.08}>
-                    <div className="rows">
-                      {enLigneDuTemps(its, sel === today && dansLeGroupe(label, now) ? now : null).map((p) =>
-                        p.kind === "item" ? (
-                          <DayBlock key={p.it.key} it={p.it} />
-                        ) : p.kind === "libre" ? (
-                          <div key={p.key} className="jr-libre">
-                            Libre · {duree(p.minutes)}
-                          </div>
-                        ) : (
-                          <div key={p.key} className="jr-maintenant" role="img" aria-label={`Maintenant, ${heure(now)}`}>
-                            <time>{heure(now)}</time>
-                            <span>Maintenant</span>
-                          </div>
-                        ),
-                      )}
-                    </div>
-                  </Sec>
-                ))
+              <div className="rise" style={{ animationDelay: ".28s" }}>
+                <JourneeTemps items={items} data={data} aujourdhui={sel === today} maintenant={now} />
+              </div>
             ) : (
               <div className="rise" style={{ animationDelay: ".28s" }}>
                 <Empty>Rien de prévu {sel === today ? "aujourd’hui" : "ce jour-là"}. Touche le + pour prévoir une séance, un soin ou une tâche.</Empty>
@@ -515,13 +485,6 @@ function Planning() {
       <div className="end" />
     </Screen>
   );
-}
-
-/** Le repère « Maintenant » se pose dans le groupe (matin, après-midi, soir) de l'heure qu'il est. */
-function dansLeGroupe(label: string, now: string): boolean {
-  if (label === "Le matin") return now < "12:00";
-  if (label === "L’après-midi") return now >= "12:00" && now < "17:00";
-  return now >= "17:00";
 }
 
 /** Les tâches de l'équipe, en section en bas du planning : ce qui reste à faire, et le tableau complet. */

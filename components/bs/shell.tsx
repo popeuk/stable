@@ -74,9 +74,12 @@ export function Header() {
   const argent = ARGENT_VISIBLE && estOuverte(briques.etat.argent);
   // Les cinq onglets : en haut à droite, l'enveloppe des demandes puis la roue. Le planning et l'analyse sont des onglets.
   const demandes = useDemandes((s) => (s.etat === "pret" ? nonVues(s.demandes, s.vuesIci) : 0));
+  // À valider et Tâches sont des onglets du Planning (DA de l'app du Clos) : pas de retour, la barre reste verte.
+  const racine = isRoot2(path) || (QUATRE_PARTIES && (path.startsWith("/valider") || path.startsWith("/equipe")));
   return (
-    <header className="hd hd2" ref={hdRef}>
-      {isRoot2(path) ? (
+    // DA de l'app du Clos : sur les pages d'onglet (sauf l'Accueil), la barre du haut est verte et se prolonge dans l'en-tête de la page.
+    <header className={`hd hd2${racine && path !== "/accueil" ? " da-vert" : ""}`} ref={hdRef}>
+      {racine ? (
         <Link href="/accueil" className="wm">
           be stable
         </Link>
