@@ -28,7 +28,7 @@ Réglages (variables d'environnement, fichier /etc/bestable-audit.env) :
   BS_AUDIT_API       API du site (ex. https://bestable.fr/wp-json/bestable/v1)
   BS_AUDIT_ORIGINES  origines de l'app autorisées, séparées par des virgules
   BS_AUDIT_BASE      fichier SQLite (défaut /var/lib/bestable-audit/audit.db)
-  BS_AUDIT_PORT      port local (défaut 8796)
+  BS_AUDIT_PORT      port local (défaut 8802)
   BS_AUDIT_ECART_H   heures entre deux audits d'une même fiche (défaut 20)
 Secrets (fichier /etc/bestable-audit.secrets, posé à la main, jamais dans le dépôt) :
   ANTHROPIC_API_KEY
@@ -56,7 +56,7 @@ from pathlib import Path
 API = os.environ.get("BS_AUDIT_API", "https://bestable.fr/wp-json/bestable/v1").rstrip("/")
 ORIGINES = {o.strip().rstrip("/") for o in os.environ.get("BS_AUDIT_ORIGINES", "").split(",") if o.strip()}
 BASE = os.environ.get("BS_AUDIT_BASE", "/var/lib/bestable-audit/audit.db")
-PORT = int(os.environ.get("BS_AUDIT_PORT", "8796"))
+PORT = int(os.environ.get("BS_AUDIT_PORT", "8802"))
 ECART_H = float(os.environ.get("BS_AUDIT_ECART_H", "20"))
 ICI = Path(__file__).resolve().parent
 GRILLE_JSON = json.loads((ICI / "grille.json").read_text(encoding="utf-8"))
