@@ -85,6 +85,8 @@ interface DataState extends StableData {
   deleteRhythm: (id: string) => void;
   /** Le lieu de détention et son détenteur (registre d'élevage). Un champ vide s'efface. */
   setHolding: (patch: Partial<Holding>) => void;
+  /** Une réponse à une question de l'audit (lib/audit/grille.ts) ; vide, elle s'efface. */
+  setReponseAudit: (id: string, texte: string) => void;
   /** Un tarif de la grille (vide = pas de prix par défaut). */
   setTariff: (key: keyof Tariffs, value: number | undefined) => void;
   /** Une prestation libre (balade, transport…) avec son prix par défaut. */
@@ -671,6 +673,14 @@ export const useDataStore = create<DataState>()(
         set((s) => ({ pros: (s.pros ?? []).map((x) => (x.id === pid ? { ...x, ...patch, name: patch.name?.trim() || x.name } : x)) })),
 
       deletePro: (pid) => set((s) => ({ pros: (s.pros ?? []).filter((x) => x.id !== pid) })),
+
+      setReponseAudit: (id, texte) =>
+        set((s) => {
+          const next = { ...(s.reponsesAudit ?? {}) };
+          if (texte.trim()) next[id] = texte.trim();
+          else delete next[id];
+          return { reponsesAudit: next };
+        }),
 
       setHolding: (patch) =>
         set((s) => {

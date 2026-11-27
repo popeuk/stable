@@ -5,7 +5,7 @@ import { Ic, Page } from "@/components/carnet/ui";
 import { ClientGate } from "@/components/ui/client-gate";
 import { Redirect } from "@/components/bs/redirect";
 import { usePresence } from "@/components/bs/presence";
-import { PanneauEtape } from "@/components/bs/etape-audit";
+import { Gestes, VoletDetail, VueEnsemble, useGrille } from "@/components/da/grille-audit";
 import { aRepondu } from "@/lib/account/demandes";
 import { QUATRE_PARTIES } from "@/lib/fonctions";
 import { OBSERVATOIRE_DATE } from "@/lib/observatoire-2026";
@@ -16,9 +16,9 @@ import "@/app/carnet/presence.css";
 /**
  * Te choisir (26 novembre 2026, les quatre parties) : l'offre de l'écurie,
  * comment le cavalier la voit, et où elle se place face aux pensions du
- * département (Observatoire Be Stable, lib/prix-secteur.ts). Puis les étapes
- * 2 et 3 de l'audit : ce qu'il lit sur la fiche, et ce qui se passe quand il
- * écrit.
+ * département (Observatoire Be Stable, lib/prix-secteur.ts), les demandes,
+ * puis le volet « Te choisir » de la grille d'audit (lib/audit/grille.ts,
+ * 27 novembre 2026).
  */
 export default function TeChoisirPage() {
   if (!QUATRE_PARTIES) return <Redirect to="/audit?etape=2" />;
@@ -32,24 +32,18 @@ export default function TeChoisirPage() {
 const fmt = (n: number) => `${n.toLocaleString("fr-FR")} €`;
 
 function TeChoisir() {
-  const { etat, fiche, etapes, demandes, repondues } = usePresence();
-  const pret = etat === "pret" && fiche && etapes;
+  const { etat, fiche, demandes, repondues } = usePresence();
+  const pret = etat === "pret" && fiche;
+  const { lignes } = useGrille();
+  const choisir = lignes.filter((l) => l.volet === "choisir");
   const attente = demandes.filter((d) => !aRepondu(d, repondues)).length;
 
   return (
     <Page className="pr-page">
-      <div className="pr-hello rise">
-        <span className="eyeb">Ton offre et ton secteur</span>
-        <h2 className="q5-h">
-          Ton <span className="pr-hl">offre</span>
-        </h2>
-        <p>Ce que le cavalier compare avant de t’écrire : ce que tu proposes, ton prix, et les écuries autour.</p>
-      </div>
-
       {!pret ? (
         <>
-          <p className="q4-bientot" style={{ margin: "14px 16px 0" }}>
-            {etat === "inconnu" ? "On regarde ta fiche…" : etat === "erreur" ? "bestable.fr ne répond pas pour le moment. Réessaie dans un instant." : "Cette partie s’ouvre dès que ton écurie a sa fiche à ton nom."}
+          <p className="q4-bientot" style={{ margin: "18px 16px 0" }}>
+            {etat === "inconnu" ? "On regarde ta fiche…" : etat === "erreur" ? "bestable.fr ne répond pas pour le moment. Réessaie dans un instant." : "Ton offre se lit sur ta fiche : cette partie s’ouvre dès que ton écurie a sa fiche à ton nom."}
           </p>
           {etat === "aucune" && (
             <div className="pr-pad" style={{ marginTop: 14 }}>
@@ -81,19 +75,17 @@ function TeChoisir() {
                 Voir mes demandes <Ic n="chev" className="" />
               </span>
             </Link>
-            <p className="q4-src">Bientôt : noter si le cheval est arrivé, pour savoir combien de demandes deviennent une pension.</p>
-          </div>
-
-          <h2 className="q4-titre-etape">Ce qu’il lit sur ta fiche</h2>
-          <div className="pr-panel">
-            <PanneauEtape e={etapes[1]} />
-          </div>
-          <h2 className="q4-titre-etape">Quand il t’écrit</h2>
-          <div className="pr-panel">
-            <PanneauEtape e={etapes[2]} />
           </div>
         </>
       )}
+
+      <div className="au-zone">
+        <Gestes lignes={choisir} />
+        <VoletDetail k="choisir" lignes={lignes} />
+        <div style={{ marginTop: 18 }}>
+          <VueEnsemble lignes={lignes} ici="choisir" />
+        </div>
+      </div>
       <div className="end" />
     </Page>
   );

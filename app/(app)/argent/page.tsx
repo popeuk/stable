@@ -30,6 +30,7 @@ import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { nomAffiche } from "@/lib/domain/noms-categories";
 import { useConfirmer } from "@/components/bs/confirmer";
 import { FACTURATION, QUATRE_PARTIES } from "@/lib/fonctions";
+import { VoletDetail, useGrille } from "@/components/da/grille-audit";
 
 /**
  * Mon bilan : le chiffre du mois en tête, puis ce qui rentre
@@ -393,6 +394,17 @@ function Mois() {
           </Link>
         </nav>
       </div>
+      {QUATRE_PARTIES && isNow && <EnVivre />}
+    </div>
+  );
+}
+
+/** Le volet « En vivre » de la grille d'audit (27 novembre 2026), lu dans les données de l'écurie. */
+function EnVivre() {
+  const { lignes } = useGrille();
+  return (
+    <div className="au-zone">
+      <VoletDetail k="vivre" lignes={lignes} id="en-vivre" />
     </div>
   );
 }

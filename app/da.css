@@ -297,3 +297,99 @@
 .carnet .ce > .da-tete + .ce-case, .carnet .ce > .da-tete + * { margin-top: 18px; }
 /* La barre des cinq onglets : autant de colonnes que d'onglets, quel que soit l'ordre de chargement des feuilles (Mon site chargeait la règle à quatre colonnes après celle à cinq). */
 .carnet .tb.q4-tb > div { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+
+/* ---- L'audit sur grille fixe (components/da/grille-audit.tsx, repris du Clos) ---- */
+.carnet { --au-ok: #2E9B6A; --au-mid: #C9922E; --au-ko: var(--out); --au-na: #D8D2DC; }
+.carnet .au-zone { margin: 18px var(--gut) 0; }
+.carnet .au-cases { display: inline-grid; grid-template-columns: repeat(10, 1fr); gap: 3px; width: 100%; max-width: 170px; }
+.carnet .au-cases i { height: 9px; border-radius: 3px; }
+.carnet .au-cases.grand { max-width: none; gap: 4px; margin-top: 8px; }
+.carnet .au-cases.grand i { height: 12px; border-radius: 4px; }
+.carnet :is(.au-cases, .au-legende) .ok { background: var(--au-ok); }
+.carnet :is(.au-cases, .au-legende) .mid { background: var(--au-mid); }
+.carnet :is(.au-cases, .au-legende) .ko { background: var(--au-ko); }
+.carnet :is(.au-cases, .au-legende) .na { background: var(--au-na); }
+.carnet .au-vue { padding: 16px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); display: grid; gap: 4px; }
+.carnet .au-vue-phrase { margin: 0 0 6px; font-size: 18px; font-weight: 650; line-height: 1.3; letter-spacing: -.015em; text-wrap: balance; }
+.carnet .au-vue-phrase b { color: var(--vert); font-weight: 800; }
+.carnet .au-vl { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 4px; border-top: 1px solid var(--line); color: inherit; text-decoration: none; }
+.carnet .au-vl.on { background: color-mix(in srgb, var(--vert) 5%, transparent); border-radius: 10px; }
+.carnet .au-vl img { width: 48px; height: 48px; object-fit: contain; }
+.carnet .au-vl-t { display: grid; gap: 6px; }
+.carnet .au-vl-t b { font-size: 16px; font-weight: 750; }
+.carnet .au-vl-n { display: grid; justify-items: end; }
+.carnet .au-vl-n b { font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--vert); }
+.carnet .au-vl-n small { font-size: 12px; color: var(--ink3); }
+.carnet .au-legende { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 0; font-size: 12px; color: var(--ink3); }
+.carnet .au-legende span { display: inline-flex; align-items: center; gap: 5px; }
+.carnet .au-legende i { width: 9px; height: 9px; border-radius: 3px; }
+.carnet .au-gestes { margin-top: 22px; display: grid; gap: 8px; }
+.carnet .au-gestes h2, .carnet .au-v-tete h2 { margin: 0; font-size: 20px; font-weight: 780; letter-spacing: -.025em; }
+.carnet .au-geste { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 12px 14px; border-radius: 12px; background: var(--sheet); box-shadow: var(--da-ombre-carte); }
+.carnet .au-geste b { display: block; font-size: 15px; font-weight: 720; line-height: 1.3; }
+.carnet .au-geste small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink3); }
+.carnet .au-geste > em { font-style: normal; font-size: 13px; font-weight: 800; padding: 3px 8px; border-radius: 20px; background: var(--rose-soft); color: var(--au-ko); white-space: nowrap; }
+.carnet .au-volet { display: grid; gap: 14px; margin-top: 26px; scroll-margin-top: 70px; }
+.carnet .au-v-tete { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 14px; align-items: center; }
+.carnet .au-v-tete img { width: 76px; height: 76px; object-fit: contain; }
+.carnet .au-v-scene { margin: 2px 0 0; font-size: 14px; color: var(--ink2); line-height: 1.35; }
+.carnet .au-v-note { margin: 4px 0 0; font-size: 15px; font-weight: 650; color: var(--ink2); }
+.carnet .au-v-note b { font-size: 30px; font-weight: 800; letter-spacing: -.03em; color: var(--vert); }
+.carnet .au-v-note small { font-size: 13px; color: var(--ink3); }
+.carnet .au-groupe { display: grid; gap: 6px; }
+.carnet .au-groupe h3 { display: flex; align-items: center; gap: 8px; margin: 4px 0 2px; font-size: 14px; font-weight: 780; }
+.carnet .au-groupe h3 i { width: 10px; height: 10px; border-radius: 3px; }
+.carnet .au-groupe h3.ok i { background: var(--au-ok); }
+.carnet .au-groupe h3.mid i { background: var(--au-mid); }
+.carnet .au-groupe h3.ko i { background: var(--au-ko); }
+.carnet .au-groupe h3.na i { background: var(--au-na); }
+.carnet .au-groupe h3 span { font-size: 12px; font-weight: 700; color: var(--ink3); }
+.carnet .au-c { border-radius: 12px; background: var(--sheet); box-shadow: var(--da-ombre-carte); }
+.carnet .au-c[open] { box-shadow: 0 6px 18px -12px color-mix(in srgb, var(--ink) 35%, transparent), inset 0 0 0 1px var(--line); }
+.carnet .au-c summary { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 12px 14px 12px 12px; cursor: pointer; list-style: none; }
+.carnet .au-c summary::-webkit-details-marker { display: none; }
+.carnet .au-c-n { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-size: 12.5px; font-weight: 800; color: #fff; }
+.carnet .au-c.ok .au-c-n { background: var(--au-ok); }
+.carnet .au-c.mid .au-c-n { background: var(--au-mid); }
+.carnet .au-c.ko .au-c-n { background: var(--au-ko); }
+.carnet .au-c.na .au-c-n { background: var(--au-na); color: var(--ink2); }
+.carnet .au-c-t b { display: block; font-size: 15px; font-weight: 720; line-height: 1.3; }
+.carnet .au-c-t small { display: block; margin-top: 3px; font-size: 13px; line-height: 1.4; color: var(--ink2); }
+.carnet .au-c-p { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.carnet .au-c-p small { font-size: 12px; font-weight: 650; color: var(--ink3); }
+.carnet .au-c.ok .au-c-p { color: var(--au-ok); }
+.carnet .au-c.mid .au-c-p { color: var(--au-mid); }
+.carnet .au-c.ko .au-c-p { color: var(--au-ko); }
+.carnet .au-c.na .au-c-p { color: var(--ink3); }
+.carnet .au-c-corps { display: grid; gap: 14px; padding: 2px 14px 14px 48px; }
+.carnet .au-c-bloc h4 { margin: 0 0 6px; font-size: 12.5px; font-weight: 780; color: var(--ink3); }
+.carnet .au-c-bloc p { margin: 0; font-size: 14px; line-height: 1.45; }
+.carnet .au-vu { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.carnet .au-vu li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 7px 10px; border-radius: 8px; background: var(--mist); font-size: 13px; }
+.carnet .au-vu li span { color: var(--ink2); }
+.carnet .au-vu li b { font-weight: 700; text-align: right; }
+.carnet .au-vu li.mauvais { background: var(--rose-soft); }
+.carnet .au-vu li.mauvais b { color: var(--au-ko); }
+.carnet .au-regle { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.carnet .au-regle li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: baseline; padding: 5px 8px; border-radius: 8px; font-size: 13px; color: var(--ink3); }
+.carnet .au-regle em { font-style: normal; font-weight: 800; }
+.carnet .au-regle li.on { color: var(--ink); font-weight: 600; }
+.carnet .au-regle li.on.ok { background: #E6F3EC; }
+.carnet .au-regle li.on.mid { background: #FBF0DC; }
+.carnet .au-regle li.on.ko { background: var(--rose-soft); }
+.carnet .au-mesure { display: block; margin-top: 6px; font-size: 12px; color: var(--ink3); }
+.carnet .au-c-q { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--mist); font-size: 13.5px; font-weight: 600; }
+.carnet .au-c-geste { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--rose-soft); }
+.carnet .au-c-geste svg { width: 16px; height: 16px; margin-top: 2px; fill: none; stroke: var(--out); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .au-c-geste b { display: block; font-size: 14px; font-weight: 720; }
+.carnet .au-c-geste small { display: block; font-size: 12.5px; color: var(--ink2); }
+.carnet .au-rep { display: grid; gap: 8px; }
+.carnet .au-rep .btn { justify-self: start; }
+.carnet .au-nesait { padding: 12px 14px; border-radius: 12px; background: var(--mist); font-size: 13px; color: var(--ink2); }
+.carnet .au-nesait b { font-size: 13px; }
+.carnet .au-nesait ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 2px; }
+.carnet .au-nesait small { display: block; margin-top: 8px; color: var(--ink3); }
+/* « mid » est aussi une classe de chiffre du carnet (26px, gras) : on l'annule dans la grille. */
+.carnet :is(.au-c.mid, .au-regle li.mid) { font-size: inherit; font-weight: inherit; letter-spacing: normal; line-height: normal; font-variation-settings: normal; }
+.carnet .au-groupe h3.mid { font-size: 14px; font-weight: 780; letter-spacing: normal; line-height: normal; font-variation-settings: normal; }
+.carnet .au-regle li.on.mid { font-size: 13px; font-weight: 600; }

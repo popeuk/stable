@@ -13,12 +13,13 @@ import { localToday } from "@/lib/utils/local-date";
 import { heure } from "@/lib/utils/heure";
 import { hasObjective } from "@/stores/settings-store";
 import { objectifPct, phraseObjectif } from "@/lib/domain/objectif";
-import { compte, type Etape, type Point } from "@/lib/presence";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { scene, usePresence } from "@/components/bs/presence";
 import { PhraseDuJour } from "@/components/da/phrase-du-jour";
 import { aValider } from "@/lib/domain/compte-auto";
+import { useGrille } from "@/components/da/grille-audit";
+import { noteDe, premiersGestes } from "@/lib/audit/grille";
 
 /**
  * L'accueil des cinq onglets (26 novembre 2026, décision de Samuel), dans
@@ -61,7 +62,7 @@ export function AccueilQuatre() {
             <Ic n="arrow" className="" />
           </Link>
         </div>
-        <Recaps etapes={null} />
+        <Recaps />
       </>
     );
 
@@ -111,27 +112,19 @@ export function AccueilQuatre() {
         </Link>
       </div>
 
-      <Recaps etapes={etapes} />
+      <Recaps />
     </>
   );
 }
 
-/** Le premier point réussi de l'audit, dans l'ordre du cavalier : ce dont le gérant peut être fier. */
-function ceQuiMarche(etapes: Etape[]): Point | null {
-  for (const e of etapes) for (const p of e.points) if (p.etat === "ok") return p;
-  return null;
-}
-
-const aFaire = (n: number) => (n === 0 ? "Rien à corriger pour l’instant" : n === 1 ? "1 chose à faire" : `${n} choses à faire`);
-
 /** Les trois récaps, dans l'ordre de Samuel : la journée, la rentabilité, la visibilité. */
-function Recaps({ etapes }: { etapes: Etape[] | null }) {
+function Recaps() {
   return (
     <>
       <RendezVous />
       <AValiderCarte />
       <Rentabilite />
-      <Visibilite etapes={etapes} />
+      <Visibilite />
       <div className="end" />
     </>
   );
@@ -254,34 +247,45 @@ function Rentabilite() {
   );
 }
 
-/** La visibilité : ce qui marche déjà (on ouvre sur la fierté), puis ce qu'il reste à faire. */
-function Visibilite({ etapes }: { etapes: Etape[] | null }) {
+/**
+ * La visibilité : le volet « Te trouver » de la grille d'audit (27 novembre
+ * 2026). On ouvre sur ce qui tient déjà, puis la note et le premier geste.
+ */
+function Visibilite() {
   const { etat } = useBriques();
   const ouverte = estOuverte(etat.trouver);
-  const t = etapes ? compte(etapes[0]) : null;
-  const fier = etapes ? ceQuiMarche(etapes) : null;
-  const premier = etapes?.[0]?.points.find((p) => p.etat === "ko") ?? etapes?.[0]?.points.find((p) => p.etat === "mid") ?? null;
+  const { lignes } = useGrille();
+  const t = lignes.filter((l) => l.volet === "trouver");
+  const n = noteDe(t);
+  const fier = t.find((l) => l.r.points === 2);
+  const geste = premiersGestes(t, 1)[0];
   return (
-    <Carte titre="Ta visibilité" href="/te-trouver" lien="Voir ta visibilité" ouverte={ouverte} delay={0.18}>
+    <Carte titre="Ta visibilité" href="/te-trouver" lien="Voir ton audit" ouverte={ouverte} delay={0.18}>
       {!ouverte ? (
         <p className="q5-vide">Est-ce que les cavaliers tombent sur ton écurie quand ils cherchent une pension près de chez eux ?</p>
-      ) : !t ? (
-        <p className="q5-vide">Dès que ta fiche est à ton nom.</p>
       ) : (
         <>
           {fier && (
             <p className="q4-fier" style={{ margin: 0 }}>
               <Ic n="ck" className="" />
               <span>
-                <b>Ce qui marche déjà : </b>
-                {fier.titre.charAt(0).toLowerCase() + fier.titre.slice(1)}.
+                <b>Ce qui tient : </b>
+                {fier.r.constat.charAt(0).toLowerCase() + fier.r.constat.slice(1)}
               </span>
             </p>
           )}
-          <p className="q5-vide">
-            <b>{aFaire(t.ko + t.mid)}</b>
-            {premier ? ` · d’abord : ${premier.titre.charAt(0).toLowerCase() + premier.titre.slice(1)}` : ""}
-          </p>
+          <div className="q5-net">
+            <b>{n.points}</b>
+            <small>
+              sur {n.sur} pour te trouver{n.aMesurer ? ` · ${n.aMesurer} à mesurer` : ""}
+            </small>
+          </div>
+          {geste && (
+            <p className="q5-vide">
+              <b>D’abord : </b>
+              {geste.r.geste!.titre.charAt(0).toLowerCase() + geste.r.geste!.titre.slice(1)}.
+            </p>
+          )}
         </>
       )}
     </Carte>

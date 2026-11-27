@@ -726,4 +726,6 @@ export interface StableData {
   pensions?: PensionContrat[];
   /** Les prix propres à un client (lib/domain/prix-client). */
   prixClients?: PrixClient[];
+  /** Les réponses du gérant aux questions de l'audit qu'on ne voit pas de l'extérieur (lib/audit/grille.ts). */
+  reponsesAudit?: Record<string, string>;
 }
