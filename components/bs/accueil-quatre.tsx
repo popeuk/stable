@@ -17,6 +17,8 @@ import { compte, type Etape, type Point } from "@/lib/presence";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { scene, usePresence } from "@/components/bs/presence";
+import { PhraseDuJour } from "@/components/da/phrase-du-jour";
+import { aValider } from "@/lib/domain/compte-auto";
 
 /**
  * L'accueil des cinq onglets (26 novembre 2026, décision de Samuel), dans
@@ -71,7 +73,7 @@ export function AccueilQuatre() {
     <>
       <div className="pr-hello rise">
         <h1>{bonjour}</h1>
-        <p>{fiche.en_attente ? "On vérifie que c’est bien ton écurie. Ce que tu remplis est gardé en attendant." : "Voici ta journée et où en est ton écurie."}</p>
+        {fiche.en_attente ? <p>On vérifie que c’est bien ton écurie. Ce que tu remplis est gardé en attendant.</p> : <PhraseDuJour />}
       </div>
 
       <div className="pr-cover rise" style={{ animationDelay: ".06s" }}>
@@ -127,6 +129,7 @@ function Recaps({ etapes }: { etapes: Etape[] | null }) {
   return (
     <>
       <RendezVous />
+      <AValiderCarte />
       <Rentabilite />
       <Visibilite etapes={etapes} />
       <div className="end" />
@@ -135,9 +138,9 @@ function Recaps({ etapes }: { etapes: Etape[] | null }) {
 }
 
 /** Une carte de l'accueil : son titre, son contenu, et le lien vers son onglet. */
-function Carte({ titre, href, lien, ouverte, children, delay }: { titre: string; href: string; lien: string; ouverte: boolean; children: ReactNode; delay: number }) {
+function Carte({ titre, href, lien, ouverte, children, delay, vert }: { titre: string; href: string; lien: string; ouverte: boolean; children: ReactNode; delay: number; vert?: boolean }) {
   return (
-    <section className="q5-carte rise" style={{ animationDelay: `${delay}s` }}>
+    <section className={`q5-carte rise${vert ? " da-carte-verte" : ""}`} style={{ animationDelay: `${delay}s` }}>
       <h2>{titre}</h2>
       {children}
       <Link href={href} className="q4-lk">
@@ -186,6 +189,33 @@ function RendezVous() {
   );
 }
 
+/**
+ * Ce qui attend d'être validé (DA de l'app du Clos) : une carte rose, le
+ * nombre en grand, ce que ça ajoutera au décompte, et le chemin vers
+ * Planning, À valider. Rien quand rien n'attend.
+ */
+function AValiderCarte() {
+  const { etat } = useBriques();
+  const ouverte = estOuverte(etat.planning);
+  const data = useDataStore();
+  const ready = useDataStore((s) => s.hydrated);
+  const today = localToday();
+  const jours = useMemo(() => (ouverte && ready ? aValider(data, today, maintenant()) : []), [data, today, ouverte, ready]);
+  const n = jours.reduce((t, j) => t + j.seances.length, 0);
+  const total = jours.reduce((t, j) => t + j.total, 0);
+  if (!n) return null;
+  return (
+    <Link href="/valider" className="da-a-valider rise" style={{ animationDelay: ".12s" }}>
+      <b>{n}</b>
+      <span>
+        <strong>séance{n > 1 ? "s" : ""} à valider</strong>
+        <small>{total > 0 ? `+${eur(total)} au décompte une fois validée${n > 1 ? "s" : ""}` : "Dans le Planning, onglet À valider"}</small>
+      </span>
+      <Ic n="arrow" className="" />
+    </Link>
+  );
+}
+
 /** L'objectif de rentabilité : ce qu'il reste ce mois-ci, face à ce que le gérant vise. */
 function Rentabilite() {
   const { etat } = useBriques();
@@ -196,7 +226,7 @@ function Rentabilite() {
   const net = useMemo(() => (ouverte ? monthBreakdown(data, currentPeriod()).net : 0), [data, ouverte]);
   const pct = objectifPct(net, objective);
   return (
-    <Carte titre="Ton objectif du mois" href={ouverte && !hasObjective(objective) ? "/argent?objectif=1" : "/argent"} lien={ouverte && !hasObjective(objective) ? "Te fixer un objectif" : "Voir ta rentabilité"} ouverte={ouverte} delay={0.14}>
+    <Carte titre="Ton objectif du mois" href={ouverte && !hasObjective(objective) ? "/argent?objectif=1" : "/argent"} lien={ouverte && !hasObjective(objective) ? "Te fixer un objectif" : "Voir ta rentabilité"} ouverte={ouverte} delay={0.14} vert={ouverte}>
       {!ouverte ? (
         <p className="q5-vide">Ce qu’il te reste à la fin du mois, face à ce que tu veux te verser.</p>
       ) : !ready ? (
@@ -206,6 +236,7 @@ function Rentabilite() {
           <div className="q5-net">
             <b className={net < 0 ? "ko" : undefined}>{eur(Math.round(net))}</b>
             <small>{net >= 0 ? "il te reste ce mois-ci" : "il te manque ce mois-ci"}</small>
+            {pct !== null && <em>{Math.round(pct)} %</em>}
           </div>
           {pct !== null ? (
             <>

@@ -265,3 +265,29 @@
 /* Le halo rose part en fondu : pas de couture sous la barre du haut */
 .carnet .da-tete::after, .carnet .da-fh::after { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 45%); mask-image: linear-gradient(to bottom, transparent, #000 45%); }
 @media (min-width: 1024px) { .carnet .da-tete { margin-top: 18px; padding-top: 22px; border-radius: var(--bloc-r); } .carnet .da-onglets { margin-left: 0; margin-right: 0; } }
+
+/* ---- L'Accueil, à la façon du Clos : pas d'en-tête vert, la phrase du jour, l'objectif dans le vert ---- */
+.carnet .da-mot { margin: 8px 0 0; font-size: 21px; font-weight: 720; line-height: 1.28; letter-spacing: -.022em; font-variation-settings: "wdth" 90; color: var(--vert-deep); text-wrap: balance; animation: da-mot .5s var(--da-ease) backwards; }
+@keyframes da-mot { from { opacity: 0; transform: translateY(6px); } }
+.carnet .q5-carte { box-shadow: var(--da-ombre-carte); }
+/* L'objectif du mois dans le vert (ObjectifDuMois du Clos) */
+.carnet .q5-carte.da-carte-verte { position: relative; overflow: hidden; padding: 18px 18px 16px; background: var(--vert-deep); box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--vert-deep) 80%, transparent); color: #fff; }
+.carnet .q5-carte.da-carte-verte > h2 { font-size: 13px; font-weight: 650; letter-spacing: 0; color: var(--on-vert); }
+.carnet .q5-carte.da-carte-verte .q5-net b { font-size: 40px; font-weight: 800; line-height: 1; letter-spacing: -.035em; font-variation-settings: "wdth" 84; color: #fff; }
+.carnet .q5-carte.da-carte-verte .q5-net b.ko { color: var(--rose); }
+.carnet .q5-carte.da-carte-verte .q5-net small { font-size: 15px; font-weight: 600; color: var(--on-vert); }
+.carnet .q5-carte.da-carte-verte .q5-net em { margin-left: auto; height: 28px; padding: 0 10px; border-radius: 8px; display: inline-flex; align-items: center; background: var(--rose); color: var(--vert-deep); font-style: normal; font-size: 14px; font-weight: 780; }
+.carnet .q5-carte.da-carte-verte .q5-jauge { background: color-mix(in srgb, #fff 14%, transparent); }
+.carnet .q5-carte.da-carte-verte .q5-jauge span { background: var(--rose); transform-origin: left; animation: da-pousse 1.1s var(--da-ease) .15s backwards; }
+@keyframes da-pousse { from { transform: scaleX(0); } }
+.carnet .q5-carte.da-carte-verte .q5-vide { color: var(--on-vert); }
+.carnet .q5-carte.da-carte-verte .q5-vide b { color: #fff; }
+.carnet .q5-carte.da-carte-verte .q4-lk { color: #fff; }
+/* Ce qui attend d'être validé : la carte rose du Clos */
+.carnet .da-a-valider { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; margin: 14px var(--gut) 0; padding: 14px 16px; border-radius: var(--bloc-r); background: var(--rose-soft); color: var(--vert-deep); text-decoration: none; transition: transform .15s var(--da-ease); }
+.carnet .da-a-valider:active { transform: scale(.99); }
+.carnet .da-a-valider > b { font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -.035em; font-variation-settings: "wdth" 84; font-variant-numeric: tabular-nums; }
+.carnet .da-a-valider strong { display: block; font-size: 16px; font-weight: 750; }
+.carnet .da-a-valider small { display: block; font-size: 13px; color: var(--out); }
+.carnet .da-a-valider svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: reduce) { .carnet .da-mot, .carnet .q5-carte.da-carte-verte .q5-jauge span { animation: none; } .carnet .da-a-valider { transition: none; } }
