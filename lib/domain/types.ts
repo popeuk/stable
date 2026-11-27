@@ -69,6 +69,8 @@ export interface Category {
   icon?: string;
   /** For expense categories: a direct (true) vs mutualised (false) cost. */
   isDirect?: boolean;
+  /** Le taux de TVA compris dans ce qui est noté sous cette catégorie (en %), quand la ligne n'en a pas (lib/domain/tva.ts). */
+  vatRate?: number | null;
 }
 
 export interface Revenue {

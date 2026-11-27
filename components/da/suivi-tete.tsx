@@ -80,11 +80,15 @@ export function SuiviTete() {
           { n: eur(Math.round(tva.caTTC)), l: "de CA TTC", href: "/argent" },
           { n: eur(Math.round(tva.fraisTTC)), l: "de frais TTC", href: "/argent?vue=mouvements" },
           tva.recettesSansTaux > 0
-            ? { n: "?", l: "TVA : taux à dire", href: "/prestations" }
-            : { n: eur(Math.abs(Math.round(tva.aReverser))), l: tva.aReverser >= 0 ? "de TVA à reverser" : "de TVA à récupérer" },
+            ? { n: "?", l: "TVA : taux à dire", href: "/tva" }
+            : { n: eur(Math.abs(Math.round(tva.aReverser))), l: tva.aReverser >= 0 ? "de TVA à reverser" : "de TVA à récupérer", href: "/tva" },
         ]}
       />
-      {tva.recettesSansTaux === 0 && tva.fraisSansTaux > 0 && <p className="da-tva-note">Des frais n’ont pas de taux de TVA : leur TVA n’est pas déduite.</p>}
+      {tva.recettesSansTaux === 0 && tva.fraisSansTaux > 0 && (
+        <Link href="/tva" className="da-tva-note-vert">
+          Des frais n’ont pas de taux de TVA : leur TVA n’est pas déduite.
+        </Link>
+      )}
     </>
   );
 }

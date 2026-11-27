@@ -415,7 +415,7 @@
 .carnet .da-ob-voir { flex: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #fff; }
 .carnet .da-ob-voir svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .da-a-valider.dans-vert { margin: 16px 0 0; }
-.carnet .da-tva-note { margin: 8px 0 0; font-size: 12.5px; color: var(--on-vert); }
+.carnet .da-tva-note-vert { display: block; margin: 8px 0 0; font-size: 12.5px; color: var(--on-vert); text-decoration: underline; text-underline-offset: 3px; }
 
 .carnet .bilan-m { display: grid; gap: 14px; margin: 18px var(--gut) 0; }
 .carnet .bilan-m .bm-carte { margin: 0; padding: 16px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); }
@@ -499,3 +499,19 @@
 @media (prefers-reduced-motion: reduce) { .carnet .bm-pieces span, .carnet .bm-clients .bar i, .carnet .bm-cheval .duo i, .carnet .bm-temps-barre i, .carnet .ca-barre i, .carnet .da-ob-barre i { animation: none; } }
 .carnet .bm-cheval .tete .face { display: block; }
 .carnet .bilan-m .sec.blk { margin: 0; }
+
+/* ---- Tes taux de TVA (app/(app)/tva) ---- */
+.carnet .da-tva-reste { margin: 16px var(--gut) 0; padding: 12px 14px; border-radius: var(--bloc-r); background: var(--rose-soft); font-size: 14px; line-height: 1.45; color: var(--ink); }
+.carnet .da-tva-reste b { color: var(--out); }
+.carnet .da-tva-sec { margin: 24px var(--gut) 0; }
+.carnet .da-tva-sec h2 { margin: 0; font-size: 20px; font-weight: 780; letter-spacing: -.025em; }
+.carnet .da-tva-aide { margin: 4px 0 10px; font-size: 13.5px; color: var(--ink2); }
+.carnet .da-tva-liste { border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); overflow: hidden; }
+.carnet .da-tva-ligne { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 60px; padding: 10px 14px 10px 16px; }
+.carnet .da-tva-ligne + .da-tva-ligne::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: 1px; background: var(--line2); }
+.carnet .da-tva-ligne b { display: block; font-size: 15.5px; font-weight: 680; }
+.carnet .da-tva-ligne small { display: block; font-size: 12.5px; color: var(--ink3); }
+.carnet .da-tva-sel { height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: var(--ctl-r); background: var(--paper); font: inherit; font-size: 14px; font-weight: 650; color: var(--ink); }
+.carnet .da-tva-sel:has(option[value=""]:checked) { color: var(--out); border-color: color-mix(in srgb, var(--rose) 70%, transparent); background: var(--rose-soft); }
+.carnet .da-tva-note { margin: 20px var(--gut) 0; font-size: 13px; line-height: 1.5; color: var(--ink3); }
+.carnet .da-tva-note a { color: var(--vert); font-weight: 700; }

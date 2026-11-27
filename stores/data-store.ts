@@ -169,6 +169,8 @@ interface DataState extends StableData {
   addRevenueCategory: (name: string) => void;
   addExpenseCategory: (name: string, isDirect: boolean) => void;
   deleteRevenueCategory: (id: string) => void;
+  /** Le taux de TVA d'une catégorie (en %), ou null pour « pas encore dit » (lib/domain/tva.ts). */
+  setCategoryVat: (kind: "recette" | "depense", id: string, rate: number | null) => void;
   deleteExpenseCategory: (id: string) => void;
   resetToDemo: () => void;
   startEmpty: () => void;
@@ -795,6 +797,13 @@ export const useDataStore = create<DataState>()(
                   { id: id("exp"), name: name.trim(), isDirect },
                 ],
               },
+        ),
+
+      setCategoryVat: (kind, catId, rate) =>
+        set((s) =>
+          kind === "recette"
+            ? { revenueCategories: s.revenueCategories.map((c) => (c.id === catId ? { ...c, vatRate: rate } : c)) }
+            : { expenseCategories: s.expenseCategories.map((c) => (c.id === catId ? { ...c, vatRate: rate } : c)) },
         ),
 
       // Pension, Cours, Refacturation, Frais fixes : l'app en dépend pour compter, elles ne se retirent pas.

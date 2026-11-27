@@ -78,7 +78,7 @@ export function Header() {
   const racine = isRoot2(path) || (QUATRE_PARTIES && (path.startsWith("/valider") || path.startsWith("/equipe")));
   return (
     // DA de l'app du Clos : sur les pages d'onglet (sauf l'Accueil), la barre du haut est verte et se prolonge dans l'en-tête de la page.
-    <header className={`hd hd2${(racine && path !== "/accueil") || (QUATRE_PARTIES && (path.startsWith("/client") || path.startsWith("/ticket") || path.startsWith("/demandes") || path.startsWith("/reglages"))) ? " da-vert" : ""}`} ref={hdRef}>
+    <header className={`hd hd2${(racine && path !== "/accueil") || (QUATRE_PARTIES && (path.startsWith("/client") || path.startsWith("/ticket") || path.startsWith("/demandes") || path.startsWith("/reglages") || path.startsWith("/tva"))) ? " da-vert" : ""}`} ref={hdRef}>
       {racine ? (
         <Link href="/accueil" className="wm">
           be stable

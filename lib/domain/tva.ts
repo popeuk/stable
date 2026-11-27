@@ -7,7 +7,8 @@ import { r2 } from "@/lib/utils/arrondi";
  * d'affaires TTC, la TVA collectée sur ce qui rentre, les frais TTC, la TVA
  * qu'ils contiennent, et la TVA à reverser (ou à récupérer). Chaque montant
  * est TVA comprise ; son taux vient de la recette (figé à sa création), de la
- * prestation de la séance, de la pension saisie, ou du frais. Un taux qui
+ * prestation de la séance, de la pension saisie, ou du frais, et à défaut de
+ * sa catégorie (Pension, Cours, Foin…, réglée dans « Tes taux de TVA »). Un taux qui
  * manque n'est jamais deviné : son montant est compté à part, et l'écran le
  * dit. Domaine pur, testé.
  */
@@ -35,6 +36,9 @@ export function tvaDuMois(data: StableData, period: Period): TvaDuMois {
   const seances = new Map((data.seances ?? []).map((s) => [s.id, s]));
   const prestations = new Map((data.prestations ?? []).map((p) => [p.id, p]));
   const pensions = new Map((data.pensions ?? []).map((p) => [p.id, p]));
+  const tauxRecette = new Map(data.revenueCategories.map((c) => [c.id, c.vatRate]));
+  const tauxFrais = new Map(data.expenseCategories.map((c) => [c.id, c.vatRate]));
+  const deCat = (m: Map<string, number | null | undefined>, id?: string) => (id ? (m.get(id) ?? undefined) : undefined);
 
   let caTTC = 0, tvaCollectee = 0, recettesSansTaux = 0;
   for (const r of data.revenues) {
@@ -42,7 +46,8 @@ export function tvaDuMois(data: StableData, period: Period): TvaDuMois {
     const taux =
       r.vatRate ??
       (r.seanceId ? prestations.get(seances.get(r.seanceId)?.prestationId ?? "")?.vatRate : undefined) ??
-      (r.pensionId ? pensions.get(r.pensionId)?.vatRate : undefined);
+      (r.pensionId ? pensions.get(r.pensionId)?.vatRate : undefined) ??
+      deCat(tauxRecette, r.categoryId);
     caTTC += r.amount;
     if (valide(taux)) tvaCollectee += tvaDans(r.amount, taux);
     else recettesSansTaux += r.amount;
@@ -50,7 +55,8 @@ export function tvaDuMois(data: StableData, period: Period): TvaDuMois {
   for (const rr of data.recurringRevenues ?? []) {
     if (!recurringDue(rr, period)) continue;
     caTTC += rr.amount;
-    if (valide(rr.vatRate)) tvaCollectee += tvaDans(rr.amount, rr.vatRate);
+    const taux = rr.vatRate ?? deCat(tauxRecette, rr.categoryId);
+    if (valide(taux)) tvaCollectee += tvaDans(rr.amount, taux);
     else recettesSansTaux += rr.amount;
   }
 
@@ -61,13 +67,13 @@ export function tvaDuMois(data: StableData, period: Period): TvaDuMois {
     if (valide(taux)) tvaDeductible += tvaDans(montant, taux);
     else fraisSansTaux += montant;
   };
-  for (const d of data.directExpenses) if (d.date.startsWith(mk)) frais(d.amount, d.vatRate);
+  for (const d of data.directExpenses) if (d.date.startsWith(mk)) frais(d.amount, d.vatRate ?? deCat(tauxFrais, d.categoryId));
   for (const se of data.sharedExpenses) {
     const m = se.dansEstimation ? partDuMois(se, period) : se.periodYear === period.year && se.periodMonth === period.month ? se.totalAmount : 0;
-    frais(m, se.vatRate);
+    frais(m, se.vatRate ?? deCat(tauxFrais, se.categoryId));
   }
   const duMois = montantsDuMois(data, period);
-  for (const re of data.recurringExpenses ?? []) if (recurringDue(re, period)) frais(duMois.get(re.id) ?? re.amount, re.vatRate);
+  for (const re of data.recurringExpenses ?? []) if (recurringDue(re, period)) frais(duMois.get(re.id) ?? re.amount, re.vatRate ?? deCat(tauxFrais, re.categoryId));
 
   return {
     caTTC: r2(caTTC),
@@ -78,4 +84,22 @@ export function tvaDuMois(data: StableData, period: Period): TvaDuMois {
     fraisSansTaux: r2(fraisSansTaux),
     aReverser: r2(tvaCollectee - tvaDeductible),
   };
+}
+
+/** Ce qui est noté dans le mois, catégorie par catégorie (TTC) : pour dire à côté de chaque taux ce qu'il touche. */
+export function montantsParCategorie(data: StableData, period: Period): { recettes: Map<string, number>; frais: Map<string, number> } {
+  const mk = `${period.year}-${String(period.month).padStart(2, "0")}`;
+  const recettes = new Map<string, number>();
+  const frais = new Map<string, number>();
+  const plus = (m: Map<string, number>, id: string | undefined, v: number) => {
+    if (!id || !(v > 0)) return;
+    m.set(id, r2((m.get(id) ?? 0) + v));
+  };
+  for (const r of data.revenues) if (r.date.startsWith(mk)) plus(recettes, r.categoryId, r.amount);
+  for (const rr of data.recurringRevenues ?? []) if (recurringDue(rr, period)) plus(recettes, rr.categoryId, rr.amount);
+  for (const d of data.directExpenses) if (d.date.startsWith(mk)) plus(frais, d.categoryId, d.amount);
+  for (const se of data.sharedExpenses) plus(frais, se.categoryId, se.dansEstimation ? partDuMois(se, period) : se.periodYear === period.year && se.periodMonth === period.month ? se.totalAmount : 0);
+  const duMois = montantsDuMois(data, period);
+  for (const re of data.recurringExpenses ?? []) if (recurringDue(re, period)) plus(frais, re.categoryId, duMois.get(re.id) ?? re.amount);
+  return { recettes, frais };
 }

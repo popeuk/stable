@@ -28,7 +28,7 @@ export const ONGLETS_CINQ = { accueil: "/accueil", planning: "/planning", ecurie
 /** Les écrans de chaque onglet : l'onglet reste allumé. */
 export const TAB_PLANNING = ["/planning", "/valider", "/equipe"];
 export const TAB_VITRINE = ["/ma-fiche", "/mon-site", "/parcours/tarifs"];
-export const TAB_SUIVI = ["/argent", "/seuil", "/pilotage", "/part", "/scenarios", "/mois", "/conseiller", "/decouvertes", "/depenses", "/parcours/factures"];
+export const TAB_SUIVI = ["/argent", "/tva", "/seuil", "/pilotage", "/part", "/scenarios", "/mois", "/conseiller", "/decouvertes", "/depenses", "/parcours/factures"];
 export const TAB_ANALYSE = [...ANALYSE_ONGLETS, "/audit"];
 export const TAB_ECURIE = ["/ecurie", "/chevaux", "/clients", "/client", "/ticket", "/cheval", "/facture", "/prestations", "/facturation", "/saisie"];
 export const ROOTS2 = QUATRE_PARTIES ? ["/accueil", "/planning", "/argent", ...ANALYSE_ONGLETS, "/chevaux", "/prestations", "/ma-fiche", "/mon-site"] : ROOTS_AVANT;
@@ -43,6 +43,7 @@ const PARENTS_CINQ: [string, string][] = QUATRE_PARTIES
   ? [
       ["/clients", "/chevaux?vue=clients"],
       ["/depenses", "/argent"],
+      ["/tva", "/argent"],
       ["/parcours/factures", "/argent"],
       ["/demandes", "/accueil"],
       ["/audit", "/te-trouver"],
