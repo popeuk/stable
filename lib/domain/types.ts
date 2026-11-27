@@ -88,6 +88,14 @@ export interface Revenue {
   rebillOf?: string;
   /** L'échéance d'un forfait (lib/domain/forfaits) : postée seule, payée par le cavalier. */
   abonnementId?: string;
+  /** Le contrat de pension d'origine (lib/domain/pensions-contrats), quand la recette en vient. */
+  pensionId?: string;
+  /**
+   * Le taux de TVA compris dans le montant (en %, 0 = sans TVA), figé quand
+   * la recette est créée. Absent = pas connu : la TVA du mois le dit, elle
+   * ne le devine pas (lib/domain/tva).
+   */
+  vatRate?: number | null;
 }
 
 export interface DirectExpense {
@@ -103,6 +111,8 @@ export interface DirectExpense {
   receiptUrl?: string | null;
   /** Refacturée au propriétaire : une recette du même montant existe. */
   rebillRevenueId?: string;
+  /** Le taux de TVA compris dans le montant (en %, 0 = sans TVA). Absent = pas connu. */
+  vatRate?: number | null;
 }
 
 export interface SharedExpenseAllocation {
@@ -138,6 +148,8 @@ export interface SharedExpense {
   dansMois?: number;
   /** Le jour où elle a été notée (ou choisi). Absent sur les dépenses d'avant : le 1er de son mois. */
   date?: ISODate;
+  /** Le taux de TVA compris dans le montant (en %, 0 = sans TVA). Absent = pas connu. */
+  vatRate?: number | null;
 }
 
 /** A calendar period the whole app is scoped to (the Time Ribbon). */
@@ -191,6 +203,8 @@ export interface RecurringExpense {
    * lui remontrer son chiffre tel qu'il l'a tapé.
    */
   saisi?: MontantSaisi;
+  /** Le taux de TVA compris dans le montant (en %, 0 = sans TVA). Absent = pas connu. */
+  vatRate?: number | null;
 }
 
 /** Un frais connu à l'année (`montant` sur l'année) ou en plusieurs fois (`fois` paiements de `montant`). */
@@ -215,6 +229,8 @@ export interface RecurringRevenue {
   startDate: ISODate;
   endDate?: ISODate | null;
   source: EntrySource;
+  /** Le taux de TVA compris dans le montant (en %, 0 = sans TVA). Absent = pas connu. */
+  vatRate?: number | null;
 }
 
 /** The schedule fields common to recurring entries. */
@@ -342,6 +358,59 @@ export interface Prestation {
   forfaitAnnee?: number;
   /** Combien de mois dure la saison (10 par défaut, septembre à juin). */
   saisonMois?: number;
+  /** Le taux de TVA compris dans le prix (en %, 0 = sans TVA). Absent = pas encore dit. */
+  vatRate?: number | null;
+}
+
+/**
+ * Le prix propre à un client pour une prestation (il loue la carrière, il
+ * prend un cheval du club…). Il remplace le prix de la prestation pour lui
+ * seul, figé sur chaque séance à son inscription (Participant.unitPrice).
+ */
+export interface PrixClient {
+  /** `${personId}|${prestationId}` : un identifiant stable, pour fusionner deux appareils ligne à ligne. */
+  id: string;
+  personId: string;
+  prestationId: string;
+  price: number;
+}
+
+/**
+ * Qui est lié à un cheval, et comment. Un cheval peut avoir un propriétaire
+ * et un cavalier différents, ou une demi-pension. Le propriétaire reste aussi
+ * dans Horse.ownerName (proprio.ts) : un lien « proprietaire » stocké
+ * l'emporte, sinon il se déduit du nom (lib/domain/liens).
+ */
+export type LienRole = "proprietaire" | "demi-pension" | "cavalier";
+export interface HorseLink {
+  /** `${personId}|${horseId}` : un identifiant stable, pour fusionner deux appareils ligne à ligne. */
+  id: string;
+  personId: string;
+  horseId: string;
+  role: LienRole;
+}
+
+/**
+ * Une pension saisie à la main : un cheval, qui la paie, un prix par mois
+ * (TTC), un taux de TVA, une période. Elle est postée chaque mois en recette
+ * (lib/domain/pensions-contrats), au prorata du premier et du dernier mois.
+ * Plusieurs pensions peuvent porter sur le même cheval (deux payeurs). Un
+ * cheval qui a une pension saisie ne poste plus Horse.pension.
+ */
+export interface PensionContrat {
+  id: string;
+  horseId: string;
+  /** Qui la paie. Absent = le propriétaire du cheval. */
+  personId?: string;
+  /** La formule (« Pension écurie active », « Demi-pension »…). */
+  label?: string;
+  /** Prix par mois, TVA comprise. */
+  amount: number;
+  /** Le taux de TVA (en %, 0 = sans TVA). Absent = pas encore dit. */
+  vatRate?: number | null;
+  startDate: ISODate;
+  /** Le dernier jour compté ; absent ou nul = toujours en cours. */
+  endDate?: ISODate | null;
 }
 
 /**
@@ -377,6 +446,8 @@ export interface Participant {
   present?: boolean;
   /** Au forfait pour ce cours : sa présence ne se paie pas en plus (lib/domain/forfaits). */
   forfait?: boolean;
+  /** Son prix propre, figé à l'inscription (lib/domain/prix-client) ; absent = le prix de la séance. */
+  unitPrice?: number;
 }
 
 /**
@@ -649,4 +720,10 @@ export interface StableData {
   invoiceSeq?: Record<string, number>;
   /** Le lieu de détention et son détenteur, pour le registre d'élevage. */
   holding?: Holding;
+  /** Qui est lié à quel cheval : propriétaire, demi-pension, cavalier (lib/domain/liens). */
+  horseLinks?: HorseLink[];
+  /** Les pensions saisies à la main, avec leur payeur et leur TVA (lib/domain/pensions-contrats). */
+  pensions?: PensionContrat[];
+  /** Les prix propres à un client (lib/domain/prix-client). */
+  prixClients?: PrixClient[];
 }

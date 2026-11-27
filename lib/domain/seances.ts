@@ -1,3 +1,4 @@
+import { prixDe } from "@/lib/domain/prix-client";
 import type { ISODate, Revenue, Seance, StableData, TeamTask } from "@/lib/domain/types";
 import { CARE_META, addDays, type CareEvent } from "@/lib/domain/care";
 import { heure } from "@/lib/utils/heure";
@@ -54,7 +55,11 @@ export function payingCount(s: Seance): number {
 /** Ce que la séance rapporte : prévu tant qu'elle n'est pas faite, réel ensuite. */
 export function seanceAmount(s: Seance): number {
   if (s.status === "cancelled") return 0;
-  return r2(s.unitPrice * payingCount(s));
+  // Chaque inscrit paie son prix propre s'il en a un (lib/domain/prix-client), sinon le prix de la séance.
+  if (s.participants.length === 0) return r2(s.unitPrice * payingCount(s));
+  const aLaSeance = s.participants.filter((p) => !p.forfait);
+  const paient = s.status !== "done" ? aLaSeance : aLaSeance.filter((p) => p.present !== false || s.chargeAbsent);
+  return r2(paient.reduce((n, p) => n + prixDe(p, s.unitPrice), 0));
 }
 
 /**
@@ -64,20 +69,24 @@ export function seanceAmount(s: Seance): number {
  */
 export function revenuesForSeance(
   s: Seance,
-  data: Pick<StableData, "people" | "revenueCategories">,
+  data: Pick<StableData, "people" | "revenueCategories"> & Partial<Pick<StableData, "prestations">>,
   makeId: () => string,
   stableId: string,
 ): Revenue[] {
-  if (s.status !== "done" || s.unitPrice <= 0) return [];
+  if (s.status !== "done") return [];
+  if (s.unitPrice <= 0 && !s.participants.some((p) => (p.unitPrice ?? 0) > 0)) return [];
   const cat = data.revenueCategories.find((c) => c.name === "Cours")?.id;
+  // Le taux de TVA de la prestation, figé sur la recette (lib/domain/tva).
+  const tva = data.prestations?.find((x) => x.id === s.prestationId)?.vatRate;
+  const avecTva = tva != null ? { vatRate: tva } : {};
   const out: Revenue[] = [];
   if (s.participants.length === 0) {
     for (const horseId of s.horseIds) {
-      out.push({ id: makeId(), stableId, horseId, categoryId: cat, amount: s.unitPrice, date: s.date, note: s.title, source: "manual", seanceId: s.id });
+      out.push({ id: makeId(), stableId, horseId, categoryId: cat, amount: s.unitPrice, date: s.date, note: s.title, source: "manual", seanceId: s.id, ...avecTva });
     }
     return out;
   }
-  const paying = s.participants.filter((p) => !p.forfait && (p.present !== false || s.chargeAbsent));
+  const paying = s.participants.filter((p) => !p.forfait && (p.present !== false || s.chargeAbsent) && prixDe(p, s.unitPrice) > 0);
   paying.forEach((p, i) => {
     // Un cavalier sans cheval : la recette est à lui, hors des tickets des chevaux (horseId vide).
     const horseId = p.horseId ?? s.horseIds[i % Math.max(1, s.horseIds.length)] ?? "";
@@ -87,12 +96,13 @@ export function revenuesForSeance(
       stableId,
       horseId,
       categoryId: cat,
-      amount: s.unitPrice,
+      amount: prixDe(p, s.unitPrice),
       date: s.date,
       note: p.present === false ? `${s.title} (absence facturée)` : s.title,
       source: "manual",
       payer: person?.name,
       seanceId: s.id,
+      ...avecTva,
     });
   });
   return out;

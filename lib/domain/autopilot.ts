@@ -30,6 +30,8 @@ export function ensurePensions(
     horses: Horse[];
     revenues: Revenue[];
     revenueCategories: Category[];
+    /** Les pensions saisies (lib/domain/pensions-contrats) : leur cheval ne poste plus sa pension ici. */
+    pensions?: { horseId: string }[];
   },
   today: ISODate,
   dismissed: string[] = [],
@@ -48,6 +50,7 @@ export function ensurePensions(
       .map((r) => `${r.horseId}|${r.date.slice(0, 7)}`),
   );
 
+  const avecContrat = new Set((data.pensions ?? []).map((p) => p.horseId));
   const out: Revenue[] = [];
   for (const monthKey of moisEntre(depuis, today.slice(0, 7))) {
     const monthStart = `${monthKey}-01`;
@@ -56,6 +59,7 @@ export function ensurePensions(
     const until = monthKey === today.slice(0, 7) ? today : periodEnd(p);
     for (const h of data.horses) {
       if (!h.pension || h.pension <= 0) continue;
+      if (avecContrat.has(h.id)) continue;
       const stay = sejours(h).find((s) => {
         const f = finCompte(s);
         return debutCompte(s) <= until && (f === null || f >= monthStart);

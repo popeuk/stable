@@ -24,7 +24,10 @@ import type { Rhythm } from "@/lib/domain/rhythm";
 import { materializeRhythms } from "@/lib/domain/rhythm";
 import { ensurePensions, pensionDuMois, pensionRevenueId, premierMoisARattraper } from "@/lib/domain/autopilot";
 import { buildDemoData } from "@/lib/data/demo-data";
-import type { ActionState, BillingInfo, Invoice, PaymentMethod, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
+import type { ActionState, BillingInfo, Invoice, LienRole, PaymentMethod, PensionContrat, Person, PersonRole, Prestation, Seance, TeamTask } from "@/lib/domain/types";
+import { avecLien } from "@/lib/domain/liens";
+import { avecPrixClient, figerPrixPropres } from "@/lib/domain/prix-client";
+import { ensurePensionsContrats } from "@/lib/domain/pensions-contrats";
 import { fusionFactures, pensionFigee, personneDe, recettesFacturees } from "@/lib/domain/factures-base";
 import type { Brouillon } from "@/lib/domain/facture";
 /** Composer et émettre une facture : chargé au moment d'en faire une (l'écran des factures l'a déjà). */
@@ -205,6 +208,17 @@ interface DataState extends StableData {
   /** Les prestations vendues : ajouter, modifier (prix, nom, actif), retirer. */
   addPrestation: (p: Omit<Prestation, "id" | "active">) => string;
   updatePrestation: (id: string, patch: Partial<Omit<Prestation, "id">>) => void;
+  /** Lien d'une personne à un cheval : propriétaire, demi-pension, cavalier ; nul pour le retirer (lib/domain/liens). */
+  setLien: (personId: string, horseId: string, role: LienRole | null) => void;
+  /** Le prix propre d'un client pour une prestation ; nul pour revenir au prix de la prestation. */
+  setPrixClient: (personId: string, prestationId: string, price: number | null) => void;
+  /** Une pension saisie (lib/domain/pensions-contrats). Rend son id. */
+  addPensionContrat: (p: Omit<PensionContrat, "id">, today: string) => string;
+  updatePensionContrat: (id: string, patch: Partial<Omit<PensionContrat, "id">>, today: string) => void;
+  /** Arrête une pension le jour `fin` (elle reste dans l'historique). */
+  arreterPensionContrat: (id: string, fin: string) => void;
+  /** Supprime une pension et ses recettes à venir (les mois passés restent). */
+  retirerPensionContrat: (id: string, today: string) => void;
   /** Retire une prestation jamais utilisée ; sinon la met en pause (l'historique reste). */
   removePrestation: (id: string) => "supprimee" | "en_pause";
   /**
@@ -293,7 +307,7 @@ const stockageSur: PersistStorage<unknown> = {
 };
 
 /** La version des données de l'app (persist, et le fichier de sauvegarde). */
-export const VERSION_DONNEES = 5;
+export const VERSION_DONNEES = 6;
 
 /**
  * Les données d'une version d'avant, mises à la version d'aujourd'hui. Sert
@@ -305,6 +319,10 @@ export function migrerDonnees(old: unknown, v: number): StableData {
   if (v < 4 && getSession()?.kind !== "demo" && d.prestations) {
     d = { ...d, prestations: sansPrixDExemple(d.prestations, buildDemoData().prestations ?? [], d.seances ?? []) };
   }
+  // Version 6 (27 novembre 2026) : liens aux chevaux, pensions saisies, prix
+  // propres et taux de TVA. Tout est facultatif : rien à convertir, les
+  // listes manquantes valent vides. La version monte pour qu'un appareil resté
+  // sur l'ancienne app n'écrive pas par-dessus (il les perdrait).
   // Les pros extérieurs de l'équipe passent dans Les pros (décision 16), sans rien perdre.
   return avecCategoriesSysteme(prosDeLEquipe(d));
 }
@@ -674,7 +692,11 @@ export const useDataStore = create<DataState>()(
           // Les mois où l'app n'a pas été ouverte sont rattrapés, sans doublon.
           const depuis = premierMoisARattraper(s, today, s.pensionsAu);
           // Les pensions des chevaux, puis les échéances des forfaits des cavaliers.
-          const pensions = [...ensurePensions(s, today, s.autopilotDismissed ?? [], depuis), ...ensureForfaits(s, today, STABLE_ID, s.autopilotDismissed ?? [], depuis)];
+          const pensions = [
+            ...ensurePensions(s, today, s.autopilotDismissed ?? [], depuis),
+            ...ensurePensionsContrats(s, today, s.autopilotDismissed ?? [], depuis),
+            ...ensureForfaits(s, today, STABLE_ID, s.autopilotDismissed ?? [], depuis),
+          ];
           const pensionsAu = today.slice(0, 7);
           const { events, advanced } = materializeRhythms(
             s.rhythms ?? [],
@@ -909,6 +931,58 @@ export const useDataStore = create<DataState>()(
         return pid;
       },
       updatePrestation: (pid, patch) => set((s) => ({ prestations: (s.prestations ?? []).map((p) => (p.id === pid ? { ...p, ...patch } : p)) })),
+
+      setLien: (personId, horseId, role) => set((s) => ({ horseLinks: avecLien(s.horseLinks, personId, horseId, role) })),
+
+      setPrixClient: (personId, prestationId, price) =>
+        set((s) => {
+          const prixClients = avecPrixClient(s.prixClients, personId, prestationId, price);
+          // Les séances à venir prennent le nouveau prix ; le passé garde le sien.
+          const today = localToday();
+          const seances = (s.seances ?? []).map((x) => {
+            if (x.status !== "planned" || x.date < today || x.prestationId !== prestationId) return x;
+            if (!x.participants.some((p) => p.personId === personId)) return x;
+            const participants = x.participants.map((p) => {
+              if (p.personId !== personId) return p;
+              const { unitPrice: _u, ...rest } = p;
+              void _u;
+              return price != null ? { ...rest, unitPrice: price } : rest;
+            });
+            return { ...x, participants, rev: x.rev + 1 };
+          });
+          return { prixClients, seances };
+        }),
+
+      addPensionContrat: (p, today) => {
+        const pid = id("pension");
+        set((s) => ({ pensions: [...(s.pensions ?? []), { ...p, id: pid }] }));
+        get().runAutopilot(today);
+        return pid;
+      },
+
+      updatePensionContrat: (pid, patch, today) => {
+        set((s) => {
+          const pensions = (s.pensions ?? []).map((p) => (p.id === pid ? { ...p, ...patch } : p));
+          // Les recettes du mois en cours et à venir se refont au nouveau contrat ; les mois passés restent.
+          const mk = today.slice(0, 7);
+          const revenues = s.revenues.filter((r) => !(r.pensionId === pid && r.date.slice(0, 7) >= mk));
+          return { pensions, revenues };
+        });
+        get().runAutopilot(today);
+      },
+
+      arreterPensionContrat: (pid, fin) =>
+        set((s) => ({
+          pensions: (s.pensions ?? []).map((p) => (p.id === pid ? { ...p, endDate: fin } : p)),
+          // Une recette postée au-delà de la fin disparaît (le mois de la fin se refera au prorata).
+          revenues: s.revenues.filter((r) => !(r.pensionId === pid && r.date.slice(0, 7) >= fin.slice(0, 7))),
+        })),
+
+      retirerPensionContrat: (pid, today) =>
+        set((s) => ({
+          pensions: (s.pensions ?? []).filter((p) => p.id !== pid),
+          revenues: s.revenues.filter((r) => !(r.pensionId === pid && r.date.slice(0, 7) >= today.slice(0, 7))),
+        })),
       removePrestation: (pid) => {
         const used = (get().seances ?? []).some((x) => x.prestationId === pid);
         if (used) {
@@ -949,7 +1023,8 @@ export const useDataStore = create<DataState>()(
       addSeances: (base, dates) =>
         set((s) => {
           const seriesId = dates.length > 1 ? id("serie") : undefined;
-          const created: Seance[] = dates.map((date) => marquerForfaits({ ...base, id: id("seance"), date, status: "planned", seriesId, rev: 1 }, s.abonnements));
+          const participants = figerPrixPropres(base.participants, s, base.prestationId);
+          const created: Seance[] = dates.map((date) => marquerForfaits({ ...base, participants, id: id("seance"), date, status: "planned", seriesId, rev: 1 }, s.abonnements));
           return { seances: [...(s.seances ?? []), ...created] };
         }),
 
@@ -968,6 +1043,8 @@ export const useDataStore = create<DataState>()(
               const { date: _d, ...rest } = patch;
               void _d;
               const next: Seance = { ...x, ...(x.id === sid ? patch : rest), rev: x.rev + 1 };
+              // Un inscrit ajouté prend son prix propre, s'il en a un (lib/domain/prix-client).
+              if (patch.participants) next.participants = figerPrixPropres(next.participants, s, next.prestationId);
               if (shift && x.id !== sid) next.date = addDaysIso(x.date, shift);
               return next.status === "planned" ? marquerForfaits(next, s.abonnements) : next;
             }),

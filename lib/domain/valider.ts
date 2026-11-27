@@ -17,7 +17,7 @@ import type { StableData } from "@/lib/domain/types";
 /** Les listes sans lesquelles aucun écran ne s'affiche. */
 const LISTES_ESSENTIELLES = ["horses", "revenues", "directExpenses", "sharedExpenses", "revenueCategories", "expenseCategories"] as const;
 /** Les autres listes, facultatives. */
-const LISTES = ["recurringExpenses", "recurringRevenues", "careEvents", "rhythms", "services", "team", "pros", "people", "prestations", "seances", "taskLists", "tasks", "actions", "payments", "invoices"] as const;
+const LISTES = ["recurringExpenses", "recurringRevenues", "careEvents", "rhythms", "services", "team", "pros", "people", "prestations", "seances", "taskLists", "tasks", "actions", "payments", "invoices", "horseLinks", "pensions", "prixClients"] as const;
 /** Les fiches (objets simples), facultatives. */
 const FICHES = ["tariffs", "billing", "holding", "invoiceSeq"] as const;
 
@@ -47,7 +47,13 @@ const NOMS: Record<string, string> = {
   billing: "les infos de facturation",
   holding: "le lieu de détention",
   invoiceSeq: "les numéros de facture",
+  horseLinks: "les liens entre clients et chevaux",
+  pensions: "les pensions",
+  prixClients: "les prix des clients",
 };
+
+/** Les listes dont les lignes n'ont pas d'identifiant propre. */
+const SANS_ID = ["invoiceSeq"];
 
 const estObjet = (x: unknown): x is Record<string, unknown> => !!x && typeof x === "object" && !Array.isArray(x);
 const estJour = (x: unknown) => typeof x === "string" && /^\d{4}-\d{2}-\d{2}/.test(x);
@@ -56,7 +62,7 @@ const estNombre = (x: unknown) => typeof x === "number" && Number.isFinite(x);
 /** Une ligne est-elle lisible ? Le minimum pour qu'un écran ne tombe pas. */
 function ligneLisible(liste: string, x: unknown): boolean {
   if (!estObjet(x)) return false;
-  if (liste !== "invoiceSeq" && typeof x.id !== "string") return false;
+  if (!SANS_ID.includes(liste) && typeof x.id !== "string") return false;
   switch (liste) {
     case "horses":
       return typeof x.name === "string" && (x.entryDate === undefined || x.entryDate === null || typeof x.entryDate === "string") && (x.stays === undefined || (Array.isArray(x.stays) && x.stays.every((s) => estObjet(s) && typeof s.entry === "string")));
@@ -84,6 +90,12 @@ function ligneLisible(liste: string, x: unknown): boolean {
       return typeof x.title === "string" && Array.isArray(x.checklist ?? []) && Array.isArray(x.comments ?? []) && Array.isArray(x.labels ?? []) && Array.isArray(x.forWho ?? []);
     case "payments":
       return typeof x.payer === "string" && estNombre(x.amount);
+    case "horseLinks":
+      return typeof x.personId === "string" && typeof x.horseId === "string" && ["proprietaire", "demi-pension", "cavalier"].includes(x.role as string);
+    case "pensions":
+      return typeof x.horseId === "string" && estNombre(x.amount) && estJour(x.startDate);
+    case "prixClients":
+      return typeof x.personId === "string" && typeof x.prestationId === "string" && estNombre(x.price);
     case "invoices":
       return typeof x.number === "string" && Array.isArray(x.lines) && Array.isArray(x.revenueIds ?? []);
     default:

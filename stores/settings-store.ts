@@ -44,8 +44,8 @@ export function settingsAtOpen(kind: "compte" | "demo" | "locale" | undefined, f
       ...(fresh ? { objective: DEMO_OBJECTIVE, capacity: DEMO_CAPACITY, stableName: "Les Trois Pommiers", gerant: "Claire" } : {}),
     };
   if (!fresh) return null;
-  if (kind === "compte") return { stableName: p.stableName || "Mon écurie", gerant: p.prenom || "", parcours: { ...NO_OBSTACLE }, arrived: false, objective: 0 };
-  if (kind === "locale") return { stableName: "Mon écurie", gerant: "", parcours: { ...NO_OBSTACLE }, arrived: false, objective: 0 };
+  if (kind === "compte") return { stableName: p.stableName || "Mon écurie", gerant: p.prenom || "", parcours: { ...NO_OBSTACLE }, arrived: false, objective: 0, objectiveCa: 0 };
+  if (kind === "locale") return { stableName: "Mon écurie", gerant: "", parcours: { ...NO_OBSTACLE }, arrived: false, objective: 0, objectiveCa: 0 };
   return null;
 }
 
@@ -79,6 +79,9 @@ interface SettingsState {
   /** L'objectif du mois : ce que le gérant veut se verser (€/mois). */
   objective: number;
   setObjective: (n: number) => void;
+  /** Le chiffre d'affaires visé chaque mois (TTC), à côté de l'objectif net ; 0 = pas d'objectif (repris de l'app du Clos). */
+  objectiveCa: number;
+  setObjectiveCa: (n: number) => void;
   passObstacle: (id: ObstacleId) => boolean;
   setArrived: () => void;
   setReminder: (t: string) => void;
@@ -102,13 +105,14 @@ interface SettingsState {
 
 /** Granular, opt-in notification preferences (spec 1.3 / 9.4) + stable config. */
 /** La version des réglages (persist, et le fichier de sauvegarde). */
-export const VERSION_REGLAGES = 7;
+export const VERSION_REGLAGES = 8;
 
 /** Les réglages d'une version d'avant, mis à la version d'aujourd'hui (au chargement et à la reprise d'une sauvegarde). */
 export function migrerReglages(old: unknown, v: number): Record<string, unknown> {
   const { openRouterKey: _cle, ...reste } = (old ?? {}) as { openRouterKey?: string };
   void _cle;
-  const o = { objective: 0, capacity: 0, ...reste } as { capacity: number };
+  // Version 8 (27 novembre 2026) : objectiveCa, 0 tant que le gérant ne l'a pas posé.
+  const o = { objective: 0, objectiveCa: 0, capacity: 0, ...reste } as { capacity: number };
   const capacity = v < 6 && o.capacity === 12 && getSession()?.kind !== "demo" ? 0 : o.capacity;
   return { ...o, capacity, ...(v < 4 ? { parcours: { ...NO_OBSTACLE }, arrived: false } : {}) };
 }
@@ -137,6 +141,8 @@ export const useSettingsStore = create<SettingsState>()(
       // Pas d'objectif tant que le gérant ne l'a pas posé (0 = « pas d'objectif »).
       objective: 0,
       setObjective: (n) => set({ objective: Math.max(0, Math.round(n)) }),
+      objectiveCa: 0,
+      setObjectiveCa: (n) => set({ objectiveCa: Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0 }),
       passObstacle: (id) => {
         if (get().parcours[id]) return false;
         set((s) => ({ parcours: { ...s.parcours, [id]: true } }));
