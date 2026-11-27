@@ -46,7 +46,7 @@ export const AideCarte = dynamic(() => import("@/components/bs/aide-carte").then
 
 /** Le titre court d'un écran, pour l'en-tête hors des onglets. */
 const TITRES: [string, string][] = [
-  ["/valider", "Ce qui est fait"],
+  ["/valider", "À valider"],
   ["/ticket", "Fiche du cheval"],
   ["/part", "Les frais de l’écurie"],
   ["/argent", "Mon bilan"],

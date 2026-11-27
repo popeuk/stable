@@ -3,22 +3,25 @@
 import { useRouter } from "next/navigation";
 import { Seg } from "@/components/carnet/ui";
 
-type Vue = "planning" | "taches";
+type Vue = "planning" | "valider" | "taches";
+const ROUTE: Record<Vue, string> = { planning: "/planning", valider: "/valider", taches: "/equipe" };
 
 /**
- * Le sélecteur Planning · Tâches, en haut des deux écrans : Planning ouvre
- * /planning, Tâches ouvre /equipe (les tâches de l'équipe). L'onglet
- * Planning de la barre du bas reste allumé sur les deux.
+ * Le sélecteur Planning · À valider · Tâches, en haut des trois écrans
+ * (27 novembre 2026, repris de l'app du Clos) : Planning ouvre /planning,
+ * À valider /valider (les séances passées qui attendent), Tâches /equipe.
+ * L'onglet Planning de la barre du bas reste allumé sur les trois.
  */
-export function PlanningTaches({ value, count }: { value: Vue; count?: number }) {
+export function PlanningTaches({ value, count, aValider }: { value: Vue; count?: number; aValider?: number }) {
   const router = useRouter();
   return (
     <Seg<Vue>
       value={value}
-      onChange={(v) => v !== value && router.replace(v === "planning" ? "/planning" : "/equipe", { scroll: false })}
-      label="Planning ou tâches"
+      onChange={(v) => v !== value && router.replace(ROUTE[v], { scroll: false })}
+      label="Planning, à valider ou tâches"
       options={[
         ["planning", "Planning"],
+        ["valider", aValider ? `À valider · ${aValider}` : "À valider"],
         ["taches", count ? `Tâches · ${count}` : "Tâches"],
       ]}
     />
@@ -26,7 +29,7 @@ export function PlanningTaches({ value, count }: { value: Vue; count?: number })
 }
 
 /** Téléphone : le sélecteur collé en haut de l'écran, comme Clients · Chevaux. */
-export function PlanningTachesHaut(props: { value: Vue; count?: number }) {
+export function PlanningTachesHaut(props: { value: Vue; count?: number; aValider?: number }) {
   return (
     <div className="ch-cchd">
       <PlanningTaches {...props} />

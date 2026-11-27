@@ -298,7 +298,7 @@ function PaletteInner() {
       { id: "g-pros", group: "Aller à", label: "Les pros", sub: "dans Mon écurie", ic: "user", run: go("/contacts") },
       ...plus.map((it) => ({ id: `r-${it.id}`, group: "Aller à", label: it.label, sub: it.sub, ic: it.ic, hint: HINTS[it.id], run: go(it.href ?? "/reglages") })),
       { id: "g-recherche", group: "Aller à", label: "Chercher", sub: "un cheval, un client", ic: "search", run: go("/recherche") },
-      { id: "g-valider", group: "Aller à", label: "Ce qui est fait", sub: "dans Planning", ic: "ck", run: go("/valider") },
+      { id: "g-valider", group: "Aller à", label: "À valider", sub: "dans Planning", ic: "ck", run: go("/valider") },
       { id: "g-equipe", group: "Aller à", label: "Tâches de l’équipe", sub: "dans Planning", ic: "board", hint: "G T", run: go("/equipe") },
       { id: "g-clients", group: "Aller à", label: "Mes clients", sub: FACTURATION ? "qui te doit quoi" : "ce que chacun te rapporte", ic: "people", hint: "G K", run: go("/chevaux?vue=clients") },
       { id: "g-leviers", group: "Aller à", label: "Idées pour gagner plus", sub: "dans Mon bilan", ic: "bulb", hint: "G L", run: go("/argent?vue=leviers") },

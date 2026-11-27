@@ -40,17 +40,18 @@ const AIDES_BRUTES: Record<string, Aide> = {
     points: [
       "Tout ce qui est prévu, jour par jour : séances, soins, tâches.",
       "Sous les jours, un résumé de la journée choisie : ce qui est fait et ce qui reste prévu.",
-      "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
+      "Une séance passée attend d’être validée : elle ne compte qu’une fois validée. Les soins passés comptent tout seuls.",
       "En bas, les tâches de l’équipe.",
     ],
   },
   valider: {
     id: "valider",
-    titre: "Ce qui est fait",
-    bulle: "Pas eu lieu ? Retire la ligne",
+    titre: "À valider",
+    bulle: "Valide ce qui a eu lieu",
     cible: "haut",
     points: [
-      "Ce qui a eu lieu compte tout seul. Pas eu lieu ? Retire la ligne.",
+      "Une séance passée ne compte qu’une fois validée : « Valider », ou « Tout valider » pour un jour.",
+      "Pas eu lieu ? Ouvre la séance pour l’annuler. Déjà validée par erreur ? Retire la ligne plus bas.",
       FACTURATION ? "Une séance faite compte dans ton bilan et dans ce que le client te doit." : "Une séance faite compte dans ton bilan et dans ce que le client te rapporte.",
       "Un cours à plusieurs : chaque cavalier compte. Ouvre la séance pour retirer un absent.",
     ],

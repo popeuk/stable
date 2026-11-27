@@ -15,6 +15,9 @@ import { useUiStore } from "@/stores/ui-store";
 import { dayItems, dayTones, type DayItem } from "@/lib/domain/seances";
 import { addDays, weekdayIndex } from "@/components/bs/dates";
 import { localToday } from "@/lib/utils/local-date";
+import { PlanningTaches, PlanningTachesHaut } from "@/components/bs/planning-taches";
+import { aValider as joursAValider } from "@/lib/domain/compte-auto";
+import { enLigneDuTemps, duree } from "@/lib/domain/journee-temps";
 import { heure } from "@/lib/utils/heure";
 
 /**
@@ -89,12 +92,29 @@ function Planning() {
     return { count: ss.length, validated, planned };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, rangeKey, view, today, now]);
+  // Les séances passées qui attendent d'être validées (elles ne comptent pas avant) et les tâches ouvertes.
+  const av = useMemo(() => joursAValider(data, today, now), [data, today, now]);
+  const nAV = av.reduce((t, j) => t + j.seances.length, 0);
+  const totalAV = av.reduce((t, j) => t + j.total, 0);
+  const faitListe = data.taskLists?.find((l) => l.isDone)?.id;
+  const nTaches = (data.tasks ?? []).filter((t) => t.listId !== faitListe && !(t.kind === "rdv" && t.due && t.due.slice(0, 10) < today)).length;
+  const carteAV =
+    nAV > 0 ? (
+      <Link href="/valider" className="jr-avalider rise" style={{ animationDelay: ".2s" }}>
+        <b>{nAV}</b>
+        <span>
+          <strong>séance{nAV > 1 ? "s" : ""} à valider</strong>
+          <small>{totalAV > 0 ? `${sg(totalAV)} au décompte une fois validée${nAV > 1 ? "s" : ""}` : "Elles ne comptent pas tant qu’elles ne sont pas validées"}</small>
+        </span>
+        <Ic n="chev" className="chev" />
+      </Link>
+    ) : null;
   // Ce qui a compté : toujours à portée, en bas du planning (les tâches ont leur onglet en haut).
   const liens = (
     <nav className="jr-liens" aria-label="Aussi dans le planning">
       <Link href="/valider">
         <Ic n="ck" />
-        <span>Ce qui est fait</span>
+        <span>{nAV ? `À valider · ${nAV}` : "À valider et déjà fait"}</span>
         <Ic n="chev" className="chev" />
       </Link>
     </nav>
@@ -213,6 +233,10 @@ function Planning() {
               {viewSeg}
             </div>
           </div>
+          <div style={{ margin: "4px 0 12px", maxWidth: 420 }}>
+            <PlanningTaches value="planning" count={nTaches} aValider={nAV} />
+          </div>
+          {carteAV}
           {view === "semaine" ? (
             <WeekGrid days={week} today={today} now={now} onPickDay={(d) => openNoter({ mode: "seance", date: d })} />
           ) : (
@@ -287,6 +311,7 @@ function Planning() {
 
   return (
     <Screen>
+      <PlanningTachesHaut value="planning" count={nTaches} aValider={nAV} />
       <div
         onTouchStart={(e) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, done: false })}
         onTouchMove={(e) => {
@@ -423,6 +448,7 @@ function Planning() {
         )}
 
         {view === "semaine" && resume}
+        {carteAV && <div className="pad">{carteAV}</div>}
         {view === "mois" && (
           <div className="pad rise" style={{ animationDelay: ".2s", marginTop: 14 }}>
             {trio("jr-plan")}
@@ -451,9 +477,20 @@ function Planning() {
                 .map(([label, ill, its], i) => (
                   <Sec key={label} ill={ill} title={label} delay={0.28 + i * 0.08}>
                     <div className="rows">
-                      {its.map((it) => (
-                        <DayBlock key={it.key} it={it} />
-                      ))}
+                      {enLigneDuTemps(its, sel === today && dansLeGroupe(label, now) ? now : null).map((p) =>
+                        p.kind === "item" ? (
+                          <DayBlock key={p.it.key} it={p.it} />
+                        ) : p.kind === "libre" ? (
+                          <div key={p.key} className="jr-libre">
+                            Libre · {duree(p.minutes)}
+                          </div>
+                        ) : (
+                          <div key={p.key} className="jr-maintenant" role="img" aria-label={`Maintenant, ${heure(now)}`}>
+                            <time>{heure(now)}</time>
+                            <span>Maintenant</span>
+                          </div>
+                        ),
+                      )}
                     </div>
                   </Sec>
                 ))
@@ -478,6 +515,13 @@ function Planning() {
       <div className="end" />
     </Screen>
   );
+}
+
+/** Le repère « Maintenant » se pose dans le groupe (matin, après-midi, soir) de l'heure qu'il est. */
+function dansLeGroupe(label: string, now: string): boolean {
+  if (label === "Le matin") return now < "12:00";
+  if (label === "L’après-midi") return now >= "12:00" && now < "17:00";
+  return now >= "17:00";
 }
 
 /** Les tâches de l'équipe, en section en bas du planning : ce qui reste à faire, et le tableau complet. */

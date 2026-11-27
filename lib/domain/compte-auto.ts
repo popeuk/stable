@@ -1,16 +1,18 @@
-import type { ISODate, Period, StableData } from "@/lib/domain/types";
+import type { ISODate, Period, Seance, StableData } from "@/lib/domain/types";
 import { addDays } from "@/lib/domain/care";
 import { clientDues, type ClientDue } from "@/lib/domain/clients-dus";
-import { careToValidate, dayItems, seanceToValidate, type DayItem } from "@/lib/domain/seances";
+import { careToValidate, dayItems, seanceAmount, seanceToValidate, type DayItem } from "@/lib/domain/seances";
 import { addMonths, daysInMonth } from "@/lib/utils/period";
 import { r2 } from "@/lib/utils/arrondi";
 
 /**
- * Tout compte, tu retires. Ce qui est au planning et dont l'heure est passée
- * compte tout seul : une séance prévue devient faite (tous les inscrits
- * présents), un soin prévu passe au carnet à sa date. Le gérant retire
- * seulement ce qui n'a pas eu lieu. Les tâches ne sont pas concernées, une
- * séance sans inscrit ni cheval ne crée rien. Domaine pur, zéro framework.
+ * Ce qui compte, et quand. Depuis le 27 novembre 2026 (décision de Samuel,
+ * validation reprise de l'app du Clos) : **une séance ne compte que validée**.
+ * Passée, elle attend dans « À valider » ; le gérant la valide (d'un geste,
+ * ou tout un jour d'un coup) ou dit qu'elle n'a pas eu lieu. Les soins
+ * passés, eux, comptent toujours tout seuls (passent au carnet à leur date).
+ * Les tâches ne sont pas concernées, une séance sans inscrit ni cheval ne
+ * crée rien. Domaine pur, zéro framework.
  */
 
 export interface SoinACompter {
@@ -23,11 +25,13 @@ export interface SoinACompter {
 }
 
 export interface ACompter {
+  /** Les séances finies, encore prévues : à valider par le gérant, elles ne comptent pas seules. */
   seances: string[];
+  /** Les soins passés : ils comptent tout seuls. */
   soins: SoinACompter[];
 }
 
-/** Ce qui doit compter maintenant : séances finies, soins passés, encore « prévus ». */
+/** Ce qui est passé et encore « prévu » : les séances à valider, les soins à compter. */
 export function aCompter(data: Pick<StableData, "seances" | "careEvents">, today: ISODate, nowHHMM: string): ACompter {
   const seances = (data.seances ?? []).filter((s) => seanceToValidate(s, today, nowHHMM)).map((s) => s.id);
   const groupes = new Map<string, SoinACompter>();
@@ -43,6 +47,32 @@ export function aCompter(data: Pick<StableData, "seances" | "careEvents">, today
 }
 
 export const rienACompter = (p: ACompter) => p.seances.length === 0 && p.soins.length === 0;
+
+export interface JourAValider {
+  date: ISODate;
+  seances: Seance[];
+  /** Ce que la journée ajoutera au décompte une fois validée. */
+  total: number;
+}
+
+/** Les séances à valider, jour par jour, du plus récent au plus ancien, chacune dans l'ordre des heures. */
+export function aValider(data: Pick<StableData, "seances">, today: ISODate, nowHHMM: string): JourAValider[] {
+  const parJour = new Map<string, Seance[]>();
+  for (const s of data.seances ?? []) {
+    if (!seanceToValidate(s, today, nowHHMM)) continue;
+    parJour.set(s.date, [...(parJour.get(s.date) ?? []), s]);
+  }
+  return [...parJour.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([date, ss]) => {
+      const seances = [...ss].sort((a, b) => a.start.localeCompare(b.start));
+      return { date, seances, total: r2(seances.reduce((t, s) => t + seanceAmount({ ...s, status: "done" }), 0)) };
+    });
+}
+
+/** Combien de séances attendent d'être validées. */
+export const nbAValider = (data: Pick<StableData, "seances">, today: ISODate, nowHHMM: string) =>
+  (data.seances ?? []).filter((s) => seanceToValidate(s, today, nowHHMM)).length;
 
 /** Ce qui a compté un jour : les séances faites et les soins faits (pas les tâches). */
 export function aCompteLe(data: StableData, date: ISODate, today: ISODate, nowHHMM: string): DayItem[] {

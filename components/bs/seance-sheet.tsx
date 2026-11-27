@@ -1,5 +1,6 @@
 "use client";
 
+import { prixDe } from "@/lib/domain/prix-client";
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useFeuille } from "@/components/bs/feuille";
@@ -95,7 +96,7 @@ function Inner({ seance }: { seance: Seance }) {
   const nLa = seance.participants.filter(estLa).length;
   const aChange = seance.status !== "done" || seance.participants.some((p) => estLa(p) !== (p.present !== false));
   // Ce que l'appel ferait compter : les présents, plus les absents si la séance les facture. Un forfait a déjà payé.
-  const montantAppel = Math.round(seance.unitPrice * seance.participants.filter((p) => !p.forfait && (estLa(p) || seance.chargeAbsent)).length * 100) / 100;
+  const montantAppel = Math.round(seance.participants.filter((p) => !p.forfait && (estLa(p) || seance.chargeAbsent)).reduce((t, p) => t + prixDe(p, seance.unitPrice), 0) * 100) / 100;
 
   function cancel() {
     const snap = snapshot();
@@ -434,8 +435,10 @@ function Inscrire({ seance, passee }: { seance: Seance; passee: boolean }) {
     const horseId = owner?.id ?? (seance.horseIds.length ? seance.horseIds[seance.participants.length % seance.horseIds.length] : undefined);
     const participants = [...seance.participants, { personId, horseId }];
     st.updateSeance(seance.id, { participants, updatedBy: gerant }, "one");
-    if (passee) recompter(participants);
-    say(passee ? `<strong>${esc(v)}</strong> ajouté à ${esc(seance.title)}, c’est compté.` : `<strong>${esc(v)}</strong> inscrit à ${esc(seance.title)}.`, () => useDataStore.setState(snap));
+    // Une séance déjà validée recompte avec le nouvel inscrit ; une séance passée pas encore validée attend « À valider ».
+    const faite = seance.status === "done";
+    if (faite) recompter(participants);
+    say(faite ? `<strong>${esc(v)}</strong> ajouté à ${esc(seance.title)}, c’est compté.` : `<strong>${esc(v)}</strong> inscrit à ${esc(seance.title)}.`, () => useDataStore.setState(snap));
   }
   /** Ajouté après coup : la séance compte tout de suite, au prix figé, les absents restent absents. */
   function recompter(participants: Seance["participants"]) {
@@ -485,7 +488,7 @@ function Inscrire({ seance, passee }: { seance: Seance; passee: boolean }) {
             const st = useDataStore.getState();
             const snap = { seances: st.seances, revenues: st.revenues };
             st.updateSeance(seance.id, { horseIds: ids, updatedBy: gerant }, "one");
-            if (passee) {
+            if (passee && seance.status === "done") {
               if (seance.participants.length || ids.length) recompter(seance.participants);
               else st.unvalidateSeance(seance.id);
             }

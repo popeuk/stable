@@ -10,10 +10,10 @@ const CINQ_MINUTES = 5 * 60_000;
 /**
  * L'autopilote de l'écurie : à l'ouverture de l'app (et à chaque retour au
  * premier plan), les pensions du mois se postent et les rythmes de la
- * semaine se matérialisent. Puis tout ce qui est passé compte tout seul :
- * séances et soins encore prévus dont l'heure est passée, à l'ouverture,
- * toutes les 5 minutes et au retour au premier plan. Sans message : le
- * gérant retire seulement ce qui n'a pas eu lieu.
+ * semaine se matérialisent. Puis les soins passés comptent tout seuls, à
+ * l'ouverture, toutes les 5 minutes et au retour au premier plan. Les
+ * séances passées, elles, attendent d'être validées (« À valider »,
+ * décision du 27 novembre 2026).
  */
 export function Autopilot() {
   const hydrated = useDataStore((s) => s.hydrated);

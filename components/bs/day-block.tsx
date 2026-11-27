@@ -73,8 +73,11 @@ export function useCheck() {
   );
 }
 
-/** Une séance ou un soin passé : il a compté (ou va compter dans la minute). */
-export const aCompte = (it: DayItem) => it.type !== "task" && (it.done || it.late);
+/** Ce qui a compté : une séance validée, un soin passé (il compte tout seul). */
+export const aCompte = (it: DayItem) => (it.type === "seance" ? it.done : it.type !== "task" && (it.done || it.late));
+
+/** Une séance passée qui attend d'être validée (lib/domain/compte-auto). */
+export const aValiderIt = (it: DayItem) => it.type === "seance" && !it.done && it.late;
 
 /**
  * Une ligne de la journée, dans le carnet : l'heure, ce qui se passe, ce que
@@ -89,6 +92,18 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
     if (it.seance) openSeance(it.seance.id);
   };
   const compte = aCompte(it);
+  const attend = aValiderIt(it);
+  const say = useUiStore((s) => s.say);
+  const valider = () => {
+    if (!it.seance) return;
+    // Un cours à plusieurs : on dit qui était là dans la feuille de la séance.
+    if ((it.seance.participants.length ?? 0) > 1) return open();
+    const st = useDataStore.getState();
+    const snap = { seances: st.seances, revenues: st.revenues };
+    st.validateSeance(it.seance.id, {});
+    vibrer();
+    say(`Validée : <strong>${esc(it.title)}</strong>${it.money ? `, ${sg(it.money)}` : ""}.`, () => useDataStore.setState(snap));
+  };
   const sub = it.sub || (it.type === "task" ? (it.task?.kind === "rdv" ? "rendez-vous" : "tâche d’équipe") : "");
   const body = (
     <>
@@ -100,14 +115,15 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
         )}
         {it.title}
       </b>
-      {(compte || sub) && (
+      {(compte || attend || sub) && (
         <small>
           {compte && (
             <span className="cp-ok">
               <Ic n="ck" className="" />fait
             </span>
           )}
-          {compte && sub ? " · " : ""}
+          {attend && <span className="cp-attend">à valider</span>}
+          {(compte || attend) && sub ? " · " : ""}
           {sub}
         </small>
       )}
@@ -127,6 +143,10 @@ export function DayBlock({ it, showTime = true }: { it: DayItem; showTime?: bool
         <span className={`amt ${moneyClsIt(it)}`}>{it.money ? sg(it.money) : ""}</span>
         {it.task ? (
           <Check on={it.done} onClick={() => !it.done && check(it)} label={it.done ? `${it.title} : fait` : `C’est fait : ${it.title}`} />
+        ) : attend ? (
+          <button type="button" className="cp-valider" onClick={valider} aria-label={`Valider : ${it.title}`}>
+            Valider
+          </button>
         ) : compte ? (
           <button type="button" className="cp-rm" onClick={() => retirer(ligneDe(it))} aria-label={`Pas eu lieu ? Retirer : ${it.title}`}>
             <Ic n="x" className="" />

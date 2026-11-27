@@ -17,7 +17,7 @@ class Mem {
 }
 (globalThis as unknown as { localStorage: Mem }).localStorage = new Mem();
 
-const { aCompter, rienACompter, aCompteLe, ceQuiACompte, finDuMois, clientsAFairePayer, demandePresence, estCollectif } = await import("@/lib/domain/compte-auto");
+const { aCompter, aValider, rienACompter, aCompteLe, ceQuiACompte, finDuMois, clientsAFairePayer, demandePresence, estCollectif } = await import("@/lib/domain/compte-auto");
 const { useDataStore } = await import("@/stores/data-store");
 
 const S = (o: Partial<Seance> & { id: string }): Seance => ({
@@ -94,14 +94,23 @@ describe("ce qui doit compter", () => {
 describe("le compteur automatique (store)", () => {
   const charger = (d: StableData) => useDataStore.setState({ ...d, seances: d.seances, careEvents: d.careEvents });
 
-  it("compte la séance passée comme une validation, tous présents, et pas la future", () => {
+  it("ne compte plus une séance passée toute seule : elle attend d'être validée (27 novembre 2026)", () => {
+    charger(base([S({ id: "passe", horseIds: ["h1"], unitPrice: 35 })]));
+    expect(useDataStore.getState().compterLePasse("2026-10-16", "12:00")).toBe(0);
+    const st = useDataStore.getState();
+    expect(st.seances?.find((s) => s.id === "passe")?.status).toBe("planned");
+    expect(st.revenues).toHaveLength(0);
+    expect(aValider(st, "2026-10-16", "12:00").map((j) => [j.date, j.seances.map((x) => x.id), j.total])).toEqual([["2026-10-15", ["passe"], 35]]);
+  });
+
+  it("valider compte la séance, tous présents, et pas la future", () => {
     charger(
       base([
         S({ id: "passe", horseIds: ["h1"], unitPrice: 35 }),
         S({ id: "futur", horseIds: ["h1"], unitPrice: 35, date: "2026-10-17" }),
       ]),
     );
-    expect(useDataStore.getState().compterLePasse("2026-10-16", "12:00")).toBe(1);
+    useDataStore.getState().validerSeances(aCompter(useDataStore.getState(), "2026-10-16", "12:00").seances);
     const st = useDataStore.getState();
     expect(st.seances?.find((s) => s.id === "passe")?.status).toBe("done");
     expect(st.seances?.find((s) => s.id === "futur")?.status).toBe("planned");
@@ -117,7 +126,7 @@ describe("le compteur automatique (store)", () => {
         }),
       ]),
     );
-    useDataStore.getState().compterLePasse("2026-10-16", "12:00");
+    useDataStore.getState().validerSeances(["coll"]);
     const st = useDataStore.getState();
     const s = st.seances!.find((x) => x.id === "coll")!;
     expect(s.status).toBe("done");
@@ -125,7 +134,7 @@ describe("le compteur automatique (store)", () => {
     expect(st.revenues.filter((r) => r.seanceId === "coll").map((r) => r.payer).sort()).toEqual(["Emma", "Lou", "Nina"]);
   });
 
-  it("une séance sans inscrit ni cheval ne crée rien", () => {
+  it("une séance sans inscrit ni cheval n'attend pas d'être validée et ne crée rien", () => {
     charger(base([S({ id: "vide", format: "collectif", places: 6, unitPrice: 25 })]));
     expect(useDataStore.getState().compterLePasse("2026-10-16", "12:00")).toBe(0);
     const st = useDataStore.getState();
@@ -167,7 +176,7 @@ describe("le compteur automatique (store)", () => {
 
   it("est idempotent : relancé, il ne crée rien de plus", () => {
     charger(base([S({ id: "passe", horseIds: ["h1"], unitPrice: 35 })], [C({ id: "f1", horseId: "h2", cost: 70, revenue: 78 })]));
-    expect(useDataStore.getState().compterLePasse("2026-10-16", "12:00")).toBe(2);
+    expect(useDataStore.getState().compterLePasse("2026-10-16", "12:00")).toBe(1);
     const avant = useDataStore.getState();
     const n = { rev: avant.revenues.length, dep: avant.directExpenses.length };
     expect(useDataStore.getState().compterLePasse("2026-10-16", "12:05")).toBe(0);

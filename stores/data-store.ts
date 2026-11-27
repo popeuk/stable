@@ -41,7 +41,7 @@ import { scopedKey } from "@/lib/account/session";
 import { revenuesForSeance } from "@/lib/domain/seances";
 import { SAISON_MOIS, couvreMois, ensureForfaits, marquerForfaits, moisPlus } from "@/lib/domain/forfaits";
 import { sansPrixDExemple } from "@/lib/domain/prix-exemple";
-import { aCompter, rienACompter } from "@/lib/domain/compte-auto";
+import { aCompter } from "@/lib/domain/compte-auto";
 import { addDays as addDaysIso, diffDays } from "@/lib/domain/care";
 import { localToday } from "@/lib/utils/local-date";
 import { prosDeLEquipe } from "@/lib/domain/pros";
@@ -108,7 +108,10 @@ interface DataState extends StableData {
    * comptent tout seuls (tous présents, à leur date). Idempotent, sans
    * message. Renvoie combien d'éléments ont compté.
    */
+  /** Les soins passés comptent tout seuls ; rend combien. Les séances, non : elles attendent « À valider ». */
   compterLePasse: (today: string, nowHHMM: string) => number;
+  /** Valide des séances passées, tous les inscrits présents (un jour entier d'un geste). */
+  validerSeances: (ids: string[]) => void;
   addRevenue: (r: Omit<Revenue, "id" | "stableId">) => void;
   addDirectExpense: (e: Omit<DirectExpense, "id" | "stableId">) => void;
   addSharedExpense: (e: Omit<SharedExpense, "id" | "stableId">) => void;
@@ -717,12 +720,16 @@ export const useDataStore = create<DataState>()(
           };
         }),
 
+      // Seuls les soins passés comptent tout seuls : une séance attend d'être validée (lib/domain/compte-auto).
       compterLePasse: (today, nowHHMM) => {
         const plan = aCompter(get(), today, nowHHMM);
-        if (rienACompter(plan)) return 0;
-        for (const sid of plan.seances) get().validateSeance(sid, {});
+        if (plan.soins.length === 0) return 0;
         for (const g of plan.soins) get().confirmSession(g.ids, g.horseIds, g.date);
-        return plan.seances.length + plan.soins.length;
+        return plan.soins.length;
+      },
+
+      validerSeances: (ids) => {
+        for (const sid of ids) get().validateSeance(sid, {});
       },
 
       addRecurringExpense: (e) =>

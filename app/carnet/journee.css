@@ -274,3 +274,28 @@
 .carnet .jr-valide { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; font-size: 13.5px; font-weight: 600; color: var(--ink2); }
 .carnet .jr-valide svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .carnet .field > .jr-sub { display: block; margin-top: 14px; font-size: 12.5px; font-weight: 600; color: var(--ink2); }
+
+/* ---- À valider et la journée en ligne du temps (27 novembre 2026, repris de l'app du Clos) ---- */
+.carnet .cp-attend { color: var(--out); font-weight: 650; }
+.carnet .cp-valider { height: 34px; padding: 0 14px; border: 0; border-radius: var(--ctl-r, 10px); background: var(--vert); color: #fff; font: inherit; font-size: 13.5px; font-weight: 680; white-space: nowrap; cursor: pointer; transition: transform .15s ease-out; }
+.carnet .cp-valider:active { transform: scale(.97); }
+.carnet .cp-valider.line { background: none; color: var(--vert); box-shadow: inset 0 0 0 1.5px var(--vert); }
+.carnet .jr-avalider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: #FCE3EC; color: var(--vert-deep); text-decoration: none; }
+.carnet .jr-avalider > b { font-size: 26px; font-weight: 800; letter-spacing: -.03em; color: var(--out); font-variant-numeric: tabular-nums; }
+.carnet .jr-avalider strong { display: block; font-size: 15px; font-weight: 720; }
+.carnet .jr-avalider small { display: block; font-size: 12.5px; color: var(--ink2); }
+.carnet .jr-avalider .chev { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+.carnet .jr-libre { padding: 4px 0 4px 56px; font-size: 12.5px; font-weight: 600; color: var(--ink3); background: repeating-linear-gradient(to bottom, transparent 0 3px, transparent 3px 6px); }
+.carnet .jr-maintenant { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; padding: 2px 0; }
+.carnet .jr-maintenant time { font-size: 12.5px; font-weight: 750; color: var(--out); font-variant-numeric: tabular-nums; }
+.carnet .jr-maintenant span { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 800; color: var(--out); }
+.carnet .jr-maintenant span::after { content: ""; flex: 1; height: 2px; border-radius: 1px; background: var(--rose); }
+.carnet .av-tout { height: 30px; padding: 0 12px; border: 0; border-radius: 9px; background: var(--vert); color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.carnet .av-ligne .amt { font-variant-numeric: tabular-nums; }
+.carnet .av-note { margin: 8px 0 0; }
+.carnet .av-faits { display: flex; align-items: center; gap: 6px; margin: 26px 16px 4px; font-size: 15px; font-weight: 750; color: var(--ink2); }
+.carnet .av-faits svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; }
+@media (prefers-reduced-motion: reduce) { .carnet .cp-valider { transition: none; } }
+/* Une ligne qui attend d'être validée : la dernière colonne prend la place du bouton. */
+.carnet .row:has(> .cp-valider) { grid-template-columns: 40px minmax(0, 1fr) auto auto; }
+.carnet .row > .cp-valider { height: 32px; padding: 0 12px; font-size: 13px; }

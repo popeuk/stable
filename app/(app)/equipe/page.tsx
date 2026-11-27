@@ -16,6 +16,7 @@ import type { TeamTask } from "@/lib/domain/types";
 import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { useFeuille } from "@/components/bs/feuille";
 import { heure } from "@/lib/utils/heure";
+import { nbAValider } from "@/lib/domain/compte-auto";
 
 /**
  * Le tableau de l'équipe : des colonnes (À faire, En cours, Fait), des
@@ -106,6 +107,7 @@ function Equipe() {
   }
 
   const ouvertes = (data.tasks ?? []).filter((t) => !lists.find((l) => l.id === t.listId)?.isDone).length;
+  const nAV = nbAValider(data, today, `${String(new Date().getHours()).padStart(2, "0")}:${String(new Date().getMinutes()).padStart(2, "0")}`);
   const isDone = (t: TeamTask) => !!lists.find((l) => l.id === t.listId)?.isDone;
   // Un rendez-vous passé n'est pas « en retard » : il a eu lieu.
   const isLate = (t: TeamTask) => t.kind !== "rdv" && !!t.due && t.due.slice(0, 10) < today && !isDone(t);
@@ -199,11 +201,11 @@ function Equipe() {
 
   return (
     <Screen wide={desk}>
-      {!desk && <PlanningTachesHaut value="taches" count={ouvertes} />}
+      {!desk && <PlanningTachesHaut value="taches" count={ouvertes} aValider={nAV} />}
       <div className="jr-equipe">
         {desk && (
           <div style={{ marginBottom: 12 }}>
-            <PlanningTaches value="taches" count={ouvertes} />
+            <PlanningTaches value="taches" count={ouvertes} aValider={nAV} />
           </div>
         )}
         <div className="over rise" style={{ animationDelay: ".02s" }}>
