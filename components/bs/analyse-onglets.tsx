@@ -35,3 +35,26 @@ export function AnalyseOnglets() {
     </nav>
   );
 }
+
+const VITRINE: [string, string, string][] = [
+  ["/ma-fiche", "Ma fiche", "Ce que voient les cavaliers sur bestable.fr."],
+  ["/mon-site", "Mon site", "Ton site, fait à partir de ta fiche."],
+];
+
+/**
+ * La Vitrine (DA de l'app du Clos, 27 novembre 2026) : l'en-tête vert, une
+ * phrase, puis Ma fiche et Mon site en pastilles. Dans la coque, comme
+ * l'Analyse ; chargé à part (components/bs/analyse-onglets-differe.tsx).
+ */
+export function VitrineOnglets() {
+  const router = useRouter();
+  const path = (usePathname() ?? "").replace(/(.)\/$/, "$1");
+  if (!QUATRE_PARTIES || !VITRINE.some(([href]) => href === path)) return null;
+  const ici = VITRINE.find(([href]) => href === path);
+  return (
+    <nav className="da-ana" aria-label="Vitrine">
+      <TeteVerte titre="Vitrine" sous={ici?.[2]} />
+      <Onglets label="Les parties de la Vitrine" items={VITRINE.map(([href, nom]) => ({ key: href, titre: nom, on: path === href, go: () => path !== href && router.replace(href) }))} />
+    </nav>
+  );
+}

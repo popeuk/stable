@@ -1,5 +1,8 @@
 "use client";
 
+import { QUATRE_PARTIES } from "@/lib/fonctions";
+import { TeteVerte } from "@/components/da/tete-verte";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ClientGate } from "@/components/ui/client-gate";
@@ -106,10 +109,14 @@ function Demandes() {
 
   const gauche = (
     <>
-      <header className="dm-hd">
-        <h1>Demandes</h1>
-        <p>Les cavaliers qui t’ont écrit depuis ta fiche.</p>
-      </header>
+      {QUATRE_PARTIES ? (
+        <TeteVerte titre="Demandes" sous="Les cavaliers qui t’ont écrit depuis ta fiche." />
+      ) : (
+        <header className="dm-hd">
+          <h1>Demandes</h1>
+          <p>Les cavaliers qui t’ont écrit depuis ta fiche.</p>
+        </header>
+      )}
       {etat === "inconnu" && patience ? null : etat !== "pret" || !fiche ? (
         <Vide
           titre="Les demandes des cavaliers arriveront ici"

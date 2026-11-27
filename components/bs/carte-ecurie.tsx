@@ -1,6 +1,7 @@
 "use client";
 
 import { EcurieTete } from "@/components/bs/ecurie-tete";
+import { TeteVerte } from "@/components/da/tete-verte";
 import { EquipeEcurie } from "@/components/bs/equipe-ecurie";
 
 import Link from "next/link";
@@ -286,10 +287,14 @@ export function Reglages() {
   }, []);
   return (
     <div className="ce">
-      <header className="ce-hd rise">
-        <h1>Réglages</h1>
-        <p>L’app sur {ici} : {ARGENT_VISIBLE ? "compte, rappel, affichage" : "compte, affichage"}.</p>
-      </header>
+      {QUATRE_PARTIES ? (
+        <TeteVerte titre="Réglages" sous={`L’app sur ${ici} : ${ARGENT_VISIBLE ? "compte, rappel, affichage" : "compte, affichage"}.`} />
+      ) : (
+        <header className="ce-hd rise">
+          <h1>Réglages</h1>
+          <p>L’app sur {ici} : {ARGENT_VISIBLE ? "compte, rappel, affichage" : "compte, affichage"}.</p>
+        </header>
+      )}
       {/* La partie argent masquée (lib/fonctions.ts) : ni rappel du matin, ni Mon écurie, ni tournée, ni catégories de dépenses. */}
       <Case
         titre="Toi"

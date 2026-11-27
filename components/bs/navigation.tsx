@@ -30,7 +30,7 @@ export const TAB_VITRINE = ["/ma-fiche", "/mon-site", "/parcours/tarifs"];
 export const TAB_ANALYSE = [...ANALYSE_ONGLETS, "/audit", "/seuil", "/pilotage", "/part", "/scenarios", "/mois", "/conseiller", "/decouvertes"];
 export const TAB_ECURIE = ["/ecurie", "/chevaux", "/clients", "/client", "/ticket", "/cheval", "/facture", "/prestations", "/depenses", "/facturation", "/contacts", "/registre", "/parcours/factures", "/saisie"];
 // Mon écurie s'ouvre sur les clients ; clients, chevaux, prestations et « Plus » sont ses onglets (components/bs/ecurie-tete.tsx).
-export const ROOTS2 = QUATRE_PARTIES ? ["/accueil", "/planning", "/ma-fiche", ...ANALYSE_ONGLETS, "/ecurie", "/chevaux", "/prestations"] : ROOTS_AVANT;
+export const ROOTS2 = QUATRE_PARTIES ? ["/accueil", "/planning", "/ma-fiche", ...ANALYSE_ONGLETS, "/ecurie", "/chevaux", "/prestations", "/mon-site"] : ROOTS_AVANT;
 /** Les écrans de Mon argent et du planning : sous cadenas ou « bientôt » tant que la brique n'est pas ouverte (components/bs/porte-brique.tsx). */
 export const ARGENT = ["/argent", "/chevaux", "/client", "/ticket", "/seuil", "/pilotage", "/part", "/prestations", "/scenarios", "/mois", "/depenses", "/facture", "/facturation", "/saisie", "/conseiller", "/decouvertes"];
 export const PLANNING = ["/planning", "/valider", "/equipe"];

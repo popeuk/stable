@@ -291,3 +291,9 @@
 .carnet .da-a-valider small { display: block; font-size: 13px; color: var(--out); }
 .carnet .da-a-valider svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 @media (prefers-reduced-motion: reduce) { .carnet .da-mot, .carnet .q5-carte.da-carte-verte .q5-jauge span { animation: none; } .carnet .da-a-valider { transition: none; } }
+
+/* ---- Réglages, Mon écurie « Plus », Vitrine : les cases du carnet posées en cartes, l'ombre du Clos ---- */
+.carnet .ce-case { box-shadow: var(--da-ombre-carte); }
+.carnet .ce > .da-tete + .ce-case, .carnet .ce > .da-tete + * { margin-top: 18px; }
+/* La barre des cinq onglets : autant de colonnes que d'onglets, quel que soit l'ordre de chargement des feuilles (Mon site chargeait la règle à quatre colonnes après celle à cinq). */
+.carnet .tb.q4-tb > div { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
