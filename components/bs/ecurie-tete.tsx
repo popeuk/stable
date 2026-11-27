@@ -11,8 +11,8 @@ import { useUiStore } from "@/stores/ui-store";
 import { useBriques } from "@/components/bs/briques";
 import { estOuverte } from "@/lib/briques";
 
-export type VueEcurie = "clients" | "chevaux" | "prestations" | "plus";
-const ROUTE: Record<VueEcurie, string> = { clients: "/chevaux?vue=clients", chevaux: "/chevaux?vue=chevaux", prestations: "/prestations", plus: "/ecurie" };
+export type VueEcurie = "clients" | "chevaux" | "prestations";
+const ROUTE: Record<VueEcurie, string> = { clients: "/chevaux?vue=clients", chevaux: "/chevaux?vue=chevaux", prestations: "/prestations" };
 
 const plur = (n: number, un: string, des: string) => `${n} ${n > 1 ? des : un}`;
 
@@ -20,8 +20,9 @@ const plur = (n: number, un: string, des: string) => `${n} ${n > 1 ? des : un}`;
  * Le haut de Mon écurie (DA de l'app du Clos, 27 novembre 2026) : l'en-tête
  * vert (« Mon écurie », le nom de l'écurie, le + rose qui note), ce qui
  * compte sur la vue ouverte (des chiffres, en enfants), puis les onglets en
- * pastilles : Clients, Chevaux, Prestations, et le reste (frais, gens,
- * papiers). Comme le registre du Clos, Mon écurie s'ouvre sur les clients.
+ * pastilles : Clients, Chevaux, Prestations. Comme le registre du Clos, Mon
+ * écurie s'ouvre sur les clients ; les frais sont dans Suivi, l'équipe, les
+ * pros et les papiers dans les Réglages.
  */
 export function EcurieTete({ vue, children }: { vue: VueEcurie; children?: ReactNode }) {
   const router = useRouter();
@@ -49,12 +50,11 @@ export function EcurieTete({ vue, children }: { vue: VueEcurie; children?: React
         {children}
       </TeteVerte>
       <Onglets
-        label="Clients, chevaux, prestations ou le reste"
+        label="Clients, chevaux ou prestations"
         items={[
           { key: "clients", titre: "Clients", petit: plur(clients, "client", "clients"), on: vue === "clients", go: () => aller("clients") },
           { key: "chevaux", titre: "Chevaux", petit: plur(chevaux, "cheval", "chevaux"), on: vue === "chevaux", go: () => aller("chevaux") },
           { key: "prestations", titre: "Prestations", petit: `${prestations}`, on: vue === "prestations", go: () => aller("prestations") },
-          { key: "plus", titre: "Plus", petit: "le reste", on: vue === "plus", go: () => aller("plus") },
         ]}
       />
     </>

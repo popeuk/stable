@@ -393,3 +393,4 @@
 .carnet :is(.au-c.mid, .au-regle li.mid) { font-size: inherit; font-weight: inherit; letter-spacing: normal; line-height: normal; font-variation-settings: normal; }
 .carnet .au-groupe h3.mid { font-size: 14px; font-weight: 780; letter-spacing: normal; line-height: normal; font-variation-settings: normal; }
 .carnet .au-regle li.on.mid { font-size: 13px; font-weight: 600; }
+.carnet .da-frais-lien { margin: 16px var(--gut) 4px; padding: 12px 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); }

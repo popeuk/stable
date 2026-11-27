@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/account/api";
 import { getSession } from "@/lib/account/session";
 import { etatsBriques, essaiPossible, jourEssai, type AlerteId, type BriqueId, type EtatBrique, type EtatCompte } from "@/lib/briques";
-import { OUVERTURE } from "@/lib/fonctions";
+import { OUVERTURE, QUATRE_PARTIES } from "@/lib/fonctions";
 import { localToday } from "@/lib/utils/local-date";
 import { useSettingsStore } from "@/stores/settings-store";
 
@@ -54,7 +54,8 @@ export function useBriques(): Briques {
   }, []);
   return useMemo(() => {
     const aujourdhui = localToday();
-    const compte: EtatCompte = { kind: ici.kind, ouvert: ici.ouvert, essaiDebut, aujourdhui };
+    // En préproduction des cinq onglets, tout est ouvert : plus de cadenas pour essayer (27 novembre 2026).
+    const compte: EtatCompte = { kind: ici.kind, ouvert: ici.ouvert, essaiDebut, aujourdhui, toutOuvert: QUATRE_PARTIES };
     const etat = etatsBriques(compte);
     return {
       pret: ici.pret,

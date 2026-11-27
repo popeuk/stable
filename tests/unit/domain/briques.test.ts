@@ -52,4 +52,8 @@ describe("jourEssai, essaiPossible, estOuverte", () => {
   it("ouverte et essai donnent accès, cadenas et bientôt non", () => {
     expect([estOuverte("ouverte"), estOuverte("essai"), estOuverte("cadenas"), estOuverte("bientot")]).toEqual([true, true, false, false]);
   });
+
+  it("tout est ouvert en préproduction des cinq onglets, même sans abonnement", () => {
+    expect(Object.values(etatsBriques(compte({ toutOuvert: true }))).every((e) => e === "ouverte")).toBe(true);
+  });
 });

@@ -7,7 +7,7 @@ import { SessionSync } from "@/components/bs/session-sync";
 import { NuageSync } from "@/components/bs/nuage-sync";
 import { AideCarte, TitreEcran } from "@/components/bs/nav";
 import { RetourOrdinateur } from "@/components/bs/navigation";
-import { AnalyseOnglets, VitrineOnglets } from "@/components/bs/analyse-onglets-differe";
+import { AnalyseOnglets, SuiviOnglets, VitrineOnglets } from "@/components/bs/analyse-onglets-differe";
 import { Secours } from "@/components/bs/secours-garde";
 import { LimiteCoque } from "@/components/bs/ecran-erreur-differe";
 
@@ -46,6 +46,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <RetourOrdinateur />
               <AideCarte />
               <AnalyseOnglets />
+              <SuiviOnglets />
               <VitrineOnglets />
             </div>
           </ClientGate>

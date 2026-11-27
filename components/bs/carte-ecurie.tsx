@@ -1,6 +1,5 @@
 "use client";
 
-import { EcurieTete } from "@/components/bs/ecurie-tete";
 import { TeteVerte } from "@/components/da/tete-verte";
 import { EquipeEcurie } from "@/components/bs/equipe-ecurie";
 
@@ -156,47 +155,6 @@ function TonEcurie() {
   );
 }
 
-/**
- * Mon écurie, l'onglet des cinq (26 novembre 2026) : la brique des chiffres.
- * On y saisit ce que l'Analyse lit : les clients et leurs chevaux, les
- * prestations, les factures, les frais. Les prix et les places sont passés
- * dans la Vitrine. Le « Noter » remplace le + de la barre.
- */
-export function MonEcurieCinq() {
-  const team = useDataStore((s) => s.team) ?? [];
-  const pros = useDataStore((s) => s.pros) ?? [];
-  const factures = useDataStore((s) => (s.invoices ?? []).length);
-  const frais = useDataStore((s) => {
-    const f = fraisDuMois(s);
-    return f.total + f.postes;
-  });
-  const plur = (n: number, un: string, des: string) => `${n} ${n > 1 ? des : un}`;
-  return (
-    <>
-      {/* DA du Clos : Mon écurie s'ouvre sur les clients ; ici, l'onglet « Plus » : frais, gens et papiers. */}
-      <EcurieTete vue="plus" />
-      <div className="ce da-plus-ec">
-      <Case
-        titre="Ce qui rentre et ce qui sort"
-        lignes={[
-          ...(FACTURATION ? [{ href: "/facturation", ic: "doc", t: "Mes factures", s: factures ? plur(factures, "facture", "factures") : "Tes factures et avoirs, le fichier du comptable" }] : []),
-          { href: "/parcours/factures?retour=ecurie", ic: "hay", t: "Mes frais", s: frais ? `${eur(frais)} par mois · foin, paille, loyer…` : "Foin, paille, loyer, salaires" },
-          { href: "/argent?vue=mouvements", ic: "euro", t: "Mes dépenses et recettes", s: "Tout ce que tu as noté, mois par mois" },
-        ]}
-      />
-      <Case
-        titre="Les gens"
-        lignes={[
-          { href: "/moi?s=equipe", ic: "people", t: "Mon équipe", s: noms(team.filter((m) => m.role === "employe").map((m) => m.name), "Ceux qui travaillent à l’écurie") },
-          { href: "/contacts", ic: "user", t: "Les pros", s: noms(pros.map((p) => p.name), "Maréchal, véto, dentiste, ostéo…") },
-        ]}
-      />
-      <Case titre="Papiers" lignes={[{ href: "/moi?s=papiers", ic: "doc", t: "Mes papiers", s: "Lieu de détention, registre d’élevage" }]} />
-      </div>
-    </>
-  );
-}
-
 /** Le bas de la Vitrine (les cinq onglets) : les prix et les places qui servent aux calculs, venus de Mon écurie. */
 export function CoulissesVitrine() {
   const capacity = useSettingsStore((s) => s.capacity);
@@ -265,6 +223,8 @@ export function MonEcurie() {
 }
 
 export function Reglages() {
+  const team = useDataStore((s) => s.team) ?? [];
+  const pros = useDataStore((s) => s.pros) ?? [];
   const reminder = useSettingsStore((s) => s.reminder);
   const evening = useSettingsStore((s) => s.evening);
   const [compte, setCompte] = useState("Sur ce téléphone");
@@ -304,6 +264,18 @@ export function Reglages() {
         ]}
       />
       <EquipeEcurie />
+      {/* Les cinq onglets du Clos : l'équipe, les pros et les papiers vivent dans les Réglages. */}
+      {QUATRE_PARTIES && (
+        <Case
+          titre="Ton écurie"
+          lignes={[
+            { href: "/moi?s=ecurie", ic: "home", t: "Mon écurie", s: "Son nom, tes places" },
+            { href: "/moi?s=equipe", ic: "people", t: "Mon équipe", s: noms(team.filter((m) => m.role === "employe").map((m) => m.name), "Ceux qui travaillent à l’écurie") },
+            { href: "/contacts", ic: "user", t: "Les pros", s: noms(pros.map((p) => p.name), "Maréchal, véto, dentiste, ostéo…") },
+            { href: "/moi?s=papiers", ic: "doc", t: "Mes papiers", s: "Lieu de détention, registre d’élevage" },
+          ]}
+        />
+      )}
       <BoutonDeconnexion />
       {/* Les cinq onglets : Mon écurie a son onglet, il ne passe plus par les Réglages. */}
       {ARGENT_VISIBLE && !QUATRE_PARTIES && (

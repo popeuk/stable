@@ -1,28 +1,24 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { TeteVerte } from "@/components/da/tete-verte";
 import { Onglets } from "@/components/da/onglets";
 import { QUATRE_PARTIES } from "@/lib/fonctions";
 import { ANALYSE_ONGLETS } from "@/components/bs/navigation";
 
 /**
- * Les onglets du haut de l'Analyse (26 novembre 2026, les cinq onglets) :
- * Rentabilité (Mon bilan), Offre (l'offre face au département), Visibilité
- * (l'audit). Posés dans la coque, au-dessus de la porte des briques : ils
- * restent là quand une partie est encore à ouvrir.
+ * Les têtes vertes posées dans la coque (DA de l'app du Clos), chargées à
+ * part (components/bs/analyse-onglets-differe.tsx) : Analyse, Suivi, Vitrine.
+ *
+ * Analyse (27 novembre 2026, comme au Clos) : l'audit en trois volets, Te
+ * trouver, Te choisir, En vivre (lib/audit/grille.ts).
  */
 const ONGLETS: [string, string, string][] = [
-  ["/argent", "Rentabilité", "Ce que ton écurie te laisse, mois par mois."],
-  ["/te-choisir", "Offre", "Ton offre face aux écuries autour de toi."],
-  ["/te-trouver", "Visibilité", "Ce qu’un cavalier trouve de toi en cherchant."],
+  ["/te-trouver", "Te trouver", "Est-ce que les cavaliers tombent sur ton écurie ?"],
+  ["/te-choisir", "Te choisir", "Ce qu’ils comparent avant de t’écrire."],
+  ["/en-vivre", "En vivre", "Ce que chaque cheval te laisse au bout du mois."],
 ];
 
-/**
- * DA de l'app du Clos (27 novembre 2026) : l'en-tête vert « Analyse », une
- * phrase qui dit la partie ouverte, puis les trois parties en pastilles.
- * Rien de lourd ici : ce composant est dans la coque de tous les écrans.
- */
 export function AnalyseOnglets() {
   const router = useRouter();
   const path = (usePathname() ?? "").replace(/(.)\/$/, "$1");
@@ -31,7 +27,32 @@ export function AnalyseOnglets() {
   return (
     <nav className="da-ana" aria-label="Analyse">
       <TeteVerte titre="Analyse" sous={ici?.[2]} />
-      <Onglets label="Les parties de l’Analyse" items={ONGLETS.map(([href, nom]) => ({ key: href, titre: nom, on: path === href, go: () => path !== href && router.replace(href) }))} />
+      <Onglets label="Les volets de l’audit" items={ONGLETS.map(([href, nom]) => ({ key: href, titre: nom, on: path === href, go: () => path !== href && router.replace(href) }))} />
+    </nav>
+  );
+}
+
+/**
+ * Suivi (27 novembre 2026, comme au Clos) : l'argent du mois, en deux onglets,
+ * Bilan et Revenus et frais (/argent et /argent?vue=mouvements). Les idées
+ * pour gagner plus restent sous le Bilan.
+ */
+export function SuiviOnglets() {
+  const router = useRouter();
+  const path = (usePathname() ?? "").replace(/(.)\/$/, "$1");
+  const vue = useSearchParams().get("vue");
+  if (!QUATRE_PARTIES || path !== "/argent") return null;
+  const frais = vue === "mouvements";
+  return (
+    <nav className="da-ana" aria-label="Suivi">
+      <TeteVerte titre="Suivi" sous="Ce que le mois rapporte et ce qu’il coûte." />
+      <Onglets
+        label="Bilan, revenus et frais"
+        items={[
+          { key: "bilan", titre: "Bilan", petit: "le mois", on: !frais, go: () => frais && router.replace("/argent") },
+          { key: "frais", titre: "Revenus et frais", petit: "tout ce qui est noté", on: frais, go: () => !frais && router.replace("/argent?vue=mouvements") },
+        ]}
+      />
     </nav>
   );
 }

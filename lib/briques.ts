@@ -43,6 +43,8 @@ export interface EtatCompte {
   abonne?: boolean;
   /** Aujourd'hui (AAAA-MM-JJ). */
   aujourdhui: string;
+  /** Tout ouvert, sans cadenas ni essai : la préproduction des cinq onglets (décision de Samuel, 27 novembre 2026). */
+  toutOuvert?: boolean;
 }
 
 export const DUREE_ESSAI = 7;
@@ -59,7 +61,7 @@ export function jourEssai(debut: string, aujourdhui: string): number {
 /** L'état de chaque brique pour ce compte. */
 export function etatsBriques(c: EtatCompte): Record<BriqueId, EtatBrique> {
   // La démo montre l'app entière ; l'écurie essayée sans compte garde le fonctionnement d'avant.
-  if (c.kind !== "compte") return { vitrine: "ouverte", demandes: "ouverte", argent: "ouverte", planning: "ouverte", site: "ouverte", trouver: "ouverte", choisir: "ouverte" };
+  if (c.kind !== "compte" || c.toutOuvert) return { vitrine: "ouverte", demandes: "ouverte", argent: "ouverte", planning: "ouverte", site: "ouverte", trouver: "ouverte", choisir: "ouverte" };
   let payant: EtatBrique;
   if (!c.ouvert) payant = "bientot";
   else if (c.abonne) payant = "ouverte";

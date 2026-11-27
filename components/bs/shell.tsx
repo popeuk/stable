@@ -20,7 +20,7 @@ import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { useFinDuMois } from "@/components/bs/compte";
 import { BILAN, CLIENTS_CHEVAUX, under } from "@/components/bs/nav";
-import { TAB_ANALYSE, TAB_ECURIE, TAB_PLANNING, TAB_VITRINE } from "@/components/bs/navigation";
+import { TAB_ANALYSE, TAB_ECURIE, TAB_PLANNING, TAB_SUIVI, TAB_VITRINE } from "@/components/bs/navigation";
 
 
 /**
@@ -92,6 +92,9 @@ export function Header() {
       <span className="hd2-sp" />
       {QUATRE_PARTIES && (
         <>
+          <Link href="/ma-fiche" className="hd2-gear q4-ic" aria-current={under(path, TAB_VITRINE) ? "page" : undefined} aria-label="Vitrine : ta fiche bestable.fr et ton site">
+            <Ic n="vitrine" />
+          </Link>
           <Link href="/demandes" className="hd2-gear q4-ic" aria-current={path.startsWith("/demandes") ? "page" : undefined} aria-label={`Demandes${demandes ? ` : ${demandes} nouvelle${demandes > 1 ? "s" : ""}` : ""}`}>
             <Ic n="mail" />
             {demandes > 0 && (
@@ -169,7 +172,7 @@ export function TabBar() {
     void charger();
   }, [charger, path]);
   const on = (list: string[]) => (under(path, list) ? "page" : undefined);
-  // Les cinq onglets (26 novembre 2026) : Accueil, Planning, Vitrine, Analyse, Mon écurie. Pas de + dans la barre : on note depuis Mon écurie.
+  // Les cinq onglets de l'app du Clos (27 novembre 2026) : Accueil, Planning, Mon écurie, Suivi, Analyse. La Vitrine est en haut à droite.
   if (QUATRE_PARTIES) {
     const planning = estOuverte(etat.planning);
     const cadenas = (
@@ -191,17 +194,6 @@ export function TabBar() {
             </span>
             <span aria-hidden="true">Planning</span>
           </Link>
-          <Link href="/ma-fiche" aria-current={on(TAB_VITRINE)}>
-            <Ic n="vitrine" />
-            Vitrine
-          </Link>
-          <Link href="/argent" aria-current={on(TAB_ANALYSE)} aria-label={`Analyse${argent ? "" : " : avec l’abonnement"}`}>
-            <span className="ac-ic">
-              <Ic n="chart" />
-              {!argent && cadenas}
-            </span>
-            <span aria-hidden="true">Analyse</span>
-          </Link>
           <Link href="/chevaux?vue=clients" aria-current={on(TAB_ECURIE)} aria-label={`Mon écurie${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
             <span className="ac-ic">
               <Ic n="horse" />
@@ -212,6 +204,20 @@ export function TabBar() {
               )}
             </span>
             <span aria-hidden="true">Mon écurie</span>
+          </Link>
+          <Link href="/argent" aria-current={on(TAB_SUIVI)} aria-label={`Suivi${argent ? "" : " : avec l’abonnement"}`}>
+            <span className="ac-ic">
+              <Ic n="euro" />
+              {!argent && cadenas}
+            </span>
+            <span aria-hidden="true">Suivi</span>
+          </Link>
+          <Link href="/te-trouver" aria-current={on(TAB_ANALYSE)} aria-label={`Analyse${estOuverte(etat.trouver) ? "" : " : avec l’abonnement"}`}>
+            <span className="ac-ic">
+              <Ic n="chart" />
+              {!estOuverte(etat.trouver) && cadenas}
+            </span>
+            <span aria-hidden="true">Analyse</span>
           </Link>
         </div>
       </nav>

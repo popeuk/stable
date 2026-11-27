@@ -18,7 +18,7 @@ import { GRILLE, QUESTIONS_VIVRE, VOLETS, noteDe, premiersGestes, resultats, typ
  */
 
 const COUL: Record<Pts, "ok" | "mid" | "ko"> = { 2: "ok", 1: "mid", 0: "ko" };
-const OU: Record<VoletKey, string> = { trouver: "/te-trouver", choisir: "/te-choisir", vivre: "/argent#en-vivre" };
+const OU: Record<VoletKey, string> = { trouver: "/te-trouver", choisir: "/te-choisir", vivre: "/en-vivre" };
 
 /** Les 30 lignes de l'audit, lues sur la fiche, les demandes et les données de l'écurie. */
 export function useGrille(): { lignes: Ligne[]; pret: boolean; aFiche: boolean } {

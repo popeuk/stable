@@ -23,7 +23,7 @@ import { InstallHowto } from "@/components/bs/install-howto";
 import { modKey } from "@/components/bs/desk-hook";
 import { useFinDuMois } from "@/components/bs/compte";
 import { BILAN, CLIENTS_CHEVAUX, under, usePlusItems } from "@/components/bs/nav";
-import { TAB_ANALYSE, TAB_ECURIE, TAB_PLANNING, TAB_VITRINE } from "@/components/bs/navigation";
+import { TAB_ANALYSE, TAB_ECURIE, TAB_PLANNING, TAB_SUIVI, TAB_VITRINE } from "@/components/bs/navigation";
 import { useBriques } from "@/components/bs/briques";
 import { estOuverte } from "@/lib/briques";
 import { nonVues, useDemandes } from "@/lib/account/demandes";
@@ -84,13 +84,14 @@ export function Sidebar() {
   const argent = ARGENT_VISIBLE && estOuverte(briques.etat.argent);
   const demandes = useDemandes((s) => (s.etat === "pret" ? nonVues(s.demandes, s.vuesIci) : 0));
   type Item = { href: string; ic: string; label: string; key: string; on: boolean; badge?: string; cls?: string };
-  // Les cinq onglets (lib/fonctions.ts), puis les demandes (en haut à droite au téléphone).
+  // Les cinq onglets de l'app du Clos, puis la Vitrine et les demandes (en haut à droite au téléphone).
   const quatre: Item[] = [
     { href: "/accueil", ic: "home", label: "Accueil", key: "A", on: path === "/accueil" },
     { href: "/planning", ic: estOuverte(briques.etat.planning) ? "cal" : "lock", label: "Planning", key: "P", on: under(path, TAB_PLANNING) },
+    { href: "/chevaux?vue=clients", ic: "horse", label: "Mon écurie", key: "E", on: under(path, TAB_ECURIE), badge: argent && count ? String(count) : undefined, cls: "attn" },
+    { href: "/argent", ic: argent ? "euro" : "lock", label: "Suivi", key: "S", on: under(path, TAB_SUIVI) },
+    { href: "/te-trouver", ic: estOuverte(briques.etat.trouver) ? "chart" : "lock", label: "Analyse", key: "M", on: under(path, TAB_ANALYSE) },
     { href: "/ma-fiche", ic: "vitrine", label: "Vitrine", key: "V", on: under(path, TAB_VITRINE) },
-    { href: "/argent", ic: argent ? "chart" : "lock", label: "Analyse", key: "M", on: under(path, TAB_ANALYSE) },
-    { href: "/ecurie", ic: "horse", label: "Mon écurie", key: "E", on: under(path, TAB_ECURIE), badge: argent && count ? String(count) : undefined, cls: "attn" },
     { href: "/demandes", ic: "mail", label: "Demandes", key: "D", on: under(path, ["/demandes"]), badge: demandes ? String(demandes) : undefined, cls: "attn" },
   ];
   const avant: Item[] = [

@@ -30,7 +30,6 @@ import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { nomAffiche } from "@/lib/domain/noms-categories";
 import { useConfirmer } from "@/components/bs/confirmer";
 import { FACTURATION, QUATRE_PARTIES } from "@/lib/fonctions";
-import { VoletDetail, useGrille } from "@/components/da/grille-audit";
 
 /**
  * Mon bilan : le chiffre du mois en tête, puis ce qui rentre
@@ -107,7 +106,8 @@ function Argent() {
           <Ic n="chev" className="ar-ic" />
         </button>
       </div>
-      <div className="ar-bseg">
+      {/* Les cinq onglets du Clos : Bilan et Revenus et frais sont dans la tête verte (components/bs/analyse-onglets.tsx). */}
+      <div className="ar-bseg" hidden={QUATRE_PARTIES}>
         <Seg value={vue} onChange={(v) => router.replace(v === "mois" ? "/argent" : `/argent?vue=${v}`)} options={VUES} label="Vues de Mon bilan" />
       </div>
       {vue === "mois" && <Mois />}
@@ -394,17 +394,6 @@ function Mois() {
           </Link>
         </nav>
       </div>
-      {QUATRE_PARTIES && isNow && <EnVivre />}
-    </div>
-  );
-}
-
-/** Le volet « En vivre » de la grille d'audit (27 novembre 2026), lu dans les données de l'écurie. */
-function EnVivre() {
-  const { lignes } = useGrille();
-  return (
-    <div className="au-zone">
-      <VoletDetail k="vivre" lignes={lignes} id="en-vivre" />
     </div>
   );
 }
@@ -632,6 +621,19 @@ function Mouvements() {
 
   return (
     <>
+      {/* Comme au Clos, les frais vivent dans Suivi : les frais qui reviennent chaque mois, puis tout ce qui est noté. */}
+      {QUATRE_PARTIES && (
+        <Link href={`/parcours/factures?retour=${encodeURIComponent("argent?vue=mouvements")}`} className="ar-lrow da-frais-lien">
+          <span className="ar-pic">
+            <Ic n="hay" className="ar-ic" />
+          </span>
+          <span>
+            <span className="k">Chaque mois</span>
+            <b>Mes frais réguliers : foin, paille, loyer, salaires</b>
+          </span>
+          <Ic n="chev" className="chev" />
+        </Link>
+      )}
       <div className="ar-filt">
         <Chips
           value={kind}

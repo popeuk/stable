@@ -7,7 +7,6 @@ import { useSettingsStore } from "@/stores/settings-store";
 import { useDataStore } from "@/stores/data-store";
 import { useBriques } from "@/components/bs/briques";
 import { estOuverte } from "@/lib/briques";
-import { jaugeFiche } from "@/lib/fiche-jauge";
 import { dayItems } from "@/lib/domain/seances";
 import { localToday } from "@/lib/utils/local-date";
 import { heure } from "@/lib/utils/heure";
@@ -15,7 +14,7 @@ import { hasObjective } from "@/stores/settings-store";
 import { objectifPct, phraseObjectif } from "@/lib/domain/objectif";
 import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
-import { scene, usePresence } from "@/components/bs/presence";
+import { usePresence } from "@/components/bs/presence";
 import { PhraseDuJour } from "@/components/da/phrase-du-jour";
 import { aValider } from "@/lib/domain/compte-auto";
 import { useGrille } from "@/components/da/grille-audit";
@@ -66,10 +65,6 @@ export function AccueilQuatre() {
       </>
     );
 
-  const { n, total } = jaugeFiche(fiche);
-  const pct = Math.round((n / total) * 100);
-  const photo = fiche.photos[0]?.url;
-
   return (
     <>
       <div className="pr-hello rise">
@@ -77,53 +72,18 @@ export function AccueilQuatre() {
         {fiche.en_attente ? <p>On vérifie que c’est bien ton écurie. Ce que tu remplis est gardé en attendant.</p> : <PhraseDuJour />}
       </div>
 
-      <div className="pr-cover rise" style={{ animationDelay: ".06s" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photo ?? scene("porte")} alt="" className={photo ? undefined : "pr-cover-ill"} />
-        <div className="pr-cover-tx">
-          <span className="k">
-            <i className={fiche.en_attente ? "att" : undefined} />
-            Ta fiche sur bestable.fr · {fiche.en_attente ? "en vérification" : "en ligne"}
-          </span>
-          <h2>{fiche.title || "Ton écurie"}</h2>
-          <p>{[fiche.commune, fiche.departement].filter(Boolean).join(" · ")}</p>
-          <div className="acts">
-            <Link href="/ma-fiche" className="btn pr-white">
-              Modifier ma fiche
-            </Link>
-            {fiche.url && (
-              <a href={fiche.url} target="_blank" rel="noreferrer" className="btn pr-glass">
-                <Ic n="eye" className="" />
-                Voir en ligne
-              </a>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="pr-qrow rise" style={{ animationDelay: ".1s" }}>
-        <Link href="/ma-fiche">
-          <b>{pct} %</b>
-          <small>de ta fiche remplie</small>
-        </Link>
-        <Link href="/ma-fiche?partie=places">
-          <b>{fiche.places_libres === "" ? "?" : fiche.places_libres === "0" ? "Complet" : fiche.places_libres}</b>
-          <small>{fiche.places_libres === "" ? "places libres : à dire" : fiche.places_libres === "0" ? "aucune place libre" : Number(fiche.places_libres) > 1 ? "places libres" : "place libre"}</small>
-        </Link>
-      </div>
-
       <Recaps />
     </>
   );
 }
 
-/** Les trois récaps, dans l'ordre de Samuel : la journée, la rentabilité, la visibilité. */
+/** Dans l'ordre de l'accueil du Clos (27 novembre 2026) : l'objectif du mois, ce qui attend d'être validé, la journée, puis la visibilité. */
 function Recaps() {
   return (
     <>
-      <RendezVous />
-      <AValiderCarte />
       <Rentabilite />
+      <AValiderCarte />
+      <RendezVous />
       <Visibilite />
       <div className="end" />
     </>
@@ -156,7 +116,8 @@ function RendezVous() {
   const ready = useDataStore((s) => s.hydrated);
   const today = localToday();
   const items = useMemo(() => (ouverte && ready ? dayItems(data, today, today, maintenant()) : []), [data, today, ouverte, ready]);
-  const montres = items.slice(0, 4);
+  // Comme au Clos : les deux prochains de la journée, le reste est dans le Planning.
+  const montres = items.filter((i) => !i.done).slice(0, 2);
   return (
     <Carte titre="Aujourd’hui" href="/planning" lien={items.length > montres.length ? `Les ${items.length} rendez-vous` : "Ouvrir le planning"} ouverte={ouverte} delay={0.1}>
       {!ouverte ? (

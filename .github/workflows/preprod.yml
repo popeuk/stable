@@ -44,6 +44,8 @@ jobs:
           NEXT_PUBLIC_PAYANT: "1"
           # Les quatre parties (26 novembre 2026) : Accueil, Te trouver, Te choisir, Te faire vivre. Préprod seulement.
           NEXT_PUBLIC_QUATRE: "1"
+          # Tout débloqué en préprod (27 novembre 2026, décision de Samuel) : la partie argent visible, plus de cadenas.
+          NEXT_PUBLIC_ARGENT: "1"
       - name: Publish to the vps-preprod branch
         run: |
           cd out
