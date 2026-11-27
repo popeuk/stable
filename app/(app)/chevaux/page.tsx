@@ -30,7 +30,9 @@ import { useFeuille } from "@/components/bs/feuille";
 import { useTitreOnglet } from "@/components/bs/titre-onglet";
 import { echeance } from "@/lib/utils/heure";
 import { adresseClient } from "@/lib/adresse-client";
-import { FACTURATION } from "@/lib/fonctions";
+import { FACTURATION, QUATRE_PARTIES } from "@/lib/fonctions";
+import { EcurieTete } from "@/components/bs/ecurie-tete";
+import { Chiffres } from "@/components/da/tete-verte";
 import "@/app/carnet/client.css";
 import "@/app/carnet/facture.css";
 
@@ -481,11 +483,33 @@ function Clients({ bascule, versChevaux }: { bascule: React.ReactNode; versCheva
     );
   }
 
+  // DA du Clos : le chiffre du mois dans l'en-tête vert, les onglets de Mon écurie dessous.
+  const tete = QUATRE_PARTIES ? (
+    <EcurieTete vue="clients">
+      {rows.length > 0 && (
+        <Chiffres
+          items={
+            FACTURATION
+              ? [
+                  { n: eurc(total), l: n ? `${n} te ${n > 1 ? "doivent" : "doit"}` : "tout est payé", chaud: n > 0 },
+                  { n: rows.length, l: rows.length > 1 ? "clients" : "client" },
+                ]
+              : [
+                  { n: eurc(rapporte), l: `te rapportent en ${moisDe().toLowerCase()}` },
+                  { n: rows.length, l: rows.length > 1 ? "clients" : "client" },
+                ]
+          }
+        />
+      )}
+    </EcurieTete>
+  ) : (
+    <Haut bascule={bascule} />
+  );
   return (
-    <Ecran>
-      <Haut bascule={bascule} />
+    <Ecran className={QUATRE_PARTIES ? "da-ec" : ""}>
+      {tete}
       {FACTURATION && <FinDuMois today={today} />}
-      <div className="cl-ttl rise">
+      <div className={`cl-ttl rise${QUATRE_PARTIES ? " da-cache-titre" : ""}`}>
         <p className="k">Tes clients</p>
         {!FACTURATION ? (
           <h2>
@@ -758,9 +782,22 @@ function Chevaux({ bascule }: { bascule: React.ReactNode }) {
   const firstNeg = neg[0];
   const reste = n - dueHorses.length;
   return (
-    <Ecran>
-      <Haut bascule={bascule} />
-      {n > 0 && (
+    <Ecran className={QUATRE_PARTIES ? "da-ec" : ""}>
+      {QUATRE_PARTIES ? (
+        <EcurieTete vue="chevaux">
+          {n > 0 && (
+            <Chiffres
+              items={[
+                { n: eur(Math.abs(net)), l: `${net >= 0 ? "te laissent" : "te coûtent"} en ${month.toLowerCase()}` },
+                { n: dueHorses.length, l: dueHorses.length > 1 ? "soins à prévoir" : "soin à prévoir", chaud: dueHorses.length > 0 },
+              ]}
+            />
+          )}
+        </EcurieTete>
+      ) : (
+        <Haut bascule={bascule} />
+      )}
+      {n > 0 && !QUATRE_PARTIES && (
         <div className="hello rise" style={{ animationDelay: ".06s" }}>
           <p className="ch-over0">{month}</p>
           <h2>

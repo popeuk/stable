@@ -1,5 +1,6 @@
 "use client";
 
+import { EcurieTete } from "@/components/bs/ecurie-tete";
 import { EquipeEcurie } from "@/components/bs/equipe-ecurie";
 
 import Link from "next/link";
@@ -18,10 +19,6 @@ import { ContactOuvrir, MAILTO_CONTACT, TEXTE_REPLI } from "@/components/bs/cont
 import { ChoixTemoinsLigne } from "@/components/bs/consentement";
 import { BoutonDeconnexion } from "@/components/bs/effacer";
 import { heure } from "@/lib/utils/heure";
-import { useUiStore } from "@/stores/ui-store";
-import { useBriques } from "@/components/bs/briques";
-import { estOuverte } from "@/lib/briques";
-import { useFinDuMois } from "@/components/bs/compte";
 import { ARGENT_VISIBLE, FACTURATION, PAYANT_VISIBLE, QUATRE_PARTIES } from "@/lib/fonctions";
 
 /**
@@ -165,13 +162,6 @@ function TonEcurie() {
  * dans la Vitrine. Le « Noter » remplace le + de la barre.
  */
 export function MonEcurieCinq() {
-  const stableName = useSettingsStore((s) => s.stableName);
-  const openNoter = useUiStore((s) => s.openNoter);
-  const { etat } = useBriques();
-  const argent = estOuverte(etat.argent);
-  const horses = useDataStore((s) => s.horses.filter((h) => !h.isArchived).length);
-  const clients = useDataStore((s) => (s.people ?? []).length);
-  const prestations = useDataStore((s) => (s.prestations ?? []).length);
   const team = useDataStore((s) => s.team) ?? [];
   const pros = useDataStore((s) => s.pros) ?? [];
   const factures = useDataStore((s) => (s.invoices ?? []).length);
@@ -179,31 +169,12 @@ export function MonEcurieCinq() {
     const f = fraisDuMois(s);
     return f.total + f.postes;
   });
-  const fin = useFinDuMois();
-  const aPayer = argent ? (fin?.count ?? 0) : 0;
   const plur = (n: number, un: string, des: string) => `${n} ${n > 1 ? des : un}`;
   return (
-    <div className="ce">
-      <header className="ce-hd q5-ec-hd rise">
-        <div>
-          <h1>Mon écurie</h1>
-          <p>{stableName}</p>
-        </div>
-        {argent && (
-          <button type="button" className="btn q5-noter" onClick={() => openNoter({})}>
-            <Ic n="plus" className="" />
-            Noter
-          </button>
-        )}
-      </header>
-      <Case
-        titre="Tes clients et leurs chevaux"
-        lignes={[
-          { href: "/chevaux?vue=clients", ic: "people", t: "Mes clients", s: aPayer ? `${plur(aPayer, "client", "clients")} à faire payer` : clients ? plur(clients, "client", "clients") : "Propriétaires et cavaliers, ce que chacun te doit" },
-          { href: "/chevaux?vue=chevaux", ic: "horse", t: "Mes chevaux", s: horses ? plur(horses, "cheval", "chevaux") : "Les chevaux de tes clients, et les tiens" },
-          { href: "/prestations", ic: "cal", t: "Mes prestations", s: prestations ? `${plur(prestations, "prestation", "prestations")}, et ce que chacune rapporte` : "Cours, travail du cheval, balades : leur prix" },
-        ]}
-      />
+    <>
+      {/* DA du Clos : Mon écurie s'ouvre sur les clients ; ici, l'onglet « Plus » : frais, gens et papiers. */}
+      <EcurieTete vue="plus" />
+      <div className="ce da-plus-ec">
       <Case
         titre="Ce qui rentre et ce qui sort"
         lignes={[
@@ -220,7 +191,8 @@ export function MonEcurieCinq() {
         ]}
       />
       <Case titre="Papiers" lignes={[{ href: "/moi?s=papiers", ic: "doc", t: "Mes papiers", s: "Lieu de détention, registre d’élevage" }]} />
-    </div>
+      </div>
+    </>
   );
 }
 

@@ -15,6 +15,9 @@ import type { Prestation, Tariffs } from "@/lib/domain/types";
 import { prixDe } from "@/lib/domain/ajouter";
 import { lireMontant, montantEnTexte, montantOuZero, saisieMontant } from "@/lib/utils/montant";
 import "@/app/carnet/ecurie.css";
+import { QUATRE_PARTIES } from "@/lib/fonctions";
+import { EcurieTete } from "@/components/bs/ecurie-tete";
+import { Chiffres } from "@/components/da/tete-verte";
 
 /**
  * Les prestations : ce que l'écurie vend en plus des pensions (cours,
@@ -118,7 +121,18 @@ function Prestations() {
 
   return (
     <Screen wide={desk}>
-      <div className="ec-pg">
+      {QUATRE_PARTIES && (
+        <EcurieTete vue="prestations">
+          <Chiffres
+            items={[
+              { n: tot.count, l: `séance${tot.count > 1 ? "s" : ""} en ${monthLabel.toLowerCase()}` },
+              { n: eur(tot.done), l: "déjà faites" },
+              { n: eur(tot.planned), l: "encore prévues" },
+            ]}
+          />
+        </EcurieTete>
+      )}
+      <div className={`ec-pg${QUATRE_PARTIES ? " da-ec da-pr" : ""}`}>
         <div className="over rise" style={{ animationDelay: ".02s" }}>
           <span className="ec-mnav">
             <button type="button" onClick={() => step(-1)} aria-label="Mois précédent">
@@ -140,7 +154,7 @@ function Prestations() {
             </button>
           )}
         </div>
-        <div className="pad rise" style={{ marginTop: 14, animationDelay: ".12s" }}>
+        <div className="pad rise" style={{ marginTop: 14, animationDelay: ".12s" }} hidden={QUATRE_PARTIES}>
           <div className="trio ec-trio">
             <div>
               <b>

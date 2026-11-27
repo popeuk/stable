@@ -78,7 +78,7 @@ export function Header() {
   const racine = isRoot2(path) || (QUATRE_PARTIES && (path.startsWith("/valider") || path.startsWith("/equipe")));
   return (
     // DA de l'app du Clos : sur les pages d'onglet (sauf l'Accueil), la barre du haut est verte et se prolonge dans l'en-tête de la page.
-    <header className={`hd hd2${racine && path !== "/accueil" ? " da-vert" : ""}`} ref={hdRef}>
+    <header className={`hd hd2${(racine && path !== "/accueil") || (QUATRE_PARTIES && (path.startsWith("/client") || path.startsWith("/ticket"))) ? " da-vert" : ""}`} ref={hdRef}>
       {racine ? (
         <Link href="/accueil" className="wm">
           be stable
@@ -202,7 +202,7 @@ export function TabBar() {
             </span>
             <span aria-hidden="true">Analyse</span>
           </Link>
-          <Link href="/ecurie" aria-current={on(TAB_ECURIE)} aria-label={`Mon écurie${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
+          <Link href="/chevaux?vue=clients" aria-current={on(TAB_ECURIE)} aria-label={`Mon écurie${count ? ` : ${count} client${count > 1 ? "s" : ""} à faire payer` : ""}`}>
             <span className="ac-ic">
               <Ic n="horse" />
               {count > 0 && (

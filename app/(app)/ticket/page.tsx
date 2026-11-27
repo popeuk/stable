@@ -21,6 +21,11 @@ import { msgFairePayer } from "@/lib/utils/esc";
 import { Identite } from "@/components/bs/identite";
 import { SejourForm } from "@/components/bs/sejour-form";
 import { echeance, heure } from "@/lib/utils/heure";
+import { QUATRE_PARTIES } from "@/lib/fonctions";
+import { FicheHaut } from "@/components/da/fiche-haut";
+import { Onglets } from "@/components/da/onglets";
+import { adresseClient } from "@/lib/adresse-client";
+import { prenomDe } from "@/lib/domain/clients";
 
 /**
  * La fiche d'un cheval : son portrait qui respire, puis le ticket du mois
@@ -98,6 +103,8 @@ function Ticket({ horse }: { horse: Horse }) {
   const t = useMemo(() => horseTicket(data, horse.id, period), [data, horse.id, period]);
   const nets = useMemo(() => reconciledNets(data, period), [data, period]);
   const net = nets[horse.id] ?? Math.round(t.net);
+  // Les six derniers mois, pour les barres du haut de fiche (DA du Clos).
+  const sixNets = useMemo(() => (QUATRE_PARTIES ? [-5, -4, -3, -2, -1, 0].map((i) => reconciledNets(data, addMonths(currentPeriod(), i))[horse.id] ?? 0) : []), [data, horse.id]);
   const today = localToday();
   const log = horseCareLog(data, horse.id, today).slice(0, 6);
   const deadlines = upcomingDeadlines(data, today)
@@ -344,6 +351,68 @@ function Ticket({ horse }: { horse: Horse }) {
     ),
     planning,
   };
+
+  if (QUATRE_PARTIES) {
+    // DA du Clos : l'aplat vert (portrait, gestes, le mois et ses six barres), puis les onglets en pastilles.
+    const now = currentPeriod();
+    return (
+      <Ecran className="da-ec da-fiche">
+        <FicheHaut
+          visuel={<Face horse={horse} />}
+          titre={horse.name}
+          meta={sub || "pension"}
+          gestes={
+            <>
+              <button type="button" className="principal" onClick={() => openNoter({ horseIds: [horse.id] })}>
+                <Ic n="plus" className="" />
+                Noter
+              </button>
+              {horse.ownerName && (
+                <Link href={adresseClient(horse.ownerName)}>
+                  <Ic n="user" className="" />
+                  {prenomDe(horse.ownerName)}
+                </Link>
+              )}
+              <Link href={`/saisie/cheval?edit=${horse.id}`}>
+                <Ic n="doc" className="" />
+                Sa fiche
+              </Link>
+            </>
+          }
+          mois={monthName.charAt(0).toUpperCase() + monthName.slice(1)}
+          onPrec={() => setOffset(offset - 1)}
+          onSuiv={() => setOffset(Math.min(0, offset + 1))}
+          suivBloque={offset === 0}
+          phrase={`${offset === 0 ? "Ce mois" : `En ${monthName}`}, ${horse.name} ${net >= 0 ? (offset === 0 ? "te laisse" : "t’a laissé") : offset === 0 ? "te coûte" : "t’a coûté"}`}
+          chiffre={eur(Math.abs(net))}
+          chiffreNeg={net < 0}
+          detail={due.length ? `${due.length} soin${due.length > 1 ? "s" : ""} à prévoir.` : "Soins et part des frais de l’écurie compris."}
+          barres={sixNets.map((v, i) => {
+            const p = addMonths(now, i - 5);
+            return {
+              key: `${p.year}-${p.month}`,
+              label: new Date(p.year, p.month - 1, 15).toLocaleDateString("fr-FR", { month: "short" }),
+              valeur: v,
+              on: offset === i - 5,
+              go: () => setOffset(i - 5),
+            };
+          })}
+        />
+        <Onglets
+          label={`Fiche de ${horse.name}`}
+          items={[
+            { key: "ticket", titre: "Argent", petit: sg(net), on: seg === "ticket", go: () => setSeg("ticket") },
+            { key: "carnet", titre: "Carnet", petit: due.length ? `${due.length} à prévoir` : "à jour", point: due.length ? "var(--out)" : undefined, on: seg === "carnet", go: () => setSeg("carnet") },
+            { key: "planning", titre: "Planning", petit: `${seances.length} à venir`, on: seg === "planning", go: () => setSeg("planning") },
+          ]}
+        />
+        <div role="tabpanel">{panels[seg]}</div>
+        <Identite key={horse.id} horse={horse} />
+        {leave}
+        <div className="end" />
+      </Ecran>
+    );
+  }
 
   return (
     <Ecran>

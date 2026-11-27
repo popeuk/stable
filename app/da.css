@@ -158,3 +158,93 @@
 .carnet .hd.hd2.da-vert { box-shadow: none; }
 /* Les onglets du haut mènent à À valider et aux Tâches : le lien du bas du planning n'a plus lieu d'être. */
 .carnet .jr-liens { display: none; }
+
+/* ---- Mon écurie : les listes du registre du Clos (components/bs/ecurie-tete.tsx, app/(app)/chevaux) ---- */
+/* Le titre du carnet laisse sa place aux chiffres dans le vert ; ce qui l'accompagne (rassurer, factures) reste. */
+.carnet .da-ec .da-cache-titre > .k, .carnet .da-ec .da-cache-titre > h2 { display: none; }
+.carnet .da-ec .da-cache-titre:empty { display: none; }
+.carnet .da-ec .cl-find { padding: 18px 0 0; }
+/* Les titres de liste : comme une section du Clos, pas comme une étiquette */
+.carnet .da-ec .cl-lk { margin: 26px var(--gut) 10px; padding: 0; border: 0; font-size: 18px; font-weight: 760; letter-spacing: -.02em; text-transform: none; color: var(--ink); }
+/* La liste : une carte blanche, des lignes de 64, le filet décalé au texte */
+.carnet .da-ec .cl-rows { margin: 0 var(--gut); padding: 0; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); overflow: hidden; }
+.carnet .da-ec .cl-row { position: relative; grid-template-columns: 40px minmax(0, 1fr) auto 14px; gap: 12px; min-height: 64px; padding: 10px 14px 10px 16px; border-bottom: 0; transition: background .15s; }
+.carnet .da-ec .cl-row + .cl-row::before { content: ""; position: absolute; top: 0; right: 0; left: 68px; height: 1px; background: var(--line2); }
+.carnet .da-ec .cl-row:active { background: var(--mist); }
+.carnet .da-ec .cl-row .face, .carnet .da-ec .cl-row .ini { width: 40px; height: 40px; }
+.carnet .da-ec .cl-row b { font-size: 16px; font-weight: 650; }
+.carnet .da-ec .cl-row small { font-size: 13px; color: var(--ink2); }
+.carnet .da-ec .cl-amt small { font-size: 11.5px; color: var(--ink3); }
+.carnet .da-ec .cl-amt b { font-size: 16px; font-weight: 760; color: var(--vert); }
+.carnet .da-ec .cl-tools { padding: 14px var(--gut) 0; }
+
+/* Les chevaux : les listes du carnet deviennent des listes posées sur le papier, sans vignette dans la marge */
+.carnet .da-ec .sec > .marge { display: none; }
+.carnet .da-ec .sec { display: block; }
+.carnet .da-ec .sec.blk:not(:has(.rows)) h2 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.carnet .da-ec .sec:has(.rows) { display: block; margin: 0; padding: 0; border-radius: 0; background: none; box-shadow: none; }
+.carnet .da-ec .sec:has(.rows) h2 { margin: 26px var(--gut) 10px; padding: 0; border: 0; font-size: 18px; font-weight: 760; letter-spacing: -.02em; }
+.carnet .da-ec .sec .rows { margin: 0 var(--gut); padding: 0; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); overflow: hidden; }
+.carnet .da-ec .sec .rows .li { position: relative; min-height: 64px; padding: 10px 14px 10px 16px; border-bottom: 0; }
+.carnet .da-ec .sec .rows .li + .li::before { content: ""; position: absolute; top: 0; right: 0; left: 68px; height: 1px; background: var(--line2); }
+.carnet .da-ec .sec .rows .li .face { width: 40px; height: 40px; }
+.carnet .da-ec .sec .rows .li b { font-size: 16px; font-weight: 650; }
+.carnet .da-ec .sec .rows .li small { font-size: 13px; color: var(--ink2); }
+.carnet .da-ec .sec:has(.rows) > div > .note { margin: 10px var(--gut) 0; }
+/* Une carte seule (le cheval à surveiller) : posée sur le papier avec l'ombre du Clos */
+.carnet .da-ec .sec.blk:not(:has(.rows)) { display: block; margin: 18px var(--gut) 0; padding: 14px 16px 12px; box-shadow: var(--da-ombre-carte); }
+.carnet .da-ec .sec.blk:not(:has(.rows)) h2 { margin: 0; padding: 0; border: 0; font-size: 16px; font-weight: 760; }
+.carnet .da-ec .ch-after { padding: 18px var(--gut) 0; }
+/* Une section sans liste ni bloc (le ticket du cheval) : une carte aussi */
+.carnet .da-ec .sec:not(.blk):not(:has(.rows)) { margin: 18px var(--gut) 0; padding: 14px 16px 12px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); }
+.carnet .da-ec .sec:not(.blk):not(:has(.rows)) h2 { margin: 0 0 6px; padding: 0; border: 0; font-size: 18px; font-weight: 760; letter-spacing: -.02em; }
+.carnet .da-ec .cl-find .ch-search { margin: 0; }
+.carnet .da-ec .da-cache-titre:not(:has(> :not(.k, h2))) { display: none; }
+
+/* ---- Haut de fiche, client ou cheval (components/da/fiche-haut.tsx) : l'aplat vert du Clos ---- */
+.carnet .hd.hd2.da-vert .hd2-back { color: #fff; }
+.carnet .hd.hd2.da-vert .hd2-back svg { stroke: currentColor; }
+.carnet .da-fh { position: relative; overflow: hidden; margin: 0; padding: 4px var(--gut) 18px; background: var(--vert-deep); color: #fff; }
+.carnet .da-fh::after { content: ""; position: absolute; inset: 0; background: radial-gradient(70% 70% at 100% 0%, color-mix(in srgb, var(--rose) 20%, transparent), transparent 60%); pointer-events: none; }
+.carnet .da-fh > * { position: relative; z-index: 1; }
+.carnet .da-fh-id { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.carnet .da-fh-id h1 { margin: 0; font-size: 34px; font-weight: 790; line-height: 1; letter-spacing: -.04em; font-variation-settings: "wdth" 84; color: #fff; overflow-wrap: anywhere; }
+.carnet .da-fh-meta { margin: 6px 0 0; font-size: 14px; line-height: 1.4; color: var(--on-vert); }
+.carnet .da-fh-meta a { color: #fff; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, #fff 40%, transparent); }
+.carnet .da-fh-visuel { width: 92px; height: 92px; }
+.carnet .da-fh-avatar { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; background: var(--rose); color: var(--vert-deep); font-size: 34px; font-weight: 800; letter-spacing: -.02em; box-shadow: 0 0 0 6px color-mix(in srgb, #fff 8%, transparent); }
+.carnet .da-fh-visuel .face { display: grid; place-items: center; overflow: hidden; border-radius: 50%; width: 92px; height: 92px; background: color-mix(in srgb, #fff 8%, transparent); box-shadow: 0 0 0 6px color-mix(in srgb, #fff 6%, transparent); }
+.carnet .da-fh-gestes { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; margin-top: 16px; }
+.carnet .da-fh-gestes :is(a, button) { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 44px; padding: 0 8px; border: 0; border-radius: var(--ctl-r); background: color-mix(in srgb, #fff 10%, transparent); font: inherit; font-size: 14.5px; font-weight: 700; color: #fff; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.carnet .da-fh-gestes svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .da-fh-gestes .principal { background: var(--rose); color: var(--vert-deep); }
+.carnet .da-fh-gestes .pointille { background: none; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #fff 30%, transparent); }
+.carnet .da-fh-mois { margin-top: 18px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, #fff 12%, transparent); }
+.carnet .da-fh-nav { display: flex; align-items: center; gap: 8px; }
+.carnet .da-fh-nav span { font-size: 13.5px; font-weight: 700; color: var(--on-vert); }
+.carnet .da-fh-nav button { width: 32px; height: 32px; border: 0; border-radius: 9px; display: grid; place-items: center; background: color-mix(in srgb, #fff 8%, transparent); color: #fff; cursor: pointer; }
+.carnet .da-fh-nav button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .da-fh-nav button:disabled { opacity: .3; cursor: default; }
+.carnet .da-fh-phrase { margin: 12px 0 0; font-size: 15px; color: var(--on-vert); }
+.carnet .da-fh-chiffre { margin: 2px 0 0; font-size: 54px; font-weight: 800; line-height: 1; letter-spacing: -.04em; font-variation-settings: "wdth" 84; font-variant-numeric: tabular-nums; color: #fff; }
+.carnet .da-fh-chiffre.neg { color: var(--rose); }
+.carnet .da-fh-detail { margin: 6px 0 0; font-size: 13.5px; line-height: 1.4; color: var(--on-vert); }
+.carnet .da-fh-detail b { color: #fff; }
+.carnet .da-fh-barres { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 16px; }
+.carnet .da-fh-barres button { display: grid; gap: 4px; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; }
+.carnet .da-fh-barres .col { display: flex; align-items: flex-end; height: 46px; border-radius: 6px; background: color-mix(in srgb, #fff 6%, transparent); overflow: hidden; }
+.carnet .da-fh-barres .col i { display: block; width: 100%; border-radius: 6px 6px 0 0; background: #8FB3A3; transform-origin: bottom; animation: da-monte .7s var(--da-ease) backwards; }
+.carnet .da-fh-barres .neg .col i { background: color-mix(in srgb, var(--rose) 50%, transparent); }
+.carnet .da-fh-barres .on .col i { background: var(--rose); }
+.carnet .da-fh-barres small { font-size: 11.5px; font-weight: 650; color: var(--on-vert); text-align: center; }
+.carnet .da-fh-barres .on small { color: #fff; }
+@keyframes da-monte { from { transform: scaleY(0); } }
+@media (prefers-reduced-motion: reduce) { .carnet .da-fh-barres .col i { animation: none; } }
+
+.carnet .da-fh-visuel .face img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+
+/* Le corps d'une fiche : les blocs du carnet posés en cartes sur le papier */
+.carnet .da-fiche .cl-blk { margin: 14px var(--gut) 0; padding: 14px 16px 10px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); }
+.carnet .da-fiche .cl-blk h3 { margin-top: 0; border-bottom: 0; font-size: 18px; font-weight: 760; letter-spacing: -.02em; }
+.carnet .da-fiche .cl-key { margin: 18px var(--gut) 0; }
+@media (min-width: 1024px) { .carnet .da-fh { border-radius: var(--bloc-r); } .carnet .da-fiche .cl-blk, .carnet .da-fiche .cl-key { margin-left: 0; margin-right: 0; } }

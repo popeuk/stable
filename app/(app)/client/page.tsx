@@ -18,7 +18,7 @@ import { r2 } from "@/lib/utils/arrondi";
 import { accord, duMois, dusDuClient, prenomDe } from "@/lib/domain/clients";
 import { avanceDite, noterPaiement } from "@/components/bs/noter-paiement";
 import { lienFacture } from "@/lib/domain/numeros";
-import { currentPeriod } from "@/lib/utils/period";
+import { addMonths, currentPeriod } from "@/lib/utils/period";
 import type { Period, Person, PersonRole } from "@/lib/domain/types";
 import { montantOuZero, saisieMontant } from "@/lib/utils/montant";
 import { MoyenChoix } from "@/components/bs/moyen-paiement";
@@ -32,7 +32,8 @@ import type { PaymentMethod } from "@/lib/domain/types";
 import { useFeuille } from "@/components/bs/feuille";
 import { vibrer } from "@/lib/utils/vibrer";
 import { adresseClient, adresseFacture, nomDeLAdresse } from "@/lib/adresse-client";
-import { FACTURATION } from "@/lib/fonctions";
+import { FACTURATION, QUATRE_PARTIES } from "@/lib/fonctions";
+import { FicheHaut } from "@/components/da/fiche-haut";
 import { activiteDite } from "@/lib/domain/activite";
 import "@/app/carnet/client.css";
 import "@/app/carnet/proprio.css";
@@ -220,8 +221,70 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
     );
   const telHref = phone ? phone.replace(/[^\d+]/g, "") : "";
 
+  // DA du Clos : l'aplat vert en haut de la fiche, les six derniers mois en barres.
+  const six = [5, 4, 3, 2, 1, 0].map((i) => addMonths(now, -i));
+  const haut = QUATRE_PARTIES ? (
+    <FicheHaut
+      visuel={horses[0] ? <Face horse={horses[0]} /> : <span className="da-fh-avatar">{ini(nom)}</span>}
+      titre={nom}
+      meta={
+        <>
+          {quiEst}
+          {FACTURATION ? ` · ${seance ? "paie à la séance" : "paie au mois"}` : ""}
+        </>
+      }
+      gestes={
+        <>
+          {phone ? (
+            <>
+              <a href={`tel:${telHref}`} className="principal">
+                <Ic n="phone" className="" />
+                Appeler
+              </a>
+              <a href={`sms:${telHref}`}>
+                <Bulle />
+                Message
+              </a>
+            </>
+          ) : (
+            <button type="button" className="pointille" onClick={versInfos}>
+              <Ic n="phone" className="" />
+              Ajoute son numéro
+            </button>
+          )}
+          {email && (
+            <a href={`mailto:${email}`}>
+              <Ic n="mail" className="" />
+              E-mail
+            </a>
+          )}
+          <button type="button" onClick={() => setFeuille("notes")}>
+            <Ic n="doc" className="" />
+            Notes
+          </button>
+        </>
+      }
+      mois={`${nomMois(period)}${period.year !== now.year ? ` ${period.year}` : ""}`}
+      onPrec={() => router.replace(adresseClient(nom, monthKey(addMonths(period, -1))), { scroll: false })}
+      onSuiv={() => router.replace(adresseClient(nom, monthKey(addMonths(period, 1))), { scroll: false })}
+      suivBloque={estCeMois}
+      phrase={estCeMois ? `Ce mois, ${qui} te rapporte` : `En ${nomMois(period).toLowerCase()}, ${qui} t’a rapporté`}
+      chiffre={eurc(bill.total)}
+      detail={lignes.length > 0 ? `${activiteDite(data, lignes)}.` : estCeMois ? "Rien pour l’instant ce mois-ci." : "Rien ce mois-là."}
+      barres={six.map((p) => ({
+        key: monthKey(p),
+        label: new Date(p.year, p.month - 1, 15).toLocaleDateString("fr-FR", { month: "short" }),
+        valeur: billOf(data, nom, p)?.total ?? 0,
+        on: monthKey(p) === mk,
+        go: () => router.replace(adresseClient(nom, monthKey(p)), { scroll: false }),
+      }))}
+    />
+  ) : null;
+
   return (
-    <Ecran>
+    <Ecran className={QUATRE_PARTIES ? "da-fiche" : ""}>
+      {haut}
+      {!QUATRE_PARTIES && (
       <div className="cl-id rise">
         {horses[0] ? <Face horse={horses[0]} /> : <span className="ini">{ini(nom)}</span>}
         <div>
@@ -232,8 +295,9 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           </p>
         </div>
       </div>
+      )}
 
-      {!FACTURATION && (
+      {!FACTURATION && !QUATRE_PARTIES && (
         <div className="card cl-due rise">
           <div className="cl-dtop">
             <span>
@@ -328,6 +392,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
       </div>
       )}
 
+      {!QUATRE_PARTIES && (
       <div className="cl-qa rise" role="group" aria-label={accord(nom, "Le contacter", "La contacter")}>
         {phone ? (
           <>
@@ -346,6 +411,7 @@ function Fiche({ nom, mois }: { nom: string; mois: Period | null }) {
           Notes
         </button>
       </div>
+      )}
 
       <div className="cl-key rise">
         {phone && (
