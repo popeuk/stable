@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { TeteVerte } from "@/components/da/tete-verte";
 import { Onglets } from "@/components/da/onglets";
 import { QUATRE_PARTIES } from "@/lib/fonctions";
+import { SuiviTete } from "@/components/da/suivi-tete";
 import { ANALYSE_ONGLETS } from "@/components/bs/navigation";
 
 /**
@@ -45,7 +46,9 @@ export function SuiviOnglets() {
   const frais = vue === "mouvements";
   return (
     <nav className="da-ana" aria-label="Suivi">
-      <TeteVerte titre="Suivi" sous="Ce que le mois rapporte et ce qu’il coûte." />
+      <TeteVerte titre="Suivi" sous="Ce que le mois rapporte et ce qu’il coûte.">
+        <SuiviTete />
+      </TeteVerte>
       <Onglets
         label="Bilan, revenus et frais"
         items={[

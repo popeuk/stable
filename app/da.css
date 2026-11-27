@@ -394,3 +394,108 @@
 .carnet .au-groupe h3.mid { font-size: 14px; font-weight: 780; letter-spacing: normal; line-height: normal; font-variation-settings: normal; }
 .carnet .au-regle li.on.mid { font-size: 13px; font-weight: 600; }
 .carnet .da-frais-lien { margin: 16px var(--gut) 4px; padding: 12px 14px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); }
+
+/* ---- Suivi (repris du Clos) : l'objectif dans le vert, puis le Bilan (components/da/suivi-tete.tsx, bilan-mois.tsx) ---- */
+.carnet .da-ob { margin-top: 14px; }
+.carnet .da-ob-nav { display: flex; align-items: center; gap: 6px; }
+.carnet .da-ob-nav span { font-size: 13.5px; font-weight: 700; color: var(--on-vert); white-space: nowrap; }
+.carnet .da-ob-nav button { width: 34px; height: 34px; border: 0; border-radius: 9px; display: grid; place-items: center; background: color-mix(in srgb, #fff 8%, transparent); color: #fff; cursor: pointer; }
+.carnet .da-ob-nav button:disabled { opacity: .3; cursor: default; }
+.carnet .da-ob-nav button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .da-ob-nav .da-ob-auj { width: auto; height: 30px; margin-left: auto; padding: 0 12px; font: inherit; font-size: 12.5px; font-weight: 700; background: var(--rose); color: var(--vert-deep); white-space: nowrap; }
+.carnet .da-ob-corps { display: block; margin-top: 8px; color: #fff; text-decoration: none; }
+.carnet .da-ob-fig { display: flex; align-items: center; gap: 8px; }
+.carnet .da-ob-fig b { flex: none; font-size: 40px; font-weight: 800; line-height: 1; letter-spacing: -.035em; font-variation-settings: "wdth" 84; font-variant-numeric: tabular-nums; }
+.carnet .da-ob-fig small { min-width: 0; font-size: 14px; font-weight: 600; line-height: 1.2; color: var(--on-vert); }
+.carnet .da-ob-fig em { flex: none; margin-left: auto; height: 28px; padding: 0 10px; border-radius: 8px; display: inline-flex; align-items: center; background: var(--rose); color: var(--vert-deep); font-style: normal; font-size: 14px; font-weight: 780; }
+.carnet .da-ob-barre { display: block; height: 8px; margin-top: 12px; border-radius: 4px; background: color-mix(in srgb, #fff 14%, transparent); overflow: hidden; }
+.carnet .da-ob-barre i { display: block; height: 100%; border-radius: 4px; background: var(--rose); transform-origin: left; animation: da-pousse 1.1s var(--da-ease) .15s backwards; }
+.carnet .da-ob.sans .da-ob-barre { background: color-mix(in srgb, #fff 10%, transparent); }
+.carnet .da-ob-bas { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; font-size: 13.5px; color: var(--on-vert); }
+.carnet .da-ob-voir { flex: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #fff; }
+.carnet .da-ob-voir svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .da-a-valider.dans-vert { margin: 16px 0 0; }
+.carnet .da-tva-note { margin: 8px 0 0; font-size: 12.5px; color: var(--on-vert); }
+
+.carnet .bilan-m { display: grid; gap: 14px; margin: 18px var(--gut) 0; }
+.carnet .bilan-m .bm-carte { margin: 0; padding: 16px; border-radius: var(--bloc-r); background: var(--sheet); box-shadow: var(--da-ombre-carte); }
+.carnet .bilan-m .bm-phrase { margin: 0; font-size: 20px; font-weight: 780; line-height: 1.15; letter-spacing: -.025em; font-variation-settings: "wdth" 88; text-wrap: balance; }
+.carnet .bm-vide { margin: 0; font-size: 15px; color: var(--ink2); }
+.carnet .bm-pieces { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin-top: 16px; }
+.carnet .bm-pieces span { aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; animation: da-tombe .5s var(--da-ease) backwards; }
+.carnet .bm-pieces .garde { background: var(--vert); color: #CFE3D8; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .18), inset 0 0 0 2px rgba(255, 255, 255, .12); }
+.carnet .bm-pieces .part { background: var(--rose); color: var(--out); box-shadow: inset 0 -3px 0 rgba(160, 40, 90, .18); opacity: .85; }
+@keyframes da-tombe { from { transform: translateY(-14px) scale(.6); opacity: 0; } }
+.carnet .bm-legende { display: flex; gap: 14px; margin-top: 10px; font-size: 12.5px; color: var(--ink2); }
+.carnet .bm-legende span { display: inline-flex; align-items: center; gap: 6px; }
+.carnet .bm-legende i { width: 10px; height: 10px; border-radius: 50%; }
+.carnet .bm-legende i.garde { background: var(--vert); }
+.carnet .bm-legende i.part { background: var(--rose); }
+.carnet .bm-trois { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 14px; }
+.carnet .bm-trois > div { padding: 10px; border-radius: var(--ctl-r); background: var(--mist); }
+.carnet .bm-trois small { display: block; font-size: 12px; font-weight: 650; color: var(--ink2); }
+.carnet .bm-trois b { display: block; margin-top: 2px; font-size: 18px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.carnet .bm-trois .pos { background: #EDF4F0; }
+.carnet .bm-trois .pos b { color: var(--vert); }
+.carnet .bm-trois .neg { background: var(--rose-soft); }
+.carnet .bm-trois .neg b { color: var(--out); }
+.carnet .bm-temps { margin-top: 16px; }
+.carnet .bm-temps-barre { display: flex; height: 14px; border-radius: 7px; background: var(--mist); overflow: hidden; }
+.carnet .bm-temps-barre .fait { background: var(--vert); transform-origin: left; animation: da-pousse .9s var(--da-ease) backwards; }
+.carnet .bm-temps-barre .prevu { background: repeating-linear-gradient(135deg, #8FB3A3 0 6px, #B9D2C6 6px 12px); transform-origin: left; animation: da-pousse .9s var(--da-ease) .5s backwards; }
+.carnet .bm-temps-l { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--ink3); }
+.carnet .bm-temps-l b { display: block; font-size: 16px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+.carnet .bm-temps-l .fin { text-align: right; }
+.carnet .bm-temps-l .fin b { color: var(--vert); font-size: 20px; }
+.carnet .ca-barre { display: flex; gap: 3px; height: 14px; margin-top: 14px; border-radius: 7px; overflow: hidden; }
+.carnet .ca-barre.grande { height: 22px; border-radius: 11px; margin-top: 16px; }
+.carnet .ca-barre i { min-width: 4px; flex-basis: 0; transform-origin: left; animation: da-pousse .9s var(--da-ease) backwards; }
+.carnet .bilan-m .c0 { background: var(--vert); }
+.carnet .bilan-m .c1 { background: var(--rose); }
+.carnet .bilan-m .c2 { background: #8FB3A3; }
+.carnet .bilan-m .c3 { background: var(--out); }
+.carnet .bilan-m .c4 { background: #D3CCD8; }
+.carnet .ca-liste { list-style: none; margin: 14px 0 0; padding: 0; }
+.carnet .ca-liste li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line2); }
+.carnet .ca-liste .pt { width: 12px; height: 12px; border-radius: 4px; }
+.carnet .ca-liste .nm b { display: block; font-size: 15px; font-weight: 720; }
+.carnet .ca-liste .mt { text-align: right; }
+.carnet .ca-liste .mt b { display: block; font-size: 20px; font-weight: 800; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.carnet .ca-liste .mt small { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 650; color: var(--ink2); }
+.carnet .bm-clients { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 4px; }
+.carnet .bm-clients a { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 0; color: var(--ink); text-decoration: none; }
+.carnet .bm-clients .av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--mist); font-weight: 780; color: var(--ink2); }
+.carnet .bm-clients .top .av { background: var(--rose); color: var(--vert-deep); }
+.carnet .bm-clients .nm b { display: block; font-size: 15px; font-weight: 720; }
+.carnet .bm-clients .bar { display: block; height: 8px; margin-top: 5px; border-radius: 4px; background: var(--mist); overflow: hidden; }
+.carnet .bm-clients .bar i { display: block; height: 100%; border-radius: 4px; background: #8FB3A3; transform-origin: left; animation: da-pousse .9s var(--da-ease) backwards; }
+.carnet .bm-clients .top .bar i { background: var(--vert); }
+.carnet .bm-clients .mt { text-align: right; }
+.carnet .bm-clients .mt b { display: block; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.carnet .bm-clients .mt small { display: block; font-size: 12px; color: var(--ink3); }
+.carnet .bm-chevaux { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.carnet .bm-cheval { position: relative; display: grid; gap: 4px; padding: 12px; border-radius: var(--bloc-r); background: var(--mist); color: var(--ink); text-decoration: none; overflow: hidden; transition: transform .15s var(--da-ease); }
+.carnet .bm-cheval:active { transform: scale(.98); }
+.carnet .bm-cheval.pos { background: #EDF4F0; }
+.carnet .bm-cheval.neg { background: var(--rose-soft); }
+.carnet .bm-cheval .tete { position: absolute; right: 4px; top: 4px; }
+.carnet .bm-cheval .tete .face { width: 40px; height: 40px; background: rgba(255, 255, 255, .6); }
+.carnet .bm-cheval .nom { font-size: 15px; font-weight: 740; padding-right: 44px; }
+.carnet .bm-cheval strong { font-size: 24px; font-weight: 800; letter-spacing: -.03em; font-variation-settings: "wdth" 86; font-variant-numeric: tabular-nums; }
+.carnet .bm-cheval.pos strong { color: var(--vert); }
+.carnet .bm-cheval.neg strong { color: var(--out); }
+.carnet .bm-cheval .duo { display: grid; gap: 3px; margin-top: 2px; }
+.carnet .bm-cheval .duo > span { display: block; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .7); overflow: hidden; }
+.carnet .bm-cheval .duo i { display: block; height: 100%; border-radius: 3px; transform-origin: left; animation: da-pousse .9s var(--da-ease) backwards; }
+.carnet .bm-cheval .duo .in { background: var(--vert); }
+.carnet .bm-cheval .duo .out { background: var(--rose); }
+.carnet .bm-cheval small { font-size: 11.5px; line-height: 1.3; color: var(--ink2); }
+.carnet .bm-aide { margin: 6px 0 0; font-size: 13.5px; color: var(--ink2); }
+.carnet .bm-objs { display: grid; gap: 12px; margin-top: 14px; }
+.carnet .bm-lien { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 14px; font-weight: 700; color: var(--vert); text-decoration: none; }
+.carnet .bm-lien svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.carnet .bilan-m .sec, .carnet .bilan-m .ar-links { margin-left: 0; margin-right: 0; }
+.carnet .da-plus-loin { box-shadow: var(--da-ombre-carte); }
+@media (prefers-reduced-motion: reduce) { .carnet .bm-pieces span, .carnet .bm-clients .bar i, .carnet .bm-cheval .duo i, .carnet .bm-temps-barre i, .carnet .ca-barre i, .carnet .da-ob-barre i { animation: none; } }
+.carnet .bm-cheval .tete .face { display: block; }
+.carnet .bilan-m .sec.blk { margin: 0; }

@@ -30,6 +30,7 @@ import { montantEnTexte, montantOuZero } from "@/lib/utils/montant";
 import { nomAffiche } from "@/lib/domain/noms-categories";
 import { useConfirmer } from "@/components/bs/confirmer";
 import { FACTURATION, QUATRE_PARTIES } from "@/lib/fonctions";
+import { BilanClos } from "@/components/da/bilan-mois";
 
 /**
  * Mon bilan : le chiffre du mois en tête, puis ce qui rentre
@@ -97,7 +98,8 @@ function Argent() {
   return (
     <Page wide={desk}>
       <h1 className="ar-sr">{TITRES[vue] ?? TITRES.mois}</h1>
-      <div className="ar-mnav">
+      {/* Les cinq onglets du Clos : le mois se change dans la tête verte du Suivi (components/da/suivi-tete.tsx). */}
+      <div className="ar-mnav" hidden={QUATRE_PARTIES}>
         <button type="button" onClick={() => step(-1)} aria-label="Mois précédent">
           <Ic n="chevL" className="ar-ic" />
         </button>
@@ -110,7 +112,7 @@ function Argent() {
       <div className="ar-bseg" hidden={QUATRE_PARTIES}>
         <Seg value={vue} onChange={(v) => router.replace(v === "mois" ? "/argent" : `/argent?vue=${v}`)} options={VUES} label="Vues de Mon bilan" />
       </div>
-      {vue === "mois" && <Mois />}
+      {vue === "mois" && (QUATRE_PARTIES ? <BilanClos apres={<AllerPlusLoin />} /> : <Mois />)}
       {vue === "leviers" && <Leviers />}
       {vue === "mouvements" && <Mouvements />}
       <div className="end" />
@@ -395,6 +397,34 @@ function Mois() {
         </nav>
       </div>
     </div>
+  );
+}
+
+/** Sous le Bilan du Clos : la meilleure idée du moment et les écrans pour aller plus loin. */
+function AllerPlusLoin() {
+  const active = usePeriodStore((s) => s.active);
+  const isNow = samePeriod(active, currentPeriod());
+  const lien = (href: string, ic: string, k: string, b: string) => (
+    <Link href={href} className="ar-lrow">
+      <span className="ar-pic">
+        <Ic n={ic} className="ar-ic" />
+      </span>
+      <span>
+        <span className="k">{k}</span>
+        <b>{b}</b>
+      </span>
+      <Ic n="chev" className="chev" />
+    </Link>
+  );
+  return (
+    <>
+      {isNow && <Piste delay={0} />}
+      <nav className="card ar-links da-plus-loin" aria-label="Aller plus loin">
+        {lien("/seuil", "flag", "Combien de chevaux pour ne pas perdre d’argent", "Ton seuil de pensions")}
+        {lien("/part", "hay", "Les frais de l’écurie", "Comment ils se partagent entre tes chevaux")}
+        {lien("/pilotage", "chart", "Sur plusieurs mois", "Ton argent sur 3, 6 ou 12 mois")}
+      </nav>
+    </>
   );
 }
 

@@ -16,7 +16,7 @@ import { monthBreakdown } from "@/lib/domain/ticket";
 import { currentPeriod } from "@/lib/utils/period";
 import { usePresence } from "@/components/bs/presence";
 import { PhraseDuJour } from "@/components/da/phrase-du-jour";
-import { aValider } from "@/lib/domain/compte-auto";
+import { AValiderCarte } from "@/components/da/a-valider";
 import { useGrille } from "@/components/da/grille-audit";
 import { noteDe, premiersGestes } from "@/lib/audit/grille";
 
@@ -140,33 +140,6 @@ function RendezVous() {
         </ul>
       )}
     </Carte>
-  );
-}
-
-/**
- * Ce qui attend d'être validé (DA de l'app du Clos) : une carte rose, le
- * nombre en grand, ce que ça ajoutera au décompte, et le chemin vers
- * Planning, À valider. Rien quand rien n'attend.
- */
-function AValiderCarte() {
-  const { etat } = useBriques();
-  const ouverte = estOuverte(etat.planning);
-  const data = useDataStore();
-  const ready = useDataStore((s) => s.hydrated);
-  const today = localToday();
-  const jours = useMemo(() => (ouverte && ready ? aValider(data, today, maintenant()) : []), [data, today, ouverte, ready]);
-  const n = jours.reduce((t, j) => t + j.seances.length, 0);
-  const total = jours.reduce((t, j) => t + j.total, 0);
-  if (!n) return null;
-  return (
-    <Link href="/valider" className="da-a-valider rise" style={{ animationDelay: ".12s" }}>
-      <b>{n}</b>
-      <span>
-        <strong>séance{n > 1 ? "s" : ""} à valider</strong>
-        <small>{total > 0 ? `+${eur(total)} au décompte une fois validée${n > 1 ? "s" : ""}` : "Dans le Planning, onglet À valider"}</small>
-      </span>
-      <Ic n="arrow" className="" />
-    </Link>
   );
 }
 
