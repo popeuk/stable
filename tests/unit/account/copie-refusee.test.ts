@@ -51,7 +51,7 @@ const { vault, _seuilCompression, SEUIL_COMPRESSION } = await import("@/lib/acco
 const { setSession } = await import("@/lib/account/session");
 const nuage = await import("@/lib/account/nuage");
 const { texteCopie } = await import("@/lib/account/etat-copie");
-const { contenuChiffre } = await import("@/supabase/functions/tiroirs/regles");
+const { contenuAccepte } = await import("@/supabase/functions/tiroirs/regles");
 const { numeroter, raisonProvisoire, AvoirSansReseau } = await import("@/lib/account/numeroter");
 type Inv = import("@/lib/domain/types").Invoice;
 
@@ -184,10 +184,10 @@ describe("la copie compressée avant d'être chiffrée", () => {
   afterEach(() => _seuilCompression());
 
   it("la fonction tiroirs accepte le nouveau préfixe et garde l'ancien", () => {
-    expect(contenuChiffre("bs-enc2:iv.ct")).toBe(true);
-    expect(contenuChiffre("bs-enc1:iv.ct")).toBe(true);
-    expect(contenuChiffre("bs-enc2:")).toBe(false);
-    expect(contenuChiffre('{"state":{}}')).toBe(false);
+    expect(contenuAccepte("bs-enc2:iv.ct")).toBe(true);
+    expect(contenuAccepte("bs-enc1:iv.ct")).toBe(true);
+    expect(contenuAccepte("bs-enc2:")).toBe(false);
+    expect(contenuAccepte('{"state":{}}')).toBe(false);
   });
 
   it("tant que le serveur ne l'annonce pas, rien n'est compressé sur l'appareil ; en ligne, la copie part en clair", async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Fenetre, MAX, Memoire, contenuChiffre, jetonBienForme, versionsEnTrop } from "@/supabase/functions/tiroirs/regles";
+import { Fenetre, MAX, Memoire, canal, contenuAccepte, jetonBienForme, versionsEnTrop } from "@/supabase/functions/tiroirs/regles";
 
 const hex = "a".repeat(64);
 
@@ -13,11 +13,26 @@ describe("la fonction tiroirs : ses garde-fous", () => {
     expect(jetonBienForme(`x.${hex}`)).toBe(false);
   });
 
-  it("refuse un contenu qui n'est pas chiffré par l'app", () => {
-    expect(contenuChiffre("bs-enc1:iv.ct")).toBe(true);
-    expect(contenuChiffre('{"state":{}}')).toBe(false);
-    expect(contenuChiffre("bs-enc1:")).toBe(false);
+  it("refuse un contenu qui n'est ni chiffré ni en clair compressé par l'app", () => {
+    expect(contenuAccepte("bs-enc1:iv.ct")).toBe(true);
+    expect(contenuAccepte('{"state":{}}')).toBe(false);
+    expect(contenuAccepte("bs-enc1:")).toBe(false);
     expect(MAX).toBe(2_000_000);
+  });
+
+  it("accepte le clair compressé, refuse le texte nu", () => {
+    expect(contenuAccepte("bs-clair2:H4sI")).toBe(true);
+    expect(contenuAccepte("bs-enc2:xyz")).toBe(true);
+    expect(contenuAccepte("{\"state\":{}}")).toBe(false);
+    expect(contenuAccepte("bs-clair2:")).toBe(false);
+  });
+
+  it("le canal d'une écurie est stable, propre à l'écurie, et ne montre pas son numéro", async () => {
+    const a = await canal(32, "s");
+    expect(a).toBe(await canal(32, "s"));
+    expect(a).not.toBe(await canal(33, "s"));
+    expect(a).toMatch(/^ecurie-[0-9a-f]{24}$/);
+    expect(a.includes("32")).toBe(false);
   });
 
   it("au plus 6 envois par minute et par compte, puis ça repart", () => {

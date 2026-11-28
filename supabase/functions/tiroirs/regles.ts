@@ -8,12 +8,17 @@ export const PREFIXE = "bs-enc1:";
 /** Le même, compressé (gzip) avant d'être chiffré (19 octobre 2026) : 5 à 10 fois plus petit. */
 export const PREFIXE_COMPRESSE = "bs-enc2:";
 /**
+ * La copie en clair, compressée (gzip puis base64), depuis le 28 novembre 2026
+ * (lib/account/format-clair.ts) : l'écurie et ses membres la lisent sans clé.
+ */
+export const PREFIXE_CLAIR = "bs-clair2:";
+/**
  * Les formats acceptés, dits à l'app dans la réponse du GET : elle n'écrit
- * « bs-enc2: » qu'une fois que le serveur l'annonce (ainsi, aucune version
+ * un format qu'une fois que le serveur l'annonce (ainsi, aucune version
  * d'avant de l'app ne reçoit un format qu'elle ne sait pas lire tant que la
  * fonction n'est pas redéployée).
  */
-export const FORMATS = [PREFIXE, PREFIXE_COMPRESSE] as const;
+export const FORMATS = [PREFIXE, PREFIXE_COMPRESSE, PREFIXE_CLAIR] as const;
 /** Versions gardées par compte et par tiroir (même nombre que le déclencheur de 0003_tiroirs.sql). */
 export const VERSIONS = 30;
 /** Un jeton vérifié auprès du site reste bon 2 minutes ici (après une déconnexion, il tombe vite). */
@@ -29,8 +34,24 @@ export function jetonBienForme(t: string): boolean {
   return /^\d{1,12}\.[a-f0-9]{64}$/.test(t);
 }
 
-export function contenuChiffre(c: string): boolean {
+/** Un contenu accepté : un des `FORMATS`, suivi d'au moins un caractère (le préfixe seul est refusé). */
+export function contenuAccepte(c: string): boolean {
   return FORMATS.some((p) => c.startsWith(p) && c.length > p.length);
+}
+
+/**
+ * Le canal Realtime d'une écurie : « ecurie- » suivi des 24 premiers
+ * caractères hexadécimaux de HMAC-SHA256(secret, numéro de l'écurie).
+ * Le gérant et ses membres tombent sur le même nom, que personne ne devine
+ * sans le secret, et le numéro de l'écurie n'y apparaît pas.
+ * `crypto.subtle` existe dans Deno comme dans Node : aucun import.
+ */
+export async function canal(ecurie: number, secret: string): Promise<string> {
+  const enc = new TextEncoder();
+  const cle = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sceau = new Uint8Array(await crypto.subtle.sign("HMAC", cle, enc.encode(String(ecurie))));
+  const hex = Array.from(sceau, (o) => o.toString(16).padStart(2, "0")).join("");
+  return "ecurie-" + hex.slice(0, 24);
 }
 
 /** Un compteur à fenêtre glissante, en mémoire de l'instance : au-delà de `max` dans `ms`, refus. */
