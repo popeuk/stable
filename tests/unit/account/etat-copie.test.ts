@@ -17,4 +17,8 @@ describe("la ligne de la copie en ligne dans Mon compte", () => {
     expect(texteCopie({ allume: true, attente: false, changements: 0, aJour: new Date(2026, 9, 19, 9, 0).toISOString() }, midi)).toBe("Copie en ligne à jour à 9 h");
     expect(texteCopie({ allume: true, attente: false, changements: 0, aJour: null })).toBe("Copie en ligne : on vérifie…");
   });
+  it("téléphone trop ancien : la phrase qui dit de le mettre à jour, avant tout le reste", () => {
+    expect(texteCopie({ allume: false, attente: false, changements: 0, aJour: null, tropAncien: true })).toBe("Ton téléphone est trop ancien pour la copie en ligne : mets-le à jour pour partager avec ton équipe.");
+    expect(texteCopie({ allume: false, attente: true, changements: 2, aJour: null, refus: "trop_gros", tropAncien: true })).toBe("Ton téléphone est trop ancien pour la copie en ligne : mets-le à jour pour partager avec ton équipe.");
+  });
 });

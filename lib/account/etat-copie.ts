@@ -1,4 +1,5 @@
 import { heureDepuis } from "@/lib/account/place";
+import { TEXTE_TROP_ANCIEN } from "@/lib/account/nuage";
 
 /** Le serveur refuse la copie : trop grosse (413) ou mal formée (400). */
 export type RefusCopie = "trop_gros" | "invalide" | null;
@@ -11,7 +12,9 @@ export function texteRefus(refus: RefusCopie): string | null {
 }
 
 /** Ce que Mon compte dit de la copie en ligne (lib/account/nuage : etatNuage). */
-export function texteCopie(e: { allume: boolean; attente: boolean; changements: number; aJour: string | null; refus?: RefusCopie }, maintenant = Date.now(), ici = "ce téléphone"): string {
+export function texteCopie(e: { allume: boolean; attente: boolean; changements: number; aJour: string | null; refus?: RefusCopie; tropAncien?: boolean }, maintenant = Date.now(), ici = "ce téléphone"): string {
+  // Navigateur trop ancien pour la copie en clair (lib/account/nuage) : elle y est éteinte, on dit pourquoi.
+  if (e.tropAncien) return TEXTE_TROP_ANCIEN;
   if (!e.allume) return `Pas de copie en ligne sur ${ici}`;
   // Un refus passe avant « attend le réseau » : ce n'est pas le réseau, et attendre n'y changera rien.
   const refus = texteRefus(e.refus ?? null);
