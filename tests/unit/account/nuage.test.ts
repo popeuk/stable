@@ -474,3 +474,117 @@ describe("la copie en ligne en clair (décision du 28 novembre 2026)", () => {
     });
   }
 });
+
+describe("rien de noté ne se perd, pas de réessai en boucle (relecture, tour 1)", () => {
+  beforeEach(() => {
+    serveur.tiroirs.clear();
+    serveur.versions = [];
+    serveur.appels = 0;
+  });
+  const ecurie = (horses: string[], clients: string[] = []) =>
+    JSON.stringify({ state: { horses: horses.map((n) => ({ id: n, name: n })), clients: clients.map((n) => ({ id: n, name: n })), invoices: [], invoiceSeq: {} }, version: 5 });
+  const enClair = async (c: string) => (await depuisDistant(c, async () => null)) ?? "";
+
+  it("un téléphone aligné, devenu trop ancien, garde ses changements jusqu'à sa remise à jour", async () => {
+    const tel = appareil();
+    tel.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", ecurie(["Sirius"]));
+    await attendre();
+    await nuage.envoyer();
+    const pc = appareil();
+    pc.entrer();
+    await sync();
+
+    // Le téléphone ne sait plus décompresser : la gérante ajoute Hugo, rien ne part.
+    const g2 = globalThis as Record<string, unknown>;
+    const garde = g2.DecompressionStream;
+    tel.entrer();
+    try {
+      delete g2.DecompressionStream;
+      await vault.setItem("be-stable-data", ecurie(["Sirius"], ["Hugo"]));
+      await attendre();
+      await sync();
+      expect(nuage.etatNuage().attente).toBe(true);
+    } finally {
+      g2.DecompressionStream = garde;
+    }
+    // L'ordinateur écrit entre-temps.
+    pc.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", ecurie(["Sirius", "Opale"]));
+    await attendre();
+    await nuage.envoyer();
+
+    // Le téléphone est remis à jour : Hugo et Opale sont partout.
+    tel.entrer();
+    await sync();
+    const st = await lire();
+    expect(st.clients.map((c: { name: string }) => c.name)).toEqual(["Hugo"]);
+    expect(st.horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
+    const enLigne = JSON.parse(await enClair(serveur.tiroirs.get("be-stable-data")!.contenu)).state;
+    expect(enLigne.clients.map((c: { name: string }) => c.name)).toEqual(["Hugo"]);
+    expect(enLigne.horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
+  });
+
+  it("un changement jamais noté n'est pas écrasé par une copie en ligne plus récente", async () => {
+    const tel = appareil();
+    tel.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", ecurie(["Sirius"]));
+    await attendre();
+    await nuage.envoyer();
+    const pc = appareil();
+    pc.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", ecurie(["Sirius", "Opale"]));
+    await attendre();
+    await nuage.envoyer();
+    // Sur le téléphone, une écriture a échappé au suivi (Hugo est rangé, mais l'état dit « propre »).
+    tel.entrer();
+    const etat = (k: string) => [...tel.m.m.keys()].find((x) => x.startsWith(k))!;
+    const cleEtat = etat("bs-nuage@");
+    const avant = tel.m.getItem(cleEtat)!;
+    await vault.setItem("be-stable-data", ecurie(["Sirius"], ["Hugo"]));
+    await attendre();
+    tel.m.setItem(cleEtat, avant);
+    await sync();
+    expect((await lire()).clients.map((c: { name: string }) => c.name)).toEqual(["Hugo"]);
+    expect((await lire()).horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
+  });
+
+  it("la copie en ligne qui gagne ne s'écrit pas (place pleine) : pas de réessai en boucle, la copie de l'appareil gardée une fois", async () => {
+    const pc = appareil();
+    pc.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", ecurie(["Sirius", "Opale"]));
+    await attendre();
+    await nuage.envoyer();
+
+    // Un téléphone neuf écrit avant d'avoir lu, puis n'a plus de place pour ranger la copie en ligne.
+    const tel = appareil();
+    tel.entrer();
+    await vault.setItem("be-stable-data", ecurie(["Tango"]));
+    await attendre();
+    const ranger = tel.m.setItem.bind(tel.m);
+    tel.m.setItem = (k: string, v: string) => {
+      if (k.startsWith("be-stable-data@")) throw Object.assign(new Error("plein"), { name: "QuotaExceededError" });
+      ranger(k, v);
+    };
+    try {
+      await nuage.synchroniser();
+      const appels = serveur.appels;
+      await new Promise((r) => setTimeout(r, 1500));
+      // Ni PUT ni POST de plus : le prochain essai est dans une minute.
+      expect(serveur.appels).toBe(appels);
+      expect(serveur.versions.filter((v) => v.raison === "conflit")).toHaveLength(1);
+      expect(serveur.tiroirs.get("be-stable-data")!.rev).toBe(1);
+      // Une relance tout de suite ne garde pas une seconde fois la même copie.
+      await nuage.envoyer();
+      expect(serveur.versions.filter((v) => v.raison === "conflit")).toHaveLength(1);
+    } finally {
+      tel.m.setItem = ranger;
+      nuage._reinitialiser();
+    }
+  });
+});

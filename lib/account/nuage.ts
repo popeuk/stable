@@ -295,13 +295,14 @@ export function noterEcriture(nom: string, clair: string): Promise<void> {
   return p;
 }
 async function noter(nom: string, clair: string): Promise<void> {
-  if (!estNom(nom) || !actif()) return;
+  // Trop ancien : rien ne part, mais le changement est noté, pour partir (ou se fusionner) après la mise à jour.
+  if (!estNom(nom) || !(actif() || tropAncienPourCompte())) return;
   const h = await empreinte(clair);
   const e = lireEtat()[nom];
   if (e?.empreinte === h && !e.sale) return;
   if (e?.locale === h && e.sale) return;
   majTiroir(nom, { sale: true, locale: h, modifie: new Date().toISOString(), n: (e?.sale ? (e.n ?? 1) : 0) + 1 });
-  planifierEnvoi();
+  if (actif()) planifierEnvoi();
 }
 
 export function planifierEnvoi(ms = 4000) {
@@ -349,17 +350,33 @@ export function departager(
 }
 
 /**
+ * Les tiroirs dont la dernière écriture venue de la copie en ligne n'a pas pu
+ * se faire (plus de place, pas de clé) : l'envoi attend alors une minute au
+ * lieu de repartir aussitôt en 409, en boucle.
+ */
+const ecritureRatee = new Set<Nom>();
+/** Les copies de l'appareil déjà gardées sur le serveur (version distante et empreinte) : pas deux fois la même. */
+const dejaGardees = new Set<string>();
+
+/** Écrit un contenu dans le tiroir par le coffre, et vérifie qu'il y est bien. */
+async function ecrireVerifie(nom: Nom, clair: string): Promise<boolean> {
+  marquerARelire(nom);
+  await coffre!.ecrire(nom, clair);
+  await notesFaites();
+  if ((await coffre!.lire(nom)) !== clair) {
+    relu(nom);
+    ecritureRatee.add(nom);
+    return false;
+  }
+  return true;
+}
+
+/**
  * La copie en ligne remplace celle de l'appareil : écrite scellée par le
  * coffre. Rend false si elle n'a pas pu l'être (plus de place sur l'appareil).
  */
 async function adopterDistant(nom: Nom, d: Distant, clairD: string): Promise<boolean> {
-  marquerARelire(nom);
-  await coffre!.ecrire(nom, clairD);
-  await notesFaites();
-  if ((await coffre!.lire(nom)) !== clairD) {
-    relu(nom);
-    return false;
-  }
+  if (!(await ecrireVerifie(nom, clairD))) return false;
   garderBase(nom, estClair(d.contenu) ? d.contenu : ((await pourServeur(clairD)) ?? d.contenu));
   const h = await empreinte(clairD);
   // Encore chiffrée en ligne : on la renverra en clair.
@@ -384,7 +401,10 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
     majTiroir(nom, { rev: d.rev, sale: true, vu: true });
     return false;
   }
-  const clairL = simple ? null : await coffre.lire(nom);
+  // « simple » (rien d'attendu) seulement si l'appareil a bien ce qui était aligné : une écriture
+  // qui aurait échappé au suivi passe alors par le choix ci-dessous au lieu d'être remplacée.
+  let clairL = await coffre.lire(nom);
+  if (simple && clairL !== null && (await empreinte(clairL)) === e.empreinte) clairL = null;
   if (clairL === null) return adopterDistant(nom, d, clairD);
   const baseRaw = localStorage.getItem(cleBase(nom));
   const base = baseRaw ? await depuisDistant(baseRaw, (s) => coffre!.ouvrir(s)) : null;
@@ -392,18 +412,17 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
   if (choix.gagnant === "distant") {
     // Sans fusion, la copie de l'appareil est gardée sur le serveur avant d'être remplacée.
     if (!choix.fusion && clairL !== clairD) {
-      const contenu = await pourServeur(clairL);
-      if (contenu) await appel("POST", { nom, contenu, rev: e.rev, modifie: e.modifie, appareil: appareil(), garder: true });
+      const deja = `${nom}:${d.rev}:${await empreinte(clairL)}`;
+      const contenu = dejaGardees.has(deja) ? null : await pourServeur(clairL);
+      if (contenu && (await appel("POST", { nom, contenu, rev: e.rev, modifie: e.modifie, appareil: appareil(), garder: true })).status === 200) dejaGardees.add(deja);
     }
     if (choix.clair === clairD) return adopterDistant(nom, d, clairD);
   }
   // L'appareil gagne, ou la copie gagnante reçoit des factures de l'autre : on l'écrit et on l'envoie.
+  // Pas écrite (plus de place) : on ne s'aligne pas, sinon l'envoi suivant remplacerait la copie en ligne par l'ancienne de l'appareil.
+  if (choix.clair !== clairL && !(await ecrireVerifie(nom, choix.clair))) return false;
   majTiroir(nom, { rev: d.rev, vu: true, empreinte: await empreinte(clairD) });
   garderBase(nom, estClair(d.contenu) ? d.contenu : ((await pourServeur(clairD)) ?? d.contenu));
-  if (choix.clair !== clairL) {
-    marquerARelire(nom);
-    await coffre.ecrire(nom, choix.clair);
-  }
   majTiroir(nom, { sale: true, locale: await empreinte(choix.clair), modifie: new Date().toISOString() });
   return choix.clair !== clairL;
 }
@@ -437,9 +456,11 @@ export async function envoyer(): Promise<void> {
       if (e.refus) signalerRefus();
       if (!toujours) planifierEnvoi();
     } else if (r.status === 409) {
+      ecritureRatee.delete(nom);
       const changed = await resoudre(nom, (r.json.tiroir as Distant | null) ?? null);
       if (changed) notifier(new Set([nom]));
-      planifierEnvoi(500);
+      // La copie en ligne n'a pas pu s'écrire ici : réessayer tout de suite referait la même chose.
+      planifierEnvoi(ecritureRatee.has(nom) ? 60000 : 500);
     } else if (r.status === 413 || r.status === 400) {
       // Trop gros, ou mal formé : il sera refusé encore. On le dit (Mon compte, bandeau) sans réessayer.
       majTiroir(nom, { refus: { code: r.status === 413 ? "trop_gros" : "invalide", taille: contenu.length, prefixe: contenu.slice(0, 8), quand: new Date().toISOString() } });
@@ -598,6 +619,8 @@ export function _reinitialiser() {
   enCours = null;
   derniere = null;
   tropAncienSignale = false;
+  ecritureRatee.clear();
+  dejaGardees.clear();
   if (minuteur) clearTimeout(minuteur);
   minuteur = null;
 }
