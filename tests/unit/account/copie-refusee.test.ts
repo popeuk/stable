@@ -28,8 +28,10 @@ const serveur = {
   tiroirs: new Map<string, { rev: number; contenu: string; modifie: string }>(),
   puts: [] as string[],
   max: 2_000_000,
-  /** Les formats que le serveur annonce et accepte. */
+  /** Les formats chiffrés que le serveur annonce et accepte. */
   formats: ["bs-enc1:"] as string[],
+  /** Le format en clair, accepté depuis le 28 novembre 2026 (pas annoncé : il ne règle pas le coffre). */
+  clair: ["bs-clair2:"] as string[],
 };
 g.fetch = (async (_url: string, init: RequestInit) => {
   const rep = (status: number, body: unknown) => ({ status, json: async () => body }) as Response;
@@ -37,7 +39,7 @@ g.fetch = (async (_url: string, init: RequestInit) => {
   const b = JSON.parse(String(init.body)) as { nom: string; contenu: string; rev: number; modifie: string };
   if (init.method === "PUT") serveur.puts.push(b.contenu);
   if (b.contenu.length > serveur.max) return rep(413, { code: "trop_gros" });
-  if (!serveur.formats.some((p) => b.contenu.startsWith(p))) return rep(400, { code: "invalide" });
+  if (![...serveur.formats, ...serveur.clair].some((p) => b.contenu.startsWith(p))) return rep(400, { code: "invalide" });
   if (init.method === "POST") return rep(200, { ok: true });
   const cur = serveur.tiroirs.get(b.nom);
   if ((cur?.rev ?? 0) !== b.rev) return rep(409, { tiroir: cur ? { nom: b.nom, ...cur } : null });
@@ -84,13 +86,15 @@ describe("la copie en ligne refusée par le serveur", () => {
     serveur.puts = [];
     serveur.max = 2_000_000;
     serveur.formats = ["bs-enc1:"];
+    serveur.clair = ["bs-clair2:"];
   });
 
   it("trop grosse : Mon compte le dit, et on ne renvoie plus pour rien", async () => {
     const pc = appareil();
     pc.entrer();
     await sync();
-    serveur.max = 1000;
+    // En clair compressé, 200 séances font un peu moins de 1 000 caractères : la limite est plus basse.
+    serveur.max = 500;
     await ecrire(200);
     await nuage.envoyer();
     expect(nuage.etatNuage().refus).toBe("trop_gros");
@@ -115,7 +119,8 @@ describe("la copie en ligne refusée par le serveur", () => {
     pc.entrer();
     await sync();
     expect((await nuage.relireAvantNumero()).etat).toBe("a-jour");
-    serveur.max = 1000;
+    // En clair compressé, 200 séances font un peu moins de 1 000 caractères : la limite est plus basse.
+    serveur.max = 500;
     await ecrire(200);
     await nuage.envoyer();
     expect(nuage.refusCopie()).toBe("trop_gros");
@@ -144,6 +149,7 @@ describe("la copie en ligne refusée par le serveur", () => {
     pc.entrer();
     await sync();
     serveur.formats = ["bs-autre:"];
+    serveur.clair = [];
     await ecrire(3);
     await nuage.envoyer();
     expect(nuage.refusCopie()).toBe("invalide");
@@ -171,6 +177,7 @@ describe("la copie compressée avant d'être chiffrée", () => {
     serveur.tiroirs.clear();
     serveur.puts = [];
     serveur.max = 2_000_000;
+    serveur.clair = ["bs-clair2:"];
     // Ici, des écuries de quelques kilo-octets passent pour grosses.
     _seuilCompression(1000);
   });
@@ -183,14 +190,15 @@ describe("la copie compressée avant d'être chiffrée", () => {
     expect(contenuChiffre('{"state":{}}')).toBe(false);
   });
 
-  it("tant que le serveur ne l'annonce pas, rien ne part compressé", async () => {
+  it("tant que le serveur ne l'annonce pas, rien n'est compressé sur l'appareil ; en ligne, la copie part en clair", async () => {
     serveur.formats = ["bs-enc1:"];
     const pc = appareil();
     pc.entrer();
     await sync();
     await ecrire(50);
+    expect([...pc.m.m.values()].some((v) => v.startsWith("bs-enc2:"))).toBe(false);
     await nuage.envoyer();
-    expect(serveur.tiroirs.get("be-stable-data")?.contenu.startsWith("bs-enc1:")).toBe(true);
+    expect(serveur.tiroirs.get("be-stable-data")?.contenu.startsWith("bs-clair2:")).toBe(true);
   });
 
   it("annoncé : l'envoi est 5 fois plus petit au moins, et l'autre appareil le relit", async () => {
@@ -200,10 +208,11 @@ describe("la copie compressée avant d'être chiffrée", () => {
     await sync();
     await ecrire(500);
     await nuage.envoyer();
+    expect([...pc.m.m.values()].some((v) => v.startsWith("bs-enc2:"))).toBe(true);
     const envoye = serveur.tiroirs.get("be-stable-data")!.contenu;
-    expect(envoye.startsWith("bs-enc2:")).toBe(true);
+    expect(envoye.startsWith("bs-clair2:")).toBe(true);
     expect(envoye).not.toContain("Hugo");
-    // Sans compression, le même contenu chiffré ferait au moins 4/3 de sa taille en clair.
+    // Sans compression, le même contenu en base64 ferait au moins 4/3 de sa taille en clair.
     expect(envoye.length * 5).toBeLessThan(donnees(500).length);
     const tel = appareil();
     tel.entrer();
@@ -223,24 +232,6 @@ describe("la copie compressée avant d'être chiffrée", () => {
     expect(nuage.refusCopie()).toBeNull();
     expect(serveur.tiroirs.get("be-stable-data")?.rev).toBe(1);
   });
-
-  it("un serveur revenu à l'ancienne fonction : l'envoi repart dans l'ancien format", async () => {
-    serveur.formats = ["bs-enc1:", "bs-enc2:"];
-    const pc = appareil();
-    pc.entrer();
-    await sync();
-    await ecrire(20);
-    expect([...pc.m.m.values()].some((v) => v.startsWith("bs-enc2:"))).toBe(true);
-    // La fonction est remise à l'ancienne version, avant que l'appareil le sache.
-    serveur.formats = ["bs-enc1:"];
-    await nuage.envoyer();
-    expect(serveur.tiroirs.get("be-stable-data")?.contenu.startsWith("bs-enc1:")).toBe(true);
-    expect(nuage.refusCopie()).toBeNull();
-    const tel = appareil();
-    tel.entrer();
-    await sync();
-    expect(JSON.parse((await vault.getItem("be-stable-data")) as string).state.seances).toHaveLength(20);
-  });
 });
 
 describe("compresser seulement quand c'est gros (les anciennes versions ne lisent que bs-enc1)", () => {
@@ -249,16 +240,18 @@ describe("compresser seulement quand c'est gros (les anciennes versions ne lisen
     serveur.puts = [];
     serveur.max = 4_000_000;
     serveur.formats = ["bs-enc1:", "bs-enc2:"];
+    serveur.clair = ["bs-clair2:"];
   });
 
-  it("annoncé par le serveur, mais sous 1,5 Mo : l'ancien format, sur l'appareil et en ligne", async () => {
+  it("annoncé par le serveur, mais sous 1,5 Mo : l'ancien format sur l'appareil, en clair en ligne", async () => {
     const pc = appareil();
     pc.entrer();
     await sync();
     await ecrire(500);
     expect([...pc.m.m.values()].some((v) => v.startsWith("bs-enc2:"))).toBe(false);
+    expect([...pc.m.m.values()].some((v) => v.startsWith("bs-enc1:"))).toBe(true);
     await nuage.envoyer();
-    expect(serveur.tiroirs.get("be-stable-data")?.contenu.startsWith("bs-enc1:")).toBe(true);
+    expect(serveur.tiroirs.get("be-stable-data")?.contenu.startsWith("bs-clair2:")).toBe(true);
   });
 
   it("au-delà de 1,5 Mo : compressé", async () => {
@@ -268,7 +261,8 @@ describe("compresser seulement quand c'est gros (les anciennes versions ne lisen
     const n = Math.ceil(SEUIL_COMPRESSION / 90);
     expect(donnees(n).length).toBeGreaterThan(SEUIL_COMPRESSION);
     await ecrire(n);
+    expect([...pc.m.m.values()].some((v) => v.startsWith("bs-enc2:"))).toBe(true);
     await nuage.envoyer();
-    expect(serveur.tiroirs.get("be-stable-data")?.contenu.startsWith("bs-enc2:")).toBe(true);
+    expect(serveur.tiroirs.get("be-stable-data")?.contenu.startsWith("bs-clair2:")).toBe(true);
   });
 });

@@ -6,13 +6,20 @@ import { fusionner3 } from "@/lib/account/fusion";
 import type { StableData } from "@/lib/domain/types";
 import { estPlacePleine, noterPlacePleine } from "@/lib/account/place";
 import { signalerErreur } from "@/lib/suivi-erreurs";
+import { depuisDistant, estClair, versClair } from "@/lib/account/format-clair";
 
 /**
  * La copie en ligne des tiroirs d'un compte (Supabase, projet `bestable`).
  *
- * Ce qui part est exactement ce qui est rangé sur l'appareil : déjà chiffré
- * avec la clé du compte (lib/account/vault). Le serveur ne lit rien ; il
- * garde la dernière version de chaque tiroir et les 30 précédentes.
+ * Décision du 28 novembre 2026 : le serveur reçoit et garde le contenu en
+ * clair, compressé (« bs-clair2: », lib/account/format-clair), au lieu d'une
+ * copie chiffrée qu'il ne pouvait pas lire. L'appareil, lui, garde ses
+ * tiroirs scellés avec la clé du compte (lib/account/vault), comme avant.
+ * Une copie en ligne encore chiffrée (« bs-enc1: » / « bs-enc2: ») reste
+ * lue, puis renvoyée en clair. Seule exception : un navigateur sans
+ * CompressionStream (Safari iOS avant 16.4) envoie encore le contenu scellé,
+ * que le serveur accepte toujours. Le serveur garde la dernière version de
+ * chaque tiroir et les 30 précédentes.
  *
  * Chaque tiroir porte un numéro de version (`rev`). On envoie en disant
  * quelle version on avait reçue ; si le serveur en a une plus récente
@@ -69,7 +76,7 @@ interface Refus {
   code: CodeRefus;
   /** La taille de ce qui a été refusé (en caractères). */
   taille: number;
-  /** Le début de ce qui a été refusé (le préfixe du chiffrement). */
+  /** Le début de ce qui a été refusé (le préfixe du format). */
   prefixe: string;
   quand: string;
 }
@@ -83,7 +90,7 @@ export interface Coffre {
   ouvrir(scelle: string): Promise<string | null>;
   /** Écrit un contenu en clair dans le tiroir (il est chiffré au passage). */
   ecrire(nom: string, clair: string): Promise<void>;
-  /** Rechiffre un contenu rangé dans l'ancien format, sans compression (pour un serveur pas encore à jour). */
+  /** Plus utilisé par la copie en ligne depuis le 28 novembre 2026 (elle part en clair) ; vault.ts le fournit encore. */
   ancienFormat?(scelle: string): Promise<string | null>;
 }
 let coffre: Coffre | null = null;
@@ -95,8 +102,22 @@ let tire = false;
 let minuteur: ReturnType<typeof setTimeout> | null = null;
 let enCours: Promise<void> | null = null;
 let derniere: { quand: string; ok: boolean } | null = null;
-/** Le serveur ne connaît pas encore le contenu compressé (bs-enc2) : on lui envoie l'ancien format. */
-let sansCompression = false;
+
+/** Ce navigateur sait-il compresser (donc envoyer en clair) ? Safari iOS avant 16.4, non. */
+const peutEnvoyerEnClair = () => typeof CompressionStream === "function";
+
+/**
+ * Ce qui part au serveur pour un contenu en clair : « bs-clair2: ». Sans
+ * CompressionStream, `versClair` lève : on envoie alors `scelle` (le contenu
+ * chiffré de l'appareil), que le serveur accepte encore, plutôt que rien.
+ */
+async function pourServeur(clair: string, scelle: string | null): Promise<string | null> {
+  try {
+    return await versClair(clair);
+  } catch {
+    return scelle;
+  }
+}
 
 /** Un refus qui tient encore : renvoyer la même chose serait refusé pareil. */
 export function refusTient(r: Refus | undefined, raw: string, maintenant = Date.now()): boolean {
@@ -173,13 +194,14 @@ function majTiroir(nom: Nom, patch: Partial<EtatTiroir>) {
 }
 
 /**
- * La dernière version commune avec le serveur, telle qu'elle est rangée
- * (chiffrée) : c'est la base de la fusion quand les deux côtés ont changé.
+ * La dernière version commune avec le serveur, au format du serveur (en
+ * clair, « bs-clair2: » ; une ancienne base chiffrée se lit encore) : c'est
+ * la base de la fusion quand les deux côtés ont changé.
  */
 const cleBase = (nom: Nom) => scopedKey(`bs-nuage-base:${nom}`);
-function garderBase(nom: Nom, raw: string) {
+function garderBase(nom: Nom, contenu: string) {
   try {
-    localStorage.setItem(cleBase(nom), raw);
+    localStorage.setItem(cleBase(nom), contenu);
   } catch (err) {
     if (estPlacePleine(err)) noterPlacePleine();
   }
@@ -309,6 +331,26 @@ export function departager(
   return { gagnant: distantGagne ? "distant" : "locale", clair, fusion: false };
 }
 
+/**
+ * La copie en ligne remplace celle de l'appareil : écrite scellée par le
+ * coffre. Rend false si elle n'a pas pu l'être (plus de place sur l'appareil).
+ */
+async function adopterDistant(nom: Nom, d: Distant, clairD: string): Promise<boolean> {
+  marquerARelire(nom);
+  await coffre!.ecrire(nom, clairD);
+  await notesFaites();
+  if ((await coffre!.lire(nom)) !== clairD) {
+    relu(nom);
+    return false;
+  }
+  garderBase(nom, estClair(d.contenu) ? d.contenu : ((await pourServeur(clairD, null)) ?? d.contenu));
+  const h = await empreinte(clairD);
+  // Encore chiffrée en ligne : on la renverra en clair (si ce navigateur sait le faire).
+  const renvoyer = !estClair(d.contenu) && peutEnvoyerEnClair();
+  majTiroir(nom, { rev: d.rev, empreinte: h, locale: h, sale: renvoyer, vu: true, modifie: d.modifie, ...(renvoyer ? { n: 1 } : {}) });
+  return true;
+}
+
 /** Le serveur a une version que l'appareil n'a pas : on l'aligne. Rend true si l'appareil a changé. */
 async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<boolean> {
   if (!coffre) return false;
@@ -318,54 +360,28 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
     return false;
   }
   const e = lireEtat()[nom] ?? { rev: 0 };
-  const clairD = await coffre.ouvrir(d.contenu);
+  const clairD = await depuisDistant(d.contenu, (s) => coffre!.ouvrir(s));
   if (clairD === null) {
-    // Illisible avec la clé de ce compte : on ne touche pas à l'appareil, et on le renvoie.
+    // Illisible (clé d'un autre compte, contenu abîmé) : on ne touche pas à l'appareil, et on le renvoie.
     majTiroir(nom, { rev: d.rev, sale: true, vu: true });
     return false;
   }
   const clairL = simple ? null : await coffre.lire(nom);
-  if (clairL === null) {
-    marquerARelire(nom);
-    try {
-      localStorage.setItem(scopedKey(nom), d.contenu);
-    } catch (err) {
-      if (estPlacePleine(err)) noterPlacePleine();
-      relu(nom);
-      return false;
-    }
-    garderBase(nom, d.contenu);
-    const h = await empreinte(clairD);
-    majTiroir(nom, { rev: d.rev, empreinte: h, locale: h, sale: false, vu: true, modifie: d.modifie });
-    return true;
-  }
+  if (clairL === null) return adopterDistant(nom, d, clairD);
   const baseRaw = localStorage.getItem(cleBase(nom));
-  const base = baseRaw ? await coffre.ouvrir(baseRaw) : null;
+  const base = baseRaw ? await depuisDistant(baseRaw, (s) => coffre!.ouvrir(s)) : null;
   const choix = departager(nom, { clair: clairL, modifie: e.modifie, vu: e.vu }, { clair: clairD, modifie: d.modifie }, base);
   if (choix.gagnant === "distant") {
     // Sans fusion, la copie de l'appareil est gardée sur le serveur avant d'être remplacée.
     if (!choix.fusion && clairL !== clairD) {
-      const raw = localStorage.getItem(scopedKey(nom));
-      if (raw) await appel("POST", { nom, contenu: raw, rev: e.rev, modifie: e.modifie, appareil: appareil(), garder: true });
+      const contenu = await pourServeur(clairL, localStorage.getItem(scopedKey(nom)));
+      if (contenu) await appel("POST", { nom, contenu, rev: e.rev, modifie: e.modifie, appareil: appareil(), garder: true });
     }
-    if (choix.clair === clairD) {
-      marquerARelire(nom);
-      try {
-        localStorage.setItem(scopedKey(nom), d.contenu);
-      } catch (err) {
-        if (estPlacePleine(err)) noterPlacePleine();
-        relu(nom);
-        return false;
-      }
-      garderBase(nom, d.contenu);
-      const h = await empreinte(clairD);
-      majTiroir(nom, { rev: d.rev, empreinte: h, locale: h, sale: false, vu: true, modifie: d.modifie });
-      return true;
-    }
+    if (choix.clair === clairD) return adopterDistant(nom, d, clairD);
   }
   // L'appareil gagne, ou la copie gagnante reçoit des factures de l'autre : on l'écrit et on l'envoie.
   majTiroir(nom, { rev: d.rev, vu: true, empreinte: await empreinte(clairD) });
-  garderBase(nom, d.contenu);
+  garderBase(nom, estClair(d.contenu) ? d.contenu : ((await pourServeur(clairD, null)) ?? d.contenu));
   if (choix.clair !== clairL) {
     marquerARelire(nom);
     await coffre.ecrire(nom, choix.clair);
@@ -374,32 +390,28 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
   return choix.clair !== clairL;
 }
 
-/** Envoie ce qui attend. */
+/** Envoie ce qui attend, en clair (« bs-clair2: ») ; scellé seulement sans CompressionStream. */
 export async function envoyer(): Promise<void> {
-  if (!actif() || !tire) return;
+  if (!actif() || !tire || !coffre) return;
   let refuse = false;
   for (const nom of TIROIRS) {
     const e = lireEtat()[nom];
     if (!e?.sale) continue;
     const raw = localStorage.getItem(scopedKey(nom));
     if (!raw) continue;
-    // Refusé tel quel juste avant : renvoyer la même chose ne servirait à rien.
-    if (refusTient(e.refus, raw)) {
+    const clair = await coffre.lire(nom);
+    if (clair === null) continue;
+    const contenu = await pourServeur(clair, raw);
+    if (!contenu) continue;
+    // Refusé tel quel juste avant : renvoyer la même chose ne servirait à rien. La taille est celle de ce qui part.
+    if (refusTient(e.refus, contenu)) {
       refuse = true;
       continue;
     }
     const envoye = e.locale;
-    const corps = (contenu: string) => ({ nom, contenu, rev: e.rev, modifie: e.modifie ?? new Date().toISOString(), appareil: appareil() });
-    let contenu = sansCompression ? await versAncienFormat(raw) : raw;
-    let r = await appel("PUT", corps(contenu));
-    // Un serveur pas encore à jour refuse le format compressé : on renvoie dans l'ancien, et on s'en souvient.
-    if (r.status === 400 && !sansCompression && raw.startsWith("bs-enc2:") && coffre?.ancienFormat) {
-      sansCompression = true;
-      contenu = await versAncienFormat(raw);
-      r = await appel("PUT", corps(contenu));
-    }
+    const r = await appel("PUT", { nom, contenu, rev: e.rev, modifie: e.modifie ?? new Date().toISOString(), appareil: appareil() });
     if (r.status === 200 && typeof r.json.rev === "number") {
-      garderBase(nom, raw);
+      garderBase(nom, contenu);
       const now = lireEtat()[nom];
       const toujours = now?.locale === envoye;
       majTiroir(nom, { rev: r.json.rev, vu: true, refus: undefined, ...(toujours ? { sale: false, empreinte: envoye, n: 0, aligne: new Date().toISOString() } : {}) });
@@ -411,10 +423,10 @@ export async function envoyer(): Promise<void> {
       planifierEnvoi(500);
     } else if (r.status === 413 || r.status === 400) {
       // Trop gros, ou mal formé : il sera refusé encore. On le dit (Mon compte, bandeau) sans réessayer.
-      majTiroir(nom, { refus: { code: r.status === 413 ? "trop_gros" : "invalide", taille: raw.length, prefixe: raw.slice(0, 8), quand: new Date().toISOString() } });
+      majTiroir(nom, { refus: { code: r.status === 413 ? "trop_gros" : "invalide", taille: contenu.length, prefixe: contenu.slice(0, 8), quand: new Date().toISOString() } });
       signalerRefus();
       // Samuel le sait aussi : seulement le code du refus et la taille, rien du contenu.
-      void signalerErreur("copie", `copie en ligne refusée : ${r.status === 413 ? "trop_gros" : "invalide"}, ${Math.round(raw.length / 1000)} Ko`);
+      void signalerErreur("copie", `copie en ligne refusée : ${r.status === 413 ? "trop_gros" : "invalide"}, ${Math.round(contenu.length / 1000)} Ko`);
       refuse = true;
     } else {
       // 429 (trop d'envois d'un coup), réseau, serveur : on réessaie dans une minute, sans rien dire.
@@ -424,11 +436,6 @@ export async function envoyer(): Promise<void> {
     }
   }
   derniere = { quand: new Date().toISOString(), ok: !refuse };
-}
-
-async function versAncienFormat(raw: string): Promise<string> {
-  if (!raw.startsWith("bs-enc2:") || !coffre?.ancienFormat) return raw;
-  return (await coffre.ancienFormat(raw)) ?? raw;
 }
 
 /** Ce que le serveur refuse en ce moment, le plus grave d'abord (trop gros). */
@@ -479,7 +486,11 @@ export async function synchroniser(): Promise<Set<string>> {
         if (raw) majTiroir(nom, { rev: 0, sale: true, modifie: e?.modifie ?? new Date().toISOString() });
         continue;
       }
-      if (e?.vu && d.rev === e.rev) continue;
+      if (e?.vu && d.rev === e.rev) {
+        // Alignés, mais la copie en ligne est encore chiffrée : on la renvoie en clair.
+        if (!estClair(d.contenu) && !e.sale && raw && peutEnvoyerEnClair()) majTiroir(nom, { sale: true, n: 1 });
+        continue;
+      }
       if (e?.vu && d.rev < e.rev) {
         // Le serveur est revenu en arrière (restauration) : on le suit comme une version nouvelle.
         majTiroir(nom, { rev: d.rev });
@@ -565,7 +576,6 @@ export function _reinitialiser() {
   tire = false;
   enCours = null;
   derniere = null;
-  sansCompression = false;
   if (minuteur) clearTimeout(minuteur);
   minuteur = null;
 }

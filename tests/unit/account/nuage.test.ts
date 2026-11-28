@@ -49,6 +49,7 @@ g.fetch = (async (_url: string, init: RequestInit) => {
 const { vault } = await import("@/lib/account/vault");
 const { setSession } = await import("@/lib/account/session");
 const nuage = await import("@/lib/account/nuage");
+const { depuisDistant } = await import("@/lib/account/format-clair");
 
 const cle = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("base64");
 const compte = { kind: "compte" as const, userId: 7, email: "g@x.fr", prenom: "Claire", token: "t", dataKey: cle, at: "" };
@@ -91,7 +92,7 @@ describe("la copie en ligne des tiroirs", () => {
     await attendre();
     await nuage.envoyer();
     expect(serveur.tiroirs.get("be-stable-data")?.rev).toBe(1);
-    // Le serveur ne garde que du chiffré.
+    // Le serveur garde le contenu en clair, mais compressé : le nom n'y est pas lisible tel quel.
     expect(serveur.tiroirs.get("be-stable-data")?.contenu).not.toContain("Sirius");
 
     const tel = appareil();
@@ -288,5 +289,175 @@ describe("la copie en ligne des tiroirs", () => {
     await attendre();
     await nuage.envoyer();
     expect(serveur.appels).toBe(0);
+  });
+});
+
+describe("la copie en ligne en clair (décision du 28 novembre 2026)", () => {
+  beforeEach(() => {
+    serveur.tiroirs.clear();
+    serveur.versions = [];
+    serveur.appels = 0;
+  });
+
+  /** Ce qui est rangé sur l'appareil pour le tiroir des données. */
+  const range = (a: ReturnType<typeof appareil>) => [...a.m.m.entries()].find(([k]) => k.startsWith("be-stable-data@"))?.[1] ?? "";
+  /** Le tiroir des données tel que le serveur le garde, relu. */
+  const auServeur = async () => JSON.parse((await depuisDistant(serveur.tiroirs.get("be-stable-data")!.contenu, async () => null))!).state;
+  const ecurie = (horses: string[], clients: string[] = []) =>
+    JSON.stringify({ state: { horses: horses.map((n) => ({ id: n, name: n })), clients: clients.map((n) => ({ id: n, name: n })), invoices: [], invoiceSeq: {} }, version: 5 });
+  /** Un contenu scellé comme le faisait le coffre en « bs-enc2: » (gzip puis AES-GCM), avec la clé du compte. */
+  async function scelleV2(clair: string): Promise<string> {
+    const b64 = (u: Uint8Array) => Buffer.from(u).toString("base64");
+    const key = await crypto.subtle.importKey("raw", Buffer.from(cle, "base64"), "AES-GCM", false, ["encrypt"]);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const gz = new Uint8Array(await new Response(new Blob([new TextEncoder().encode(clair)]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, gz));
+    return `bs-enc2:${b64(iv)}.${b64(ct)}`;
+  }
+
+  it("ce qui part est en clair compressé, jamais scellé", async () => {
+    const a = appareil();
+    a.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", ecurie(["Sirius"]));
+    await attendre();
+    await nuage.envoyer();
+    expect(serveur.tiroirs.get("be-stable-data")!.contenu.startsWith("bs-clair2:")).toBe(true);
+    expect((await auServeur()).horses.map((h: { name: string }) => h.name)).toEqual(["Sirius"]);
+    // L'appareil, lui, reste scellé.
+    expect(range(a).startsWith("bs-enc")).toBe(true);
+  });
+
+  it("B lit la copie en clair et l'écrit scellée sur son appareil", async () => {
+    const a = appareil();
+    a.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", ecurie(["Sirius", "Opale"]));
+    await attendre();
+    await nuage.envoyer();
+    const b = appareil();
+    b.entrer();
+    const changes = await sync();
+    expect(changes.has("be-stable-data")).toBe(true);
+    expect(range(b).startsWith("bs-enc")).toBe(true);
+    expect((await lire()).horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
+    // Rien à renvoyer : B est aligné.
+    expect(nuage.etatNuage().attente).toBe(false);
+  });
+
+  it("une copie distante encore chiffrée (bs-enc2) est lue, puis renvoyée en clair", async () => {
+    serveur.tiroirs.set("be-stable-data", { rev: 4, contenu: await scelleV2(ecurie(["Câline"])), modifie: "2026-11-27T10:00:00Z" });
+    const b = appareil();
+    b.entrer();
+    await sync();
+    await nuage.envoyer();
+    expect((await lire()).horses.map((h: { name: string }) => h.name)).toEqual(["Câline"]);
+    expect(range(b).startsWith("bs-enc")).toBe(true);
+    const l = serveur.tiroirs.get("be-stable-data")!;
+    expect(l.contenu.startsWith("bs-clair2:")).toBe(true);
+    expect(l.rev).toBe(5);
+    expect((await auServeur()).horses.map((h: { name: string }) => h.name)).toEqual(["Câline"]);
+  });
+
+  it("un appareil déjà aligné sur une copie encore chiffrée la renvoie en clair", async () => {
+    const a = appareil();
+    a.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", ecurie(["Sirius"]));
+    await attendre();
+    await nuage.envoyer();
+    // La copie en ligne est remise dans l'ancien format, même version (comme avant la bascule).
+    const l = serveur.tiroirs.get("be-stable-data")!;
+    serveur.tiroirs.set("be-stable-data", { ...l, contenu: await scelleV2(ecurie(["Sirius"])) });
+    await sync();
+    expect(serveur.tiroirs.get("be-stable-data")!.contenu.startsWith("bs-clair2:")).toBe(true);
+    expect(serveur.tiroirs.get("be-stable-data")!.rev).toBe(l.rev + 1);
+  });
+
+  it("deux appareils qui écrivent hors ligne gardent les deux changements (fusion)", async () => {
+    const a = appareil();
+    const b = appareil();
+    a.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", ecurie(["Sirius"]));
+    await attendre();
+    await nuage.envoyer();
+    b.entrer();
+    await sync();
+
+    // Hors ligne : A ajoute un cheval, B un client.
+    a.entrer();
+    await vault.setItem("be-stable-data", ecurie(["Sirius", "Opale"]));
+    await attendre();
+    b.entrer();
+    await vault.setItem("be-stable-data", ecurie(["Sirius"], ["Hugo"]));
+    await attendre();
+
+    a.entrer();
+    await sync();
+    b.entrer();
+    await sync();
+    a.entrer();
+    await sync();
+    const st = await auServeur();
+    expect(st.horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
+    expect(st.clients.map((c: { name: string }) => c.name)).toEqual(["Hugo"]);
+    expect(serveur.tiroirs.get("be-stable-data")!.contenu.startsWith("bs-clair2:")).toBe(true);
+    expect((await lire()).clients.map((c: { name: string }) => c.name)).toEqual(["Hugo"]);
+  });
+
+  it("la copie perdante d'un conflit est gardée en clair dans les versions", async () => {
+    const pc = appareil();
+    pc.entrer();
+    await sync();
+    await vault.setItem("be-stable-data", ecurie(["Sirius", "Opale"]));
+    await attendre();
+    await nuage.envoyer();
+    const tel = appareil();
+    tel.entrer();
+    await vault.setItem("be-stable-data", ecurie(["Tango"]));
+    await attendre();
+    await sync();
+    const conflits = serveur.versions.filter((v) => v.raison === "conflit");
+    expect(conflits.length).toBeGreaterThan(0);
+    expect(conflits.every((v) => v.contenu.startsWith("bs-clair2:"))).toBe(true);
+    expect(JSON.parse((await depuisDistant(conflits[0].contenu, async () => null))!).state.horses.map((h: { name: string }) => h.name)).toEqual(["Tango"]);
+  });
+
+  it("sans CompressionStream (Safari iOS avant 16.4), l'envoi et la copie gardée partent scellés, comme avant", async () => {
+    const g2 = globalThis as { CompressionStream?: typeof CompressionStream };
+    const cs = g2.CompressionStream;
+    const pc = appareil();
+    const tel = appareil();
+    try {
+      delete g2.CompressionStream;
+      pc.entrer();
+      await sync();
+      await vault.setItem("be-stable-data", ecurie(["Sirius", "Opale"]));
+      await attendre();
+      await nuage.envoyer();
+      expect(serveur.tiroirs.get("be-stable-data")!.contenu.startsWith("bs-enc1:")).toBe(true);
+      expect(nuage.etatNuage().attente).toBe(false);
+      // Un vieux téléphone neuf écrit avant d'avoir lu : sa version est gardée, scellée elle aussi.
+      tel.entrer();
+      await vault.setItem("be-stable-data", ecurie(["Tango"]));
+      await attendre();
+      await sync();
+      expect((await lire()).horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
+      const conflits = serveur.versions.filter((v) => v.raison === "conflit");
+      expect(conflits.length).toBeGreaterThan(0);
+      expect(conflits.every((v) => v.contenu.startsWith("bs-enc1:"))).toBe(true);
+      // Aligné sur une copie scellée, il ne la renvoie pas en boucle.
+      const appels = serveur.appels;
+      await sync();
+      expect(serveur.appels).toBe(appels + 1);
+    } finally {
+      g2.CompressionStream = cs;
+    }
+    // Revenu à un navigateur à jour, l'autre appareil lit la copie scellée.
+    const neuf = appareil();
+    neuf.entrer();
+    await sync();
+    expect((await lire()).horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
   });
 });
