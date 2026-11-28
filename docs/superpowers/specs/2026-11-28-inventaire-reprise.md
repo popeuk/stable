@@ -25,12 +25,12 @@ Conception : `docs/superpowers/specs/2026-11-28-reprise-clos-design.md`.
 
 | État | Lignes |
 |---|---|
-| présente | 64 |
+| présente | 65 |
 | partielle | 23 |
 | absente | 11 |
 | cassée | 1 |
 | voulue autrement | 3 |
-| **Total** | **102** |
+| **Total** | **103** |
 
 À reprendre en premier (ordre 1) : I-005 (inviter l'équipe), I-006 (voir tout
 de suite ce que l'autre a noté), I-008 (reprendre les données du Clos) et
@@ -65,6 +65,7 @@ I-078, I-079), tâches d'équipe (I-007, I-043, I-046).
 | I-006 | Voir tout de suite ce qu'un autre membre vient de noter | Supabase en direct : temps réel, plus une relecture toutes les 45 s et au retour sur l'app | Copie en ligne chiffrée, relue toutes les 120 s en équipe | partielle | Lu dans le code des deux côtés (lib/clos.ts ; conception, décision 3). Non essayé : la préprod n'a pas de copie en ligne (NUAGE coupé) | 1 |
 | I-007 | Savoir qui a créé ou changé une séance (« par Vérane ») | Prénom posé par le serveur sur chaque séance et tâche | Les tâches disent pour qui ; la feuille de séance ne dit pas qui l'a créée | partielle | Clos : essayé (#planning, « Tâche d'équipe · pour Samuel · par Vérane »). Be Stable : essayé (feuille « Cours du soir » : aucun auteur) | 2 |
 | I-008 | Reprendre les données du Clos (séances, clients, chevaux, pensions, frais, objectifs, demandes) | Réglages : « Importer l'ancien planning », « Exporter les prestations (JSON) », sauvegarde chaque nuit gardée 90 jours | Rien : l'import part de zéro (décision 4) | absente | Clos : essayé (#reglages, boutons visibles, non lancés). Be Stable : lu (conception, décision 4) | 1 |
+| I-103 | Se déconnecter | Réglages, Compte, « Se déconnecter » (ReglagesLayer.tsx l. 201) | Réglages, « Me déconnecter » (BoutonDeconnexion, carte-ecurie.tsx l. 279) et Mon compte (DeconnexionLigne, moi/page.tsx l. 393), avec une feuille de confirmation ; montré seulement avec un vrai compte | présente | Clos : lu dans le code (en démo, Réglages dit « Non connecté »). Be Stable : essayé (/reglages en démo : pas de bouton, comme prévu sans compte) ; bouton et feuille lus dans le code (effacer.tsx l. 328 à 360), non essayés (aucun vrai compte) | rien à faire |
 
 ## 2. Accueil
 
@@ -224,3 +225,11 @@ I-078, I-079), tâches d'équipe (I-007, I-043, I-046).
 | I-100 | Réglages de l'écurie et de l'app : Mon compte, Mon rappel, Mon écurie (nom, places), Mon équipe, Les pros, Mes papiers, Affichage (taille du texte), Revoir, Avancé (catégories), les règles (confidentialité, conditions, mentions), Contact | n'existe pas (Réglages : compte, agenda, équipe, données, version) | /reglages, /moi, /contacts | présente | Be Stable : essayé (/reglages, /contacts : « 2 pros », Dr Lavigne, M. Roche) | rien à faire |
 | I-101 | Pensions du mois postées seules et soins passés comptés seuls (autopilote) | Pensions comptées chaque mois par le calcul | autopilot.tsx | présente | Be Stable : lu dans le code | rien à faire |
 | I-102 | Apprendre : la question du jour (vrai, faux, ça dépend) | n'existe pas | /apprendre | partielle | Be Stable : essayé (/apprendre renvoie vers l'Accueil dans cette préprod à quatre parties) ; page lue dans le code | 4 |
+
+Ce qui n'a pas de ligne à soi :
+
+- « Connecter » et « Déconnecter » de l'adresse iCal dans les Réglages du Clos
+  (ReglagesLayer.tsx l. 274) : couverts par I-090.
+- AutoSync et TeteVerte : des pièces internes, sans geste propre pour
+  l'utilisateur (la synchro est dans I-006, la tête verte dans chaque écran).
+- `app/api/version` : couverte par I-095 (mettre à jour l'app).
