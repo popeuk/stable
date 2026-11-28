@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Un morceau chargé à la demande qui ne se charge pas (404 après un déploiement, réseau coupé).
-vi.mock("@/lib/account/format-clair", () => {
-  throw new Error("Failed to load chunk");
+// format-clair peut se charger (`panne.format = false`) pour le scénario où seul departager manque.
+const panne = vi.hoisted(() => ({ format: true }));
+vi.mock("@/lib/account/format-clair", async (original) => {
+  if (panne.format) throw new Error("Failed to load chunk");
+  return original();
 });
 vi.mock("@/lib/account/departager", () => {
   throw new Error("Failed to load chunk");
@@ -92,5 +95,41 @@ describe("un morceau qui ne se charge pas", () => {
     expect(erreurs.filter((a) => a[0] === "copie")).toHaveLength(1);
     // Avant un numéro de facture : « hors-ligne », comme sans réseau.
     await expect(nuage.relireAvantNumero()).resolves.toEqual({ etat: "hors-ligne", change: false });
+  });
+
+  it("une synchro interrompue fait quand même relire à l'écran le tiroir déjà remplacé", async () => {
+    // Le navigateur charge format-clair, mais pas departager.
+    panne.format = false;
+    const { versClair } = await vi.importActual<typeof import("@/lib/account/format-clair")>("@/lib/account/format-clair");
+    const quand = new Date().toISOString();
+    const donnees = JSON.stringify({ state: { horses: [{ id: "en-ligne" }] }, version: 0 });
+    // be-stable-data : rien sur l'appareil, la copie en ligne remplace simplement (sans departager).
+    // be-stable-settings : des deux côtés, jamais aligné : il faut departager, qui ne se charge pas.
+    await vault.setItem("be-stable-settings", JSON.stringify({ state: { ici: 1 }, version: 0 }));
+    await nuage.notesFaites();
+    serveur.tiroirs = [
+      { nom: "be-stable-data", rev: 3, contenu: await versClair(donnees), modifie: quand },
+      { nom: "be-stable-settings", rev: 2, contenu: await versClair(JSON.stringify({ state: { la: 1 }, version: 0 })), modifie: quand },
+    ];
+    // L'écran, comme NuageSync : il relit les tiroirs qui ont changé.
+    const relus: string[] = [];
+    const off = nuage.ecouterChangements((noms) => {
+      for (const n of noms) {
+        relus.push(n);
+        void vault.getItem(n);
+      }
+    });
+    try {
+      await expect(nuage.synchroniser()).resolves.toEqual(new Set(["be-stable-data"]));
+      await Promise.resolve();
+      expect(nuage.morceauManquant()).toBe(true);
+      expect(relus).toEqual(["be-stable-data"]);
+      expect(await vault.getItem("be-stable-data")).toBe(donnees);
+      // Relu : le coffre accepte de nouveau les écritures de ce tiroir.
+      expect(nuage.ecritureBloquee("be-stable-data")).toBe(false);
+    } finally {
+      off();
+      panne.format = true;
+    }
   });
 });

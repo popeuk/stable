@@ -554,6 +554,7 @@ export async function synchroniser(encore = false): Promise<Set<string>> {
   }
   while (enCours) await enCours;
   let fin!: () => void;
+  let interrompue = false;
   enCours = new Promise((r) => (fin = r));
   try {
     const r = await appel("GET");
@@ -582,20 +583,19 @@ export async function synchroniser(encore = false): Promise<Set<string>> {
     tire = true;
     derniere = { quand: new Date().toISOString(), ok: true };
   } catch (err) {
-    // Un morceau qui ne se charge pas (déjà signalé) : rien n'a été touché, on ne dit pas « à jour ».
+    // Un morceau qui ne se charge pas (déjà signalé) : on ne dit pas « à jour ».
     if (!manque) throw err;
     derniere = { quand: new Date().toISOString(), ok: false };
-    return changes;
+    interrompue = true;
   } finally {
     enCours = null;
     fin();
   }
+  // Même interrompue, les tiroirs déjà remplacés doivent être relus par l'écran : sinon le coffre ignorerait leurs écritures.
   if (changes.size) notifier(changes);
-  await envoyer();
+  if (!interrompue) await envoyer();
   return changes;
 }
-
-
 
 /**
  * Juste avant de donner un numéro de facture (question 18, réponse A) : tirer
