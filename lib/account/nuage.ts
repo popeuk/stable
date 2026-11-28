@@ -590,9 +590,10 @@ export async function synchroniser(encore = false): Promise<Set<string>> {
   } finally {
     enCours = null;
     fin();
+    // Quelle que soit la fin (même une erreur, relancée ensuite), les tiroirs déjà remplacés
+    // doivent être relus par l'écran : sinon le coffre ignorerait leurs écritures.
+    if (changes.size) notifier(changes);
   }
-  // Même interrompue, les tiroirs déjà remplacés doivent être relus par l'écran : sinon le coffre ignorerait leurs écritures.
-  if (changes.size) notifier(changes);
   if (!interrompue) await envoyer();
   return changes;
 }

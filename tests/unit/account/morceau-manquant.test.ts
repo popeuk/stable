@@ -132,4 +132,35 @@ describe("un morceau qui ne se charge pas", () => {
       panne.format = true;
     }
   });
+
+  it("après une autre erreur aussi, l'écran relit le tiroir déjà remplacé, puis l'erreur est relancée", async () => {
+    panne.format = false;
+    const { versClair } = await vi.importActual<typeof import("@/lib/account/format-clair")>("@/lib/account/format-clair");
+    const quand = new Date().toISOString();
+    const donnees = JSON.stringify({ state: { horses: [{ id: "en-ligne" }] }, version: 0 });
+    // be-stable-settings est déjà aligné, mais le serveur rend un contenu sans texte : la lecture trébuche (TypeError).
+    localStorage.setItem("bs-nuage@u7", JSON.stringify({ "be-stable-settings": { rev: 2, vu: true } }));
+    serveur.tiroirs = [
+      { nom: "be-stable-data", rev: 3, contenu: await versClair(donnees), modifie: quand },
+      { nom: "be-stable-settings", rev: 2, contenu: undefined as unknown as string, modifie: quand },
+    ];
+    const relus: string[] = [];
+    const off = nuage.ecouterChangements((noms) => {
+      for (const n of noms) {
+        relus.push(n);
+        void vault.getItem(n);
+      }
+    });
+    try {
+      await expect(nuage.synchroniser()).rejects.toThrow(TypeError);
+      await Promise.resolve();
+      expect(nuage.morceauManquant()).toBe(false);
+      expect(relus).toEqual(["be-stable-data"]);
+      expect(await vault.getItem("be-stable-data")).toBe(donnees);
+      expect(nuage.ecritureBloquee("be-stable-data")).toBe(false);
+    } finally {
+      off();
+      panne.format = true;
+    }
+  });
 });
