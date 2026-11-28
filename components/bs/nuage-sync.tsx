@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { getSession } from "@/lib/account/session";
-import { canalDeLEcurie, ecouterChangements, envoyer, lireDrapeau, synchroniser } from "@/lib/account/nuage";
+import { canalDeLEcurie, ecouterChangements, envoyer, lireDrapeau, signalerMorceauManquant, synchroniser } from "@/lib/account/nuage";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -55,11 +55,15 @@ export function NuageSync() {
       void import("@/lib/account/canal")
         .then((mod) => {
           if (fini) return;
-          ecoute ??= { mod, frein: mod.freiner(relire, 2000) };
+          // Une lecture en cours peut ne pas avoir la version annoncée : on l'attend, puis on relit une fois de plus.
+          ecoute ??= { mod, frein: mod.freiner(() => synchroniser(true).then(numeroterLesProvisoires), 2000) };
           const { frein } = ecoute;
-          mod.brancherCanal(canalDeLEcurie(), () => frein.demander());
+          const demander = () => frein.demander();
+          // Un message, ou le retour de l'abonnement après une coupure (les messages d'entre-temps sont perdus).
+          mod.brancherCanal(canalDeLEcurie(), demander, undefined, demander);
         })
-        .catch(() => {});
+        // L'écoute elle-même n'a pas pu se charger : le navigateur ne la retentera pas, on propose de recharger.
+        .catch(() => signalerMorceauManquant());
     };
     const tirer = () => {
       if (document.visibilityState === "visible") void relire().finally(suivreCanal);

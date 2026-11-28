@@ -50,7 +50,7 @@ g.fetch = (async (_url: string, init: RequestInit) => {
 const { vault, _seuilCompression, SEUIL_COMPRESSION } = await import("@/lib/account/vault");
 const { setSession } = await import("@/lib/account/session");
 const nuage = await import("@/lib/account/nuage");
-const { texteCopie } = await import("@/lib/account/etat-copie");
+const { etatNuage, texteCopie } = await import("@/lib/account/etat-copie");
 const { contenuAccepte } = await import("@/supabase/functions/tiroirs/regles");
 const { numeroter, raisonProvisoire, AvoirSansReseau } = await import("@/lib/account/numeroter");
 type Inv = import("@/lib/domain/types").Invoice;
@@ -97,9 +97,9 @@ describe("la copie en ligne refusée par le serveur", () => {
     serveur.max = 500;
     await ecrire(200);
     await nuage.envoyer();
-    expect(nuage.etatNuage().refus).toBe("trop_gros");
+    expect(etatNuage().refus).toBe("trop_gros");
     expect(nuage.refusCopie()).toBe("trop_gros");
-    expect(texteCopie(nuage.etatNuage())).toBe("Ta copie en ligne ne part plus : ton écurie est trop grosse. Fais une sauvegarde, puis écris-nous : on la fera repartir.");
+    expect(texteCopie(etatNuage())).toBe("Ta copie en ligne ne part plus : ton écurie est trop grosse. Fais une sauvegarde, puis écris-nous : on la fera repartir.");
     const avant = serveur.puts.length;
     // Plus de séances : toujours trop gros, rien ne repart.
     await ecrire(220);
@@ -111,7 +111,7 @@ describe("la copie en ligne refusée par le serveur", () => {
     await nuage.envoyer();
     expect(serveur.puts.length).toBe(avant + 1);
     expect(nuage.refusCopie()).toBeNull();
-    expect(nuage.etatNuage().attente).toBe(false);
+    expect(etatNuage().attente).toBe(false);
   });
 
   it("refusée : « relire avant de numéroter » ne dit pas « à jour », la facture est provisoire, avec la raison", async () => {
@@ -153,7 +153,7 @@ describe("la copie en ligne refusée par le serveur", () => {
     await ecrire(3);
     await nuage.envoyer();
     expect(nuage.refusCopie()).toBe("invalide");
-    expect(texteCopie(nuage.etatNuage())).toBe("Ta copie en ligne ne part plus. Fais une sauvegarde et écris-nous.");
+    expect(texteCopie(etatNuage())).toBe("Ta copie en ligne ne part plus. Fais une sauvegarde et écris-nous.");
     const avant = serveur.puts.length;
     await nuage.envoyer();
     expect(serveur.puts.length).toBe(avant);

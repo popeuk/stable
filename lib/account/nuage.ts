@@ -10,7 +10,35 @@ import { signalerErreur } from "@/lib/suivi-erreurs";
  * l'Accueil. Seul le test du préfixe reste ici (le même que PREFIXE_CLAIR).
  */
 const estClair = (c: string) => c.startsWith("bs-clair2:");
-const formatClair = () => import("@/lib/account/format-clair");
+
+/**
+ * Un morceau chargé à la demande (format-clair, departager, supabase-js) qui
+ * n'a pas pu se charger : le navigateur garde l'échec et ne le retente pas
+ * (un déploiement a changé son nom, ou le réseau a coupé à ce moment-là).
+ * Plus rien ne part ni ne se lit jusqu'au rechargement de l'app : on ne dit
+ * donc plus « à jour », on le signale une fois à Samuel, et le bandeau de la
+ * copie propose de recharger (`morceauManquant`).
+ */
+let manque = false;
+export function morceauManquant(): boolean {
+  return manque;
+}
+export function signalerMorceauManquant() {
+  if (manque) return;
+  manque = true;
+  derniere = { quand: new Date().toISOString(), ok: false };
+  void signalerErreur("copie", "morceau non chargé");
+  signalerRefus();
+}
+export async function charger<T>(f: () => Promise<T>): Promise<T> {
+  try {
+    return await f();
+  } catch (err) {
+    signalerMorceauManquant();
+    throw err;
+  }
+}
+const formatClair = () => charger(() => import("@/lib/account/format-clair"));
 /** Lit un contenu venu du serveur (lève seulement si le format n'a pas pu se charger : rien n'est alors touché). */
 async function depuisDistant(contenu: string, ouvrirScelle: (s: string) => Promise<string | null>): Promise<string | null> {
   return (await formatClair()).depuisDistant(contenu, ouvrirScelle);
@@ -409,7 +437,7 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
   const baseRaw = localStorage.getItem(cleBase(nom));
   const base = baseRaw ? await depuisDistant(baseRaw, (s) => coffre!.ouvrir(s)) : null;
   // Le choix (et la fusion) ne sert qu'aux conflits : chargé à la demande, hors du paquet de l'Accueil.
-  const { departager } = await import("@/lib/account/departager");
+  const { departager } = await charger(() => import("@/lib/account/departager"));
   const choix = departager(nom, { clair: clairL, modifie: e.modifie, vu: e.vu }, { clair: clairD, modifie: d.modifie }, base);
   if (choix.gagnant === "distant") {
     // Sans fusion, la copie de l'appareil est gardée sur le serveur avant d'être remplacée.
@@ -427,6 +455,15 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
   garderBase(nom, estClair(d.contenu) ? d.contenu : ((await pourServeur(clairD)) ?? d.contenu));
   majTiroir(nom, { sale: true, locale: await empreinte(choix.clair), modifie: new Date().toISOString() });
   return choix.clair !== clairL;
+}
+
+/** Le serveur a une autre version que celle de l'appareil : on s'aligne dessus. Rend true si l'appareil a changé. */
+async function aligner(nom: Nom, d: Distant): Promise<boolean> {
+  const e = lireEtat()[nom];
+  // Le serveur est revenu en arrière (restauration) : on le suit comme une version nouvelle.
+  if (e?.vu && d.rev < e.rev) majTiroir(nom, { rev: d.rev });
+  // Rien d'attendu sur l'appareil : la copie en ligne remplace simplement.
+  return resoudre(nom, d, !localStorage.getItem(scopedKey(nom)) || (!!e?.vu && !e.sale));
 }
 
 /** Envoie ce qui attend, en clair (« bs-clair2: »). */
@@ -477,7 +514,7 @@ export async function envoyer(): Promise<void> {
       return;
     }
   }
-  derniere = { quand: new Date().toISOString(), ok: !refuse };
+  derniere = { quand: new Date().toISOString(), ok: !refuse && !manque };
 }
 
 /** Ce que le serveur refuse en ce moment, le plus grave d'abord (trop gros). */
@@ -502,15 +539,20 @@ function signalerRefus() {
 /**
  * Lit le serveur et aligne l'appareil. Rend les tiroirs qui ont changé sur
  * l'appareil (il faut alors relire les données à l'écran).
+ *
+ * Une lecture déjà en cours suffit d'habitude. Avec `encore` (le canal vient
+ * d'annoncer une version que cette lecture-là n'avait peut-être pas), on
+ * attend qu'elle finisse, puis on relit une fois de plus.
  */
-export async function synchroniser(): Promise<Set<string>> {
+export async function synchroniser(encore = false): Promise<Set<string>> {
   const changes = new Set<string>();
   if (tropAncienPourCompte()) signalerTropAncien();
   if (!actif() || !coffre) return changes;
-  if (enCours) {
+  if (enCours && !encore) {
     await enCours;
     return changes;
   }
+  while (enCours) await enCours;
   let fin!: () => void;
   enCours = new Promise((r) => (fin = r));
   try {
@@ -535,16 +577,15 @@ export async function synchroniser(): Promise<Set<string>> {
         if (!estClair(d.contenu) && !e.sale && raw) majTiroir(nom, { sale: true, n: 1 });
         continue;
       }
-      if (e?.vu && d.rev < e.rev) {
-        // Le serveur est revenu en arrière (restauration) : on le suit comme une version nouvelle.
-        majTiroir(nom, { rev: d.rev });
-      }
-      // Rien d'attendu sur l'appareil : la copie en ligne remplace simplement.
-      const simple = !raw || (!!e?.vu && !e.sale);
-      if (await resoudre(nom, d, simple)) changes.add(nom);
+      if (await aligner(nom, d)) changes.add(nom);
     }
     tire = true;
     derniere = { quand: new Date().toISOString(), ok: true };
+  } catch (err) {
+    // Un morceau qui ne se charge pas (déjà signalé) : rien n'a été touché, on ne dit pas « à jour ».
+    if (!manque) throw err;
+    derniere = { quand: new Date().toISOString(), ok: false };
+    return changes;
   } finally {
     enCours = null;
     fin();
@@ -553,6 +594,8 @@ export async function synchroniser(): Promise<Set<string>> {
   await envoyer();
   return changes;
 }
+
+
 
 /**
  * Juste avant de donner un numéro de facture (question 18, réponse A) : tirer
@@ -579,9 +622,14 @@ export async function relireAvantNumero(): Promise<{ etat: "seul" | "a-jour" | "
   const e = lireEtat()[nom];
   const etat = refusCopie() ? "refusee" : "a-jour";
   if (!d || (e?.vu && d.rev === e.rev)) return { etat, change: false };
-  if (e?.vu && d.rev < e.rev) majTiroir(nom, { rev: d.rev });
-  const raw = localStorage.getItem(scopedKey(nom));
-  const change = await resoudre(nom, d, !raw || (!!e?.vu && !e.sale));
+  let change: boolean;
+  try {
+    change = await aligner(nom, d);
+  } catch (err) {
+    // Un morceau qui ne se charge pas : on ne sait pas, comme sans réseau.
+    if (!manque) throw err;
+    return { etat: "hors-ligne", change: false };
+  }
   if (change) notifier(new Set([nom]));
   return { etat, change };
 }
@@ -593,16 +641,12 @@ export async function envoyerMaintenant(): Promise<void> {
   await envoyer();
 }
 
-/** Où en est la copie en ligne, pour l'écran Mon compte. */
-export function etatNuage(): { allume: boolean; attente: boolean; changements: number; aJour: string | null; derniere: { quand: string; ok: boolean } | null; refus: CodeRefus | null; tropAncien: boolean } {
-  const e = lireEtat();
-  const sales = TIROIRS.filter((n) => e[n]?.sale);
-  const changements = sales.reduce((t, n) => t + Math.max(1, e[n]?.n ?? 1), 0);
-  // À jour : le dernier envoi ou la dernière lecture réussis, ici ou gardés d'une visite d'avant.
-  const dates = [derniere?.ok ? derniere.quand : null, ...TIROIRS.map((n) => e[n]?.aligne ?? null)].filter((d): d is string => !!d);
-  const aJour = dates.length ? dates.reduce((a, b) => (Date.parse(a) >= Date.parse(b) ? a : b)) : null;
-  // tropAncien : la copie est éteinte sur ce navigateur, l'écran peut dire TEXTE_TROP_ANCIEN.
-  return { allume: actif(), attente: sales.length > 0, changements, aJour, derniere, refus: refusCopie(), tropAncien: tropAncienPourCompte() };
+/**
+ * L'état brut de la copie en ligne, pour Mon compte : `etatNuage` (dans
+ * lib/account/etat-copie, hors du paquet de l'Accueil) en fait le résumé.
+ */
+export function etatBrut() {
+  return { e: lireEtat(), derniere, allume: actif(), refus: refusCopie(), tropAncien: tropAncienPourCompte(), recharger: manque };
 }
 
 /* Les écrans qui doivent relire leurs données quand un tiroir change. */
@@ -625,6 +669,7 @@ export function _reinitialiser() {
   ecritureRatee.clear();
   dejaGardees.clear();
   canalRecu = null;
+  manque = false;
   if (minuteur) clearTimeout(minuteur);
   minuteur = null;
 }

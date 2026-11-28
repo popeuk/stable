@@ -54,6 +54,7 @@ const { vault } = await import("@/lib/account/vault");
 const { setSession } = await import("@/lib/account/session");
 const nuage = await import("@/lib/account/nuage");
 const { depuisDistant } = await import("@/lib/account/format-clair");
+const { etatNuage } = await import("@/lib/account/etat-copie");
 
 const cle = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("base64");
 const compte = { kind: "compte" as const, userId: 7, email: "g@x.fr", prenom: "Claire", token: "t", dataKey: cle, at: "" };
@@ -116,11 +117,11 @@ describe("la copie en ligne des tiroirs", () => {
     await attendre();
     await vault.setItem("be-stable-settings", JSON.stringify({ state: { stableName: "X" } }));
     await attendre();
-    const avant = nuage.etatNuage();
+    const avant = etatNuage();
     expect(avant.attente).toBe(true);
     expect(avant.changements).toBe(3);
     await nuage.envoyer();
-    const apres = nuage.etatNuage();
+    const apres = etatNuage();
     expect(apres.attente).toBe(false);
     expect(apres.changements).toBe(0);
     expect(apres.aJour).not.toBeNull();
@@ -346,7 +347,7 @@ describe("la copie en ligne en clair (décision du 28 novembre 2026)", () => {
     expect(range(b).startsWith("bs-enc")).toBe(true);
     expect((await lire()).horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
     // Rien à renvoyer : B est aligné.
-    expect(nuage.etatNuage().attente).toBe(false);
+    expect(etatNuage().attente).toBe(false);
   });
 
   it("une copie distante encore chiffrée (bs-enc2) est lue, puis renvoyée en clair", async () => {
@@ -462,13 +463,13 @@ describe("la copie en ligne en clair (décision du 28 novembre 2026)", () => {
         // Signalé une fois, avec la phrase pour la gérante ; Mon compte le sait.
         expect(erreurs).toEqual([["copie", nuage.TEXTE_TROP_ANCIEN]]);
         expect(nuage.TEXTE_TROP_ANCIEN).toBe("Ton téléphone est trop ancien pour la copie en ligne : mets-le à jour pour partager avec ton équipe.");
-        expect(nuage.etatNuage()).toMatchObject({ allume: false, tropAncien: true });
+        expect(etatNuage()).toMatchObject({ allume: false, tropAncien: true });
       } finally {
         g2[manque] = garde;
       }
       // Remis à jour, le même téléphone synchronise de nouveau, sans écraser la copie en ligne d'un appareil neuf.
       tel.entrer();
-      expect(nuage.etatNuage().tropAncien).toBe(false);
+      expect(etatNuage().tropAncien).toBe(false);
       await sync();
       expect(serveur.appels).toBeGreaterThan(appels);
     });
@@ -505,7 +506,7 @@ describe("rien de noté ne se perd, pas de réessai en boucle (relecture, tour 1
       await vault.setItem("be-stable-data", ecurie(["Sirius"], ["Hugo"]));
       await attendre();
       await sync();
-      expect(nuage.etatNuage().attente).toBe(true);
+      expect(etatNuage().attente).toBe(true);
     } finally {
       g2.DecompressionStream = garde;
     }

@@ -1,8 +1,8 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { ecouterRefus, refusCopie } from "@/lib/account/nuage";
-import { texteRefus } from "@/lib/account/etat-copie";
+import { ecouterRefus, morceauManquant, refusCopie } from "@/lib/account/nuage";
+import { TEXTE_RECHARGER, texteRefus } from "@/lib/account/etat-copie";
 import { exporterSauvegarde } from "@/components/bs/secours";
 import { donneesPlusRecentes, ecouterVersion } from "@/lib/version-donnees";
 
@@ -14,6 +14,19 @@ import { donneesPlusRecentes, ecouterVersion } from "@/lib/version-donnees";
  */
 export function CopieBandeau() {
   const refus = useSyncExternalStore(ecouterRefus, refusCopie, () => null);
+  // Un morceau de l'app ne s'est pas chargé : la copie ne repartira qu'après un rechargement.
+  const recharger = useSyncExternalStore(ecouterRefus, morceauManquant, () => false);
+  if (recharger)
+    return (
+      <div className="es-keep bs-place fort" role="alert">
+        <span>
+          <b>{TEXTE_RECHARGER}</b>
+        </span>
+        <button type="button" className="btn" onClick={() => window.location.reload()}>
+          Recharger
+        </button>
+      </div>
+    );
   const texte = texteRefus(refus);
   if (!texte) return null;
   return (

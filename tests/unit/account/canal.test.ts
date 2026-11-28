@@ -24,9 +24,10 @@ g.localStorage = new Mem();
 g.window = globalThis;
 
 // Le serveur « tiroirs » : rend un canal dans son GET.
-const serveur = { canal: "ecurie-0123456789abcdef01234567" as unknown, rev: 0 };
+const serveur = { canal: "ecurie-0123456789abcdef01234567" as unknown, rev: 0, gets: 0 };
 g.fetch = (async (_url: string, init: RequestInit) => {
   const rep = (status: number, body: unknown) => ({ status, json: async () => body }) as Response;
+  if (init.method === "GET") serveur.gets++;
   if (init.method === "GET") return rep(200, { tiroirs: [], formats: ["bs-clair2:"], canal: serveur.canal });
   return rep(200, { rev: ++serveur.rev });
 }) as unknown as typeof fetch;
@@ -42,19 +43,20 @@ const compte = { kind: "compte" as const, userId: 7, email: "g@x.fr", prenom: "C
 
 /** Un faux client Realtime : garde les abonnements, `emettre` diffuse à ceux qui écoutent encore. */
 function fauxClient() {
-  const abonnes: { nom: string; rappel: (m: { payload?: unknown }) => void; ouvert: boolean }[] = [];
+  const abonnes: { nom: string; rappel: (m: { payload?: unknown }) => void; ouvert: boolean; etat: (e: string) => void }[] = [];
   return {
     abonnes,
     channel(nom: string) {
-      const a = { nom, rappel: (() => {}) as (m: { payload?: unknown }) => void, ouvert: false };
+      const a = { nom, rappel: (() => {}) as (m: { payload?: unknown }) => void, ouvert: false, etat: (() => {}) as (e: string) => void };
       abonnes.push(a);
       return {
         on(_type: "broadcast", _f: { event: string }, rappel: (m: { payload?: unknown }) => void) {
           a.rappel = rappel;
           return this;
         },
-        subscribe() {
+        subscribe(etat?: (e: string) => void) {
           a.ouvert = true;
+          if (etat) a.etat = etat;
           return this;
         },
         unsubscribe() {
@@ -65,6 +67,10 @@ function fauxClient() {
     },
     emettre(payload: unknown, nom?: string) {
       for (const a of abonnes) if (a.ouvert && (!nom || a.nom === nom)) a.rappel({ payload });
+    },
+    /** Le serveur Realtime dit où en est l'abonnement (SUBSCRIBED à chaque (re)connexion). */
+    etat(e: string) {
+      for (const a of abonnes) a.etat(e);
     },
     ouverts() {
       return abonnes.filter((a) => a.ouvert).map((a) => a.nom);
@@ -148,6 +154,50 @@ describe("ecouterCanal", () => {
     expect(vu).toEqual([]);
     expect(lireMessage({ nom: "be-stable-settings", rev: 2, appareil: "a" })).toEqual({ nom: "be-stable-settings", rev: 2, appareil: "a" });
     stop();
+  });
+});
+
+describe("reprise après une coupure", () => {
+  it("relit à chaque SUBSCRIBED sauf le premier, rien après la fermeture", () => {
+    let reprises = 0;
+    const stop = ecouterCanal("ecurie-x", () => {}, faux, () => reprises++);
+    faux.etat("SUBSCRIBED");
+    expect(reprises).toBe(0);
+    faux.etat("CHANNEL_ERROR");
+    faux.etat("TIMED_OUT");
+    expect(reprises).toBe(0);
+    faux.etat("SUBSCRIBED");
+    expect(reprises).toBe(1);
+    faux.etat("SUBSCRIBED");
+    expect(reprises).toBe(2);
+    stop();
+    faux.etat("SUBSCRIBED");
+    expect(reprises).toBe(2);
+  });
+
+  it("brancherCanal passe la reprise", () => {
+    let reprises = 0;
+    brancherCanal("ecurie-a", () => {}, faux, () => reprises++);
+    faux.etat("SUBSCRIBED");
+    faux.etat("SUBSCRIBED");
+    expect(reprises).toBe(1);
+  });
+});
+
+describe("relecture demandée pendant une lecture", () => {
+  it("attend la lecture en cours puis relit une fois de plus", async () => {
+    await nuage.synchroniser();
+    serveur.gets = 0;
+    const premiere = nuage.synchroniser();
+    const seconde = nuage.synchroniser();
+    await Promise.all([premiere, seconde]);
+    // Sans attente : la seconde se fond dans la première.
+    expect(serveur.gets).toBe(1);
+    serveur.gets = 0;
+    const lecture = nuage.synchroniser();
+    const canal = nuage.synchroniser(true);
+    await Promise.all([lecture, canal]);
+    expect(serveur.gets).toBe(2);
   });
 });
 

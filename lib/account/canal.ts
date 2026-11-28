@@ -1,6 +1,6 @@
 "use client";
 
-import { appareil, revConnue, TIROIRS } from "@/lib/account/nuage";
+import { appareil, charger, revConnue, TIROIRS } from "@/lib/account/nuage";
 
 /**
  * Le canal de l'écurie (Supabase Realtime, diffusion « broadcast », événement
@@ -30,14 +30,14 @@ export interface MessageCanal {
 export interface ClientCanal {
   channel(n: string): {
     on(type: "broadcast", filtre: { event: string }, rappel: (m: { payload?: unknown }) => void): unknown;
-    subscribe(): unknown;
+    subscribe(etat?: (e: string) => void): unknown;
     unsubscribe(): unknown;
   };
 }
 
 let clientPromis: Promise<ClientCanal | null> | null = null;
 function chargerClient(): Promise<ClientCanal | null> {
-  clientPromis ??= import("@supabase/supabase-js")
+  clientPromis ??= charger(() => import("@supabase/supabase-js"))
     .then(
       ({ createClient }) =>
         createClient(URL_SUPABASE, CLE_PUBLIQUE, {
@@ -46,8 +46,8 @@ function chargerClient(): Promise<ClientCanal | null> {
         }) as unknown as ClientCanal,
     )
     .catch(() => {
-      // Pas chargé (réseau) : on réessaiera au prochain branchement ; la relecture toutes les 2 minutes reste.
-      clientPromis = null;
+      // Pas chargé : le navigateur ne retente pas ce morceau avant un rechargement de l'app.
+      // `charger` l'a signalé (le bandeau propose de recharger) ; la relecture toutes les 2 minutes reste.
       return null;
     });
   return clientPromis;
@@ -68,8 +68,12 @@ export function lireMessage(brut: unknown): MessageCanal | null {
  * écrit une version que cet appareil n'a pas encore. Ignore sans lever ce qui
  * est mal formé, ce que cet appareil vient d'envoyer, et toute version déjà
  * connue (inférieure ou égale). Rend la fonction qui ferme l'abonnement.
+ *
+ * `surReprise` est appelé quand l'abonnement revient après une coupure (tout
+ * `SUBSCRIBED` sauf le premier) : les messages diffusés pendant la coupure
+ * sont perdus, il faut relire.
  */
-export function ecouterCanal(nom: string, surEcriture: (m: MessageCanal) => void, client?: ClientCanal): () => void {
+export function ecouterCanal(nom: string, surEcriture: (m: MessageCanal) => void, client?: ClientCanal, surReprise?: () => void): () => void {
   let ferme = false;
   let canal: ReturnType<ClientCanal["channel"]> | null = null;
   const ouvrir = (c: ClientCanal) => {
@@ -86,7 +90,16 @@ export function ecouterCanal(nom: string, surEcriture: (m: MessageCanal) => void
           // Un message qui fait trébucher la lecture est ignoré : jamais d'erreur vers l'écran.
         }
       });
-      canal.subscribe();
+      let abonne = false;
+      canal.subscribe((etat) => {
+        if (ferme || etat !== "SUBSCRIBED") return;
+        if (abonne) {
+          try {
+            surReprise?.();
+          } catch {}
+        }
+        abonne = true;
+      });
     } catch {
       canal = null;
     }
@@ -161,11 +174,11 @@ export function freiner(relire: () => Promise<unknown>, ecartMs = 2000): { deman
  * téléphone trop ancien).
  */
 let courant: { nom: string; stop: () => void } | null = null;
-export function brancherCanal(nom: string | null, surEcriture: (m: MessageCanal) => void, client?: ClientCanal): void {
+export function brancherCanal(nom: string | null, surEcriture: (m: MessageCanal) => void, client?: ClientCanal, surReprise?: () => void): void {
   if (courant?.nom === nom) return;
   courant?.stop();
   courant = null;
-  if (nom) courant = { nom, stop: ecouterCanal(nom, surEcriture, client) };
+  if (nom) courant = { nom, stop: ecouterCanal(nom, surEcriture, client, surReprise) };
 }
 export function canalBranche(): string | null {
   return courant?.nom ?? null;
