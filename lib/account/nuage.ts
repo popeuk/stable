@@ -16,10 +16,10 @@ import { depuisDistant, estClair, versClair } from "@/lib/account/format-clair";
  * copie chiffrée qu'il ne pouvait pas lire. L'appareil, lui, garde ses
  * tiroirs scellés avec la clé du compte (lib/account/vault), comme avant.
  * Une copie en ligne encore chiffrée (« bs-enc1: » / « bs-enc2: ») reste
- * lue, puis renvoyée en clair. Seule exception : un navigateur sans
- * CompressionStream (Safari iOS avant 16.4) envoie encore le contenu scellé,
- * que le serveur accepte toujours. Le serveur garde la dernière version de
- * chaque tiroir et les 30 précédentes.
+ * lue, puis renvoyée en clair. Un navigateur sans CompressionStream ou sans
+ * DecompressionStream (Safari iOS avant 16.4) ne synchronise plus du tout :
+ * il garde ses données sur l'appareil, et on le signale (TEXTE_TROP_ANCIEN).
+ * Le serveur garde la dernière version de chaque tiroir et les 30 précédentes.
  *
  * Chaque tiroir porte un numéro de version (`rev`). On envoie en disant
  * quelle version on avait reçue ; si le serveur en a une plus récente
@@ -103,19 +103,31 @@ let minuteur: ReturnType<typeof setTimeout> | null = null;
 let enCours: Promise<void> | null = null;
 let derniere: { quand: string; ok: boolean } | null = null;
 
-/** Ce navigateur sait-il compresser (donc envoyer en clair) ? Safari iOS avant 16.4, non. */
-const peutEnvoyerEnClair = () => typeof CompressionStream === "function";
+/** La phrase pour la gérante quand son navigateur ne sait pas lire ni écrire la copie en clair. */
+export const TEXTE_TROP_ANCIEN = "Ton téléphone est trop ancien pour la copie en ligne : mets-le à jour pour partager avec ton équipe.";
 
 /**
- * Ce qui part au serveur pour un contenu en clair : « bs-clair2: ». Sans
- * CompressionStream, `versClair` lève : on envoie alors `scelle` (le contenu
- * chiffré de l'appareil), que le serveur accepte encore, plutôt que rien.
+ * Ce navigateur ne sait pas compresser ou décompresser (Safari iOS avant
+ * 16.4) : il ne pourrait ni envoyer en clair ni lire la copie des autres
+ * appareils. Il ne synchronise donc plus du tout.
  */
-async function pourServeur(clair: string, scelle: string | null): Promise<string | null> {
+export function navigateurTropAncien(): boolean {
+  return typeof CompressionStream !== "function" || typeof DecompressionStream !== "function";
+}
+let tropAncienSignale = false;
+/** Dit une fois par session que ce navigateur est trop ancien (rien de l'écurie dans le message). */
+function signalerTropAncien() {
+  if (tropAncienSignale) return;
+  tropAncienSignale = true;
+  void signalerErreur("copie", TEXTE_TROP_ANCIEN);
+}
+
+/** Ce qui part au serveur pour un contenu en clair : « bs-clair2: » (null si la compression échoue). */
+async function pourServeur(clair: string): Promise<string | null> {
   try {
     return await versClair(clair);
   } catch {
-    return scelle;
+    return null;
   }
 }
 
@@ -168,8 +180,13 @@ export function lireDrapeau(search: string) {
 // Lu dès le chargement : une redirection (vers l'accueil, la connexion) ferait perdre le paramètre.
 if (typeof window !== "undefined" && typeof window.location?.search === "string") lireDrapeau(window.location.search);
 
+/** Un compte, la copie allumée, mais un navigateur trop ancien pour elle. */
+function tropAncienPourCompte(): boolean {
+  return getSession()?.kind === "compte" && nuageAllume() && navigateurTropAncien();
+}
+
 function actif(): boolean {
-  return getSession()?.kind === "compte" && nuageAllume();
+  return getSession()?.kind === "compte" && nuageAllume() && !navigateurTropAncien();
 }
 
 const cleEtat = () => scopedKey("bs-nuage");
@@ -343,10 +360,10 @@ async function adopterDistant(nom: Nom, d: Distant, clairD: string): Promise<boo
     relu(nom);
     return false;
   }
-  garderBase(nom, estClair(d.contenu) ? d.contenu : ((await pourServeur(clairD, null)) ?? d.contenu));
+  garderBase(nom, estClair(d.contenu) ? d.contenu : ((await pourServeur(clairD)) ?? d.contenu));
   const h = await empreinte(clairD);
-  // Encore chiffrée en ligne : on la renverra en clair (si ce navigateur sait le faire).
-  const renvoyer = !estClair(d.contenu) && peutEnvoyerEnClair();
+  // Encore chiffrée en ligne : on la renverra en clair.
+  const renvoyer = !estClair(d.contenu);
   majTiroir(nom, { rev: d.rev, empreinte: h, locale: h, sale: renvoyer, vu: true, modifie: d.modifie, ...(renvoyer ? { n: 1 } : {}) });
   return true;
 }
@@ -363,6 +380,7 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
   const clairD = await depuisDistant(d.contenu, (s) => coffre!.ouvrir(s));
   if (clairD === null) {
     // Illisible (clé d'un autre compte, contenu abîmé) : on ne touche pas à l'appareil, et on le renvoie.
+    // La copie en ligne est alors remplacée, mais le serveur la garde dans ses versions : elle reste récupérable.
     majTiroir(nom, { rev: d.rev, sale: true, vu: true });
     return false;
   }
@@ -374,14 +392,14 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
   if (choix.gagnant === "distant") {
     // Sans fusion, la copie de l'appareil est gardée sur le serveur avant d'être remplacée.
     if (!choix.fusion && clairL !== clairD) {
-      const contenu = await pourServeur(clairL, localStorage.getItem(scopedKey(nom)));
+      const contenu = await pourServeur(clairL);
       if (contenu) await appel("POST", { nom, contenu, rev: e.rev, modifie: e.modifie, appareil: appareil(), garder: true });
     }
     if (choix.clair === clairD) return adopterDistant(nom, d, clairD);
   }
   // L'appareil gagne, ou la copie gagnante reçoit des factures de l'autre : on l'écrit et on l'envoie.
   majTiroir(nom, { rev: d.rev, vu: true, empreinte: await empreinte(clairD) });
-  garderBase(nom, estClair(d.contenu) ? d.contenu : ((await pourServeur(clairD, null)) ?? d.contenu));
+  garderBase(nom, estClair(d.contenu) ? d.contenu : ((await pourServeur(clairD)) ?? d.contenu));
   if (choix.clair !== clairL) {
     marquerARelire(nom);
     await coffre.ecrire(nom, choix.clair);
@@ -390,8 +408,9 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
   return choix.clair !== clairL;
 }
 
-/** Envoie ce qui attend, en clair (« bs-clair2: ») ; scellé seulement sans CompressionStream. */
+/** Envoie ce qui attend, en clair (« bs-clair2: »). */
 export async function envoyer(): Promise<void> {
+  if (tropAncienPourCompte()) signalerTropAncien();
   if (!actif() || !tire || !coffre) return;
   let refuse = false;
   for (const nom of TIROIRS) {
@@ -401,7 +420,7 @@ export async function envoyer(): Promise<void> {
     if (!raw) continue;
     const clair = await coffre.lire(nom);
     if (clair === null) continue;
-    const contenu = await pourServeur(clair, raw);
+    const contenu = await pourServeur(clair);
     if (!contenu) continue;
     // Refusé tel quel juste avant : renvoyer la même chose ne servirait à rien. La taille est celle de ce qui part.
     if (refusTient(e.refus, contenu)) {
@@ -463,6 +482,7 @@ function signalerRefus() {
  */
 export async function synchroniser(): Promise<Set<string>> {
   const changes = new Set<string>();
+  if (tropAncienPourCompte()) signalerTropAncien();
   if (!actif() || !coffre) return changes;
   if (enCours) {
     await enCours;
@@ -488,7 +508,7 @@ export async function synchroniser(): Promise<Set<string>> {
       }
       if (e?.vu && d.rev === e.rev) {
         // Alignés, mais la copie en ligne est encore chiffrée : on la renvoie en clair.
-        if (!estClair(d.contenu) && !e.sale && raw && peutEnvoyerEnClair()) majTiroir(nom, { sale: true, n: 1 });
+        if (!estClair(d.contenu) && !e.sale && raw) majTiroir(nom, { sale: true, n: 1 });
         continue;
       }
       if (e?.vu && d.rev < e.rev) {
@@ -550,14 +570,15 @@ export async function envoyerMaintenant(): Promise<void> {
 }
 
 /** Où en est la copie en ligne, pour l'écran Mon compte. */
-export function etatNuage(): { allume: boolean; attente: boolean; changements: number; aJour: string | null; derniere: { quand: string; ok: boolean } | null; refus: CodeRefus | null } {
+export function etatNuage(): { allume: boolean; attente: boolean; changements: number; aJour: string | null; derniere: { quand: string; ok: boolean } | null; refus: CodeRefus | null; tropAncien: boolean } {
   const e = lireEtat();
   const sales = TIROIRS.filter((n) => e[n]?.sale);
   const changements = sales.reduce((t, n) => t + Math.max(1, e[n]?.n ?? 1), 0);
   // À jour : le dernier envoi ou la dernière lecture réussis, ici ou gardés d'une visite d'avant.
   const dates = [derniere?.ok ? derniere.quand : null, ...TIROIRS.map((n) => e[n]?.aligne ?? null)].filter((d): d is string => !!d);
   const aJour = dates.length ? dates.reduce((a, b) => (Date.parse(a) >= Date.parse(b) ? a : b)) : null;
-  return { allume: actif(), attente: sales.length > 0, changements, aJour, derniere, refus: refusCopie() };
+  // tropAncien : la copie est éteinte sur ce navigateur, l'écran peut dire TEXTE_TROP_ANCIEN.
+  return { allume: actif(), attente: sales.length > 0, changements, aJour, derniere, refus: refusCopie(), tropAncien: tropAncienPourCompte() };
 }
 
 /* Les écrans qui doivent relire leurs données quand un tiroir change. */
@@ -576,6 +597,7 @@ export function _reinitialiser() {
   tire = false;
   enCours = null;
   derniere = null;
+  tropAncienSignale = false;
   if (minuteur) clearTimeout(minuteur);
   minuteur = null;
 }

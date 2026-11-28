@@ -1,4 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+// Le canal d'erreur (vers Samuel), observé sans rien envoyer.
+const erreurs = vi.hoisted(() => [] as unknown[][]);
+vi.mock("@/lib/suivi-erreurs", () => ({ signalerErreur: async (...a: unknown[]) => (erreurs.push(a), true) }));
 
 // Un localStorage minimal par appareil, comme dans le navigateur.
 class Mem {
@@ -424,40 +428,49 @@ describe("la copie en ligne en clair (décision du 28 novembre 2026)", () => {
     expect(JSON.parse((await depuisDistant(conflits[0].contenu, async () => null))!).state.horses.map((h: { name: string }) => h.name)).toEqual(["Tango"]);
   });
 
-  it("sans CompressionStream (Safari iOS avant 16.4), l'envoi et la copie gardée partent scellés, comme avant", async () => {
-    const g2 = globalThis as { CompressionStream?: typeof CompressionStream };
-    const cs = g2.CompressionStream;
-    const pc = appareil();
-    const tel = appareil();
-    try {
-      delete g2.CompressionStream;
+  for (const manque of ["CompressionStream", "DecompressionStream"] as const) {
+    it(`sans ${manque} (Safari iOS avant 16.4), rien ne se synchronise, les données restent sur l'appareil et c'est signalé`, async () => {
+      // Une copie en ligne existe déjà, écrite par un appareil à jour.
+      const pc = appareil();
       pc.entrer();
       await sync();
       await vault.setItem("be-stable-data", ecurie(["Sirius", "Opale"]));
       await attendre();
       await nuage.envoyer();
-      expect(serveur.tiroirs.get("be-stable-data")!.contenu.startsWith("bs-enc1:")).toBe(true);
-      expect(nuage.etatNuage().attente).toBe(false);
-      // Un vieux téléphone neuf écrit avant d'avoir lu : sa version est gardée, scellée elle aussi.
-      tel.entrer();
-      await vault.setItem("be-stable-data", ecurie(["Tango"]));
-      await attendre();
-      await sync();
-      expect((await lire()).horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
-      const conflits = serveur.versions.filter((v) => v.raison === "conflit");
-      expect(conflits.length).toBeGreaterThan(0);
-      expect(conflits.every((v) => v.contenu.startsWith("bs-enc1:"))).toBe(true);
-      // Aligné sur une copie scellée, il ne la renvoie pas en boucle.
+      const enLigne = serveur.tiroirs.get("be-stable-data")!;
       const appels = serveur.appels;
+      erreurs.length = 0;
+
+      const g2 = globalThis as Record<string, unknown>;
+      const garde = g2[manque];
+      const tel = appareil();
+      try {
+        delete g2[manque];
+        tel.entrer();
+        await vault.setItem("be-stable-data", ecurie(["Tango"]));
+        await attendre();
+        await sync();
+        await nuage.envoyer();
+        await nuage.envoyerMaintenant();
+        // Aucun appel au serveur, la copie en ligne n'a pas bougé, aucune version gardée.
+        expect(serveur.appels).toBe(appels);
+        expect(serveur.tiroirs.get("be-stable-data")).toEqual(enLigne);
+        expect(serveur.versions.filter((v) => v.raison === "conflit")).toEqual([]);
+        // Les données du téléphone restent les siennes, scellées.
+        expect((await lire()).horses.map((h: { name: string }) => h.name)).toEqual(["Tango"]);
+        expect(range(tel).startsWith("bs-enc")).toBe(true);
+        // Signalé une fois, avec la phrase pour la gérante ; Mon compte le sait.
+        expect(erreurs).toEqual([["copie", nuage.TEXTE_TROP_ANCIEN]]);
+        expect(nuage.TEXTE_TROP_ANCIEN).toBe("Ton téléphone est trop ancien pour la copie en ligne : mets-le à jour pour partager avec ton équipe.");
+        expect(nuage.etatNuage()).toMatchObject({ allume: false, tropAncien: true });
+      } finally {
+        g2[manque] = garde;
+      }
+      // Remis à jour, le même téléphone synchronise de nouveau, sans écraser la copie en ligne d'un appareil neuf.
+      tel.entrer();
+      expect(nuage.etatNuage().tropAncien).toBe(false);
       await sync();
-      expect(serveur.appels).toBe(appels + 1);
-    } finally {
-      g2.CompressionStream = cs;
-    }
-    // Revenu à un navigateur à jour, l'autre appareil lit la copie scellée.
-    const neuf = appareil();
-    neuf.entrer();
-    await sync();
-    expect((await lire()).horses.map((h: { name: string }) => h.name)).toEqual(["Sirius", "Opale"]);
-  });
+      expect(serveur.appels).toBeGreaterThan(appels);
+    });
+  }
 });
