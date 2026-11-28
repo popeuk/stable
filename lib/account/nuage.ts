@@ -1,12 +1,20 @@
 "use client";
 
 import { getSession, scopedKey } from "@/lib/account/session";
-import { fusionFactures } from "@/lib/domain/factures-base";
-import { fusionner3 } from "@/lib/account/fusion";
-import type { StableData } from "@/lib/domain/types";
 import { estPlacePleine, noterPlacePleine } from "@/lib/account/place";
 import { signalerErreur } from "@/lib/suivi-erreurs";
-import { depuisDistant, estClair, versClair } from "@/lib/account/format-clair";
+
+/**
+ * Le format en clair (lib/account/format-clair) se charge à la demande, à la
+ * première lecture ou au premier envoi : il n'est pas dans le paquet de
+ * l'Accueil. Seul le test du préfixe reste ici (le même que PREFIXE_CLAIR).
+ */
+const estClair = (c: string) => c.startsWith("bs-clair2:");
+const formatClair = () => import("@/lib/account/format-clair");
+/** Lit un contenu venu du serveur (lève seulement si le format n'a pas pu se charger : rien n'est alors touché). */
+async function depuisDistant(contenu: string, ouvrirScelle: (s: string) => Promise<string | null>): Promise<string | null> {
+  return (await formatClair()).depuisDistant(contenu, ouvrirScelle);
+}
 
 /**
  * La copie en ligne des tiroirs d'un compte (Supabase, projet `bestable`).
@@ -125,7 +133,7 @@ function signalerTropAncien() {
 /** Ce qui part au serveur pour un contenu en clair : « bs-clair2: » (null si la compression échoue). */
 async function pourServeur(clair: string): Promise<string | null> {
   try {
-    return await versClair(clair);
+    return await (await formatClair()).versClair(clair);
   } catch {
     return null;
   }
@@ -224,7 +232,8 @@ function garderBase(nom: Nom, contenu: string) {
   }
 }
 
-function appareil(): string {
+/** L'identifiant de cet appareil, envoyé avec chaque écriture (le canal de l'écurie le renvoie). */
+export function appareil(): string {
   try {
     let id = localStorage.getItem("bs-appareil");
     if (!id) {
@@ -235,6 +244,33 @@ function appareil(): string {
   } catch {
     return "appareil";
   }
+}
+
+/** La version du serveur sur laquelle cet appareil est aligné pour ce tiroir (0 = aucune). */
+export function revConnue(nom: string): number {
+  return estNom(nom) ? (lireEtat()[nom]?.rev ?? 0) : 0;
+}
+
+/**
+ * Le canal Realtime de l'écurie ouverte, tel que le GET l'a donné
+ * (« ecurie- » et 24 caractères hexadécimaux), avec le tiroir de la session
+ * qui l'a reçu : un autre compte ou un autre espace d'équipe n'en hérite pas.
+ */
+let canalRecu: { portee: string; nom: string } | null = null;
+const FORME_CANAL = /^ecurie-[0-9a-f]{24}$/;
+function noterCanal(c: unknown) {
+  canalRecu = typeof c === "string" && FORME_CANAL.test(c) ? { portee: cleEtat(), nom: c } : null;
+}
+/** Le canal de l'écurie (la dernière valeur reçue), ou null : pas de copie en ligne, navigateur trop ancien, autre session. */
+export function canalDeLEcurie(): string | null {
+  if (!actif() || !canalRecu || canalRecu.portee !== cleEtat()) return null;
+  return canalRecu.nom;
+}
+
+/** En équipe, une écriture part au bout de 800 ms (les autres la voient vite), sinon au bout de 4 s. */
+function delaiEnvoi(): number {
+  const s = getSession();
+  return s?.kind === "compte" && (!!s.espace || !!s.avecEquipe) ? 800 : 4000;
 }
 
 export async function empreinte(clair: string): Promise<string> {
@@ -302,7 +338,7 @@ async function noter(nom: string, clair: string): Promise<void> {
   if (e?.empreinte === h && !e.sale) return;
   if (e?.locale === h && e.sale) return;
   majTiroir(nom, { sale: true, locale: h, modifie: new Date().toISOString(), n: (e?.sale ? (e.n ?? 1) : 0) + 1 });
-  if (actif()) planifierEnvoi();
+  if (actif()) planifierEnvoi(delaiEnvoi());
 }
 
 export function planifierEnvoi(ms = 4000) {
@@ -311,42 +347,6 @@ export function planifierEnvoi(ms = 4000) {
     minuteur = null;
     void envoyer();
   }, ms);
-}
-
-/**
- * Le choix entre la copie de l'appareil et celle du serveur. Pur : rend
- * le contenu à garder, et qui a gagné. Avec la dernière version commune,
- * les deux côtés se fusionnent (lib/account/fusion) : ce que chacun a
- * changé reste, le plus récent ne l'emporte que là où les deux ont changé
- * la même chose. Sans elle (appareil jamais aligné), la copie en ligne
- * gagne. Les factures des deux côtés restent toujours.
- */
-export function departager(
-  nom: string,
-  locale: { clair: string; modifie?: string; vu?: boolean },
-  distant: { clair: string; modifie: string },
-  base: string | null = null,
-): { gagnant: "locale" | "distant"; clair: string; fusion: boolean } {
-  const distantGagne = !locale.vu || !locale.modifie || Date.parse(distant.modifie) >= Date.parse(locale.modifie);
-  const fusion = locale.vu && base !== null ? fusionner3(base, locale.clair, distant.clair, !distantGagne) : null;
-  const [g, p] = fusion !== null ? [fusion, distant.clair] : distantGagne ? [distant.clair, locale.clair] : [locale.clair, distant.clair];
-  let clair = g;
-  if (nom === "be-stable-data") {
-    try {
-      const pg = JSON.parse(g) as { state?: Partial<StableData> };
-      const pp = JSON.parse(p) as { state?: Partial<StableData> };
-      if (pg?.state && pp?.state) {
-        const f = fusionFactures(pg.state as StableData, pp.state as StableData);
-        const avant = (pg.state.invoices ?? []).length;
-        const seqAvant = JSON.stringify(pg.state.invoiceSeq ?? {});
-        if (f.invoices.length !== avant || JSON.stringify(f.invoiceSeq) !== seqAvant) clair = JSON.stringify({ ...pg, state: { ...pg.state, ...f } });
-      }
-    } catch {
-      // Un des deux ne se lit pas : on garde le gagnant tel quel.
-    }
-  }
-  if (fusion !== null) return { gagnant: clair === distant.clair ? "distant" : "locale", clair, fusion: true };
-  return { gagnant: distantGagne ? "distant" : "locale", clair, fusion: false };
 }
 
 /**
@@ -408,6 +408,8 @@ async function resoudre(nom: Nom, d: Distant | null, simple = false): Promise<bo
   if (clairL === null) return adopterDistant(nom, d, clairD);
   const baseRaw = localStorage.getItem(cleBase(nom));
   const base = baseRaw ? await depuisDistant(baseRaw, (s) => coffre!.ouvrir(s)) : null;
+  // Le choix (et la fusion) ne sert qu'aux conflits : chargé à la demande, hors du paquet de l'Accueil.
+  const { departager } = await import("@/lib/account/departager");
   const choix = departager(nom, { clair: clairL, modifie: e.modifie, vu: e.vu }, { clair: clairD, modifie: d.modifie }, base);
   if (choix.gagnant === "distant") {
     // Sans fusion, la copie de l'appareil est gardée sur le serveur avant d'être remplacée.
@@ -454,7 +456,7 @@ export async function envoyer(): Promise<void> {
       const toujours = now?.locale === envoye;
       majTiroir(nom, { rev: r.json.rev, vu: true, refus: undefined, ...(toujours ? { sale: false, empreinte: envoye, n: 0, aligne: new Date().toISOString() } : {}) });
       if (e.refus) signalerRefus();
-      if (!toujours) planifierEnvoi();
+      if (!toujours) planifierEnvoi(delaiEnvoi());
     } else if (r.status === 409) {
       ecritureRatee.delete(nom);
       const changed = await resoudre(nom, (r.json.tiroir as Distant | null) ?? null);
@@ -518,6 +520,7 @@ export async function synchroniser(): Promise<Set<string>> {
       return changes;
     }
     noterFormats(r.json.formats);
+    noterCanal(r.json.canal);
     const distants = new Map(((r.json.tiroirs ?? []) as Distant[]).map((d) => [d.nom, d]));
     for (const nom of TIROIRS) {
       const d = distants.get(nom);
@@ -621,6 +624,7 @@ export function _reinitialiser() {
   tropAncienSignale = false;
   ecritureRatee.clear();
   dejaGardees.clear();
+  canalRecu = null;
   if (minuteur) clearTimeout(minuteur);
   minuteur = null;
 }

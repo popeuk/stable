@@ -38,7 +38,11 @@ jobs:
           NEXT_PUBLIC_VERSION_DATE: ${{ github.event.head_commit.timestamp }}
           NEXT_PUBLIC_PREPROD: "1"
           NEXT_PUBLIC_MONECURIE_API: https://f8a2-d405641a5d0e.wptiger.fr/wp-json/bestable/v1
-          NEXT_PUBLIC_NUAGE_URL: "off"
+          # La copie en ligne de préprod (28 novembre 2026) : sa propre fonction et ses propres tables, jamais les tiroirs réels.
+          NEXT_PUBLIC_NUAGE_URL: https://wgvithqivsygsoeyqruz.supabase.co/functions/v1/tiroirs-preprod
+          # Le canal de l'écurie (Realtime) : la clé publique du projet, faite pour être dans l'app.
+          NEXT_PUBLIC_SUPABASE_AUTH_URL: https://wgvithqivsygsoeyqruz.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_e6R9yC-WtMe39sWuIWPKRw_vudSuE0o
           NEXT_PUBLIC_SITES_API: https://sites.187-7-74-179.sslip.io
           # Mon site visible en préprod (5 novembre 2026), toujours masqué en production.
           NEXT_PUBLIC_PAYANT: "1"

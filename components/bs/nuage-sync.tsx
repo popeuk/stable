@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { getSession } from "@/lib/account/session";
-import { ecouterChangements, envoyer, lireDrapeau, synchroniser } from "@/lib/account/nuage";
+import { canalDeLEcurie, ecouterChangements, envoyer, lireDrapeau, synchroniser } from "@/lib/account/nuage";
 import { useDataStore } from "@/stores/data-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -31,6 +31,13 @@ async function numeroterLesProvisoires() {
  * attend dès que le réseau revient. Si un autre appareil a écrit, les
  * données à l’écran sont relues, et les factures faites sans réseau
  * reçoivent leur numéro. Allumée pour tous ; ?nuage=0 l’éteint sur un appareil.
+ *
+ * Après chaque lecture, l'app écoute le canal de l'écurie (lib/account/canal) :
+ * quand un membre de l'équipe vient d'écrire, elle relit en une seconde. Les
+ * relectures venues du canal sont freinées (une à la fois, une en attente,
+ * pas plus d'une toutes les 2 s). La relecture toutes les deux minutes et au
+ * retour sur l'app reste, au cas où le canal tombe. L'écoute (lib/account/canal)
+ * ne se charge qu'une fois un canal reçu : elle n'est pas dans le paquet de l'Accueil.
  */
 export function NuageSync() {
   useEffect(() => {
@@ -39,8 +46,28 @@ export function NuageSync() {
       if (noms.has("be-stable-data")) void useDataStore.persist.rehydrate();
       if (noms.has("be-stable-settings")) void useSettingsStore.persist.rehydrate();
     });
+    const relire = () => synchroniser().then(numeroterLesProvisoires);
+    let fini = false;
+    let ecoute: { mod: typeof import("@/lib/account/canal"); frein: { demander(): void; arreter(): void } } | null = null;
+    // Ouvre, change ou ferme l'écoute selon le canal de la session (aucun sans copie en ligne ou sur un téléphone trop ancien).
+    const suivreCanal = () => {
+      if (!canalDeLEcurie() && !ecoute) return;
+      void import("@/lib/account/canal")
+        .then((mod) => {
+          if (fini) return;
+          ecoute ??= { mod, frein: mod.freiner(relire, 2000) };
+          const { frein } = ecoute;
+          mod.brancherCanal(canalDeLEcurie(), () => frein.demander());
+        })
+        .catch(() => {});
+    };
     const tirer = () => {
-      if (document.visibilityState === "visible") void synchroniser().then(numeroterLesProvisoires);
+      if (document.visibilityState === "visible") void relire().finally(suivreCanal);
+      else suivreCanal();
+    };
+    // Une autre fenêtre a fermé ou changé la session : l'écoute suit.
+    const surStockage = (e: StorageEvent) => {
+      if (e.key === null || e.key === "be-stable-session") suivreCanal();
     };
     const pousser = () => void envoyer().then(numeroterLesProvisoires);
     tirer();
@@ -50,7 +77,12 @@ export function NuageSync() {
     const t = equipe ? setInterval(tirer, 120_000) : null;
     document.addEventListener("visibilitychange", tirer);
     window.addEventListener("online", pousser);
+    window.addEventListener("storage", surStockage);
     return () => {
+      fini = true;
+      ecoute?.frein.arreter();
+      ecoute?.mod.brancherCanal(null, () => {});
+      window.removeEventListener("storage", surStockage);
       off();
       if (t) clearInterval(t);
       document.removeEventListener("visibilitychange", tirer);
